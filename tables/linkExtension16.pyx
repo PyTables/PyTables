@@ -143,7 +143,7 @@ cdef class SoftLink(Link):
     super(SoftLink, self)._g_copy(newParent, newName, recursive,
                                   _log=True, **kwargs)
 
-    return self._v_file.getNode(newParent, newName)
+    return newParent._v_file.getNode(newParent, newName)
 
 
 

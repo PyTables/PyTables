@@ -4084,6 +4084,16 @@ ValueError: malformed type: 'foo bar'</screen>
             </glossentry>
 
             <glossentry>
+              <glossterm><emphasis role="bold">filters</emphasis></glossterm>
+
+              <glossdef>
+                <para>Default filter properties for the root group (see <xref
+                linkend="FiltersClassDescr" xrefstyle="select: label"
+                />).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
               <glossterm><emphasis
               role="bold">format_version</emphasis></glossterm>
 
@@ -4111,11 +4121,20 @@ ValueError: malformed type: 'foo bar'</screen>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis role="bold">title
-              </emphasis></glossterm>
+              <glossterm><emphasis role="bold">open_count</emphasis></glossterm>
 
               <glossdef>
-                <para>The title of the root group in the file.</para>
+                <para>The number of times this file has been opened
+                currently.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">root</emphasis></glossterm>
+
+              <glossdef>
+                <para>The <emphasis>root</emphasis> of the object tree
+                hierarchy (a <literal>Group</literal> instance).</para>
               </glossdef>
             </glossentry>
 
@@ -4130,23 +4149,14 @@ ValueError: malformed type: 'foo bar'</screen>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis role="bold">filters</emphasis></glossterm>
+              <glossterm><emphasis role="bold">title
+              </emphasis></glossterm>
 
               <glossdef>
-                <para>Default filter properties for the root group (see <xref
-                linkend="FiltersClassDescr" xrefstyle="select: label"
-                />).</para>
+                <para>The title of the root group in the file.</para>
               </glossdef>
             </glossentry>
 
-            <glossentry>
-              <glossterm><emphasis role="bold">root</emphasis></glossterm>
-
-              <glossdef>
-                <para>The <emphasis>root</emphasis> of the object tree
-                hierarchy (a <literal>Group</literal> instance).</para>
-              </glossdef>
-            </glossentry>
           </glosslist>
         </section>
 
@@ -12753,9 +12763,9 @@ indexrows = table.cols.var3.createIndex()</screen>
           <para>it is possible to determine, by analysing the data
           distribution and the query limits, that <literal>col4</literal> is
           such a <emphasis>main column</emphasis>.  So, by ordering the table
-          by the <literal>col4</literal> column (for example, by setting
-          the <literal>sortby</literal> parameter to true in
-          the <literal>Table.copy()</literal> method, see
+          by the <literal>col4</literal> column (for example, by specifying
+          setting the column to sort by in the <literal>sortby</literal>
+          parameter in the <literal>Table.copy()</literal> method, see
           <xref linkend="Table.copy" />), and re-indexing
           <literal>col2</literal> and <literal>col4</literal> afterwards, we
           should get much faster performance for our query.  This is

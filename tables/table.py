@@ -1942,9 +1942,9 @@ table format '%s'. The error was: <%s>
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
         nrows = lrange(start, stop, step).length
-        if len(rows) < nrows:
+        if len(rows) != nrows:
             raise ValueError, \
-           "The value has not enough elements to fill-in the specified range"
+           "The value has different elements than the specified range"
 
         # Convert rows into a recarray
         recarr = self._conv_to_recarr(rows)

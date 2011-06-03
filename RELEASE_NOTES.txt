@@ -6,11 +6,29 @@
 :Contact: faltet@pytables.org
 
 
-Changes from 2.2 to 2.3b1
-=========================
+Changes from 2.2.1 to 2.3b1
+===========================
 
 - Indexes with no elements are now evaluated as non-CSI ones.  Closes
   #312.
+
+- Numexpr presence is tested now in setup.py, provided that user is not
+  using setuptools (i.e. ``easy_install`` or ``pip`` tools).  When using
+  setuptools, numexpr continues to be a requisite (and Cython too).
+  Closes #298.
+
+- Cython is enforced now during compilation time.  Also, it is not
+  required when running tests.
+
+- Repeatedly closing a file that has been reopened several times is
+  supported now.  Closes #318.
+
+- The number of times a file has been currently reopened is available
+  now in the new `File.open_count` read-only attribute.
+
+
+Changes from 2.2 to 2.2.1
+=========================
 
 - When using `ObjectAtom` objects in `VLArrays` the ``HIGHEST_PROTOCOL``
   is used for pickling objects.  For NumPy arrays, this simple change

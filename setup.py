@@ -6,6 +6,7 @@ import sys, os, shutil
 import textwrap
 from os.path import exists, expanduser
 import re
+import subprocess
 
 # Using ``setuptools`` enables lots of goodies, such as building eggs.
 if 'FORCE_SETUPTOOLS' in os.environ:
@@ -64,15 +65,27 @@ def check_import(pkgname, pkgver):
     globals()[pkgname] = mod
 
 check_import('numpy', min_numpy_version)
+# Check for numexpr only if not using setuptools (see #298)
+if not has_setuptools:
+    check_import('numexpr', min_numexpr_version)
 
-# Check if Cython is installed or not
+# Check if Cython is installed or not (requisite)
 try:
     from Cython.Distutils import build_ext
-    cython = 1
+    from Cython.Compiler.Main import Version
     cmdclass = {'build_ext': build_ext}
 except:
-    cython = 0
-    cmdclass = {}
+    exit_with_error(
+        "You need %(pkgname)s %(pkgver)s or greater to compile PyTables!"
+        % {'pkgname': 'Cython', 'pkgver': min_cython_version} )
+
+if Version.version < min_cython_version:
+    exit_with_error(
+        "At least Cython %s is needed so as to generate extensions!"
+        % (min_cython_version) )
+else:
+    print ( "* Found %(pkgname)s %(pkgver)s package installed."
+            % {'pkgname': 'Cython', 'pkgver': Version.version} )
 
 VERSION = open('VERSION').read().strip()
 
@@ -420,47 +433,33 @@ if VERSION.endswith('pro'):
         'lrucacheExtension',
         'indexesExtension' ])
 
+
 def get_cython_extfiles(extnames):
-    global cython
     extdir = 'tables'
     extfiles = {}
-
-    # Copy extensions that depends on the HDF5 version
-    hdf5_maj_version, hdf5_min_version = hdf5_version[:2]
-    if (hdf5_maj_version, hdf5_min_version) == (1,6):
-        shutil.copy(os.path.join(extdir,'linkExtension16.pyx'),
-                    os.path.join(extdir,'linkExtension.pyx'))
-    elif (hdf5_maj_version, hdf5_min_version) == (1,8):
-        shutil.copy(os.path.join(extdir,'linkExtension18.pyx'),
-                    os.path.join(extdir,'linkExtension.pyx'))
-    else:
-        exit_with_error("Unsupported HDF5 version!")
 
     for extname in extnames:
         extfile = os.path.join(extdir, extname)
         extpfile = '%s.pyx' % extfile
         extcfile = '%s.c' % extfile
-        if not exists(extpfile):
-            # The Cython sources does not exist.  Give up with Cython.
-            cython = 0
-        elif not cython and newer(extpfile, extcfile):
-            exit_with_error(
-                "Need Cython (at least %s) to generate extensions. "
-                % min_cython_version,
-                "The ``%s`` file does not exist or is out of date "
-                "and Cython is not available. Please install Cython "
-                "in order to properly generate the extension."
-                % extcfile )
-        if cython and newer(extpfile, extcfile):
-            from Cython.Compiler.Main import Version
-            if Version.version < min_cython_version:
-                exit_with_error(
-                    "At least Cython %s is needed so as to generate extensions!"
-                    % (min_cython_version) )
-        if cython:
-            extfiles[extname] = extpfile
-        else:
-            extfiles[extname] = extcfile
+        if not exists(extcfile) or newer(extpfile, extcfile):
+            # Copy extensions that depends on the HDF5 version
+            hdf5_maj_version, hdf5_min_version = hdf5_version[:2]
+            hdf5_majmin = "%d%d" % (hdf5_maj_version, hdf5_min_version)
+            if not hdf5_majmin in ("16", "18"):
+                exit_with_error("Unsupported HDF5 version!")
+            specific_ext = os.path.join(extdir, extname + hdf5_majmin + ".pyx")
+            if exists(specific_ext):
+                shutil.copy(specific_ext, extpfile)
+            # For some reason, setup in setuptools does not compile
+            # Cython files (!)  Do that manually...
+            print "cythoning %s to %s" % (extpfile, extcfile)
+            retcode = subprocess.call(["cython", extpfile])
+            if retcode > 0:
+                print "cython aborted compilation with retcode:", retcode
+                sys.exit()
+        extfiles[extname] = extcfile
+
     return extfiles
 
 
@@ -479,12 +478,17 @@ if has_setuptools:
     # PyTables contains data files for tests.
     setuptools_kwargs['zip_safe'] = False
 
-    # ``NumPy`` headers are needed for building the extensions.
-    setuptools_kwargs['setup_requires'] = ['numpy>=%s' % min_numpy_version]
+    # ``NumPy`` headers are needed for building the extensions, as
+    # well as Cython.
+    setuptools_kwargs['setup_requires'] = [
+        'numpy>=%s' % min_numpy_version,
+        'cython>=%s' % min_cython_version,
+        ]
     # ``NumPy`` and ``Numexpr`` are absolutely required for running PyTables.
-    setuptools_kwargs['install_requires'] = \
-                                          ['numpy>=%s' % min_numpy_version,
-                                           'numexpr>=%s' % min_numexpr_version]
+    setuptools_kwargs['install_requires'] = [
+        'numpy>=%s' % min_numpy_version,
+        'numexpr>=%s' % min_numexpr_version,
+        ]
     setuptools_kwargs['extras_require'] = {
         'Numeric': ['Numeric>=24.2'],  # for ``Numeric`` support
         'netCDF': ['ScientificPython'],  # for netCDF interchange

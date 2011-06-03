@@ -1429,7 +1429,7 @@ class setItem(common.PyTablesTestCase):
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
 
         # Modify two existing rows
-        rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
+        rows = records.array([[457,'db1',1.2]],
                              formats=formats)
         table[1:3:2] = rows
         # Create the modified recarray
@@ -1680,9 +1680,9 @@ class setItem(common.PyTablesTestCase):
 
         # Try to modify beyond the extend
         # This will silently exclude the non-fitting rows
-        rows = records.array([[457,'db1',1.2],[6,'de2',1.3],[457,'db1',1.2]],
+        rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
                              formats=formats)
-        table[1:6:2] = rows
+        table[1::2] = rows
         # How it should look like
         r1 = records.array([[456,'dbe',1.2],[457,'db1',1.2],
                             [457,'db1',1.2],[6,'de2',1.3]],

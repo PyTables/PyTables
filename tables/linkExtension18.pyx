@@ -135,7 +135,7 @@ cdef class Link(Node):
     if stats is not None:
       stats['links'] += 1
 
-    return self._v_file.getNode(newParent, newName)
+    return newParent._v_file.getNode(newParent, newName)
 
 
 

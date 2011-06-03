@@ -66,6 +66,8 @@ SYS_ATTRS_PREFIXES = ["FIELD_"]
 # The next attributes are not meant to be copied during a Node copy process
 SYS_ATTRS_NOTTOBECOPIED = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
                            "PYTABLES_FORMAT_VERSION", "FILTERS", "ENCODING"]
+# Attributes forced to be copied during node copies
+FORCE_COPY_CLASS = ['CLASS', 'VERSION']
 # Regular expression for column default values.
 _field_fill_re = re.compile('^FIELD_[0-9]+_FILL$')
 # Regular expression for fixing old pickled filters.
@@ -580,7 +582,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         delattr(self, oldattrname)
 
 
-    def _g_copy(self, newSet, setAttr = None):
+    def _g_copy(self, newSet, setAttr=None, copyClass=False):
         """
         Copy set attributes.
 
@@ -604,14 +606,19 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             if attrname not in self._v_unimplemented:
                 setAttr(attrname, getattr(self, attrname))
         # Copy the system attributes that we are allowed to.
-        for attrname in self._v_attrnamessys:
-            if (copysysattrs and
-                (attrname not in SYS_ATTRS_NOTTOBECOPIED) and
-                # Do not copy the FIELD_ atributes in tables as this can
-                # be really *slow* (don't know exactly the reason).
-                # See #304.
-                not attrname.startswith("FIELD_")):
-                setAttr(attrname, getattr(self, attrname))
+        if copysysattrs:
+            for attrname in self._v_attrnamessys:
+                if ((attrname not in SYS_ATTRS_NOTTOBECOPIED) and
+                    # Do not copy the FIELD_ atributes in tables as this can
+                    # be really *slow* (don't know exactly the reason).
+                    # See #304.
+                    not attrname.startswith("FIELD_")):
+                    setAttr(attrname, getattr(self, attrname))
+            # Copy CLASS and VERSION attributes if requested
+            if copyClass:
+                for attrname in FORCE_COPY_CLASS:
+                    if attrname in self._v_attrnamessys:
+                        setAttr(attrname, getattr(self, attrname))
 
 
     def _f_copy(self, where):

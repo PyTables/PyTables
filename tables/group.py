@@ -324,14 +324,11 @@ class Group(hdf5Extension.Group, Node):
         super(Group, self).__del__()
 
 
-    def _g_getChildGroupClass(self, childName, warn=True):
+    def _g_getChildGroupClass(self, childName):
         """
         Get the class of a not-yet-loaded group child.
 
-        `childName` must be the name of a *group* child.  If the child
-        belongs to an unknown kind of group, or if it lacks a ``CLASS``
-        attribute, `Group` will be returned and a warning will be issued
-        if `warn` is true and the node belongs to a PyTables file.
+        `childName` must be the name of a *group* child.
         """
 
         childCID = self._g_getGChildAttr(childName, 'CLASS')
@@ -339,13 +336,6 @@ class Group(hdf5Extension.Group, Node):
         if childCID in classIdDict:
             return classIdDict[childCID]  # look up group class
         else:
-            if warn and self._v_file._isPTFile:
-                # All kinds of groups in a PyTables file should have
-                # a known ``CLASS`` attribute value.
-                warnings.warn(
-                    "group ``%s`` has an unknown class ID ``%s``; "
-                    "it will become a standard ``Group`` node"
-                    % (self._g_join(childName), childCID))
             return Group  # default group class
 
 
@@ -552,7 +542,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # Check if there is already a child with the same name.
         # This can be triggered because of the user
         # (via node construction or renaming/movement).
-        if childName in self:
+        # Links are not checked here because they are copied and referenced
+        # using ``File.getNode`` so they already exist in `self`.
+        if (not isinstance(childNode, Link)) and childName in self:
             raise NodeError(
                 "group ``%s`` already has a child node named ``%s``"
                 % (self._v_pathname, childName))
@@ -649,7 +641,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # Copy user attributes if needed.
         if kwargs.get('copyuserattrs', True):
-            self._v_attrs._g_copy(newNode._v_attrs)
+            self._v_attrs._g_copy(newNode._v_attrs, copyClass=True)
 
         # Update statistics if needed.
         if stats is not None:
@@ -1195,7 +1187,7 @@ class RootGroup(Group):
         # build a PyTables node and return it.
         if node_type == "Group":
             if self._v_file.params['PYTABLES_SYS_ATTRS']:
-                childClass = self._g_getChildGroupClass(childName, warn=True)
+                childClass = self._g_getChildGroupClass(childName)
             else:
                 # Default is a Group class
                 childClass = Group

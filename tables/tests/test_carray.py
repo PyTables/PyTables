@@ -871,9 +871,9 @@ class OffsetStrideTestCase(unittest.TestCase):
                                          "Array of strings",
                                          chunkshape=(1,2,2))
         a = numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
-        carray[0] = a[:,1:]
+        carray[0] = a[0,1:]
         a = numpy.array([[["s", "a"],["ab", "f"],["s", "abc"],["abc", "f"]]])
-        carray[1] = a[:,2:]
+        carray[1] = a[0,2:]
 
         # Read all the data:
         data = carray.read()
@@ -903,9 +903,9 @@ class OffsetStrideTestCase(unittest.TestCase):
                                          "Array of strings",
                                          chunkshape=(1,2,2))
         a = numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
-        carray[0] = a[:,::2]
+        carray[0] = a[0,::2]
         a = numpy.array([[["s", "a"],["ab", "f"],["s", "abc"],["abc", "f"]]])
-        carray[1] = a[:,::2]
+        carray[1] = a[0,::2]
 
         # Read all the rows:
         data = carray.read()
@@ -2277,7 +2277,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen('a')
             ca = self.h5file.root.test
         # Assign one row
-        ca[0] = [[[1,3],[4,5]]]
+        ca[0] = [[1,3],[4,5]]
         self.assert_(ca.nrows == 1)
         if common.verbose:
             print "First row-->", ca[0]

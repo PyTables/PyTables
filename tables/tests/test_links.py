@@ -169,10 +169,33 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self._createFile()
         # Copy the link into another location
-        lgroup1 = self.h5file.root.lgroup1
+        root = self.h5file.root
+        lgroup1 = root.lgroup1
         lgroup2 = lgroup1.copy('/', 'lgroup2')
         self.assert_('/lgroup1' in self.h5file)
         self.assert_('/lgroup2' in self.h5file)
+        self.assert_('lgroup2' in root._v_children)
+        self.assert_('lgroup2' in root._v_links)
+        if common.verbose:
+            print "Copied link:", lgroup2
+        # Remove the first link
+        lgroup1.remove()
+        self._checkEqualityGroup(self.h5file.root.group1,
+                                 self.h5file.root.lgroup2())
+
+    def test03_overwrite(self):
+        """Overwrite a soft link."""
+
+        self._createFile()
+        # Copy the link into another location
+        root = self.h5file.root
+        lgroup1 = root.lgroup1
+        lgroup2 = lgroup1.copy('/', 'lgroup2')
+        lgroup2 = lgroup1.copy('/', 'lgroup2', overwrite=True)
+        self.assert_('/lgroup1' in self.h5file)
+        self.assert_('/lgroup2' in self.h5file)
+        self.assert_('lgroup2' in root._v_children)
+        self.assert_('lgroup2' in root._v_links)
         if common.verbose:
             print "Copied link:", lgroup2
         # Remove the first link
@@ -292,6 +315,24 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "Second dereference is correct:", lgroup2()()
 
 
+    def test10_copy_link_to_file(self):
+        """Checking copying a link to another file."""
+        self._createFile()
+        fname = tempfile.mktemp(".h5")
+        h5f = t.openFile(fname, "a")
+        arr1_ = h5f.createArray('/', 'arr1', [1,2])
+        group1_ = h5f.createGroup('/', 'group1')
+        lgroup1 = self.h5file.root.lgroup1
+        lgroup1_ = lgroup1.copy(h5f.root, 'lgroup1')
+        self.assert_('/lgroup1' in self.h5file)
+        self.assert_('/lgroup1' in h5f)
+        self.assert_(lgroup1_ in h5f)
+        if common.verbose:
+            print "Copied link:", lgroup1_, 'in:', lgroup1_._v_file.filename
+        h5f.close()
+        os.remove(fname)
+
+
 
 # Test for external links
 class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -377,10 +418,34 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self._createFile()
         # Copy the link into another location
-        lgroup1 = self.h5file.root.lgroup1
+        root = self.h5file.root
+        lgroup1 = root.lgroup1
         lgroup2 = lgroup1.copy('/', 'lgroup2')
         self.assert_('/lgroup1' in self.h5file)
         self.assert_('/lgroup2' in self.h5file)
+        self.assert_('lgroup2' in root._v_children)
+        self.assert_('lgroup2' in root._v_links)
+        if common.verbose:
+            print "Copied link:", lgroup2
+        # Remove the first link
+        lgroup1.remove()
+        self._checkEqualityGroup(self.exth5file.root.group1,
+                                 self.h5file.root.lgroup2())
+
+
+    def test03_overwrite(self):
+        """Overwrite an external link."""
+
+        self._createFile()
+        # Copy the link into another location
+        root = self.h5file.root
+        lgroup1 = root.lgroup1
+        lgroup2 = lgroup1.copy('/', 'lgroup2')
+        lgroup2 = lgroup1.copy('/', 'lgroup2', overwrite=True)
+        self.assert_('/lgroup1' in self.h5file)
+        self.assert_('/lgroup2' in self.h5file)
+        self.assert_('lgroup2' in root._v_children)
+        self.assert_('lgroup2' in root._v_links)
         if common.verbose:
             print "Copied link:", lgroup2
         # Remove the first link
@@ -468,6 +533,22 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         link.umount()
         self.assert_(link.extfile is None)
 
+    def test10_copy_link_to_file(self):
+        """Checking copying a link to another file."""
+        self._createFile()
+        fname = tempfile.mktemp(".h5")
+        h5f = t.openFile(fname, "a")
+        arr1_ = h5f.createArray('/', 'arr1', [1,2])
+        group1_ = h5f.createGroup('/', 'group1')
+        lgroup1 = self.h5file.root.lgroup1
+        lgroup1_ = lgroup1.copy(h5f.root, 'lgroup1')
+        self.assert_('/lgroup1' in self.h5file)
+        self.assert_('/lgroup1' in h5f)
+        self.assert_(lgroup1_ in h5f)
+        if common.verbose:
+            print "Copied link:", lgroup1_, 'in:', lgroup1_._v_file.filename
+        h5f.close()
+        os.remove(fname)
 
 
 # Test for external links that are not supported in HDF5 1.6.x

@@ -2148,8 +2148,7 @@ class setItem(common.PyTablesTestCase):
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
 
         # Modify two existing rows
-        rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
-                             formats="i4,a3,f8")
+        rows = records.array([[457,'db1',1.2]], formats="i4,a3,f8")
         table[1:3:2] = rows
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
@@ -2448,9 +2447,9 @@ class setItem(common.PyTablesTestCase):
 
         # Try to modify beyond the extend
         # This will silently exclude the non-fitting rows
-        rows = records.array([[457,'db1',1.2],[6,'de2',1.3],[457,'db1',1.2]],
+        rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
                              formats="i4,a3,f8")
-        table[1:6:2] = rows
+        table[1::2] = rows
         # How it should look like
         r1 = records.array([[456,'dbe',1.2],[457,'db1',1.2],
                             [457,'db1',1.2],[6,'de2',1.3]],
@@ -3342,6 +3341,31 @@ class RecArrayIO(unittest.TestCase):
         assert r1.tostring() == r2.tostring()
         assert table.nrows == 4
 
+        fileh.close()
+        os.remove(file)
+
+    def test07c(self):
+        "Checking modifying several rows with a mismatching value"
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07c..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        # Modify two existing rows
+        rows = records.array([[457,'db1',1.2],[5,'de1',1.3]],
+                             formats="i4,a3,f8")
+        self.assertRaises(ValueError, table.modifyRows,
+                          start=1, stop=2, rows=rows)
         fileh.close()
         os.remove(file)
 

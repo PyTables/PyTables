@@ -486,7 +486,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         # Copy user attributes if requested (or the flavor at least).
         if copyuserattrs == True:
-            self._v_attrs._g_copy(newNode._v_attrs)
+            self._v_attrs._g_copy(newNode._v_attrs, copyClass=True)
         elif 'FLAVOR' in self._v_attrs:
             if self._v_file.params['PYTABLES_SYS_ATTRS']:
                 newNode._v_attrs._g__setattr('FLAVOR', self._flavor)

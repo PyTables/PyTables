@@ -1006,7 +1006,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         # Read a chunk of the table
-        chunk = table[3]
+        chunk = table[3:4]
         # Modify it somewhat
         chunk['y'][:] = -1
         table.modifyRows(6, 7, 1, chunk)
@@ -1036,7 +1036,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         # Read a chunk of the table
-        chunk = table[3]
+        chunk = table[3:4]
         # Modify it somewhat
         chunk['y'][:] = -1
         table.cols[6] = chunk

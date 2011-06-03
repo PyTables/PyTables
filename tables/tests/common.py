@@ -194,7 +194,8 @@ def areArraysEqual(arr1, arr2):
     t1 = type(arr1)
     t2 = type(arr2)
 
-    if not ((t1 is t2) or issubclass(t1, t2) or issubclass(t2, t1)):
+    if not ((hasattr(arr1, 'dtype') and arr1.dtype == arr2.dtype) or
+            issubclass(t1, t2) or issubclass(t2, t1)):
         return False
 
     if numarray_imported:

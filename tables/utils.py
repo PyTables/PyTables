@@ -97,13 +97,7 @@ def convertToNPAtom(arr, atom, copy=False):
         # for details.
         # All of this is done just to taking advantage of the NumPy
         # broadcasting rules.
-        # A copy of original data always is made in this case (this is why
-        # the `copy` argument is not used here).
-        # F. Alted  2008-10-13
         newshape = nparr.shape[:-len(atom.dtype.shape)]
-        if newshape == ():
-            # In order to allow the assignation later on
-            newshape = (1,)
         nparr2 = numpy.empty(newshape, dtype=[('', atom.dtype)])
         nparr2['f0'][:] = nparr
         # Return a view (i.e. get rid of the record type)

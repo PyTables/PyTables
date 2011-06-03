@@ -454,6 +454,55 @@ class CreateTestCase(unittest.TestCase):
                 "pq", "qr", "rs"]
 
 
+    def test10c_copyAttributes(self):
+        """Checking copying attributes during group copies"""
+
+        # With a Group object
+        self.group._v_attrs['CLASS'] = "GROUP2"
+        self.group._v_attrs['VERSION'] = "1.3"
+        # copy "/agroup" to "/agroup2"
+        self.fileh.copyNode(self.group, self.root, "agroup2")
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(
+                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+            self.root = self.fileh.root
+
+        agroup2 = self.root.agroup2
+        if common.verbose:
+            print "Complete attribute list:", agroup2._v_attrs._f_list("all")
+        self.assert_(agroup2._v_attrs['CLASS'] == "GROUP2")
+        self.assert_(agroup2._v_attrs['VERSION'] == "1.3")
+
+
+    def test10d_copyAttributes(self):
+        """Checking copying attributes during leaf copies"""
+
+        # With a Group object
+        atable = self.root.atable
+        atable._v_attrs['CLASS'] = "TABLE2"
+        atable._v_attrs['VERSION'] = "1.3"
+        # copy "/agroup" to "/agroup2"
+        self.fileh.copyNode(atable, self.root, "atable2")
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(
+                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+            self.root = self.fileh.root
+
+        atable2 = self.root.atable2
+        if common.verbose:
+            print "Complete attribute list:", atable2._v_attrs._f_list("all")
+        self.assert_(atable2._v_attrs['CLASS'] == "TABLE2")
+        self.assert_(atable2._v_attrs['VERSION'] == "1.3")
+
+
     def test11a_getitem(self):
         """Checking the __getitem__ interface."""
 
