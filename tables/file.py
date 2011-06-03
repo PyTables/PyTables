@@ -39,20 +39,7 @@ import os, os.path
 import sys
 import weakref
 
-from tables.req_versions import *
-
-# Check for Numexpr presence (aboslute requisite)
-try:
-    import numexpr
-    if numexpr.__version__ < min_numexpr_version:
-        print \
-"*Warning*: Numexpr version is lower than recommended: %s < %s" % \
-            (numexpr.__version__, min_numexpr_version)
-except ImportError:
-        print \
-"*Fatal error*: You need Numexpr >= %s for running PyTables!" % \
-                  (min_numexpr_version)
-        sys.exit(1)
+import numexpr
 
 import tables.misc.proxydict
 from tables import hdf5Extension
@@ -245,7 +232,8 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
     # Get the list of already opened files
     ofiles = [fname for fname in _open_files]
     if filename in ofiles:
-        omode = _open_files[filename].mode
+        filehandle = _open_files[filename]
+        omode = filehandle.mode
         # 'r' is incompatible with everything except 'r' itself
         if mode == 'r' and omode != 'r':
             raise ValueError(
@@ -264,7 +252,9 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
                 "close it before reopening in write mode." % filename)
         else:
             # The file is already open and modes are compatible
-            return _open_files[filename]
+            # Increase the number of openings for this file
+            filehandle._open_count += 1
+            return filehandle
     # Finally, create the File instance, and return it
     return File(filename, mode, title, rootUEP, filters, **kwargs)
 
@@ -506,6 +496,10 @@ class File(hdf5Extension.File, object):
         "Default filter properties for the root group "
         "(see the `Filters` class).")
 
+    open_count = property(
+        lambda self: self._open_count, None, None,
+        "The number of times this file has been opened currently.")
+
     ## </properties>
 
 
@@ -566,6 +560,9 @@ class File(hdf5Extension.File, object):
 
         # Append the name of the file to the global dict of files opened.
         _open_files[self.filename] = self
+
+        # Set the number of times this file has been opened to 1
+        self._open_count = 1
 
         # Get the root group from this file
         self.root = root = self.__getRootGroup(rootUEP, title, filters)
@@ -2127,6 +2124,12 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
         # If the file is already closed, return immediately
         if not self.isopen:
+            return
+
+        # If this file has been opened more than once, decrease the
+        # counter and return
+        if self._open_count > 1:
+            self._open_count -= 1
             return
 
         filename = self.filename

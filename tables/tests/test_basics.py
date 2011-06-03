@@ -2071,6 +2071,30 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.close()
         self.assertRaises(ClosedNodeError, getattr, node, '_v_attrs')
 
+    def test23_reopenFile(self):
+        """Testing reopening a file and closing it several times."""
+
+        node = self.h5file.createArray('/', 'test', [1,2,3])
+        self.h5file.close()
+
+        file1 = openFile(self.h5fname, "r")
+        self.assert_(file1.open_count == 1)
+        file2 = openFile(self.h5fname, "r")
+        self.assert_(file1.open_count == 2)
+        self.assert_(file2.open_count == 2)
+        if common.verbose:
+            print "(file1) open_count:", file1.open_count
+            print "(file1) test[1]:", file1.root.test[1]
+        self.assert_(file1.root.test[1] == 2)
+        file1.close()
+        self.assert_(file2.open_count == 1)
+        if common.verbose:
+            print "(file2) open_count:", file2.open_count
+            print "(file2) test[1]:", file2.root.test[1]
+        self.assert_(file2.root.test[1] == 2)
+        file2.close()
+
+
 
 class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
@@ -2281,6 +2305,7 @@ class BloscSubprocess(common.PyTablesTestCase):
             print result
 
         os.remove(fn)
+
 
 
 #----------------------------------------------------------------------

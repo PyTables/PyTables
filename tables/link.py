@@ -33,6 +33,7 @@ from tables import linkExtension
 from tables.node import Node
 from tables.utils import lazyattr
 from tables.attributeset import AttributeSet
+import tables.file
 
 try:
     from tables.linkExtension import ExternalLink
@@ -220,8 +221,8 @@ if are_extlinks_available:
             dereferenced.  In case the link has not been dereferenced
             yet, its value is None."""
             super(ExternalLink, self).__init__(parentNode, name, target, _log)
-            
-        
+
+
         def _get_filename_node(self):
             """Return the external filename and nodepath from `self.target`."""
             # This is needed for avoiding the 'C:\\file.h5' filepath notation
@@ -256,8 +257,13 @@ if are_extlinks_available:
                 base_directory = os.path.dirname(self._v_file.filename)
                 filename = os.path.join(base_directory, filename)
 
-            # Open the external file and save a reference to it
-            self.extfile = t.openFile(filename, **kwargs)
+            # Fetch the external file and save a reference to it.
+            # Check first in already opened files.
+            open_files = tables.file._open_files
+            if filename in open_files:
+                self.extfile = open_files[filename]
+            else:
+                self.extfile = t.openFile(filename, **kwargs)
             return self.extfile._getNode(target)
 
 

@@ -64,6 +64,9 @@ def check_import(pkgname, pkgver):
     globals()[pkgname] = mod
 
 check_import('numpy', min_numpy_version)
+# Check for numexpr only if not using setuptools (see #298)
+if not has_setuptools:
+    check_import('numexpr', min_numexpr_version)
 
 # Check if Cython is installed or not
 try:
@@ -71,8 +74,19 @@ try:
     cython = 1
     cmdclass = {'build_ext': build_ext}
 except:
-    cython = 0
-    cmdclass = {}
+    exit_with_error(
+        "You need %(pkgname)s %(pkgver)s or greater to run carray!"
+        % {'pkgname': 'Cython', 'pkgver': min_cython_version} )
+
+if cython:
+    from Cython.Compiler.Main import Version
+    if Version.version < min_cython_version:
+        exit_with_error(
+            "At least Cython %s is needed so as to generate extensions!"
+            % (min_cython_version) )
+    else:
+        print ( "* Found %(pkgname)s %(pkgver)s package installed."
+                % {'pkgname': 'Cython', 'pkgver': Version.version} )
 
 VERSION = open('VERSION').read().strip()
 
@@ -479,12 +493,17 @@ if has_setuptools:
     # PyTables contains data files for tests.
     setuptools_kwargs['zip_safe'] = False
 
-    # ``NumPy`` headers are needed for building the extensions.
-    setuptools_kwargs['setup_requires'] = ['numpy>=%s' % min_numpy_version]
+    # ``NumPy`` headers are needed for building the extensions, as
+    # well as Cython.
+    setuptools_kwargs['setup_requires'] = [
+        'numpy>=%s' % min_numpy_version,
+        'cython>=%s' % min_cython_version,
+        ]
     # ``NumPy`` and ``Numexpr`` are absolutely required for running PyTables.
-    setuptools_kwargs['install_requires'] = \
-                                          ['numpy>=%s' % min_numpy_version,
-                                           'numexpr>=%s' % min_numexpr_version]
+    setuptools_kwargs['install_requires'] = [
+        'numpy>=%s' % min_numpy_version,
+        'numexpr>=%s' % min_numexpr_version,
+        ]
     setuptools_kwargs['extras_require'] = {
         'Numeric': ['Numeric>=24.2'],  # for ``Numeric`` support
         'netCDF': ['ScientificPython'],  # for netCDF interchange
