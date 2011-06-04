@@ -13536,11 +13536,14 @@ print readFile("myfile.h5")</screen>
         to proceed to fine-tune the <literal>NODE_CACHE_SLOTS</literal>
         parameter.</para>
 
-        <note role="pro">
-          <para>PyTables Pro sports an optimized LRU cache node written in C,
+        <!--
+          TODO: Rewrite above section to include info on indexes
+          ======================================================
+          PyTables Pro sports an optimized LRU cache node written in C,
           so you should expect significantly faster LRU cache operations when
-          working with it.</para>
-        </note>
+          working with it.
+        -->
+
       </section>
 
       <section>
