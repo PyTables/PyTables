@@ -15808,91 +15808,6 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
         </section>
 
         <section>
-          <title>Parameters for the I/O buffer in <literal>Leaf</literal>
-            objects</title>
-
-          <glosslist>
-
-            <glossentry>
-              <glossterm><literal>IO_BUFFER_SIZE</literal></glossterm>
-              <glossdef>
-                <para>The PyTables internal buffer size for I/O purposes.
-                  Should not exceed the amount of highest level cache size in
-                  your CPU.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><literal>BUFFER_TIMES</literal></glossterm>
-              <glossdef>
-                <para>The maximum buffersize/rowsize ratio before issuing a
-                  <literal>PerformanceWarning</literal>.</para>
-              </glossdef>
-            </glossentry>
-
-          </glosslist>
-        </section>
-
-        <section>
-          <title>Miscellaneous</title>
-
-          <glosslist>
-
-            <glossentry>
-              <glossterm><literal>EXPECTED_ROWS_EARRAY</literal></glossterm>
-              <glossdef>
-                <para>Default expected number of rows
-                for <literal>EArray</literal> objects.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><literal>EXPECTED_ROWS_TABLE</literal></glossterm>
-              <glossdef>
-                <para>Default expected number of rows
-                for <literal>Table</literal> objects.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><literal>PYTABLES_SYS_ATTRS</literal></glossterm>
-              <glossdef>
-                <para>Set this to <literal>False</literal> if you don't want
-                  to create PyTables system attributes in datasets.  Also, if
-                  set to <literal>False</literal> the possible existing system
-                  attributes are not considered for guessing the class of the
-                  node during its loading from disk (this work is delegated to
-                  the PyTables' class discoverer function for general HDF5
-                  files).</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><literal>MAX_THREADS</literal></glossterm>
-              <glossdef>
-                <para>The maximum number of threads that PyTables should use
-                  internally (mainly in Blosc and Numexpr currently).  If
-                  <literal>None</literal>, it is automatically set to the
-                  number of cores in your machine. In general, it is a good
-                  idea to set this to the number of cores in your machine or,
-                  when your machine has many of them (e.g. > 4), perhaps one
-                  less than this.</para>
-              </glossdef>
-            </glossentry>
-
-          </glosslist>
-        </section>
-      </section>
-
-      <section>
-        <title>Tunable parameters in <literal>_parameters_pro.py</literal>
-        </title>
-
-        <note role="pro">
-          <para>These parameters are only available in PyTables Pro.</para>
-        </note>
-
-        <section>
           <title>Parameters for the different internal caches</title>
 
           <glosslist>
@@ -16034,7 +15949,84 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           </glosslist>
 
         </section>
+
+        <section>
+          <title>Parameters for the I/O buffer in <literal>Leaf</literal>
+            objects</title>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>IO_BUFFER_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The PyTables internal buffer size for I/O purposes.
+                  Should not exceed the amount of highest level cache size in
+                  your CPU.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>BUFFER_TIMES</literal></glossterm>
+              <glossdef>
+                <para>The maximum buffersize/rowsize ratio before issuing a
+                  <literal>PerformanceWarning</literal>.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+
+        <section>
+          <title>Miscellaneous</title>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>EXPECTED_ROWS_EARRAY</literal></glossterm>
+              <glossdef>
+                <para>Default expected number of rows
+                for <literal>EArray</literal> objects.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>EXPECTED_ROWS_TABLE</literal></glossterm>
+              <glossdef>
+                <para>Default expected number of rows
+                for <literal>Table</literal> objects.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>PYTABLES_SYS_ATTRS</literal></glossterm>
+              <glossdef>
+                <para>Set this to <literal>False</literal> if you don't want
+                  to create PyTables system attributes in datasets.  Also, if
+                  set to <literal>False</literal> the possible existing system
+                  attributes are not considered for guessing the class of the
+                  node during its loading from disk (this work is delegated to
+                  the PyTables' class discoverer function for general HDF5
+                  files).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>MAX_THREADS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of threads that PyTables should use
+                  internally (mainly in Blosc and Numexpr currently).  If
+                  <literal>None</literal>, it is automatically set to the
+                  number of cores in your machine. In general, it is a good
+                  idea to set this to the number of cores in your machine or,
+                  when your machine has many of them (e.g. > 4), perhaps one
+                  less than this.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
       </section>
+
     </appendix>
 
     <appendix id="NestedRecArrayClassDescr">
