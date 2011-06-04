@@ -55,7 +55,6 @@ from tables.group import Group
 from tables.path import joinPath
 from tables.exceptions import PerformanceWarning
 from tables.utils import is_idx, idx2long, lazyattr
-from tables._table_common import _tableColumnPathnameOfIndex
 from tables.lrucacheExtension import ObjectCache
 
 
@@ -100,6 +99,16 @@ opt_search_types = ("int8", "int16", "int32", "int64",
 
 # The upper limit for uint32 ints
 max32 = 2**32
+
+
+def _tableColumnPathnameOfIndex(indexpathname):
+    names = indexpathname.split("/")
+    for i, name in enumerate(names):
+        if name.startswith('_i_'):
+            break
+    tablepathname = "/".join(names[:i])+"/"+name[3:]
+    colpathname = "/".join(names[i+1:])
+    return (tablepathname, colpathname)
 
 
 class Index(NotLoggedMixin, indexesExtension.Index, Group):

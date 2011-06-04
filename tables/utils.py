@@ -323,6 +323,59 @@ class CacheDict(dict):
         super(CacheDict, self).__setitem__(key, value)
 
 
+class NailedDict(object):
+
+    """A dictionary which ignores its items when it has nails on it."""
+
+    def __init__(self, maxentries):
+        self.maxentries = maxentries
+        self._cache = {}
+        self._nailcount = 0
+
+    # Only a restricted set of dictionary methods are supported.  That
+    # is why we buy instead of inherit.
+
+    # The following are intended to be used by ``Table`` code changing
+    # the set of usable indexes.
+
+    def clear(self):
+        self._cache.clear()
+    def nail(self):
+        self._nailcount += 1
+    def unnail(self):
+        self._nailcount -= 1
+
+    # The following are intended to be used by ``Table`` code handling
+    # conditions.
+
+    def __contains__(self, key):
+        if self._nailcount > 0:
+            return False
+        return key in self._cache
+
+    def __getitem__(self, key):
+        if self._nailcount > 0:
+            raise KeyError(key)
+        return self._cache[key]
+
+    def get(self, key, default=None):
+        if self._nailcount > 0:
+            return default
+        return self._cache.get(key, default)
+
+    def __setitem__(self, key, value):
+        if self._nailcount > 0:
+            return
+        cache = self._cache
+        # Protection against growing the cache too much
+        if len(cache) > self.maxentries:
+            # Remove a 10% of (arbitrary) elements from the cache
+            entries_to_remove = self.maxentries / 10
+            for k in cache.keys()[:entries_to_remove]:
+                del cache[k]
+        cache[key] = value
+
+
 def detectNumberOfCores():
     """
     Detects the number of cores on a system. Cribbed from pp.
