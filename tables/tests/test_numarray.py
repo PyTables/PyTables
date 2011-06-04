@@ -680,8 +680,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         """Checking the return of numarray in readWhere method (strings)."""
 
         table = self.fileh.root.table
-        if tables.is_pro:
-            table.cols.color.createIndex()
+        table.cols.color.createIndex()
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -699,8 +698,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         """Checking the return of numarray in readWhere method (numeric)."""
 
         table = self.fileh.root.table
-        if tables.is_pro:
-            table.cols.z.createIndex()
+        table.cols.z.createIndex()
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")

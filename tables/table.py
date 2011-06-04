@@ -69,11 +69,9 @@ except ImportError:
     _table__autoIndex = property()
     def _checkIndexingAvailable():
         raise NoIndexingError
-    _is_pro = False
 else:
     def _checkIndexingAvailable():
         pass
-    _is_pro = True
 
 profile = False
 #profile = True  # Uncomment for profiling
@@ -627,10 +625,6 @@ class Table(tableExtension.Table, Leaf):
             if igroup:
                 indexname = _indexPathnameOfColumn(self, colname)
                 indexed = indexname in self._v_file
-                if indexed and not _is_pro:
-                    warnings.warn( "table ``%s`` has column indexes"
-                                   % self._v_pathname, NoIndexingWarning )
-                    indexed = False
                 self.colindexed[colname] = indexed
                 if indexed:
                     column = self.cols._g_col(colname)

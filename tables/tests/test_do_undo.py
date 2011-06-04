@@ -1216,18 +1216,17 @@ def populateTable(where, name):
         table.row.append()
     table.flush()
 
-    if tables.is_pro:
-        # Index all entries:
-        indexrows = table.cols.var1.createIndex()
-        indexrows = table.cols.var2.createIndex()
-        indexrows = table.cols.var3.createIndex()
-        # Do not index the var4 column
-        #indexrows = table.cols.var4.createIndex()
+    # Index all entries:
+    indexrows = table.cols.var1.createIndex()
+    indexrows = table.cols.var2.createIndex()
+    indexrows = table.cols.var3.createIndex()
+    # Do not index the var4 column
+    #indexrows = table.cols.var4.createIndex()
+
     if common.verbose:
         print "Number of written rows:", nrows
-        if tables.is_pro:
-            print "Number of indexed rows:", table.cols.var1.index.nelements
-            print "Number of indexed rows(2):", indexrows
+        print "Number of indexed rows:", table.cols.var1.index.nelements
+        print "Number of indexed rows(2):", indexrows
 
 class renameNodeTestCase(unittest.TestCase):
     "Test for renameNode operations"
@@ -1397,14 +1396,13 @@ class renameNodeTestCase(unittest.TestCase):
         # Check that table2 does not exist in the object tree
         self.assert_("/table" in self.fileh)
         table = self.fileh.root.table
-        if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var4.index is None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
+        assert table.cols.var1.index is not None
+        assert table.cols.var2.index is not None
+        assert table.cols.var3.index is not None
+        assert table.cols.var4.index is None
+        assert table.cols.var1.index.nelements == minRowIndex
+        assert table.cols.var2.index.nelements == minRowIndex
+        assert table.cols.var3.index.nelements == minRowIndex
         self.assert_("/table2" not in self.fileh)
         assert self.fileh.root.table.title == "Indexed"
         # Redo the operation
@@ -1414,14 +1412,13 @@ class renameNodeTestCase(unittest.TestCase):
         self.assert_("/table2" in self.fileh)
         assert self.fileh.root.table2.title == "Indexed"
         table = self.fileh.root.table2
-        if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-            assert table.cols.var4.index is None
+        assert table.cols.var1.index is not None
+        assert table.cols.var2.index is not None
+        assert table.cols.var3.index is not None
+        assert table.cols.var1.index.nelements == minRowIndex
+        assert table.cols.var2.index.nelements == minRowIndex
+        assert table.cols.var3.index.nelements == minRowIndex
+        assert table.cols.var4.index is None
 
 
 class moveNodeTestCase(unittest.TestCase):
@@ -1594,14 +1591,13 @@ class moveNodeTestCase(unittest.TestCase):
         self.assert_("/table" in self.fileh)
         self.assert_("/agroup2/table2" not in self.fileh)
         table = self.fileh.root.table
-        if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var4.index is None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
+        assert table.cols.var1.index is not None
+        assert table.cols.var2.index is not None
+        assert table.cols.var3.index is not None
+        assert table.cols.var4.index is None
+        assert table.cols.var1.index.nelements == minRowIndex
+        assert table.cols.var2.index.nelements == minRowIndex
+        assert table.cols.var3.index.nelements == minRowIndex
         assert self.fileh.root.table.title == "Indexed"
         # Redo the operation
         self.fileh.redo()
@@ -1610,14 +1606,13 @@ class moveNodeTestCase(unittest.TestCase):
         self.assert_("/agroup2/table2" in self.fileh)
         assert self.fileh.root.agroup2.table2.title == "Indexed"
         table = self.fileh.root.agroup2.table2
-        if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-            assert table.cols.var4.index is None
+        assert table.cols.var1.index is not None
+        assert table.cols.var2.index is not None
+        assert table.cols.var3.index is not None
+        assert table.cols.var1.index.nelements == minRowIndex
+        assert table.cols.var2.index.nelements == minRowIndex
+        assert table.cols.var3.index.nelements == minRowIndex
+        assert table.cols.var4.index is None
 
 
 class removeNodeTestCase(unittest.TestCase):
@@ -1724,14 +1719,13 @@ class removeNodeTestCase(unittest.TestCase):
         # Check that table2 does not exist in the object tree
         self.assert_("/table" in self.fileh)
         table = self.fileh.root.table
-        if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var4.index is None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
+        assert table.cols.var1.index is not None
+        assert table.cols.var2.index is not None
+        assert table.cols.var3.index is not None
+        assert table.cols.var4.index is None
+        assert table.cols.var1.index.nelements == minRowIndex
+        assert table.cols.var2.index.nelements == minRowIndex
+        assert table.cols.var3.index.nelements == minRowIndex
         assert self.fileh.root.table.title == "Indexed"
         # Redo the operation
         self.fileh.redo()
@@ -1881,25 +1875,23 @@ class copyNodeTestCase(unittest.TestCase):
 
         table = self.fileh.root.agroup.agroup3.table
         assert table.title == "Indexed"
-        if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-            assert table.cols.var4.index is None
+        assert table.cols.var1.index is not None
+        assert table.cols.var2.index is not None
+        assert table.cols.var3.index is not None
+        assert table.cols.var1.index.nelements == minRowIndex
+        assert table.cols.var2.index.nelements == minRowIndex
+        assert table.cols.var3.index.nelements == minRowIndex
+        assert table.cols.var4.index is None
         # Now undo the past operation
         self.fileh.undo()
         table = self.fileh.root.table
-        if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var4.index is None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
+        assert table.cols.var1.index is not None
+        assert table.cols.var2.index is not None
+        assert table.cols.var3.index is not None
+        assert table.cols.var4.index is None
+        assert table.cols.var1.index.nelements == minRowIndex
+        assert table.cols.var2.index.nelements == minRowIndex
+        assert table.cols.var3.index.nelements == minRowIndex
         # Check that the copied node does not exist in the object tree.
         self.assert_("/agroup/agroup3/table" not in self.fileh)
         # Redo the operation
@@ -1909,14 +1901,13 @@ class copyNodeTestCase(unittest.TestCase):
         self.assert_("/agroup/agroup3/table" in self.fileh)
         table = self.fileh.root.agroup.agroup3.table
         assert table.title == "Indexed"
-        if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-            assert table.cols.var4.index is None
+        assert table.cols.var1.index is not None
+        assert table.cols.var2.index is not None
+        assert table.cols.var3.index is not None
+        assert table.cols.var1.index.nelements == minRowIndex
+        assert table.cols.var2.index.nelements == minRowIndex
+        assert table.cols.var3.index.nelements == minRowIndex
+        assert table.cols.var4.index is None
 
     def test01_copyGroup(self):
         "Copying a group (recursively)."

@@ -165,9 +165,8 @@ def areDescriptionsEqual(desc1, desc2):
     return True
 
 def requires_indexing(oldmethod):
+    """TODO: Remove requires_indexing completely"""
     def newmethod(self, *args, **kwargs):
-        if not t.is_pro:
-            raise common.SkipTest("Indexing is not supported.")
         return oldmethod(self, *args, **kwargs)
     newmethod.__name__ = oldmethod.__name__
     newmethod.__doc__ = oldmethod.__doc__

@@ -48,7 +48,7 @@ isPyTablesFile, isHDF5File
 Misc variables
 ==============
 
-__version__, hdf5Version, is_pro
+__version__, hdf5Version
 
 """
 
@@ -66,8 +66,6 @@ __version__ = getPyTablesVersion()
 """The PyTables version number."""
 hdf5Version = getHDF5Version()
 """The underlying HDF5 library version number."""
-is_pro = __version__.endswith('pro')
-"""True for PyTables Professional edition, false otherwise."""
 
 from tables.utilsExtension import (
     isHDF5File, isPyTablesFile, whichLibVersion, lrange,

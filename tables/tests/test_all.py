@@ -48,17 +48,14 @@ def suite():
         'tables.tests.test_queries',
         'tables.tests.test_expression',
         'tables.tests.test_links',
+        'tables.tests.test_indexes',
+        'tables.tests.test_indexvalues',
+        'tables.tests.test_index_backcompat',
         # Sub-packages
         'tables.nodes.tests.test_filenode',
         'tables.netcdf3.tests.test_netcdf3',
         ]
 
-
-    # Run indexing tests only under Pro
-    if tables.is_pro:
-        test_modules.append('tables.tests.test_indexes')
-        test_modules.append('tables.tests.test_indexvalues')
-        test_modules.append('tables.tests.test_index_backcompat')
 
     # Add test_Numeric only if Numeric is installed
     if common.numeric_imported:
