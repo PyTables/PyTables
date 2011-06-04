@@ -164,14 +164,6 @@ def areDescriptionsEqual(desc1, desc2):
 
     return True
 
-def requires_indexing(oldmethod):
-    """TODO: Remove requires_indexing completely"""
-    def newmethod(self, *args, **kwargs):
-        return oldmethod(self, *args, **kwargs)
-    newmethod.__name__ = oldmethod.__name__
-    newmethod.__doc__ = oldmethod.__doc__
-    return newmethod
-
 
 
 # Test creating nested column descriptions
@@ -583,7 +575,6 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assert_(common.areArraysEqual(raTable, raReadTable),
                      "Written and read values differ.")
 
-    @requires_indexing
     def test07_index(self):
         """Checking indexes of nested columns"""
 
@@ -1251,7 +1242,6 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
                      "Column nested names doesn't match.")
 
 
-    @requires_indexing
     def test02a(self):
         """Indexing two simple columns under the same nested column."""
 
@@ -1298,7 +1288,6 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assert_(i2res == range(0, 10, 2),
                      "Select for nested column (i2) doesn't match.")
 
-    @requires_indexing
     def test02b(self):
         """Indexing two simple columns under the same (very) nested column."""
 

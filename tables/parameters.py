@@ -99,16 +99,6 @@ LOWEST_HIT_RATIO = 0.6
 freeing) it."""
 
 
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:
-
-
 # Tunable parameters
 # ==================
 # Be careful when touching these!

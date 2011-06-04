@@ -54,25 +54,10 @@ from tables._table_common import (
     _indexNameOf, _indexPathnameOf, _indexPathnameOfColumn,
     _indexPathnameOfColumn_ )
 
-try:
-    from tables.index import (
-        OldIndex, defaultIndexFilters)
-    from tables._table_pro import (
-        NailedDict as CacheDict, _table__autoIndex, _table__whereIndexed,
-        _column__createIndex )
-except ImportError:
-    # TODO: this block could also be removed.
-    from tables.exceptions import NoIndexingError, NoIndexingWarning
-    from tables.node import NotLoggedMixin
-    from tables.group import Group
-    from tables.utils import CacheDict
-    # Forbid accesses to this attribute.
-    _table__autoIndex = property()
-    def _checkIndexingAvailable():
-        raise NoIndexingError
-else:
-    def _checkIndexingAvailable():
-        pass
+from tables.index import OldIndex, defaultIndexFilters
+from tables._table_pro import (
+    NailedDict as CacheDict, _table__autoIndex, _table__whereIndexed,
+    _column__createIndex )
 
 profile = False
 #profile = True  # Uncomment for profiling
@@ -3156,7 +3141,7 @@ class Column(object):
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        _checkIndexingAvailable()
+
         kinds = ['ultralight', 'light', 'medium', 'full']
         if kind not in kinds:
             raise ValueError, \
@@ -3271,8 +3256,6 @@ class Column(object):
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-
-        _checkIndexingAvailable()
 
         self._tableFile._checkWritable()
 
