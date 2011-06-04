@@ -61,6 +61,7 @@ try:
         NailedDict as CacheDict, _table__autoIndex, _table__whereIndexed,
         _column__createIndex )
 except ImportError:
+    # TODO: this block could also be removed.
     from tables.exceptions import NoIndexingError, NoIndexingWarning
     from tables.node import NotLoggedMixin
     from tables.group import Group

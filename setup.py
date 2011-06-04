@@ -427,11 +427,9 @@ cython_extnames = [
     'tableExtension',
     'linkExtension',
     '_comp_lzo',
-    '_comp_bzip2' ]
-if VERSION.endswith('pro'):
-    cython_extnames.extend([
-        'lrucacheExtension',
-        'indexesExtension' ])
+    '_comp_bzip2',
+    'lrucacheExtension',
+    'indexesExtension' ]
 
 
 def get_cython_extfiles(extnames):
