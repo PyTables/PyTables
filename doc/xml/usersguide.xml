@@ -236,9 +236,6 @@
             <para><emphasis>Indexing support for columns of tables:</emphasis>
             Very useful if you have large tables and you want to quickly look
             up for values in columns satisfying some criteria.</para>
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
           </listitem>
 
           <listitem>
@@ -6853,10 +6850,6 @@ for node in h5file.root.detector:
         a non-nested one.  Search methods automatically take advantage of
         indexing where available.</para>
 
-        <note role="pro">
-          <para>Column indexing is only available in PyTables Pro.</para>
-        </note>
-
         <para>When iterating a table, an object from the
         <literal>Row</literal> (see <xref linkend="RowClassDescr"
         xrefstyle="select: label" />) class is used.  This object allows to
@@ -6912,10 +6905,6 @@ for node in h5file.root.detector:
                 linkend="Table.reIndexDirty" />).</para>
 
                 <para>This value is persistent.
-                <note role="pro">
-                  <para>Column indexing is only available in PyTables
-                  Pro.</para>
-                </note>
                 </para>
               </glossdef>
             </glossentry>
@@ -6954,10 +6943,6 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>Is the column which name is used as a key indexed?
-                <note role="pro">
-                  <para>Column indexing is only available in PyTables
-                  Pro.</para>
-                </note>
                 </para>
               </glossdef>
             </glossentry>
@@ -7198,10 +7183,6 @@ for node in h5file.root.detector:
             of <literal>step</literal> is supported, meaning that the results
             will be returned in reverse sorted order.</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
-
           </section>
 
           <section id="Table.read" xreflabel="description">
@@ -7283,10 +7264,6 @@ for node in h5file.root.detector:
             linkend="Table.read" />).  However, in this case a negative value
             of <literal>step</literal> is supported, meaning that the results
             will be returned in reverse sorted order.</para>
-
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
 
           </section>
 
@@ -7689,10 +7666,6 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             label" /> for more information about the performance of the
             different searching modes.</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
-
             <para>You can mix this method with regular Python selections in
             order to support even more complex queries. It is strongly
             recommended that you pass the most restrictive condition as the
@@ -7766,9 +7739,6 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             make this method return different values for the same arguments at
             different times.</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
           </section>
         </section>
 
@@ -7842,9 +7812,6 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             xrefstyle="select: label" />) and you want to update the indexes
             on it.</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
           </section>
 
           <section id="Table.getEnum" xreflabel="description">
@@ -7871,9 +7838,6 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             the index information for columns is no longer valid and want to
             rebuild the indexes on it.</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
           </section>
 
           <section id="Table.reIndexDirty" xreflabel="description">
@@ -7889,9 +7853,6 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             after a invalidating index operation
             (<literal>Table.removeRows()</literal>, for example).</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
           </section>
         </section>
 
@@ -8508,10 +8469,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
           linkend="ColsClassDescr" xrefstyle="select: label" />), but there
           are a few other associated methods to deal with indexes.</para>
 
-          <note role="pro">
-            <para>Column indexing is only available in PyTables Pro.</para>
-          </note>
-
           <section>
             <title><literal>Column</literal> instance variables</title>
 
@@ -8700,10 +8657,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
                   <xref linkend="Column.createCSIndex" />).</para>
               </warning>
 
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
             </section>
 
             <section id="Column.createCSIndex" xreflabel="description">
@@ -8746,10 +8699,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <para>This method does nothing if the column is not
               indexed.</para>
 
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
             </section>
 
             <section id="Column.reIndexDirty" xreflabel="description">
@@ -8768,10 +8717,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <para>This method does nothing if the column is not
               indexed.</para>
 
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
             </section>
 
             <section id="Column.removeIndex" xreflabel="description">
@@ -8784,10 +8729,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <literal>Column.createIndex()</literal> method (see <xref
               linkend="Column.createIndex" />).</para>
 
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
             </section>
           </section>
 
@@ -11315,10 +11256,6 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
             programmer.</para>
           </note>
 
-          <note role="pro">
-            <para>Column indexing is only available in PyTables Pro.</para>
-          </note>
-
           <section id="IndexClassInstanceVariables">
             <title><literal>Index</literal> instance variables</title>
 
@@ -12415,10 +12352,6 @@ array([ 8, 12])
 
         <section id="indexedSearches">
           <title>Indexed searches</title>
-
-          <note role="pro">
-            <para>Indexing is only available in PyTables Pro.</para>
-          </note>
 
           <para>When you need more speed than <emphasis>in-kernel</emphasis>
           selections can offer you, PyTables offers a third selection method,
