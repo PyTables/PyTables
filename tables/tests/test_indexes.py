@@ -2082,10 +2082,6 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test05b_readSorted12(self):
         """Testing the Table.readSorted() method with checkCSI (II)."""
         table = self.table
-        sortedtable = numpy.sort(table[:], order='rcol')
-        if verbose:
-            print "Original sorted table:", sortedtable
-            print "The values from readSorted:", sortedtable2
         self.assertRaises(ValueError,
                           table.readSorted, "rcol", checkCSI=False)
 
