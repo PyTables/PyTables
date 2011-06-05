@@ -1544,7 +1544,7 @@ Object Tree:
           <screen>>>> for group in h5file.walkGroups("/"):
       for array in h5file.listNodes(group, classname='Array'):
           print array
- 
+
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'</screen>
 
@@ -1566,7 +1566,7 @@ Object Tree:
 
           <screen>>>> for array in h5file.walkNodes("/", "Array"):
       print array
- 
+
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'</screen>
 
@@ -1959,12 +1959,12 @@ pressureArray is an object of type: &lt;type 'numpy.ndarray'&gt;
 >>> nameArray = h5file.root.columns.name.read()
 >>> print "nameArray is an object of type:", type(nameArray)
 nameArray is an object of type: &lt;type 'list'&gt;
->>> 
+>>>
 >>> print "Data on arrays nameArray and pressureArray:"
 Data on arrays nameArray and pressureArray:
 >>> for i in range(pressureObject.shape[0]):
       print nameArray[i], "--&gt;", pressureArray[i]
- 
+
 Particle:      5 --&gt; 25.0
 Particle:      6 --&gt; 36.0
 Particle:      7 --&gt; 49.0</screen>
@@ -2052,7 +2052,7 @@ Particle:      7 --&gt; 49.0</screen>
      print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
           r['TDCcount'])
- 
+
 Particle:      0 |         0.0 |           0 |      0 |     10 |        0 |
 Particle:      1 |         1.0 |           1 |      1 |      9 |        1 |
 Particle:      2 |         4.0 |         256 |      2 |      8 |        2 |
@@ -3136,7 +3136,7 @@ ValueError: no enumerated value with that concrete value: 1234</screen>
 >>> class BallExt(tables.IsDescription):
       ballTime = tables.Time32Col()
       ballColor = tables.EnumCol(colors, 'black', base='uint8')
- 
+
 >>> tbl = h5f.createTable(
       '/', 'extractions', BallExt, title="Random ball extractions")
 >>> </screen>
@@ -3431,7 +3431,7 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
 
           <screen>>>> table.cols.info2[1:5]
 array([((1.0, 1), 'name2-1', 0.0), ((1.0, 2), 'name2-2', 0.0),
-       ((1.0, 3), 'name2-3', 0.0), ((1.0, 4), 'name2-4', 0.0)], 
+       ((1.0, 3), 'name2-3', 0.0), ((1.0, 4), 'name2-4', 0.0)],
       dtype=[('info3', [('x', '&lt;f8'), ('y', '|u1')]), ('name', '|S10'),
              ('value', '&lt;f8')])</screen>
 
@@ -3714,6 +3714,21 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
               <glossdef>
                 <para>True for PyTables Professional edition, false
                 otherwise.</para>
+
+                <note>
+                    <para>PyTables Professional edition has been released
+                    under open surce license. Starting from version 2.3,
+                    PyTables includes all features of PyTables Pro.</para>
+
+                    <para>In order to reflect the presence of advanced
+                    features <emphasis role="bold">is_pro</emphasis> is always
+                    set to True.</para>
+
+                    <para><emphasis role="bold">is_pro</emphasis> have to be
+                    considerd <emphasis role="bold">deprecated</emphasis> and
+                    it will be removed in the next major release.</para>
+                </note>
+
               </glossdef>
             </glossentry>
           </glosslist>
@@ -3909,9 +3924,8 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
             </glosslist>
 
             <para>In addition, it recognizes the names of parameters present
-            in <literal>tables/parameters.py</literal> (and for PyTables Pro
-            users, those in <literal>tables/_parameters_pro.py</literal> too)
-            as additional keyword arguments.  See
+            in <literal>tables/parameters.py</literal> as additional keyword
+            arguments.  See
             <xref linkend="parametersFiles" xrefstyle="select: label" /> for a
             detailed info on the supported parameters.</para>
 
@@ -4195,9 +4209,8 @@ ValueError: malformed type: 'foo bar'</screen>
             operations of nodes to see which options they support.</para>
 
             <para>In addition, it recognizes the names of parameters present
-            in <literal>tables/parameters.py</literal> (and for PyTables Pro
-            users, those in <literal>tables/_parameters_pro.py</literal> too)
-            as additional keyword arguments.  See
+            in <literal>tables/parameters.py</literal> as additional keyword
+            arguments.  See
             <xref linkend="parametersFiles" xrefstyle="select: label" /> for a
             detailed info on the supported parameters.</para>
 
@@ -12449,7 +12462,7 @@ indexrows = table.cols.var3.createIndex()</screen>
             </itemizedlist></para>
 
           <note>
-            <para>From PyTables Pro 2.1 on, several indexes can be used in a
+            <para>From PyTables 2.3 on, several indexes can be used in a
             single query.</para>
           </note>
 
@@ -12461,12 +12474,13 @@ indexrows = table.cols.var3.createIndex()</screen>
             label" />).</para>
           </note>
 
-          <para>One important aspect of indexing in PyTables Pro is that it
-          has been designed from the ground up with the goal of being capable
-          to effectively manage very large tables.  To this goal, it sports a
-          wide spectrum of different quality levels (also called optimization
-          levels) for its indexes so that the user can choose the best one
-          that suits her needs (more or less size, more or less performance).
+          <para>One important aspect of the new indexing in PyTables (>= 2.3)
+          is that it has been designed from the ground up with the goal of
+          being capable to effectively manage very large tables.  To this goal,
+          it sports a wide spectrum of different quality levels (also called
+          optimization levels) for its indexes so that the user can choose the
+          best one that suits her needs (more or less size, more or less
+          performance).
           </para>
 
           <para>In <xref linkend="createIndexTimes" xrefstyle="select: label"
@@ -12591,7 +12605,7 @@ indexrows = table.cols.var3.createIndex()</screen>
           </figure>
 
           <para>You can find a more complete description and benchmarks about
-          OPSI, the indexing system of PyTables Pro in <biblioref
+          OPSI, the indexing system of PyTables (>= 2.3) in <biblioref
           linkend="OPSI" />.</para>
 
         </section>
@@ -12660,7 +12674,7 @@ indexrows = table.cols.var3.createIndex()</screen>
           5x (4x to 10x when compared with traditional relational databases).
           Best of all, as already mentioned, performance is not degraded when
           compression is used, but actually <emphasis>improved</emphasis>.
-          So, by using PyTables Pro and SSD you can query larger datasets that
+          So, by using PyTables and SSD you can query larger datasets that
           otherwise would require spinning disks when using other databases
           <footnote><para>In fact, we were unable to run the PostgreSQL
           benchmark in this case because the space needed exceeded the
@@ -13536,14 +13550,12 @@ print readFile("myfile.h5")</screen>
         to proceed to fine-tune the <literal>NODE_CACHE_SLOTS</literal>
         parameter.</para>
 
-        <!--
-          TODO: Rewrite above section to include info on indexes
-          ======================================================
-          PyTables Pro sports an optimized LRU cache node written in C,
-          so you should expect significantly faster LRU cache operations when
-          working with it.
-        -->
-
+        <note>
+            <para>PyTables >= 2.3 sports an optimized LRU cache node written
+            in C, so you should expect significantly faster LRU cache
+            operations when working with it.</para>
+        </note>
+        <!-- TODO: Rewrite above section to include info on indexes -->
       </section>
 
       <section>
@@ -15667,15 +15679,13 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       <para>Because of these reasons, PyTables implements a couple of ways to
       change the values of these parameters.  All
       the <emphasis>tunable</emphasis> parameters live in
-      the <literal>tables/parameters.py</literal>
-      (and <literal>tables/_parameters_pro.py</literal>, for PyTables Pro
-      users).  The user can choose to change them in the parameter files
-      themselves for a global and persistent change.  Moreover, if he wants a
-      finer control, he can pass any of these parameters directly to
-      the <literal>openFile()</literal> function (see
-      <xref linkend="openFileDescr"/>), and the new parameters will only take
-      effect in the corresponding file (the defaults will continue to be in
-      the parameter files).</para>
+      the <literal>tables/parameters.py</literal>.  The user can choose to
+      change them in the parameter files themselves for a global and
+      persistent change.  Moreover, if he wants a finer control, he can pass
+      any of these parameters directly to the <literal>openFile()</literal>
+      function (see <xref linkend="openFileDescr"/>), and the new parameters
+      will only take effect in the corresponding file (the defaults will
+      continue to be in the parameter files).</para>
 
       <para>A description of all of the tunable parameters follows.  As the
       defaults stated here may change from release to release, please check
