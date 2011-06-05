@@ -27,24 +27,19 @@ http://www.pytables.org/docs/manual-@VERSION@
 What it is?
 ===========
 
-PyTables Pro is a library for managing hierarchical datasets and
+PyTables is a library for managing hierarchical datasets and
 designed to efficiently cope with extremely large amounts of data with
-support for full 64-bit file addressing.  PyTables Pro runs on top of
+support for full 64-bit file addressing.  PyTables runs on top of
 the HDF5 library and NumPy package for achieving maximum throughput and
-convenient use.  The main difference between PyTables Pro and regular
-PyTables is that the Pro version includes OPSI, a new indexing
-technology, allowing to perform data lookups in tables exceeding 10
-gigarows (10**10 rows) in less than 1 tenth of a second.
+convenient use.  PyTables includes OPSI, a new indexing technology,
+allowing to perform data lookups in tables exceeding 10 gigarows
+(10**10 rows) in less than 1 tenth of a second.
 
 
 Resources
 =========
 
-About PyTables Pro:
-
-http://www.pytables.com/moin/PyTablesPro
-
-Go to the PyTables web site, its free counterpart:
+About PyTables:
 
 http://www.pytables.org
 

@@ -34,31 +34,31 @@ for LIC in $LICENSES; do
 	for PYVER in $PYVERS; do
 		PMPROJ=$(echo "$PMPROJ_TMPL" | sed -e "s/@VER@/$VER/" -e "s/@VERNP@/$VERNP/" -e "s/@LIC@/$LIC/" -e "s/@PYVER@/$PYVER/")
 		WELCOME=$(echo "$WELCOME_TMPL" | sed -e "s/@VER@/$VER/" -e "s/@VERNP@/$VERNP/" -e "s/@LIC@/$LIC/" -e "s/@PYVER@/$PYVER/")
-		MPKG="PyTables Pro $VERNP ($LIC) for Python $PYVER.mpkg"
+		MPKG="PyTables $VERNP ($LIC) for Python $PYVER.mpkg"
 		LICENSE="$MPKG/Contents/Resources/License.txt"
-		DMGDIR="PyTables Pro $VERNP $LIC (py$PYVER)"
+		DMGDIR="PyTables $VERNP $LIC (py$PYVER)"
 		DMG="PyTablesPro-${VERNP}-${LIC}.macosxppc-py${PYVER}.dmg"
-	
+
 		if [ $cleaning ]; then
 			rm -rf "$WELCOME" "$PMPROJ" "$MPKG" "$DMGDIR" "$DMG" *.bak
 			continue
 		fi
-	
+
 		echo "Creating $WELCOME..."
 		sed -e "s/@VER@/$VER/g" -e "s/@VERNP@/$VERNP/g" -e "s/@LIC@/$LIC/g" -e "s/@PYVER@/$PYVER/g" < "$WELCOME_TMPL" > "$WELCOME"
-	
+
 		echo "Creating $PMPROJ..."
 		plutil -convert xml1 -o "$PMPROJ" "$PMPROJ_TMPL"
 		sed -i .bak -e "s/@VER@/$VER/g" -e "s/@VERNP@/$VERNP/g" -e "s/@LIC@/$LIC/g" -e "s/@PYVER@/$PYVER/g" "$PMPROJ"
-	
+
 		echo "Building $MPKG..."
 		# Avoiding the verbose flag makes building fail! ;(
 		$packagemaker -build -proj "$PMPROJ" -p "$MPKG" -v
-	
+
 		echo "Fixing $MPKG..."
 		cp "$WELCOME" "$MPKG/Contents/Resources/Welcome.$WELCOME_EXT"
 		cp "$BACKGROUND" "$MPKG/Contents/Resources"
-	
+
 		echo -n "Adding subpackages..."
 		true > "$LICENSE"
 		for SUBPKG in $SUBPKGS; do
@@ -71,7 +71,7 @@ for LIC in $LICENSES; do
 				PKGSRC="$(echo ../../$SUBPKG/dist/$SUBPKG-py$PYVER*pkg)"
 			fi
 			cp -R "$PKGSRC" "$MPKG/Contents/Packages"
-	
+
 			PKGRES="$PKGSRC/Contents/Resources"
 			if [ "$SUBPKG" = "SELF" ]; then
 				# Place the proper license in all PyTables packages.
@@ -87,7 +87,7 @@ for LIC in $LICENSES; do
 			echo -e "\n--------------------------------\n" >> "$LICENSE"
 		done
 		echo
-	
+
 		echo "Building $DMG..."
 		mkdir -p "$DMGDIR"
 		cp "$LICENSE" "$DMGDIR/License.txt"

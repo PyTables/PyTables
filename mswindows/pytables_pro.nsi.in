@@ -14,7 +14,7 @@ SetCompressor /SOLID lzma
 #SetCompress off
 
 # The name of the installer
-Name "PyTables Pro @VERSION@"
+Name "PyTables @VERSION@"
 
 # The file where the installer will be saved
 OutFile "PyTablesPro-@VERSION@-@LICENSE@.@PLATFORM@-py@DOTPYTHONVERSION@.exe"
@@ -52,14 +52,14 @@ Var UNCUSTOMTEXT
 !endif
 
 Function .onInit
-  # Force the use of the 'all users' shell folder 
+  # Force the use of the 'all users' shell folder
   SetShellVarContext all
   # The registry key where application settings will be stored
   StrCpy $PTPRO_KEY "SOFTWARE\PyTablesPro"
   StrCpy $WINPTPRO_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro"
   StrCpy $PTPRO_SUBKEY "$PTPRO_KEY-py@DOTPYTHONVERSION@"
   StrCpy $WINPTPRO_SUBKEY "$WINPTPRO_KEY-py@DOTPYTHONVERSION@"
-  StrCpy $STARTMENU_FOLDER "PyTables Pro @VERSION@ for Python@DOTPYTHONVERSION@"
+  StrCpy $STARTMENU_FOLDER "PyTables @VERSION@ for Python@DOTPYTHONVERSION@"
 FunctionEnd
 
 Function preInstallDir
@@ -75,7 +75,7 @@ FunctionEnd
 Function postPythonDir
   IfFileExists $PYTHONDIR\pythonw.exe +3 0
   MessageBox MB_YESNO "Cannot find a valid Python@DOTPYTHONVERSION@ interpreter in \
-$PYTHONDIR.$\r$\nYou can install PyTables Pro there, but it will not run \
+$PYTHONDIR.$\r$\nYou can install PyTables there, but it will not run \
 without Python@DOTPYTHONVERSION@ installed in the same directory tree.$\r$\nContinue \
 anyway?" IDYES +2 IDNO 0
   Abort
@@ -111,20 +111,20 @@ and Numexpr components if they are not already installed in a standard \
 location of your system."
 !insertmacro MUI_PAGE_COMPONENTS
 
-# Installation directory page for PyTables Pro data files
+# Installation directory page for PyTables data files
 !define MUI_PAGE_CUSTOMFUNCTION_PRE preInstallDir
-!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install PyTables Pro @VERSION@ data \
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install PyTables @VERSION@ data \
 files in the following folder. To install in a different folder, click \
 Browse and select another folder. Click Next to Continue."
 !insertmacro MUI_PAGE_DIRECTORY
 
-# Installation directory page for PyTables Pro modules and scripts
+# Installation directory page for PyTables modules and scripts
 !define MUI_PAGE_CUSTOMFUNCTION_PRE prePythonDir
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE postPythonDir
 !define MUI_PAGE_HEADER_TEXT "Choose the Python-@DOTPYTHONVERSION@ interpreter"
 !define MUI_PAGE_HEADER_SUBTEXT "Choose the folder in which the Python-@DOTPYTHONVERSION@ \
 interpreter is located."
-!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install PyTables Pro @VERSION@ modules and \
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install PyTables @VERSION@ modules and \
 scripts under the following folder. To install in a different folder, click \
 Browse and select another folder. Click Next to Continue."
 !define MUI_DIRECTORYPAGE_VARIABLE $PYTHONDIR
@@ -144,19 +144,19 @@ Browse and select another folder. Click Next to Continue."
 # The stuff to install a.k.a. Sections
 # ------------------------------------------
 
-Section "PyTables Pro @PTVERSION@" PT
+Section "PyTables @PTVERSION@" PT
 
-  # Copy the PyTables Pro utilities in the Python Scripts directory
+  # Copy the PyTables utilities in the Python Scripts directory
   SetOutPath $PYTHONDIR\Scripts
   File /x .svn @SVN_PTPRO@\utils\*
 
-  # Copy the PyTables Pro sources in the Python site-packages directory
+  # Copy the PyTables sources in the Python site-packages directory
   SetOutPath $PYTHONDIR\Lib\site-packages\tables
   #File /r /x .svn @SVN_PTPRO@\tables\*
   # It is better to copy the files directly from installed directory
   File /r @TABLES_ORIG@\*
 
-  # Copy the PyTables Pro extensions in the tables directory
+  # Copy the PyTables extensions in the tables directory
   #SetOutPath $PYTHONDIR\Lib\site-packages\tables
   #File @TABLES_ORIG@\*.pyd
   #SetOutPath $PYTHONDIR\Lib\site-packages\tables\numexpr
@@ -198,7 +198,7 @@ Section "PyTables Pro @PTVERSION@" PT
 
   !insertmacro MUI_STARTMENU_WRITE_END
 
-  # Install needed libraries under the PyTables Pro directory
+  # Install needed libraries under the PyTables directory
   SetOutPath $PYTHONDIR\Lib\site-packages\tables
   !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @TABLES_ORIG@\hdf5dll.dll \
   hdf5dll.dll $PYTHONDIR\Lib\site-packages\tables
@@ -224,7 +224,7 @@ Section "PyTables Pro @PTVERSION@" PT
 
   WriteRegExpandStr HKLM $WINPTPRO_SUBKEY "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegExpandStr HKLM $WINPTPRO_SUBKEY "InstallLocation" "$INSTDIR"
-  WriteRegStr HKLM $WINPTPRO_SUBKEY "DisplayName" "PyTables Pro @VERSION@ for Python@DOTPYTHONVERSION@"
+  WriteRegStr HKLM $WINPTPRO_SUBKEY "DisplayName" "PyTables @VERSION@ for Python@DOTPYTHONVERSION@"
   WriteRegStr HKLM $WINPTPRO_SUBKEY "DisplayIcon" "$INSTDIR\Uninstall.exe,0"
   WriteRegStr HKLM $WINPTPRO_SUBKEY "DisplayVersion" "@VERSION@"
 !ifdef VER_MAJOR & VER_MINOR & VER_REVISION
@@ -239,7 +239,7 @@ Section "PyTables Pro @PTVERSION@" PT
 
 SectionEnd
 
-SectionGroup /e "PyTables Pro Requisites"
+SectionGroup /e "PyTables Requisites"
 Section /o "NumPy @NUMPYVERSION@" NP
 
   # Copy Numpy package in the system directory
@@ -264,7 +264,7 @@ Section /o "Numexpr @NUMEXPRVERSION@" NE
 
 SectionEnd
 
-SectionGroupEnd # PyTables Pro requisites section group
+SectionGroupEnd # PyTables requisites section group
 
 # Set descriptions for Section 0 (PT section)
 LangString DESC_PT $(LANG_ENGLISH) "A hierarchical database package designed \
@@ -306,16 +306,16 @@ Function PageReinstall
 
   ${VersionCompare} ${VER_MAJOR}.${VER_MINOR}.${VER_REVISION} $R0 $R0
   ${If} $R0 != 2
-    StrCpy $R1 "An older version of PyTables Pro is installed on your system. It's recommended that you uninstall the current version before installing. Select the operation you want to perform and click Next to continue."
+    StrCpy $R1 "An older version of PyTables is installed on your system. It's recommended that you uninstall the current version before installing. Select the operation you want to perform and click Next to continue."
     StrCpy $R2 "Uninstall before installing"
     StrCpy $R3 "Do not uninstall"
-    !insertmacro MUI_HEADER_TEXT "Already Installed" "Choose how you want to install PyTables Pro."
+    !insertmacro MUI_HEADER_TEXT "Already Installed" "Choose how you want to install PyTables."
     StrCpy $R0 "1"
   ${Else}
-    StrCpy $R1 "A newer version of PyTables Pro is already installed! It is not recommended that you install an older version. If you really want to install this older version, it's better to uninstall the current version first. Select the operation you want to perform and click Next to continue."
+    StrCpy $R1 "A newer version of PyTables is already installed! It is not recommended that you install an older version. If you really want to install this older version, it's better to uninstall the current version first. Select the operation you want to perform and click Next to continue."
     StrCpy $R2 "Uninstall before installing"
     StrCpy $R3 "Do not uninstall"
-    !insertmacro MUI_HEADER_TEXT "Already Installed" "Choose how you want to install PyTables Pro."
+    !insertmacro MUI_HEADER_TEXT "Already Installed" "Choose how you want to install PyTables."
     StrCpy $R0 "1"
   ${EndIf}
 
@@ -407,7 +407,7 @@ FunctionEnd
 
 # Components selection page
 !define MUI_PAGE_HEADER_TEXT "Choose components"
-!define MUI_PAGE_HEADER_SUBTEXT "Choose which features of PyTables Pro @VERSION@ \
+!define MUI_PAGE_HEADER_SUBTEXT "Choose which features of PyTables @VERSION@ \
 you want to uninstall."
 !define MUI_COMPONENTSPAGE_TEXT_TOP $UNCUSTOMTEXT
 !define MUI_COMPONENTSPAGE_TEXT_COMPLIST " "
@@ -420,16 +420,16 @@ succesfully."
 #!define MUI_UNFINSIHPAGE_NOAUTOCLOSE 1
 !insertmacro MUI_UNPAGE_INSTFILES
 
-# Eventually the LANGUAGE macro must be inserted 
+# Eventually the LANGUAGE macro must be inserted
 !insertmacro MUI_LANGUAGE "English"
 
 # --------------------------------
 # Uninstaller Sections
 # --------------------------------
 
-Section "Un.PyTables Pro @PTVERSION@ uninstall" UPT
+Section "Un.PyTables @PTVERSION@ uninstall" UPT
 
-  # Force the use of the 'all users' shell folder 
+  # Force the use of the 'all users' shell folder
   SetShellVarContext all
 
   ReadRegStr $PYTHONDIR HKLM $PTPRO_SUBKEY "PYTHONDIR"
@@ -465,7 +465,7 @@ Section "Un.PyTables Pro @PTVERSION@ uninstall" UPT
     StrCmp $MUI_TEMP $SMPROGRAMS startMenuDeleteLoopDone startMenuDeleteLoop
   startMenuDeleteLoopDone:
 
-  # Delete the PyTables Pro key from the registry
+  # Delete the PyTables key from the registry
   DeleteRegKey HKLM $PTPRO_SUBKEY
 
 

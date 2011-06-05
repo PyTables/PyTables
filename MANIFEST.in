@@ -18,5 +18,7 @@ recursive-exclude doc/xml *
 recursive-include examples *.py *.sh
 recursive-include bench *.sh *.py *.txt
 recursive-include contrib README *.py
-recursive-include debian *
-recursive-exclude debian *.in
+# Including the debian/ directory is considered bad practice.  See:
+# http://newpeople.debian.org/~mpalmer/debian-mentors_FAQ.html
+# recursive-include debian *
+# recursive-exclude debian *.in

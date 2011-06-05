@@ -19,8 +19,8 @@ Provides: python-tables
 Replaces: python-tables
 Conflicts: python-tables
 Description: hierarchical database for Python based on HDF5
- PyTables Pro is a hierarchical database package designed to efficently
- manage very large amounts of data. PyTables Pro is built on top of the
+ PyTables is a hierarchical database package designed to efficently
+ manage very large amounts of data. PyTables is built on top of the
  HDF5 library and the NumPy package. It features an object-oriented
  interface that, combined with natural naming and C-code generated
  from Pyrex sources, makes it a fast, yet extremely easy to use tool

@@ -1,7 +1,7 @@
 # MingW Makefile for the mswindows subdirectory
-# This Makefile is intended to create the PyTables Pro installer for Windows
+# This Makefile is intended to create the PyTables installer for Windows
 
-#Variables for software versions: PyTables Pro, Python and required libraries
+#Variables for software versions: PyTables, Python and required libraries
 VERSIONFILE=..\VERSION
 FULLVERSION=$(shell type ..\VERSION)
 VERSION = $(subst pro,,${FULLVERSION})
@@ -75,7 +75,7 @@ clean:
 	-del $(PTPRONSIS)
 	-del PyTablesPro*.win32-py$(DOTPYTHONVERSION).exe
 	-del PyTablesPro*.win-amd64-py$(DOTPYTHONVERSION).exe
-	
+
 
 # $(info $(NUMPYVERSION))
 installer: dist pytables_pro.nsi.in $(VERSIONFILE) $(LICENSEFILE)
