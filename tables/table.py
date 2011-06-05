@@ -173,7 +173,6 @@ _table__autoIndex = property(
 
     This value is persistent.
 
-    .. Note:: Column indexing is only available in PyTables Pro.
     """ )
 
 
@@ -418,8 +417,6 @@ class Table(tableExtension.Table, Leaf):
     can be several times faster than searching a non-nested one.  Search
     methods automatically take advantage of indexing where available.
 
-    .. Note:: Column indexing is only available in PyTables Pro.
-
     When iterating a table, an object from the `Row` class is used.
     This object allows to read and write data one row at a time, as well
     as to perform queries which are not supported by in-kernel syntax
@@ -455,8 +452,6 @@ class Table(tableExtension.Table, Leaf):
 
         This value is persistent.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
-
     coldescrs
         Maps the name of a column to its `Col` description.
     coldflts
@@ -465,9 +460,6 @@ class Table(tableExtension.Table, Leaf):
         Maps the name of a column to its NumPy data type.
     colindexed
         Is the column which name is used as a key indexed?
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-
     colinstances
         Maps the name of a column to its `Column` or `Cols` instance.
     colnames
@@ -492,14 +484,8 @@ class Table(tableExtension.Table, Leaf):
         The index of the enlargeable dimension (always 0 for tables).
     indexed
         Does this table have any indexed columns?
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-
     indexedcolpathnames
         List of the pathnames of indexed columns in the table.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-
     nrows
         Current number of rows in the table.
     row
@@ -619,8 +605,6 @@ class Table(tableExtension.Table, Leaf):
         None, None,
         """
         The pathnames of the indexed columns of this table.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
         """ )
 
     colindexes = property(
@@ -631,8 +615,6 @@ class Table(tableExtension.Table, Leaf):
         None, None,
         """
         A dictionary with the indexes of the indexed columns.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
         """ )
 
     _dirtyindexes = property(
@@ -718,8 +700,6 @@ class Table(tableExtension.Table, Leaf):
         self.indexed = False
         """
         Does this table have any indexed columns?
-
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._indexedrows = 0
         """Number of rows indexed in disk."""
@@ -755,8 +735,6 @@ class Table(tableExtension.Table, Leaf):
         self.colindexed = {}
         """
         Is the column which name is used as a key indexed?
-
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         self._useIndex = False
@@ -1361,7 +1339,6 @@ class Table(tableExtension.Table, Leaf):
         this method return different values for the same arguments at
         different times.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars, depth=2)
@@ -1407,8 +1384,6 @@ class Table(tableExtension.Table, Leaf):
         place the indexed columns as left and out in the condition as
         possible.  Anyway, this method has always better performance
         than standard Python selections on the table.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
 
         You can mix this method with standard Python selections in order
         to support even more complex queries.  It is strongly
@@ -1637,7 +1612,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         value of `step` is supported, meaning that the results will be
         returned in reverse sorted order.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         index = self._check_sortby_CSI(sortby, checkCSI)
         # Adjust the slice to be used.
@@ -1669,7 +1643,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         value of `step` is supported, meaning that the results will be
         returned in reverse sorted order.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._checkFieldIfNumeric(field)
         index = self._check_sortby_CSI(sortby, checkCSI)
@@ -2385,7 +2358,6 @@ The 'names' parameter must be a list of strings.""")
         for the table (see the `Table.autoIndex` property) and you want
         to update the indexes on it.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         rowsadded = 0
@@ -2588,7 +2560,6 @@ The 'names' parameter must be a list of strings.""")
         index information for columns is no longer valid and want to
         rebuild the indexes on it.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._doReIndex(dirty=False)
 
@@ -2602,7 +2573,6 @@ The 'names' parameter must be a list of strings.""")
         invalidating index operation (`Table.removeRows()`, for
         example).
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._doReIndex(dirty=True)
 
@@ -3123,8 +3093,6 @@ class Column(object):
     class), but there are a few other associated methods to deal with
     indexes.
 
-    .. Note:: Column indexing is only available in PyTables Pro.
-
     Public instance variables
     -------------------------
 
@@ -3416,7 +3384,6 @@ class Column(object):
            sorted index (CSI).  For those cases, it is best to use the
            `createCSIndex()` method instead.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         kinds = ['ultralight', 'light', 'medium', 'full']
@@ -3501,7 +3468,6 @@ class Column(object):
 
         This method does nothing if the column is not indexed.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         self._doReIndex(dirty=False)
@@ -3517,7 +3483,6 @@ class Column(object):
 
         This method does nothing if the column is not indexed.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         self._doReIndex(dirty=True)
@@ -3531,7 +3496,6 @@ class Column(object):
         removed index can be created again by calling the
         `Column.createIndex()` method.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         self._tableFile._checkWritable()

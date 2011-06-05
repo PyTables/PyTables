@@ -900,7 +900,7 @@ cdef class Row:
             #
             # Optimized read through the use of a chunk cache.  This cache has
             # more or less the same speed than the integrated HDF5 chunk
-            # cache, but using the PyTables Pro one has the advantage that the
+            # cache, but using the PyTables one has the advantage that the
             # user can easily change this parameter.
             recout = recout + table._read_chunk(nchunksread, IObuf, j*cs)
             j = j + 1

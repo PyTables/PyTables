@@ -1,5 +1,5 @@
 """
-Beware! you need PyTables Pro Edition to run this script!
+Beware! you need PyTables >= 2.3 to run this script!
 """
 
 from time import time  # use clock for Win

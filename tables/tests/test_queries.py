@@ -249,8 +249,6 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 raise common.SkipTest(
                     "Columns of this type can not be indexed." )
             raise
-        except tables.NoIndexingError:
-            raise common.SkipTest("Indexing is not supported.")
         except NotImplementedError:
             raise common.SkipTest(
                 "Indexing columns of this type is not supported yet." )
