@@ -1,23 +1,21 @@
-Source: pytables-pro-@LICENSE@
+Source: pytables
 Section: python
 Priority: optional
 Maintainer: Francesc Alted <faltet@pytables.com>
-Standards-Version: 3.7.2
+Homepage: http://www.pytables.org
+Standards-Version: 3.7.3
 XS-Python-Version: >= 2.4
-Build-Depends: debhelper (>= 5.0.38), libhdf5-serial-dev (>= 1.6.5),
+Build-Depends: debhelper (>= 6.0.7), libhdf5-serial-dev (>= 1.6.5),
                python-all-dev, python-central (>= 0.5.6),
-               python-numpy (>= 1.0.3), zlib1g-dev, liblzo2-dev, libbz2-dev
+               python-numpy (>= 1.0.4), zlib1g-dev, liblzo2-dev, libbz2-dev
 
-Package: python-tables-pro-@LICENSE@
+Package: python-tables
 Section: python
 Architecture: any
 XB-Python-Version: ${python:Versions}
 Depends: ${python:Depends}, ${shlibs:Depends}, python-numpy
 Recommends: ${shlibs:Recommends}
-Suggests: python-tables-pro-@LICENSE@-doc, ${shlibs:Suggests}
-Provides: python-tables
-Replaces: python-tables
-Conflicts: python-tables
+Suggests: python-tables-doc, python-netcdf, ${shlibs:Suggests}
 Description: hierarchical database for Python based on HDF5
  PyTables is a hierarchical database package designed to efficently
  manage very large amounts of data. PyTables is built on top of the
@@ -35,17 +33,10 @@ Description: hierarchical database for Python based on HDF5
     rows in tables. Extended slicing is supported as well.
   - It supports the complete set of NumPy, Numeric and numarray objects.
   - It allows to index fields of tables to allow first-class lookup times.
- .
-  Homepage: http://www.pytables.org/moin/PytablesPro
 
-Package: python-tables-pro-@LICENSE@-doc
+Package: python-tables-doc
 Section: doc
 Architecture: all
-Provides: python-tables-doc
-Replaces: python-tables-doc
-Conflicts: python-tables-doc
 Suggests: xpdf | pdf-viewer
 Description: hierarchical database for Python based on HDF5 - documentation
  This package includes the manual in PDF and HTML formats.
- .
-  Homepage: http://www.pytables.org/moin/PytablesPro
