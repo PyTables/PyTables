@@ -3717,16 +3717,16 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
 
                 <note>
                     <para>PyTables Professional edition has been released
-                    under open surce license. Starting from version 2.3,
+                    under an open source license. Starting with version 2.3,
                     PyTables includes all features of PyTables Pro.</para>
 
                     <para>In order to reflect the presence of advanced
                     features <emphasis role="bold">is_pro</emphasis> is always
                     set to True.</para>
 
-                    <para><emphasis role="bold">is_pro</emphasis> have to be
-                    considerd <emphasis role="bold">deprecated</emphasis> and
-                    it will be removed in the next major release.</para>
+                    <para><emphasis role="bold">is_pro</emphasis> should be
+                    considered <emphasis role="bold">deprecated</emphasis>.
+                    It will be removed in the next major release.</para>
                 </note>
 
               </glossdef>

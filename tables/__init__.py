@@ -66,14 +66,14 @@ is_pro = True
 """True for PyTables Professional edition, false otherwise.
 
 .. note:: PyTables Professional edition has been released under open
-          surce license. Starting from version 2.3, PyTables includes all
+          source license. Starting with version 2.3, PyTables includes all
           features of PyTables Pro.
 
           In order to reflect the presence of advanced features *is_pro*
           is always set to True.
 
 
-.. deprecated:: :data:`tables.is_pro` have to be considerd deprecated
+.. deprecated:: :data:`tables.is_pro` should be considered deprecated
                 and it will be removed in the next major release.
 
 """
