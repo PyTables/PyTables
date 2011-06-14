@@ -87,7 +87,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
         os.remove(file)
 
-        assert class_.capitalize() == "Array"
+        self.assertEqual(class_.capitalize(), "Array")
 
     def test01_openFile(self):
         """Checking opening of an existing file"""
@@ -98,7 +98,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Get the CLASS attribute of the arr object
         title = fileh.root.array.getAttr("TITLE")
 
-        assert title == "Array example"
+        self.assertEqual(title, "Array example")
         fileh.close()
 
     def test02_appendFile(self):
@@ -117,7 +117,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Get the CLASS attribute of the arr object
         title = fileh.root.array2.getAttr("TITLE")
 
-        assert title == "Title example 2"
+        self.assertEqual(title, "Title example 2")
         fileh.close()
 
     def test02b_appendFile2(self):
@@ -136,7 +136,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Get the CLASS attribute of the arr object
         title = fileh.root.array2.getAttr("TITLE")
 
-        assert title == "Title example 2"
+        self.assertEqual(title, "Title example 2")
         fileh.close()
 
     # Begin to raise errors...
@@ -195,7 +195,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Get the node again, as this can trigger errors in some situations
         anarray1 = fileh.root.anarray1
 
-        assert title == "Array title 1"
+        self.assertEqual(title, "Array title 1")
         fileh.close()
 
     # This test works well, but HDF5 emits a series of messages that
@@ -446,9 +446,9 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, mode = "r", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         # Ensure that the new name exists
         array_ = fileh.root.anarray2
-        assert array_.name == "anarray2"
-        assert array_._v_pathname == "/anarray2"
-        assert array_._v_depth == 1
+        self.assertEqual(array_.name, "anarray2")
+        self.assertEqual(array_._v_pathname, "/anarray2")
+        self.assertEqual(array_._v_depth, 1)
         # Try to get the previous object with the old name
         try:
             object = fileh.root.anarray
@@ -470,9 +470,9 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Ensure that the new name exists
         array_ = fileh.root.anarray2
-        assert array_.name == "anarray2"
-        assert array_._v_pathname == "/anarray2"
-        assert array_._v_depth == 1
+        self.assertEqual(array_.name, "anarray2")
+        self.assertEqual(array_._v_pathname, "/anarray2")
+        self.assertEqual(array_._v_depth, 1)
         # Try to get the previous object with the old name
         try:
             object = fileh.root.anarray
@@ -494,8 +494,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         array_ = fileh.root.anarray2
         array_.attrs.TITLE = "hello"
         # Ensure that the new attribute has been written correctly
-        assert array_.title == "hello"
-        assert array_.attrs.TITLE == "hello"
+        self.assertEqual(array_.title, "hello")
+        self.assertEqual(array_.attrs.TITLE, "hello")
         fileh.close()
 
     def test07d_renameLeaf(self):
@@ -507,7 +507,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Ensure that we can access n attributes in the new group
         node = fileh.root.agroup.anarray3
-        assert node._v_title == "Array title 2"
+        self.assertEqual(node._v_title, "Array title 2")
         fileh.close()
 
     def test08_renameToExistingLeaf(self):
@@ -529,8 +529,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Now overwrite the destination node.
         anarray = fileh.root.anarray
         fileh.renameNode(anarray, 'array', overwrite=True)
-        self.assert_('/anarray' not in fileh)
-        self.assert_(fileh.root.array is anarray)
+        self.assertTrue('/anarray' not in fileh)
+        self.assertTrue(fileh.root.array is anarray)
         fileh.close()
 
     def test08b_renameToNotValidNaturalName(self):
@@ -567,13 +567,13 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, mode = "r", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         # Ensure that the new name exists
         group = fileh.root.agroup3
-        assert group._v_name == "agroup3"
-        assert group._v_pathname == "/agroup3"
+        self.assertEqual(group._v_name, "agroup3")
+        self.assertEqual(group._v_pathname, "/agroup3")
         # The children of this group also must be accessible through the
         # new name path
         group2 = fileh.getNode("/agroup3/agroup3")
-        assert group2._v_name == "agroup3"
-        assert group2._v_pathname == "/agroup3/agroup3"
+        self.assertEqual(group2._v_name, "agroup3")
+        self.assertEqual(group2._v_pathname, "/agroup3/agroup3")
         # Try to get the previous object with the old name
         try:
             object = fileh.root.agroup
@@ -605,13 +605,13 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Ensure that the new name exists
         group = fileh.root.agroup3
-        assert group._v_name == "agroup3"
-        assert group._v_pathname == "/agroup3"
+        self.assertEqual(group._v_name, "agroup3")
+        self.assertEqual(group._v_pathname, "/agroup3")
         # The children of this group also must be accessible through the
         # new name path
         group2 = fileh.getNode("/agroup3/agroup3")
-        assert group2._v_name == "agroup3"
-        assert group2._v_pathname == "/agroup3/agroup3"
+        self.assertEqual(group2._v_name, "agroup3")
+        self.assertEqual(group2._v_pathname, "/agroup3/agroup3")
         # Try to get the previous object with the old name
         try:
             object = fileh.root.agroup
@@ -644,8 +644,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Ensure that we can modify attributes in the new group
         group = fileh.root.agroup3
         group._v_attrs.TITLE = "Hello"
-        assert group._v_title == "Hello"
-        assert group._v_attrs.TITLE == "Hello"
+        self.assertEqual(group._v_title, "Hello")
+        self.assertEqual(group._v_attrs.TITLE, "Hello")
         fileh.close()
 
     def test09d_renameGroup(self):
@@ -657,7 +657,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Ensure that we can access n attributes in the new group
         group = fileh.root.agroup.agroup4
-        assert group._v_title == "Group title 3"
+        self.assertEqual(group._v_title, "Group title 3")
         fileh.close()
 
     def test09e_renameGroup(self):
@@ -669,11 +669,11 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Load intermediate groups and keep a nested one alive.
         g = fileh.root.agroup.agroup3.agroup4
         fileh.renameNode('/', name='agroup', newname='agroup_')
-        self.assert_('/agroup_/agroup4' not in fileh)  # see ticket #126
-        self.assert_('/agroup' not in fileh)
+        self.assertTrue('/agroup_/agroup4' not in fileh)  # see ticket #126
+        self.assertTrue('/agroup' not in fileh)
         for newpath in [ '/agroup_', '/agroup_/agroup3',
                          '/agroup_/agroup3/agroup4' ]:
-            self.assert_(newpath in fileh)
+            self.assertTrue(newpath in fileh)
             self.assertEqual(newpath, fileh.getNode(newpath)._v_pathname)
         fileh.close()
 
@@ -691,9 +691,9 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, mode = "r", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         # Ensure that the new name exists
         array_ = fileh.root.newgroup.anarray2
-        assert array_.name == "anarray2"
-        assert array_._v_pathname == "/newgroup/anarray2"
-        assert array_._v_depth == 2
+        self.assertEqual(array_.name, "anarray2")
+        self.assertEqual(array_._v_pathname, "/newgroup/anarray2")
+        self.assertEqual(array_._v_depth, 2)
         # Try to get the previous object with the old name
         try:
             object = fileh.root.anarray
@@ -716,9 +716,9 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Ensure that the new name exists
         array_ = fileh.root.newgroup.anarray2
-        assert array_.name == "anarray2"
-        assert array_._v_pathname == "/newgroup/anarray2"
-        assert array_._v_depth == 2
+        self.assertEqual(array_.name, "anarray2")
+        self.assertEqual(array_._v_pathname, "/newgroup/anarray2")
+        self.assertEqual(array_._v_depth, 2)
         # Try to get the previous object with the old name
         try:
             object = fileh.root.anarray
@@ -741,8 +741,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         array_ = fileh.root.newgroup.anarray2
         array_.attrs.TITLE = "hello"
         # Ensure that the new attribute has been written correctly
-        assert array_.title == "hello"
-        assert array_.attrs.TITLE == "hello"
+        self.assertEqual(array_.title, "hello")
+        self.assertEqual(array_.attrs.TITLE, "hello")
         fileh.close()
 
     def test10d_moveToExistingLeaf(self):
@@ -777,9 +777,9 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, mode = "r", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         # Ensure that the new name exists
         table_ = fileh.root.newgroup.atable2
-        assert table_.name == "atable2"
-        assert table_._v_pathname == "/newgroup/atable2"
-        assert table_._v_depth == 2
+        self.assertEqual(table_.name, "atable2")
+        self.assertEqual(table_._v_pathname, "/newgroup/atable2")
+        self.assertEqual(table_._v_depth, 2)
         # Try to get the previous object with the old name
         try:
             object = fileh.root.atable
@@ -802,9 +802,9 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Ensure that the new name exists
         table_ = fileh.root.newgroup.atable2
-        assert table_.name == "atable2"
-        assert table_._v_pathname == "/newgroup/atable2"
-        assert table_._v_depth == 2
+        self.assertEqual(table_.name, "atable2")
+        self.assertEqual(table_._v_pathname, "/newgroup/atable2")
+        self.assertEqual(table_._v_depth, 2)
         # Try to get the previous object with the old name
         try:
             object = fileh.root.atable
@@ -829,17 +829,17 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Ensure that the new name exists
         table_ = fileh.root.newgroup.atable2
-        assert table_.name == "atable2"
-        assert table_._v_pathname == "/newgroup/atable2"
-        assert table_._v_depth == 2
+        self.assertEqual(table_.name, "atable2")
+        self.assertEqual(table_._v_pathname, "/newgroup/atable2")
+        self.assertEqual(table_._v_depth, 2)
         # Ensure that cache Row attribute has been updated
         row = table_.row
-        assert table_._v_pathname == row.table._v_pathname
+        self.assertEqual(table_._v_pathname, row.table._v_pathname)
         nrows = table_.nrows
         # Add a new row just to make sure that this works
         row.append()
         table_.flush()
-        assert table_.nrows == nrows + 1
+        self.assertEqual(table_.nrows, nrows + 1)
         fileh.close()
 
     def test10_2c_moveTable(self):
@@ -852,8 +852,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         table_ = fileh.root.newgroup.atable2
         table_.attrs.TITLE = "hello"
         # Ensure that the new attribute has been written correctly
-        assert table_.title == "hello"
-        assert table_.attrs.TITLE == "hello"
+        self.assertEqual(table_.title, "hello")
+        self.assertEqual(table_.attrs.TITLE, "hello")
         fileh.close()
 
     def test10_2d_moveToExistingTable(self):
@@ -884,7 +884,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.moveNode(srcNode, fileh.root, 'table', overwrite = True)
         dstNode = fileh.root.table
 
-        self.assert_(srcNode is dstNode)
+        self.assertTrue(srcNode is dstNode)
         fileh.close()
 
     def test11_moveGroup(self):
@@ -901,15 +901,15 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, mode = "r", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         # Ensure that the new name exists
         group = fileh.root.newgroup.agroup3
-        assert group._v_name == "agroup3"
-        assert group._v_pathname == "/newgroup/agroup3"
-        assert group._v_depth == 2
+        self.assertEqual(group._v_name, "agroup3")
+        self.assertEqual(group._v_pathname, "/newgroup/agroup3")
+        self.assertEqual(group._v_depth, 2)
         # The children of this group must also be accessible through the
         # new name path
         group2 = fileh.getNode("/newgroup/agroup3/agroup3")
-        assert group2._v_name == "agroup3"
-        assert group2._v_pathname == "/newgroup/agroup3/agroup3"
-        assert group2._v_depth == 3
+        self.assertEqual(group2._v_name, "agroup3")
+        self.assertEqual(group2._v_pathname, "/newgroup/agroup3/agroup3")
+        self.assertEqual(group2._v_depth, 3)
         # Try to get the previous object with the old name
         try:
             object = fileh.root.agroup
@@ -941,15 +941,15 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.moveNode(fileh.root.agroup, newgroup, 'agroup3')
         # Ensure that the new name exists
         group = fileh.root.newgroup.agroup3
-        assert group._v_name == "agroup3"
-        assert group._v_pathname == "/newgroup/agroup3"
-        assert group._v_depth == 2
+        self.assertEqual(group._v_name, "agroup3")
+        self.assertEqual(group._v_pathname, "/newgroup/agroup3")
+        self.assertEqual(group._v_depth, 2)
         # The children of this group must also be accessible through the
         # new name path
         group2 = fileh.getNode("/newgroup/agroup3/agroup3")
-        assert group2._v_name == "agroup3"
-        assert group2._v_pathname == "/newgroup/agroup3/agroup3"
-        assert group2._v_depth == 3
+        self.assertEqual(group2._v_name, "agroup3")
+        self.assertEqual(group2._v_pathname, "/newgroup/agroup3/agroup3")
+        self.assertEqual(group2._v_depth, 3)
         # Try to get the previous object with the old name
         try:
             object = fileh.root.agroup
@@ -984,9 +984,9 @@ class OpenFileTestCase(common.PyTablesTestCase):
         group = fileh.root.newgroup.agroup3
         group._v_attrs.TITLE = "Hello"
         group._v_attrs.hola = "Hello"
-        assert group._v_title == "Hello"
-        assert group._v_attrs.TITLE == "Hello"
-        assert group._v_attrs.hola == "Hello"
+        self.assertEqual(group._v_title, "Hello")
+        self.assertEqual(group._v_attrs.TITLE, "Hello")
+        self.assertEqual(group._v_attrs.hola, "Hello")
         fileh.close()
 
     def test11d_moveToExistingGroup(self):
@@ -1018,7 +1018,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.moveNode(srcNode, fileh.root, 'agroup', overwrite = True)
         dstNode = fileh.root.agroup
 
-        self.assert_(srcNode is dstNode)
+        self.assertTrue(srcNode is dstNode)
         fileh.close()
 
     def test12a_moveNodeOverItself(self):
@@ -1032,7 +1032,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.moveNode(srcNode, fileh.root, 'array')
         dstNode = fileh.root.array
 
-        self.assert_(srcNode is dstNode)
+        self.assertTrue(srcNode is dstNode)
         fileh.close()
 
     def test12b_moveGroupIntoItself(self):
@@ -1063,7 +1063,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         newNode = fileh.copyNode(fileh.root.array, fileh.root.agroup2)
         dstNode = fileh.root.agroup2.array
 
-        self.assert_(newNode is dstNode)
+        self.assertTrue(newNode is dstNode)
         fileh.close()
 
     def test13b_copyGroup(self):
@@ -1076,7 +1076,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         newNode = fileh.copyNode(fileh.root.agroup2, fileh.root.agroup)
         dstNode = fileh.root.agroup.agroup2
 
-        self.assert_(newNode is dstNode)
+        self.assertTrue(newNode is dstNode)
         fileh.close()
 
     def test13c_copyGroupSelf(self):
@@ -1089,7 +1089,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         newNode = fileh.copyNode(fileh.root.agroup2, fileh.root.agroup2)
         dstNode = fileh.root.agroup2.agroup2
 
-        self.assert_(newNode is dstNode)
+        self.assertTrue(newNode is dstNode)
         fileh.close()
 
     def test13d_copyGroupRecursive(self):
@@ -1103,7 +1103,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             fileh.root.agroup, fileh.root.agroup2, recursive = True)
         dstNode = fileh.root.agroup2.agroup
 
-        self.assert_(newNode is dstNode)
+        self.assertTrue(newNode is dstNode)
         dstChild1 = dstNode.anarray1
         dstChild2 = dstNode.anarray2
         dstChild3 = dstNode.agroup3
@@ -1123,10 +1123,10 @@ class OpenFileTestCase(common.PyTablesTestCase):
             fileh.root, fileh2.root, recursive = True)
         dstNode = fileh2.root
 
-        self.assert_(newNode is dstNode)
-        self.assert_("/agroup" in fileh2)
-        self.assert_("/agroup/anarray1" in fileh2)
-        self.assert_("/agroup/agroup3" in fileh2)
+        self.assertTrue(newNode is dstNode)
+        self.assertTrue("/agroup" in fileh2)
+        self.assertTrue("/agroup/anarray1" in fileh2)
+        self.assertTrue("/agroup/agroup3" in fileh2)
 
         fileh.close()
         fileh2.close()
@@ -1147,10 +1147,10 @@ class OpenFileTestCase(common.PyTablesTestCase):
             fileh.root, fileh2.root.agroup2, recursive = True)
         dstNode = fileh2.root.agroup2
 
-        self.assert_(newNode is dstNode)
-        self.assert_("/agroup2/agroup" in fileh2)
-        self.assert_("/agroup2/agroup/anarray1" in fileh2)
-        self.assert_("/agroup2/agroup/agroup3" in fileh2)
+        self.assertTrue(newNode is dstNode)
+        self.assertTrue("/agroup2/agroup" in fileh2)
+        self.assertTrue("/agroup2/agroup/anarray1" in fileh2)
+        self.assertTrue("/agroup2/agroup/agroup3" in fileh2)
 
         fileh.close()
         fileh2.close()
@@ -1196,7 +1196,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
                                  overwrite = True)
         dstNode = fileh.root.agroup
 
-        self.assert_(newNode is dstNode)
+        self.assertTrue(newNode is dstNode)
         fileh.close()
 
     def test14b2_copyNodeExistingOverwrite(self):
@@ -1217,7 +1217,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
                                  overwrite = True, recursive=True)
         dstNode = fileh2.root
 
-        self.assert_(newNode is dstNode)
+        self.assertTrue(newNode is dstNode)
         fileh.close()
         fileh2.close()
         os.remove(file2)
@@ -1286,7 +1286,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.moveNode(srcNode, fileh.root.agroup, 'array')
         dstNode = fileh.root.agroup.array
 
-        self.assert_(srcNode is dstNode)
+        self.assertTrue(srcNode is dstNode)
         fileh.close()
 
     def test15b_oneStepCopy(self):
@@ -1300,7 +1300,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             fileh.root.anarray1, fileh.root.agroup, 'array')
         dstNode = fileh.root.agroup.array
 
-        self.assert_(newNode is dstNode)
+        self.assertTrue(newNode is dstNode)
         fileh.close()
 
     def test16a_fullCopy(self):
@@ -1315,7 +1315,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             srcNode, newname = 'groupcopy', recursive = True)
         dstNode = fileh.root.groupcopy
 
-        self.assert_(newNode is dstNode)
+        self.assertTrue(newNode is dstNode)
         self.assertEqual(srcNode._v_attrs.testattr, dstNode._v_attrs.testattr)
         self.assertEqual(
             srcNode.anarray1.attrs.testattr, dstNode.anarray1.attrs.testattr)
@@ -1336,9 +1336,9 @@ class OpenFileTestCase(common.PyTablesTestCase):
             start = 0, stop = 5, step = 2)
         dstNode = fileh.root.groupcopy
 
-        self.assert_(newNode is dstNode)
-        self.assert_(not hasattr(dstNode._v_attrs, 'testattr'))
-        self.assert_(not hasattr(dstNode.anarray1.attrs, 'testattr'))
+        self.assertTrue(newNode is dstNode)
+        self.assertFalse(hasattr(dstNode._v_attrs, 'testattr'))
+        self.assertFalse(hasattr(dstNode.anarray1.attrs, 'testattr'))
         self.assertEqual(srcNode.anarray1.read()[0:5:2], dstNode.anarray1.read())
         fileh.close()
 
@@ -1358,7 +1358,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             srcNode, fileh2.root, newname = 'groupcopy', recursive = True)
         dstNode = fileh2.root.groupcopy
 
-        self.assert_(newNode is dstNode)
+        self.assertTrue(newNode is dstNode)
         self.assertEqual(srcNode._v_attrs.testattr, dstNode._v_attrs.testattr)
         self.assertEqual(
             srcNode.agroup.anarray1.attrs.testattr,
@@ -1379,8 +1379,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         newTable = fileh.copyNode(
             srcTable, newname = 'tablecopy', chunkshape=11)
 
-        self.assert_(newTable.chunkshape == (11,))
-        self.assert_(srcTable.chunkshape != newTable.chunkshape)
+        self.assertEqual(newTable.chunkshape, (11,))
+        self.assertNotEqual(srcTable.chunkshape, newTable.chunkshape)
         fileh.close()
 
     def test17b_CopyChunkshape(self):
@@ -1392,7 +1392,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         newTable = fileh.copyNode(
             srcTable, newname = 'tablecopy', chunkshape='keep')
 
-        self.assert_(srcTable.chunkshape == newTable.chunkshape)
+        self.assertEqual(srcTable.chunkshape, newTable.chunkshape)
         fileh.close()
 
     def test17c_CopyChunkshape(self):
@@ -1406,7 +1406,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         newTable2 = fileh.copyNode(
             newTable, newname = 'tablecopy2', chunkshape='auto')
 
-        self.assert_(srcTable.chunkshape == newTable2.chunkshape)
+        self.assertEqual(srcTable.chunkshape, newTable2.chunkshape)
         fileh.close()
 
     def test18_closedRepr(self):
@@ -1415,8 +1415,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, NODE_CACHE_SLOTS=self.nodeCacheSlots)
         for node in [fileh.root.agroup, fileh.root.anarray]:
             node._f_close()
-            self.assert_('closed' in str(node))
-            self.assert_('closed' in repr(node))
+            self.assertTrue('closed' in str(node))
+            self.assertTrue('closed' in repr(node))
         fileh.close()
 
     def test19_fileno(self):
@@ -1429,7 +1429,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fd = fileh.fileno()
         if common.verbose:
             print "Value of fileno():", fd
-        assert fd >= 0
+        self.assertTrue(fd >= 0)
         fileh.close()
 
 class NodeCacheOpenFile(OpenFileTestCase):
@@ -1458,7 +1458,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # When file has an HDF5 format, always returns 1
         if common.verbose:
             print "\nisHDF5File(%s) ==> %d" % (file, isHDF5File(file))
-        assert isHDF5File(file) == 1
+        self.assertEqual(isHDF5File(file), 1)
 
         # Then, delete the file
         os.remove(file)
@@ -1475,7 +1475,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         version = isHDF5File(file)
         # When file is not an HDF5 format, always returns 0 or
         # negative value
-        assert version <= 0
+        self.assertTrue(version <= 0)
 
         # Then, delete the file
         os.remove(file)
@@ -1517,7 +1517,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
             print
             print "\nPyTables format version number ==> %s" % \
               version
-        assert version >= "1.0"
+        self.assertTrue(version >= "1.0")
 
         # Then, delete the file
         os.remove(file)
@@ -1535,7 +1535,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         version = isPyTablesFile(file)
         # When file is not a PyTables format, always returns 0 or
         # negative value
-        assert version <= 0
+        self.assertTrue(version <= 0)
 
         # Then, delete the file
         os.remove(file)
@@ -1550,24 +1550,24 @@ class CheckFileTestCase(common.PyTablesTestCase):
 
         # A group
         columns = fileh.getNode("/columns", classname="Group")
-        assert columns._v_name == "columns"
+        self.assertEqual(columns._v_name, "columns")
 
         # An Array
         array_ = fileh.getNode(columns, "TDC", classname="Array")
-        assert array_._v_name == "TDC"
+        self.assertEqual(array_._v_name, "TDC")
 
         # (The new LRU code defers the appearance of a warning to this point).
 
         # Here comes an Array of H5T_ARRAY type
         ui = fileh.getNode(columns, "pressure", classname="Array")
-        assert ui._v_name == "pressure"
+        self.assertEqual(ui._v_name, "pressure")
         if common.verbose:
             print "Array object with type H5T_ARRAY -->",repr(ui)
             print "Array contents -->", ui[:]
 
         # A Table
         table = fileh.getNode("/detector", "table", classname="Table")
-        assert table._v_name == "table"
+        self.assertEqual(table._v_name, "table")
 
         fileh.close()
 
@@ -1584,7 +1584,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         try:
             node = self.assertWarns(
                 UserWarning, h5file.getNode, '/CompoundChunked')
-            self.assert_(isinstance(node, UnImplemented))
+            self.assertTrue(isinstance(node, UnImplemented))
         finally:
             h5file.close()
 
@@ -1595,7 +1595,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         fileh = openFile(self._testFilename("smpl_unsupptype.h5"), mode="r")
         ui = self.assertWarns(
             UserWarning, fileh.getNode, '/CompoundChunked')
-        assert ui._v_name == 'CompoundChunked'
+        self.assertEqual(ui._v_name, 'CompoundChunked')
         if common.verbose:
             print "UnImplement object -->",repr(ui)
 
@@ -1639,7 +1639,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # An unsupported object (the deprecated H5T_ARRAY type in
         # Array, from pytables 0.8 on)
         ui = fileh.getNode(fileh.root.columns, "pressure")
-        assert ui._v_name == "pressure"
+        self.assertEqual(ui._v_name, "pressure")
         if common.verbose:
             print "UnImplement object -->",repr(ui)
 
@@ -1688,13 +1688,13 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertWarns(NaturalNameWarning,
                          setattr, root, 'test', attr)
 
-        self.assert_(root.test is attr)
-        self.assert_(root._f_getChild('test') is child)
+        self.assertTrue(root.test is attr)
+        self.assertTrue(root._f_getChild('test') is child)
 
         # Now bring ``/test`` again to light.
         del root.test
 
-        self.assert_(root.test is child)
+        self.assertTrue(root.test is child)
 
         # Now there is no *attribute* named ``test``.
         self.assertRaises(AttributeError,
@@ -1714,13 +1714,13 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                          h5file.createArray, root, 'test', [1])
         child = h5file.getNode('/test')
 
-        self.assert_(root.test is attr)
-        self.assert_(root._f_getChild('test') is child)
+        self.assertTrue(root.test is attr)
+        self.assertTrue(root._f_getChild('test') is child)
 
         # Now bring ``/test`` again to light.
         del root.test
 
-        self.assert_(root.test is child)
+        self.assertTrue(root.test is child)
 
         # Now there is no *attribute* named ``test``.
         self.assertRaises(AttributeError,
@@ -1740,8 +1740,8 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         array2.array1 = array1
 
         # Check the assignments.
-        self.assert_(array1.array2 is array2)
-        self.assert_(array2.array1 is array1)
+        self.assertTrue(array1.array2 is array2)
+        self.assertTrue(array2.array1 is array1)
         self.assertRaises(NoSuchNodeError,  # ``/array1`` is not a group
                           h5file.getNode, '/array1/array2')
         self.assertRaises(NoSuchNodeError,  # ``/array2`` is not a group
@@ -1763,10 +1763,10 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                          setattr, root, 'array', array)
 
         # Check the assignments.
-        self.assert_(root.arrayAlias is array)
-        self.assert_(root.array is array)
+        self.assertTrue(root.arrayAlias is array)
+        self.assertTrue(root.array is array)
         self.assertRaises(NoSuchNodeError, h5file.getNode, '/arrayAlias')
-        self.assert_(h5file.getNode('/array') is array)
+        self.assertTrue(h5file.getNode('/array') is array)
 
         # Remove the attribute overshadowing the child.
         del root.array
@@ -1959,7 +1959,7 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.enableUndo()
         self.h5file.createGroup('/', 'test')
         self._reopen('r')
-        self.assert_(self.h5file._undoEnabled == False)
+        self.assertEqual(self.h5file._undoEnabled, False)
         #self.assertRaises(FileModeError, self.h5file.undo)
         #self.assertRaises(FileModeError, self.h5file.disableUndo)
 
@@ -1985,17 +1985,17 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.fail("closed parent group has not been reopened")
 
         # Already open nodes should be closed now, but not the new ones.
-        self.assert_(g2._v_isopen is False,
-                     "open child of closed group has not been closed")
-        self.assert_(g2_._v_isopen is True,
-                     "open child of closed group has not been closed")
+        self.assertTrue(g2._v_isopen is False,
+                        "open child of closed group has not been closed")
+        self.assertTrue(g2_._v_isopen is True,
+                        "open child of closed group has not been closed")
 
         # And existing closed ones should remain closed, but not the new ones.
         g1_ = self.h5file.getNode('/g1')
-        self.assert_(g1._v_isopen is False,
-                     "already closed group is not closed anymore")
-        self.assert_(g1_._v_isopen is True,
-                     "newly opened group is still closed")
+        self.assertTrue(g1._v_isopen is False,
+                        "already closed group is not closed anymore")
+        self.assertTrue(g1_._v_isopen is True,
+                        "newly opened group is still closed")
 
 
     def test19b_getNode(self):
@@ -2032,8 +2032,8 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # should have been automatically closed when removed.
         self.assertRaises(ClosedNodeError, array._f_remove)
 
-        self.assert_('/group/array' not in self.h5file)  # just in case
-        self.assert_('/group' not in self.h5file)  # just in case
+        self.assertTrue('/group/array' not in self.h5file)  # just in case
+        self.assertTrue('/group' not in self.h5file)  # just in case
 
 
     def test21_attrsOfNode(self):
@@ -2078,20 +2078,20 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.close()
 
         file1 = openFile(self.h5fname, "r")
-        self.assert_(file1.open_count == 1)
+        self.assertEqual(file1.open_count, 1)
         file2 = openFile(self.h5fname, "r")
-        self.assert_(file1.open_count == 2)
-        self.assert_(file2.open_count == 2)
+        self.assertEqual(file1.open_count, 2)
+        self.assertEqual(file2.open_count, 2)
         if common.verbose:
             print "(file1) open_count:", file1.open_count
             print "(file1) test[1]:", file1.root.test[1]
-        self.assert_(file1.root.test[1] == 2)
+        self.assertEqual(file1.root.test[1], 2)
         file1.close()
-        self.assert_(file2.open_count == 1)
+        self.assertEqual(file2.open_count, 1)
         if common.verbose:
             print "(file2) open_count:", file2.open_count
             print "(file2) test[1]:", file2.root.test[1]
-        self.assert_(file2.root.test[1] == 2)
+        self.assertEqual(file2.root.test[1], 2)
         file2.close()
 
 
@@ -2139,7 +2139,7 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertEqual(self.array.flavor, flavor)
             idata = array_of_flavor(self.array_data, flavor)
             odata = self.array[:]
-            self.assert_(common.allequal(odata, idata, flavor))
+            self.assertTrue(common.allequal(odata, idata, flavor))
 
     def test03_store(self):
         """Storing a changed flavor."""
@@ -2156,7 +2156,7 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen(mode='r')
         idata = array_of_flavor(self.array_data, flavor)
         odata = self.assertWarns(FlavorWarning, self.array.read)
-        self.assert_(common.allequal(odata, idata, flavor))
+        self.assertTrue(common.allequal(odata, idata, flavor))
 
     def test05_delete(self):
         """Deleting the flavor of a dataset."""
@@ -2212,7 +2212,7 @@ class UnicodeFilename(common.PyTablesTestCase):
             print "Filename:", self.h5fname
             print "Array:", test[:]
             print "Should look like:", [1,2]
-        self.assert_(test[:] == [1,2], "Values does not match.")
+        self.assertEqual(test[:], [1,2], "Values does not match.")
 
     def test02(self):
         """Checking isHDF5File with a Unicode filename."""
@@ -2221,7 +2221,7 @@ class UnicodeFilename(common.PyTablesTestCase):
         if common.verbose:
             print "Filename:", self.h5fname
             print "isHDF5File?:", tables.isHDF5File(self.h5fname)
-        self.assert_(tables.isHDF5File(self.h5fname) == True)
+        self.assertTrue(tables.isHDF5File(self.h5fname))
 
 
     def test03(self):
@@ -2231,7 +2231,7 @@ class UnicodeFilename(common.PyTablesTestCase):
         if common.verbose:
             print "Filename:", self.h5fname
             print "isPyTablesFile?:", tables.isPyTablesFile(self.h5fname)
-        self.assert_(tables.isPyTablesFile(self.h5fname) <> False)
+        self.assertNotEqual(tables.isPyTablesFile(self.h5fname), False)
 
 
 # Test for reading a file that uses Blosc and created on a big-endian platform
@@ -2252,8 +2252,8 @@ class BloscBigEndian(common.PyTablesTestCase):
         for dset_name in ('i1', 'i2', 'i4', 'i8'):
             a = numpy.arange(10, dtype=dset_name)
             dset = self.fileh.getNode('/'+dset_name)
-            self.assert_(common.allequal(a, dset[:]),
-                         "Error in big-endian data!")
+            self.assertTrue(common.allequal(a, dset[:]),
+                            "Error in big-endian data!")
 
 
 # Case test for Blosc and subprocesses (via multiprocessing module)

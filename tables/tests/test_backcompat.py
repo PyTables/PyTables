@@ -5,9 +5,7 @@ import numpy
 
 from tables import *
 from tables.tests import common
-from tables.tests import common
-from tables.tests.common import (
-    allequal, numeric_imported)
+from tables.tests.common import allequal, numeric_imported
 
 if numeric_imported:
     import Numeric
@@ -41,7 +39,7 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
 
-        assert len(result) == 100
+        self.assertEqual(len(result), 100)
         self.fileh.close()
 
 
@@ -78,13 +76,13 @@ class BackCompatAttrsTestCase(common.PyTablesTestCase):
         scalar = numpy.array(1, dtype="int32")
         vector = numpy.array([1], dtype="int32")
         if self.format == "1.3":
-            assert allequal(a.attrs.arrdim1, vector)
-            assert allequal(a.attrs.arrscalar, scalar)
-            assert a.attrs.pythonscalar == 1
+            self.assertTrue(allequal(a.attrs.arrdim1, vector))
+            self.assertTrue(allequal(a.attrs.arrscalar, scalar))
+            self.assertEqual(a.attrs.pythonscalar, 1)
         elif self.format == "1.4":
-            assert allequal(a.attrs.arrdim1, vector)
-            assert allequal(a.attrs.arrscalar, scalar)
-            assert allequal(a.attrs.pythonscalar, scalar)
+            self.assertTrue(allequal(a.attrs.arrdim1, vector))
+            self.assertTrue(allequal(a.attrs.arrscalar, scalar))
+            self.assertTrue(allequal(a.attrs.pythonscalar, scalar))
 
         self.fileh.close()
 
@@ -104,13 +102,14 @@ class VLArrayTestCase(common.PyTablesTestCase):
         fileh = openFile(filename, "r")
         # Check that we can read the contents without problems (nor warnings!)
         vlarray1 = fileh.root.vlarray1
-        assert vlarray1.flavor == "numeric"
+        self.assertEqual(vlarray1.flavor, "numeric")
         if numeric_imported:
-            assert allequal(vlarray1[1], Numeric.array([5, 6, 7], typecode='i'),
-                            "numeric")
+            self.assertTrue(
+                allequal(vlarray1[1], Numeric.array([5, 6, 7],  typecode='i'),
+                         "numeric"))
         vlarray2 = fileh.root.vlarray2
-        assert vlarray2.flavor == "python"
-        assert vlarray2[1] == ['5', '6', '77']
+        self.assertEqual(vlarray2.flavor, "python")
+        self.assertEqual(vlarray2[1], ['5', '6', '77'])
 
         fileh.close()
 
@@ -133,16 +132,16 @@ class TimeTestCase(common.PyTablesTestCase):
 
         # Check that we can read the contents without problems (nor warnings!)
         table = self.fileh.root.table
-        self.assert_(table.byteorder == "little")
+        self.assertEqual(table.byteorder, "little")
 
     def test01_vlarray(self):
         """Checking backward compatibility with old TimeXX types (vlarrays)."""
 
         # Check that we can read the contents without problems (nor warnings!)
         vlarray4 = self.fileh.root.vlarray4
-        self.assert_(vlarray4.byteorder == "little")
+        self.assertEqual(vlarray4.byteorder, "little")
         vlarray8 = self.fileh.root.vlarray4
-        self.assert_(vlarray8.byteorder == "little")
+        self.assertEqual(vlarray8.byteorder, "little")
 
 
 #----------------------------------------------------------------------

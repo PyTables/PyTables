@@ -1,7 +1,6 @@
 # Eh! python!, We are going to include isolatin characters here
 # -*- coding: latin-1 -*-
 
-import sys
 import unittest
 import os
 import tempfile
@@ -183,12 +182,12 @@ class BasicTestCase(unittest.TestCase):
             print "Should look like ==>", repr(object)
 
         if hasattr(data, "shape"):
-            assert len(data.shape) == len(self.shape)
+            self.assertEqual(len(data.shape), len(self.shape))
         else:
             # Scalar case
-            assert len(self.shape) == 1
-        assert carray.chunkshape == self.chunkshape
-        assert allequal(data, object, self.flavor)
+            self.assertEqual(len(self.shape), 1)
+        self.assertEqual(carray.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(data, object, self.flavor))
 
     def test02_getitemCArray(self):
         """Checking chunked layout array __getitem__ special method"""
@@ -255,9 +254,9 @@ class BasicTestCase(unittest.TestCase):
 
         if not hasattr(data, "shape"):
             # Scalar case
-            assert len(self.shape) == 1
-        assert carray.chunkshape == self.chunkshape
-        assert allequal(data, object, self.flavor)
+            self.assertEqual(len(self.shape), 1)
+        self.assertEqual(carray.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(data, object, self.flavor))
 
     def test03_setitemCArray(self):
         """Checking chunked layout array __setitem__ special method"""
@@ -345,9 +344,9 @@ class BasicTestCase(unittest.TestCase):
 
         if not hasattr(data, "shape"):
             # Scalar case
-            assert len(self.shape) == 1
-        assert carray.chunkshape == self.chunkshape
-        assert allequal(data, object, self.flavor)
+            self.assertEqual(len(self.shape), 1)
+        self.assertEqual(carray.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(data, object, self.flavor))
 
 
 class BasicWriteTestCase(BasicTestCase):
@@ -882,11 +881,11 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Second row in carray ==>", data[1].tolist()
 
-        assert carray.nrows == 3
-        assert data[0].tolist() == [["123", "45"],["45", "123"]]
-        assert data[1].tolist() == [["s", "abc"],["abc", "f"]]
-        assert len(data[0]) == 2
-        assert len(data[1]) == 2
+        self.assertEqual(carray.nrows, 3)
+        self.assertEqual(data[0].tolist(), [["123", "45"],["45", "123"]])
+        self.assertEqual(data[1].tolist(), [["s", "abc"],["abc", "f"]])
+        self.assertEqual(len(data[0]), 2)
+        self.assertEqual(len(data[1]), 2)
 
     def test01b_String(self):
         """Checking carray with strided NumPy strings appends"""
@@ -914,11 +913,11 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Second row in carray ==>", data[1].tolist()
 
-        assert carray.nrows == 3
-        assert data[0].tolist() == [["a","b"],["45", "123"]]
-        assert data[1].tolist() == [["s", "a"],["s", "abc"]]
-        assert len(data[0]) == 2
-        assert len(data[1]) == 2
+        self.assertEqual(carray.nrows, 3)
+        self.assertEqual(data[0].tolist(), [["a","b"],["45", "123"]])
+        self.assertEqual(data[1].tolist(), [["s", "a"],["s", "abc"]])
+        self.assertEqual(len(data[0]), 2)
+        self.assertEqual(len(data[1]), 2)
 
     def test02a_int(self):
         """Checking carray with offseted NumPy ints appends"""
@@ -946,10 +945,10 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
 
-        assert carray.nrows == 3
-        assert allequal(data[0], numpy.array([1,1,1], dtype='int32'))
-        assert allequal(data[1], numpy.array([0,0,0], dtype='int32'))
-        assert allequal(data[2], numpy.array([-1,0,0], dtype='int32'))
+        self.assertEqual(carray.nrows, 3)
+        self.assertTrue(allequal(data[0], numpy.array([1,1,1], dtype='int32')))
+        self.assertTrue(allequal(data[1], numpy.array([0,0,0], dtype='int32')))
+        self.assertTrue(allequal(data[2], numpy.array([-1,0,0], dtype='int32')))
 
     def test02b_int(self):
         """Checking carray with strided NumPy ints appends"""
@@ -977,10 +976,10 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
 
-        assert carray.nrows == 3
-        assert allequal(data[0], numpy.array([0,0,0], dtype='int32'))
-        assert allequal(data[1], numpy.array([3,3,3], dtype='int32'))
-        assert allequal(data[2], numpy.array([1,1,1], dtype='int32'))
+        self.assertEqual(carray.nrows, 3)
+        self.assertTrue(allequal(data[0], numpy.array([0,0,0], dtype='int32')))
+        self.assertTrue(allequal(data[1], numpy.array([3,3,3], dtype='int32')))
+        self.assertTrue(allequal(data[2], numpy.array([1,1,1], dtype='int32')))
 
 
 class NumarrayOffsetStrideTestCase(unittest.TestCase):
@@ -1028,10 +1027,10 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
 
-        assert carray.nrows == 3
-        assert allequal(data[0], numpy.array([1,1,1], dtype='i4'))
-        assert allequal(data[1], numpy.array([0,0,0], dtype='i4'))
-        assert allequal(data[2], numpy.array([-1,0,0], dtype='i4'))
+        self.assertEqual(carray.nrows, 3)
+        self.assertTrue(allequal(data[0], numpy.array([1,1,1], dtype='i4')))
+        self.assertTrue(allequal(data[1], numpy.array([0,0,0], dtype='i4')))
+        self.assertTrue(allequal(data[2], numpy.array([-1,0,0], dtype='i4')))
 
     def test02b_int(self):
         """Checking carray with strided numarray ints appends"""
@@ -1059,10 +1058,10 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
 
-        assert carray.nrows == 3
-        assert allequal(data[0], numpy.array([0,0,0], dtype='i4'))
-        assert allequal(data[1], numpy.array([3,2,3], dtype='i4'))
-        assert allequal(data[2], numpy.array([1,0,1], dtype='i4'))
+        self.assertEqual(carray.nrows, 3)
+        self.assertTrue(allequal(data[0], numpy.array([0,0,0], dtype='i4')))
+        self.assertTrue(allequal(data[1], numpy.array([3,2,3], dtype='i4')))
+        self.assertTrue(allequal(data[2], numpy.array([1,0,1], dtype='i4')))
 
 
 class NumericOffsetStrideTestCase(unittest.TestCase):
@@ -1110,10 +1109,10 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
 
-        assert carray.nrows == 3
-        assert allequal(data[0], numpy.array([1,1,1], dtype='i4'))
-        assert allequal(data[1], numpy.array([0,0,0], dtype='i4'))
-        assert allequal(data[2], numpy.array([-1,0,0], dtype='i4'))
+        self.assertEqual(carray.nrows, 3)
+        self.assertTrue(allequal(data[0], numpy.array([1,1,1], dtype='i4')))
+        self.assertTrue(allequal(data[1], numpy.array([0,0,0], dtype='i4')))
+        self.assertTrue(allequal(data[2], numpy.array([-1,0,0], dtype='i4')))
 
     def test02b_int(self):
         """Checking carray with strided Numeric ints appends"""
@@ -1141,10 +1140,10 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
 
-        assert carray.nrows == 3
-        assert allequal(data[0], numpy.array([0,0,0], dtype='i'))
-        assert allequal(data[1], numpy.array([3,2,3], dtype='i'))
-        assert allequal(data[2], numpy.array([1,0,1], dtype='i'))
+        self.assertEqual(carray.nrows, 3)
+        self.assertTrue(allequal(data[0], numpy.array([0,0,0], dtype='i')))
+        self.assertTrue(allequal(data[1], numpy.array([3,2,3], dtype='i')))
+        self.assertTrue(allequal(data[2], numpy.array([1,0,1], dtype='i')))
 
 
 class CopyTestCase(unittest.TestCase):
@@ -1193,21 +1192,21 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        assert allequal(array1.read(), array2.read())
+        self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor)
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #assert array1.chunkshape == array2.chunkshape
+        #self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1257,19 +1256,19 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        assert allequal(array1.read(), array2.read())
+        self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor)
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
         # By default, the chunkshape should be the same
-        assert array1.chunkshape == array2.chunkshape
+        self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1319,21 +1318,21 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        assert allequal(array1.read(), array2.read())
+        self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor)
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #assert array1.chunkshape == array2.chunkshape
+        #self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1384,21 +1383,21 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        assert allequal(array1.read(), array2.read())
+        self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor)
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #assert array1.chunkshape == array2.chunkshape
+        #self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1450,18 +1449,18 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #assert array1.chunkshape == array2.chunkshape
+        #self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1508,20 +1507,20 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all elements are equal
-        assert array1.read() == array2.read()
+        self.assertEqual(array1.read(), array2.read())
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #assert array1.chunkshape == array2.chunkshape
+        #self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1570,21 +1569,21 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all elements are equal
-        assert array1.read() == array2.read()
+        self.assertEqual(array1.read(), array2.read())
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #assert array1.chunkshape == array2.chunkshape
+        #self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1630,20 +1629,20 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all elements are equal
-        assert allequal(array1.read(), array2.read())
+        self.assertTrue(allequal(array1.read(), array2.read()))
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #assert array1.chunkshape == array2.chunkshape
+        #self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1691,7 +1690,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert user attributes
         if common.verbose:
             print "title of destination array-->", array2.title
-        array2.title == "title array2"
+        self.assertEqual(array2.title, "title array2")
 
         # Close the file
         fileh.close()
@@ -1741,8 +1740,8 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert user attributes
-        array2.attrs.attr1 == "attr1"
-        array2.attrs.attr2 == 2
+        self.assertEqual(array2.attrs.attr1, "attr1")
+        self.assertEqual(array2.attrs.attr2, 2)
 
         # Close the file
         fileh.close()
@@ -1792,8 +1791,8 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert user attributes
-        hasattr(array2.attrs, "attr1") == 0
-        hasattr(array2.attrs, "attr2") == 0
+        self.assertEqual(hasattr(array2.attrs, "attr1"), 0)
+        self.assertEqual(hasattr(array2.attrs, "attr2"), 0)
 
         # Close the file
         fileh.close()
@@ -1845,7 +1844,7 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        assert allequal(r2, array2.read())
+        self.assertTrue(allequal(r2, array2.read()))
 
         # Assert the number of rows in array
         if common.verbose:
@@ -1856,7 +1855,7 @@ class CopyIndexTestCase(unittest.TestCase):
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
         #assert array1.chunkshape == array2.chunkshape
-        assert r2.shape[0] == array2.nrows
+        self.assertEqual(r2.shape[0], array2.nrows)
 
         # Close the file
         fileh.close()
@@ -1904,14 +1903,14 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        assert array1.chunkshape == array2.chunkshape
-        assert allequal(r2, array2.read())
+        self.assertEqual(array1.chunkshape, array2.chunkshape)
+        self.assertTrue(allequal(r2, array2.read()))
 
         # Assert the number of rows in array
         if common.verbose:
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", r2.shape[0]
-        assert r2.shape[0] == array2.nrows
+        self.assertEqual(r2.shape[0], array2.nrows)
 
         # Close the file
         fileh.close()
@@ -2056,17 +2055,18 @@ class Rows64bitsTestCase(unittest.TestCase):
 
         nrows = self.narows*self.nanumber
         # check nrows
-        assert array.nrows == nrows
+        self.assertEqual(array.nrows, nrows)
         # Check shape
-        assert array.shape == (nrows,)
+        self.assertEqual(array.shape, (nrows,))
         # check the 10 first elements
-        assert allequal(array[:10], numpy.arange(10, dtype='int8'))
+        self.assertTrue(allequal(array[:10], numpy.arange(10, dtype='int8')))
         # check the 10 last elements
         stop = self.narows%256
         if stop > 127:
             stop -= 256
         start = stop - 10
-        assert allequal(array[-10:], numpy.arange(start, stop, dtype='int8'))
+        self.assertTrue(allequal(array[-10:],
+                                 numpy.arange(start, stop, dtype='int8')))
 
 
 class Rows64bitsTestCase1(Rows64bitsTestCase):
@@ -2092,7 +2092,7 @@ class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertEqual(len(self.h5file.root.array), self.shape[0])
         except OverflowError:
             # This can't be avoided in 32-bit platforms.
-            self.assert_( self.shape[0] > numpy.iinfo(int).max,
+            self.assertTrue(self.shape[0] > numpy.iinfo(int).max,
                           "Array length overflowed but ``int`` "
                           "is wide enough." )
 
@@ -2119,7 +2119,8 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         values = self.h5file.root.bar[:]
         if common.verbose:
             print "Read values:", values
-        assert allequal(values, numpy.array(["abdef"]*100, "S5").reshape(10,10))
+        self.assertTrue(allequal(values,
+                                 numpy.array(["abdef"]*100, "S5").reshape(10,10)))
 
     def test01_dflt(self):
         "Check that Atom.dflt is honored (int version)."
@@ -2134,7 +2135,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         values = self.h5file.root.bar[:]
         if common.verbose:
             print "Read values:", values
-        assert allequal(values, numpy.ones((10,10), "i4"))
+        self.assertTrue(allequal(values, numpy.ones((10,10), "i4")))
 
     def test02_dflt(self):
         "Check that Atom.dflt is honored (float version)."
@@ -2149,7 +2150,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         values = self.h5file.root.bar[:]
         if common.verbose:
             print "Read values:", values
-        assert allequal(values, numpy.ones((10,10), "f8")*1.134)
+        self.assertTrue(allequal(values, numpy.ones((10,10), "f8")*1.134))
 
 
 class DfltAtomNoReopen(DfltAtomTestCase):
@@ -2174,8 +2175,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "First row-->", repr(ca[0])
             print "Defaults-->", repr(ca.atom.dflt)
-        self.assert_(allequal(ca[0], numpy.zeros(N, 'S3')))
-        self.assert_(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
+        self.assertTrue(allequal(ca[0], numpy.zeros(N, 'S3')))
+        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
 
     def test00b_zeros(self):
         "Testing default values.  Zeros (array)."
@@ -2189,8 +2190,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "First row-->", ca[0]
             print "Defaults-->", ca.atom.dflt
-        self.assert_(allequal(ca[0], numpy.zeros(N, 'S3')))
-        self.assert_(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
+        self.assertTrue(allequal(ca[0], numpy.zeros(N, 'S3')))
+        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
 
     def test01a_values(self):
         "Testing default values.  Ones."
@@ -2204,8 +2205,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "First row-->", ca[0]
             print "Defaults-->", ca.atom.dflt
-        self.assert_(allequal(ca[0], numpy.ones(N, 'i4')))
-        self.assert_(allequal(ca.atom.dflt, numpy.ones(N, 'i4')))
+        self.assertTrue(allequal(ca[0], numpy.ones(N, 'i4')))
+        self.assertTrue(allequal(ca.atom.dflt, numpy.ones(N, 'i4')))
 
     def test01b_values(self):
         "Testing default values.  Generic value."
@@ -2220,8 +2221,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "First row-->", ca[0]
             print "Defaults-->", ca.atom.dflt
-        self.assert_(allequal(ca[0], numpy.ones(N, 'f4')*generic))
-        self.assert_(allequal(ca.atom.dflt, numpy.ones(N, 'f4')*generic))
+        self.assertTrue(allequal(ca[0], numpy.ones(N, 'f4')*generic))
+        self.assertTrue(allequal(ca.atom.dflt, numpy.ones(N, 'f4')*generic))
 
     def test02a_None(self):
         "Testing default values.  None (scalar)."
@@ -2235,7 +2236,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "First row-->", repr(ca[0])
             print "Defaults-->", repr(ca.atom.dflt)
-        self.assert_(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
+        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
 
     def test02b_None(self):
         "Testing default values.  None (array)."
@@ -2249,7 +2250,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "First row-->", ca[0]
             print "Defaults-->", ca.atom.dflt
-        self.assert_(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
+        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
 
 
 class AtomDefaultReprNoReopen(AtomDefaultReprTestCase):
@@ -2278,10 +2279,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Assign one row
         ca[0] = [[1,3],[4,5]]
-        self.assert_(ca.nrows == 1)
+        self.assertEqual(ca.nrows, 1)
         if common.verbose:
             print "First row-->", ca[0]
-        assert allequal(ca[0], numpy.array([[1,3],[4,5]], 'i4'))
+        self.assertTrue(allequal(ca[0], numpy.array([[1,3],[4,5]], 'i4')))
 
     def test01b_assign(self):
         "Assign several rows to a (unidimensional) CArray with a MD atom."
@@ -2292,10 +2293,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Assign three rows
         ca[:] = [[[1]], [[2]], [[3]]]   # Simple broadcast
-        self.assert_(ca.nrows == 3)
+        self.assertEqual(ca.nrows, 3)
         if common.verbose:
             print "Third row-->", ca[2]
-        assert allequal(ca[2], numpy.array([[3,3],[3,3]], 'i4'))
+        self.assertTrue(allequal(ca[2], numpy.array([[3,3],[3,3]], 'i4')))
 
     def test02a_assign(self):
         "Assign a row to a (multidimensional) CArray with a MD atom."
@@ -2306,10 +2307,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Assign one row
         ca[:] = [[[1,3],[4,5],[7,9]]]
-        self.assert_(ca.nrows == 1)
+        self.assertEqual(ca.nrows, 1)
         if common.verbose:
             print "First row-->", ca[0]
-        assert allequal(ca[0], numpy.array([[1,3],[4,5],[7,9]], 'i4'))
+        self.assertTrue(allequal(ca[0], numpy.array([[1,3],[4,5],[7,9]], 'i4')))
 
     def test02b_assign(self):
         "Assign several rows to a (multidimensional) CArray with a MD atom."
@@ -2322,10 +2323,11 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ca[:] = [[[1,-3],[4,-5],[-7,9]],
                  [[-1,3],[-4,5],[7,-8]],
                  [[-2,3],[-5,5],[7,-9]]]
-        self.assert_(ca.nrows == 3)
+        self.assertEqual(ca.nrows, 3)
         if common.verbose:
             print "Third row-->", ca[2]
-        assert allequal(ca[2], numpy.array([[-2,3],[-5,5],[7,-9]], 'i4'))
+        self.assertTrue(allequal(ca[2],
+                                 numpy.array([[-2,3],[-5,5],[7,-9]], 'i4')))
 
     def test03a_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom."
@@ -2338,10 +2340,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # The shape of the atom should be added at the end of the arrays
         a = numpy.arange(2*3*2*4, dtype='i4').reshape((2,3,2,4))
         ca[:] = [a*1, a*2, a*3]
-        self.assert_(ca.nrows == 3)
+        self.assertEqual(ca.nrows, 3)
         if common.verbose:
             print "Third row-->", ca[2]
-        assert allequal(ca[2], a*3)
+        self.assertTrue(allequal(ca[2], a*3))
 
     def test03b_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom (II)."
@@ -2354,10 +2356,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # The shape of the atom should be added at the end of the arrays
         a = numpy.arange(2*3*3*2*4, dtype='i4').reshape((2,3,3,2,4))
         ca[:] = a
-        self.assert_(ca.nrows == 2)
+        self.assertEqual(ca.nrows, 2)
         if common.verbose:
             print "Third row-->", ca[:,2,...]
-        assert allequal(ca[:,2,...], a[:,2,...])
+        self.assertTrue(allequal(ca[:,2,...], a[:,2,...]))
 
     def test03c_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom (III)."
@@ -2370,10 +2372,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # The shape of the atom should be added at the end of the arrays
         a = numpy.arange(3*1*2*2*4, dtype='i4').reshape((3,1,2,2,4))
         ca[:] = a
-        self.assert_(ca.nrows == 3)
+        self.assertEqual(ca.nrows, 3)
         if common.verbose:
             print "Second row-->", ca[:,:,1,...]
-        assert allequal(ca[:,:,1,...], a[:,:,1,...])
+        self.assertTrue(allequal(ca[:,:,1,...], a[:,:,1,...]))
 
 
 class MDAtomNoReopen(MDAtomTestCase):
@@ -2396,7 +2398,7 @@ class MDLargeAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check the value
         if common.verbose:
             print "First row-->", ca[0]
-        self.assert_(allequal(ca[0], numpy.zeros(N, 'i4')))
+        self.assertTrue(allequal(ca[0], numpy.zeros(N, 'i4')))
 
 
 class MDLargeAtomNoReopen(MDLargeAtomTestCase):

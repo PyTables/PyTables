@@ -57,10 +57,10 @@ class EnumTestCase(HDF5CompatibilityTestCase):
     h5fname = 'smpl_enum.h5'
 
     def _test(self):
-        self.assert_('/EnumTest' in self.h5file)
+        self.assertTrue('/EnumTest' in self.h5file)
 
         arr = self.h5file.getNode('/EnumTest')
-        self.assert_(isinstance(arr, tables.Array))
+        self.assertTrue(isinstance(arr, tables.Array))
 
         enum = arr.getEnum()
         expectedEnum = tables.Enum(['RED', 'GREEN', 'BLUE', 'WHITE', 'BLACK'])
@@ -85,10 +85,10 @@ class NumericTestCase(HDF5CompatibilityTestCase):
     """
 
     def _test(self):
-        self.assert_('/TestArray' in self.h5file)
+        self.assertTrue('/TestArray' in self.h5file)
 
         arr = self.h5file.getNode('/TestArray')
-        self.assert_(isinstance(arr, tables.Array))
+        self.assertTrue(isinstance(arr, tables.Array))
 
         self.assertEqual(arr.atom.type, self.type)
         self.assertEqual(arr.byteorder, self.byteorder)
@@ -102,7 +102,7 @@ class NumericTestCase(HDF5CompatibilityTestCase):
             [3, 4, 5, 6, 7],
             [4, 5, 6, 7, 8],
             [5, 6, 7, 8, 9]], dtype=self.type)
-        self.assert_(common.areArraysEqual(data, expectedData))
+        self.assertTrue(common.areArraysEqual(data, expectedData))
 
 
 
@@ -150,10 +150,10 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
     h5fname = 'smpl_compound_chunked.h5'
 
     def _test(self):
-        self.assert_('/CompoundChunked' in self.h5file)
+        self.assertTrue('/CompoundChunked' in self.h5file)
 
         tbl = self.h5file.getNode('/CompoundChunked')
-        self.assert_(isinstance(tbl, tables.Table))
+        self.assertTrue(isinstance(tbl, tables.Table))
 
         self.assertEqual(
             tbl.colnames,
@@ -205,10 +205,10 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
     h5fname = 'non-chunked-table.h5'
 
     def _test(self):
-        self.assert_('/test_var/structure variable' in self.h5file)
+        self.assertTrue('/test_var/structure variable' in self.h5file)
 
         tbl = self.h5file.getNode('/test_var/structure variable')
-        self.assert_(isinstance(tbl, tables.Table))
+        self.assertTrue(isinstance(tbl, tables.Table))
 
         self.assertEqual(
             tbl.colnames,
@@ -229,7 +229,7 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
         for row in tbl.iterrows():
             self.assertEqual(row['a'], 3.0)
             self.assertEqual(row['b'], 4.0)
-            self.assert_(allequal(row['c'], numpy.array([2.0, 3.0],
+            self.assertTrue(allequal(row['c'], numpy.array([2.0, 3.0],
                                                         dtype="float64")))
             self.assertEqual(row['d'], "d")
 
@@ -245,7 +245,7 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
     h5fname = 'non-chunked-table.h5'
 
     def _test(self):
-        self.assert_('/test_var/structure variable' in self.h5file)
+        self.assertTrue('/test_var/structure variable' in self.h5file)
         self.h5file.close()
         # Do a copy to a temporary to avoid modifying the original file
         h5fname_copy = tempfile.mktemp(".h5")
@@ -279,10 +279,10 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
     h5fname = 'smpl_SDSextendible.h5'
 
     def _test(self):
-        self.assert_('/ExtendibleArray' in self.h5file)
+        self.assertTrue('/ExtendibleArray' in self.h5file)
 
         arr = self.h5file.getNode('/ExtendibleArray')
-        self.assert_(isinstance(arr, tables.EArray))
+        self.assertTrue(isinstance(arr, tables.EArray))
 
         self.assertEqual(arr.byteorder, 'big')
         self.assertEqual(arr.atom.type, 'int32')
@@ -303,7 +303,7 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
             [2, 0, 0, 0, 0],
             [2, 0, 0, 0, 0]], dtype=arr.atom.type)
 
-        self.assert_(common.areArraysEqual(data, expectedData))
+        self.assertTrue(common.areArraysEqual(data, expectedData))
 
 
 class SzipTestCase(HDF5CompatibilityTestCase):
@@ -314,7 +314,7 @@ class SzipTestCase(HDF5CompatibilityTestCase):
     h5fname = 'test_szip.h5'
 
     def _test(self):
-        self.assert_('/dset_szip' in self.h5file)
+        self.assertTrue('/dset_szip' in self.h5file)
 
         arr = self.h5file.getNode('/dset_szip')
         filters = "Filters(complib='szip', shuffle=False, fletcher32=False)"

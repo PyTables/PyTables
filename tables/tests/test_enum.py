@@ -12,8 +12,6 @@ Test module for enumerated types under PyTables
 import unittest
 import operator
 
-import numpy
-
 import tables
 from tables.tests import common
 
@@ -87,8 +85,8 @@ class CreateColTestCase(common.PyTablesTestCase):
         """Checking the string representation of an enumeration."""
         colors = tables.Enum(['red', 'green', 'blue'])
         enumcol = tables.EnumCol(colors, 'red', base='uint32', shape=())
-        assert repr(enumcol) == \
-"""EnumCol(enum=Enum({'blue': 2, 'green': 1, 'red': 0}), dflt='red', base=UInt32Atom(shape=(), dflt=0), shape=(), pos=None)"""
+        self.assertEqual(repr(enumcol),
+"""EnumCol(enum=Enum({'blue': 2, 'green': 1, 'red': 0}), dflt='red', base=UInt32Atom(shape=(), dflt=0), shape=(), pos=None)""")
 
 
     def test99a_nonIntEnum(self):

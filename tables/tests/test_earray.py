@@ -166,29 +166,29 @@ class BasicTestCase(unittest.TestCase):
                 print "row in earray ==>", repr(row)
                 print "Should look like ==>", repr(object)
 
-            assert self.nappends*self.chunksize == earray.nrows
-            assert allequal(row, object, self.flavor)
+            self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+            self.assertTrue(allequal(row, object, self.flavor))
             if hasattr(row, "shape"):
-                assert len(row.shape) == len(self.shape) - 1
+                self.assertEqual(len(row.shape), len(self.shape) - 1)
             else:
                 # Scalar case
-                assert len(self.shape) == 1
+                self.assertEqual(len(self.shape), 1)
 
             # Check filters:
             if self.compress != earray.filters.complevel and common.verbose:
                 print "Error in compress. Class:", self.__class__.__name__
                 print "self, earray:", self.compress, earray.filters.complevel
-            assert earray.filters.complevel == self.compress
+            self.assertEqual(earray.filters.complevel, self.compress)
             if self.compress > 0 and whichLibVersion(self.complib):
-                assert earray.filters.complib == self.complib
+                self.assertEqual(earray.filters.complib, self.complib)
             if self.shuffle != earray.filters.shuffle and common.verbose:
                 print "Error in shuffle. Class:", self.__class__.__name__
                 print "self, earray:", self.shuffle, earray.filters.shuffle
-            assert self.shuffle == earray.filters.shuffle
+            self.assertEqual(self.shuffle, earray.filters.shuffle)
             if self.fletcher32 != earray.filters.fletcher32 and common.verbose:
                 print "Error in fletcher32. Class:", self.__class__.__name__
                 print "self, earray:", self.fletcher32, earray.filters.fletcher32
-            assert self.fletcher32 == earray.filters.fletcher32
+            self.assertEqual(self.fletcher32, earray.filters.fletcher32)
 
     def test02_sssEArray(self):
         """Checking enlargeable array iterator with (start, stop, step)"""
@@ -247,13 +247,13 @@ class BasicTestCase(unittest.TestCase):
                 print "row in earray ==>", repr(row)
                 print "Should look like ==>", repr(object)
 
-            assert self.nappends*self.chunksize == earray.nrows
-            assert allequal(row, object, self.flavor)
+            self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+            self.assertTrue(allequal(row, object, self.flavor))
             if hasattr(row, "shape"):
-                assert len(row.shape) == len(self.shape) - 1
+                self.assertEqual(len(row.shape), len(self.shape) - 1)
             else:
                 # Scalar case
-                assert len(self.shape) == 1
+                self.assertEqual(len(self.shape), 1)
 
     def test03_readEArray(self):
         """Checking read() of enlargeable arrays"""
@@ -370,17 +370,17 @@ class BasicTestCase(unittest.TestCase):
             print "Object read ==>", repr(row)
             print "Should look like ==>", repr(object)
 
-        assert self.nappends*self.chunksize == earray.nrows
-        assert allequal(row, object, self.flavor)
+        self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+        self.assertTrue(allequal(row, object, self.flavor))
         if hasattr(row, "shape"):
-            assert len(row.shape) == len(self.shape)
+            self.assertEqual(len(row.shape), len(self.shape))
             if self.flavor in ("numarray", "numeric"):
-                assert row.itemsize() == earray.atom.itemsize
+                self.assertEqual(row.itemsize(), earray.atom.itemsize)
             elif self.flavor in "numpy":
-                assert row.itemsize == earray.atom.itemsize
+                self.assertEqual(row.itemsize, earray.atom.itemsize)
         else:
             # Scalar case
-            assert len(self.shape) == 1
+            self.assertEqual(len(self.shape), 1)
 
     def test04_getitemEArray(self):
         """Checking enlargeable array __getitem__ special method"""
@@ -483,11 +483,11 @@ class BasicTestCase(unittest.TestCase):
                 print "Shape read:", row.shape
                 print "shape should look as:", object.shape
 
-        assert self.nappends*self.chunksize == earray.nrows
-        assert allequal(row, object, self.flavor)
+        self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+        self.assertTrue(allequal(row, object, self.flavor))
         if not hasattr(row, "shape"):
             # Scalar case
-            assert len(self.shape) == 1
+            self.assertEqual(len(self.shape), 1)
 
 
     def test05_setitemEArray(self):
@@ -624,11 +624,11 @@ class BasicTestCase(unittest.TestCase):
                 print "Shape read:", row.shape
                 print "shape should look as:", object.shape
 
-        assert self.nappends*self.chunksize == earray.nrows
-        assert allequal(row, object, self.flavor)
+        self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+        self.assertTrue(allequal(row, object, self.flavor))
         if not hasattr(row, "shape"):
             # Scalar case
-            assert len(self.shape) == 1
+            self.assertEqual(len(self.shape), 1)
 
 
 class BasicWriteTestCase(BasicTestCase):
@@ -1181,11 +1181,11 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", earray._v_pathname, ":", earray.nrows
             print "Second row in earray ==>", row[1].tolist()
 
-        assert earray.nrows == 2
-        assert row[0].tolist() == [["123", "45"],["45", "123"]]
-        assert row[1].tolist() == [["s", "abc"],["abc", "f"]]
-        assert len(row[0]) == 2
-        assert len(row[1]) == 2
+        self.assertEqual(earray.nrows, 2)
+        self.assertEqual(row[0].tolist(), [["123", "45"],["45", "123"]])
+        self.assertEqual(row[1].tolist(), [["s", "abc"],["abc", "f"]])
+        self.assertEqual(len(row[0]), 2)
+        self.assertEqual(len(row[1]), 2)
 
     def test01b_String(self):
         """Checking earray with strided numpy strings appends"""
@@ -1210,11 +1210,11 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", earray._v_pathname, ":", earray.nrows
             print "Second row in earray ==>", row[1].tolist()
 
-        assert earray.nrows == 2
-        assert row[0].tolist() == [["a","b"],["45", "123"]]
-        assert row[1].tolist() == [["s", "a"],["s", "abc"]]
-        assert len(row[0]) == 2
-        assert len(row[1]) == 2
+        self.assertEqual(earray.nrows, 2)
+        self.assertEqual(row[0].tolist(), [["a","b"],["45", "123"]])
+        self.assertEqual(row[1].tolist(), [["s", "a"],["s", "abc"]])
+        self.assertEqual(len(row[0]), 2)
+        self.assertEqual(len(row[1]), 2)
 
     def test02a_int(self):
         """Checking earray with offseted NumPy ints appends"""
@@ -1240,10 +1240,10 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", earray._v_pathname, ":", earray.nrows
             print "Third row in vlarray ==>", row[2]
 
-        assert earray.nrows == 3
-        assert allequal(row[0], numpy.array([1,1,1], dtype='int32'))
-        assert allequal(row[1], numpy.array([0,0,0], dtype='int32'))
-        assert allequal(row[2], numpy.array([-1,0,0], dtype='int32'))
+        self.assertEqual(earray.nrows, 3)
+        self.assertTrue(allequal(row[0], numpy.array([1,1,1], dtype='int32')))
+        self.assertTrue(allequal(row[1], numpy.array([0,0,0], dtype='int32')))
+        self.assertTrue(allequal(row[2], numpy.array([-1,0,0], dtype='int32')))
 
     def test02b_int(self):
         """Checking earray with strided NumPy ints appends"""
@@ -1268,10 +1268,10 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Nrows in", earray._v_pathname, ":", earray.nrows
             print "Third row in vlarray ==>", row[2]
 
-        assert earray.nrows == 3
-        assert allequal(row[0], numpy.array([0,0,0], dtype='int32'))
-        assert allequal(row[1], numpy.array([3,3,3], dtype='int32'))
-        assert allequal(row[2], numpy.array([1,1,1], dtype='int32'))
+        self.assertEqual(earray.nrows, 3)
+        self.assertTrue(allequal(row[0], numpy.array([0,0,0], dtype='int32')))
+        self.assertTrue(allequal(row[1], numpy.array([3,3,3], dtype='int32')))
+        self.assertTrue(allequal(row[2], numpy.array([1,1,1], dtype='int32')))
 
 
     def test03a_int(self):
@@ -1303,7 +1303,7 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Swapped rows:", swapped
             print "Byteorder swapped rows:", swapped.dtype.byteorder
 
-        assert allequal(native, swapped)
+        self.assertTrue(allequal(native, swapped))
 
 
     def test03b_float(self):
@@ -1335,7 +1335,7 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Swapped rows:", swapped
             print "Byteorder swapped rows:", swapped.dtype.byteorder
 
-        assert allequal(native, swapped)
+        self.assertTrue(allequal(native, swapped))
 
 
     def test04a_int(self):
@@ -1367,9 +1367,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Byteorder native rows:", byteorders[native.dtype.byteorder]
             print "Byteorder earray on-disk:", earray.byteorder
 
-        assert byteorders[native.dtype.byteorder] == sys.byteorder
-        assert earray.byteorder == byteorder
-        assert allequal(native, swapped)
+        self.assertEqual(byteorders[native.dtype.byteorder], sys.byteorder)
+        self.assertEqual(earray.byteorder, byteorder)
+        self.assertTrue(allequal(native, swapped))
 
 
     def test04b_int(self):
@@ -1404,9 +1404,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Byteorder native rows:", byteorders[native.dtype.byteorder]
             print "Byteorder earray on-disk:", earray.byteorder
 
-        assert byteorders[native.dtype.byteorder] == sys.byteorder
-        assert earray.byteorder == byteorder
-        assert allequal(native, swapped)
+        self.assertEqual(byteorders[native.dtype.byteorder], sys.byteorder)
+        self.assertEqual(earray.byteorder, byteorder)
+        self.assertTrue(allequal(native, swapped))
 
 
     def test04c_float(self):
@@ -1438,9 +1438,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Byteorder native rows:", byteorders[native.dtype.byteorder]
             print "Byteorder earray on-disk:", earray.byteorder
 
-        assert byteorders[native.dtype.byteorder] == sys.byteorder
-        assert earray.byteorder == byteorder
-        assert allequal(native, swapped)
+        self.assertEqual(byteorders[native.dtype.byteorder], sys.byteorder)
+        self.assertEqual(earray.byteorder, byteorder)
+        self.assertTrue(allequal(native, swapped))
 
 
     def test04d_float(self):
@@ -1475,9 +1475,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Byteorder native rows:", byteorders[native.dtype.byteorder]
             print "Byteorder earray on-disk:", earray.byteorder
 
-        assert byteorders[native.dtype.byteorder] == sys.byteorder
-        assert earray.byteorder == byteorder
-        assert allequal(native, swapped)
+        self.assertEqual(byteorders[native.dtype.byteorder], sys.byteorder)
+        self.assertEqual(earray.byteorder, byteorder)
+        self.assertTrue(allequal(native, swapped))
 
 
 class CopyTestCase(unittest.TestCase):
@@ -1525,18 +1525,18 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        assert allequal(array1.read(), array2.read())
+        self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor)
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.atom.itemsize, array2.atom.itemsize)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
 
         # Close the file
         fileh.close()
@@ -1586,18 +1586,18 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        assert allequal(array1.read(), array2.read())
+        self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor)
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.atom.itemsize, array2.atom.itemsize)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
 
         # Close the file
         fileh.close()
@@ -1648,15 +1648,15 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.atom.itemsize, array2.atom.itemsize)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
 
         # Close the file
         fileh.close()
@@ -1707,15 +1707,15 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.atom.itemsize, array2.atom.itemsize)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
 
         # Close the file
         fileh.close()
@@ -1761,17 +1761,17 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all elements are equal
-        assert array1.read() == array2.read()
+        self.assertEqual(array1.read(), array2.read())
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.atom.itemsize, array2.atom.itemsize)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
 
         # Close the file
         fileh.close()
@@ -1817,18 +1817,18 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all elements are equal
-        assert array1.read() == array2.read()
+        self.assertEqual(array1.read(), array2.read())
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.atom.itemsize, array2.atom.itemsize)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
 
         # Close the file
         fileh.close()
@@ -1874,17 +1874,17 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all elements are equal
-        assert allequal(array1.read(), array2.read())
+        self.assertTrue(allequal(array1.read(), array2.read()))
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.extdim == array2.extdim
-        assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.atom.dtype == array2.atom.dtype
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
-        assert array1.title == array2.title
-        assert str(array1.atom) == str(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.extdim, array2.extdim)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(array1.atom.itemsize, array2.atom.itemsize)
+        self.assertEqual(array1.title, array2.title)
+        self.assertEqual(str(array1.atom), str(array2.atom))
 
         # Close the file
         fileh.close()
@@ -1931,7 +1931,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert user attributes
         if common.verbose:
             print "title of destination array-->", array2.title
-        array2.title == "title array2"
+        self.assertEqual(array2.title, "title array2")
 
         # Close the file
         fileh.close()
@@ -1980,8 +1980,8 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert user attributes
-        array2.attrs.attr1 == "attr1"
-        array2.attrs.attr2 == 2
+        self.assertEqual(array2.attrs.attr1, "attr1")
+        self.assertEqual(array2.attrs.attr2, 2)
 
         # Close the file
         fileh.close()
@@ -2030,8 +2030,8 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert user attributes
-        hasattr(array2.attrs, "attr1") == 0
-        hasattr(array2.attrs, "attr2") == 0
+        self.assertEqual(hasattr(array2.attrs, "attr1"), 0)
+        self.assertEqual(hasattr(array2.attrs, "attr2"), 0)
 
         # Close the file
         fileh.close()
@@ -2082,13 +2082,13 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        assert allequal(r2, array2.read())
+        self.assertTrue(allequal(r2, array2.read()))
 
         # Assert the number of rows in array
         if common.verbose:
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", r2.shape[0]
-        assert r2.shape[0] == array2.nrows
+        self.assertEqual(r2.shape[0], array2.nrows)
 
         # Close the file
         fileh.close()
@@ -2135,13 +2135,13 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        assert allequal(r2, array2.read())
+        self.assertTrue(allequal(r2, array2.read()))
 
         # Assert the number of rows in array
         if common.verbose:
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", r2.shape[0]
-        assert r2.shape[0] == array2.nrows
+        self.assertEqual(r2.shape[0], array2.nrows)
 
         # Close the file
         fileh.close()
@@ -2256,8 +2256,8 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "array1-->", array1.read()
 
-        assert allequal(
-            array1[:], numpy.array([], dtype='Int16').reshape(0,2))
+        self.assertTrue(allequal(
+            array1[:], numpy.array([], dtype='Int16').reshape(0,2)))
 
     def test01_truncate(self):
         """Checking EArray.truncate() method (truncating to 1 rows)"""
@@ -2276,8 +2276,8 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "array1-->", array1.read()
 
-        assert allequal(
-            array1.read(), numpy.array([[456, 2]], dtype='Int16'))
+        self.assertTrue(allequal(
+            array1.read(), numpy.array([[456, 2]], dtype='Int16')))
 
     def test02_truncate(self):
         """Checking EArray.truncate() method (truncating to == self.nrows)"""
@@ -2296,8 +2296,9 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "array1-->", array1.read()
 
-        assert allequal(array1.read(), numpy.array([[456, 2],[3, 457]],
-                                                   dtype='Int16'))
+        self.assertTrue(allequal(array1.read(),
+                                 numpy.array([[456, 2],[3, 457]],
+                                 dtype='Int16')))
 
     def test03_truncate(self):
         """Checking EArray.truncate() method (truncating to > self.nrows)"""
@@ -2316,13 +2317,13 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "array1-->", array1.read()
 
-        self.assert_(array1.nrows == 4)
+        self.assertEqual(array1.nrows, 4)
         # Check the original values
-        assert allequal(array1[:2], numpy.array([[456, 2],[3, 457]],
-                                                   dtype='Int16'))
+        self.assertTrue(allequal(array1[:2], numpy.array([[456, 2],[3, 457]],
+                                                   dtype='Int16')))
         # Check that the added rows have the default values
-        assert allequal(array1[2:], numpy.array([[3, 3],[3, 3]],
-                                                dtype='Int16'))
+        self.assertTrue(allequal(array1[2:], numpy.array([[3, 3],[3, 3]],
+                                                dtype='Int16')))
 
 
 class TruncateOpenTestCase(TruncateTestCase):
@@ -2401,17 +2402,18 @@ class Rows64bitsTestCase(unittest.TestCase):
 
         nrows = self.narows*self.nanumber
         # check nrows
-        assert array.nrows == nrows
+        self.assertEqual(array.nrows, nrows)
         # Check shape
-        assert array.shape == (nrows,)
+        self.assertEqual(array.shape, (nrows,))
         # check the 10 first elements
-        assert allequal(array[:10], numpy.arange(10, dtype='Int8'))
+        self.assertTrue(allequal(array[:10], numpy.arange(10, dtype='Int8')))
         # check the 10 last elements
         stop = self.narows%256
         if stop > 127:
             stop -= 256
         start = stop - 10
-        assert allequal(array[-10:], numpy.arange(start, stop, dtype='Int8'))
+        self.assertTrue(allequal(array[-10:],
+                                 numpy.arange(start, stop, dtype='Int8')))
 
 
 class Rows64bitsTestCase1(Rows64bitsTestCase):
@@ -2446,7 +2448,7 @@ class ZeroSizedTestCase(unittest.TestCase):
         ea = fileh.root.test
         np = numpy.empty(shape=(3,0), dtype='int32')
         ea.append(np)
-        self.assert_(ea.nrows == 1, "The number of rows should be 1.")
+        self.assertEqual(ea.nrows, 1, "The number of rows should be 1.")
 
     def test02_appendWithWrongShape(self):
         "Appending zero length array with wrong dimension."
@@ -2469,10 +2471,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ea = self.h5file.root.test
         # Append one row
         ea.append([[[1,3],[4,5]]])
-        self.assert_(ea.nrows == 1)
+        self.assertEqual(ea.nrows, 1)
         if common.verbose:
             print "First row-->", ea[0]
-        assert allequal(ea[0], numpy.array([[1,3],[4,5]], 'i4'))
+        self.assertTrue(allequal(ea[0], numpy.array([[1,3],[4,5]], 'i4')))
 
     def test01b_append(self):
         "Append several rows to a (unidimensional) EArray with a MD atom."
@@ -2483,10 +2485,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ea = self.h5file.root.test
         # Append three rows
         ea.append([[[1]], [[2]], [[3]]])   # Simple broadcast
-        self.assert_(ea.nrows == 3)
+        self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[2]
-        assert allequal(ea[2], numpy.array([[3,3],[3,3]], 'i4'))
+        self.assertTrue(allequal(ea[2], numpy.array([[3,3],[3,3]], 'i4')))
 
     def test02a_append(self):
         "Append a row to a (multidimensional) EArray with a MD atom."
@@ -2497,10 +2499,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ea = self.h5file.root.test
         # Append one row
         ea.append([[[1,3],[4,5],[7,9]]])
-        self.assert_(ea.nrows == 1)
+        self.assertEqual(ea.nrows, 1)
         if common.verbose:
             print "First row-->", ea[0]
-        assert allequal(ea[0], numpy.array([[1,3],[4,5],[7,9]], 'i4'))
+        self.assertTrue(allequal(ea[0], numpy.array([[1,3],[4,5],[7,9]], 'i4')))
 
     def test02b_append(self):
         "Append several rows to a (multidimensional) EArray with a MD atom."
@@ -2513,10 +2515,11 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ea.append([[[1,-3],[4,-5],[-7,9]],
                    [[-1,3],[-4,5],[7,-8]],
                    [[-2,3],[-5,5],[7,-9]]])
-        self.assert_(ea.nrows == 3)
+        self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[2]
-        assert allequal(ea[2], numpy.array([[-2,3],[-5,5],[7,-9]], 'i4'))
+        self.assertTrue(allequal(ea[2],
+                                 numpy.array([[-2,3],[-5,5],[7,-9]], 'i4')))
 
     def test03a_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom."
@@ -2529,10 +2532,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # The shape of the atom should be added at the end of the arrays
         a = numpy.arange(2*3*2*4, dtype='i4').reshape((2,3,2,4))
         ea.append([a*1, a*2, a*3])
-        self.assert_(ea.nrows == 3)
+        self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[2]
-        assert allequal(ea[2], a*3)
+        self.assertTrue(allequal(ea[2], a*3))
 
     def test03b_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom (II)."
@@ -2547,10 +2550,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ea.append(a*1)
         ea.append(a*2)
         ea.append(a*3)
-        self.assert_(ea.nrows == 3)
+        self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[:,2,...]
-        assert allequal(ea[:,2,...], a.reshape((2,3,2,4))*3)
+        self.assertTrue(allequal(ea[:,2,...], a.reshape((2,3,2,4))*3))
 
     def test03c_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom (III)."
@@ -2565,10 +2568,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ea.append(a*1)
         ea.append(a*2)
         ea.append(a*3)
-        self.assert_(ea.nrows == 3)
+        self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[:,:,2,...]
-        assert allequal(ea[:,:,2,...], a.reshape((2,3,2,4))*3)
+        self.assertTrue(allequal(ea[:,:,2,...], a.reshape((2,3,2,4))*3))
 
 
 class MDAtomNoReopen(MDAtomTestCase):

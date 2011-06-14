@@ -73,16 +73,16 @@ class BasicTestCase(unittest.TestCase):
 
         type_ = self.root.somearray.atom.type
         # Check strictly the array equality
-        assert type(a) == type(b)
-        assert a.shape == b.shape
-        assert a.shape == self.root.somearray.shape
-        assert a.dtype == b.dtype
+        self.assertEqual(type(a), type(b))
+        self.assertEqual(a.shape, b.shape)
+        self.assertEqual(a.shape, self.root.somearray.shape)
+        self.assertEqual(a.dtype, b.dtype)
         if a.dtype.char[0] == "S":
-            assert type_ == "string"
+            self.assertEqual(type_, "string")
         else:
-            assert a.dtype.base.name == type_
+            self.assertEqual(a.dtype.base.name, type_)
 
-        assert allequal(a,b, "numpy")
+        self.assertTrue(allequal(a,b, "numpy"))
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
@@ -105,7 +105,7 @@ class BasicTestCase(unittest.TestCase):
             b = a[::2]
             # Ensure that this numarray string is non-contiguous
             if a.shape[0] > 2:
-                assert b.flags['CONTIGUOUS'] == False
+                self.assertEqual(b.flags['CONTIGUOUS'], False)
         self.WriteRead(b)
         return
 
@@ -137,7 +137,7 @@ class BasicTestCase(unittest.TestCase):
             b = a[::2]
             # Ensure that this array is non-contiguous (for non-trivial case)
             if a.shape[0] > 2:
-                assert b.flags['CONTIGUOUS'] == False
+                self.assertEqual(b.flags['CONTIGUOUS'], False)
             self.WriteRead(b)
 
         return
@@ -260,33 +260,33 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %s" % b.dtype.char
 
-            assert a.shape == b.shape
+            self.assertEqual(a.shape, b.shape)
             if dtype('l').itemsize == 4:
                 if (a.dtype.char == "i" or a.dtype.char == "l"):
                     # Special expection. We have no way to distinguish between
                     # "l" and "i" typecode, and we can consider them the same
                     # to all practical effects
-                    assert b.dtype.char == "l" or b.dtype.char == "i"
+                    self.assertTrue(b.dtype.char == "l" or b.dtype.char == "i")
                 elif (a.dtype.char == "I" or a.dtype.char == "L"):
                     # Special expection. We have no way to distinguish between
                     # "L" and "I" typecode, and we can consider them the same
                     # to all practical effects
-                    assert b.dtype.char == "L" or b.dtype.char == "I"
+                    self.assertTrue(b.dtype.char == "L" or b.dtype.char == "I")
                 else:
-                    assert allequal(a,b, "numpy")
+                    self.assertTrue(allequal(a,b, "numpy"))
             elif dtype('l').itemsize == 8:
                 if (a.dtype.char == "q" or a.dtype.char == "l"):
                     # Special expection. We have no way to distinguish between
                     # "q" and "l" typecode in 64-bit platforms, and we can
                     # consider them the same to all practical effects
-                    assert b.dtype.char == "l" or b.dtype.char == "q"
+                    self.assertTrue(b.dtype.char == "l" or b.dtype.char == "q")
                 elif (a.dtype.char == "Q" or a.dtype.char == "L"):
                     # Special expection. We have no way to distinguish between
                     # "Q" and "L" typecode in 64-bit platforms, and we can
                     # consider them the same to all practical effects
-                    assert b.dtype.char == "L" or b.dtype.char == "Q"
+                    self.assertTrue(b.dtype.char == "L" or b.dtype.char == "Q")
                 else:
-                    assert allequal(a,b, "numpy")
+                    self.assertTrue(allequal(a,b, "numpy"))
 
             # Iterate over the next group
             group = getattr(group, 'group' + str(i))
@@ -351,16 +351,16 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print "  typecode ==> %c" % dset.typecode
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %c" % b.dtype.char
-            assert a.shape == b.shape
+            self.assertEqual(a.shape, b.shape)
             if a.dtype.char == "i":
                 # Special expection. We have no way to distinguish between
                 # "l" and "i" typecode, and we can consider them the same
                 # to all practical effects
-                assert b.dtype.char == "l" or b.dtype.char == "i"
+                self.assertTrue(b.dtype.char == "l" or b.dtype.char == "i")
             else:
-                assert a.dtype.char == b.dtype.char
+                self.assertEqual(a.dtype.char, b.dtype.char)
 
-            assert a == b
+            self.assertEqual(a, b)
 
             # Iterate over the next group
             group = fileh.getNode(group, 'group' + str(rank))
@@ -434,7 +434,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", orignumcol.shape
                     print "First 3 elements of read col:", numcol[:3]
                 # Check that both NumPy objects are equal
-                assert allequal(numcol, orignumcol, "numpy")
+                self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
     def test01_readTableNum(self):
         """Checking column conversion into NumPy in read(). NumPy flavor"""
@@ -451,7 +451,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", typecol
                 orignumcol = ones(shape=self.nrows, dtype=numcol.dtype.char)
                 # Check that both NumPy objects are equal
-                assert allequal(numcol, orignumcol, "numpy")
+                self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
 
     def test02_readCoordsChar(self):
@@ -479,7 +479,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", orignumcol.shape
                     print "First 3 elements of read col:", numcol[:3]
                 # Check that both NumPy objects are equal
-                assert allequal(numcol, orignumcol, "numpy")
+                self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
     def test02_readCoordsNum(self):
         """Column conversion into NumPy in readCoordinates(). NumPy."""
@@ -500,7 +500,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", typecol
                 orignumcol = ones(shape=self.nrows, dtype=numcol.dtype.char)
                 # Check that both NumPy objects are equal
-                assert allequal(numcol, orignumcol, "numpy")
+                self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
     def test03_getIndexNumPy(self):
         """Getting table rows specifyied as NumPy scalar integers."""
@@ -520,7 +520,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", typecol
                 orignumcol = ones(shape=len(numcol), dtype=numcol.dtype.char)
                 # Check that both NumPy objects are equal
-                assert allequal(numcol, orignumcol, "numpy")
+                self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
     def test04_setIndexNumPy(self):
         """Setting table rows specifyied as NumPy integers."""
@@ -542,11 +542,11 @@ class TableReadTestCase(common.PyTablesTestCase):
 ['aasa', 'x', 232, -24, 232, 232, 1, 232L, 232, (232+0j), 232.0, 232L, (232+0j), 232.0]
 """
             print "Read row:\n", record
-        assert record['var1'] == 'aasa'
-        assert record['var2'] == 'x'
-        assert record['var3'] == True
-        assert record['var4'] == -24
-        assert record['var7'] == 232
+        self.assertEqual(record['var1'], 'aasa')
+        self.assertEqual(record['var2'], 'x')
+        self.assertEqual(record['var3'], True)
+        self.assertEqual(record['var4'], -24)
+        self.assertEqual(record['var7'], 232)
 
 
 # The declaration of the nested table:
@@ -612,16 +612,16 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the value of some columns
         # A flat column
         col = table.cols.x[:3]
-        assert isinstance(col, ndarray)
+        self.assertTrue(isinstance(col, ndarray))
         npcol = zeros((3,2), dtype="int32")
-        assert allequal(col, npcol, "numpy")
+        self.assertTrue(allequal(col, npcol, "numpy"))
         # A nested column
         col = table.cols.Info[:3]
-        assert isinstance(col, ndarray)
+        self.assertTrue(isinstance(col, ndarray))
         dtype = [('value', 'c16'),
                  ('y2', 'f8'),
                  ('Info2',
@@ -631,12 +631,12 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
                  ('name', 'S2'),
                  ('z2', 'u1')]
         npcol = zeros((3,), dtype=dtype)
-        assert col.dtype.descr == npcol.dtype.descr
+        self.assertEqual(col.dtype.descr, npcol.dtype.descr)
         if common.verbose:
             print "col-->", col
             print "npcol-->", npcol
         # A copy() is needed in case the buffer can be in different segments
-        assert col.copy().data == npcol.data
+        self.assertEqual(col.copy().data, npcol.data)
 
     def test01b_basicTableRead(self):
         """Checking the return of a NumPy in read() (strided version)."""
@@ -651,16 +651,16 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the value of some columns
         # A flat column
         col = table.cols.x[:9:3]
-        assert isinstance(col, ndarray)
+        self.assertTrue(isinstance(col, ndarray))
         npcol = zeros((3,2), dtype="int32")
-        assert allequal(col, npcol, "numpy")
+        self.assertTrue(allequal(col, npcol, "numpy"))
         # A nested column
         col = table.cols.Info[:9:3]
-        assert isinstance(col, ndarray)
+        self.assertTrue(isinstance(col, ndarray))
         dtype = [('value', '%sc16' % byteorder),
                  ('y2', '%sf8' % byteorder),
                  ('Info2',
@@ -670,12 +670,12 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
                  ('name', '|S2'),
                  ('z2', '|u1')]
         npcol = zeros((3,), dtype=dtype)
-        assert col.dtype.descr == npcol.dtype.descr
+        self.assertEqual(col.dtype.descr, npcol.dtype.descr)
         if common.verbose:
             print "col-->", col
             print "npcol-->", npcol
         # A copy() is needed in case the buffer can be in different segments
-        assert col.copy().data == npcol.data
+        self.assertEqual(col.copy().data, npcol.data)
 
     def test02_getWhereList(self):
         """Checking the return of NumPy in getWhereList method."""
@@ -690,11 +690,11 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check that all columns have been selected
-        assert len(data) == 100
+        self.assertEqual(len(data), 100)
         # Finally, check that the contents are ok
-        assert allequal(data, arange(100, dtype="i8"), "numpy")
+        self.assertTrue(allequal(data, arange(100, dtype="i8"), "numpy"))
 
     def test03a_readWhere(self):
         """Checking the return of NumPy in readWhere method (strings)."""
@@ -711,9 +711,9 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check that all columns have been selected
-        assert len(data) == self.nrows
+        self.assertEqual(len(data), self.nrows)
 
     def test03b_readWhere(self):
         """Checking the return of NumPy in readWhere method (numeric)."""
@@ -730,9 +730,9 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check that all columns have been selected
-        assert len(data) == 0
+        self.assertEqual(len(data), 0)
 
     def test04a_createTable(self):
         """Checking the Table creation from a numpy recarray."""
@@ -758,14 +758,14 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == npdata.dtype.descr
+        self.assertEqual(data.dtype.descr, npdata.dtype.descr)
         if common.verbose:
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
-        assert data.copy().data == npdata.data
+        self.assertEqual(data.copy().data, npdata.data)
 
     def test04b_appendTable(self):
         """Checking appending a numpy recarray."""
@@ -784,14 +784,14 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Last 3 elements of read:", data[-3:]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == npdata.dtype.descr
+        self.assertEqual(data.dtype.descr, npdata.dtype.descr)
         if common.verbose:
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
-        assert data.copy().data == npdata.data
+        self.assertEqual(data.copy().data, npdata.data)
 
     def test05a_assignColumn(self):
         """Checking assigning to a column."""
@@ -809,11 +809,11 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check that all columns have been selected
-        assert len(data) == 100
+        self.assertEqual(len(data), 100)
         # Finally, check that the contents are ok
-        assert allequal(data, zeros((100,), dtype="u1"), "numpy")
+        self.assertTrue(allequal(data, zeros((100,), dtype="u1"), "numpy"))
 
     def test05b_modifyingColumns(self):
         """Checking modifying several columns at once."""
@@ -834,14 +834,14 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == ycol.dtype.descr
+        self.assertEqual(data.dtype.descr, ycol.dtype.descr)
         if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
-        assert data.copy().data == ycol.data
+        self.assertEqual(data.copy().data, ycol.data)
 
     def test05c_modifyingColumns(self):
         """Checking modifying several columns using a single numpy buffer."""
@@ -862,14 +862,14 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == ycol.dtype.descr
+        self.assertEqual(data.dtype.descr, ycol.dtype.descr)
         if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
-        assert data.copy().data == ycol.data
+        self.assertEqual(data.copy().data, ycol.data)
 
     def test06a_assignNestedColumn(self):
         """Checking assigning a nested column (using modifyColumn)."""
@@ -897,14 +897,14 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == npdata.dtype.descr
+        self.assertEqual(data.dtype.descr, npdata.dtype.descr)
         if common.verbose:
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
-        assert data.copy().data == npdata.data
+        self.assertEqual(data.copy().data, npdata.data)
 
     def test06b_assignNestedColumn(self):
         """Checking assigning a nested column (using the .cols accessor)."""
@@ -933,14 +933,14 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == npdata.dtype.descr
+        self.assertEqual(data.dtype.descr, npdata.dtype.descr)
         if common.verbose:
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
-        assert data.copy().data == npdata.data
+        self.assertEqual(data.copy().data, npdata.data)
 
     def test07a_modifyingRows(self):
         """Checking modifying several rows at once (using modifyRows)."""
@@ -963,13 +963,13 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == ycol.dtype.descr
+        self.assertEqual(data.dtype.descr, ycol.dtype.descr)
         if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
-        assert allequal(ycol, data, "numpy")
+        self.assertTrue(allequal(ycol, data, "numpy"))
 
     def test07b_modifyingRows(self):
         """Checking modifying several rows at once (using cols accessor)."""
@@ -993,13 +993,13 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == ycol.dtype.descr
+        self.assertEqual(data.dtype.descr, ycol.dtype.descr)
         if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
-        assert allequal(ycol, data, "numpy")
+        self.assertTrue(allequal(ycol, data, "numpy"))
 
     def test08a_modifyingRows(self):
         """Checking modifying just one row at once (using modifyRows)."""
@@ -1023,13 +1023,13 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == ycol.dtype.descr
+        self.assertEqual(data.dtype.descr, ycol.dtype.descr)
         if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
-        assert allequal(ycol, data, "numpy")
+        self.assertTrue(allequal(ycol, data, "numpy"))
 
     def test08b_modifyingRows(self):
         """Checking modifying just one row at once (using cols accessor)."""
@@ -1053,13 +1053,13 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == ycol.dtype.descr
+        self.assertEqual(data.dtype.descr, ycol.dtype.descr)
         if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
-        assert allequal(ycol, data, "numpy")
+        self.assertTrue(allequal(ycol, data, "numpy"))
 
     def test09a_getStrings(self):
         """Checking the return of string columns with spaces."""
@@ -1075,12 +1075,12 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check that all columns have been selected
-        assert len(data) == 100
+        self.assertEqual(len(data), 100)
         # Finally, check that the contents are ok
         for idata in data['color']:
-            assert idata == array("ab", dtype="|S4")
+            self.assertEqual(idata, array("ab", dtype="|S4"))
 
     def test09b_getStrings(self):
         """Checking the return of string columns with spaces. (modify)"""
@@ -1098,16 +1098,16 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check that all columns have been selected
-        assert len(data) == 100
+        self.assertEqual(len(data), 100)
         # Finally, check that the contents are ok
         for i in range(100):
             idata = data['color'][i]
             if i >= 50:
-                assert idata == array("ab", dtype="|S4")
+                self.assertEqual(idata, array("ab", dtype="|S4"))
             else:
-                assert idata == array("a  ", dtype="|S4")
+                self.assertEqual(idata, array("a  ", dtype="|S4"))
 
     def test09c_getStrings(self):
         """Checking the return of string columns with spaces. (append)"""
@@ -1130,17 +1130,17 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check that all columns have been selected
-        assert len(data) == 150
+        self.assertEqual(len(data), 150)
         # Finally, check that the contents are ok
         # Finally, check that the contents are ok
         for i in range(150):
             idata = data['color'][i]
             if i < 100:
-                assert idata == array("ab", dtype="|S4")
+                self.assertEqual(idata, array("ab", dtype="|S4"))
             else:
-                assert idata == array("a  ", dtype="|S4")
+                self.assertEqual(idata, array("a  ", dtype="|S4"))
 
 class TableNativeFlavorOpenTestCase(TableNativeFlavorTestCase):
     close = 0
@@ -1176,13 +1176,13 @@ class AttributesTestCase(common.PyTablesTestCase):
         data = g_attrs.numpy1
         npcomp = zeros((1,1), dtype='int16')
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == npcomp.dtype.descr
+        self.assertEqual(data.dtype.descr, npcomp.dtype.descr)
         if common.verbose:
             print "npcomp-->", npcomp
             print "data-->", data
-        assert allequal(npcomp, data, "numpy")
+        self.assertTrue(allequal(npcomp, data, "numpy"))
 
     def test02_updateAttribute(self):
         """Checking the modification of a numpy attribute."""
@@ -1201,13 +1201,13 @@ class AttributesTestCase(common.PyTablesTestCase):
         data = g_attrs.numpy1
         npcomp = ones((1,2), dtype='int16')
         # Check that both NumPy objects are equal
-        assert isinstance(data, ndarray)
+        self.assertTrue(isinstance(data, ndarray))
         # Check the type
-        assert data.dtype.descr == npcomp.dtype.descr
+        self.assertEqual(data.dtype.descr, npcomp.dtype.descr)
         if common.verbose:
             print "npcomp-->", npcomp
             print "data-->", data
-        assert allequal(npcomp, data, "numpy")
+        self.assertTrue(allequal(npcomp, data, "numpy"))
 
 class AttributesOpenTestCase(AttributesTestCase):
     close = 0
@@ -1251,10 +1251,10 @@ class StrlenTestCase(common.PyTablesTestCase):
             print "string1-->", str1
             print "string2-->", str2
         # Check that both NumPy objects are equal
-        assert len(str1) == len('Hello Francesc!')
-        assert len(str2) == len('Hola Francesc!')
-        assert str1 == 'Hello Francesc!'
-        assert str2 == 'Hola Francesc!'
+        self.assertEqual(len(str1), len('Hello Francesc!'))
+        self.assertEqual(len(str2), len('Hola Francesc!'))
+        self.assertEqual(str1, 'Hello Francesc!')
+        self.assertEqual(str2, 'Hola Francesc!')
 
     def test02(self):
         """Checking the lengths of strings (read recarray)."""
@@ -1266,10 +1266,10 @@ class StrlenTestCase(common.PyTablesTestCase):
         str1 = self.table[:]['Text'][0]
         str2 = self.table[:]['Text'][1]
         # Check that both NumPy objects are equal
-        assert len(str1) == len('Hello Francesc!')
-        assert len(str2) == len('Hola Francesc!')
-        assert str1 == 'Hello Francesc!'
-        assert str2 == 'Hola Francesc!'
+        self.assertEqual(len(str1), len('Hello Francesc!'))
+        self.assertEqual(len(str2), len('Hola Francesc!'))
+        self.assertEqual(str1, 'Hello Francesc!')
+        self.assertEqual(str2, 'Hola Francesc!')
 
 
     def test03(self):
@@ -1282,10 +1282,10 @@ class StrlenTestCase(common.PyTablesTestCase):
         str1 = self.table[0]['Text']
         str2 = self.table[1]['Text']
         # Check that both NumPy objects are equal
-        assert len(str1) == len('Hello Francesc!')
-        assert len(str2) == len('Hola Francesc!')
-        assert str1 == 'Hello Francesc!'
-        assert str2 == 'Hola Francesc!'
+        self.assertEqual(len(str1), len('Hello Francesc!'))
+        self.assertEqual(len(str2), len('Hola Francesc!'))
+        self.assertEqual(str1, 'Hello Francesc!')
+        self.assertEqual(str2, 'Hola Francesc!')
 
 
 class StrlenOpenTestCase(StrlenTestCase):

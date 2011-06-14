@@ -375,8 +375,8 @@ def create_test_method(type_, op, extracond):
                 rownos = pyrownos  # initialise reference results
                 fvalues = pyfvalues
             else:
-                self.assert_(numpy.all(pyrownos == rownos))  # check
-                self.assert_(numpy.all(pyfvalues == fvalues))
+                self.assertTrue(numpy.all(pyrownos == rownos))  # check
+                self.assertTrue(numpy.all(pyfvalues == fvalues))
 
             # Then the in-kernel or indexed version.
             ptvars = condvars.copy()
@@ -404,11 +404,11 @@ def create_test_method(type_, op, extracond):
             vprint( "* %d rows selected by PyTables from ``%s``"
                     % (len(ptrownos[0]), acolname), nonl=True )
             vprint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
-            self.assert_(numpy.all(ptrownos[0] == rownos))
-            self.assert_(numpy.all(ptfvalues[0] == fvalues))
+            self.assertTrue(numpy.all(ptrownos[0] == rownos))
+            self.assertTrue(numpy.all(ptfvalues[0] == fvalues))
             # The following test possible caching of query results.
-            self.assert_(numpy.all(ptrownos[0] == ptrownos[1]))
-            self.assert_(numpy.all(ptfvalues[0] == ptfvalues[1]))
+            self.assertTrue(numpy.all(ptrownos[0] == ptrownos[1]))
+            self.assertTrue(numpy.all(ptfvalues[0] == ptfvalues[1]))
 
     test_method.__doc__ = "Testing ``%s``." % cond
     return test_method
@@ -693,25 +693,25 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
     def test(self):
         for condition in self.conditions:
             c_usable_idxs = self.willQueryUseIndexing(condition, {})
-            self.assert_( c_usable_idxs == self.usable_idxs,
-                          "\nQuery with condition: ``%s``\n"
-                          "Computed usable indexes are: ``%s``\n"
-                          "and should be: ``%s``"
-                          % (condition, c_usable_idxs, self.usable_idxs) )
+            self.assertEqual(c_usable_idxs, self.usable_idxs,
+                             "\nQuery with condition: ``%s``\n"
+                             "Computed usable indexes are: ``%s``\n"
+                             "and should be: ``%s``" %
+                                (condition, c_usable_idxs, self.usable_idxs))
             condvars = self.requiredExprVars(condition, None)
             compiled = self.compileCondition(condition, condvars)
             c_idx_expr = compiled.index_expressions
-            self.assert_( c_idx_expr == self.idx_expr,
-                          "\nWrong index expression in condition:\n``%s``\n"
-                          "Compiled index expression is:\n``%s``\n"
-                          "and should be:\n``%s``"
-                          % (condition, c_idx_expr, self.idx_expr) )
+            self.assertEqual(c_idx_expr, self.idx_expr,
+                             "\nWrong index expression in condition:\n``%s``\n"
+                             "Compiled index expression is:\n``%s``\n"
+                             "and should be:\n``%s``" %
+                                    (condition, c_idx_expr, self.idx_expr))
             c_str_expr = compiled.string_expression
-            self.assert_( c_str_expr == self.str_expr,
-                          "\nWrong index operations in condition:\n``%s``\n"
-                          "Computed index operations are:\n``%s``\n"
-                          "and should be:\n``%s``"
-                          % (condition, c_str_expr, self.str_expr) )
+            self.assertEqual(c_str_expr, self.str_expr,
+                             "\nWrong index operations in condition:\n``%s``\n"
+                             "Computed index operations are:\n``%s``\n"
+                             "and should be:\n``%s``" %
+                                        (condition, c_str_expr, self.str_expr))
             vprint( "* Query with condition ``%s`` will use "
                     "variables ``%s`` for indexing."
                     % (condition, compiled.index_variables) )

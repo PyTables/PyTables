@@ -1,7 +1,6 @@
 import sys
 import unittest
 import os
-import tempfile
 
 from tables import *
 from tables.tests import common
@@ -92,33 +91,33 @@ class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00a_table(self):
         """Check dtype accessor for Table objects"""
         a = self.h5file.createTable('/', 'table', Record)
-        self.assert_(a.dtype == a.description._v_dtype)
+        self.assertEqual(a.dtype, a.description._v_dtype)
 
     def test00b_column(self):
         """Check dtype accessor for Column objects"""
         a = self.h5file.createTable('/', 'table', Record)
         c = a.cols.var3
-        self.assert_(c.dtype == a.description._v_dtype['var3'])
+        self.assertEqual(c.dtype, a.description._v_dtype['var3'])
 
     def test01_array(self):
         """Check dtype accessor for Array objects"""
         a = self.h5file.createArray('/', 'array', [1,2])
-        self.assert_(a.dtype == a.atom.dtype)
+        self.assertEqual(a.dtype, a.atom.dtype)
 
     def test02_carray(self):
         """Check dtype accessor for CArray objects"""
         a = self.h5file.createCArray('/', 'array', FloatAtom(), [1,2])
-        self.assert_(a.dtype == a.atom.dtype)
+        self.assertEqual(a.dtype, a.atom.dtype)
 
     def test03_carray(self):
         """Check dtype accessor for EArray objects"""
         a = self.h5file.createEArray('/', 'array', FloatAtom(), [0,2])
-        self.assert_(a.dtype == a.atom.dtype)
+        self.assertEqual(a.dtype, a.atom.dtype)
 
     def test04_vlarray(self):
         """Check dtype accessor for VLArray objects"""
         a = self.h5file.createVLArray('/', 'array', FloatAtom())
-        self.assert_(a.dtype == a.atom.dtype)
+        self.assertEqual(a.dtype, a.atom.dtype)
 
 
 #----------------------------------------------------------------------

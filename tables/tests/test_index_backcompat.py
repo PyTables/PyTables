@@ -1,7 +1,5 @@
 import unittest
 
-import numpy
-
 from tables import *
 from tables.tests import common
 from tables.tests.common import verbose, cleanup
@@ -29,9 +27,9 @@ class IndexesTestCase(common.PyTablesTestCase):
 
         t1var1 = self.table1.cols.var1
         if "2_0" in self.file_:
-            self.assert_(t1var1.index._v_version == "2.0")
+            self.assertEqual(t1var1.index._v_version, "2.0")
         elif "2_1" in self.file_:
-            self.assert_(t1var1.index._v_version == "2.1")
+            self.assertEqual(t1var1.index._v_version, "2.1")
 
 
     def test01_string(self):
@@ -62,8 +60,8 @@ class IndexesTestCase(common.PyTablesTestCase):
             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
 
     def test02_bool(self):
@@ -86,8 +84,8 @@ class IndexesTestCase(common.PyTablesTestCase):
             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
 
     def test03_int(self):
@@ -118,8 +116,8 @@ class IndexesTestCase(common.PyTablesTestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
 
     def test04_float(self):
@@ -150,8 +148,8 @@ class IndexesTestCase(common.PyTablesTestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1.sort() == results2.sort()
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1.sort(), results2.sort())
 
 
 # Check indexes from PyTables version 2.0

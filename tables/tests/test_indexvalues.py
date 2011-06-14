@@ -1,7 +1,6 @@
 import unittest
 import os
 import tempfile
-import warnings
 import random
 import new
 
@@ -10,7 +9,7 @@ import numpy
 from tables import *
 from tables.idxutils import calcChunksize
 from tables.tests import common
-from tables.tests.common import verbose, allequal, heavy, cleanup
+from tables.tests.common import verbose, heavy, cleanup
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -148,8 +147,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         t1var1 = table1.cols.var1
@@ -163,8 +162,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         t1var1 = table1.cols.var1
@@ -178,8 +177,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Forth selection
         t1var1 = table1.cols.var1
@@ -193,8 +192,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test01b(self):
         """Checking selecting values from an Index (string flavor)"""
@@ -223,8 +222,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         t1var1 = table1.cols.var1
@@ -238,8 +237,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         t1var1 = table1.cols.var1
@@ -253,8 +252,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         t1var1 = table1.cols.var1
@@ -268,8 +267,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test02a(self):
         """Checking selecting values from an Index (bool flavor)"""
@@ -291,8 +290,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test02b(self):
         """Checking selecting values from an Index (bool flavor)"""
@@ -314,8 +313,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test03a(self):
         """Checking selecting values from an Index (int flavor)"""
@@ -345,8 +344,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         results1 = [p["var3"] for p in table1.where('(il<=t1col)&(t1col<sl)')]
@@ -360,8 +359,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         results1 = [p["var3"] for p in table1.where('(il<t1col)&(t1col<=sl)')]
@@ -375,8 +374,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         results1 = [p["var3"] for p in table1.where('(il<t1col)&(t1col<sl)')]
@@ -390,8 +389,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test03b(self):
         """Checking selecting values from an Index (int flavor)"""
@@ -423,8 +422,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         results1 = [p["var3"] for p in table1.where('t1col <= sl')]
@@ -439,8 +438,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         results1 = [p["var3"] for p in table1.where('t1col > sl')]
@@ -455,8 +454,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         results1 = [p["var3"] for p in table1.where('t1col >= sl')]
@@ -471,8 +470,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test03c(self):
         """Checking selecting values from an Index (long flavor)"""
@@ -504,8 +503,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         results1 = [p["var3"] for p in table1.where('t1col <= sl')]
@@ -520,8 +519,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         results1 = [p["var3"] for p in table1.where('t1col > sl')]
@@ -536,8 +535,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         results1 = [p["var3"] for p in table1.where('t1col >= sl')]
@@ -552,8 +551,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test03d(self):
         """Checking selecting values from an Index (long and int flavor)"""
@@ -585,8 +584,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         results1 = [p["var3"] for p in table1.where('t1col <= sl')]
@@ -601,8 +600,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         results1 = [p["var3"] for p in table1.where('t1col > sl')]
@@ -617,8 +616,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         results1 = [p["var3"] for p in table1.where('t1col >= sl')]
@@ -633,8 +632,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test04a(self):
         """Checking selecting values from an Index (float flavor)"""
@@ -664,8 +663,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1.sort() == results2.sort()
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1.sort(), results2.sort())
 
         # Second selection
         results1 = [p["var4"] for p in table1.where('(il<=t1col)&(t1col<sl)')]
@@ -679,8 +678,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         results1 = [p["var4"] for p in table1.where('(il<t1col)&(t1col<=sl)')]
@@ -694,10 +693,10 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
+        self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        assert results1 == results2
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         results1 = [p["var4"] for p in table1.where('(il<t1col)&(t1col<sl)')]
@@ -711,8 +710,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test04b(self):
         """Checking selecting values from an Index (float flavor)"""
@@ -744,8 +743,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         results1 = [p["var4"] for p in table1.where('t1col <= sl')]
@@ -760,8 +759,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         results1 = [p["var4"] for p in table1.where('t1col > sl')]
@@ -776,8 +775,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         results1 = [p["var4"] for p in table1.where('t1col >= sl')]
@@ -792,8 +791,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test05a(self):
         """Checking getWhereList & itersequence (string, python flavor)"""
@@ -828,8 +827,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1.sort() == results2.sort()
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1.sort(), results2.sort())
 
         # Second selection
         condition = '(il<=t1col)&(t1col<sl)'
@@ -848,8 +847,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<t1col)&(t1col<=sl)'
@@ -868,10 +867,10 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
+        self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        assert results1 == results2
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = '(il<t1col)&(t1col<sl)'
@@ -890,8 +889,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test05b(self):
         """Checking getWhereList & itersequence (numpy string lims & python flavor)"""
@@ -928,8 +927,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't1col<=sl'
@@ -948,8 +947,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't1col>sl'
@@ -968,8 +967,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
@@ -988,8 +987,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test06a(self):
         """Checking getWhereList & itersequence (bool flavor)"""
@@ -1016,8 +1015,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test06b(self):
         """Checking getWhereList & itersequence (numpy bool limits & flavor)"""
@@ -1045,8 +1044,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test07a(self):
         """Checking getWhereList & itersequence (int flavor)"""
@@ -1081,8 +1080,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1.sort() == results2.sort()
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1.sort(), results2.sort())
 
         # Second selection
         condition = '(il<=t1col)&(t1col<sl)'
@@ -1101,8 +1100,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<t1col)&(t1col<=sl)'
@@ -1121,10 +1120,10 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
+        self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        assert results1 == results2
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = '(il<t1col)&(t1col<sl)'
@@ -1143,8 +1142,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test07b(self):
         """Checking getWhereList & itersequence (numpy int limits & flavor)"""
@@ -1181,8 +1180,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't1col<=sl'
@@ -1201,8 +1200,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't1col>sl'
@@ -1221,8 +1220,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
@@ -1241,8 +1240,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test08a(self):
         """Checking getWhereList & itersequence (float flavor)"""
@@ -1278,8 +1277,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1.sort() == results2.sort()
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1.sort(), results2.sort())
 
         # Second selection
         condition = '(il<=t1col)&(t1col<sl)'
@@ -1298,8 +1297,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<t1col)&(t1col<=sl)'
@@ -1318,10 +1317,10 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
+        self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        assert results1 == results2
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = '(il<t1col)&(t1col<sl)'
@@ -1340,8 +1339,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test08b(self):
         """Checking getWhereList & itersequence (numpy float limits & flavor)"""
@@ -1377,8 +1376,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't1col<=sl'
@@ -1397,8 +1396,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't1col>sl'
@@ -1417,8 +1416,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
@@ -1437,8 +1436,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
 
     def test09a(self):
@@ -1471,8 +1470,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition = '(il<t1col)&(t1col<sl)'
@@ -1487,8 +1486,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il>t1col)&(t1col>sl)'
@@ -1504,8 +1503,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # This selection to be commented out
 #         condition = 't1col>=sl'
@@ -1519,8 +1518,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
 #             print "Length results:", len(results1)
 #             print "Should be:", len(results2)
-#         assert len(results1) == len(results2)
-#         assert results1 == results2
+#         self.assertEqual(len(results1), len(results2))
+#         self.assertEqual(results1, results2)
 
         # Fourth selection
         #results1 = [p['var1'] for p in table1.where(condition,start=2,stop=-1,step=3)]
@@ -1536,8 +1535,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Re-enable the indexing in queries basically to unnail the
         # condition cache and not raising the performance warning
@@ -1576,8 +1575,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition = '(il<t1col)&(t1col<=sl)'
@@ -1592,8 +1591,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<=t1col)&(t1col<=sl)'
@@ -1608,8 +1607,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
@@ -1624,8 +1623,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Re-enable the indexing in queries basically to unnail the
         # condition cache and not raising the performance warning
@@ -1667,8 +1666,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition= 't1col>=sl'
@@ -1686,8 +1685,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't1col>=sl'
@@ -1705,8 +1704,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
@@ -1724,8 +1723,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Re-enable the indexing in queries basically to unnail the
         # condition cache and not raising the performance warning
@@ -1767,8 +1766,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't3col>=sl'
@@ -1786,8 +1785,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't3col>=sl'
@@ -1805,8 +1804,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't3col>=sl'
@@ -1824,8 +1823,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Re-enable the indexing in queries basically to unnail the
         # condition cache and not raising the performance warning
@@ -1865,8 +1864,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition = '(il<=t1col)&(t1col<=sl)'
@@ -1885,8 +1884,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Repeat second selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
@@ -1905,8 +1904,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<t1col)&(t1col<sl)'
@@ -1925,8 +1924,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
@@ -1945,8 +1944,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test10b(self):
         """Checking indexed where() with ranges (int flavor)"""
@@ -1981,8 +1980,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition = '(il<=t3col)&(t3col<=sl)'
@@ -2001,8 +2000,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<t3col)&(t3col<sl)'
@@ -2021,8 +2020,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't3col>=sl'
@@ -2041,8 +2040,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test10c(self):
         """Checking indexed where() with ranges, changing step (string flavor)"""
@@ -2078,8 +2077,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't1col>=sl'
@@ -2098,8 +2097,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't1col>=sl'
@@ -2118,8 +2117,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
@@ -2138,8 +2137,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test10d(self):
         """Checking indexed where() with ranges, changing step (int flavor)"""
@@ -2175,8 +2174,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't3col>=sl'
@@ -2195,8 +2194,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't3col>=sl'
@@ -2215,8 +2214,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't3col>=sl'
@@ -2235,8 +2234,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test11a(self):
         """Checking selecting values from an Index via readCoordinates()"""
@@ -2269,8 +2268,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
 
     def test12a(self):
@@ -2336,8 +2335,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Second selection: bool
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
@@ -2348,8 +2347,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Third selection: int
         # Convert the limits to the appropriate type
@@ -2368,8 +2367,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Fourth selection: float
         # Convert the limits to the appropriate type
@@ -2388,8 +2387,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1.sort() == results2.sort()
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1.sort(), results2.sort())
 
     def test13a(self):
         """Checking repeated queries (checking caches)"""
@@ -2423,8 +2422,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
@@ -2443,8 +2442,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test13b(self):
         """Checking repeated queries, varying step (checking caches)"""
@@ -2478,8 +2477,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
@@ -2498,8 +2497,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test13c(self):
         """Checking repeated queries, varying start, stop, step"""
@@ -2533,8 +2532,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
@@ -2553,8 +2552,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test13d(self):
         """Checking repeated queries, varying start, stop, step (another twist)"""
@@ -2588,8 +2587,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
@@ -2608,8 +2607,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #            print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test13e(self):
         """Checking repeated queries, with varying condition."""
@@ -2643,8 +2642,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Repeat the selection with a more complex condition
         t2col = table1.cols.var2
@@ -2665,8 +2664,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test13f(self):
         """Checking repeated queries, with varying condition."""
@@ -2705,8 +2704,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Repeat the selection with a simpler condition
         condition = '(il<=t1col)&(t1col<=sl)'
@@ -2725,8 +2724,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Repeat again with the original condition, but with a constant
         constant = True
@@ -2746,8 +2745,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
     def test13g(self):
         """Checking repeated queries, with different limits."""
@@ -2781,8 +2780,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
         # Repeat the selection with different limits
         il, sl = (str(self.il+1), str(self.sl-2))
@@ -2803,8 +2802,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
-        assert len(results1) == len(results2)
-        assert results1 == results2
+        self.assertEqual(len(results1), len(results2))
+        self.assertEqual(results1, results2)
 
 
 class SV1aTestCase(SelectValuesTestCase):
@@ -3108,9 +3107,10 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.getWhereList('id1 == %s' % value)
-            assert len(idx) > 0 , "idx--> %s %s %s %s" % (idx, i, nrow, value)
-            assert nrow in idx, "nrow not found: %s != %s, %s" % \
-                   (idx, nrow, value)
+            self.assertTrue(len(idx) > 0 ,
+                            "idx--> %s %s %s %s" % (idx, i, nrow, value))
+            self.assertTrue(nrow in idx,
+                            "nrow not found: %s != %s, %s" % (idx, nrow, value))
 
         fp.close()
         os.remove(filename)
@@ -3129,9 +3129,10 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.getWhereList('id1 == %s' % value)
-            assert len(idx) > 0 , "idx--> %s %s %s %s" % (idx, i, nrow, value)
-            assert nrow in idx, "nrow not found: %s != %s, %s" % \
-                   (idx, nrow, value)
+            self.assertTrue(len(idx) > 0 ,
+                            "idx--> %s %s %s %s" % (idx, i, nrow, value))
+            self.assertTrue(nrow in idx,
+                            "nrow not found: %s != %s, %s" % (idx, nrow, value))
 
         fp.close()
         os.remove(filename)
@@ -3150,9 +3151,10 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.getWhereList('id1 == %s' % value)
-            assert len(idx) > 0 , "idx--> %s %s %s %s" % (idx, i, nrow, value)
-            assert nrow in idx, "nrow not found: %s != %s, %s" % \
-                   (idx, nrow, value)
+            self.assertTrue(len(idx) > 0 ,
+                            "idx--> %s %s %s %s" % (idx, i, nrow, value))
+            self.assertTrue(nrow in idx,
+                            "nrow not found: %s != %s, %s" % (idx, nrow, value))
 
         fp.close()
         os.remove(filename)

@@ -4,16 +4,14 @@
 import sys
 import unittest
 import os
-import re
 import tempfile
-import warnings
 import numpy
 from numpy.testing import assert_array_equal, assert_almost_equal
 from tables.parameters import NODE_CACHE_SLOTS
 
 from tables import *
 from tables.tests import common
-from tables.tests.common import allequal, PyTablesTestCase
+from tables.tests.common import PyTablesTestCase
 from tables.exceptions import DataTypeWarning
 
 # To delete the internal attributes automagically
@@ -74,12 +72,12 @@ class CreateTestCase(unittest.TestCase):
                 self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
             self.root = self.fileh.root
 
-        assert self.fileh.getNodeAttr(self.root.agroup, 'attr1') == \
-               "p" * attrlength
-        assert self.fileh.getNodeAttr(self.root.atable, 'attr1') == \
-               "a" * attrlength
-        assert self.fileh.getNodeAttr(self.root.anarray, 'attr1') == \
-               "n" * attrlength
+        self.assertEqual(self.fileh.getNodeAttr(self.root.agroup, 'attr1'),
+                         "p" * attrlength)
+        self.assertEqual(self.fileh.getNodeAttr(self.root.atable, 'attr1'),
+                         "a" * attrlength)
+        self.assertEqual(self.fileh.getNodeAttr(self.root.anarray, 'attr1'),
+                         "n" * attrlength)
 
     def test02_setAttributes(self):
         """Checking setting large string attributes (Node methods)"""
@@ -101,9 +99,9 @@ class CreateTestCase(unittest.TestCase):
                 self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
             self.root = self.fileh.root
 
-        assert self.root.agroup._f_getAttr('attr1') == "p" * attrlength
-        assert self.root.atable.getAttr("attr1") == "a" * attrlength
-        assert self.root.anarray.getAttr("attr1") == "n" * attrlength
+        self.assertEqual(self.root.agroup._f_getAttr('attr1'), "p" * attrlength)
+        self.assertEqual(self.root.atable.getAttr("attr1"), "a" * attrlength)
+        self.assertEqual(self.root.anarray.getAttr("attr1"), "n" * attrlength)
 
     def test03_setAttributes(self):
         """Checking setting large string attributes (AttributeSet methods)"""
@@ -125,9 +123,9 @@ class CreateTestCase(unittest.TestCase):
             self.root = self.fileh.root
 
         # This should work even when the node cache is disabled
-        assert self.root.agroup._v_attrs.attr1 == "p" * attrlength
-        assert self.root.atable.attrs.attr1 == "a" * attrlength
-        assert self.root.anarray.attrs.attr1 == "n" * attrlength
+        self.assertEqual(self.root.agroup._v_attrs.attr1, "p" * attrlength)
+        self.assertEqual(self.root.atable.attrs.attr1, "a" * attrlength)
+        self.assertEqual(self.root.anarray.attrs.attr1, "n" * attrlength)
 
     def test04_listAttributes(self):
         """Checking listing attributes """
@@ -162,16 +160,15 @@ class CreateTestCase(unittest.TestCase):
             self.root = self.fileh.root
 
         agroup = self.root.agroup
-        assert agroup._v_attrs._f_list("user") == \
-               ["pq", "qr", "rs"]
-        assert agroup._v_attrs._f_list("sys") == \
-               ['CLASS', 'TITLE', 'VERSION']
-        assert agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
+        self.assertEqual(agroup._v_attrs._f_list("user"), ["pq", "qr", "rs"])
+        self.assertEqual(agroup._v_attrs._f_list("sys"),
+                         ['CLASS', 'TITLE', 'VERSION'])
+        self.assertEqual(agroup._v_attrs._f_list("all"),
+                         ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"])
 
         atable = self.root.atable
-        assert atable.attrs._f_list() == ["a", "b", "c"]
-        assert atable.attrs._f_list("sys") == \
+        self.assertEqual(atable.attrs._f_list(), ["a", "b", "c"])
+        self.assertEqual(atable.attrs._f_list("sys"),
                ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
@@ -179,8 +176,8 @@ class CreateTestCase(unittest.TestCase):
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
                 'NROWS',
-                'TITLE', 'VERSION']
-        assert atable.attrs._f_list("all") == \
+                'TITLE', 'VERSION'])
+        self.assertEqual(atable.attrs._f_list("all"),
                ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
@@ -189,15 +186,14 @@ class CreateTestCase(unittest.TestCase):
                 'FIELD_4_FILL', 'FIELD_4_NAME',
                 'NROWS',
                 'TITLE', 'VERSION',
-                "a", "b", "c"]
+                "a", "b", "c"])
 
         anarray = self.root.anarray
-        assert anarray.attrs._f_list() == ["i", "j", "k"]
-        assert anarray.attrs._f_list("sys") == \
-               ['CLASS', 'FLAVOR', 'TITLE', 'VERSION']
-        assert anarray.attrs._f_list("all") == \
-               ['CLASS', 'FLAVOR', 'TITLE', 'VERSION',
-                "i", "j", "k"]
+        self.assertEqual(anarray.attrs._f_list(), ["i", "j", "k"])
+        self.assertEqual(anarray.attrs._f_list("sys"),
+                         ['CLASS', 'FLAVOR', 'TITLE', 'VERSION'])
+        self.assertEqual(anarray.attrs._f_list("all"),
+                         ['CLASS', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"])
 
     def test05_removeAttributes(self):
         """Checking removing attributes """
@@ -221,26 +217,26 @@ class CreateTestCase(unittest.TestCase):
         if common.verbose:
             print "Attribute list:", agroup._v_attrs._f_list()
         # Check the local attributes names
-        assert agroup._v_attrs._f_list() == ["qr", "rs"]
+        self.assertEqual(agroup._v_attrs._f_list(), ["qr", "rs"])
         if common.verbose:
             print "Attribute list in disk:", \
                   agroup._v_attrs._f_list("all")
         # Check the disk attribute names
-        assert agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'TITLE', 'VERSION', "qr", "rs"]
+        self.assertEqual(agroup._v_attrs._f_list("all"),
+                         ['CLASS', 'TITLE', 'VERSION', "qr", "rs"])
 
         # delete an attribute (__delattr__ method)
         del agroup._v_attrs.qr
         if common.verbose:
             print "Attribute list:", agroup._v_attrs._f_list()
         # Check the local attributes names
-        assert agroup._v_attrs._f_list() == ["rs"]
+        self.assertEqual(agroup._v_attrs._f_list(), ["rs"])
         if common.verbose:
             print "Attribute list in disk:", \
                   agroup._v_attrs._f_list()
         # Check the disk attribute names
-        assert agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'TITLE', 'VERSION', "rs"]
+        self.assertEqual(agroup._v_attrs._f_list("all"),
+                         ['CLASS', 'TITLE', 'VERSION', "rs"])
 
     def test05b_removeAttributes(self):
         """Checking removing attributes (using File.delNodeAttr()) """
@@ -264,26 +260,26 @@ class CreateTestCase(unittest.TestCase):
         if common.verbose:
             print "Attribute list:", agroup._v_attrs._f_list()
         # Check the local attributes names
-        assert agroup._v_attrs._f_list() == ["qr", "rs"]
+        self.assertEqual(agroup._v_attrs._f_list(), ["qr", "rs"])
         if common.verbose:
             print "Attribute list in disk:", \
                   agroup._v_attrs._f_list("all")
         # Check the disk attribute names
-        assert agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'TITLE', 'VERSION', "qr", "rs"]
+        self.assertEqual(agroup._v_attrs._f_list("all"),
+                         ['CLASS', 'TITLE', 'VERSION', "qr", "rs"])
 
         # delete an attribute (File.delNodeAttr method)
         self.fileh.delNodeAttr(self.root, "qr", "agroup")
         if common.verbose:
             print "Attribute list:", agroup._v_attrs._f_list()
         # Check the local attributes names
-        assert agroup._v_attrs._f_list() == ["rs"]
+        self.assertEqual(agroup._v_attrs._f_list(), ["rs"])
         if common.verbose:
             print "Attribute list in disk:", \
                   agroup._v_attrs._f_list()
         # Check the disk attribute names
-        assert agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'TITLE', 'VERSION', "rs"]
+        self.assertEqual(agroup._v_attrs._f_list("all"),
+                         ['CLASS', 'TITLE', 'VERSION', "rs"])
 
     def test06_removeAttributes(self):
         """Checking removing system attributes """
@@ -293,8 +289,8 @@ class CreateTestCase(unittest.TestCase):
             print "Before removing CLASS attribute"
             print "System attrs:", self.group._v_attrs._v_attrnamessys
         del self.group._v_attrs.CLASS
-        assert self.group._v_attrs._f_list("sys") == \
-               ['TITLE', 'VERSION']
+        self.assertEqual(self.group._v_attrs._f_list("sys"),
+                         ['TITLE', 'VERSION'])
         if common.verbose:
             print "After removing CLASS attribute"
             print "System attrs:", self.group._v_attrs._v_attrnamessys
@@ -321,12 +317,12 @@ class CreateTestCase(unittest.TestCase):
         if common.verbose:
             print "Attribute list:", agroup._v_attrs._f_list()
         # Check the local attributes names (alphabetically sorted)
-        assert agroup._v_attrs._f_list() == ["op", "qr", "rs"]
+        self.assertEqual(agroup._v_attrs._f_list(), ["op", "qr", "rs"])
         if common.verbose:
             print "Attribute list in disk:", agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
-        assert agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'TITLE', 'VERSION', "op", "qr", "rs"]
+        self.assertEqual(agroup._v_attrs._f_list("all"),
+                         ['CLASS', 'TITLE', 'VERSION', "op", "qr", "rs"])
 
     def test08_renameAttributes(self):
         """Checking renaming system attributes """
@@ -342,8 +338,8 @@ class CreateTestCase(unittest.TestCase):
 
         # Check the disk attribute names (not sorted)
         agroup = self.root.agroup
-        assert agroup._v_attrs._f_list("all") == \
-               ['TITLE', 'VERSION', "op"]
+        self.assertEqual(agroup._v_attrs._f_list("all"),
+                         ['TITLE', 'VERSION', "op"])
 
     def test09_overwriteAttributes(self):
         """Checking overwriting attributes """
@@ -369,15 +365,15 @@ class CreateTestCase(unittest.TestCase):
         if common.verbose:
             print "Value of Attribute pq:", agroup._v_attrs.pq
         # Check the local attributes names (alphabetically sorted)
-        assert agroup._v_attrs.pq == "4"
-        assert agroup._v_attrs.qr == 2
-        assert agroup._v_attrs.rs == [1,2,3]
+        self.assertEqual(agroup._v_attrs.pq, "4")
+        self.assertEqual(agroup._v_attrs.qr, 2)
+        self.assertEqual(agroup._v_attrs.rs, [1,2,3])
         if common.verbose:
             print "Attribute list in disk:", \
                   agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
-        assert agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
+        self.assertEqual(agroup._v_attrs._f_list("all"),
+                         ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"])
 
     def test10a_copyAttributes(self):
         """Checking copying attributes """
@@ -401,11 +397,11 @@ class CreateTestCase(unittest.TestCase):
         if common.verbose:
             print "Attribute list:", atable._v_attrs._f_list()
         # Check the local attributes names (alphabetically sorted)
-        assert atable._v_attrs._f_list() == ["pq", "qr", "rs"]
+        self.assertEqual(atable._v_attrs._f_list(), ["pq", "qr", "rs"])
         if common.verbose:
             print "Complete attribute list:", atable._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
-        assert atable._v_attrs._f_list("all") == \
+        self.assertEqual(atable._v_attrs._f_list("all"),
                ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
@@ -414,7 +410,7 @@ class CreateTestCase(unittest.TestCase):
                 'FIELD_4_FILL', 'FIELD_4_NAME',
                 'NROWS',
                 'TITLE', 'VERSION',
-                "pq", "qr", "rs"]
+                "pq", "qr", "rs"])
 
     def test10b_copyAttributes(self):
         """Checking copying attributes (copyNodeAttrs)"""
@@ -438,11 +434,11 @@ class CreateTestCase(unittest.TestCase):
         if common.verbose:
             print "Attribute list:", atable._v_attrs._f_list()
         # Check the local attributes names (alphabetically sorted)
-        assert atable._v_attrs._f_list() == ["pq", "qr", "rs"]
+        self.assertEqual(atable._v_attrs._f_list(), ["pq", "qr", "rs"])
         if common.verbose:
             print "Complete attribute list:", atable._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
-        assert atable._v_attrs._f_list("all") == \
+        self.assertEqual(atable._v_attrs._f_list("all"),
                ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
@@ -451,7 +447,7 @@ class CreateTestCase(unittest.TestCase):
                 'FIELD_4_FILL', 'FIELD_4_NAME',
                 'NROWS',
                 'TITLE', 'VERSION',
-                "pq", "qr", "rs"]
+                "pq", "qr", "rs"])
 
 
     def test10c_copyAttributes(self):
@@ -474,8 +470,8 @@ class CreateTestCase(unittest.TestCase):
         agroup2 = self.root.agroup2
         if common.verbose:
             print "Complete attribute list:", agroup2._v_attrs._f_list("all")
-        self.assert_(agroup2._v_attrs['CLASS'] == "GROUP2")
-        self.assert_(agroup2._v_attrs['VERSION'] == "1.3")
+        self.assertEqual(agroup2._v_attrs['CLASS'], "GROUP2")
+        self.assertEqual(agroup2._v_attrs['VERSION'], "1.3")
 
 
     def test10d_copyAttributes(self):
@@ -499,8 +495,8 @@ class CreateTestCase(unittest.TestCase):
         atable2 = self.root.atable2
         if common.verbose:
             print "Complete attribute list:", atable2._v_attrs._f_list("all")
-        self.assert_(atable2._v_attrs['CLASS'] == "TABLE2")
-        self.assert_(atable2._v_attrs['VERSION'] == "1.3")
+        self.assertEqual(atable2._v_attrs['CLASS'], "TABLE2")
+        self.assertEqual(atable2._v_attrs['VERSION'], "1.3")
 
 
     def test11a_getitem(self):
@@ -508,7 +504,7 @@ class CreateTestCase(unittest.TestCase):
 
         attrs = self.group._v_attrs
         attrs.pq = "1"
-        self.assert_(attrs['pq'] == "1")
+        self.assertEqual(attrs['pq'], "1")
 
 
     def test11b_setitem(self):
@@ -516,7 +512,7 @@ class CreateTestCase(unittest.TestCase):
 
         attrs = self.group._v_attrs
         attrs['pq'] = "2"
-        self.assert_(attrs['pq'] == "2")
+        self.assertEqual(attrs['pq'], "2")
 
 
     def test11c_delitem(self):
@@ -525,7 +521,7 @@ class CreateTestCase(unittest.TestCase):
         attrs = self.group._v_attrs
         attrs.pq = "1"
         del attrs['pq']
-        self.assert_('pq' not in attrs._f_list())
+        self.assertTrue('pq' not in attrs._f_list())
 
 
     def test11d_KeyError(self):
@@ -605,9 +601,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert self.root.anarray.attrs.pq == True
-        assert self.root.anarray.attrs.qr == False
-        assert self.root.anarray.attrs.rs == True
+        self.assertEqual(self.root.anarray.attrs.pq, True)
+        self.assertEqual(self.root.anarray.attrs.qr, False)
+        self.assertEqual(self.root.anarray.attrs.rs, True)
 
     def test00b_setBoolAttributes(self):
         """Checking setting Bool attributes (scalar, NumPy case)"""
@@ -630,12 +626,12 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert isinstance(self.root.anarray.attrs.pq, numpy.bool_)
-        assert isinstance(self.root.anarray.attrs.qr, numpy.bool_)
-        assert isinstance(self.root.anarray.attrs.rs, numpy.bool_)
-        assert self.root.anarray.attrs.pq == True
-        assert self.root.anarray.attrs.qr == False
-        assert self.root.anarray.attrs.rs == True
+        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.bool_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.bool_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.bool_))
+        self.assertEqual(self.root.anarray.attrs.pq, True)
+        self.assertEqual(self.root.anarray.attrs.qr, False)
+        self.assertEqual(self.root.anarray.attrs.rs, True)
 
     def test00c_setBoolAttributes(self):
         """Checking setting Bool attributes (NumPy, 0-dim case)"""
@@ -658,9 +654,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert self.root.anarray.attrs.pq == True
-        assert self.root.anarray.attrs.qr == False
-        assert self.root.anarray.attrs.rs == True
+        self.assertEqual(self.root.anarray.attrs.pq, True)
+        self.assertEqual(self.root.anarray.attrs.qr, False)
+        self.assertEqual(self.root.anarray.attrs.rs, True)
 
     def test00d_setBoolAttributes(self):
         """Checking setting Bool attributes (NumPy, multidim case)"""
@@ -709,12 +705,12 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert isinstance(self.root.anarray.attrs.pq, numpy.int_)
-        assert isinstance(self.root.anarray.attrs.qr, numpy.int_)
-        assert isinstance(self.root.anarray.attrs.rs, numpy.int_)
-        assert self.root.anarray.attrs.pq == 1
-        assert self.root.anarray.attrs.qr == 2
-        assert self.root.anarray.attrs.rs == 3
+        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.int_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.int_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.int_))
+        self.assertEqual(self.root.anarray.attrs.pq, 1)
+        self.assertEqual(self.root.anarray.attrs.qr, 2)
+        self.assertEqual(self.root.anarray.attrs.rs, 3)
 
     def test01b_setIntAttributes(self):
         """Checking setting Int attributes (scalar, NumPy case)"""
@@ -843,12 +839,12 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert isinstance(self.root.anarray.attrs.pq, numpy.float_)
-        assert isinstance(self.root.anarray.attrs.qr, numpy.float_)
-        assert isinstance(self.root.anarray.attrs.rs, numpy.float_)
-        assert self.root.anarray.attrs.pq == 1.0
-        assert self.root.anarray.attrs.qr == 2.0
-        assert self.root.anarray.attrs.rs == 3.0
+        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.float_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.float_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.float_))
+        self.assertTrue(self.root.anarray.attrs.pq, 1.0)
+        self.assertTrue(self.root.anarray.attrs.qr, 2.0)
+        self.assertTrue(self.root.anarray.attrs.rs, 3.0)
 
     def test02b_setFloatAttributes(self):
         """Checking setting Float attributes (scalar, NumPy case)"""
@@ -977,9 +973,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert self.root.anarray.attrs.pq == [1.0, 2]
-        assert self.root.anarray.attrs.qr == (1,2)
-        assert self.root.anarray.attrs.rs == {"ddf":32.1, "dsd":1}
+        self.assertEqual(self.root.anarray.attrs.pq, [1.0, 2])
+        self.assertEqual(self.root.anarray.attrs.qr, (1,2))
+        self.assertEqual(self.root.anarray.attrs.rs, {"ddf":32.1, "dsd":1})
 
     def test04a_setStringAttributes(self):
         """Checking setting string attributes (scalar case)"""
@@ -1002,12 +998,12 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert isinstance(self.root.anarray.attrs.pq, numpy.string_)
-        assert isinstance(self.root.anarray.attrs.qr, numpy.string_)
-        assert isinstance(self.root.anarray.attrs.rs, numpy.string_)
-        assert self.root.anarray.attrs.pq == 'foo'
-        assert self.root.anarray.attrs.qr == 'bar'
-        assert self.root.anarray.attrs.rs == 'baz'
+        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.string_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.string_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.string_))
+        self.assertEqual(self.root.anarray.attrs.pq, 'foo')
+        self.assertEqual(self.root.anarray.attrs.qr, 'bar')
+        self.assertEqual(self.root.anarray.attrs.rs, 'baz')
 
     def test04b_setStringAttributes(self):
         """Checking setting string attributes (unidimensional 1-elem case)"""
@@ -1135,12 +1131,12 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert isinstance(self.root.anarray.attrs.pq, numpy.complex_)
-        assert isinstance(self.root.anarray.attrs.qr, numpy.complex_)
-        assert isinstance(self.root.anarray.attrs.rs, numpy.complex_)
-        assert self.root.anarray.attrs.pq == 1.0+2j
-        assert self.root.anarray.attrs.qr == 2.0+3j
-        assert self.root.anarray.attrs.rs == 3.0+4j
+        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.complex_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.complex_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.complex_))
+        self.assertEqual(self.root.anarray.attrs.pq, 1.0+2j)
+        self.assertEqual(self.root.anarray.attrs.qr, 2.0+3j)
+        self.assertEqual(self.root.anarray.attrs.rs, 3.0+4j)
 
     def test05b_setComplexAttributes(self):
         """Checking setting Complex attributes (scalar, NumPy case)"""
@@ -1244,12 +1240,12 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert isinstance(self.array.attrs.pq, numpy.unicode_)
-        assert isinstance(self.array.attrs.qr, numpy.unicode_)
-        assert isinstance(self.array.attrs.rs, numpy.unicode_)
-        assert self.array.attrs.pq == u'para\u0140lel'
-        assert self.array.attrs.qr == u''
-        assert self.array.attrs.rs == u'baz'
+        self.assertTrue(isinstance(self.array.attrs.pq, numpy.unicode_))
+        self.assertTrue(isinstance(self.array.attrs.qr, numpy.unicode_))
+        self.assertTrue(isinstance(self.array.attrs.rs, numpy.unicode_))
+        self.assertEqual(self.array.attrs.pq, u'para\u0140lel')
+        self.assertEqual(self.array.attrs.qr, u'')
+        self.assertEqual(self.array.attrs.rs, u'baz')
 
 
     def test06b_setUnicodeAttributes(self):
@@ -1382,9 +1378,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert isinstance(self.array.attrs.pq, numpy.ndarray)
-        assert isinstance(self.array.attrs.qr, numpy.ndarray)
-        assert isinstance(self.array.attrs.rs, numpy.ndarray)
+        self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
+        self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
+        self.assertTrue(isinstance(self.array.attrs.rs, numpy.ndarray))
         assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
         assert_array_equal(self.array.attrs.qr, numpy.ones((2,2), dt))
         assert_array_equal(self.array.attrs.rs, numpy.array([(1,2.)], dt))
@@ -1413,9 +1409,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert isinstance(self.array.attrs.pq, numpy.ndarray)
-        assert isinstance(self.array.attrs.qr, numpy.ndarray)
-        assert isinstance(self.array.attrs.rs, numpy.ndarray)
+        self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
+        self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
+        self.assertTrue(isinstance(self.array.attrs.rs, numpy.ndarray))
         assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
         assert_array_equal(self.array.attrs.qr, numpy.ones((2,2), dt))
         assert_array_equal(self.array.attrs.rs, numpy.array([((1,2),)], dt))
@@ -1444,9 +1440,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert isinstance(self.array.attrs.pq, numpy.ndarray)
-        assert isinstance(self.array.attrs.qr, numpy.ndarray)
-        assert isinstance(self.array.attrs.rs, numpy.ndarray)
+        self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
+        self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
+        self.assertTrue(isinstance(self.array.attrs.rs, numpy.ndarray))
         assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
         assert_array_equal(self.array.attrs.qr, numpy.ones((2,2), dt))
         assert_array_equal(self.array.attrs.rs, numpy.array([(([1,3],2),)], dt))
@@ -1515,26 +1511,19 @@ class NoSysAttrsTestCase(unittest.TestCase):
             self.root = self.fileh.root
 
         agroup = self.root.agroup
-        assert agroup._v_attrs._f_list("user") == \
-               ["pq", "qr", "rs"]
-        assert agroup._v_attrs._f_list("sys") == \
-               []
-        assert agroup._v_attrs._f_list("all") == \
-               ["pq", "qr", "rs"]
+        self.assertEqual(agroup._v_attrs._f_list("user"), ["pq", "qr", "rs"])
+        self.assertEqual(agroup._v_attrs._f_list("sys"), [])
+        self.assertEqual(agroup._v_attrs._f_list("all"), ["pq", "qr", "rs"])
 
         atable = self.root.atable
-        assert atable.attrs._f_list() == ["a", "b", "c"]
-        assert atable.attrs._f_list("sys") == \
-               []
-        assert atable.attrs._f_list("all") == \
-               ["a", "b", "c"]
+        self.assertEqual(atable.attrs._f_list(), ["a", "b", "c"])
+        self.assertEqual(atable.attrs._f_list("sys"), [])
+        self.assertEqual(atable.attrs._f_list("all"), ["a", "b", "c"])
 
         anarray = self.root.anarray
-        assert anarray.attrs._f_list() == ["i", "j", "k"]
-        assert anarray.attrs._f_list("sys") == \
-               []
-        assert anarray.attrs._f_list("all") == \
-               ["i", "j", "k"]
+        self.assertEqual(anarray.attrs._f_list(), ["i", "j", "k"])
+        self.assertEqual(anarray.attrs._f_list("sys"), [])
+        self.assertEqual(anarray.attrs._f_list("all"), ["i", "j", "k"])
 
 class NoSysAttrsNotClose(NoSysAttrsTestCase):
     close = False
@@ -1550,13 +1539,13 @@ class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking workaround for Python unpickle problem (see #253)."""
 
         self.h5file.root._v_attrs.trouble1 = "0"
-        self.assert_(self.h5file.root._v_attrs.trouble1 == "0")
+        self.assertEqual(self.h5file.root._v_attrs.trouble1, "0")
         self.h5file.root._v_attrs.trouble2 = "0."
-        self.assert_(self.h5file.root._v_attrs.trouble2 == "0.")
+        self.assertEqual(self.h5file.root._v_attrs.trouble2, "0.")
         # Problem happens after reopening
         self._reopen()
-        self.assert_(self.h5file.root._v_attrs.trouble1 == "0")
-        self.assert_(self.h5file.root._v_attrs.trouble2 == "0.")
+        self.assertEqual(self.h5file.root._v_attrs.trouble1, "0")
+        self.assertEqual(self.h5file.root._v_attrs.trouble2, "0.")
         if common.verbose:
             print "Great! '0' and '0.' values can be safely retrieved."
 
@@ -1581,7 +1570,7 @@ class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ea = self.h5file.createEArray('/', 'ea', Int32Atom(), (2,0,4))
         if common.verbose:
             print "EXTDIM-->", ea.attrs.EXTDIM
-        self.assert_(ea.attrs.EXTDIM == 1)
+        self.assertEqual(ea.attrs.EXTDIM, 1)
 
     def test01_earray(self):
         "Testing EArray specific attrs (open)."
@@ -1590,7 +1579,7 @@ class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ea = self.h5file.root.ea
         if common.verbose:
             print "EXTDIM-->", ea.attrs.EXTDIM
-        self.assert_(ea.attrs.EXTDIM == 0)
+        self.assertEqual(ea.attrs.EXTDIM, 0)
 
 
 
