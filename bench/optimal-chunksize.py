@@ -44,11 +44,8 @@ def get_db_size(filename):
 
 def bench(chunkshape, filters):
     numpy.random.seed(1)   # to have reproductible results
-    #filename = '/oldScr/ivilata/pytables/data.nobackup/test.h5'
-    filename = '/scratch2/faltet/data.nobackup/test.h5'
-    #filename = '/scratch1/faltet/test.h5'
-
-    #f = tables.openFile(filename, 'r')
+    filename = '/tmp/test.h5'
+    print "Doing test on the file system represented by:", filename
 
     f = tables.openFile(filename, 'w')
     e = f.createEArray(f.root, 'earray', datom, shape=(0, M),
