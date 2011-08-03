@@ -78,8 +78,8 @@ clean:
 
 
 # $(info $(NUMPYVERSION))
-installer: dist pytables_pro.nsi.in $(VERSIONFILE) $(LICENSEFILE)
-	type pytables_pro.nsi.in | sed -e "s/@VERSION@/$(VERSION)/g" \
+installer: dist pytables.nsi.in $(VERSIONFILE) $(LICENSEFILE)
+	type pytables.nsi.in | sed -e "s/@VERSION@/$(VERSION)/g" \
 	-e "s/@PTVERSION@/$(VERSION)/g" \
 	-e "s/@NUMPYVERSION@/$(NUMPYVERSION)/g" \
 	-e "s/@NUMEXPRVERSION@/$(NUMEXPRVERSION)/g" \
