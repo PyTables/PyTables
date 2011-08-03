@@ -33,22 +33,22 @@ paths to the PATH, LIB and INCLUDE variables. You can do it with a batch
 script.  Do not forget to put a Python interpreter in the PATH too!
 
 *** Important: read this COMPLETELY before proceed! ****
-The installer gets some files from PyTablesPro sources in your working
+The installer gets some files from PyTables sources in your working
 copy of the repository but obtains the extensions from the local
-PyTablesPro installation [1]_ so keep them synchronized.
+PyTables installation [1]_ so keep them synchronized.
 
 *** Si es modifiquen les imatges, regenerar-les amb batik! ***
 
-It expects both PyTablesPro, numpy and numexpr to be installed in their
+It expects both PyTables, numpy and numexpr to be installed in their
 default directory with their folders renamed to tables_orig, numpy_orig and
-numexpr_orig. This way, if PyTablesPro is completely uninstalled later (using
+numexpr_orig. This way, if PyTables is completely uninstalled later (using
 its uninstaller), it can be built again without reinstalling the
 tables/numpy/numexpr package(s).
 
 ******************
 
   set a MingW compiler environment for your DOS shell
-  cd path_to_PytablesPro_working_copy\mswindows
+  cd path_to_Pytables_working_copy\mswindows
   mingw32-make -f Makefile_windows PYTHONVERSION=xx clean
   mingw32-make -f Makefile_windows PYTHONVERSION=xx LICENSE=yy installer
 
@@ -88,7 +88,7 @@ Pay attention not only that every test passes ok, but also that the
 versions of sofwtare printed out are correct (spec. PyTables)!
 
 It is strongly recommended to do this if you are making several
-PyTablesPro packages. This way, if testing a given package fails, you
+PyTables packages. This way, if testing a given package fails, you
 can fix the problem and make sure that it will not affect to the
 remaining packages.
 

@@ -17,21 +17,21 @@ SetCompressor /SOLID lzma
 Name "PyTables @VERSION@"
 
 # The file where the installer will be saved
-OutFile "PyTablesPro-@VERSION@-@LICENSE@.@PLATFORM@-py@DOTPYTHONVERSION@.exe"
+OutFile "PyTables-@VERSION@-@LICENSE@.@PLATFORM@-py@DOTPYTHONVERSION@.exe"
 
 # The commands Icon/UninstallIcon with MUI Instead we have to use
 # the following !define (see NSIS FAQ)
-!define MUI_ICON "@SVN_PTPRO@\mswindows\ptinstaller.ico"
-!define MUI_UNICON "@SVN_PTPRO@\mswindows\ptinstaller.ico"
+!define MUI_ICON "@SVN_PT@\mswindows\ptinstaller.ico"
+!define MUI_UNICON "@SVN_PT@\mswindows\ptinstaller.ico"
 
 # Use the new XP style
 XPStyle on
 
 # Variables declaration
-Var PTPRO_KEY
-Var WINPTPRO_KEY
-Var PTPRO_SUBKEY
-Var WINPTPRO_SUBKEY
+Var PT_KEY
+Var WINPT_KEY
+Var PT_SUBKEY
+Var WINPT_SUBKEY
 Var STARTMENU_FOLDER
 Var MUI_TEMP
 Var PYTHONDIR
@@ -55,10 +55,10 @@ Function .onInit
   # Force the use of the 'all users' shell folder
   SetShellVarContext all
   # The registry key where application settings will be stored
-  StrCpy $PTPRO_KEY "SOFTWARE\PyTablesPro"
-  StrCpy $WINPTPRO_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro"
-  StrCpy $PTPRO_SUBKEY "$PTPRO_KEY-py@DOTPYTHONVERSION@"
-  StrCpy $WINPTPRO_SUBKEY "$WINPTPRO_KEY-py@DOTPYTHONVERSION@"
+  StrCpy $PT_KEY "SOFTWARE\PyTables"
+  StrCpy $WINPT_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTables"
+  StrCpy $PT_SUBKEY "$PT_KEY-py@DOTPYTHONVERSION@"
+  StrCpy $WINPT_SUBKEY "$WINPT_KEY-py@DOTPYTHONVERSION@"
   StrCpy $STARTMENU_FOLDER "PyTables @VERSION@ for Python@DOTPYTHONVERSION@"
 FunctionEnd
 
@@ -95,10 +95,10 @@ FunctionEnd
 #!define MUI_LICENSEPAGE_TEXT_TOP " "
 #!define MUI_LICENSEPAGE_TEXT_BOTTOM " "
 #!define MUI_LICENSEPAGE_BUTTON "I'm warned"
-#!insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\LICENSE_SUMMARY.txt
+#!insertmacro MUI_PAGE_LICENSE @SVN_PT@\LICENSE.txt
 
 # License page
-!insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\@LICENSEFILENAME@
+!insertmacro MUI_PAGE_LICENSE @SVN_PT@\@LICENSEFILENAME@
 
 # The check for an already installed package
 !ifdef VER_MAJOR & VER_MINOR & VER_REVISION
@@ -133,7 +133,7 @@ Browse and select another folder. Click Next to Continue."
 
 # Start Menu Folder Page Configuration
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
-!define MUI_STARTMENUPAGE_REGISTRY_KEY $PTPRO_SUBKEY
+!define MUI_STARTMENUPAGE_REGISTRY_KEY $PT_SUBKEY
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
 !insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
 
@@ -148,11 +148,11 @@ Section "PyTables @PTVERSION@" PT
 
   # Copy the PyTables utilities in the Python Scripts directory
   SetOutPath $PYTHONDIR\Scripts
-  File /x .svn @SVN_PTPRO@\utils\*
+  File /x .svn @SVN_PT@\utils\*
 
   # Copy the PyTables sources in the Python site-packages directory
   SetOutPath $PYTHONDIR\Lib\site-packages\tables
-  #File /r /x .svn @SVN_PTPRO@\tables\*
+  #File /r /x .svn @SVN_PT@\tables\*
   # It is better to copy the files directly from installed directory
   File /r @TABLES_ORIG@\*
 
@@ -164,24 +164,24 @@ Section "PyTables @PTVERSION@" PT
 
   # The text files: TODO.txt, INSTALL.txt and stuff like that
   SetOutPath $INSTDIR
-  File /x packagingHOWTO.txt /x LICENSE-* @SVN_PTPRO@\*.txt
-  File @SVN_PTPRO@\@LICENSEFILENAME@
+  File /x packagingHOWTO.txt /x LICENSE-* @SVN_PT@\*.txt
+  File @SVN_PT@\@LICENSEFILENAME@
   Rename @LICENSEFILENAME@ LICENSE.txt
 
   # The documentation directory
   SetOutPath $INSTDIR\doc
-  File @SVN_PTPRO@\doc\usersguide.pdf
+  File @SVN_PT@\doc\usersguide.pdf
   SetOutPath $INSTDIR\doc\html
-  File /r @SVN_PTPRO@\doc\html\*
+  File /r @SVN_PT@\doc\html\*
 
   # The examples directory
   SetOutPath $INSTDIR\examples
-  File @SVN_PTPRO@\examples\*.py
-  File @SVN_PTPRO@\examples\check_examples.sh
+  File @SVN_PT@\examples\*.py
+  File @SVN_PT@\examples\check_examples.sh
 
   # The LICENSES directory
   SetOutPath $INSTDIR\LICENSES
-  File /r /x .svn @SVN_PTPRO@\LICENSES\*.txt
+  File /r /x .svn @SVN_PT@\LICENSES\*.txt
 
   # Create the uninstaller and put data in the aplication directory
   SetOutPath $INSTDIR
@@ -210,31 +210,31 @@ Section "PyTables @PTVERSION@" PT
   bzip2.dll $PYTHONDIR\Lib\site-packages\tables
 
   # Update the registry
-  WriteRegStr HKLM $PTPRO_SUBKEY "" $INSTDIR
-  WriteRegStr HKLM $PTPRO_SUBKEY "PYTHONDIR" $PYTHONDIR
-  WriteRegStr HKLM $PTPRO_SUBKEY "hdfinst" "1"
-  WriteRegStr HKLM $PTPRO_SUBKEY "zlinst" "1"
-  WriteRegStr HKLM $PTPRO_SUBKEY "szlinst" "1"
-  WriteRegStr HKLM $PTPRO_SUBKEY "bz2linst" "1"
+  WriteRegStr HKLM $PT_SUBKEY "" $INSTDIR
+  WriteRegStr HKLM $PT_SUBKEY "PYTHONDIR" $PYTHONDIR
+  WriteRegStr HKLM $PT_SUBKEY "hdfinst" "1"
+  WriteRegStr HKLM $PT_SUBKEY "zlinst" "1"
+  WriteRegStr HKLM $PT_SUBKEY "szlinst" "1"
+  WriteRegStr HKLM $PT_SUBKEY "bz2linst" "1"
 !ifdef VER_MAJOR & VER_MINOR & VER_REVISION
-  WriteRegDword HKLM $PTPRO_SUBKEY "VersionMajor" "${VER_MAJOR}"
-  WriteRegDword HKLM $PTPRO_SUBKEY "VersionMinor" "${VER_MINOR}"
-  WriteRegDword HKLM $PTPRO_SUBKEY "VersionRevision" "${VER_REVISION}"
+  WriteRegDword HKLM $PT_SUBKEY "VersionMajor" "${VER_MAJOR}"
+  WriteRegDword HKLM $PT_SUBKEY "VersionMinor" "${VER_MINOR}"
+  WriteRegDword HKLM $PT_SUBKEY "VersionRevision" "${VER_REVISION}"
 !endif
 
-  WriteRegExpandStr HKLM $WINPTPRO_SUBKEY "UninstallString" '"$INSTDIR\Uninstall.exe"'
-  WriteRegExpandStr HKLM $WINPTPRO_SUBKEY "InstallLocation" "$INSTDIR"
-  WriteRegStr HKLM $WINPTPRO_SUBKEY "DisplayName" "PyTables @VERSION@ for Python@DOTPYTHONVERSION@"
-  WriteRegStr HKLM $WINPTPRO_SUBKEY "DisplayIcon" "$INSTDIR\Uninstall.exe,0"
-  WriteRegStr HKLM $WINPTPRO_SUBKEY "DisplayVersion" "@VERSION@"
+  WriteRegExpandStr HKLM $WINPT_SUBKEY "UninstallString" '"$INSTDIR\Uninstall.exe"'
+  WriteRegExpandStr HKLM $WINPT_SUBKEY "InstallLocation" "$INSTDIR"
+  WriteRegStr HKLM $WINPT_SUBKEY "DisplayName" "PyTables @VERSION@ for Python@DOTPYTHONVERSION@"
+  WriteRegStr HKLM $WINPT_SUBKEY "DisplayIcon" "$INSTDIR\Uninstall.exe,0"
+  WriteRegStr HKLM $WINPT_SUBKEY "DisplayVersion" "@VERSION@"
 !ifdef VER_MAJOR & VER_MINOR & VER_REVISION
-  WriteRegDWORD HKLM $WINPTPRO_SUBKEY "VersionMajor" "${VER_MAJOR}"
-  WriteRegDWORD HKLM $WINPTPRO_SUBKEY "VersionMinor" "${VER_MINOR}.${VER_REVISION}"
+  WriteRegDWORD HKLM $WINPT_SUBKEY "VersionMajor" "${VER_MAJOR}"
+  WriteRegDWORD HKLM $WINPT_SUBKEY "VersionMinor" "${VER_MINOR}.${VER_REVISION}"
 !endif
-  WriteRegStr HKLM $WINPTPRO_SUBKEY "URLInfoAbout" "http://www.pytables.com/"
-  WriteRegStr HKLM $WINPTPRO_SUBKEY "HelpLink" "http://www.pytables.com/moin/ProfessionalSupport"
-  WriteRegDWORD HKLM $WINPTPRO_SUBKEY "NoModify" "1"
-  WriteRegDWORD HKLM $WINPTPRO_SUBKEY "NoRepair" "1"
+  WriteRegStr HKLM $WINPT_SUBKEY "URLInfoAbout" "http://www.pytables.com/"
+  WriteRegStr HKLM $WINPT_SUBKEY "HelpLink" "http://www.pytables.com/moin/"
+  WriteRegDWORD HKLM $WINPT_SUBKEY "NoModify" "1"
+  WriteRegDWORD HKLM $WINPT_SUBKEY "NoRepair" "1"
 
 
 SectionEnd
@@ -248,7 +248,7 @@ Section /o "NumPy @NUMPYVERSION@" NP
   File /r @NUMPY@\*
 
   # Update the registry
-  WriteRegStr HKLM $PTPRO_SUBKEY "numpyinst" "1"
+  WriteRegStr HKLM $PT_SUBKEY "numpyinst" "1"
 
 SectionEnd
 
@@ -260,7 +260,7 @@ Section /o "Numexpr @NUMEXPRVERSION@" NE
   File /r @NUMEXPR@\*
 
   # Update the registry
-  WriteRegStr HKLM $PTPRO_SUBKEY "numexprinst" "1"
+  WriteRegStr HKLM $PT_SUBKEY "numexprinst" "1"
 
 SectionEnd
 
@@ -293,15 +293,15 @@ Var ReinstallPageCheck
 
 Function PageReinstall
 
-  ReadRegStr $R0 HKLM $PTPRO_SUBKEY ""
+  ReadRegStr $R0 HKLM $PT_SUBKEY ""
 
   ${If} $R0 == ""
     Abort
   ${EndIf}
 
-  ReadRegDWORD $R0 HKLM $PTPRO_SUBKEY "VersionMajor"
-  ReadRegDWORD $R1 HKLM $PTPRO_SUBKEY "VersionMinor"
-  ReadRegDWORD $R2 HKLM $PTPRO_SUBKEY "VersionRevision"
+  ReadRegDWORD $R0 HKLM $PT_SUBKEY "VersionMajor"
+  ReadRegDWORD $R1 HKLM $PT_SUBKEY "VersionMinor"
+  ReadRegDWORD $R2 HKLM $PT_SUBKEY "VersionRevision"
   StrCpy $R0 $R0.$R1.$R2
 
   ${VersionCompare} ${VER_MAJOR}.${VER_MINOR}.${VER_REVISION} $R0 $R0
@@ -368,7 +368,7 @@ Function PageLeaveReinstall
     StrCmp $R1 "1" reinst_done reinst_uninstall
 
   reinst_uninstall:
-  ReadRegStr $R1 HKLM $WINPTPRO_SUBKEY "UninstallString"
+  ReadRegStr $R1 HKLM $WINPT_SUBKEY "UninstallString"
 
   ;Run uninstaller
   HideWindow
@@ -432,8 +432,8 @@ Section "Un.PyTables @PTVERSION@ uninstall" UPT
   # Force the use of the 'all users' shell folder
   SetShellVarContext all
 
-  ReadRegStr $PYTHONDIR HKLM $PTPRO_SUBKEY "PYTHONDIR"
-  ReadRegStr $INSTDIR HKLM $PTPRO_SUBKEY ""
+  ReadRegStr $PYTHONDIR HKLM $PT_SUBKEY "PYTHONDIR"
+  ReadRegStr $INSTDIR HKLM $PT_SUBKEY ""
 
   # Remove the application directory
   RMDir /r $INSTDIR
@@ -466,7 +466,7 @@ Section "Un.PyTables @PTVERSION@ uninstall" UPT
   startMenuDeleteLoopDone:
 
   # Delete the PyTables key from the registry
-  DeleteRegKey HKLM $PTPRO_SUBKEY
+  DeleteRegKey HKLM $PT_SUBKEY
 
 
 SectionEnd
@@ -476,13 +476,13 @@ Section /o "Un.NumPy @NUMPYVERSION@ uninstall" UNP
 
   # Remove the numpy package
   StrCmp $PYTHONDIR "" 0 +2
-    ReadRegStr $PYTHONDIR HKLM $PTPRO_SUBKEY "PYTHONDIR"
+    ReadRegStr $PYTHONDIR HKLM $PT_SUBKEY "PYTHONDIR"
   RMDir /r "$PYTHONDIR\Lib\site-packages\numpy"
 
   # Update the registry (if the key still exists)
-  ReadRegStr $0 HKLM $PTPRO_SUBKEY "numpyinst"
+  ReadRegStr $0 HKLM $PT_SUBKEY "numpyinst"
   StrCmp $0 "" +2 0
-    WriteRegStr HKLM $PTPRO_SUBKEY "numpyinst" "0"
+    WriteRegStr HKLM $PT_SUBKEY "numpyinst" "0"
 
 SectionEnd
 
@@ -490,13 +490,13 @@ Section /o "Un.Numexpr @NUMEXPRVERSION@ uninstall" UNE
 
   # Remove the numexpr package
   StrCmp $PYTHONDIR "" 0 +2
-    ReadRegStr $PYTHONDIR HKLM $PTPRO_SUBKEY "PYTHONDIR"
+    ReadRegStr $PYTHONDIR HKLM $PT_SUBKEY "PYTHONDIR"
   RMDir /r "$PYTHONDIR\Lib\site-packages\numexpr"
 
   # Update the registry (if the key still exists)
-  ReadRegStr $0 HKLM $PTPRO_SUBKEY "numexprinst"
+  ReadRegStr $0 HKLM $PT_SUBKEY "numexprinst"
   StrCmp $0 "" +2 0
-    WriteRegStr HKLM $PTPRO_SUBKEY "numexprinst" "0"
+    WriteRegStr HKLM $PT_SUBKEY "numexprinst" "0"
 
 SectionEnd
 
@@ -508,14 +508,14 @@ SectionEnd
 Function un.onInit
   # Variables set in installer functions are not available here so we must set
   # them again
-  StrCpy $PTPRO_KEY "SOFTWARE\PyTablesPro"
-  StrCpy $WINPTPRO_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro"
-  StrCpy $PTPRO_SUBKEY "$PTPRO_KEY-py@DOTPYTHONVERSION@"
-  StrCpy $WINPTPRO_SUBKEY "$WINPTPRO_KEY-py@DOTPYTHONVERSION@"
+  StrCpy $PT_KEY "SOFTWARE\PyTables"
+  StrCpy $WINPT_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTables"
+  StrCpy $PT_SUBKEY "$PT_KEY-py@DOTPYTHONVERSION@"
+  StrCpy $WINPT_SUBKEY "$WINPT_KEY-py@DOTPYTHONVERSION@"
   StrCpy $UNCUSTOMTEXT "Check the components you want to uninstall.  Note that uninstalled components are not elegible for uninstalling."
   # The SF_RO variable is defined in Sections.nsh. Its current value
   # is 16 what means Read-only section
-  ReadRegStr $0 HKLM $PTPRO_SUBKEY "numpyinst"
+  ReadRegStr $0 HKLM $PT_SUBKEY "numpyinst"
   StrCmp $0 "1" new1 0
     SectionSetFlags  ${UNP} ${SF_RO}
     SectionSetFlags  ${UNE} ${SF_RO}

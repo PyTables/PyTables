@@ -56,10 +56,10 @@ ifeq ($(LICENSE),evaluation)
 endif
 
 # The NSIS intstaller script
-PTPRONSIS=pytables_pro-py$(DOTPYTHONVERSION).nsi
+PTPRONSIS=pytables-py$(DOTPYTHONVERSION).nsi
 
 # Required paths
-SVN_PTPRO=..
+SVN_PT=..
 TABLES_ORIG=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\tables_orig
 NUMPY=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\numpy_orig
 NUMEXPR=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\numexpr_orig
@@ -73,8 +73,8 @@ dist:
 clean:
 	$(MAKE) -f Makefile_windows -C .. $@
 	-del $(PTPRONSIS)
-	-del PyTablesPro*.win32-py$(DOTPYTHONVERSION).exe
-	-del PyTablesPro*.win-amd64-py$(DOTPYTHONVERSION).exe
+	-del PyTables*.win32-py$(DOTPYTHONVERSION).exe
+	-del PyTables*.win-amd64-py$(DOTPYTHONVERSION).exe
 
 
 # $(info $(NUMPYVERSION))
@@ -86,7 +86,7 @@ installer: dist pytables_pro.nsi.in $(VERSIONFILE) $(LICENSEFILE)
 	-e "s/@PYTHONVERSION@/$(PYTHONVERSION)/g" \
 	-e "s/@DOTPYTHONVERSION@/$(DOTPYTHONVERSION)/g" \
 	-e "s/@PLATFORM@/$(PLATFORM)/g" \
-	-e "s/@SVN_PTPRO@/$(SVN_PTPRO)/g" \
+	-e "s/@SVN_PT@/$(SVN_PT)/g" \
 	-e "s/@TABLES_ORIG@/$(TABLES_ORIG)/g" \
 	-e "s/@NUMPY@/$(NUMPY)/g" \
 	-e "s/@NUMEXPR@/$(NUMEXPR)/g" \
