@@ -1547,7 +1547,7 @@ Object Tree:
           <screen>>>> for group in h5file.walkGroups("/"):
       for array in h5file.listNodes(group, classname='Array'):
           print array
- 
+
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'</screen>
 
@@ -1569,7 +1569,7 @@ Object Tree:
 
           <screen>>>> for array in h5file.walkNodes("/", "Array"):
       print array
- 
+
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'</screen>
 
@@ -1962,12 +1962,12 @@ pressureArray is an object of type: &lt;type 'numpy.ndarray'&gt;
 >>> nameArray = h5file.root.columns.name.read()
 >>> print "nameArray is an object of type:", type(nameArray)
 nameArray is an object of type: &lt;type 'list'&gt;
->>> 
+>>>
 >>> print "Data on arrays nameArray and pressureArray:"
 Data on arrays nameArray and pressureArray:
 >>> for i in range(pressureObject.shape[0]):
       print nameArray[i], "--&gt;", pressureArray[i]
- 
+
 Particle:      5 --&gt; 25.0
 Particle:      6 --&gt; 36.0
 Particle:      7 --&gt; 49.0</screen>
@@ -2055,7 +2055,7 @@ Particle:      7 --&gt; 49.0</screen>
      print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
           r['TDCcount'])
- 
+
 Particle:      0 |         0.0 |           0 |      0 |     10 |        0 |
 Particle:      1 |         1.0 |           1 |      1 |      9 |        1 |
 Particle:      2 |         4.0 |         256 |      2 |      8 |        2 |
@@ -3139,7 +3139,7 @@ ValueError: no enumerated value with that concrete value: 1234</screen>
 >>> class BallExt(tables.IsDescription):
       ballTime = tables.Time32Col()
       ballColor = tables.EnumCol(colors, 'black', base='uint8')
- 
+
 >>> tbl = h5f.createTable(
       '/', 'extractions', BallExt, title="Random ball extractions")
 >>> </screen>
@@ -3434,7 +3434,7 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
 
           <screen>>>> table.cols.info2[1:5]
 array([((1.0, 1), 'name2-1', 0.0), ((1.0, 2), 'name2-2', 0.0),
-       ((1.0, 3), 'name2-3', 0.0), ((1.0, 4), 'name2-4', 0.0)], 
+       ((1.0, 3), 'name2-3', 0.0), ((1.0, 4), 'name2-4', 0.0)],
       dtype=[('info3', [('x', '&lt;f8'), ('y', '|u1')]), ('name', '|S10'),
              ('value', '&lt;f8')])</screen>
 
@@ -14269,6 +14269,11 @@ owner := 'ivan']</screen>
 
     <chapter>
       <title>netcdf3 - a PyTables NetCDF3 emulation API</title>
+
+      <warning>
+        <para>The tables.netcdf3 module is not actively maintained anymore.
+        It is deprecated and will be removed in the future versions.</para>
+      </warning>
 
       <section>
         <title>What is <literal>netcdf3</literal>?</title>
