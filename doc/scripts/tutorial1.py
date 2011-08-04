@@ -28,7 +28,7 @@ def tutexc():
 
 
 SECTION = "Importing tables objects"
-from numarray import *
+from numpy import *
 from tables import *
 
 
@@ -68,9 +68,9 @@ particle = table.row
 # Fill the table with 10 particles
 for i in xrange(10):
     particle['name']  = 'Particle: %6d' % (i)
-    particle['TDCcount'] = i % 256    
+    particle['TDCcount'] = i % 256
     particle['ADCcount'] = (i * 256) % (1 << 16)
-    particle['grid_i'] = i 
+    particle['grid_i'] = i
     particle['grid_j'] = 10 - i
     particle['pressure'] = float(i*i)
     particle['energy'] = float(particle['pressure'] ** 4)
@@ -102,7 +102,7 @@ SECTION = "Creating new array objects"
 gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
 
 tutrepr(
-h5file.createArray(gcolumns, 'pressure', array(pressure), 
+h5file.createArray(gcolumns, 'pressure', array(pressure),
                    "Pressure column selection")
 )
 
@@ -278,9 +278,9 @@ particle = table.row
 # Append 5 new particles to table
 for i in xrange(10, 15):
     particle['name']  = 'Particle: %6d' % (i)
-    particle['TDCcount'] = i % 256    
+    particle['TDCcount'] = i % 256
     particle['ADCcount'] = (i * 256) % (1 << 16)
-    particle['grid_i'] = i 
+    particle['grid_i'] = i
     particle['grid_j'] = 10 - i
     particle['pressure'] = float(i*i)
     particle['energy'] = float(particle['pressure'] ** 4)
@@ -294,7 +294,7 @@ table.flush()
 tutsep()
 for r in table:
     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
-          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'], 
+          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
            r['TDCcount'])
 
 # Delete some rows on the Table (yes, rows can be removed!)
