@@ -243,11 +243,9 @@
 
           <listitem>
             <para><emphasis>Support for numerical arrays:</emphasis>
-            <literal>NumPy</literal> (see <biblioref linkend="NumPy" />),
-            <literal>Numeric</literal> (see <biblioref linkend="Numeric" />)
-            and <literal>numarray</literal> (see <biblioref
-            linkend="Numarray" />) arrays can be used as a useful complement
-            of tables to store homogeneous data.</para>
+            <literal>NumPy</literal> (see <biblioref linkend="NumPy" />)
+            arrays can be used as a useful complement of tables to store
+            homogeneous data.</para>
           </listitem>
 
           <listitem>
@@ -593,6 +591,13 @@ fileh.close()</screen>
         installed, the test driver module will detect them and will run the
         tests for <literal>numarray</literal> and/or
         <literal>Numeric</literal> automatically.</para>
+
+        <warning>
+          <para>The use of <literal>numarray</literal> and
+          <literal>Numeric</literal> in PyTables is now deprecated.
+          Support for these packages will be dropped in furure versions.
+          </para>
+        </warning>
 
         <section id="PrerequisitesSourceDescr">
           <title>Prerequisites</title>
@@ -1016,13 +1021,13 @@ python -c "import tables; tables.test()"</screen>
 
           <screen>>>> from tables import *</screen>
 
-          <para>If you are going to work with <literal>NumPy</literal> (or
-          <literal>numarray</literal> or <literal>Numeric</literal>) arrays
+          <para>If you are going to work with <literal>NumPy</literal> arrays
           (and normally, you will) you will also need to import functions from
-          them. So most PyTables programs begin with:</para>
+          the <literal>numpy</literal> package. So most PyTables programs
+          begin with:</para>
 
           <screen>>>> import tables        # but in this tutorial we use "from tables import *"
->>> import numpy         # or "import numarray" or "import Numeric"</screen>
+>>> import numpy</screen>
         </section>
 
         <section>
@@ -1547,7 +1552,7 @@ Object Tree:
           <screen>>>> for group in h5file.walkGroups("/"):
       for array in h5file.listNodes(group, classname='Array'):
           print array
- 
+
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'</screen>
 
@@ -1569,7 +1574,7 @@ Object Tree:
 
           <screen>>>> for array in h5file.walkNodes("/", "Array"):
       print array
- 
+
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'</screen>
 
@@ -1962,12 +1967,12 @@ pressureArray is an object of type: &lt;type 'numpy.ndarray'&gt;
 >>> nameArray = h5file.root.columns.name.read()
 >>> print "nameArray is an object of type:", type(nameArray)
 nameArray is an object of type: &lt;type 'list'&gt;
->>> 
+>>>
 >>> print "Data on arrays nameArray and pressureArray:"
 Data on arrays nameArray and pressureArray:
 >>> for i in range(pressureObject.shape[0]):
       print nameArray[i], "--&gt;", pressureArray[i]
- 
+
 Particle:      5 --&gt; 25.0
 Particle:      6 --&gt; 36.0
 Particle:      7 --&gt; 49.0</screen>
@@ -2055,7 +2060,7 @@ Particle:      7 --&gt; 49.0</screen>
      print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
          (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
           r['TDCcount'])
- 
+
 Particle:      0 |         0.0 |           0 |      0 |     10 |        0 |
 Particle:      1 |         1.0 |           1 |      1 |      9 |        1 |
 Particle:      2 |         4.0 |         256 |      2 |      8 |        2 |
@@ -2421,13 +2426,9 @@ fileh.close()</screen>
 
           <screen>$ python tutorial2.py
 Traceback (most recent call last):
-  File "tutorial2.py", line 51, in ?
-    particle['pressure'] = array(i*arange(2*3), shape=(2,4))  # Incorrect
-  File ".../numarray/numarraycore.py", line 400, in array
-    a.setshape(shape)
-  File ".../numarray/generic.py", line 702, in setshape
-    raise ValueError("New shape is not consistent with the old shape")
-ValueError: New shape is not consistent with the old shape</screen>
+  File "tutorial2.py", line 60, in ?
+    particle['pressure'] = array(i*arange(2*3)).reshape((2,4))  # Incorrect
+ValueError: total size of new array must be unchanged</screen>
 
           <para>This error indicates that you are trying to assign an array
           with an incompatible shape to a table cell. Looking at the source,
@@ -3139,7 +3140,7 @@ ValueError: no enumerated value with that concrete value: 1234</screen>
 >>> class BallExt(tables.IsDescription):
       ballTime = tables.Time32Col()
       ballColor = tables.EnumCol(colors, 'black', base='uint8')
- 
+
 >>> tbl = h5f.createTable(
       '/', 'extractions', BallExt, title="Random ball extractions")
 >>> </screen>
@@ -3372,8 +3373,8 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
        (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)],
       dtype=[('info2', [('info3', [('x', '&gt;f8'), ('y', '|u1')]),
              ('name', '|S10'), ('value', '&gt;f8')]),
-	     ('info1', [('name', '|S10'), ('value', '&gt;f8')]),
-	     ('color', '&gt;u4')])</screen>
+             ('info1', [('name', '|S10'), ('value', '&gt;f8')]),
+             ('color', '&gt;u4')])</screen>
 
           <para>What we got is a NumPy array with a <emphasis>compound, nested
           datatype</emphasis> (its <literal>dtype</literal> is a list of
@@ -3381,9 +3382,10 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
           giving a result of three rows.</para>
 
           <note>
-            <para>When using the <literal>numarray</literal> flavor, you will
-            get an instance of the <literal>NestedRecArray</literal> class
-            that lives in the <literal>tables.nra</literal> package.
+            <para>When using the <literal>numarray</literal> flavor
+            (deprecated), you will get an instance of the
+            <literal>NestedRecArray</literal> class that lives in the
+            <literal>tables.nra</literal> package.
             <literal>NestedRecArray</literal> is actually a subclass of the
             <literal>RecArray</literal> object of the
             <literal>numarray.records</literal> module. You can get more info
@@ -3434,7 +3436,7 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
 
           <screen>>>> table.cols.info2[1:5]
 array([((1.0, 1), 'name2-1', 0.0), ((1.0, 2), 'name2-2', 0.0),
-       ((1.0, 3), 'name2-3', 0.0), ((1.0, 4), 'name2-4', 0.0)], 
+       ((1.0, 3), 'name2-3', 0.0), ((1.0, 4), 'name2-4', 0.0)],
       dtype=[('info3', [('x', '&lt;f8'), ('y', '|u1')]), ('name', '|S10'),
              ('value', '&lt;f8')])</screen>
 
@@ -4369,9 +4371,9 @@ Object Tree:
                 <glossdef>
                   <para>The array or scalar to be saved.  Accepted types are
                   NumPy arrays and scalars, <literal>numarray</literal> arrays
-                  and string arrays, Numeric arrays and scalars, as well as
-                  native Python sequences and scalars, provided that values
-                  are regular (i.e. they are not like
+                  and string arrays (deprecated), Numeric arrays and scalars
+                  (deprecated), as well as native Python sequences and scalars,
+                  provided that values are regular (i.e. they are not like
                   <literal>[[1,2],2]</literal>) and homogeneous (i.e. all the
                   elements are of the same type).</para>
 
@@ -4764,7 +4766,7 @@ Object Tree:
                     <glossentry>
                       <glossterm><emphasis role="bold">A
                       <literal>RecArray</literal>
-                      instance</emphasis></glossterm>
+                      instance</emphasis> (deprecated)</glossterm>
 
                       <glossdef>
                         <para>Object from the <literal>numarray</literal>
@@ -4777,7 +4779,7 @@ Object Tree:
                     <glossentry>
                       <glossterm><emphasis role="bold">A
                       <literal>NestedRecArray</literal>
-                      instance</emphasis></glossterm>
+                      instance</emphasis> (deprecated)</glossterm>
 
                       <glossdef>
                         <para>If you want to have nested columns in your table
@@ -6457,6 +6459,13 @@ for node in h5file.root.detector:
                 get, set and delete the <literal>FLAVOR</literal> HDF5
                 attribute of the leaf. When the leaf has no such attribute,
                 the default flavor is used.</para>
+
+                <warning>
+                  <para>The <literal>'numarray'</literal> and
+                  <literal>'numeric'</literal> flavors are deprecated since
+                  version 2.3. Support for these flavors will be removed in
+                  furure versions.</para>
+                </warning>
               </glossdef>
             </glossentry>
 
@@ -7229,8 +7238,8 @@ for node in h5file.root.detector:
             columns will be returned in a record array of the current flavor.
             <!-- manual-only -->
             More specifically, when the flavor is
-            <literal>'numarray'</literal> and a record array is needed, a
-            <literal>NestedRecArray</literal> (see <xref
+            <literal>'numarray'</literal> (deprecated) and a record array is
+            needed, a <literal>NestedRecArray</literal> (see <xref
             linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />)
             will be returned.
             </para>
@@ -7373,10 +7382,10 @@ recarray = table.readCoordinates([True, False, ..., True])</screen>
             <para>The <literal>rows</literal> argument may be any object which
             can be converted to a record array compliant with the table
             structure (otherwise, a <literal>ValueError</literal> is raised).
-            This includes NumPy record arrays, <literal>RecArray</literal> or
-            <literal>NestedRecArray</literal> objects if
-            <literal>numarray</literal> is available, lists of tuples or array
-            records, and a string or Python buffer.</para>
+            This includes NumPy record arrays, <literal>RecArray</literal>
+            (depracated) or <literal>NestedRecArray</literal> (deprecated)
+            objects if <literal>numarray</literal> is available, lists of
+            tuples or array records, and a string or Python buffer.</para>
 
             <para>Example of use:</para>
 
@@ -7399,8 +7408,8 @@ fileh.close()</screen>
             <!-- manual-only -->
             <para>See <xref linkend="NestedRecArrayClassDescr"
             xrefstyle="select: label" /> if you are using
-            <literal>numarray</literal> and you want to append data to nested
-            columns.</para>
+            <literal>numarray</literal> (deprecated) and you want to append
+            data to nested columns.</para>
           </section>
 
           <section id="Table.modifyColumn" xreflabel="description">
@@ -7421,17 +7430,18 @@ fileh.close()</screen>
             which can be converted to a (record) array compliant with the
             structure of the column to be modified (otherwise, a
             <literal>ValueError</literal> is raised).  This includes NumPy
-            (record) arrays, <literal>NumArray</literal>,
-            <literal>RecArray</literal> or <literal>NestedRecArray</literal>
-            objects if <literal>numarray</literal> is available, Numeric
-            arrays if available, lists of scalars, tuples or array records,
-            and a string or Python buffer.</para>
+            (record) arrays, <literal>NumArray</literal> (deprecated),
+            <literal>RecArray</literal> (deprecated) or
+            <literal>NestedRecArray</literal> (deprecated) objects if
+            <literal>numarray</literal> is available, Numeric arrays
+            if available (deprecated), lists of scalars, tuples or array
+            records, and a string or Python buffer.</para>
 
             <!-- manual-only -->
             <para>See <xref linkend="NestedRecArrayClassDescr"
             xrefstyle="select: label" /> if you are using
-            <literal>numarray</literal> and you want to modify data in a
-            nested column.</para>
+            <literal>numarray</literal> (deprecated) and you want to modify
+            data in a nested column.</para>
           </section>
 
           <section id="Table.modifyColumns" xreflabel="description">
@@ -7452,16 +7462,16 @@ fileh.close()</screen>
             which can be converted to a record array compliant with the
             structure of the columns to be modified (otherwise, a
             <literal>ValueError</literal> is raised).  This includes NumPy
-            record arrays, <literal>RecArray</literal> or
-            <literal>NestedRecArray</literal> objects if
+            record arrays, <literal>RecArray</literal> (deprecated) or
+            <literal>NestedRecArray</literal> (deprecated) objects if
             <literal>numarray</literal> is available, lists of tuples or array
             records, and a string or Python buffer.</para>
 
             <!-- manual-only -->
             <para>See <xref linkend="NestedRecArrayClassDescr"
             xrefstyle="select: label" /> if you are using
-            <literal>numarray</literal> and you want to modify data in nested
-            columns.</para>
+            <literal>numarray</literal> (deprecated) and you want to modify
+            data in nested columns.</para>
           </section>
 
           <section id="Table.modifyCoordinates" xreflabel="description">
@@ -7500,8 +7510,8 @@ fileh.close()</screen>
             <!-- manual-only -->
             <para>See <xref linkend="NestedRecArrayClassDescr"
             xrefstyle="select: label" /> if you are using
-            <literal>numarray</literal> and you want to modify data in nested
-            columns.</para>
+            <literal>numarray</literal> (deprecated) and you want to modify
+            data in nested columns.</para>
           </section>
 
           <section id="Table.removeRows" xreflabel="description">
@@ -15174,6 +15184,13 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       <literal>Atom</literal> class and its descendants (see <xref
       linkend="AtomClassDescr" xrefstyle="select: label" />).</para>
 
+      <warning>
+        <para>The use of <literal>numarray</literal> and
+        <literal>Numeric</literal> in PyTables is now deprecated.
+        Support for these packages will be removed in furure versions.
+        </para>
+      </warning>
+
       <para>PyTables uses ordinary strings to represent its
       <emphasis>types</emphasis>, with most of them matching the names of
       NumPy scalar types. Usually, a PyTables type consists of two parts: a
@@ -16102,7 +16119,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
     </appendix>
 
     <appendix id="NestedRecArrayClassDescr">
-      <title>Using nested record arrays</title>
+      <title>Using nested record arrays (deprecated)</title>
 
       <section>
         <title>Introduction</title>
@@ -16453,7 +16470,7 @@ NestedRecArray[
   atom = Int32Atom(shape=(), dflt=0)
   byteorder = 'little'
   nrows = 3
-  flavor = 'numeric'
+  flavor = 'numpy'
 /vlarray2 (VLArray(3,), shuffle, zlib(1)) 'ragged array of strings'
   atom = StringAtom(itemsize=2, shape=(), dflt='')
   byteorder = 'irrelevant'
@@ -16461,7 +16478,7 @@ NestedRecArray[
   flavor = 'python'</screen> so we can see more info about the atoms that are
           the components of the <literal>vlarray1</literal> dataset, i.e. they
           are scalars of type <literal>Int32</literal> and with
-          <literal>Numeric</literal> <emphasis>flavor</emphasis>.</para>
+          <literal>NumPy</literal> <emphasis>flavor</emphasis>.</para>
 
           <para>If we want information about the attributes on the nodes, we
           must add the <literal>-a</literal> flag: <screen>$ ptdump -va vlarray1.h5
@@ -16475,10 +16492,10 @@ NestedRecArray[
   atom = Int32Atom(shape=(), dflt=0)
   byteorder = 'little'
   nrows = 3
-  flavor = 'numeric'
+  flavor = 'numpy'
   /vlarray1._v_attrs (AttributeSet), 4 attributes:
    [CLASS := 'VLARRAY',
-    FLAVOR := 'numeric',
+    FLAVOR := 'numpy',
     TITLE := 'ragged array of ints',
     VERSION := '1.2']
 /vlarray2 (VLArray(3,), shuffle, zlib(1)) 'ragged array of strings'
@@ -16523,10 +16540,10 @@ NestedRecArray[
   atom = Int32Atom(shape=(), dflt=0)
   byteorder = 'little'
   nrows = 3
-  flavor = 'numeric'
+  flavor = 'numpy'
   /vlarray1._v_attrs (AttributeSet), 4 attributes:
    [CLASS := 'VLARRAY',
-    FLAVOR := 'numeric',
+    FLAVOR := 'numpy',
     TITLE := 'ragged array of ints',
     VERSION := '1.2']
   Data dump:
@@ -17696,7 +17713,7 @@ $ ptdump reduced.h5
 
                   <glossdef>
                     <para>Read data will be returned as
-                    <literal>numarray</literal> objects.</para>
+                    <literal>numarray</literal> objects (deprecated).</para>
                   </glossdef>
                 </glossentry>
 
@@ -17706,7 +17723,7 @@ $ ptdump reduced.h5
 
                   <glossdef>
                     <para>Read data will be returned as
-                    <literal>Numeric</literal> objects.</para>
+                    <literal>Numeric</literal> objects (deprecated).</para>
                   </glossdef>
                 </glossentry>
 
