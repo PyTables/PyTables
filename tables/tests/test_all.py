@@ -50,7 +50,7 @@ def suite():
         'tables.tests.test_links',
         # Sub-packages
         'tables.nodes.tests.test_filenode',
-        'tables.netcdf3.tests.test_netcdf3',
+        #'tables.netcdf3.tests.test_netcdf3',
         ]
 
 
