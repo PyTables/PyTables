@@ -23,7 +23,8 @@ import numpy
 # platforms, so we won't even try to import them on this scenario
 plat64 = (numpy.int_(0).itemsize == 8)
 py25 = (sys.version_info[0] >= 2 and sys.version_info[1] >= 5)
-if not (plat64 and py25):
+# Numeric and numarray are now deprecated
+if False:   # if not (plat64 and py25):
     try:
         import numarray
         import numarray.strings

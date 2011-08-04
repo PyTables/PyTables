@@ -753,7 +753,8 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test03_copy(self):
+    # Numeric is now deprecated
+    def _test03_copy(self):
         """Checking Array.copy() method (Numeric flavor)"""
 
         if common.verbose:

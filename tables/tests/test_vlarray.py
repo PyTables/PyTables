@@ -3540,7 +3540,8 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test03_copy(self):
+    # numarray is now deprecated
+    def _test03_copy(self):
         """Checking VLArray.copy() method ('numarray' flavor)"""
 
         if common.verbose:
@@ -3598,7 +3599,8 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test03a_copy(self):
+    # Numeric is now deprecated
+    def _test03a_copy(self):
         """Checking VLArray.copy() method ('numeric' flavor)"""
 
         if common.verbose:
@@ -4288,12 +4290,14 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
         theSuite.addTest(unittest.makeSuite(PointSelectionTestCase))
 
-        if numeric_imported:
-            theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
-            theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
-        if numarray_imported:
-            theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
-            theSuite.addTest(unittest.makeSuite(NumArrayFlavorTestCase))
+        # Numeric is now deprecated
+        #if numeric_imported:
+        #    theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
+        # numarray is now deprecated
+        #if numarray_imported:
+        #    theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumArrayFlavorTestCase))
 
     return theSuite
 

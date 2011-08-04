@@ -666,10 +666,11 @@ class NP_EmptyEArrayTestCase(BasicTestCase):
     shape = (2, 0)
     chunksize = 5
     nappends = 0
-    if numarray_imported:
-        start = numpy.uint8(0)
-        stop = numpy.uint32(10)
-        step = numpy.int64(1)
+    # numarray is now deprecated
+    #if numarray_imported:
+    #    start = numpy.uint8(0)
+    #    stop = numpy.uint32(10)
+    #    step = numpy.int64(1)
 
 class Empty2EArrayTestCase(BasicTestCase):
     type = 'int32'
@@ -813,10 +814,11 @@ class NP_MD6WriteTestCase(BasicTestCase):
     shape = (2, 3, 3, 0, 5, 6)
     chunksize = 1
     nappends = 10
-    if numarray_imported:
-        start = numpy.int8(1)
-        stop = numpy.int32(10)
-        step = numpy.int64(3)
+    # numarray is now deprecated
+    #if numarray_imported:
+    #    start = numpy.int8(1)
+    #    stop = numpy.int32(10)
+    #    step = numpy.int64(3)
 
 class MD6WriteTestCase__(BasicTestCase):
     type = 'int32'
@@ -850,10 +852,11 @@ class NP_MD10WriteTestCase(BasicTestCase):
     shape = (1, 2, 3, 4, 5, 5, 4, 3, 2, 0)
     chunksize = 5
     nappends = 10
-    if numarray_imported:
-        start = numpy.int8(-1)
-        stop = numpy.int64(-1)
-        step = numpy.uint8(10)
+    # numarray is now deprecated
+    #if numarray_imported:
+    #    start = numpy.int8(-1)
+    #    stop = numpy.int64(-1)
+    #    step = numpy.uint8(10)
 
 class ZlibComprTestCase(BasicTestCase):
     compress = 1
@@ -1603,7 +1606,8 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test03_copy(self):
+    # numarray is now deprecated
+    def _test03_copy(self):
         """Checking EArray.copy() method ('numarray' flavor)"""
 
         if common.verbose:
@@ -2614,18 +2618,20 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StringTestCase))
         theSuite.addTest(unittest.makeSuite(String2TestCase))
         theSuite.addTest(unittest.makeSuite(StringComprTestCase))
-        if numeric_imported:
-            theSuite.addTest(unittest.makeSuite(Numeric1TestCase))
-            theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
-            theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
-        if numarray_imported:
-            theSuite.addTest(unittest.makeSuite(Numarray2TestCase))
-            theSuite.addTest(unittest.makeSuite(NumarrayComprTestCase))
-            theSuite.addTest(unittest.makeSuite(StringNumarrayTestCase))
-            theSuite.addTest(unittest.makeSuite(String2NumarrayTestCase))
-            theSuite.addTest(unittest.makeSuite(NP_EmptyEArrayTestCase))
-            theSuite.addTest(unittest.makeSuite(NP_MD6WriteTestCase))
-            theSuite.addTest(unittest.makeSuite(NP_MD10WriteTestCase))
+        # Numeric is now deprecated
+        #if numeric_imported:
+        #    theSuite.addTest(unittest.makeSuite(Numeric1TestCase))
+        #    theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
+        # numarray is now deprecated
+        #if numarray_imported:
+        #    theSuite.addTest(unittest.makeSuite(Numarray2TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumarrayComprTestCase))
+        #    theSuite.addTest(unittest.makeSuite(StringNumarrayTestCase))
+        #    theSuite.addTest(unittest.makeSuite(String2NumarrayTestCase))
+        #    theSuite.addTest(unittest.makeSuite(NP_EmptyEArrayTestCase))
+        #    theSuite.addTest(unittest.makeSuite(NP_MD6WriteTestCase))
+        #    theSuite.addTest(unittest.makeSuite(NP_MD10WriteTestCase))
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
@@ -2662,13 +2668,15 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
         theSuite.addTest(unittest.makeSuite(Rows64bitsTestCase1))
         theSuite.addTest(unittest.makeSuite(Rows64bitsTestCase2))
+
+        # numarray is now deprecated
         # XYX
         # The StringComprNumpyTestCase takes muchs more time than
         # its equivalent in numarray StringComprTestCase.
         # This should be further analyzed.
         # F. Alted 2006-02-03
-        if numarray_imported:
-            theSuite.addTest(unittest.makeSuite(StringComprNumarrayTestCase))
+        #if numarray_imported:
+        #    theSuite.addTest(unittest.makeSuite(StringComprNumarrayTestCase))
 
     return theSuite
 
