@@ -93,6 +93,11 @@ Version: 20051110
 """
 __version__ = '20051110'
 
+import warnings
+warnings.warn('The tables.netcdf3 is not actively maintained anymore. '
+              'This module is deprecated and will be removed in the future '
+              'versions.', DeprecationWarning)
+
 import numpy
 
 # need Numeric for h5 <--> netCDF conversion.
