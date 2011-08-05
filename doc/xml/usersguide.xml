@@ -592,7 +592,7 @@ fileh.close()</screen>
         <warning>
           <para>The use of <literal>numarray</literal> and
           <literal>Numeric</literal> in PyTables is now deprecated.
-          Support for these packages will be dropped in furure versions.
+          Support for these packages will be dropped in future versions.
           </para>
         </warning>
 
@@ -6474,7 +6474,7 @@ for node in h5file.root.detector:
                   <para>The <literal>'numarray'</literal> and
                   <literal>'numeric'</literal> flavors are deprecated since
                   version 2.3. Support for these flavors will be removed in
-                  furure versions.</para>
+                  future versions.</para>
                 </warning>
               </glossdef>
             </glossentry>
@@ -15140,7 +15140,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       <warning>
         <para>The use of <literal>numarray</literal> and
         <literal>Numeric</literal> in PyTables is now deprecated.
-        Support for these packages will be removed in furure versions.
+        Support for these packages will be removed in future versions.
         </para>
       </warning>
 
