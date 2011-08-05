@@ -4,7 +4,7 @@ Francesc Alted
 2007-11-25
 """
 
-import os, math, subprocess
+import os, math, subprocess, tempfile
 from time import time
 import numpy
 import tables
@@ -44,7 +44,7 @@ def get_db_size(filename):
 
 def bench(chunkshape, filters):
     numpy.random.seed(1)   # to have reproductible results
-    filename = '/tmp/test.h5'
+    filename = tempfile.mktemp(suffix='.h5')
     print "Doing test on the file system represented by:", filename
 
     f = tables.openFile(filename, 'w')
