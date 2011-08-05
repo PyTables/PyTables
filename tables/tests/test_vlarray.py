@@ -4,7 +4,6 @@ import sys
 import unittest
 import os
 import tempfile
-import warnings
 
 import numpy
 
@@ -101,40 +100,45 @@ class BasicTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row
 
         nrows = 5
-        assert nrows == vlarray.nrows
+        self.assertEqual(nrows, vlarray.nrows)
         if self.flavor == "numarray":
-            assert allequal(row, numarray.array([1, 2], type='Int32'), self.flavor)
-            assert allequal(row2, numarray.array([], type='Int32'), self.flavor)
+            self.assertTrue(
+                allequal(row, numarray.array([1, 2], type='Int32'), self.flavor))
+            self.assertTrue(
+                allequal(row2, numarray.array([], type='Int32'), self.flavor))
         elif self.flavor == "numpy":
-            assert type(row) == numpy.ndarray
-            assert allequal(row, numpy.array([1, 2], dtype='int32'), self.flavor)
-            assert allequal(row2, numpy.array([], dtype='int32'), self.flavor)
+            self.assertEqual(type(row), numpy.ndarray)
+            self.assertTrue(
+                allequal(row, numpy.array([1, 2], dtype='int32'), self.flavor))
+            self.assertTrue(
+                allequal(row2, numpy.array([], dtype='int32'), self.flavor))
         elif self.flavor == "numeric":
-            assert type(row) == type(Numeric.array([1, 2]))
+            self.assertEqual(type(row), type(Numeric.array([1, 2])))
             # The next two lines has been corrected by Ciro Catutto
             # (2004-04-20)
-            assert allequal(row, (1, 2), self.flavor)
-            assert allequal(row2, Numeric.array([], typecode='i'), self.flavor)
+            self.assertTrue(allequal(row, (1, 2), self.flavor))
+            self.assertTrue(
+                allequal(row2, Numeric.array([], typecode='i'), self.flavor))
         elif self.flavor == "python":
-            assert row == [1, 2]
-            assert row2 == []
-        assert len(row) == 2
+            self.assertEqual(row, [1, 2])
+            self.assertEqual(row2, [])
+        self.assertEqual(len(row), 2)
 
         # Check filters:
         if self.compress != vlarray.filters.complevel and common.verbose:
             print "Error in compress. Class:", self.__class__.__name__
             print "self, vlarray:", self.compress, vlarray.filters.complevel
-        assert vlarray.filters.complevel == self.compress
+        self.assertEqual(vlarray.filters.complevel, self.compress)
         if self.compress > 0 and whichLibVersion(self.complib):
-            assert vlarray.filters.complib == self.complib
+            self.assertEqual(vlarray.filters.complib, self.complib)
         if self.shuffle != vlarray.filters.shuffle and common.verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
             print "self, vlarray:", self.shuffle, vlarray.filters.shuffle
-        assert self.shuffle == vlarray.filters.shuffle
+        self.assertEqual(self.shuffle, vlarray.filters.shuffle)
         if self.fletcher32 != vlarray.filters.fletcher32 and common.verbose:
             print "Error in fletcher32. Class:", self.__class__.__name__
             print "self, vlarray:", self.fletcher32, vlarray.filters.fletcher32
-        assert self.fletcher32 == vlarray.filters.fletcher32
+        self.assertEqual(self.fletcher32, vlarray.filters.fletcher32)
 
 
     def test02a_getitem(self):
@@ -172,19 +176,19 @@ class BasicTestCase(unittest.TestCase):
                 for val in rows1:
                     rows1f.append(numarray.array(val, type='Int32'))
                 for i in range(len(rows1f)):
-                    assert allequal(rows2[i], rows1f[i], self.flavor)
+                    self.assertTrue(allequal(rows2[i], rows1f[i], self.flavor))
             elif self.flavor == "numpy":
                 for val in rows1:
                     rows1f.append(numpy.array(val, dtype='int32'))
                 for i in range(len(rows1f)):
-                    assert allequal(rows2[i], rows1f[i], self.flavor)
+                    self.assertTrue(allequal(rows2[i], rows1f[i], self.flavor))
             elif self.flavor == "numeric":
                 for val in rows1:
                     rows1f.append(Numeric.array(val, typecode='i'))
                 for i in range(len(rows1f)):
-                    assert allequal(rows2[i], rows1f[i], self.flavor)
+                    self.assertTrue(allequal(rows2[i], rows1f[i], self.flavor))
             elif self.flavor == "python":
-                    assert rows2 == rows1
+                    self.assertEqual(rows2, rows1)
 
 
     def test02b_getitem(self):
@@ -217,7 +221,7 @@ class BasicTestCase(unittest.TestCase):
                 print "Rows read in vlarray ==>", rows2
 
             for i in range(len(rows1)):
-                assert allequal(rows2[i], rows1[i], self.flavor)
+                self.assertTrue(allequal(rows2[i], rows1[i], self.flavor))
 
 
     def test03_append(self):
@@ -246,31 +250,40 @@ class BasicTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row1
 
         nrows = 6
-        assert nrows == vlarray.nrows
+        self.assertEqual(nrows, vlarray.nrows)
         if self.flavor == "numarray":
-            assert allequal(row1, numarray.array([1, 2], type='Int32'), self.flavor)
-            assert allequal(row2, numarray.array([], type='Int32'), self.flavor)
-            assert allequal(row3, numarray.array([7, 8, 9, 10], type='Int32'),
-                            self.flavor)
+            self.assertEqual(
+                allequal(row1,
+                         numarray.array([1, 2], type='Int32'), self.flavor))
+            self.assertEqual(
+                allequal(row2, numarray.array([], type='Int32'), self.flavor))
+            self.assertEqual(
+                allequal(row3, numarray.array([7, 8, 9, 10], type='Int32'),
+                         self.flavor))
         elif self.flavor == "numpy":
-            assert type(row1) == type(numpy.array([1, 2]))
-            assert allequal(row1, numpy.array([1, 2], dtype='int32'), self.flavor)
-            assert allequal(row2, numpy.array([], dtype='int32'), self.flavor)
-            assert allequal(row3, numpy.array([7, 8, 9, 10], dtype='int32'),
-                            self.flavor)
+            self.assertEqual(type(row1), type(numpy.array([1, 2])))
+            self.assertTrue(
+                allequal(row1, numpy.array([1, 2], dtype='int32'), self.flavor))
+            self.assertTrue(
+                allequal(row2, numpy.array([], dtype='int32'), self.flavor))
+            self.assertTrue(
+                allequal(row3, numpy.array([7, 8, 9, 10], dtype='int32'),
+                         self.flavor))
         elif self.flavor == "numeric":
-            assert type(row1) == type(Numeric.array([1, 2]))
+            self.assertEqual(type(row1), type(Numeric.array([1, 2])))
             # The next two lines has been corrected by Ciro Catutto
             # (2004-04-20)
-            assert allequal(row1, (1, 2), self.flavor)
-            assert allequal(row2, Numeric.array([], typecode='i'), self.flavor)
-            assert allequal(row3, Numeric.array([7, 8, 9, 10], typecode='i'),
-                            self.flavor)
+            self.assertTrue(allequal(row1, (1, 2), self.flavor))
+            self.assertTrue(
+                allequal(row2, Numeric.array([], typecode='i'), self.flavor))
+            self.assertTrue(
+                allequal(row3, Numeric.array([7, 8, 9, 10], typecode='i'),
+                         self.flavor))
         elif self.flavor == "python":
-            assert row1 == [1, 2]
-            assert row2 == []
-            assert row3 == [7, 8, 9, 10]
-        assert len(row3) == 4
+            self.assertEqual(row1, [1, 2])
+            self.assertEqual(row2, [])
+            self.assertEqual(row3, [7, 8, 9, 10])
+        self.assertEqual(len(row3), 4)
 
 
 class BasicNumPyTestCase(BasicTestCase):
@@ -364,11 +377,12 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array(["1", "12", "123", "123", "123"]))
-        assert allequal(row[1], numpy.array(["1", "123"]))
-        assert len(row[0]) == 5
-        assert len(row[1]) == 2
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(
+            allequal(row[0], numpy.array(["1", "12", "123", "123", "123"])))
+        self.assertTrue(allequal(row[1], numpy.array(["1", "123"])))
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 2)
 
     # This test doesn't compile without numarray installed
     def _test01_1_StringAtom(self):
@@ -401,12 +415,14 @@ class TypesTestCase(unittest.TestCase):
             print "Should look like:", \
                   strings.array(['1','12','123','123','123'], itemsize=3)
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], strings.array(["1", "12", "123", "123", "123"]),
-                        flavor="numarray")
-        assert allequal(row[1], strings.array(["1", "123"]), flavor="numarray")
-        assert len(row[0]) == 5
-        assert len(row[1]) == 2
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(
+            allequal(row[0], strings.array(["1", "12", "123", "123", "123"]),
+                                           flavor="numarray"))
+        self.assertTrue(
+            allequal(row[1], strings.array(["1", "123"]), flavor="numarray"))
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 2)
 
     def test01a_StringAtom(self):
         """Checking vlarray with NumPy string atoms ('numpy' flavor, strided)"""
@@ -435,11 +451,11 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array(["1", "123", "123"]))
-        assert allequal(row[1], numpy.array(["1", "321"]))
-        assert len(row[0]) == 3
-        assert len(row[1]) == 2
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(allequal(row[0], numpy.array(["1", "123", "123"])))
+        self.assertTrue(allequal(row[1], numpy.array(["1", "321"])))
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 2)
 
     def test01a_2_StringAtom(self):
         """Checking vlarray with NumPy string atoms (NumPy flavor, no conv)"""
@@ -468,11 +484,12 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array(["1", "12", "123", "123"]))
-        assert allequal(row[1], numpy.array(["1", "2", "321"]))
-        assert len(row[0]) == 4
-        assert len(row[1]) == 3
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(
+            allequal(row[0], numpy.array(["1", "12", "123", "123"])))
+        self.assertTrue(allequal(row[1], numpy.array(["1", "2", "321"])))
+        self.assertEqual(len(row[0]), 4)
+        self.assertEqual(len(row[1]), 3)
 
     def test01b_StringAtom(self):
         """Checking vlarray with NumPy string atoms (python flavor)"""
@@ -502,11 +519,11 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
-        assert row[0] == ["1", "12", "123", "123", "123"]
-        assert row[1] == ["1", "123"]
-        assert len(row[0]) == 5
-        assert len(row[1]) == 2
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertEqual(row[0], ["1", "12", "123", "123", "123"])
+        self.assertEqual(row[1], ["1", "123"])
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 2)
 
     def test01c_StringAtom(self):
         """Checking updating vlarray with NumPy string atoms ('numpy' flavor)"""
@@ -539,11 +556,12 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array(["1", "123", "12", "", "123"]))
-        assert allequal(row[1], numpy.array(["44", "4"], dtype="S3"))
-        assert len(row[0]) == 5
-        assert len(row[1]) == 2
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(
+            allequal(row[0], numpy.array(["1", "123", "12", "", "123"])))
+        self.assertTrue(allequal(row[1], numpy.array(["44", "4"], dtype="S3")))
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 2)
 
     def test01d_StringAtom(self):
         """Checking updating vlarray with string atoms (String flavor)"""
@@ -577,11 +595,11 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
-        assert row[0] == ["1", "123", "12", "", "123"]
-        assert row[1] == ["44", "4"]
-        assert len(row[0]) == 5
-        assert len(row[1]) == 2
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertEqual(row[0], ["1", "123", "12", "", "123"])
+        self.assertEqual(row[1], ["44", "4"])
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 2)
 
     def test02_BoolAtom(self):
         """Checking vlarray with boolean atoms"""
@@ -609,11 +627,11 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array([1,0,1], dtype='bool'))
-        assert allequal(row[1], numpy.array([1,0], dtype='bool'))
-        assert len(row[0]) == 3
-        assert len(row[1]) == 2
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(allequal(row[0], numpy.array([1,0,1], dtype='bool')))
+        self.assertTrue(allequal(row[1], numpy.array([1,0], dtype='bool')))
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 2)
 
     def test02b_BoolAtom(self):
         """Checking setting vlarray with boolean atoms"""
@@ -645,11 +663,11 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array([0,1,1], dtype='bool'))
-        assert allequal(row[1], numpy.array([0,1], dtype='bool'))
-        assert len(row[0]) == 3
-        assert len(row[1]) == 2
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(allequal(row[0], numpy.array([0,1,1], dtype='bool')))
+        self.assertTrue(allequal(row[1], numpy.array([0,1], dtype='bool')))
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 2)
 
     def test03_IntAtom(self):
         """Checking vlarray with integer atoms"""
@@ -687,11 +705,11 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([1,2,3], dtype=atype))
-            assert allequal(row[1], numpy.array([-1,0], dtype=atype))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(allequal(row[0], numpy.array([1,2,3], dtype=atype)))
+            self.assertTrue(allequal(row[1], numpy.array([-1,0], dtype=atype)))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test03a_IntAtom(self):
         """Checking vlarray with integer atoms (byteorder swapped)"""
@@ -733,11 +751,13 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([1,2,3], dtype=ttypes[atype]))
-            assert allequal(row[1], numpy.array([-1,0], dtype=ttypes[atype]))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(
+                allequal(row[0], numpy.array([1,2,3], dtype=ttypes[atype])))
+            self.assertTrue(
+                allequal(row[1], numpy.array([-1,0], dtype=ttypes[atype])))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test03b_IntAtom(self):
         """Checking updating vlarray with integer atoms"""
@@ -779,11 +799,11 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([3,2,1], dtype=atype))
-            assert allequal(row[1], numpy.array([0,-1], dtype=atype))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(allequal(row[0], numpy.array([3,2,1], dtype=atype)))
+            self.assertTrue(allequal(row[1], numpy.array([0,-1], dtype=atype)))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test03c_IntAtom(self):
         """Checking updating vlarray with integer atoms (byteorder swapped)"""
@@ -832,11 +852,13 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([3,2,1], dtype=ttypes[atype]))
-            assert allequal(row[1], numpy.array([0,-1], dtype=ttypes[atype]))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(
+                allequal(row[0], numpy.array([3,2,1], dtype=ttypes[atype])))
+            self.assertTrue(
+                allequal(row[1], numpy.array([0,-1], dtype=ttypes[atype])))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test03d_IntAtom(self):
         """Checking updating vlarray with integer atoms (another byteorder)"""
@@ -889,13 +911,16 @@ class TypesTestCase(unittest.TestCase):
 
             byteorder2 = byteorders[row[0].dtype.byteorder]
             if byteorder2 != "irrelevant":
-                assert byteorders[row[0].dtype.byteorder] == sys.byteorder
-                assert vlarray.byteorder == byteorder
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([3,2,1], dtype=ttypes[atype]))
-            assert allequal(row[1], numpy.array([0,-1], dtype=ttypes[atype]))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+                self.assertEqual(byteorders[row[0].dtype.byteorder],
+                                 sys.byteorder)
+                self.assertEqual(vlarray.byteorder, byteorder)
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(
+                allequal(row[0], numpy.array([3,2,1], dtype=ttypes[atype])))
+            self.assertTrue(
+                allequal(row[1], numpy.array([0,-1], dtype=ttypes[atype])))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test04_FloatAtom(self):
         """Checking vlarray with floating point atoms"""
@@ -927,11 +952,11 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([1.3,2.2,3.3], atype))
-            assert allequal(row[1], numpy.array([-1.3e34,1.e-32], atype))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(allequal(row[0], numpy.array([1.3,2.2,3.3], atype)))
+            self.assertTrue(allequal(row[1], numpy.array([-1.3e34,1.e-32], atype)))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test04a_FloatAtom(self):
         """Checking vlarray with float atoms (byteorder swapped)"""
@@ -967,13 +992,13 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([1.3,2.2,3.3],
-                                                dtype=ttypes[atype]))
-            assert allequal(row[1], numpy.array([-1.3e34,1.e-32],
-                                                dtype=ttypes[atype]))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(allequal(row[0], numpy.array([1.3,2.2,3.3],
+                                                         dtype=ttypes[atype])))
+            self.assertTrue(allequal(row[1], numpy.array([-1.3e34,1.e-32],
+                                                         dtype=ttypes[atype])))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test04b_FloatAtom(self):
         """Checking updating vlarray with floating point atoms"""
@@ -1009,11 +1034,12 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([4.3,2.2,4.3], atype))
-            assert allequal(row[1], numpy.array([-1.1e34,1.3e-32], atype))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(allequal(row[0], numpy.array([4.3,2.2,4.3], atype)))
+            self.assertTrue(
+                allequal(row[1], numpy.array([-1.1e34,1.3e-32], atype)))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test04c_FloatAtom(self):
         """Checking updating vlarray with float atoms (byteorder swapped)"""
@@ -1056,13 +1082,13 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([4.3,2.2,4.3],
-                                                dtype=ttypes[atype]))
-            assert allequal(row[1], numpy.array([-1.1e34,1.3e-32],
-                                                dtype=ttypes[atype]))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(allequal(row[0], numpy.array([4.3,2.2,4.3],
+                                                         dtype=ttypes[atype])))
+            self.assertTrue(allequal(row[1], numpy.array([-1.1e34,1.3e-32],
+                                                         dtype=ttypes[atype])))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test04d_FloatAtom(self):
         """Checking updating vlarray with float atoms (another byteorder)"""
@@ -1107,16 +1133,16 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.byteorder == byteorder
+            self.assertEqual(vlarray.byteorder, byteorder)
             byteorder2 = byteorders[row[0].dtype.byteorder]
-            assert byteorders[row[0].dtype.byteorder] == sys.byteorder
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([4.3,2.2,4.3],
-                                                dtype=ttypes[atype]))
-            assert allequal(row[1], numpy.array([-1.1e34,1.3e-32],
-                                                dtype=ttypes[atype]))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertTrue(byteorders[row[0].dtype.byteorder], sys.byteorder)
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(allequal(row[0], numpy.array([4.3,2.2,4.3],
+                                                         dtype=ttypes[atype])))
+            self.assertTrue(allequal(row[1], numpy.array([-1.1e34,1.3e-32],
+                                                         dtype=ttypes[atype])))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test04_ComplexAtom(self):
         """Checking vlarray with numerical complex atoms"""
@@ -1148,13 +1174,14 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([(1.3+0j),(0+2.2j),(3.3+3.3j)],
-                                                atype))
-            assert allequal(row[1], numpy.array([(0-1.3e34j),(1.e-32+0j)],
-                                                atype))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(
+                allequal(row[0], numpy.array([(1.3+0j),(0+2.2j),(3.3+3.3j)],
+                                             atype)))
+            self.assertTrue(
+                allequal(row[1], numpy.array([(0-1.3e34j),(1.e-32+0j)], atype)))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test04b_ComplexAtom(self):
         """Checking modifying vlarray with numerical complex atoms"""
@@ -1190,13 +1217,14 @@ class TypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([(1.4+0j),(0+4.2j),(3.3+4.3j)],
-                                                atype))
-            assert allequal(row[1], numpy.array([(4-1.3e34j),(1.e-32+4j)],
-                                                atype))
-            assert len(row[0]) == 3
-            assert len(row[1]) == 2
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(
+                allequal(row[0], numpy.array([(1.4+0j),(0+4.2j),(3.3+4.3j)],
+                                             atype)))
+            self.assertTrue(
+                allequal(row[1], numpy.array([(4-1.3e34j),(1.e-32+4j)], atype)))
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 2)
 
     def test05_VLStringAtom(self):
         """Checking vlarray with variable length strings"""
@@ -1232,15 +1260,15 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 4
-        assert row[0] == "asd"
-        assert row[1] == "asd\xe4"
-        assert row[2] == "aaana"
-        assert row[3] == ""
-        assert len(row[0]) == 3
-        assert len(row[1]) == 4
-        assert len(row[2]) == 5
-        assert len(row[3]) == 0
+        self.assertEqual(vlarray.nrows, 4)
+        self.assertEqual(row[0], "asd")
+        self.assertEqual(row[1], "asd\xe4")
+        self.assertEqual(row[2], "aaana")
+        self.assertEqual(row[3], "")
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 4)
+        self.assertEqual(len(row[2]), 5)
+        self.assertEqual(len(row[3]), 0)
 
     def test05b_VLStringAtom(self):
         """Checking updating vlarray with variable length strings"""
@@ -1273,11 +1301,11 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", `row[0]`
             print "Second row in vlarray ==>", `row[1]`
 
-        assert vlarray.nrows == 2
-        assert row[0] == "as4"
-        assert row[1] == "aaanc"
-        assert len(row[0]) == 3
-        assert len(row[1]) == 5
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertEqual(row[0], "as4")
+        self.assertEqual(row[1], "aaanc")
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 5)
 
     def test06a_Object(self):
         """Checking vlarray with object atoms """
@@ -1304,15 +1332,15 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 3
-        assert row[0] == [[1,2,3], "aaa", u"aaaççç"]
+        self.assertEqual(vlarray.nrows, 3)
+        self.assertEqual(row[0], [[1,2,3], "aaa", u"aaaççç"])
         list1 = list(row[1])
         obj = list1.pop()
-        assert list1 == [3,4]
-        assert obj.c == C().c
-        assert row[2] == 42
-        assert len(row[0]) == 3
-        assert len(row[1]) == 3
+        self.assertEqual(list1, [3,4])
+        self.assertEqual(obj.c, C().c)
+        self.assertEqual(row[2], 42)
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 3)
         self.assertRaises(TypeError, len, row[2])
 
     def test06b_Object(self):
@@ -1349,15 +1377,15 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
-        assert row[0] == ([1,2,4], "aa4", u"çç5")
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertEqual(row[0], ([1,2,4], "aa4", u"çç5"))
         list1 = list(row[1])
         obj = list1.pop()
-        assert list1 == [4,4]
-        #assert obj.c == C().c
-        assert obj == [24]
-        assert len(row[0]) == 3
-        assert len(row[1]) == 3
+        self.assertEqual(list1, [4,4])
+        #self.assertEqual(obj.c, C().c)
+        self.assertEqual(obj, [24])
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 3)
 
     def test06c_Object(self):
         """Checking vlarray with object atoms (numpy arrays as values)"""
@@ -1384,10 +1412,10 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        self.assert_(vlarray.nrows == 3)
-        assert allequal(row[0], numpy.array([[1,2], [0,4]], 'i4'))
-        assert allequal(row[1], numpy.array([0,1,2,3], 'i8'))
-        assert allequal(row[2], numpy.array(42, 'i1'))
+        self.assertEqual(vlarray.nrows, 3)
+        self.assertTrue(allequal(row[0], numpy.array([[1,2], [0,4]], 'i4')))
+        self.assertTrue(allequal(row[1], numpy.array([0,1,2,3], 'i8')))
+        self.assertTrue(allequal(row[2], numpy.array(42, 'i1')))
 
     def test06d_Object(self):
         """Checking updating vlarray with object atoms (numpy arrays)"""
@@ -1421,10 +1449,10 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 3
-        assert allequal(row[0], numpy.array([[1,0], [0,4]], 'i4'))
-        assert allequal(row[1], numpy.array([0,1,0,3], 'i8'))
-        assert allequal(row[2], numpy.array(22, 'i1'))
+        self.assertEqual(vlarray.nrows, 3)
+        self.assertTrue(allequal(row[0], numpy.array([[1,0], [0,4]], 'i4')))
+        self.assertTrue(allequal(row[1], numpy.array([0,1,0,3], 'i8')))
+        self.assertTrue(allequal(row[2], numpy.array(22, 'i1')))
 
     def test07_VLUnicodeAtom(self):
         """Checking vlarray with variable length Unicode strings"""
@@ -1461,15 +1489,15 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 4
-        assert row[0] == u"asd"
-        assert row[1] == u"asd\u0140"
-        assert row[2] == u"aaana"
-        assert row[3] == u""
-        assert len(row[0]) == 3
-        assert len(row[1]) == 4
-        assert len(row[2]) == 5
-        assert len(row[3]) == 0
+        self.assertEqual(vlarray.nrows, 4)
+        self.assertEqual(row[0], u"asd")
+        self.assertEqual(row[1], u"asd\u0140")
+        self.assertEqual(row[2], u"aaana")
+        self.assertEqual(row[3], u"")
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 4)
+        self.assertEqual(len(row[2]), 5)
+        self.assertEqual(len(row[3]), 0)
 
     def test07b_VLUnicodeAtom(self):
         """Checking updating vlarray with variable length Unicode strings"""
@@ -1503,11 +1531,11 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", `row[0]`
             print "Second row in vlarray ==>", `row[1]`
 
-        assert vlarray.nrows == 2
-        assert row[0] == u"as\xe4"
-        assert row[1] == u"aaan\u0140"
-        assert len(row[0]) == 3
-        assert len(row[1]) == 5
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertEqual(row[0], u"as\xe4")
+        self.assertEqual(row[1], u"aaan\u0140")
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 5)
 
 
 class TypesReopenTestCase(TypesTestCase):
@@ -1560,12 +1588,14 @@ class MDTypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array([["123", "45"],["45", "123"]]))
-        assert allequal(row[1], numpy.array([["s", "abc"],["abc", "f"],
-                                             ["s", "ab"],["ab", "f"]]))
-        assert len(row[0]) == 2
-        assert len(row[1]) == 4
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(
+            allequal(row[0], numpy.array([["123", "45"],["45", "123"]])))
+        self.assertTrue(
+            allequal(row[1], numpy.array([["s", "abc"],["abc", "f"],
+                                          ["s", "ab"],["ab", "f"]])))
+        self.assertEqual(len(row[0]), 2)
+        self.assertEqual(len(row[1]), 4)
 
     def test01b_StringAtom(self):
         """Checking vlarray with MD NumPy string atoms ('python' flavor)"""
@@ -1591,12 +1621,12 @@ class MDTypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == 2
-        assert row[0] == [["123", "45"],["45", "123"]]
-        assert row[1] == [["s", "abc"],["abc", "f"],
-                          ["s", "ab"],["ab", "f"]]
-        assert len(row[0]) == 2
-        assert len(row[1]) == 4
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertEqual(row[0], [["123", "45"],["45", "123"]])
+        self.assertEqual(row[1], [["s", "abc"],["abc", "f"],
+                                  ["s", "ab"],["ab", "f"]])
+        self.assertEqual(len(row[0]), 2)
+        self.assertEqual(len(row[1]), 4)
 
 
     def test01c_StringAtom(self):
@@ -1626,12 +1656,12 @@ class MDTypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == 2
-        assert row[0] == [["123", "45"],["45", "123"]]
-        assert row[1] == [["s", "abc"],["abc", "f"],
-                          ["s", "ab"],["ab", "f"]]
-        assert len(row[0]) == 2
-        assert len(row[1]) == 4
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertEqual(row[0], [["123", "45"],["45", "123"]])
+        self.assertEqual(row[1], [["s", "abc"],["abc", "f"],
+                                  ["s", "ab"],["ab", "f"]])
+        self.assertEqual(len(row[0]), 2)
+        self.assertEqual(len(row[1]), 4)
 
     def test01d_StringAtom(self):
         """Checking vlarray with MD NumPy string atoms (with stride)"""
@@ -1660,11 +1690,11 @@ class MDTypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == 2
-        assert row[0] == [["123", "45"]]
-        assert row[1] == [["s", "a"],["abc", "f"]]
-        assert len(row[0]) == 1
-        assert len(row[1]) == 2
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertEqual(row[0], [["123", "45"]])
+        self.assertEqual(row[1], [["s", "a"],["abc", "f"]])
+        self.assertEqual(len(row[0]), 1)
+        self.assertEqual(len(row[1]), 2)
 
     def test02_BoolAtom(self):
         """Checking vlarray with MD boolean atoms"""
@@ -1688,11 +1718,14 @@ class MDTypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array([[1,0,1],[1,1,1],[0,0,0]], dtype='bool'))
-        assert allequal(row[1], numpy.array([[1,0,0]], dtype='bool'))
-        assert len(row[0]) == 3
-        assert len(row[1]) == 1
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(
+            allequal(row[0], numpy.array([[1,0,1],[1,1,1],[0,0,0]],
+                                         dtype='bool')))
+        self.assertTrue(
+            allequal(row[1], numpy.array([[1,0,0]], dtype='bool')))
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 1)
 
     def test02b_BoolAtom(self):
         """Checking vlarray with MD boolean atoms (with offset)"""
@@ -1718,11 +1751,13 @@ class MDTypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array([[1,0,1],[1,1,1],[0,0,0]], dtype='bool'))
-        assert allequal(row[1], numpy.array([[1,0,0]], dtype='bool'))
-        assert len(row[0]) == 3
-        assert len(row[1]) == 1
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(
+            allequal(row[0], numpy.array([[1,0,1],[1,1,1],[0,0,0]],
+                                         dtype='bool')))
+        self.assertTrue(allequal(row[1], numpy.array([[1,0,0]], dtype='bool')))
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 1)
 
     def test02c_BoolAtom(self):
         """Checking vlarray with MD boolean atoms (with strides)"""
@@ -1748,11 +1783,13 @@ class MDTypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array([[1,0,1],[0,0,0]], dtype='bool'))
-        assert allequal(row[1], numpy.array([[1,1,1],[0,0,0]], dtype='bool'))
-        assert len(row[0]) == 2
-        assert len(row[1]) == 2
+        self.assertEqual(vlarray.nrows, 2)
+        self.assertTrue(
+            allequal(row[0], numpy.array([[1,0,1],[0,0,0]], dtype='bool')))
+        self.assertTrue(
+            allequal(row[1], numpy.array([[1,1,1],[0,0,0]], dtype='bool')))
+        self.assertEqual(len(row[0]), 2)
+        self.assertEqual(len(row[1]), 2)
 
     def test03_IntAtom(self):
         """Checking vlarray with MD integer atoms"""
@@ -1786,14 +1823,15 @@ class MDTypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "Second row in vlarray ==>", repr(row[1])
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([numpy.ones((2,3)),
-                                                 numpy.zeros((2,3))],
-                                                atype))
-            assert allequal(row[1], numpy.array([numpy.ones((2,3))*100],
-                                                atype))
-            assert len(row[0]) == 2
-            assert len(row[1]) == 1
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(
+                allequal(row[0], numpy.array([numpy.ones((2,3)),
+                                              numpy.zeros((2,3))],
+                                              atype)))
+            self.assertTrue(
+                allequal(row[1], numpy.array([numpy.ones((2,3))*100], atype)))
+            self.assertEqual(len(row[0]), 2)
+            self.assertEqual(len(row[1]), 1)
 
     def test04_FloatAtom(self):
         """Checking vlarray with MD floating point atoms"""
@@ -1823,14 +1861,16 @@ class MDTypesTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "Second row in vlarray ==>", row[1]
 
-            assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([numpy.ones((5,2,6))*1.3,
-                                                 numpy.zeros((5,2,6))],
-                                                atype))
-            assert allequal(row[1], numpy.array([numpy.ones((5,2,6))*2.e4],
-                                                atype))
-            assert len(row[0]) == 2
-            assert len(row[1]) == 1
+            self.assertEqual(vlarray.nrows, 2)
+            self.assertTrue(
+                allequal(row[0], numpy.array([numpy.ones((5,2,6))*1.3,
+                                              numpy.zeros((5,2,6))],
+                                             atype)))
+            self.assertTrue(
+                allequal(row[1], numpy.array([numpy.ones((5,2,6))*2.e4],
+                                             atype)))
+            self.assertEqual(len(row[0]), 2)
+            self.assertEqual(len(row[1]), 1)
 
 
 class MDTypesNumPyTestCase(MDTypesTestCase):
@@ -1887,10 +1927,10 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 3
-        assert row[0] == [1,2,3]
-        assert row[1] == [1,2,3]
-        assert row[2] == [1,2,3]
+        self.assertEqual(vlarray.nrows, 3)
+        self.assertEqual(row[0], [1,2,3])
+        self.assertEqual(row[1], [1,2,3])
+        self.assertEqual(row[2], [1,2,3])
 
     def test01_toomanydims(self):
         """Checking vlarray.append() with too many dimensions"""
@@ -1928,7 +1968,7 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
 
-        assert vlarray.nrows == 0
+        self.assertEqual(vlarray.nrows, 0)
 
     def test02_zerodims(self):
         """Checking vlarray.append() with a zero-dimensional array"""
@@ -1958,9 +1998,9 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", repr(row)
 
-        assert vlarray.nrows == 1
-        assert allequal(row, numpy.zeros(dtype='int32', shape=(0,)))
-        assert len(row) == 0
+        self.assertEqual(vlarray.nrows, 1)
+        self.assertTrue(allequal(row, numpy.zeros(dtype='int32', shape=(0,))))
+        self.assertEqual(len(row), 0)
 
     def test03a_cast(self):
         """Checking vlarray.append() with a casted array (upgrading case)"""
@@ -1991,9 +2031,9 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", repr(row)
 
-        assert vlarray.nrows == 1
-        assert allequal(row, numpy.array([1,2], dtype='int32'))
-        assert len(row) == 2
+        self.assertEqual(vlarray.nrows, 1)
+        self.assertTrue(allequal(row, numpy.array([1,2], dtype='int32')))
+        self.assertEqual(len(row), 2)
 
     def test03b_cast(self):
         """Checking vlarray.append() with a casted array (downgrading case)"""
@@ -2024,9 +2064,9 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", repr(row)
 
-        assert vlarray.nrows == 1
-        assert allequal(row, numpy.array([1,2], dtype='int32'))
-        assert len(row) == 2
+        self.assertEqual(vlarray.nrows, 1)
+        self.assertTrue(allequal(row, numpy.array([1,2], dtype='int32')))
+        self.assertEqual(len(row), 2)
 
 
 class OpenAppendShapeTestCase(AppendShapeTestCase):
@@ -2076,8 +2116,8 @@ class FlavorTestCase(unittest.TestCase):
             print "Object read:", row, repr(row)
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
         # Check that the object read is effectively empty
-        assert vlarray.nrows == 0
-        assert row == []
+        self.assertEqual(vlarray.nrows, 0)
+        self.assertEqual(row, [])
 
     def test01b_EmptyVLArray(self):
         """Checking empty vlarrays with different flavors (no closing file)"""
@@ -2098,8 +2138,8 @@ class FlavorTestCase(unittest.TestCase):
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
         # Check that the object read is effectively empty
-        assert vlarray.nrows == 0
-        assert row == []
+        self.assertEqual(vlarray.nrows, 0)
+        self.assertEqual(row, [])
 
     def test02_BooleanAtom(self):
         """Checking vlarray with different flavors (boolean versions)"""
@@ -2124,10 +2164,10 @@ class FlavorTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 3
-        assert len(row[0]) == 3
-        assert len(row[1]) == 0
-        assert len(row[2]) == 2
+        self.assertEqual(vlarray.nrows, 3)
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 0)
+        self.assertEqual(len(row[2]), 2)
         if self.flavor == "python":
             arr1 = [1,1,1]
             arr2 = []
@@ -2151,9 +2191,9 @@ class FlavorTestCase(unittest.TestCase):
             allequal(row[1], arr2, self.flavor)
         else:
             # 'python' flavor
-            assert row[0] == arr1
-            assert row[1] == arr2
-            assert row[2] == arr3
+            self.assertEqual(row[0], arr1)
+            self.assertEqual(row[1], arr2)
+            self.assertEqual(row[2], arr3)
 
     def test03_IntAtom(self):
         """Checking vlarray with different flavors (integer versions)"""
@@ -2192,10 +2232,10 @@ class FlavorTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 3
-            assert len(row[0]) == 3
-            assert len(row[1]) == 0
-            assert len(row[2]) == 2
+            self.assertEqual(vlarray.nrows, 3)
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 0)
+            self.assertEqual(len(row[2]), 2)
             if self.flavor == "python":
                 arr1 = [1,2,3]
                 arr2 = []
@@ -2220,9 +2260,9 @@ class FlavorTestCase(unittest.TestCase):
                 allequal(row[2], arr3, self.flavor)
             else:
                 # "python" flavor
-                assert row[0] == arr1
-                assert row[1] == arr2
-                assert row[2] == arr3
+                self.assertEqual(row[0], arr1)
+                self.assertEqual(row[1], arr2)
+                self.assertEqual(row[2], arr3)
 
     def test03b_IntAtom(self):
         """Checking vlarray flavors (integer versions and closed file)"""
@@ -2264,10 +2304,10 @@ class FlavorTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 3
-            assert len(row[0]) == 3
-            assert len(row[1]) == 0
-            assert len(row[2]) == 2
+            self.assertEqual(vlarray.nrows, 3)
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 0)
+            self.assertEqual(len(row[2]), 2)
             if self.flavor == "python":
                 arr1 = [1,2,3]
                 arr2 = []
@@ -2292,9 +2332,9 @@ class FlavorTestCase(unittest.TestCase):
                 allequal(row[2], arr3, self.flavor)
             else:
                 # Tuple or List flavors
-                assert row[0] == arr1
-                assert row[1] == arr2
-                assert row[2] == arr3
+                self.assertEqual(row[0], arr1)
+                self.assertEqual(row[1], arr2)
+                self.assertEqual(row[2], arr3)
 
     def test04_FloatAtom(self):
         """Checking vlarray with different flavors (floating point versions)"""
@@ -2327,10 +2367,10 @@ class FlavorTestCase(unittest.TestCase):
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "First row in vlarray ==>", row[0]
 
-            assert vlarray.nrows == 3
-            assert len(row[0]) == 3
-            assert len(row[1]) == 0
-            assert len(row[2]) == 2
+            self.assertEqual(vlarray.nrows, 3)
+            self.assertEqual(len(row[0]), 3)
+            self.assertEqual(len(row[1]), 0)
+            self.assertEqual(len(row[2]), 2)
             if self.flavor == "python":
                 arr1 = list(numpy.array([1.3,2.2,3.3], atype))
                 arr2 = list(numpy.array([], atype))
@@ -2355,9 +2395,9 @@ class FlavorTestCase(unittest.TestCase):
                 allequal(row[2], arr3, self.flavor)
             else:
                 # Tuple or List flavors
-                assert row[0] == arr1
-                assert row[1] == arr2
-                assert row[2] == arr3
+                self.assertEqual(row[0], arr1)
+                self.assertEqual(row[1], arr2)
+                self.assertEqual(row[2], arr3)
 
 class NumPyFlavorTestCase(FlavorTestCase):
     flavor = "numpy"
@@ -2423,13 +2463,13 @@ class ReadRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0], numpy.arange(0, dtype='int32'))
-        assert allequal(row[1], numpy.arange(10, dtype='int32'))
-        assert allequal(row[2], numpy.arange(99, dtype='int32'))
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 0)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')))
+        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
 
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
@@ -2449,13 +2489,13 @@ class ReadRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0], numpy.arange(0, dtype='int32'))
-        assert allequal(row[1], numpy.arange(10, dtype='int32'))
-        assert allequal(row[2], numpy.arange(99, dtype='int32'))
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 0)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')))
+        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
 
     def test01np_start(self):
         "Checking reads with only a start value in a slice (numpy indexes)"
@@ -2475,13 +2515,13 @@ class ReadRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0], numpy.arange(0, dtype='int32'))
-        assert allequal(row[1], numpy.arange(10, dtype='int32'))
-        assert allequal(row[2], numpy.arange(99, dtype='int32'))
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 0)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')))
+        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
 
     def test02_stop(self):
         "Checking reads with only a stop value"
@@ -2504,15 +2544,15 @@ class ReadRangeTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 1
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0][0], numpy.arange(0, dtype='int32'))
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 1)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
+        self.assertTrue(allequal(row[0][0], numpy.arange(0, dtype='int32')))
         for x in range(10):
-            assert allequal(row[1][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[1][x], numpy.arange(x, dtype='int32')))
         for x in range(99):
-            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[2][x], numpy.arange(x, dtype='int32')))
 
     def test02b_stop(self):
         "Checking reads with only a stop value in a slice"
@@ -2534,16 +2574,16 @@ class ReadRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 1
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 1)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
         for x in range(1):
-            assert allequal(row[0][x], numpy.arange(0, dtype='int32'))
+            self.assertTrue(allequal(row[0][x], numpy.arange(0, dtype='int32')))
         for x in range(10):
-            assert allequal(row[1][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[1][x], numpy.arange(x, dtype='int32')))
         for x in range(99):
-            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[2][x], numpy.arange(x, dtype='int32')))
 
 
     def test03_startstop(self):
@@ -2566,16 +2606,17 @@ class ReadRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 10
-        assert len(row[1]) == 10
-        assert len(row[2]) == 100
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 10)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 100)
         for x in range(0,10):
-            assert allequal(row[0][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[0][x], numpy.arange(x, dtype='int32')))
         for x in range(5,15):
-            assert allequal(row[1][x-5], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[1][x-5], numpy.arange(x, dtype='int32')))
         for x in range(0,100):
-            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[2][x], numpy.arange(x, dtype='int32')))
 
     def test03b_startstop(self):
         "Checking reads with a start and stop values in slices"
@@ -2597,16 +2638,17 @@ class ReadRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 10
-        assert len(row[1]) == 10
-        assert len(row[2]) == 100
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 10)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 100)
         for x in range(0,10):
-            assert allequal(row[0][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[0][x], numpy.arange(x, dtype='int32')))
         for x in range(5,15):
-            assert allequal(row[1][x-5], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[1][x-5], numpy.arange(x, dtype='int32')))
         for x in range(0,100):
-            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[2][x], numpy.arange(x, dtype='int32')))
 
     def test04_startstopstep(self):
         "Checking reads with a start, stop & step values"
@@ -2628,16 +2670,19 @@ class ReadRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 5
-        assert len(row[1]) == 4
-        assert len(row[2]) == 5
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 4)
+        self.assertTrue(len(row[2]), 5)
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
 
     def test04np_startstopstep(self):
         "Checking reads with a start, stop & step values (numpy indices)"
@@ -2659,16 +2704,19 @@ class ReadRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 5
-        assert len(row[1]) == 4
-        assert len(row[2]) == 5
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 4)
+        self.assertEqual(len(row[2]), 5)
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
 
     def test04b_slices(self):
         "Checking reads with start, stop & step values in slices"
@@ -2690,16 +2738,19 @@ class ReadRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 5
-        assert len(row[1]) == 4
-        assert len(row[2]) == 5
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 4)
+        self.assertEqual(len(row[2]), 5)
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
 
     def test04bnp_slices(self):
         "Checking reads with start, stop & step values in slices (numpy indices)"
@@ -2721,16 +2772,19 @@ class ReadRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 5
-        assert len(row[1]) == 4
-        assert len(row[2]) == 5
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 4)
+        self.assertEqual(len(row[2]), 5)
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
 
     def test05_out_of_range(self):
         "Checking out of range reads"
@@ -2811,13 +2865,16 @@ class GetItemRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0], numpy.arange(0, dtype='int32'))
-        assert allequal(row[numpy.array(1)], numpy.arange(10, dtype='int32'))
-        assert allequal(row[numpy.array([2])], numpy.arange(99, dtype='int32'))
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 0)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
+        self.assertTrue(
+            allequal(row[0], numpy.arange(0, dtype='int32')))
+        self.assertTrue(
+            allequal(row[numpy.array(1)], numpy.arange(10, dtype='int32')))
+        self.assertTrue(
+            allequal(row[numpy.array([2])], numpy.arange(99, dtype='int32')))
 
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
@@ -2837,13 +2894,13 @@ class GetItemRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0], numpy.arange(0, dtype='int32'))
-        assert allequal(row[1], numpy.arange(10, dtype='int32'))
-        assert allequal(row[2], numpy.arange(99, dtype='int32'))
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 0)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')))
+        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
 
     def test02_stop(self):
         "Checking reads with only a stop value"
@@ -2866,15 +2923,15 @@ class GetItemRangeTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 1
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0][0], numpy.arange(0, dtype='int32'))
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 1)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
+        self.assertTrue(allequal(row[0][0], numpy.arange(0, dtype='int32')))
         for x in range(10):
-            assert allequal(row[1][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[1][x], numpy.arange(x, dtype='int32')))
         for x in range(99):
-            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[2][x], numpy.arange(x, dtype='int32')))
 
     def test02b_stop(self):
         "Checking reads with only a stop value in a slice"
@@ -2896,16 +2953,16 @@ class GetItemRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 1
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 1)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
         for x in range(1):
-            assert allequal(row[0][x], numpy.arange(0, dtype='int32'))
+            self.assertTrue(allequal(row[0][x], numpy.arange(0, dtype='int32')))
         for x in range(10):
-            assert allequal(row[1][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[1][x], numpy.arange(x, dtype='int32')))
         for x in range(99):
-            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[2][x], numpy.arange(x, dtype='int32')))
 
 
     def test03_startstop(self):
@@ -2928,16 +2985,17 @@ class GetItemRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 10
-        assert len(row[1]) == 10
-        assert len(row[2]) == 100
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 10)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 100)
         for x in range(0,10):
-            assert allequal(row[0][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[0][x], numpy.arange(x, dtype='int32')))
         for x in range(5,15):
-            assert allequal(row[1][x-5], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[1][x-5], numpy.arange(x, dtype='int32')))
         for x in range(0,100):
-            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[2][x], numpy.arange(x, dtype='int32')))
 
     def test03b_startstop(self):
         "Checking reads with a start and stop values in slices"
@@ -2959,16 +3017,17 @@ class GetItemRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 10
-        assert len(row[1]) == 10
-        assert len(row[2]) == 100
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 10)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 100)
         for x in range(0,10):
-            assert allequal(row[0][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[0][x], numpy.arange(x, dtype='int32')))
         for x in range(5,15):
-            assert allequal(row[1][x-5], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[1][x-5], numpy.arange(x, dtype='int32')))
         for x in range(0,100):
-            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
+            self.assertTrue(allequal(row[2][x], numpy.arange(x, dtype='int32')))
 
     def test04_slices(self):
         "Checking reads with a start, stop & step values"
@@ -2990,16 +3049,19 @@ class GetItemRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 5
-        assert len(row[1]) == 4
-        assert len(row[2]) == 5
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 4)
+        self.assertTrue(len(row[2]), 5)
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
 
     def test04bnp_slices(self):
         "Checking reads with start, stop & step values (numpy indices)"
@@ -3021,16 +3083,19 @@ class GetItemRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 5
-        assert len(row[1]) == 4
-        assert len(row[2]) == 5
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 5)
+        self.assertEqual(len(row[1]), 4)
+        self.assertEqual(len(row[2]), 5)
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
+            self.assertTrue(
+                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
 
     def test05_out_of_range(self):
         "Checking out of range reads"
@@ -3140,13 +3205,13 @@ class SetRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
-        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
-        assert allequal(row[2], numpy.arange(99, dtype='int32')*2+3)
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 0)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')*2+3))
 
     def test01np_start(self):
         "Checking updates that modifies a complete row"
@@ -3171,13 +3236,13 @@ class SetRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
-        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
-        assert allequal(row[2], numpy.arange(99, dtype='int32')*2+3)
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 0)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 99)
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')*2+3))
 
     def test02_partial(self):
         "Checking updates with only a part of a row"
@@ -3202,14 +3267,14 @@ class SetRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 96
-        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
-        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 0)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 96)
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2+3))
         a = numpy.arange(3,99, dtype='int32'); a = a*2+3
-        assert allequal(row[2], a)
+        self.assertTrue(allequal(row[2], a))
 
     def test03a_several_rows(self):
         "Checking updating several rows at once (slice style)"
@@ -3234,13 +3299,13 @@ class SetRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 3
-        assert len(row[1]) == 4
-        assert len(row[2]) == 5
-        assert allequal(row[0], numpy.arange(3, dtype='int32')*2+3)
-        assert allequal(row[1], numpy.arange(4, dtype='int32')*2+3)
-        assert allequal(row[2], numpy.arange(5, dtype='int32')*2+3)
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 3)
+        self.assertEqual(len(row[1]), 4)
+        self.assertEqual(len(row[2]), 5)
+        self.assertTrue(allequal(row[0], numpy.arange(3, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[1], numpy.arange(4, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[2], numpy.arange(5, dtype='int32')*2+3))
 
     def test03b_several_rows(self):
         "Checking updating several rows at once (list style)"
@@ -3265,13 +3330,13 @@ class SetRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 96
-        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
-        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
-        assert allequal(row[2], numpy.arange(96, dtype='int32')*2+3)
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 0)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 96)
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[2], numpy.arange(96, dtype='int32')*2+3))
 
     def test03c_several_rows(self):
         "Checking updating several rows at once (NumPy's where style)"
@@ -3296,13 +3361,13 @@ class SetRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 96
-        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
-        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
-        assert allequal(row[2], numpy.arange(96, dtype='int32')*2+3)
+        self.assertEqual(vlarray.nrows, self.nrows)
+        self.assertEqual(len(row[0]), 0)
+        self.assertEqual(len(row[1]), 10)
+        self.assertEqual(len(row[2]), 96)
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[2], numpy.arange(96, dtype='int32')*2+3))
 
     def test04_out_of_range(self):
         "Checking out of range updates (first index)"
@@ -3403,16 +3468,16 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        assert array1.read() == array2.read()
+        self.assertEqual(array1.read(), array2.read())
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.flavor == array2.flavor
-        assert array1.atom.dtype == array2.atom.dtype
-        assert repr(array1.atom) == repr(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.flavor, array2.flavor)
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(repr(array1.atom), repr(array2.atom))
 
-        assert array1.title == array2.title
+        self.assertEqual(array1.title, array2.title)
 
         # Close the file
         fileh.close()
@@ -3464,16 +3529,16 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        assert array1.read() == array2.read()
+        self.assertEqual(array1.read(), array2.read())
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.flavor == array2.flavor
-        assert array1.atom.type == array2.atom.type
-        assert repr(array1.atom) == repr(array2.atom)
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.flavor, array2.flavor)
+        self.assertEqual(array1.atom.type, array2.atom.type)
+        self.assertEqual(repr(array1.atom), repr(array2.atom))
 
-        assert array1.title == array2.title
+        self.assertEqual(array1.title, array2.title)
 
         # Close the file
         fileh.close()
@@ -3526,15 +3591,15 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        assert array1.read() == array2.read()
+        self.assertEqual(array1.read(), array2.read())
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.flavor == array2.flavor
-        assert array1.atom.dtype == array2.atom.dtype
-        assert repr(array1.atom) == repr(array1.atom)
-        assert array1.title == array2.title
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.flavor, array2.flavor)
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(repr(array1.atom), repr(array1.atom))
+        self.assertEqual(array1.title, array2.title)
 
         # Close the file
         fileh.close()
@@ -3588,12 +3653,12 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.flavor == array2.flavor  # Very important here
-        assert array1.atom.dtype == array2.atom.dtype
-        assert repr(array1.atom) == repr(array1.atom)
-        assert array1.title == array2.title
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(repr(array1.atom), repr(array1.atom))
+        self.assertEqual(array1.title, array2.title)
 
         # Close the file
         fileh.close()
@@ -3647,12 +3712,12 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.flavor == array2.flavor  # Very important here
-        assert array1.atom.dtype == array2.atom.dtype
-        assert repr(array1.atom) == repr(array1.atom)
-        assert array1.title == array2.title
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(repr(array1.atom), repr(array1.atom))
+        self.assertEqual(array1.title, array2.title)
 
         # Close the file
         fileh.close()
@@ -3701,12 +3766,12 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert other properties in array
-        assert array1.nrows == array2.nrows
-        assert array1.shape == array2.shape
-        assert array1.flavor == array2.flavor  # Very important here
-        assert array1.atom.dtype == array2.atom.dtype
-        assert repr(array1.atom) == repr(array1.atom)
-        assert array1.title == array2.title
+        self.assertEqual(array1.nrows, array2.nrows)
+        self.assertEqual(array1.shape, array2.shape)
+        self.assertEqual(array1.flavor, array2.flavor) # Very important here
+        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
+        self.assertEqual(repr(array1.atom), repr(array1.atom))
+        self.assertEqual(array1.title, array2.title)
 
         # Close the file
         fileh.close()
@@ -3755,7 +3820,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert user attributes
         if common.verbose:
             print "title of destination array-->", array2.title
-        array2.title == "title array2"
+        self.assertEqual(array2.title, "title array2")
 
         # Close the file
         fileh.close()
@@ -3806,8 +3871,8 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert user attributes
-        array2.attrs.attr1 == "attr1"
-        array2.attrs.attr2 == 2
+        self.assertEqual(array2.attrs.attr1, "attr1")
+        self.assertEqual(array2.attrs.attr2, 2)
 
         # Close the file
         fileh.close()
@@ -3858,8 +3923,8 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Assert user attributes
-        array2.attrs.attr1 == None
-        array2.attrs.attr2 == None
+        self.assertEqual(array2.attrs.attr1, None)
+        self.assertEqual(array2.attrs.attr2, None)
 
         # Close the file
         fileh.close()
@@ -3871,8 +3936,6 @@ class CloseCopyTestCase(CopyTestCase):
 
 class OpenCopyTestCase(CopyTestCase):
     close = 0
-
-import sys
 
 class CopyIndexTestCase(unittest.TestCase):
 
@@ -3919,9 +3982,9 @@ class CopyIndexTestCase(unittest.TestCase):
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", len(r2)
         # Check that all the elements are equal
-        assert r2 == array2[:]
+        self.assertEqual(r2, array2[:])
         # Assert the number of rows in array
-        assert len(r2) == array2.nrows
+        self.assertEqual(len(r2), array2.nrows)
 
         # Close the file
         fileh.close()
@@ -4020,7 +4083,7 @@ class ChunkshapeTestCase(unittest.TestCase):
         vla = self.fileh.root.vlarray
         if common.verbose:
             print "chunkshape-->", vla.chunkshape
-        assert vla.chunkshape == (13,)
+        self.assertEqual(vla.chunkshape, (13,))
 
     def test01(self):
         """Test setting the chunkshape in a table (reopen)."""
@@ -4030,7 +4093,7 @@ class ChunkshapeTestCase(unittest.TestCase):
         vla = self.fileh.root.vlarray
         if common.verbose:
             print "chunkshape-->", vla.chunkshape
-        assert vla.chunkshape == (13,)
+        self.assertEqual(vla.chunkshape, (13,))
 
 
 class VLUEndianTestCase(common.PyTablesTestCase):
@@ -4089,8 +4152,8 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "array1-->", array1.read()
 
-        self.assert_(array1.nrows == 0)
-        self.assert_(array1[:] == [])
+        self.assertEqual(array1.nrows, 0)
+        self.assertEqual(array1[:], [])
 
     def test01_truncate(self):
         """Checking EArray.truncate() method (truncating to 1 rows)"""
@@ -4109,9 +4172,9 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "array1-->", array1.read()
 
-        self.assert_(array1.nrows == 1)
-        assert allequal(
-            array1[0], numpy.array([456, 2], dtype='Int16'))
+        self.assertEqual(array1.nrows, 1)
+        self.assertTrue(
+            allequal(array1[0], numpy.array([456, 2], dtype='Int16')))
 
     def test02_truncate(self):
         """Checking EArray.truncate() method (truncating to == self.nrows)"""
@@ -4130,11 +4193,10 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "array1-->", array1.read()
 
-        self.assert_(array1.nrows == 2)
-        assert allequal(
-            array1[0], numpy.array([456, 2], dtype='Int16'))
-        assert allequal(
-            array1[1], numpy.array([3], dtype='Int16'))
+        self.assertEqual(array1.nrows, 2)
+        self.assertTrue(
+            allequal(array1[0], numpy.array([456, 2], dtype='Int16')))
+        self.assertTrue(allequal(array1[1], numpy.array([3], dtype='Int16')))
 
     def test03_truncate(self):
         """Checking EArray.truncate() method (truncating to > self.nrows)"""
@@ -4153,17 +4215,14 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "array1-->", array1.read()
 
-        self.assert_(array1.nrows == 4)
+        self.assertEqual(array1.nrows, 4)
         # Check the original values
-        assert allequal(
-            array1[0], numpy.array([456, 2], dtype='Int16'))
-        assert allequal(
-            array1[1], numpy.array([3], dtype='Int16'))
+        self.assertTrue(
+            allequal(array1[0], numpy.array([456, 2], dtype='Int16')))
+        self.assertTrue(allequal(array1[1], numpy.array([3], dtype='Int16')))
         # Check that the added rows are empty
-        assert allequal(
-            array1[2], numpy.array([], dtype='Int16'))
-        assert allequal(
-            array1[3], numpy.array([], dtype='Int16'))
+        self.assertTrue(allequal(array1[2], numpy.array([], dtype='Int16')))
+        self.assertTrue(allequal(array1[3], numpy.array([], dtype='Int16')))
 
 
 class TruncateOpenTestCase(TruncateTestCase):
@@ -4227,8 +4286,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             # if common.verbose:
             #     print "NumPy selection:", a, type(a)
             #     print "PyTables selection:", b, type(b)
-            self.assert_(
-                repr(a) == repr(b),
+            self.assertEqual(repr(a), repr(b),
                 "NumPy array and PyTables selections does not match.")
 
     def test01b_read(self):

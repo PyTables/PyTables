@@ -77,22 +77,22 @@ class BasicTestCase(unittest.TestCase):
 
         type_ = self.root.somearray.atom.type
         # Check strictly the array equality
-        assert type(a) == type(b)
-        assert a.shape == b.shape
-        assert a.shape == self.root.somearray.shape
+        self.assertEqual(type(a), type(b))
+        self.assertEqual(a.shape, b.shape)
+        self.assertEqual(a.shape, self.root.somearray.shape)
         if type(a) == strings.CharArray:
-            assert type_ == "string"
+            self.assertEqual(type_, "string")
         else:
-            assert a.type() == b.type()
+            self.assertEqual(a.type(), b.type())
             if not type_.startswith('complex'):
-                assert str(a.type()).lower() == type_
+                self.assertEqual(str(a.type()).lower(), type_)
             else:
                 if type_ == 'complex64':
-                    assert str(a.type()) == "Complex32"
+                    self.assertEqual(str(a.type()), "Complex32")
                 else:
-                    assert str(a.type()) == "Complex64"
+                    self.assertEqual(str(a.type()), "Complex64")
 
-        assert allequal(a,b, "numarray")
+        self.assertTrue(allequal(a,b, "numarray"))
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
@@ -115,7 +115,7 @@ class BasicTestCase(unittest.TestCase):
             b = a[::2]
             # Ensure that this numarray string is non-contiguous
             if a.shape[0] > 2:
-                assert b.iscontiguous() == 0
+                self.assertEqual(b.iscontiguous(), 0)
         self.WriteRead(b)
         return
 
@@ -147,7 +147,7 @@ class BasicTestCase(unittest.TestCase):
             b = a[::2]
             # Ensure that this array is non-contiguous (for non-trivial case)
             if a.shape[0] > 2:
-                assert b.iscontiguous() == 0
+                self.assertEqual(b.iscontiguous(), 0)
             self.WriteRead(b)
 
         return
@@ -261,8 +261,8 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %s" % b.type()
 
-            assert a.shape == b.shape
-            assert allequal(a,b, "numarray")
+            self.assertEqual(a.shape, b.shape)
+            self.assertTrue(allequal(a,b, "numarray"))
 
             # Iterate over the next group
             group = getattr(group, 'group' + str(i))
@@ -324,10 +324,10 @@ class GroupsArrayTestCase(unittest.TestCase):
             if not a.tolist() == b.tolist() and common.verbose:
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %c" % b.type()
-            assert a.shape == b.shape
-            assert a.type() == b.type()
+            self.assertEqual(a.shape, b.shape)
+            self.assertEqual(a.type(), b.type())
 
-            assert allequal(a, b, "numarray")
+            self.assertTrue(allequal(a, b, "numarray"))
 
             # Iterate over the next group
             group = fileh.getNode(group, 'group' + str(rank))
@@ -398,7 +398,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", orignumcol.shape
                     print "First 3 elements of read col:", numcol[:3]
                 # Check that both numarray objects are equal
-                assert allequal(numcol, orignumcol, "numarray")
+                self.assertTrue(allequal(numcol, orignumcol, "numarray"))
 
     def test01_readTableNum(self):
         """Checking column conversion into numarray in read(). Numerical."""
@@ -415,7 +415,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", typecol
                 orignumcol = ones(shape=self.nrows, dtype=numcol.type())
                 # Check that both numarray objects are equal
-                assert allequal(numcol, orignumcol, "numarray")
+                self.assertTrue(allequal(numcol, orignumcol, "numarray"))
 
 
     def test02_readCoordsChar(self):
@@ -440,7 +440,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", orignumcol.shape
                     print "First 3 elements of read col:", numcol[:3]
                 # Check that both numarray objects are equal
-                assert allequal(numcol, orignumcol, "numarray")
+                self.assertTrue(allequal(numcol, orignumcol, "numarray"))
 
     def test02_readCoordsNum(self):
         """Column conversion into numarray in readCoordinates(). Numerical."""
@@ -461,7 +461,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", typecol
                 orignumcol = ones(shape=self.nrows, type=numcol.type())
                 # Check that both numarray objects are equal
-                assert allequal(numcol, orignumcol, "numarray")
+                self.assertTrue(allequal(numcol, orignumcol, "numarray"))
 
     def test03_getIndexnumarray(self):
         """Getting table rows specifyied as numarray scalar integers."""
@@ -481,7 +481,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", typecol
                 orignumcol = ones(shape=len(numcol), type=numcol.type())
                 # Check that both numarray objects are equal
-                assert allequal(numcol, orignumcol, "numarray")
+                self.assertTrue(allequal(numcol, orignumcol, "numarray"))
 
     def test04_setIndexnumarray(self):
         """Setting table rows specifyied as numarray integers."""
@@ -503,11 +503,11 @@ class TableReadTestCase(common.PyTablesTestCase):
 ['aasa', 'x', 232, -24, 232, 232, 1, 232L, 232, (232+0j), 232.0, 232L, (232+0j), 232.0]
 """
             print "Read row:\n", record
-        assert record.field('var1') == 'aasa'
-        assert record.field('var2') == 'x'
-        assert record.field('var3') == True
-        assert record.field('var4') == -24
-        assert record.field('var7') == 232
+        self.assertEqual(record.field('var1'), 'aasa')
+        self.assertEqual(record.field('var2'), 'x')
+        self.assertEqual(record.field('var3'), True)
+        self.assertEqual(record.field('var4'), -24)
+        self.assertEqual(record.field('var7'), 232)
 
 
 # The declaration of the nested table:
@@ -601,27 +601,27 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Formats of the record:", data._formats
             print "First 3 elements of read:", data[:3]
         # Check the type of the recarray
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check the value of some columns
         # A flat column
         col = table.cols.x[:3]
-        assert isinstance(col, NumArray)
+        self.assertTrue(isinstance(col, NumArray))
         npcol = zeros((3,2), type="Int32")
         if common.verbose:
             print "Plain column:"
             print "read column-->", col
             print "should look like-->", npcol
-        assert allequal(col, npcol, "numarray")
+        self.assertTrue(allequal(col, npcol, "numarray"))
         # A nested column
         col = table.cols.Info[:3]
-        assert isinstance(col, records.RecArray)
+        self.assertTrue(isinstance(col, records.RecArray))
         npcol = self._infozeros
         if common.verbose:
             print "Nested column:"
             print "read column-->", col
             print "should look like-->", npcol
-        assert col.descr == npcol.descr
-        assert str(col) == str(npcol)
+        self.assertEqual(col.descr, npcol.descr)
+        self.assertEqual(str(col), str(npcol))
 
     def test01b_basicTableRead(self):
         """Checking the return of a numarray in read() (strided version)."""
@@ -636,27 +636,27 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Description of the record:", data.descr
             print "First 3 elements of read:", data[:3]
         # Check that both numarray objects are equal
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check the value of some columns
         # A flat column
         col = table.cols.x[:9:3]
-        assert isinstance(col, NumArray)
+        self.assertTrue(isinstance(col, NumArray))
         npcol = zeros((3,2), dtype="Int32")
         if common.verbose:
             print "Plain column:"
             print "read column-->", col
             print "should look like-->", npcol
-        assert allequal(col, npcol, "numarray")
+        self.assertTrue(allequal(col, npcol, "numarray"))
         # A nested column
         col = table.cols.Info[:9:3]
-        assert isinstance(col, records.RecArray)
+        self.assertTrue(isinstance(col, records.RecArray))
         npcol = self._infozeros
         if common.verbose:
             print "Nested column:"
             print "read column-->", col
             print "should look like-->", npcol
-        assert col.descr == npcol.descr
-        assert str(col) == str(npcol)
+        self.assertEqual(col.descr, npcol.descr)
+        self.assertEqual(str(col), str(npcol))
 
     def test02_getWhereList(self):
         """Checking the return of numarray in getWhereList method."""
@@ -670,11 +670,11 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Type of read:", type(data)
             print "First 3 elements of read:", data[:3]
         # Check that both numarray objects are equal
-        assert isinstance(data, NumArray)
+        self.assertTrue(isinstance(data, NumArray))
         # Check that all columns have been selected
-        assert len(data) == 100
+        self.assertEqual(len(data), 100)
         # Finally, check that the contents are ok
-        assert allequal(data, arange(100, type="Int64"), "numarray")
+        self.assertTrue(allequal(data, arange(100, type="Int64"), "numarray"))
 
     def test03a_readWhere(self):
         """Checking the return of numarray in readWhere method (strings)."""
@@ -691,9 +691,9 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
         # Check that both numarray objects are equal
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check that all columns have been selected
-        assert len(data) == self.nrows
+        self.assertEqual(len(data), self.nrows)
 
     def test03b_readWhere(self):
         """Checking the return of numarray in readWhere method (numeric)."""
@@ -710,9 +710,9 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
         # Check that both numarray objects are equal
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check that all columns have been selected
-        assert len(data) == 0
+        self.assertEqual(len(data), 0)
 
     def test04a_createTable(self):
         """Checking the Table creation from a numarray recarray."""
@@ -733,10 +733,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "npdata-->", npdata
             print "data-->", data
         # Check that both numarray objects are equal
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check the type
-        assert data.descr == npdata.descr
-        assert str(data) == str(npdata)
+        self.assertEqual(data.descr, npdata.descr)
+        self.assertEqual(str(data), str(npdata))
 
     def test04b_appendTable(self):
         """Checking appending a numarray recarray."""
@@ -758,10 +758,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "npdata-->", npdata
             print "data-->", data
         # Check that both numarray objects are equal
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check the type
-        assert data.descr == npdata.descr
-        assert str(data) == str(npdata)
+        self.assertEqual(data.descr, npdata.descr)
+        self.assertEqual(str(data), str(npdata))
 
     def test05a_assignColumn(self):
         """Checking assigning to a column."""
@@ -778,11 +778,11 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "First 3 elements of read:", data[:3]
             print "Length of the data read:", len(data)
         # Check that both numarray objects are equal
-        assert isinstance(data, NumArray)
+        self.assertTrue(isinstance(data, NumArray))
         # Check that all columns have been selected
-        assert len(data) == 100
+        self.assertEqual(len(data), 100)
         # Finally, check that the contents are ok
-        assert allequal(data, ones((100,), dtype="UInt8"), "numarray")
+        self.assertTrue(allequal(data, ones((100,), dtype="UInt8"), "numarray"))
 
     def test05b_modifyingColumns(self):
         """Checking modifying several columns at once."""
@@ -805,10 +805,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "ycol-->", ycol
             print "data-->", data
         # Check that both numarray objects are equal
-        assert isinstance(data, NumArray)
+        self.assertTrue(isinstance(data, NumArray))
         # Check the type
-        assert data.type() == ycol.type()
-        assert allequal(data, ycol, "numarray")
+        self.assertEqual(data.type(), ycol.type())
+        self.assertTrue(allequal(data, ycol, "numarray"))
 
     def test05c_modifyingColumns(self):
         """Checking modifying several columns using a numarray buffer."""
@@ -834,10 +834,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "ycol-->", ycol
             print "data-->", data
         # Check that both numarray objects are equal
-        assert isinstance(data, NumArray)
+        self.assertTrue(isinstance(data, NumArray))
         # Check the type
-        assert data.type() == ycol.type()
-        assert str(data) == str(ycol)
+        self.assertEqual(data.type(), ycol.type())
+        self.assertEqual(str(data), str(ycol))
 
     def test06a_assignNestedColumn(self):
         """Checking assigning a nested column (using modifyColumn)."""
@@ -860,10 +860,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "npdata-->", npdata
             print "data-->", data
         # Check that both numarray objects are equal
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check the type
-        assert data.descr == npdata.descr
-        assert str(data) == str(npdata)
+        self.assertEqual(data.descr, npdata.descr)
+        self.assertEqual(str(data), str(npdata))
 
     def test06b_assignNestedColumn(self):
         """Checking assigning a nested column (using the .cols accessor)."""
@@ -885,10 +885,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "npdata-->", npdata
             print "data-->", data
         # Check that both numarray objects are equal
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check the type
-        assert data.descr == npdata.descr
-        assert str(data) == str(npdata)
+        self.assertEqual(data.descr, npdata.descr)
+        self.assertEqual(str(data), str(npdata))
 
     def test07a_modifyingRows(self):
         """Checking modifying several rows at once (using modifyRows)."""
@@ -913,10 +913,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "ycol-->", ycol
             print "data-->", data
         # Check that both numarray objects are equal
-        assert isinstance(data, NumArray)
+        self.assertTrue(isinstance(data, NumArray))
         # Check the type
-        assert data.type() == ycol.type()
-        assert allequal(ycol, data, "numarray")
+        self.assertEqual(data.type(), ycol.type())
+        self.assertTrue(allequal(ycol, data, "numarray"))
 
     def test07b_modifyingRows(self):
         """Checking modifying several rows at once (using cols accessor)."""
@@ -942,10 +942,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "ycol-->", ycol
             print "data-->", data
         # Check that both numarray objects are equal
-        assert isinstance(data, NumArray)
+        self.assertTrue(isinstance(data, NumArray))
         # Check the type
-        assert data.type() == ycol.type()
-        assert allequal(ycol, data, "numarray")
+        self.assertEqual(data.type(), ycol.type())
+        self.assertTrue(allequal(ycol, data, "numarray"))
 
     def test08a_modifyingRows(self):
         """Checking modifying just one row at once (using modifyRows)."""
@@ -971,10 +971,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "ycol-->", ycol
             print "data-->", data
         # Check that both numarray objects are equal
-        assert isinstance(data, NumArray)
+        self.assertTrue(isinstance(data, NumArray))
         # Check the type
-        assert data.type() == ycol.type()
-        assert allequal(ycol, data, "numarray")
+        self.assertEqual(data.type(), ycol.type())
+        self.assertTrue(allequal(ycol, data, "numarray"))
 
     def test08b_modifyingRows(self):
         """Checking modifying just one row at once (using cols accessor)."""
@@ -1000,10 +1000,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "ycol-->", ycol
             print "data-->", data
         # Check that both numarray objects are equal
-        assert isinstance(data, NumArray)
+        self.assertTrue(isinstance(data, NumArray))
         # Check the type
-        assert data.type() == ycol.type()
-        assert allequal(ycol, data, "numarray")
+        self.assertEqual(data.type(), ycol.type())
+        self.assertTrue(allequal(ycol, data, "numarray"))
 
     def test09a_getStrings(self):
         """Checking the return of string columns with spaces."""
@@ -1019,12 +1019,12 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Description of the record:", data.descr
             print "First 3 elements of read:", data[:3]
         # Check that both numarray objects are equal
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check that all columns have been selected
-        assert len(data) == 100
+        self.assertEqual(len(data), 100)
         # Finally, check that the contents are ok
         for idata in data.field('color'):
-            assert idata == "ab"
+            self.assertEqual(idata, "ab")
 
     def test09b_getStrings(self):
         """Checking the return of string columns with spaces. (modify)"""
@@ -1042,16 +1042,16 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Description of the record:", data.descr
             print "First 3 elements of read:", data[:3]
         # Check that both numarray objects are equal
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check that all columns have been selected
-        assert len(data) == 100
+        self.assertEqual(len(data), 100)
         # Finally, check that the contents are ok
         for i in range(100):
             idata = data.field('color')[i]
             if i >= 50:
-                assert idata == "ab"
+                self.assertEqual(idata, "ab")
             else:
-                assert idata == "a"
+                self.assertEqual(idata, "a")
 
     def test09c_getStrings(self):
         """Checking the return of string columns with spaces. (append)"""
@@ -1074,17 +1074,17 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "Description of the record:", data.descr
             print "First 3 elements of read:", data[:3]
         # Check that both numarray objects are equal
-        assert isinstance(data, records.RecArray)
+        self.assertTrue(isinstance(data, records.RecArray))
         # Check that all columns have been selected
-        assert len(data) == 150
+        self.assertEqual(len(data), 150)
         # Finally, check that the contents are ok
         # Finally, check that the contents are ok
         for i in range(150):
             idata = data.field('color')[i]
             if i < 100:
-                assert idata == "ab"
+                self.assertEqual(idata, "ab")
             else:
-                assert idata == "a"
+                self.assertEqual(idata, "a")
 
 class TableNativeFlavorOpenTestCase(TableNativeFlavorTestCase):
     close = 0
@@ -1128,10 +1128,10 @@ class StrlenTestCase(common.PyTablesTestCase):
             print "string1-->", str1
             print "string2-->", str2
         # Check that both numarray objects are equal
-        assert len(str1) == len('Hello Francesc!')
-        assert len(str2) == len('Hola Francesc!')
-        assert str1 == 'Hello Francesc!'
-        assert str2 == 'Hola Francesc!'
+        self.assertEqual(len(str1), len('Hello Francesc!'))
+        self.assertEqual(len(str2), len('Hola Francesc!'))
+        self.assertEqual(str1, 'Hello Francesc!')
+        self.assertEqual(str2, 'Hola Francesc!')
 
     def test02(self):
         """Checking the lengths of strings (read recarray)."""
@@ -1143,10 +1143,10 @@ class StrlenTestCase(common.PyTablesTestCase):
         str1 = self.table[:].field('Text')[0]
         str2 = self.table[:].field('Text')[1]
         # Check that both numarray objects are equal
-        assert len(str1) == len('Hello Francesc!')
-        assert len(str2) == len('Hola Francesc!')
-        assert str1 == 'Hello Francesc!'
-        assert str2 == 'Hola Francesc!'
+        self.assertEqual(len(str1), len('Hello Francesc!'))
+        self.assertEqual(len(str2), len('Hola Francesc!'))
+        self.assertEqual(str1, 'Hello Francesc!')
+        self.assertEqual(str2, 'Hola Francesc!')
 
 
     def test03(self):
@@ -1159,10 +1159,10 @@ class StrlenTestCase(common.PyTablesTestCase):
         str1 = self.table[0].field('Text')
         str2 = self.table[1].field('Text')
         # Check that both numarray objects are equal
-        assert len(str1) == len('Hello Francesc!')
-        assert len(str2) == len('Hola Francesc!')
-        assert str1 == 'Hello Francesc!'
-        assert str2 == 'Hola Francesc!'
+        self.assertEqual(len(str1), len('Hello Francesc!'))
+        self.assertEqual(len(str2), len('Hola Francesc!'))
+        self.assertEqual(str1, 'Hello Francesc!')
+        self.assertEqual(str2, 'Hola Francesc!')
 
 
 class StrlenOpenTestCase(StrlenTestCase):
@@ -1184,9 +1184,9 @@ class ScalarTestCase(common.TempFileMixin, common.PyTablesTestCase):
         arr = self.h5file.root.scalar_na
 
         common.verbosePrint("* %r == %r ?" % (arr.read(), array(1234)))
-        self.assert_(all(arr.read() == array(1234)))
+        self.assertTrue(all(arr.read() == array(1234)))
         common.verbosePrint("* %r == %r ?" % (arr[()], array(1234)))
-        self.assert_(all(arr[()] == 1234))
+        self.assertTrue(all(arr[()] == 1234))
 
 
 #--------------------------------------------------------

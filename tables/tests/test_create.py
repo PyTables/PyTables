@@ -9,13 +9,12 @@ It also checks:
 import sys
 import unittest
 import os
-import re
 import tempfile
 import warnings
 
 from tables import *
 # important objects to test
-from tables import File, Group, Leaf, Table, Array
+from tables import Group, Leaf, Table, Array
 from tables.tests import common
 from tables.parameters import MAX_COLUMNS
 
@@ -65,10 +64,10 @@ class createTestCase(unittest.TestCase):
 
     def test00_isClass(self):
         """Testing table creation"""
-        assert isinstance(self.table, Table)
-        assert isinstance(self.array, Array)
-        assert isinstance(self.array, Leaf)
-        assert isinstance(self.group, Group)
+        self.assertTrue(isinstance(self.table, Table))
+        self.assertTrue(isinstance(self.array, Array))
+        self.assertTrue(isinstance(self.array, Leaf))
+        self.assertTrue(isinstance(self.group, Group))
 
     def test01_overwriteNode(self):
         """Checking protection against node overwriting"""
@@ -136,9 +135,9 @@ class createTestCase(unittest.TestCase):
         self.fileh = openFile(self.file,"r")
 
         # Now, test that self.title exists and is correct in all the nodes
-        assert self.fileh.root.agroup._v_title == "Group title"
-        assert self.fileh.root.atable.title == "Table title"
-        assert self.fileh.root.anarray.title == "Array title"
+        self.assertEqual(self.fileh.root.agroup._v_title, "Group title")
+        self.assertEqual(self.fileh.root.atable.title, "Table title")
+        self.assertEqual(self.fileh.root.anarray.title, "Array title")
 
     def test03b_titleLength(self):
         """Checking large title character length limit (1023)"""
@@ -147,20 +146,20 @@ class createTestCase(unittest.TestCase):
         # Try to put a very long title on a group object
         group = self.fileh.createGroup(self.root, 'group',
                                        "t" * titlelength)
-        assert group._v_title == "t" * titlelength
-        assert group._f_getAttr('TITLE') == "t" * titlelength
+        self.assertEqual(group._v_title, "t" * titlelength)
+        self.assertEqual(group._f_getAttr('TITLE'), "t" * titlelength)
 
         # Now, try with a table object
         table = self.fileh.createTable(self.root, 'table',
                                        Record, "t" * titlelength)
-        assert table.title == "t" * titlelength
-        assert table.getAttr("TITLE") == "t" * titlelength
+        self.assertEqual(table.title, "t" * titlelength)
+        self.assertEqual(table.getAttr("TITLE"), "t" * titlelength)
 
         # Finally, try with an Array object
         arr = self.fileh.createArray(self.root, 'arr',
                                      [1], "t" * titlelength)
-        assert arr.title == "t" * titlelength
-        assert arr.getAttr("TITLE") == "t" * titlelength
+        self.assertEqual(arr.title, "t" * titlelength)
+        self.assertEqual(arr.getAttr("TITLE"), "t" * titlelength)
 
     def test04_maxFields(self):
         "Checking a large number of fields in tables"
@@ -205,7 +204,7 @@ class createTestCase(unittest.TestCase):
         if common.verbose:
             print "Original row list:", listrows[-1]
             print "Retrieved row list:", listout[-1]
-        assert listrows == listout
+        self.assertEqual(listrows, listout)
 
     # The next limitation has been released. A warning is still there, though
     def test05_maxFieldsExceeded(self):
@@ -283,8 +282,8 @@ class createTestCase(unittest.TestCase):
         # Here, IndexError should be raised!
         table = self.fileh.createTable(self.root, 'table',
                                        recordDict, "MetaRecord instance")
-        assert table.colnames[0] == "a"*255
-        assert table.colnames[1] == "b"*1024
+        self.assertEqual(table.colnames[0], "a"*255)
+        self.assertEqual(table.colnames[1], "b"*1024)
 
 
 class Record2(IsDescription):
@@ -377,16 +376,16 @@ class FiltersTreeTestCase(unittest.TestCase):
             filters = Filters()
         else:
             filters = self.filters
-        assert repr(filters) == repr(self.h5file.filters)
+        self.assertEqual(repr(filters), repr(self.h5file.filters))
         # The next nodes have to have the same filter properties as
         # self.filters
         nodelist = ['/table1', '/group0/earray1', '/group0']
         for node in nodelist:
             object = self.h5file.getNode(node)
             if isinstance(object, Group):
-                assert repr(filters) == repr(object._v_filters)
+                self.assertEqual(repr(filters), repr(object._v_filters))
             else:
-                assert repr(filters) == repr(object.filters)
+                self.assertEqual(repr(filters), repr(object.filters))
 
         # Second and third level check
         group1 = self.h5file.root.group0.group1
@@ -401,7 +400,7 @@ class FiltersTreeTestCase(unittest.TestCase):
             print "Test gfilter:", repr(gfilters)
             print "Filters in file:", repr(group1._v_filters)
 
-        assert repr(gfilters) == repr(group1._v_filters)
+        self.assertEqual(repr(gfilters), repr(group1._v_filters))
         # The next nodes have to have the same filter properties as
         # gfilters
         nodelist = ['/group0/group1', '/group0/group1/earray1',
@@ -409,9 +408,9 @@ class FiltersTreeTestCase(unittest.TestCase):
         for node in nodelist:
             object = self.h5file.getNode(node)
             if isinstance(object, Group):
-                assert repr(gfilters) == repr(object._v_filters)
+                self.assertEqual(repr(gfilters), repr(object._v_filters))
             else:
-                assert repr(gfilters) == repr(object.filters)
+                self.assertEqual(repr(gfilters), repr(object.filters))
 
         # Fourth and fifth level check
         if self.filters == None:
@@ -427,7 +426,7 @@ class FiltersTreeTestCase(unittest.TestCase):
             print "Test filter:", repr(filters)
             print "Filters in file:", repr(group3._v_filters)
 
-        assert repr(filters) == repr(group3._v_filters)
+        self.assertEqual(repr(filters), repr(group3._v_filters))
         # The next nodes have to have the same filter properties as
         # self.filter
         nodelist = ['/group0/group1/group2/group3',
@@ -437,9 +436,9 @@ class FiltersTreeTestCase(unittest.TestCase):
         for node in nodelist:
             object = self.h5file.getNode(node)
             if isinstance(object, Group):
-                assert repr(filters) == repr(object._v_filters)
+                self.assertEqual(repr(filters), repr(object._v_filters))
             else:
-                assert repr(filters) == repr(object.filters)
+                self.assertEqual(repr(filters), repr(object.filters))
 
 
         # Checking the special case for Arrays in which the compression
@@ -453,7 +452,7 @@ class FiltersTreeTestCase(unittest.TestCase):
                     '/group0/group1/group2/group3/array1']
         for node in nodelist:
             object = self.h5file.getNode(node)
-            assert repr(Filters()) == repr(object.filters)
+            self.assertEqual(repr(Filters()), repr(object.filters))
 
     def test01_checkFilters(self):
         "Checking inheritance of filters on trees (close file version)"
@@ -476,16 +475,16 @@ class FiltersTreeTestCase(unittest.TestCase):
             print "Test filter:", repr(filters)
             print "Filters in file:", repr(self.h5file.filters)
 
-        assert repr(filters) == repr(self.h5file.filters)
+        self.assertEqual(repr(filters), repr(self.h5file.filters))
         # The next nodes have to have the same filter properties as
         # self.filters
         nodelist = ['/table1', '/group0/earray1', '/group0']
         for node in nodelist:
             object_ = self.h5file.getNode(node)
             if isinstance(object_, Group):
-                assert repr(filters) == repr(object_._v_filters)
+                self.assertEqual(repr(filters), repr(object_._v_filters))
             else:
-                assert repr(filters) == repr(object_.filters)
+                self.assertEqual(repr(filters), repr(object_.filters))
 
         # Second and third level check
         group1 = self.h5file.root.group0.group1
@@ -508,9 +507,9 @@ class FiltersTreeTestCase(unittest.TestCase):
         for node in nodelist:
             object_ = self.h5file.getNode(node)
             if isinstance(object_, Group):
-                assert repr(gfilters) == repr(object_._v_filters)
+                self.assertEqual(repr(gfilters), repr(object_._v_filters))
             else:
-                assert repr(gfilters) == repr(object_.filters)
+                self.assertEqual(repr(gfilters), repr(object_.filters))
 
         # Fourth and fifth level check
         if self.filters == None:
@@ -535,9 +534,9 @@ class FiltersTreeTestCase(unittest.TestCase):
         for node in nodelist:
             object = self.h5file.getNode(node)
             if isinstance(object, Group):
-                assert repr(filters) == repr(object._v_filters)
+                self.assertEqual(repr(filters), repr(object._v_filters))
             else:
-                assert repr(filters) == repr(object.filters)
+                self.assertEqual(repr(filters), repr(object.filters))
 
         # Checking the special case for Arrays in which the compression
         # should always be the empty Filter()
@@ -550,7 +549,7 @@ class FiltersTreeTestCase(unittest.TestCase):
                     '/group0/group1/group2/group3/array1']
         for node in nodelist:
             object = self.h5file.getNode(node)
-            assert repr(Filters()) == repr(object.filters)
+            self.assertEqual(repr(Filters()), repr(object.filters))
 
 
 class FiltersCase1(FiltersTreeTestCase):
@@ -710,8 +709,8 @@ class CopyGroupTestCase(unittest.TestCase):
         if common.verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
-        assert srcgroup._v_nchildren == dstgroup._v_nchildren
-        assert nodelist1 == nodelist2
+        self.assertEqual(srcgroup._v_nchildren, dstgroup._v_nchildren)
+        self.assertEqual(nodelist1, nodelist2)
 
     def test01_nonRecursiveAttrs(self):
         "Checking non-recursive copy of a Group (attributes copied)"
@@ -755,7 +754,7 @@ class CopyGroupTestCase(unittest.TestCase):
                                                        srcattrskeys)
                 print "dstattrskeys for node %s: %s" %(dstnode._v_name,
                                                        dstattrskeys)
-            assert srcattrskeys == dstattrskeys
+            self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
                 print "The attrs names has been copied correctly"
 
@@ -763,9 +762,9 @@ class CopyGroupTestCase(unittest.TestCase):
             for srcattrname in srcattrskeys:
                 srcattrvalue = str(getattr(srcattrs, srcattrname))
                 dstattrvalue = str(getattr(dstattrs, srcattrname))
-                assert srcattrvalue == dstattrvalue
+                self.assertEqual(srcattrvalue, dstattrvalue)
             if self.filters is not None:
-                assert dstattrs.FILTERS == self.filters
+                self.assertEqual(dstattrs.FILTERS, self.filters)
 
             if common.verbose:
                 print "The attrs contents has been copied correctly"
@@ -825,7 +824,7 @@ class CopyGroupTestCase(unittest.TestCase):
         if common.verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
-        assert nodelist1 == nodelist2
+        self.assertEqual(nodelist1, nodelist2)
 
     def test03_RecursiveFilters(self):
         "Checking recursive copy of a Group (cheking Filters)"
@@ -1051,9 +1050,9 @@ class CopyFileTestCase(unittest.TestCase):
         if common.verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
-        assert srcgroup._v_nchildren == dstgroup._v_nchildren
-        assert nodelist1 == nodelist2
-        assert self.h5file2.title == self.title
+        self.assertEqual(srcgroup._v_nchildren, dstgroup._v_nchildren)
+        self.assertEqual(nodelist1, nodelist2)
+        self.assertEqual(self.h5file2.title, self.title)
 
     def test00a_srcdstequal(self):
         "Checking copy of a File (srcfile == dstfile)"
@@ -1093,9 +1092,9 @@ class CopyFileTestCase(unittest.TestCase):
         if common.verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
-        assert srcgroup._v_nchildren == dstgroup._v_nchildren
-        assert nodelist1 == nodelist2
-        assert self.h5file2.title == self.title
+        self.assertEqual(srcgroup._v_nchildren, dstgroup._v_nchildren)
+        self.assertEqual(nodelist1, nodelist2)
+        self.assertEqual(self.h5file2.title, self.title)
 
     def test01_copy(self):
         "Checking copy of a File (attributes not copied)"
@@ -1128,11 +1127,11 @@ class CopyFileTestCase(unittest.TestCase):
         if common.verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
-        assert srcgroup._v_nchildren == dstgroup._v_nchildren
-        assert nodelist1 == nodelist2
+        self.assertEqual(srcgroup._v_nchildren, dstgroup._v_nchildren)
+        self.assertEqual(nodelist1, nodelist2)
         #print "_v_attrnames-->", self.h5file2.root._v_attrs._v_attrnames
         #print "--> <%s,%s>" % (self.h5file2.title, self.title)
-        assert self.h5file2.title == self.title
+        self.assertEqual(self.h5file2.title, self.title)
 
         # Check that user attributes has not been copied
         for srcnode in srcgroup:
@@ -1150,7 +1149,7 @@ class CopyFileTestCase(unittest.TestCase):
                                                        srcattrskeys)
                 print "dstattrskeys for node %s: %s" %(dstnode._v_name,
                                                        dstattrskeys)
-            assert srcattrskeys == dstattrskeys
+            self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
                 print "The attrs names has been copied correctly"
 
@@ -1158,9 +1157,9 @@ class CopyFileTestCase(unittest.TestCase):
             for srcattrname in srcattrskeys:
                 srcattrvalue = str(getattr(srcattrs, srcattrname))
                 dstattrvalue = str(getattr(dstattrs, srcattrname))
-                assert srcattrvalue == dstattrvalue
+                self.assertEqual(srcattrvalue, dstattrvalue)
             if self.filters is not None:
-                assert dstattrs.FILTERS == self.filters
+                self.assertEqual(dstattrs.FILTERS, self.filters)
 
             if common.verbose:
                 print "The attrs contents has been copied correctly"
@@ -1206,7 +1205,7 @@ class CopyFileTestCase(unittest.TestCase):
             # Filters may differ, do not take into account
             if self.filters is not None:
                 dstattrskeys.remove('FILTERS')
-            assert srcattrskeys == dstattrskeys
+            self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
                 print "The attrs names has been copied correctly"
 
@@ -1214,9 +1213,9 @@ class CopyFileTestCase(unittest.TestCase):
             for srcattrname in srcattrskeys:
                 srcattrvalue = str(getattr(srcattrs, srcattrname))
                 dstattrvalue = str(getattr(dstattrs, srcattrname))
-                assert srcattrvalue == dstattrvalue
+                self.assertEqual(srcattrvalue, dstattrvalue)
             if self.filters is not None:
-                assert dstattrs.FILTERS == self.filters
+                self.assertEqual(dstattrs.FILTERS, self.filters)
 
             if common.verbose:
                 print "The attrs contents has been copied correctly"
@@ -1405,7 +1404,7 @@ class setBloscMaxThreads(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "Previous max threads:", nthreads_old
             print "Should be:", self.h5file.params['MAX_THREADS']
-        self.assert_(nthreads_old == self.h5file.params['MAX_THREADS'])
+        self.assertEqual(nthreads_old, self.h5file.params['MAX_THREADS'])
         self.h5file.createCArray('/', 'some_array',
                                  atom=tables.Int32Atom(), shape=(3,3),
                                  filters = self.filters)
@@ -1413,7 +1412,7 @@ class setBloscMaxThreads(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "Previous max threads:", nthreads_old
             print "Should be:", 4
-        self.assert_(nthreads_old == 4)
+        self.assertEqual(nthreads_old, 4)
 
     def test01(self):
         """Checking setBloscMaxThreads() (re-open)"""
@@ -1426,7 +1425,7 @@ class setBloscMaxThreads(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "Previous max threads:", nthreads_old
             print "Should be:", self.h5file.params['MAX_THREADS']
-        self.assert_(nthreads_old == self.h5file.params['MAX_THREADS'])
+        self.assertEqual(nthreads_old, self.h5file.params['MAX_THREADS'])
 
 
 

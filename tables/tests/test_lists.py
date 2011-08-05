@@ -183,7 +183,7 @@ class GetItemTestCase(unittest.TestCase):
         if common.verbose:
             print "Original first element:", a[0]
             print "Read first element:", arr[0]
-        assert a[0] == arr[0]
+        self.assertEqual(a[0], arr[0])
 
         # Close the file
         fileh.close()
@@ -204,7 +204,7 @@ class GetItemTestCase(unittest.TestCase):
         if common.verbose:
             print "Original first element:", a[0]
             print "Read first element:", arr[0]
-        assert a[0] == arr[0]
+        self.assertEqual(a[0], arr[0])
 
         # Close the file
         fileh.close()
@@ -225,7 +225,7 @@ class GetItemTestCase(unittest.TestCase):
         if common.verbose:
             print "Original elements:", a[1:4]
             print "Read elements:", arr[1:4]
-        assert a[1:4] == arr[1:4]
+        self.assertEqual(a[1:4], arr[1:4])
 
         # Close the file
         fileh.close()
@@ -246,7 +246,7 @@ class GetItemTestCase(unittest.TestCase):
         if common.verbose:
             print "Original elements:", a[1:4]
             print "Read elements:", arr[1:4]
-        assert a[1:4] == arr[1:4]
+        self.assertEqual(a[1:4], arr[1:4])
 
         # Close the file
         fileh.close()
@@ -267,7 +267,7 @@ class GetItemTestCase(unittest.TestCase):
         if common.verbose:
             print "Original elements:", a[1:4:2]
             print "Read elements:", arr[1:4:2]
-        assert a[1:4:2] == arr[1:4:2]
+        self.assertEqual(a[1:4:2], arr[1:4:2])
 
         # Close the file
         fileh.close()
@@ -288,7 +288,7 @@ class GetItemTestCase(unittest.TestCase):
         if common.verbose:
             print "Original elements:", a[1:4:2]
             print "Read elements:", arr[1:4:2]
-        assert a[1:4:2] == arr[1:4:2]
+        self.assertEqual(a[1:4:2], arr[1:4:2])
 
         # Close the file
         fileh.close()
@@ -309,7 +309,7 @@ class GetItemTestCase(unittest.TestCase):
         if common.verbose:
             print "Original last element:", a[-1]
             print "Read last element:", arr[-1]
-        assert a[-1] == arr[-1]
+        self.assertEqual(a[-1], arr[-1])
 
         # Close the file
         fileh.close()
@@ -330,7 +330,7 @@ class GetItemTestCase(unittest.TestCase):
         if common.verbose:
             print "Original before last element:", a[-2]
             print "Read before last element:", arr[-2]
-        assert a[-2] == arr[-2]
+        self.assertEqual(a[-2], arr[-2])
 
         # Close the file
         fileh.close()
@@ -351,7 +351,7 @@ class GetItemTestCase(unittest.TestCase):
         if common.verbose:
             print "Original last elements:", a[-4:-1]
             print "Read last elements:", arr[-4:-1]
-        assert a[-4:-1] == arr[-4:-1]
+        self.assertEqual(a[-4:-1], arr[-4:-1])
 
         # Close the file
         fileh.close()
@@ -372,7 +372,7 @@ class GetItemTestCase(unittest.TestCase):
         if common.verbose:
             print "Original last elements:", a[-4:-1]
             print "Read last elements:", arr[-4:-1]
-        assert a[-4:-1] == arr[-4:-1]
+        self.assertEqual(a[-4:-1], arr[-4:-1])
 
         # Close the file
         fileh.close()
@@ -423,7 +423,7 @@ class GeneratorTestCase(unittest.TestCase):
         if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
-        assert ga == garr
+        self.assertEqual(ga, garr)
 
         # Close the file
         fileh.close()
@@ -449,7 +449,7 @@ class GeneratorTestCase(unittest.TestCase):
         if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
-        assert ga == garr
+        self.assertEqual(ga, garr)
 
         # Close the file
         fileh.close()
@@ -472,7 +472,7 @@ class GeneratorTestCase(unittest.TestCase):
         if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
-        assert ga == garr
+        self.assertEqual(ga, garr)
 
         # Close the file
         fileh.close()
@@ -498,7 +498,7 @@ class GeneratorTestCase(unittest.TestCase):
         if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
-        assert ga == garr
+        self.assertEqual(ga, garr)
 
         # Close the file
         fileh.close()

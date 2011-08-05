@@ -226,8 +226,10 @@ class BasicTestCase(common.PyTablesTestCase):
                 print "dflt-->", columns[v].dflt
                 print "coldflts-->", tbl.coldflts[v]
                 print "desc.dflts-->", desc._v_dflts[v]
-            assert common.areArraysEqual(tbl.coldflts[v], columns[v].dflt)
-            assert common.areArraysEqual(desc._v_dflts[v], columns[v].dflt)
+            self.assertTrue(common.areArraysEqual(tbl.coldflts[v],
+                                                  columns[v].dflt))
+            self.assertTrue(common.areArraysEqual(desc._v_dflts[v],
+                                                  columns[v].dflt))
 
         # Column path names.
         self.assertEqual(expectedNames, list(desc._v_pathnames))
@@ -263,23 +265,18 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
         nrows = self.expectedrows - 1
-        assert ((
+        self.assertEqual((
             rec['var0'][0],
             rec['var1'][0][0],
             rec['var1_'][0],
             rec['var2'][0][0],
             rec['var7']
-            ) == (
-            "0001",
-            "0001",
-            nrows,
-            nrows,
-            "1"))
+            ), ("0001", "0001", nrows, nrows, "1"))
         if isinstance(rec['var5'], numpy.ndarray):
-            assert allequal(rec['var5'], array((nrows,)*4, float32))
+            self.assertTrue(allequal(rec['var5'], array((nrows,)*4, float32)))
         else:
-            assert rec['var5'] == float(nrows)
-        assert len(result) == 20
+            self.assertEqual(rec['var5'], float(nrows))
+        self.assertEqual(len(result), 20)
 
     def test01b_readTable(self):
         """Checking table read and cuts (multidimensional columns case)"""
@@ -304,15 +301,17 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Total selected records in table ==> ", len(result)
         nrows = table.nrows
         if isinstance(rec['var5'], numpy.ndarray):
-            assert allequal(result[0], array((float(0),)*4, float32))
-            assert allequal(result[1], array((float(1),)*4, float32))
-            assert allequal(result[2], array((float(2),)*4, float32))
-            assert allequal(result[3], array((float(3),)*4, float32))
-            assert allequal(result[10], array((float(10),)*4, float32))
-            assert allequal(rec['var5'], array((float(nrows-1),)*4, float32))
+            self.assertTrue(allequal(result[0], array((float(0),)*4, float32)))
+            self.assertTrue(allequal(result[1], array((float(1),)*4, float32)))
+            self.assertTrue(allequal(result[2], array((float(2),)*4, float32)))
+            self.assertTrue(allequal(result[3], array((float(3),)*4, float32)))
+            self.assertTrue(allequal(result[10],
+                                     array((float(10),)*4, float32)))
+            self.assertTrue(allequal(rec['var5'],
+                                     array((float(nrows-1),)*4, float32)))
         else:
-            assert rec['var5'] == float(nrows-1)
-        assert len(result) == 20
+            self.assertEqual(rec['var5'], float(nrows-1))
+        self.assertEqual(len(result), 20)
 
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var1'] for rec in table.iterrows()
@@ -320,20 +319,20 @@ class BasicTestCase(common.PyTablesTestCase):
 
         if rec['var1'].dtype.char == "S":
             a = numpy.array([['%04d' % (self.expectedrows - 0)]*2]*2)
-            assert allequal(result[0], a)
+            self.assertTrue(allequal(result[0], a))
             a = numpy.array([['%04d' % (self.expectedrows - 1)]*2]*2)
-            assert allequal(result[1], a)
+            self.assertTrue(allequal(result[1], a))
             a = numpy.array([['%04d' % (self.expectedrows - 2)]*2]*2)
-            assert allequal(result[2], a)
+            self.assertTrue(allequal(result[2], a))
             a = numpy.array([['%04d' % (self.expectedrows - 3)]*2]*2)
-            assert allequal(result[3], a)
+            self.assertTrue(allequal(result[3], a))
             a = numpy.array([['%04d' % (self.expectedrows - 10)]*2]*2)
-            assert allequal(result[10], a)
+            self.assertTrue(allequal(result[10], a))
             a = numpy.array([['%04d' % (1)]*2]*2)
-            assert allequal(rec['var1'], a)
+            self.assertTrue(allequal(rec['var1'], a))
         else:
-            assert rec['var1'] == "0001"
-        assert len(result) == 20
+            self.assertEqual(rec['var1'], "0001")
+        self.assertEqual(len(result), 20)
 
     def test01c_readTable(self):
         """Checking shape of multidimensional columns"""
@@ -350,7 +349,7 @@ class BasicTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "var2 col shape:", table.cols.var2.shape
             print "Should be:", table.cols.var2[:].shape
-        self.assert_(table.cols.var2.shape == table.cols.var2[:].shape)
+        self.assertEqual(table.cols.var2.shape, table.cols.var2[:].shape)
 
     def test02_AppendRows(self):
         """Checking whether appending record rows works or not"""
@@ -394,27 +393,23 @@ class BasicTestCase(common.PyTablesTestCase):
                    if row['var2'][0][0] < 20 ]
 
         nrows = self.appendrows - 1
-        assert ((
+        self.assertEqual((
             row['var0'][0],
             row['var1'][0][0],
             row['var1_'][0],
             row['var2'][0][0],
-            row['var7']
-            ) == (
-            "0001",
-            "0001",
-            nrows,
-            nrows,
-            "1"))
+            row['var7']),
+            ( "0001", "0001", nrows, nrows, "1"))
         if isinstance(row['var5'], numpy.ndarray):
-            assert allequal(row['var5'], array((float(nrows),)*4, float32))
+            self.assertTrue(allequal(row['var5'],
+                                     array((float(nrows),)*4, float32)))
         else:
-            assert row['var5'] == float(nrows)
+            self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
             add = self.appendrows
         else:
             add = 20
-        assert len(result) == 20 + add  # because we appended new rows
+        self.assertEqual(len(result), 20 + add) # because we appended new rows
         #del table
 
     # CAVEAT: The next test only works for tables with rows < 2**15
@@ -438,8 +433,8 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Last record in table ==>", rec
             print "Total selected records in table ==>", len(result)
         nrows = self.expectedrows - 1
-        assert (rec['var1'][0][0], rec['var3']) == ("0001", nrows)
-        assert len(result) == 20
+        self.assertEqual((rec['var1'][0][0], rec['var3']), ("0001", nrows))
+        self.assertEqual(len(result), 20)
 
 class BasicWriteTestCase(BasicTestCase):
     title = "BasicWrite"
@@ -658,13 +653,14 @@ class BasicRangeTestCase(unittest.TestCase):
                   range(startr, stopr, self.step)
             print "start, stop, step ==>", startr, stopr, self.step
 
-        assert result == range(startr, stopr, self.step)
+        self.assertEqual(result, range(startr, stopr, self.step))
         if startr < stopr and not (self.checkrecarray or self.checkgetCol):
             if self.nrows < self.expectedrows:
-                assert rec['var2'][0][0] == \
-                       range(self.start, self.stop, self.step)[-1]
+                self.assertEqual(rec['var2'][0][0],
+                                 range(self.start, self.stop, self.step)[-1])
             else:
-                assert rec['var2'][0][0] == range(startr, stopr, self.step)[-1]
+                self.assertEqual(rec['var2'][0][0],
+                                 range(startr, stopr, self.step)[-1])
 
         # Close the file
         self.fileh.close()
@@ -966,7 +962,7 @@ class RecArrayIO(unittest.TestCase):
         # Read it again
         r2 = fileh.root.recarray.read()
 
-        assert r.tostring() == r2.tostring()
+        self.assertEqual(r.tostring(), r2.tostring())
 
         fileh.close()
         os.remove(file)
@@ -994,7 +990,7 @@ class RecArrayIO(unittest.TestCase):
         # Read it again
         r2 = fileh.root.recarray.read()
 
-        assert r1.tostring() == r2.tostring()
+        self.assertEqual(r1.tostring(), r2.tostring())
 
         fileh.close()
         os.remove(file)
@@ -1022,7 +1018,7 @@ class RecArrayIO(unittest.TestCase):
         # Read it again
         r2 = fileh.root.recarray.read()
 
-        assert r1.tostring() == r2.tostring()
+        self.assertEqual(r1.tostring(), r2.tostring())
 
         fileh.close()
         os.remove(file)
@@ -1052,7 +1048,7 @@ class RecArrayIO(unittest.TestCase):
         # Read it again
         r2 = fileh.root.recarray.read()
 
-        assert r1.tostring() == r2.tostring()
+        self.assertEqual(r1.tostring(), r2.tostring())
 
         fileh.close()
         os.remove(file)
@@ -1090,8 +1086,8 @@ class RecArrayIO(unittest.TestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
         fileh.close()
         os.remove(file)
@@ -1130,8 +1126,8 @@ class RecArrayIO(unittest.TestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
         fileh.close()
         os.remove(file)
@@ -1170,8 +1166,8 @@ class RecArrayIO(unittest.TestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
         fileh.close()
         os.remove(file)
@@ -1232,8 +1228,8 @@ class DefaultValues(unittest.TestCase):
             print r
 
         # Both checks do work, however, tostring() seems more stringent.
-        assert r.tostring() == r2.tostring()
-        #assert common.areArraysEqual(r,r2)
+        self.assertEqual(r.tostring(), r2.tostring())
+        #self.assertTrue(common.areArraysEqual(r,r2))
 
         fileh.close()
         os.remove(file)
@@ -1284,7 +1280,7 @@ class ShapeTestCase(unittest.TestCase):
             print "They should look like:", [1]
 
         # The real check
-        assert table.cols.var0[:].tolist() == [1]
+        self.assertEqual(table.cols.var0[:].tolist(), [1])
 
     def test01(self):
         "Checking undimensional (one element) shapes"
@@ -1299,7 +1295,7 @@ class ShapeTestCase(unittest.TestCase):
             print "They should look like:", [[1]]
 
         # The real check
-        assert table.cols.var1[:].tolist() == [[1]]
+        self.assertEqual(table.cols.var1[:].tolist(), [[1]])
 
     def test02(self):
         "Checking undimensional (two elements) shapes"
@@ -1314,8 +1310,8 @@ class ShapeTestCase(unittest.TestCase):
             print "They should look like:", [[1,1]]
 
         # The real check
-        assert table.cols.var2[:].tolist() == [[1,1]]
-        assert table.cols.var2_s[:].tolist() == [[1,1]]
+        self.assertEqual(table.cols.var2[:].tolist(), [[1,1]])
+        self.assertEqual(table.cols.var2_s[:].tolist(), [[1,1]])
 
     def test03(self):
         "Checking bidimensional shapes"
@@ -1330,7 +1326,7 @@ class ShapeTestCase(unittest.TestCase):
             print "They should look like:", [[[0,0],[1,1]]]
 
         # The real check
-        assert table.cols.var3[:].tolist() == [[[0,0],[1,1]]]
+        self.assertEqual(table.cols.var3[:].tolist(), [[[0,0],[1,1]]])
 
 
 class ShapeTestCase1(ShapeTestCase):
@@ -1383,8 +1379,8 @@ class setItem(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test01b(self):
         "Checking modifying one table row with __setitem__ (long index)"
@@ -1414,8 +1410,8 @@ class setItem(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test02(self):
         "Modifying one row, with a step (__setitem__)"
@@ -1447,8 +1443,8 @@ class setItem(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test03(self):
         "Checking modifying several rows at once (__setitem__)"
@@ -1481,8 +1477,8 @@ class setItem(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test04(self):
         "Modifying several rows at once, with a step (__setitem__)"
@@ -1515,8 +1511,8 @@ class setItem(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test05(self):
         "Checking modifying one column (single element, __setitem__)"
@@ -1546,8 +1542,8 @@ class setItem(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test06a(self):
         "Checking modifying one column (several elements, __setitem__)"
@@ -1577,8 +1573,8 @@ class setItem(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test06b(self):
         "Checking modifying one column (iterator, __setitem__)"
@@ -1633,8 +1629,8 @@ class setItem(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test08(self):
         "Modifying one column (one element, __setitem__, step)"
@@ -1664,8 +1660,8 @@ class setItem(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test09(self):
         "Modifying beyond the table extend (__setitem__, step)"
@@ -1698,8 +1694,8 @@ class setItem(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
 class setItem1(setItem):
     reopen=0
@@ -1762,8 +1758,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
 
     def test02(self):
@@ -1799,8 +1795,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test03(self):
         "Checking modifying several rows at once (Row.update)"
@@ -1835,8 +1831,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test04(self):
         "Modifying several rows at once, with a step (Row.update)"
@@ -1871,8 +1867,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertTrue(table.nrows, 4)
 
     def test05(self):
         "Checking modifying one column (single element, Row.update)"
@@ -1904,8 +1900,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test06(self):
         "Checking modifying one column (several elements, Row.update)"
@@ -1937,8 +1933,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test07(self):
         "Modifying values from a selection"
@@ -1971,8 +1967,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == 4
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, 4)
 
     def test08(self):
         "Modifying a large table (Row.update)"
@@ -2015,8 +2011,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == nrows
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, nrows)
 
     def test08b(self):
         "Setting values on a large table without calling Row.update"
@@ -2059,8 +2055,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == nrows
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, nrows)
 
     def test09(self):
         "Modifying selected values on a large table"
@@ -2109,8 +2105,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == nrows
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, nrows)
 
     def test09b(self):
         "Modifying selected values on a large table (alternate values)"
@@ -2159,8 +2155,8 @@ class updateRow(common.PyTablesTestCase):
         if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
-        assert r1.tostring() == r2.tostring()
-        assert table.nrows == nrows
+        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(table.nrows, nrows)
 
 
 class updateRow1(updateRow):

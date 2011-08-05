@@ -1,4 +1,3 @@
-import sys
 import unittest
 import os
 import tempfile
@@ -59,23 +58,25 @@ class BasicTestCase(unittest.TestCase):
             print "Array read type:", b.typecode()
 
         # Check strictly the array equality
-        assert a.shape == b.shape
-        assert a.shape == self.root.somearray.shape
+        self.assertEqual(a.shape, b.shape)
+        self.assertEqual(a.shape, self.root.somearray.shape)
         if a.typecode() == "i" or a.typecode() == "l":
             # Special expection. We have no way to distinguish between
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
-            assert (b.typecode() == "l" or b.typecode() == "i")
+            self.assertTrue(b.typecode() == "l" or b.typecode() == "i")
             # We have to add "N" that represent Int64 in 64-bit platforms
-            assert typecode[self.root.somearray.atom.type] in ["i", "l", "N"]
+            self.assertTrue(typecode[self.root.somearray.atom.type] in
+                            ["i", "l", "N"])
         elif a.typecode() == "c":
-            assert a.typecode() == b.typecode()
-            assert self.root.somearray.atom.type == "string"
+            self.assertEqual(a.typecode(), b.typecode())
+            self.assertEqual(self.root.somearray.atom.type, "string")
         else:
-            assert a.typecode() == b.typecode()
-            assert a.typecode() == typecode[self.root.somearray.atom.type]
+            self.assertEqual(a.typecode(), b.typecode())
+            self.assertEqual(a.typecode(),
+                             typecode[self.root.somearray.atom.type])
 
-        assert allequal(a,b, "numeric")
+        self.assertTrue(allequal(a,b, "numeric"))
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
@@ -97,7 +98,7 @@ class BasicTestCase(unittest.TestCase):
         else:
             b = a[::2]
             # Ensure that this Numeric string is non-contiguous
-            assert b.iscontiguous() == False
+            self.assertEqual(b.iscontiguous(), False)
         self.WriteRead(b)
         return
 
@@ -124,7 +125,7 @@ class BasicTestCase(unittest.TestCase):
                 return
             b = a[::2]
             # Ensure that this array is non-contiguous
-            assert b.iscontiguous() == 0
+            self.assertEqual(b.iscontiguous(), 0)
             self.WriteRead(b)
 
         return
@@ -244,15 +245,15 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %s" % b.typecode()
 
-            assert a.shape == b.shape
+            self.assertEqual(a.shape, b.shape)
             if (a.typecode() == "i" or a.typecode() == "l"):
                 # Special expection. We have no way to distinguish between
                 # "l" and "i" typecode, and we can consider them the same
                 # to all practical effects
-                assert b.typecode() == "l" or b.typecode() == "i"
+                self.assertTrue(b.typecode() == "l" or b.typecode() == "i")
             else:
-                assert a.typecode() == b.typecode()
-            assert allequal(a,b, "numeric")
+                self.assertEqual(a.typecode(), b.typecode())
+            self.assertTrue(allequal(a,b, "numeric"))
 
             # Iterate over the next group
             group = getattr(group, 'group' + str(i))
@@ -323,14 +324,14 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print "  typecode ==> %c" % dset.typecode
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %c" % b.typecode()
-            assert a.shape == b.shape
+            self.assertEqual(a.shape, b.shape)
             if a.typecode() == "i":
                 # Special expection. We have no way to distinguish between
                 # "l" and "i" typecode, and we can consider them the same
                 # to all practical effects
-                assert b.typecode() == "l" or b.typecode() == "i"
+                self.assertTrue(b.typecode() == "l" or b.typecode() == "i")
             else:
-                assert a.typecode() == b.typecode()
+                self.assertEqual(a.typecode(), b.typecode())
 
             # ************** WARNING!!! *****************
             # If we compare to arrays of dimensions bigger than 20
@@ -340,8 +341,8 @@ class GroupsArrayTestCase(unittest.TestCase):
             # tolist() conversion is the best to compare Numeric
             # arrays!. At least, tolist() do not crash!.
             # ************** WARNING!!! *****************
-            #assert a.tolist() == b.tolist()
-            assert a == b
+            #self.assertEqual(a.tolist(), b.tolist())
+            self.assertEqual(a, b)
 
             # Iterate over the next group
             group = fileh.getNode(group, 'group' + str(rank))
@@ -421,7 +422,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", orignumcol.shape
                     print "First 3 elements of read col:", numcol[:3]
                 # Check that both Numeric objects are equal
-                assert allequal(numcol, orignumcol, "numeric")
+                self.assertTrue(allequal(numcol, orignumcol, "numeric"))
 
     def test01_readTableNum(self):
         """Checking column conversion into Numeric in read(). Numeric flavor"""
@@ -442,7 +443,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", typecode[typecol]
                 orignumcol = ones(shape=self.nrows, typecode=numcol.typecode())
                 # Check that both Numeric objects are equal
-                assert allequal(numcol, orignumcol, "numeric")
+                self.assertTrue(allequal(numcol, orignumcol, "numeric"))
 
 
     def test02_readCoordsChar(self):
@@ -471,7 +472,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", orignumcol.shape
                     print "First 3 elements of read col:", numcol[:3]
                 # Check that both Numeric objects are equal
-                assert allequal(numcol, orignumcol, "numeric")
+                self.assertTrue(allequal(numcol, orignumcol, "numeric"))
 
     def test02_readCoordsNum(self):
         """Column conversion into Numeric in readCoordinates(). Numerical"""
@@ -494,7 +495,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     print "Should look like:", typecode[typecol]
                 orignumcol = ones(shape=self.nrows, typecode=numcol.typecode())
                 # Check that both Numeric objects are equal
-                assert allequal(numcol, orignumcol, "numeric")
+                self.assertTrue(allequal(numcol, orignumcol, "numeric"))
 
 
 #--------------------------------------------------------

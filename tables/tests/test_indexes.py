@@ -1,8 +1,6 @@
 import unittest
 import os
 import tempfile
-import warnings
-import sys
 import copy
 
 from tables import *
@@ -105,7 +103,7 @@ class BasicTestCase(PyTablesTestCase):
 
         # Do a selection
         results = [p["var1"] for p in table.where('var1 == "1"')]
-        assert len(results) == 2
+        self.assertEqual(len(results), 2)
 
     def test00_update(self):
         """Checking automatic re-indexing after an update operation."""
@@ -128,14 +126,14 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Dirtyness of var1 col:", idxcol1.dirty
             print "Dirtyness of var3 col:", idxcol3.dirty
-        assert idxcol1.dirty == False
-        assert idxcol3.dirty == False
+        self.assertEqual(idxcol1.dirty, False)
+        self.assertEqual(idxcol3.dirty, False)
 
         # Do a couple of selections
         results = [p["var1"] for p in table.where('var1 == "1"')]
-        assert len(results) == 2
+        self.assertEqual(len(results), 2)
         results = [p["var3"] for p in table.where('var3 == 0')]
-        assert len(results) == 2
+        self.assertEqual(len(results), 2)
 
     def test01_readIndex(self):
         """Checking reading an Index (string flavor)"""
@@ -155,7 +153,7 @@ class BasicTestCase(PyTablesTestCase):
 
         # Do a selection
         results = [p["var1"] for p in table.where('var1 == "1"')]
-        assert len(results) == 1
+        self.assertEqual(len(results), 1)
 
     def test02_readIndex(self):
         """Checking reading an Index (bool flavor)"""
@@ -178,7 +176,7 @@ class BasicTestCase(PyTablesTestCase):
         results = [p["var2"] for p in table.where('var2 == True')]
         if verbose:
             print "Selected values:", results
-        assert len(results) == self.nrows // 2
+        self.assertEqual(len(results), self.nrows // 2)
 
     def test03_readIndex(self):
         """Checking reading an Index (int flavor)"""
@@ -200,7 +198,7 @@ class BasicTestCase(PyTablesTestCase):
         results = [p["var3"] for p in table.where('(1<var3)&(var3<10)')]
         if verbose:
             print "Selected values:", results
-        assert len(results) == min(10, table.nrows) - 2
+        self.assertEqual(len(results), min(10, table.nrows) - 2)
 
     def test04_readIndex(self):
         """Checking reading an Index (float flavor)"""
@@ -224,7 +222,7 @@ class BasicTestCase(PyTablesTestCase):
         #results = [p["var4"] for p in table.where('(1<var4)&(var4<10)')]
         if verbose:
             print "Selected values:", results
-        assert len(results) == min(10, table.nrows)
+        self.assertEqual(len(results), min(10, table.nrows))
 
     def test05_getWhereList(self):
         """Checking reading an Index with getWhereList (string flavor)"""
@@ -249,8 +247,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
-        assert len(rowList1) == len(rowList2)
-        assert rowList1 == rowList2
+        self.assertEqual(len(rowList1), len(rowList2))
+        self.assertEqual(rowList1, rowList2)
 
     def test06_getWhereList(self):
         """Checking reading an Index with getWhereList (bool flavor)"""
@@ -278,8 +276,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
-        assert len(rowList1) == len(rowList2)
-        assert allequal(rowList1, rowList2)
+        self.assertEqual(len(rowList1), len(rowList2))
+        self.assertTrue(allequal(rowList1, rowList2))
 
     def test07_getWhereList(self):
         """Checking reading an Index with getWhereList (int flavor)"""
@@ -304,8 +302,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
-        assert len(rowList1) == len(rowList2)
-        assert rowList1 == rowList2
+        self.assertEqual(len(rowList1), len(rowList2))
+        self.assertEqual(rowList1, rowList2)
 
     def test08_getWhereList(self):
         """Checking reading an Index with getWhereList (float flavor)"""
@@ -330,8 +328,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
-        assert len(rowList1) == len(rowList2)
-        assert rowList1 == rowList2
+        self.assertEqual(len(rowList1), len(rowList2))
+        self.assertEqual(rowList1, rowList2)
 
     def test09a_removeIndex(self):
         """Checking removing an index"""
@@ -347,16 +345,16 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Before deletion"
             print "var1 column:", table.cols.var1
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
 
         # delete the index
         table.cols.var1.removeIndex()
         if verbose:
             print "After deletion"
             print "var1 column:", table.cols.var1
-        assert table.cols.var1.index is None
-        assert table.colindexed["var1"] == 0
+        self.assertTrue(table.cols.var1.index is None)
+        self.assertEqual(table.colindexed["var1"], 0)
 
         # re-create the index again
         indexrows = table.cols.var1.createIndex(_blocksizes=small_blocksizes)
@@ -364,8 +362,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "After re-creation"
             print "var1 column:", table.cols.var1
-        assert idxcol is not None
-        assert table.colindexed["var1"] == 1
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(table.colindexed["var1"], 1)
 
     def test09b_removeIndex(self):
         """Checking removing an index (persistent version)"""
@@ -381,8 +379,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Before deletion"
             print "var1 index column:", table.cols.var1
-        assert idxcol is not None
-        assert table.colindexed["var1"] == 1
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(table.colindexed["var1"], 1)
         # delete the index
         table.cols.var1.removeIndex()
 
@@ -395,8 +393,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "After deletion"
             print "var1 column:", table.cols.var1
-        assert table.cols.var1.index is None
-        assert table.colindexed["var1"] == 0
+        self.assertTrue(table.cols.var1.index is None)
+        self.assertEqual(table.colindexed["var1"], 0)
 
         # re-create the index again
         indexrows = table.cols.var1.createIndex(_blocksizes=small_blocksizes)
@@ -404,8 +402,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "After re-creation"
             print "var1 column:", table.cols.var1
-        assert idxcol is not None
-        assert table.colindexed["var1"] == 1
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(table.colindexed["var1"], 1)
 
     def test10a_moveIndex(self):
         """Checking moving a table with an index"""
@@ -421,8 +419,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Before move"
             print "var1 column:", idxcol
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
 
         # Create a new group called "agroup"
         agroup = self.fileh.createGroup("/", "agroup")
@@ -432,8 +430,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "After move"
             print "var1 column:", idxcol
-        assert table.cols.var1.index is not None
-        assert table.colindexed["var1"] == 1
+        self.assertTrue(table.cols.var1.index is not None)
+        self.assertEqual(table.colindexed["var1"], 1)
 
         # Some sanity checks
         table.flavor = "python"
@@ -442,8 +440,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
-        assert len(rowList1) == len(rowList2)
-        assert rowList1 == rowList2
+        self.assertEqual(len(rowList1), len(rowList2))
+        self.assertEqual(rowList1, rowList2)
 
     def test10b_moveIndex(self):
         """Checking moving a table with an index (persistent version)"""
@@ -459,8 +457,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Before move"
             print "var1 index column:", idxcol
-        assert idxcol is not None
-        assert table.colindexed["var1"] == 1
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(table.colindexed["var1"], 1)
         # Create a new group called "agroup"
         agroup = self.fileh.createGroup("/", "agroup")
 
@@ -476,8 +474,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "After move"
             print "var1 column:", idxcol
-        assert table.cols.var1.index is not None
-        assert table.colindexed["var1"] == 1
+        self.assertTrue(table.cols.var1.index is not None)
+        self.assertEqual(table.colindexed["var1"], 1)
 
         # Some sanity checks
         table.flavor = "python"
@@ -486,8 +484,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", rowList1, type(rowList1)
             print "Should look like:", rowList2, type(rowList2)
-        assert len(rowList1) == len(rowList2)
-        assert rowList1 == rowList2
+        self.assertEqual(len(rowList1), len(rowList2))
+        self.assertEqual(rowList1, rowList2)
 
     def test10c_moveIndex(self):
         """Checking moving a table with an index (small node cache)."""
@@ -503,8 +501,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Before move"
             print "var1 column:", idxcol
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
 
         # Create a new group called "agroup"
         agroup = self.fileh.createGroup("/", "agroup")
@@ -514,8 +512,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "After move"
             print "var1 column:", idxcol
-        assert table.cols.var1.index is not None
-        assert table.colindexed["var1"] == 1
+        self.assertTrue(table.cols.var1.index is not None)
+        self.assertEqual(table.colindexed["var1"], 1)
 
         # Some sanity checks
         table.flavor = "python"
@@ -524,8 +522,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
-        assert len(rowList1) == len(rowList2)
-        assert rowList1 == rowList2
+        self.assertEqual(len(rowList1), len(rowList2))
+        self.assertEqual(rowList1, rowList2)
 
     def test10d_moveIndex(self):
         """Checking moving a table with an index (no node cache)."""
@@ -541,8 +539,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Before move"
             print "var1 column:", idxcol
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
 
         # Create a new group called "agroup"
         agroup = self.fileh.createGroup("/", "agroup")
@@ -552,8 +550,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "After move"
             print "var1 column:", idxcol
-        assert table.cols.var1.index is not None
-        assert table.colindexed["var1"] == 1
+        self.assertTrue(table.cols.var1.index is not None)
+        self.assertEqual(table.colindexed["var1"], 1)
 
         # Some sanity checks
         table.flavor = "python"
@@ -562,8 +560,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
-        assert len(rowList1) == len(rowList2)
-        assert rowList1 == rowList2
+        self.assertEqual(len(rowList1), len(rowList2))
+        self.assertEqual(rowList1, rowList2)
 
     def test11a_removeTableWithIndex(self):
         """Checking removing a table with indexes"""
@@ -579,14 +577,14 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Before deletion"
             print "var1 column:", table.cols.var1
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
 
         # delete the table
         self.fileh.removeNode("/table")
         if verbose:
             print "After deletion"
-        assert "table" not in self.fileh.root
+        self.assertTrue("table" not in self.fileh.root)
 
         # re-create the table and the index again
         table = self.fileh.createTable("/", 'table', TDescr, "New table",
@@ -605,8 +603,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "After re-creation"
             print "var1 column:", table.cols.var1
-        assert idxcol is not None
-        assert table.colindexed["var1"] == 1
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(table.colindexed["var1"], 1)
 
     def test11b_removeTableWithIndex(self):
         """Checking removing a table with indexes (persistent version 2)"""
@@ -621,14 +619,14 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Before deletion"
             print "var1 column:", table.cols.var1
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
 
         # delete the table
         self.fileh.removeNode("/table")
         if verbose:
             print "After deletion"
-        assert "table" not in self.fileh.root
+        self.assertTrue("table" not in self.fileh.root)
 
         # close and reopen the file
         self.fileh.close()
@@ -651,8 +649,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "After re-creation"
             print "var1 column:", table.cols.var1
-        assert idxcol is not None
-        assert table.colindexed["var1"] == 1
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(table.colindexed["var1"], 1)
 
     # Test provided by Andrew Straw
     def test11c_removeTableWithIndex(self):
@@ -774,9 +772,9 @@ class DeepTableIndexTestCase(unittest.TestCase):
         indexrows = table.cols.var1.createIndex()
         idxcol = table.cols.var1.index
         # Some sanity checks
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
-        assert idxcol.nelements == self.nrows
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(idxcol.nelements, self.nrows)
 
         self.fileh.close()
         os.remove(self.file)
@@ -805,9 +803,9 @@ class DeepTableIndexTestCase(unittest.TestCase):
         table = self.fileh.root.agroup.table
         idxcol = table.cols.var1.index
         # Some sanity checks
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
-        assert idxcol.nelements == self.nrows
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(idxcol.nelements, self.nrows)
 
         self.fileh.close()
         os.remove(self.file)
@@ -833,9 +831,9 @@ class DeepTableIndexTestCase(unittest.TestCase):
         indexrows = table.cols.var1.createIndex()
         idxcol = table.cols.var1.index
         # Some sanity checks
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
-        assert idxcol.nelements == self.nrows
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(idxcol.nelements, self.nrows)
 
         self.fileh.close()
         os.remove(self.file)
@@ -866,9 +864,9 @@ class DeepTableIndexTestCase(unittest.TestCase):
         table = self.fileh.root.agroup.agroup.agroup.table
         idxcol = table.cols.var1.index
         # Some sanity checks
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
-        assert idxcol.nelements == self.nrows
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(idxcol.nelements, self.nrows)
 
         self.fileh.close()
         os.remove(self.file)
@@ -894,9 +892,9 @@ class DeepTableIndexTestCase(unittest.TestCase):
         indexrows = table.cols.var1.createIndex()
         idxcol = table.cols.var1.index
         # Some sanity checks
-        assert table.colindexed["var1"] == 1
-        assert idxcol is not None
-        assert idxcol.nelements == self.nrows
+        self.assertEqual(table.colindexed["var1"], 1)
+        self.assertTrue(idxcol is not None)
+        self.assertEqual(idxcol.nelements, self.nrows)
 
         self.fileh.close()
         os.remove(self.file)
@@ -958,29 +956,29 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 
         table = self.table
         if self.iprops is DefaultProps:
-            assert table.indexed == 0
+            self.assertEqual(table.indexed, 0)
         else:
-            assert table.indexed == 1
+            self.assertEqual(table.indexed, 1)
         if self.iprops is DefaultProps:
-            assert table.colindexed["var1"] == 0
-            assert table.cols.var1.index is None
-            assert table.colindexed["var2"] == 0
-            assert table.cols.var2.index is None
-            assert table.colindexed["var3"] == 0
-            assert table.cols.var3.index is None
-            assert table.colindexed["var4"] == 0
-            assert table.cols.var4.index is None
+            self.assertEqual(table.colindexed["var1"], 0)
+            self.assertTrue(table.cols.var1.index is None)
+            self.assertEqual(table.colindexed["var2"], 0)
+            self.assertTrue(table.cols.var2.index is None)
+            self.assertEqual(table.colindexed["var3"], 0)
+            self.assertTrue(table.cols.var3.index is None)
+            self.assertEqual(table.colindexed["var4"], 0)
+            self.assertTrue(table.cols.var4.index is None)
         else:
             # Check that the var1, var2 and var3 (and only these)
             # has been indexed
-            assert table.colindexed["var1"] == 1
-            assert table.cols.var1.index is not None
-            assert table.colindexed["var2"] == 1
-            assert table.cols.var2.index is not None
-            assert table.colindexed["var3"] == 1
-            assert table.cols.var3.index is not None
-            assert table.colindexed["var4"] == 0
-            assert table.cols.var4.index is None
+            self.assertEqual(table.colindexed["var1"], 1)
+            self.assertTrue(table.cols.var1.index is not None)
+            self.assertEqual(table.colindexed["var2"], 1)
+            self.assertTrue(table.cols.var2.index is not None)
+            self.assertEqual(table.colindexed["var3"], 1)
+            self.assertTrue(table.cols.var3.index is not None)
+            self.assertEqual(table.colindexed["var4"], 0)
+            self.assertTrue(table.cols.var4.index is None)
 
     def test02_attrs(self):
         "Checking indexing attributes (part2)"
@@ -997,21 +995,21 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "Table is not indexed"
         # Check non-default values for index saving policy
         if self.iprops is NoAutoProps:
-            assert not table.autoIndex
+            self.assertFalse(table.autoIndex)
         elif self.iprops is ChangeFiltersProps:
-            assert table.autoIndex
+            self.assertTrue(table.autoIndex)
 
         # Check Index() objects exists and are properly placed
         if self.iprops is DefaultProps:
-            assert table.cols.var1.index == None
-            assert table.cols.var2.index == None
-            assert table.cols.var3.index == None
-            assert table.cols.var4.index == None
+            self.assertEqual(table.cols.var1.index, None)
+            self.assertEqual(table.cols.var2.index, None)
+            self.assertEqual(table.cols.var3.index, None)
+            self.assertEqual(table.cols.var4.index, None)
         else:
-            assert isinstance(table.cols.var1.index, Index)
-            assert isinstance(table.cols.var2.index, Index)
-            assert isinstance(table.cols.var3.index, Index)
-            assert table.cols.var4.index == None
+            self.assertTrue(isinstance(table.cols.var1.index, Index))
+            self.assertTrue(isinstance(table.cols.var2.index, Index))
+            self.assertTrue(isinstance(table.cols.var3.index, Index))
+            self.assertEqual(table.cols.var4.index, None)
 
     def test03_counters(self):
         "Checking indexing counters"
@@ -1032,9 +1030,10 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if self.iprops is not DefaultProps:
             index = table.cols.var1.index
             indexedrows = index.nelements
-            assert table._indexedrows == indexedrows
+            self.assertEqual(table._indexedrows, indexedrows)
             indexedrows = index.nelements
-            assert table._unsaved_indexedrows == self.nrows - indexedrows
+            self.assertEqual(table._unsaved_indexedrows,
+                             self.nrows - indexedrows)
 
     def test04_noauto(self):
         "Checking indexing counters (non-automatic mode)"
@@ -1057,17 +1056,18 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # No unindexated rows should remain
         index = table.cols.var1.index
         if self.iprops is DefaultProps:
-            assert index is None
+            self.assertTrue(index is None)
         else:
             indexedrows = index.nelements
-            assert table._indexedrows == index.nelements
-            assert table._unsaved_indexedrows == self.nrows - indexedrows
+            self.assertEqual(table._indexedrows , index.nelements)
+            self.assertEqual(table._unsaved_indexedrows,
+                             self.nrows - indexedrows)
 
         # Check non-default values for index saving policy
         if self.iprops is NoAutoProps:
-            assert not table.autoIndex
+            self.assertFalse(table.autoIndex)
         elif self.iprops is ChangeFiltersProps:
-            assert table.autoIndex
+            self.assertTrue(table.autoIndex)
 
 
     def test05_icounters(self):
@@ -1101,15 +1101,15 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "Table is not indexed"
 
         # Check the counters
-        assert table.nrows == self.nrows - 2
+        self.assertEqual(table.nrows, self.nrows - 2)
         if self.iprops is NoAutoProps:
-            assert table.cols.var1.index.dirty
+            self.assertTrue(table.cols.var1.index.dirty)
 
         # Check non-default values for index saving policy
         if self.iprops is NoAutoProps:
-            assert not table.autoIndex
+            self.assertFalse(table.autoIndex)
         elif self.iprops is ChangeFiltersProps:
-            assert table.autoIndex
+            self.assertTrue(table.autoIndex)
 
 
     def test06_dirty(self):
@@ -1137,9 +1137,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
                 if not table.autoIndex:
-                    assert table.cols._f_col(colname).index.dirty == True
+                    self.assertEqual(table.cols._f_col(colname).index.dirty,
+                                     True)
                 else:
-                    assert table.cols._f_col(colname).index.dirty == False
+                    self.assertEqual(table.cols._f_col(colname).index.dirty,
+                                     False)
 
     def test07_noauto(self):
         "Checking indexing counters (modifyRows, no-auto mode)"
@@ -1172,9 +1174,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "Table is not indexed"
 
         # Check the counters
-        assert table.nrows == self.nrows
+        self.assertEqual(table.nrows, self.nrows)
         if self.iprops is NoAutoProps:
-            assert table.cols.var1.index.dirty
+            self.assertTrue(table.cols.var1.index.dirty)
 
         # Check the dirty flag for indexes
         if verbose:
@@ -1185,9 +1187,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
                 if not table.autoIndex:
-                    assert table.cols._f_col(colname).index.dirty == True
+                    self.assertEqual(table.cols._f_col(colname).index.dirty,
+                                     True)
                 else:
-                    assert table.cols._f_col(colname).index.dirty == False
+                    self.assertEqual(table.cols._f_col(colname).index.dirty,
+                                     False)
 
     def test07b_noauto(self):
         "Checking indexing queries (modify in iterator, no-auto mode)"
@@ -1221,7 +1225,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Query results (original):", res
             print "Query results (after modifying table):", resq
             print "Should look like:", res_
-        self.assert_(res_ == resq)
+        self.assertEqual(res_, resq)
 
     def test07c_noauto(self):
         "Checking indexing queries (append, no-auto mode)"
@@ -1251,7 +1255,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Query results (original):", res
             print "Query results (after modifying table):", resq
             print "Should look like:", res_
-        self.assert_(res_ == resq)
+        self.assertEqual(res_, resq)
 
     def test08_dirty(self):
         "Checking dirty flags (modifyColumns)"
@@ -1274,9 +1278,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             table = self.fileh.root.table
 
         # Check the counters
-        assert table.nrows == self.nrows
+        self.assertEqual(table.nrows, self.nrows)
         if self.iprops is NoAutoProps:
-            assert table.cols.var1.index.dirty
+            self.assertTrue(table.cols.var1.index.dirty)
 
         # Check the dirty flag for indexes
         if verbose:
@@ -1288,11 +1292,14 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             if table.cols._f_col(colname).index:
                 if not table.autoIndex:
                     if colname in ["var1"]:
-                        assert table.cols._f_col(colname).index.dirty == True
+                        self.assertEqual(
+                            table.cols._f_col(colname).index.dirty, True)
                     else:
-                        assert table.cols._f_col(colname).index.dirty == False
+                        self.assertEqual(
+                            table.cols._f_col(colname).index.dirty, False)
                 else:
-                    assert table.cols._f_col(colname).index.dirty == False
+                    self.assertEqual(table.cols._f_col(colname).index.dirty,
+                                     False)
 
     def test09a_propIndex(self):
         "Checking propagate Index feature in Table.copy() (attrs)"
@@ -1325,15 +1332,15 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "Elements in copied index:", index2.nelements
                 print "Elements in original index:", index1.nelements
         # Check the counters
-        assert table.nrows == table2.nrows
+        self.assertEqual(table.nrows, table2.nrows)
         if table.indexed:
-            assert table2.indexed
+            self.assertTrue(table2.indexed)
         if self.iprops is DefaultProps:
             # No index: the index should not exist
-            assert index1 is None
-            assert index2 is None
+            self.assertTrue(index1 is None)
+            self.assertTrue(index2 is None)
         elif self.iprops is NoAutoProps:
-            assert index2 is not None
+            self.assertTrue(index2 is not None)
 
         # Check the dirty flag for indexes
         if verbose:
@@ -1343,7 +1350,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                           (colname, table2.cols._f_col(colname).index.dirty)
         for colname in table2.colnames:
             if table2.cols._f_col(colname).index:
-                assert table2.cols._f_col(colname).index.dirty == False
+                self.assertEqual(table2.cols._f_col(colname).index.dirty,
+                                 False)
 
     def test09b_propIndex(self):
         "Checking that propindexes=False works"
@@ -1373,11 +1381,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Original index indexed?:", table.cols.var1.is_indexed
         if self.iprops is DefaultProps:
             # No index: the index should not exist
-            assert not table2.cols.var1.is_indexed
-            assert not table.cols.var1.is_indexed
+            self.assertFalse(table2.cols.var1.is_indexed)
+            self.assertFalse(table.cols.var1.is_indexed)
         elif self.iprops is NoAutoProps:
-            assert not table2.cols.var1.is_indexed
-            assert table.cols.var1.is_indexed
+            self.assertFalse(table2.cols.var1.is_indexed)
+            self.assertTrue(table.cols.var1.is_indexed)
 
     def test10_propIndex(self):
         "Checking propagate Index feature in Table.copy() (values)"
@@ -1455,7 +1463,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                     # All the destination columns should be non-dirty because
                     # the copy removes the dirty state and puts the
                     # index in a sane state
-                    assert table2.cols._f_col(colname).index.dirty == False
+                    self.assertEqual(table2.cols._f_col(colname).index.dirty,
+                                     False)
 
 
 # minRowIndex = 10000  # just if one wants more indexed rows to be checked
@@ -1728,7 +1737,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted column:", sortedcol
             print "The values from the index:", sortedcol2
-        assert allequal(sortedcol, sortedcol2)
+        self.assertTrue(allequal(sortedcol, sortedcol2))
 
 
     def test01_readSorted2(self):
@@ -1739,7 +1748,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted column:", sortedcol
             print "The values from the index:", sortedcol2
-        assert allequal(sortedcol, sortedcol2)
+        self.assertTrue(allequal(sortedcol, sortedcol2))
 
 
     def test01_readSorted3(self):
@@ -1750,7 +1759,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted column:", sortedcol
             print "The values from the index:", sortedcol2
-        assert allequal(sortedcol, sortedcol2)
+        self.assertTrue(allequal(sortedcol, sortedcol2))
 
 
     def test02_readIndices1(self):
@@ -1761,7 +1770,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
-        assert allequal(indicescol, indicescol2)
+        self.assertTrue(allequal(indicescol, indicescol2))
 
 
     def test02_readIndices2(self):
@@ -1772,7 +1781,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
-        assert allequal(indicescol, indicescol2)
+        self.assertTrue(allequal(indicescol, indicescol2))
 
 
     def test02_readIndices3(self):
@@ -1783,7 +1792,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
-        assert allequal(indicescol, indicescol2)
+        self.assertTrue(allequal(indicescol, indicescol2))
 
 
     def test02_readIndices4(self):
@@ -1794,7 +1803,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
-        assert allequal(indicescol, indicescol2)
+        self.assertTrue(allequal(indicescol, indicescol2))
 
 
     def test02_readIndices5(self):
@@ -1805,7 +1814,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
-        assert allequal(indicescol, indicescol2)
+        self.assertTrue(allequal(indicescol, indicescol2))
 
 
     def test02_readIndices6(self):
@@ -1816,7 +1825,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
-        assert allequal(indicescol, indicescol2)
+        self.assertTrue(allequal(indicescol, indicescol2))
 
 
     def test03_getitem1(self):
@@ -1827,7 +1836,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
-        assert allequal(indicescol, indicescol2)
+        self.assertTrue(allequal(indicescol, indicescol2))
 
 
     def test03_getitem2(self):
@@ -1838,7 +1847,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
-        assert allequal(indicescol, indicescol2)
+        self.assertTrue(allequal(indicescol, indicescol2))
 
 
     def test03_getitem3(self):
@@ -1849,7 +1858,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
-        assert allequal(indicescol, indicescol2)
+        self.assertTrue(allequal(indicescol, indicescol2))
 
 
     def test04_itersorted1(self):
@@ -1862,7 +1871,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test04_itersorted2(self):
@@ -1875,7 +1884,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test04_itersorted3(self):
@@ -1888,7 +1897,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test04_itersorted4(self):
@@ -1901,7 +1910,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test04_itersorted5(self):
@@ -1914,7 +1923,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test04_itersorted6(self):
@@ -1927,7 +1936,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test04_itersorted7(self):
@@ -1940,7 +1949,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted1(self):
@@ -1951,7 +1960,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted2(self):
@@ -1962,7 +1971,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted3(self):
@@ -1973,7 +1982,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted4(self):
@@ -1984,7 +1993,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted5(self):
@@ -1995,7 +2004,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted6(self):
@@ -2006,7 +2015,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted7(self):
@@ -2017,7 +2026,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted8(self):
@@ -2029,7 +2038,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted9(self):
@@ -2041,7 +2050,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted10(self):
@@ -2053,7 +2062,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05_readSorted11(self):
@@ -2065,7 +2074,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05a_readSorted12(self):
@@ -2076,16 +2085,12 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test05b_readSorted12(self):
         """Testing the Table.readSorted() method with checkCSI (II)."""
         table = self.table
-        sortedtable = numpy.sort(table[:], order='rcol')
-        if verbose:
-            print "Original sorted table:", sortedtable
-            print "The values from readSorted:", sortedtable2
         self.assertRaises(ValueError,
                           table.readSorted, "rcol", checkCSI=False)
 
@@ -2101,7 +2106,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from copy:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test06_copy_sorted2(self):
@@ -2115,7 +2120,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from copy:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test06_copy_sorted3(self):
@@ -2129,7 +2134,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from copy:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test06_copy_sorted4(self):
@@ -2143,7 +2148,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from copy:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test06_copy_sorted5(self):
@@ -2158,7 +2163,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from copy:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test06_copy_sorted6(self):
@@ -2173,7 +2178,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from copy:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
     def test06_copy_sorted7(self):
@@ -2203,8 +2208,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         irows = t2.cols.rcol.createCSIndex()
         if verbose:
             print "repr(t2)-->\n", repr(t2)
-        self.assert_(irows == 0)
-        self.assert_(t2.colindexes['rcol'].is_CSI == False)
+        self.assertEqual(irows, 0)
+        self.assertEqual(t2.colindexes['rcol'].is_CSI, False)
 
 
 
@@ -2245,7 +2250,8 @@ class readSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
             print "The values from readSorted:", sortedtable2
         # Compare with the sorted read table because we have no
         # guarantees that readSorted returns a completely sorted table
-        assert allequal(sortedtable, numpy.sort(sortedtable2, order="icol"))
+        self.assertTrue(allequal(sortedtable,
+                                 numpy.sort(sortedtable2, order="icol")))
 
 
     def test01_readSorted2(self):
@@ -2259,7 +2265,8 @@ class readSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
             print "The values from readSorted:", sortedtable2
         # Compare with the sorted read table because we have no
         # guarantees that readSorted returns a completely sorted table
-        assert allequal(sortedtable, numpy.sort(sortedtable2, order="icol"))
+        self.assertTrue(allequal(sortedtable,
+                                 numpy.sort(sortedtable2, order="icol")))
 
 
     def test02_copy_sorted1(self):
@@ -2273,7 +2280,7 @@ class readSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original table:", table2[:]
             print "The sorted values from copy:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
     def test02_copy_sorted2(self):
         """Testing the Table.copy(sortby) method after table re-opening."""
@@ -2287,7 +2294,7 @@ class readSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         if verbose:
             print "Original table:", table2[:]
             print "The sorted values from copy:", sortedtable2
-        assert allequal(sortedtable, sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
 class readSortedIndex0(readSortedIndexTestCase):

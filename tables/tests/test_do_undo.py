@@ -78,20 +78,20 @@ class BasicTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
-        self.assert_("/otherarray" not in self.fileh)
-        assert self.fileh._curaction == 0
-        assert self.fileh._curmark == 0
+        self.assertTrue("/otherarray" not in self.fileh)
+        self.assertEqual(self.fileh._curaction, 0)
+        self.assertEqual(self.fileh._curmark, 0)
         # Redo the operation
         self._doReopen()
         self.fileh.redo()
         if common.verbose:
             print "Object tree after redo:", self.fileh
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/otherarray" in self.fileh)
-        assert self.fileh.root.otherarray.read() == [3,4]
-        assert self.fileh.root.otherarray.title == "Another array"
-        assert self.fileh._curaction == 1
-        assert self.fileh._curmark == 0
+        self.assertTrue("/otherarray" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray.title, "Another array")
+        self.assertEqual(self.fileh._curaction, 1)
+        self.assertEqual(self.fileh._curmark, 0)
 
     def test01_twice(self):
         """Checking do/undo (twice operations intertwined)"""
@@ -108,21 +108,21 @@ class BasicTestCase(unittest.TestCase):
         # Now undo the past operations
         self._doReopen()
         self.fileh.undo()
-        self.assert_("/otherarray" not in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        assert self.fileh._curaction == 0
-        assert self.fileh._curmark == 0
+        self.assertTrue("/otherarray" not in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertEqual(self.fileh._curaction, 0)
+        self.assertEqual(self.fileh._curmark, 0)
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/otherarray" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        assert self.fileh.root.otherarray.read() == [3,4]
-        assert self.fileh.root.otherarray2.read() == [4,5]
-        assert self.fileh.root.otherarray.title == "Another array"
-        assert self.fileh.root.otherarray2.title == "Another array 2"
-        assert self.fileh._curaction == 2
-        assert self.fileh._curmark == 0
+        self.assertTrue("/otherarray" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray.title, "Another array")
+        self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
+        self.assertEqual(self.fileh._curaction, 2)
+        self.assertEqual(self.fileh._curmark, 0)
 
     def test02_twice2(self):
         """Checking twice ops and two marks"""
@@ -139,37 +139,37 @@ class BasicTestCase(unittest.TestCase):
         self._doReopen()
         self.fileh.mark()
         self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
-        assert self.fileh._curaction == 3
-        assert self.fileh._curmark == 1
+        self.assertEqual(self.fileh._curaction, 3)
+        self.assertEqual(self.fileh._curmark, 1)
         # Unwind just one mark
         self.fileh.undo()
-        self.assert_("/otherarray" in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        assert self.fileh._curaction == 2
-        assert self.fileh._curmark == 1
+        self.assertTrue("/otherarray" in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertEqual(self.fileh._curaction, 2)
+        self.assertEqual(self.fileh._curmark, 1)
         # Unwind another mark
         self.fileh.undo()
-        assert self.fileh._curaction == 0
-        assert self.fileh._curmark == 0
-        self.assert_("/otherarray" not in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
+        self.assertEqual(self.fileh._curaction, 0)
+        self.assertEqual(self.fileh._curmark, 0)
+        self.assertTrue("/otherarray" not in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
         # Redo until the next mark
         self.fileh.redo()
-        self.assert_("/otherarray" in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray" in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
         self._doReopen()
-        assert self.fileh._curaction == 2
-        assert self.fileh._curmark == 1
+        self.assertEqual(self.fileh._curaction, 2)
+        self.assertEqual(self.fileh._curmark, 1)
         # Redo until the end
         self.fileh.redo()
-        self.assert_("/otherarray" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        assert self.fileh.root.otherarray.read() == [3,4]
-        assert self.fileh.root.otherarray2.read() == [4,5]
-        assert self.fileh.root.otherarray.title == "Another array"
-        assert self.fileh.root.otherarray2.title == "Another array 2"
-        assert self.fileh._curaction == 3
-        assert self.fileh._curmark == 1
+        self.assertTrue("/otherarray" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray.title, "Another array")
+        self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
+        self.assertEqual(self.fileh._curaction, 3)
+        self.assertEqual(self.fileh._curmark, 1)
 
     def test03_6times3marks(self):
         """Checking with six ops and three marks"""
@@ -194,65 +194,65 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.createArray('/', 'otherarray6', [8,9], "Another array 6")
         # Unwind just one mark
         self.fileh.undo()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        self.assert_("/otherarray4" in self.fileh)
-        self.assert_("/otherarray5" not in self.fileh)
-        self.assert_("/otherarray6" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertTrue("/otherarray4" in self.fileh)
+        self.assertTrue("/otherarray5" not in self.fileh)
+        self.assertTrue("/otherarray6" not in self.fileh)
         # Unwind another mark
         self.fileh.undo()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
-        self.assert_("/otherarray5" not in self.fileh)
-        self.assert_("/otherarray6" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray5" not in self.fileh)
+        self.assertTrue("/otherarray6" not in self.fileh)
         # Unwind all marks
         self.fileh.undo()
-        self.assert_("/otherarray1" not in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
-        self.assert_("/otherarray5" not in self.fileh)
-        self.assert_("/otherarray6" not in self.fileh)
+        self.assertTrue("/otherarray1" not in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray5" not in self.fileh)
+        self.assertTrue("/otherarray6" not in self.fileh)
         # Redo until the next mark
         self._doReopen()
         self.fileh.redo()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
-        self.assert_("/otherarray5" not in self.fileh)
-        self.assert_("/otherarray6" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray5" not in self.fileh)
+        self.assertTrue("/otherarray6" not in self.fileh)
         # Redo until the next mark
         self.fileh.redo()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        self.assert_("/otherarray4" in self.fileh)
-        self.assert_("/otherarray5" not in self.fileh)
-        self.assert_("/otherarray6" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertTrue("/otherarray4" in self.fileh)
+        self.assertTrue("/otherarray5" not in self.fileh)
+        self.assertTrue("/otherarray6" not in self.fileh)
         # Redo until the end
         self.fileh.redo()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        self.assert_("/otherarray4" in self.fileh)
-        self.assert_("/otherarray5" in self.fileh)
-        self.assert_("/otherarray6" in self.fileh)
-        assert self.fileh.root.otherarray1.read() == [3,4]
-        assert self.fileh.root.otherarray2.read() == [4,5]
-        assert self.fileh.root.otherarray3.read() == [5,6]
-        assert self.fileh.root.otherarray4.read() == [6,7]
-        assert self.fileh.root.otherarray5.read() == [7,8]
-        assert self.fileh.root.otherarray6.read() == [8,9]
-        assert self.fileh.root.otherarray1.title == "Another array 1"
-        assert self.fileh.root.otherarray2.title == "Another array 2"
-        assert self.fileh.root.otherarray3.title == "Another array 3"
-        assert self.fileh.root.otherarray4.title == "Another array 4"
-        assert self.fileh.root.otherarray5.title == "Another array 5"
-        assert self.fileh.root.otherarray6.title == "Another array 6"
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertTrue("/otherarray4" in self.fileh)
+        self.assertTrue("/otherarray5" in self.fileh)
+        self.assertTrue("/otherarray6" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
+        self.assertEqual(self.fileh.root.otherarray4.read(), [6,7])
+        self.assertEqual(self.fileh.root.otherarray5.read(), [7,8])
+        self.assertEqual(self.fileh.root.otherarray6.read(), [8,9])
+        self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
+        self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
+        self.assertEqual(self.fileh.root.otherarray3.title, "Another array 3")
+        self.assertEqual(self.fileh.root.otherarray4.title, "Another array 4")
+        self.assertEqual(self.fileh.root.otherarray5.title, "Another array 5")
+        self.assertEqual(self.fileh.root.otherarray6.title, "Another array 6")
 
     def test04_6times3marksro(self):
         """Checking with six operations, three marks and do/undo in random order"""
@@ -273,10 +273,10 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
         # Unwind the previous mark
         self.fileh.undo()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Put a mark in the middle of stack
         if common.verbose:
             print "All nodes:", self.fileh.walkNodes()
@@ -284,45 +284,45 @@ class BasicTestCase(unittest.TestCase):
         self._doReopen()
         self.fileh.createArray('/', 'otherarray5', [7,8], "Another array 5")
         self.fileh.createArray('/', 'otherarray6', [8,9], "Another array 6")
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
-        self.assert_("/otherarray5" in self.fileh)
-        self.assert_("/otherarray6" in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray5" in self.fileh)
+        self.assertTrue("/otherarray6" in self.fileh)
         # Unwind previous mark
         self.fileh.undo()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
-        self.assert_("/otherarray5" not in self.fileh)
-        self.assert_("/otherarray6" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray5" not in self.fileh)
+        self.assertTrue("/otherarray6" not in self.fileh)
         # Redo until the last mark
         self.fileh.redo()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
-        self.assert_("/otherarray5" in self.fileh)
-        self.assert_("/otherarray6" in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray5" in self.fileh)
+        self.assertTrue("/otherarray6" in self.fileh)
         # Redo until the next mark (non-existent, so no action)
         self._doReopen()
         self.fileh.redo()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
-        self.assert_("/otherarray5" in self.fileh)
-        self.assert_("/otherarray6" in self.fileh)
-        assert self.fileh.root.otherarray1.read() == [3,4]
-        assert self.fileh.root.otherarray2.read() == [4,5]
-        assert self.fileh.root.otherarray5.read() == [7,8]
-        assert self.fileh.root.otherarray6.read() == [8,9]
-        assert self.fileh.root.otherarray1.title == "Another array 1"
-        assert self.fileh.root.otherarray2.title == "Another array 2"
-        assert self.fileh.root.otherarray5.title == "Another array 5"
-        assert self.fileh.root.otherarray6.title == "Another array 6"
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray5" in self.fileh)
+        self.assertTrue("/otherarray6" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray5.read(), [7,8])
+        self.assertEqual(self.fileh.root.otherarray6.read(), [8,9])
+        self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
+        self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
+        self.assertEqual(self.fileh.root.otherarray5.title, "Another array 5")
+        self.assertEqual(self.fileh.root.otherarray6.title, "Another array 6")
 
     def test05_destructive(self):
         """Checking with a destructive action during undo"""
@@ -345,13 +345,13 @@ class BasicTestCase(unittest.TestCase):
         self._doReopen()
         self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
         # Check objects
-        self.assert_("/otherarray1" in self.fileh)
-        assert self.fileh.root.otherarray1.read() == [3,4]
-        assert self.fileh.root.otherarray1.title == "Another array 1"
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        assert self.fileh.root.otherarray3.read() == [5,6]
-        assert self.fileh.root.otherarray3.title == "Another array 3"
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
+        self.assertEqual(self.fileh.root.otherarray3.title, "Another array 3")
 
     def test05b_destructive(self):
         """Checking with a destructive action during undo (II)"""
@@ -376,18 +376,18 @@ class BasicTestCase(unittest.TestCase):
         self._doReopen()
         self.fileh.mark()
         self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
-        self.assert_("/otherarray4" in self.fileh)
+        self.assertTrue("/otherarray4" in self.fileh)
         # Now undo the past operation
         self.fileh.undo()
         # Check objects
-        self.assert_("/otherarray1" in self.fileh)
-        assert self.fileh.root.otherarray1.read() == [3,4]
-        assert self.fileh.root.otherarray1.title == "Another array 1"
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        assert self.fileh.root.otherarray3.read() == [5,6]
-        assert self.fileh.root.otherarray3.title == "Another array 3"
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
+        self.assertEqual(self.fileh.root.otherarray3.title, "Another array 3")
+        self.assertTrue("/otherarray4" not in self.fileh)
 
     def test05c_destructive(self):
         """Checking with a destructive action during undo (III)"""
@@ -412,16 +412,16 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.mark()
         self._doReopen()
         self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
-        self.assert_("/otherarray4" in self.fileh)
+        self.assertTrue("/otherarray4" in self.fileh)
         # Now unwind twice
         self.fileh.undo()
         self._doReopen()
         self.fileh.undo()
         # Check objects
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
 
     def test05d_destructive(self):
         """Checking with a destructive action during undo (IV)"""
@@ -445,15 +445,15 @@ class BasicTestCase(unittest.TestCase):
         # Put a mark
         self.fileh.mark()
         self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
-        self.assert_("/otherarray4" in self.fileh)
+        self.assertTrue("/otherarray4" in self.fileh)
         # Now, go to the first mark
         self._doReopen()
         self.fileh.undo(0)
         # Check objects
-        self.assert_("/otherarray1" not in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" not in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
 
     def test05e_destructive(self):
         """Checking with a destructive action during undo (V)"""
@@ -478,9 +478,9 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.undo(0)
         self._doReopen()
         # Check objects
-        self.assert_("/otherarray1" not in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray1" not in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
 
     def test05f_destructive(self):
         "Checking with a destructive creation of existing node during undo"
@@ -493,15 +493,15 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.createArray('/', 'newarray', [1])
         self.fileh.undo()
         self._doReopen()
-        self.assert_('/newarray' not in self.fileh)
+        self.assertTrue('/newarray' not in self.fileh)
         newarr = self.fileh.createArray('/', 'newarray', [1])
         self.fileh.undo()
-        self.assert_('/newarray' not in self.fileh)
+        self.assertTrue('/newarray' not in self.fileh)
         self._doReopen()
         self.fileh.redo()
-        self.assert_('/newarray' in self.fileh)
+        self.assertTrue('/newarray' in self.fileh)
         if not self._reopen:
-            self.assert_(self.fileh.root.newarray is newarr)
+            self.assertTrue(self.fileh.root.newarray is newarr)
 
     def test06_totalunwind(self):
         """Checking do/undo (total unwind)"""
@@ -519,8 +519,8 @@ class BasicTestCase(unittest.TestCase):
         # Now undo the past operations
         self._doReopen()
         self.fileh.undo(0)
-        self.assert_("/otherarray" not in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray" not in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
 
     def test07_totalrewind(self):
         """Checking do/undo (total rewind)"""
@@ -541,12 +541,12 @@ class BasicTestCase(unittest.TestCase):
         self._doReopen()
         self.fileh.redo(-1)
         # Check that objects has come back to life in a sane state
-        self.assert_("/otherarray" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        assert self.fileh.root.otherarray.read() == [3,4]
-        assert self.fileh.root.otherarray2.read() == [4,5]
-        assert self.fileh.root.otherarray.title == "Another array"
-        assert self.fileh.root.otherarray2.title == "Another array 2"
+        self.assertTrue("/otherarray" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray.title, "Another array")
+        self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
 
 
     def test08_marknames(self):
@@ -569,34 +569,34 @@ class BasicTestCase(unittest.TestCase):
         # Now go to mark "first"
         self.fileh.undo("first")
         self._doReopen()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Go to mark "third"
         self.fileh.redo("third")
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Now go to mark "second"
         self.fileh.undo("second")
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Go to the end
         self._doReopen()
         self.fileh.redo(-1)
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        self.assert_("/otherarray4" in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertTrue("/otherarray4" in self.fileh)
         # Check that objects has come back to life in a sane state
-        assert self.fileh.root.otherarray1.read() == [3,4]
-        assert self.fileh.root.otherarray2.read() == [4,5]
-        assert self.fileh.root.otherarray3.read() == [5,6]
-        assert self.fileh.root.otherarray4.read() == [6,7]
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
+        self.assertEqual(self.fileh.root.otherarray4.read(), [6,7])
 
     def test08_initialmark(self):
         """Checking initial mark"""
@@ -615,18 +615,18 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
         # Now undo the past operations
         self.fileh.undo(initmid)
-        self.assert_("/otherarray" not in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray" not in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
         # Redo all the operations
         self.fileh.redo(-1)
         self._doReopen()
         # Check that objects has come back to life in a sane state
-        self.assert_("/otherarray" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        assert self.fileh.root.otherarray.read() == [3,4]
-        assert self.fileh.root.otherarray2.read() == [4,5]
-        assert self.fileh.root.otherarray.title == "Another array"
-        assert self.fileh.root.otherarray2.title == "Another array 2"
+        self.assertTrue("/otherarray" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray.title, "Another array")
+        self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
 
 
     def test09_marknames(self):
@@ -673,10 +673,10 @@ class BasicTestCase(unittest.TestCase):
         else:
             self.fail("expected an UndoRedoError")
         # Final checks
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
 
     def test10_goto(self):
         """Checking mark names (goto)"""
@@ -699,35 +699,35 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
         # Now go to mark "first"
         self.fileh.goto("first")
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Go to mark "third"
         self.fileh.goto("third")
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Now go to mark "second"
         self._doReopen()
         self.fileh.goto("second")
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Go to the end
         self.fileh.goto(-1)
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        self.assert_("/otherarray4" in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertTrue("/otherarray4" in self.fileh)
         # Check that objects has come back to life in a sane state
-        self.assert_("/otherarray2" in self.fileh)
-        assert self.fileh.root.otherarray1.read() == [3,4]
-        assert self.fileh.root.otherarray2.read() == [4,5]
-        assert self.fileh.root.otherarray3.read() == [5,6]
-        assert self.fileh.root.otherarray4.read() == [6,7]
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
+        self.assertEqual(self.fileh.root.otherarray4.read(), [6,7])
 
     def test10_gotoint(self):
         """Checking mark sequential ids (goto)"""
@@ -750,42 +750,42 @@ class BasicTestCase(unittest.TestCase):
         # Now go to mark "first"
         self.fileh.goto(1)
         self._doReopen()
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Go to beginning
         self.fileh.goto(0)
-        self.assert_("/otherarray1" not in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" not in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Go to mark "third"
         self._doReopen()
         self.fileh.goto(3)
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Now go to mark "second"
         self.fileh.goto(2)
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
-        self.assert_("/otherarray4" not in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray4" not in self.fileh)
         # Go to the end
         self._doReopen()
         self.fileh.goto(-1)
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        self.assert_("/otherarray4" in self.fileh)
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertTrue("/otherarray4" in self.fileh)
         # Check that objects has come back to life in a sane state
-        self.assert_("/otherarray2" in self.fileh)
-        assert self.fileh.root.otherarray1.read() == [3,4]
-        assert self.fileh.root.otherarray2.read() == [4,5]
-        assert self.fileh.root.otherarray3.read() == [5,6]
-        assert self.fileh.root.otherarray4.read() == [6,7]
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
+        self.assertEqual(self.fileh.root.otherarray4.read(), [6,7])
 
     def test11_contiguous(self):
         "Creating contiguous marks"
@@ -829,7 +829,7 @@ class BasicTestCase(unittest.TestCase):
         # We should have moved to the initial mark.
         self.assertEqual(self.fileh.getCurrentMark(), 0)
         # So /newarray1 should not be there.
-        self.assert_('/newarray1' not in self.fileh)
+        self.assertTrue('/newarray1' not in self.fileh)
 
     def test13_severalEnableDisable(self):
         "Checking that successive enable/disable Undo works"
@@ -845,7 +845,7 @@ class BasicTestCase(unittest.TestCase):
         # We should have moved to 'mid' mark, not the initial mark.
         self.assertEqual(self.fileh.getCurrentMark(), 0)
         # So /newarray1 should still be there.
-        self.assert_('/newarray1' not in self.fileh)
+        self.assertTrue('/newarray1' not in self.fileh)
         # Close this do/undo session
         self.fileh.disableUndo()
         # Do something
@@ -859,10 +859,10 @@ class BasicTestCase(unittest.TestCase):
         # We should have moved to 'mid' mark, not the initial mark.
         self.assertEqual(self.fileh.getCurrentMark(), mid)
         # So /newarray2 and /newarray3 should still be there.
-        self.assert_('/newarray1' not in self.fileh)
-        self.assert_('/newarray2' in self.fileh)
-        self.assert_('/newarray3' in self.fileh)
-        self.assert_('/newarray4' not in self.fileh)
+        self.assertTrue('/newarray1' not in self.fileh)
+        self.assertTrue('/newarray2' in self.fileh)
+        self.assertTrue('/newarray3' in self.fileh)
+        self.assertTrue('/newarray4' not in self.fileh)
         # Close this do/undo session
         self._doReopen()
         self.fileh.disableUndo()
@@ -871,16 +871,16 @@ class BasicTestCase(unittest.TestCase):
         arr3 = self.fileh.createArray('/', 'newarray1', [1])
         arr4 = self.fileh.createArray('/', 'newarray4', [1])
         # So /newarray2 and /newarray3 should still be there.
-        self.assert_('/newarray1' in self.fileh)
-        self.assert_('/newarray2' in self.fileh)
-        self.assert_('/newarray3' in self.fileh)
-        self.assert_('/newarray4' in self.fileh)
+        self.assertTrue('/newarray1' in self.fileh)
+        self.assertTrue('/newarray2' in self.fileh)
+        self.assertTrue('/newarray3' in self.fileh)
+        self.assertTrue('/newarray4' in self.fileh)
         self.fileh.undo()
         self._doReopen()
-        self.assert_('/newarray1' not in self.fileh)
-        self.assert_('/newarray2' in self.fileh)
-        self.assert_('/newarray3' in self.fileh)
-        self.assert_('/newarray4' not in self.fileh)
+        self.assertTrue('/newarray1' not in self.fileh)
+        self.assertTrue('/newarray2' in self.fileh)
+        self.assertTrue('/newarray3' in self.fileh)
+        self.assertTrue('/newarray4' not in self.fileh)
         # Close this do/undo session
         self.fileh.disableUndo()
 
@@ -945,13 +945,13 @@ class createArrayTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
-        self.assert_("/otherarray1" not in self.fileh)
+        self.assertTrue("/otherarray1" not in self.fileh)
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/otherarray1" in self.fileh)
-        assert self.fileh.root.otherarray1.title == "Another array 1"
-        assert self.fileh.root.otherarray1.read() == [1,2]
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
+        self.assertEqual(self.fileh.root.otherarray1.read(), [1,2])
 
 
     def test01(self):
@@ -969,17 +969,17 @@ class createArrayTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
-        self.assert_("/otherarray1" not in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray1" not in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        assert self.fileh.root.otherarray1.title == "Another array 1"
-        assert self.fileh.root.otherarray2.title == "Another array 2"
-        assert self.fileh.root.otherarray1.read() == [1,2]
-        assert self.fileh.root.otherarray2.read() == [2,3]
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
+        self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
+        self.assertEqual(self.fileh.root.otherarray1.read(), [1,2])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [2,3])
 
 
     def test02(self):
@@ -998,21 +998,21 @@ class createArrayTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
-        self.assert_("/otherarray1" not in self.fileh)
-        self.assert_("/otherarray2" not in self.fileh)
-        self.assert_("/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray1" not in self.fileh)
+        self.assertTrue("/otherarray2" not in self.fileh)
+        self.assertTrue("/otherarray3" not in self.fileh)
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/otherarray2" in self.fileh)
-        self.assert_("/otherarray3" in self.fileh)
-        assert self.fileh.root.otherarray1.title == "Another array 1"
-        assert self.fileh.root.otherarray2.title == "Another array 2"
-        assert self.fileh.root.otherarray3.title == "Another array 3"
-        assert self.fileh.root.otherarray1.read() == [1,2]
-        assert self.fileh.root.otherarray2.read() == [2,3]
-        assert self.fileh.root.otherarray3.read() == [3,4]
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/otherarray2" in self.fileh)
+        self.assertTrue("/otherarray3" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
+        self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
+        self.assertEqual(self.fileh.root.otherarray3.title, "Another array 3")
+        self.assertEqual(self.fileh.root.otherarray1.read(), [1,2])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [2,3])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [3,4])
 
     def test03(self):
         """Checking three actions in different depth levels"""
@@ -1030,21 +1030,24 @@ class createArrayTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
-        self.assert_("/otherarray1" not in self.fileh)
-        self.assert_("/agroup/otherarray2" not in self.fileh)
-        self.assert_("/agroup/agroup3/otherarray3" not in self.fileh)
+        self.assertTrue("/otherarray1" not in self.fileh)
+        self.assertTrue("/agroup/otherarray2" not in self.fileh)
+        self.assertTrue("/agroup/agroup3/otherarray3" not in self.fileh)
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/otherarray1" in self.fileh)
-        self.assert_("/agroup/otherarray2" in self.fileh)
-        self.assert_("/agroup/agroup3/otherarray3" in self.fileh)
-        assert self.fileh.root.otherarray1.title == "Another array 1"
-        assert self.fileh.root.agroup.otherarray2.title == "Another array 2"
-        assert self.fileh.root.agroup.agroup3.otherarray3.title == "Another array 3"
-        assert self.fileh.root.otherarray1.read() == [1,2]
-        assert self.fileh.root.agroup.otherarray2.read() == [2,3]
-        assert self.fileh.root.agroup.agroup3.otherarray3.read() == [3,4]
+        self.assertTrue("/otherarray1" in self.fileh)
+        self.assertTrue("/agroup/otherarray2" in self.fileh)
+        self.assertTrue("/agroup/agroup3/otherarray3" in self.fileh)
+        self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
+        self.assertEqual(self.fileh.root.agroup.otherarray2.title,
+                         "Another array 2")
+        self.assertEqual(self.fileh.root.agroup.agroup3.otherarray3.title,
+                         "Another array 3")
+        self.assertEqual(self.fileh.root.otherarray1.read(), [1,2])
+        self.assertEqual(self.fileh.root.agroup.otherarray2.read(), [2,3])
+        self.assertEqual(self.fileh.root.agroup.agroup3.otherarray3.read(),
+                         [3,4])
 
 
 class createGroupTestCase(unittest.TestCase):
@@ -1100,12 +1103,13 @@ class createGroupTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that othergroup1 does not exist in the object tree
-        self.assert_("/othergroup1" not in self.fileh)
+        self.assertTrue("/othergroup1" not in self.fileh)
         # Redo the operation
         self.fileh.redo()
         # Check that othergroup1 has come back to life in a sane state
-        self.assert_("/othergroup1" in self.fileh)
-        assert self.fileh.root.othergroup1._v_title == "Another group 1"
+        self.assertTrue("/othergroup1" in self.fileh)
+        self.assertEqual(self.fileh.root.othergroup1._v_title,
+                         "Another group 1")
 
 
     def test01(self):
@@ -1123,15 +1127,17 @@ class createGroupTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that othergroup does not exist in the object tree
-        self.assert_("/othergroup1" not in self.fileh)
-        self.assert_("/othergroup2" not in self.fileh)
+        self.assertTrue("/othergroup1" not in self.fileh)
+        self.assertTrue("/othergroup2" not in self.fileh)
         # Redo the operation
         self.fileh.redo()
         # Check that othergroup* has come back to life in a sane state
-        self.assert_("/othergroup1" in self.fileh)
-        self.assert_("/othergroup2" in self.fileh)
-        assert self.fileh.root.othergroup1._v_title == "Another group 1"
-        assert self.fileh.root.othergroup2._v_title == "Another group 2"
+        self.assertTrue("/othergroup1" in self.fileh)
+        self.assertTrue("/othergroup2" in self.fileh)
+        self.assertEqual(self.fileh.root.othergroup1._v_title,
+                         "Another group 1")
+        self.assertEqual(self.fileh.root.othergroup2._v_title,
+                         "Another group 2")
 
 
     def test02(self):
@@ -1150,18 +1156,21 @@ class createGroupTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that othergroup* does not exist in the object tree
-        self.assert_("/othergroup1" not in self.fileh)
-        self.assert_("/othergroup2" not in self.fileh)
-        self.assert_("/othergroup3" not in self.fileh)
+        self.assertTrue("/othergroup1" not in self.fileh)
+        self.assertTrue("/othergroup2" not in self.fileh)
+        self.assertTrue("/othergroup3" not in self.fileh)
         # Redo the operation
         self.fileh.redo()
         # Check that othergroup* has come back to life in a sane state
-        self.assert_("/othergroup1" in self.fileh)
-        self.assert_("/othergroup2" in self.fileh)
-        self.assert_("/othergroup3" in self.fileh)
-        assert self.fileh.root.othergroup1._v_title == "Another group 1"
-        assert self.fileh.root.othergroup2._v_title == "Another group 2"
-        assert self.fileh.root.othergroup3._v_title == "Another group 3"
+        self.assertTrue("/othergroup1" in self.fileh)
+        self.assertTrue("/othergroup2" in self.fileh)
+        self.assertTrue("/othergroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.othergroup1._v_title,
+                         "Another group 1")
+        self.assertEqual(self.fileh.root.othergroup2._v_title,
+                         "Another group 2")
+        self.assertEqual(self.fileh.root.othergroup3._v_title,
+                         "Another group 3")
 
 
     def test03(self):
@@ -1180,18 +1189,22 @@ class createGroupTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that othergroup* does not exist in the object tree
-        self.assert_("/othergroup1" not in self.fileh)
-        self.assert_("/othergroup1/othergroup2" not in self.fileh)
-        self.assert_("/othergroup1/othergroup2/othergroup3" not in self.fileh)
+        self.assertTrue("/othergroup1" not in self.fileh)
+        self.assertTrue("/othergroup1/othergroup2" not in self.fileh)
+        self.assertTrue("/othergroup1/othergroup2/othergroup3" not in self.fileh)
         # Redo the operation
         self.fileh.redo()
         # Check that othergroup* has come back to life in a sane state
-        self.assert_("/othergroup1" in self.fileh)
-        self.assert_("/othergroup1/othergroup2" in self.fileh)
-        self.assert_("/othergroup1/othergroup2/othergroup3" in self.fileh)
-        assert self.fileh.root.othergroup1._v_title == "Another group 1"
-        assert self.fileh.root.othergroup1.othergroup2._v_title == "Another group 2"
-        assert self.fileh.root.othergroup1.othergroup2.othergroup3._v_title == "Another group 3"
+        self.assertTrue("/othergroup1" in self.fileh)
+        self.assertTrue("/othergroup1/othergroup2" in self.fileh)
+        self.assertTrue("/othergroup1/othergroup2/othergroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.othergroup1._v_title,
+                         "Another group 1")
+        self.assertEqual(self.fileh.root.othergroup1.othergroup2._v_title,
+                         "Another group 2")
+        self.assertEqual(
+            self.fileh.root.othergroup1.othergroup2.othergroup3._v_title,
+            "Another group 3")
 
 
 minRowIndex = 10
@@ -1282,15 +1295,15 @@ class renameNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that it does not exist in the object tree
-        self.assert_("/agroup2" in self.fileh)
-        self.assert_("/agroup3" not in self.fileh)
-        assert self.fileh.root.agroup2._v_title == "Group title 2"
+        self.assertTrue("/agroup2" in self.fileh)
+        self.assertTrue("/agroup3" not in self.fileh)
+        self.assertEqual(self.fileh.root.agroup2._v_title, "Group title 2")
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/agroup2" not in self.fileh)
-        self.assert_("/agroup3" in self.fileh)
-        assert self.fileh.root.agroup3._v_title == "Group title 2"
+        self.assertTrue("/agroup2" not in self.fileh)
+        self.assertTrue("/agroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup3._v_title, "Group title 2")
 
     def test01(self):
         """Checking renameNode (over Groups with children)"""
@@ -1306,23 +1319,23 @@ class renameNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that it does not exist in the object tree
-        self.assert_("/agroup" in self.fileh)
-        self.assert_("/agroup3" not in self.fileh)
+        self.assertTrue("/agroup" in self.fileh)
+        self.assertTrue("/agroup3" not in self.fileh)
         # Check that children are reachable
-        self.assert_("/agroup/anarray1" in self.fileh)
-        self.assert_("/agroup/anarray2" in self.fileh)
-        self.assert_("/agroup/agroup3" in self.fileh)
-        assert self.fileh.root.agroup._v_title == "Group title"
+        self.assertTrue("/agroup/anarray1" in self.fileh)
+        self.assertTrue("/agroup/anarray2" in self.fileh)
+        self.assertTrue("/agroup/agroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup._v_title, "Group title")
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/agroup" not in self.fileh)
-        self.assert_("/agroup3" in self.fileh)
-        assert self.fileh.root.agroup3._v_title == "Group title"
+        self.assertTrue("/agroup" not in self.fileh)
+        self.assertTrue("/agroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup3._v_title, "Group title")
         # Check that children are reachable
-        self.assert_("/agroup3/anarray1" in self.fileh)
-        self.assert_("/agroup3/anarray2" in self.fileh)
-        self.assert_("/agroup3/agroup3" in self.fileh)
+        self.assertTrue("/agroup3/anarray1" in self.fileh)
+        self.assertTrue("/agroup3/anarray2" in self.fileh)
+        self.assertTrue("/agroup3/agroup3" in self.fileh)
 
     def test01b(self):
         """Checking renameNode (over Groups with children 2)"""
@@ -1339,23 +1352,23 @@ class renameNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that it does not exist in the object tree
-        self.assert_("/agroup" in self.fileh)
-        self.assert_("/agroup4" not in self.fileh)
+        self.assertTrue("/agroup" in self.fileh)
+        self.assertTrue("/agroup4" not in self.fileh)
         # Check that children are reachable
-        self.assert_("/agroup/anarray1" in self.fileh)
-        self.assert_("/agroup/anarray2" in self.fileh)
-        self.assert_("/agroup/agroup3" in self.fileh)
-        assert self.fileh.root.agroup._v_title == "Group title"
+        self.assertTrue("/agroup/anarray1" in self.fileh)
+        self.assertTrue("/agroup/anarray2" in self.fileh)
+        self.assertTrue("/agroup/agroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup._v_title, "Group title")
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/agroup" not in self.fileh)
-        self.assert_("/agroup4" in self.fileh)
-        assert self.fileh.root.agroup4._v_title == "Group title"
+        self.assertTrue("/agroup" not in self.fileh)
+        self.assertTrue("/agroup4" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup4._v_title, "Group title")
         # Check that children are reachable
-        self.assert_("/agroup4/anarray1" in self.fileh)
-        self.assert_("/agroup4/anarray2" in self.fileh)
-        self.assert_("/agroup4/agroup3" in self.fileh)
+        self.assertTrue("/agroup4/anarray1" in self.fileh)
+        self.assertTrue("/agroup4/anarray2" in self.fileh)
+        self.assertTrue("/agroup4/agroup3" in self.fileh)
 
     def test02(self):
         """Checking renameNode (over Leaves)"""
@@ -1371,15 +1384,15 @@ class renameNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
-        self.assert_("/anarray" in self.fileh)
-        self.assert_("/anarray2" not in self.fileh)
-        assert self.fileh.root.anarray.title == "Array title"
+        self.assertTrue("/anarray" in self.fileh)
+        self.assertTrue("/anarray2" not in self.fileh)
+        self.assertEqual(self.fileh.root.anarray.title, "Array title")
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/anarray" not in self.fileh)
-        self.assert_("/anarray2" in self.fileh)
-        assert self.fileh.root.anarray2.title == "Array title"
+        self.assertTrue("/anarray" not in self.fileh)
+        self.assertTrue("/anarray2" in self.fileh)
+        self.assertEqual(self.fileh.root.anarray2.title, "Array title")
 
     def test03(self):
         """Checking renameNode (over Tables)"""
@@ -1395,33 +1408,33 @@ class renameNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that table2 does not exist in the object tree
-        self.assert_("/table" in self.fileh)
+        self.assertTrue("/table" in self.fileh)
         table = self.fileh.root.table
         if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var4.index is None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-        self.assert_("/table2" not in self.fileh)
-        assert self.fileh.root.table.title == "Indexed"
+            self.assertTrue(table.cols.var1.index is not None)
+            self.assertTrue(table.cols.var2.index is not None)
+            self.assertTrue(table.cols.var3.index is not None)
+            self.assertTrue(table.cols.var4.index is None)
+            self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
+        self.assertTrue("/table2" not in self.fileh)
+        self.assertEqual(self.fileh.root.table.title, "Indexed")
         # Redo the operation
         self.fileh.redo()
         # Check that table2 has come back to life in a sane state
-        self.assert_("/table" not in self.fileh)
-        self.assert_("/table2" in self.fileh)
-        assert self.fileh.root.table2.title == "Indexed"
+        self.assertTrue("/table" not in self.fileh)
+        self.assertTrue("/table2" in self.fileh)
+        self.assertEqual(self.fileh.root.table2.title, "Indexed")
         table = self.fileh.root.table2
         if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-            assert table.cols.var4.index is None
+            self.assertTrue(table.cols.var1.index is not None)
+            self.assertTrue(table.cols.var2.index is not None)
+            self.assertTrue(table.cols.var3.index is not None)
+            self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
+            self.assertTrue(table.cols.var4.index is None)
 
 
 class moveNodeTestCase(unittest.TestCase):
@@ -1478,15 +1491,16 @@ class moveNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that it does not exist in the object tree
-        self.assert_("/anarray" in self.fileh)
-        self.assert_("/agroup/agroup3/anarray" not in self.fileh)
-        assert self.fileh.root.anarray.title == "Array title"
+        self.assertTrue("/anarray" in self.fileh)
+        self.assertTrue("/agroup/agroup3/anarray" not in self.fileh)
+        self.assertEqual(self.fileh.root.anarray.title, "Array title")
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/anarray" not in self.fileh)
-        self.assert_("/agroup/agroup3/anarray" in self.fileh)
-        assert self.fileh.root.agroup.agroup3.anarray.title == "Array title"
+        self.assertTrue("/anarray" not in self.fileh)
+        self.assertTrue("/agroup/agroup3/anarray" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup.agroup3.anarray.title,
+                         "Array title")
 
     def test01(self):
         """Checking moveNode (over Groups with children)"""
@@ -1502,23 +1516,24 @@ class moveNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that it does not exist in the object tree
-        self.assert_("/agroup" in self.fileh)
-        self.assert_("/agroup2/agroup3" not in self.fileh)
+        self.assertTrue("/agroup" in self.fileh)
+        self.assertTrue("/agroup2/agroup3" not in self.fileh)
         # Check that children are reachable
-        self.assert_("/agroup/anarray1" in self.fileh)
-        self.assert_("/agroup/anarray2" in self.fileh)
-        self.assert_("/agroup/agroup3" in self.fileh)
-        assert self.fileh.root.agroup._v_title == "Group title"
+        self.assertTrue("/agroup/anarray1" in self.fileh)
+        self.assertTrue("/agroup/anarray2" in self.fileh)
+        self.assertTrue("/agroup/agroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup._v_title, "Group title")
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/agroup" not in self.fileh)
-        self.assert_("/agroup2/agroup3" in self.fileh)
-        assert self.fileh.root.agroup2.agroup3._v_title == "Group title"
+        self.assertTrue("/agroup" not in self.fileh)
+        self.assertTrue("/agroup2/agroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup2.agroup3._v_title,
+                         "Group title")
         # Check that children are reachable
-        self.assert_("/agroup2/agroup3/anarray1" in self.fileh)
-        self.assert_("/agroup2/agroup3/anarray2" in self.fileh)
-        self.assert_("/agroup2/agroup3/agroup3" in self.fileh)
+        self.assertTrue("/agroup2/agroup3/anarray1" in self.fileh)
+        self.assertTrue("/agroup2/agroup3/anarray2" in self.fileh)
+        self.assertTrue("/agroup2/agroup3/agroup3" in self.fileh)
 
     def test01b(self):
         """Checking moveNode (over Groups with children 2)"""
@@ -1535,23 +1550,24 @@ class moveNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that it does not exist in the object tree
-        self.assert_("/agroup" in self.fileh)
-        self.assert_("/agroup2/agroup4" not in self.fileh)
+        self.assertTrue("/agroup" in self.fileh)
+        self.assertTrue("/agroup2/agroup4" not in self.fileh)
         # Check that children are reachable
-        self.assert_("/agroup/anarray1" in self.fileh)
-        self.assert_("/agroup/anarray2" in self.fileh)
-        self.assert_("/agroup/agroup3" in self.fileh)
-        assert self.fileh.root.agroup._v_title == "Group title"
+        self.assertTrue("/agroup/anarray1" in self.fileh)
+        self.assertTrue("/agroup/anarray2" in self.fileh)
+        self.assertTrue("/agroup/agroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup._v_title, "Group title")
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/agroup" not in self.fileh)
-        self.assert_("/agroup2/agroup4" in self.fileh)
-        assert self.fileh.root.agroup2.agroup4._v_title == "Group title"
+        self.assertTrue("/agroup" not in self.fileh)
+        self.assertTrue("/agroup2/agroup4" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup2.agroup4._v_title,
+                         "Group title")
         # Check that children are reachable
-        self.assert_("/agroup2/agroup4/anarray1" in self.fileh)
-        self.assert_("/agroup2/agroup4/anarray2" in self.fileh)
-        self.assert_("/agroup2/agroup4/agroup3" in self.fileh)
+        self.assertTrue("/agroup2/agroup4/anarray1" in self.fileh)
+        self.assertTrue("/agroup2/agroup4/anarray2" in self.fileh)
+        self.assertTrue("/agroup2/agroup4/agroup3" in self.fileh)
 
     def test02(self):
         """Checking moveNode (over Leaves)"""
@@ -1567,15 +1583,15 @@ class moveNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
-        self.assert_("/anarray" in self.fileh)
-        self.assert_("/agroup2/anarray2" not in self.fileh)
-        assert self.fileh.root.anarray.title == "Array title"
+        self.assertTrue("/anarray" in self.fileh)
+        self.assertTrue("/agroup2/anarray2" not in self.fileh)
+        self.assertEqual(self.fileh.root.anarray.title, "Array title")
         # Redo the operation
         self.fileh.redo()
         # Check that otherarray has come back to life in a sane state
-        self.assert_("/anarray" not in self.fileh)
-        self.assert_("/agroup2/anarray2" in self.fileh)
-        assert self.fileh.root.agroup2.anarray2.title == "Array title"
+        self.assertTrue("/anarray" not in self.fileh)
+        self.assertTrue("/agroup2/anarray2" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup2.anarray2.title, "Array title")
 
     def test03(self):
         """Checking moveNode (over Tables)"""
@@ -1591,33 +1607,33 @@ class moveNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that table2 does not exist in the object tree
-        self.assert_("/table" in self.fileh)
-        self.assert_("/agroup2/table2" not in self.fileh)
+        self.assertTrue("/table" in self.fileh)
+        self.assertTrue("/agroup2/table2" not in self.fileh)
         table = self.fileh.root.table
         if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var4.index is None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-        assert self.fileh.root.table.title == "Indexed"
+            self.assertTrue(table.cols.var1.index is not None)
+            self.assertTrue(table.cols.var2.index is not None)
+            self.assertTrue(table.cols.var3.index is not None)
+            self.assertTrue(table.cols.var4.index is None)
+            self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
+        self.assertEqual(self.fileh.root.table.title, "Indexed")
         # Redo the operation
         self.fileh.redo()
         # Check that table2 has come back to life in a sane state
-        self.assert_("/table" not in self.fileh)
-        self.assert_("/agroup2/table2" in self.fileh)
-        assert self.fileh.root.agroup2.table2.title == "Indexed"
+        self.assertTrue("/table" not in self.fileh)
+        self.assertTrue("/agroup2/table2" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup2.table2.title, "Indexed")
         table = self.fileh.root.agroup2.table2
         if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-            assert table.cols.var4.index is None
+            self.assertTrue(table.cols.var1.index is not None)
+            self.assertTrue(table.cols.var2.index is not None)
+            self.assertTrue(table.cols.var3.index is not None)
+            self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
+            self.assertTrue(table.cols.var4.index is None)
 
 
 class removeNodeTestCase(unittest.TestCase):
@@ -1676,12 +1692,12 @@ class removeNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that it does exist in the object tree
-        self.assert_("/anarray" in self.fileh)
-        assert self.fileh.root.anarray.title == "Array title"
+        self.assertTrue("/anarray" in self.fileh)
+        self.assertEqual(self.fileh.root.anarray.title, "Array title")
         # Redo the operation
         self.fileh.redo()
         # Check that array has gone again
-        self.assert_("/anarray" not in self.fileh)
+        self.assertTrue("/anarray" not in self.fileh)
 
     def test00b(self):
         """Checking removeNode (over several Leaves)"""
@@ -1698,15 +1714,15 @@ class removeNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that arrays has come into life
-        self.assert_("/anarray" in self.fileh)
-        self.assert_("/agroup/anarray2" in self.fileh)
-        assert self.fileh.root.anarray.title == "Array title"
-        assert self.fileh.root.agroup.anarray2.title == "Array title 2"
+        self.assertTrue("/anarray" in self.fileh)
+        self.assertTrue("/agroup/anarray2" in self.fileh)
+        self.assertEqual(self.fileh.root.anarray.title, "Array title")
+        self.assertEqual(self.fileh.root.agroup.anarray2.title, "Array title 2")
         # Redo the operation
         self.fileh.redo()
         # Check that arrays has disappeared again
-        self.assert_("/anarray" not in self.fileh)
-        self.assert_("/agroup/anarray2" not in self.fileh)
+        self.assertTrue("/anarray" not in self.fileh)
+        self.assertTrue("/agroup/anarray2" not in self.fileh)
 
     def test00c(self):
         """Checking removeNode (over Tables)"""
@@ -1722,21 +1738,21 @@ class removeNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that table2 does not exist in the object tree
-        self.assert_("/table" in self.fileh)
+        self.assertTrue("/table" in self.fileh)
         table = self.fileh.root.table
         if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var4.index is None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-        assert self.fileh.root.table.title == "Indexed"
+            self.assertTrue(table.cols.var1.index is not None)
+            self.assertTrue(table.cols.var2.index is not None)
+            self.assertTrue(table.cols.var3.index is not None)
+            self.assertTrue(table.cols.var4.index is None)
+            self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
+        self.assertEqual(self.fileh.root.table.title, "Indexed")
         # Redo the operation
         self.fileh.redo()
         # Check that table2 has come back to life in a sane state
-        self.assert_("/table" not in self.fileh)
+        self.assertTrue("/table" not in self.fileh)
 
     def test01(self):
         """Checking removeNode (over Groups with children)"""
@@ -1752,18 +1768,18 @@ class removeNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that parent and children has come into life in a sane state
-        self.assert_("/agroup" in self.fileh)
-        self.assert_("/agroup/anarray1" in self.fileh)
-        self.assert_("/agroup/anarray2" in self.fileh)
-        self.assert_("/agroup/agroup3" in self.fileh)
-        assert self.fileh.root.agroup._v_title == "Group title"
+        self.assertTrue("/agroup" in self.fileh)
+        self.assertTrue("/agroup/anarray1" in self.fileh)
+        self.assertTrue("/agroup/anarray2" in self.fileh)
+        self.assertTrue("/agroup/agroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup._v_title, "Group title")
         # Redo the operation
         self.fileh.redo()
         # Check that parent and children are not reachable
-        self.assert_("/agroup" not in self.fileh)
-        self.assert_("/agroup/anarray1" not in self.fileh)
-        self.assert_("/agroup/anarray2" not in self.fileh)
-        self.assert_("/agroup/agroup3" not in self.fileh)
+        self.assertTrue("/agroup" not in self.fileh)
+        self.assertTrue("/agroup/anarray1" not in self.fileh)
+        self.assertTrue("/agroup/anarray2" not in self.fileh)
+        self.assertTrue("/agroup/agroup3" not in self.fileh)
 
     def test01b(self):
         """Checking removeNode (over Groups with children 2)"""
@@ -1780,22 +1796,22 @@ class removeNodeTestCase(unittest.TestCase):
         # Now undo the past operation
         self.fileh.undo()
         # Check that they does exist in the object tree
-        self.assert_("/agroup" in self.fileh)
-        self.assert_("/agroup2" in self.fileh)
+        self.assertTrue("/agroup" in self.fileh)
+        self.assertTrue("/agroup2" in self.fileh)
         # Check that children are reachable
-        self.assert_("/agroup/anarray1" in self.fileh)
-        self.assert_("/agroup/anarray2" in self.fileh)
-        self.assert_("/agroup/agroup3" in self.fileh)
-        assert self.fileh.root.agroup._v_title == "Group title"
+        self.assertTrue("/agroup/anarray1" in self.fileh)
+        self.assertTrue("/agroup/anarray2" in self.fileh)
+        self.assertTrue("/agroup/agroup3" in self.fileh)
+        self.assertEqual(self.fileh.root.agroup._v_title, "Group title")
         # Redo the operation
         self.fileh.redo()
         # Check that groups does not exist again
-        self.assert_("/agroup" not in self.fileh)
-        self.assert_("/agroup2" not in self.fileh)
+        self.assertTrue("/agroup" not in self.fileh)
+        self.assertTrue("/agroup2" not in self.fileh)
         # Check that children are not reachable
-        self.assert_("/agroup/anarray1" not in self.fileh)
-        self.assert_("/agroup/anarray2" not in self.fileh)
-        self.assert_("/agroup/agroup3" not in self.fileh)
+        self.assertTrue("/agroup/anarray1" not in self.fileh)
+        self.assertTrue("/agroup/anarray2" not in self.fileh)
+        self.assertTrue("/agroup/agroup3" not in self.fileh)
 
 
 class copyNodeTestCase(unittest.TestCase):
@@ -1854,13 +1870,13 @@ class copyNodeTestCase(unittest.TestCase):
         # Undo the copy.
         self.fileh.undo()
         # Check that the copied node does not exist in the object tree.
-        self.assert_('/agroup/agroup3/anarray' not in self.fileh)
+        self.assertTrue('/agroup/agroup3/anarray' not in self.fileh)
 
         # Redo the copy.
         self.fileh.redo()
         # Check that the copied node exists again in the object tree.
-        self.assert_('/agroup/agroup3/anarray' in self.fileh)
-        self.assert_(self.fileh.root.agroup.agroup3.anarray is newNode)
+        self.assertTrue('/agroup/agroup3/anarray' in self.fileh)
+        self.assertTrue(self.fileh.root.agroup.agroup3.anarray is newNode)
 
 
     def test00b_copyTable(self):
@@ -1877,46 +1893,46 @@ class copyNodeTestCase(unittest.TestCase):
         table = self.fileh.copyNode(
             '/table', '/agroup/agroup3', propindexes=True)
         warnings.filterwarnings("default", category=UserWarning)
-        self.assert_("/agroup/agroup3/table" in self.fileh)
+        self.assertTrue("/agroup/agroup3/table" in self.fileh)
 
         table = self.fileh.root.agroup.agroup3.table
-        assert table.title == "Indexed"
+        self.assertEqual(table.title, "Indexed")
         if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-            assert table.cols.var4.index is None
+            self.assertTrue(table.cols.var1.index is not None)
+            self.assertTrue(table.cols.var2.index is not None)
+            self.assertTrue(table.cols.var3.index is not None)
+            self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
+            self.assertTrue(table.cols.var4.index is None)
         # Now undo the past operation
         self.fileh.undo()
         table = self.fileh.root.table
         if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var4.index is None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
+            self.assertTrue(table.cols.var1.index is not None)
+            self.assertTrue(table.cols.var2.index is not None)
+            self.assertTrue(table.cols.var3.index is not None)
+            self.assertTrue(table.cols.var4.index is None)
+            self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
         # Check that the copied node does not exist in the object tree.
-        self.assert_("/agroup/agroup3/table" not in self.fileh)
+        self.assertTrue("/agroup/agroup3/table" not in self.fileh)
         # Redo the operation
         self.fileh.redo()
         # Check that table has come back to life in a sane state
-        self.assert_("/table" in self.fileh)
-        self.assert_("/agroup/agroup3/table" in self.fileh)
+        self.assertTrue("/table" in self.fileh)
+        self.assertTrue("/agroup/agroup3/table" in self.fileh)
         table = self.fileh.root.agroup.agroup3.table
-        assert table.title == "Indexed"
+        self.assertEqual(table.title, "Indexed")
         if tables.is_pro:
-            assert table.cols.var1.index is not None
-            assert table.cols.var2.index is not None
-            assert table.cols.var3.index is not None
-            assert table.cols.var1.index.nelements == minRowIndex
-            assert table.cols.var2.index.nelements == minRowIndex
-            assert table.cols.var3.index.nelements == minRowIndex
-            assert table.cols.var4.index is None
+            self.assertTrue(table.cols.var1.index is not None)
+            self.assertTrue(table.cols.var2.index is not None)
+            self.assertTrue(table.cols.var3.index is not None)
+            self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
+            self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
+            self.assertTrue(table.cols.var4.index is None)
 
     def test01_copyGroup(self):
         "Copying a group (recursively)."
@@ -1934,19 +1950,19 @@ class copyNodeTestCase(unittest.TestCase):
         # Undo the copy.
         self.fileh.undo()
         # Check that the copied node does not exist in the object tree.
-        self.assert_('/acopy' not in self.fileh)
-        self.assert_('/acopy/anarray1' not in self.fileh)
-        self.assert_('/acopy/anarray2' not in self.fileh)
-        self.assert_('/acopy/agroup3' not in self.fileh)
+        self.assertTrue('/acopy' not in self.fileh)
+        self.assertTrue('/acopy/anarray1' not in self.fileh)
+        self.assertTrue('/acopy/anarray2' not in self.fileh)
+        self.assertTrue('/acopy/agroup3' not in self.fileh)
 
         # Redo the copy.
         self.fileh.redo()
         # Check that the copied node exists again in the object tree.
-        self.assert_('/acopy' in self.fileh)
-        self.assert_('/acopy/anarray1' in self.fileh)
-        self.assert_('/acopy/anarray2' in self.fileh)
-        self.assert_('/acopy/agroup3' in self.fileh)
-        self.assert_(self.fileh.root.acopy is newNode)
+        self.assertTrue('/acopy' in self.fileh)
+        self.assertTrue('/acopy/anarray1' in self.fileh)
+        self.assertTrue('/acopy/anarray2' in self.fileh)
+        self.assertTrue('/acopy/agroup3' in self.fileh)
+        self.assertTrue(self.fileh.root.acopy is newNode)
 
 
     def test02_copyLeafOverwrite(self):
@@ -1967,13 +1983,13 @@ class copyNodeTestCase(unittest.TestCase):
         self.fileh.undo()
         # Check that the copied node does not exist in the object tree.
         # Check that the overwritten node exists again in the object tree.
-        self.assert_(self.fileh.root.agroup is oldNode)
+        self.assertTrue(self.fileh.root.agroup is oldNode)
 
         # Redo the copy.
         self.fileh.redo()
         # Check that the copied node exists again in the object tree.
         # Check that the overwritten node does not exist in the object tree.
-        self.assert_(self.fileh.root.agroup is newNode)
+        self.assertTrue(self.fileh.root.agroup is newNode)
 
 
     def test03_copyChildren(self):
@@ -1991,16 +2007,16 @@ class copyNodeTestCase(unittest.TestCase):
         # Undo the copy.
         self.fileh.undo()
         # Check that the copied nodes do not exist in the object tree.
-        self.assert_('/agroup2/anarray1' not in self.fileh)
-        self.assert_('/agroup2/anarray2' not in self.fileh)
-        self.assert_('/agroup2/agroup3' not in self.fileh)
+        self.assertTrue('/agroup2/anarray1' not in self.fileh)
+        self.assertTrue('/agroup2/anarray2' not in self.fileh)
+        self.assertTrue('/agroup2/agroup3' not in self.fileh)
 
         # Redo the copy.
         self.fileh.redo()
         # Check that the copied nodes exist again in the object tree.
-        self.assert_('/agroup2/anarray1' in self.fileh)
-        self.assert_('/agroup2/anarray2' in self.fileh)
-        self.assert_('/agroup2/agroup3' in self.fileh)
+        self.assertTrue('/agroup2/anarray1' in self.fileh)
+        self.assertTrue('/agroup2/anarray2' in self.fileh)
+        self.assertTrue('/agroup2/agroup3' in self.fileh)
 
 
 class ComplexTestCase(unittest.TestCase):
@@ -2070,23 +2086,23 @@ class ComplexTestCase(unittest.TestCase):
         self.fileh.removeNode('/anarray4')
         # Undo the actions
         self.fileh.undo()
-        self.assert_('/anarray4' not in self.fileh)
-        self.assert_('/anarray3' not in self.fileh)
-        self.assert_('/agroup/agroup3/anarray3' not in self.fileh)
-        self.assert_('/agroup3' not in self.fileh)
-        self.assert_('/anarray4' not in self.fileh)
-        self.assert_('/anarray' in self.fileh)
+        self.assertTrue('/anarray4' not in self.fileh)
+        self.assertTrue('/anarray3' not in self.fileh)
+        self.assertTrue('/agroup/agroup3/anarray3' not in self.fileh)
+        self.assertTrue('/agroup3' not in self.fileh)
+        self.assertTrue('/anarray4' not in self.fileh)
+        self.assertTrue('/anarray' in self.fileh)
 
         # Redo the actions
         self.fileh.redo()
         # Check that the copied node exists again in the object tree.
-        self.assert_('/agroup/agroup3/anarray3' in self.fileh)
-        self.assert_('/agroup/anarray3' in self.fileh)
-        self.assert_('/agroup3/agroup3/anarray3' in self.fileh)
-        self.assert_('/agroup3/anarray3' not in self.fileh)
-        self.assert_(self.fileh.root.agroup.anarray3 is newNode)
-        self.assert_('/anarray' not in self.fileh)
-        self.assert_('/anarray4' not in self.fileh)
+        self.assertTrue('/agroup/agroup3/anarray3' in self.fileh)
+        self.assertTrue('/agroup/anarray3' in self.fileh)
+        self.assertTrue('/agroup3/agroup3/anarray3' in self.fileh)
+        self.assertTrue('/agroup3/anarray3' not in self.fileh)
+        self.assertTrue(self.fileh.root.agroup.anarray3 is newNode)
+        self.assertTrue('/anarray' not in self.fileh)
+        self.assertTrue('/anarray4' not in self.fileh)
 
     def test01(self):
         "Test with multiple generations (Leaf case)"
@@ -2115,12 +2131,12 @@ class ComplexTestCase(unittest.TestCase):
         # Undo the actions
         self.fileh.undo()
         # Check that /anarray is in the correct state before redoing
-        assert self.fileh.root.anarray.title == "Array title"
-        assert self.fileh.root.anarray[:] == [1]
+        self.assertEqual(self.fileh.root.anarray.title, "Array title")
+        self.assertEqual(self.fileh.root.anarray[:], [1])
         # Redo the actions
         self.fileh.redo()
-        assert self.fileh.root.anarray.title == "Array title 4"
-        assert self.fileh.root.anarray[:] == [4]
+        self.assertEqual(self.fileh.root.anarray.title, "Array title 4")
+        self.assertEqual(self.fileh.root.anarray[:], [4])
 
     def test02(self):
         "Test with multiple generations (Group case)"
@@ -2149,12 +2165,13 @@ class ComplexTestCase(unittest.TestCase):
         # Undo the actions
         self.fileh.undo()
         # Check that /agroup is in the state before enabling do/undo
-        assert self.fileh.root.agroup2._v_title == "Group title 2"
-        self.assert_('/agroup2' in self.fileh)
+        self.assertEqual(self.fileh.root.agroup2._v_title, "Group title 2")
+        self.assertTrue('/agroup2' in self.fileh)
         # Redo the actions
         self.fileh.redo()
-        assert self.fileh.root.agroup2._v_title == "Group title 4"
-        assert self.fileh.root.agroup2.agroup5._v_title == "Group title 5"
+        self.assertEqual(self.fileh.root.agroup2._v_title, "Group title 4")
+        self.assertEqual(self.fileh.root.agroup2.agroup5._v_title,
+                         "Group title 5")
 
     def test03(self):
         "Test with multiple generations (Group case, recursive remove)"
@@ -2183,18 +2200,18 @@ class ComplexTestCase(unittest.TestCase):
         # Undo the actions
         self.fileh.undo()
         # Check that /agroup is in the state before enabling do/undo
-        self.assert_('/agroup' in self.fileh)
-        assert self.fileh.root.agroup._v_title == "Group title"
-        self.assert_('/agroup/anarray1' in self.fileh)
-        self.assert_('/agroup/anarray2' in self.fileh)
-        self.assert_('/agroup/agroup3' in self.fileh)
-        self.assert_('/agroup/agroup5' not in self.fileh)
+        self.assertTrue('/agroup' in self.fileh)
+        self.assertEqual(self.fileh.root.agroup._v_title, "Group title")
+        self.assertTrue('/agroup/anarray1' in self.fileh)
+        self.assertTrue('/agroup/anarray2' in self.fileh)
+        self.assertTrue('/agroup/agroup3' in self.fileh)
+        self.assertTrue('/agroup/agroup5' not in self.fileh)
         # Redo the actions
         self.fileh.redo()
-        self.assert_('/agroup' in self.fileh)
-        assert self.fileh.root.agroup._v_title == "Group title 4"
-        self.assert_('/agroup/agroup5' in self.fileh)
-        assert self.fileh.root.agroup.agroup5._v_title == "Group title 5"
+        self.assertTrue('/agroup' in self.fileh)
+        self.assertEqual(self.fileh.root.agroup._v_title, "Group title 4")
+        self.assertTrue('/agroup/agroup5' in self.fileh)
+        self.assertEqual(self.fileh.root.agroup.agroup5._v_title, "Group title 5")
 
     def test03b(self):
         "Test with multiple generations (Group case, recursive remove, case 2)"
@@ -2216,12 +2233,12 @@ class ComplexTestCase(unittest.TestCase):
         # Undo the actions
         self.fileh.undo()
         # Check that /agroup is in the state before enabling do/undo
-        self.assert_('/agroup3' not in self.fileh)
+        self.assertTrue('/agroup3' not in self.fileh)
         # Redo the actions
         self.fileh.redo()
-        assert self.fileh.root.agroup3._v_title == "Group title 4"
-        self.assert_('/agroup3' in self.fileh)
-        self.assert_('/agroup/agroup4' not in self.fileh)
+        self.assertEqual(self.fileh.root.agroup3._v_title, "Group title 4")
+        self.assertTrue('/agroup3' in self.fileh)
+        self.assertTrue('/agroup/agroup4' not in self.fileh)
 
 
 
@@ -2263,12 +2280,12 @@ class AttributesTestCase(unittest.TestCase):
 
         self.fileh.enableUndo()
         setattr(attrs, 'attr_0', 0)
-        self.assert_('attr_0' in attrs)
+        self.assertTrue('attr_0' in attrs)
         self.assertEqual(attrs.attr_0, 0)
         self.fileh.undo()
-        self.assert_('attr_0' not in attrs)
+        self.assertTrue('attr_0' not in attrs)
         self.fileh.redo()
-        self.assert_('attr_0' in attrs)
+        self.assertTrue('attr_0' in attrs)
         self.assertEqual(attrs.attr_0, 0)
 
 
@@ -2284,13 +2301,13 @@ class AttributesTestCase(unittest.TestCase):
 
         self.fileh.enableUndo()
         setattr(attrs, 'attr_1', 11)
-        self.assert_('attr_1' in attrs)
+        self.assertTrue('attr_1' in attrs)
         self.assertEqual(attrs.attr_1, 11)
         self.fileh.undo()
-        self.assert_('attr_1' in attrs)
+        self.assertTrue('attr_1' in attrs)
         self.assertEqual(attrs.attr_1, 10)
         self.fileh.redo()
-        self.assert_('attr_1' in attrs)
+        self.assertTrue('attr_1' in attrs)
         self.assertEqual(attrs.attr_1, 11)
 
 
@@ -2306,12 +2323,12 @@ class AttributesTestCase(unittest.TestCase):
 
         self.fileh.enableUndo()
         delattr(attrs, 'attr_1')
-        self.assert_('attr_1' not in attrs)
+        self.assertTrue('attr_1' not in attrs)
         self.fileh.undo()
-        self.assert_('attr_1' in attrs)
+        self.assertTrue('attr_1' in attrs)
         self.assertEqual(attrs.attr_1, 10)
         self.fileh.redo()
-        self.assert_('attr_1' not in attrs)
+        self.assertTrue('attr_1' not in attrs)
 
 
     def test03_copyNodeAttrs(self):
@@ -2337,8 +2354,8 @@ class AttributesTestCase(unittest.TestCase):
         self.fileh.undo()
         self.assertEqual(rattrs.attr_0, 0)
         self.assertEqual(rattrs.attr_1, 100)
-        self.assert_('attr_2' not in rattrs)
-        self.assert_('attr_3' not in rattrs)
+        self.assertTrue('attr_2' not in rattrs)
+        self.assertTrue('attr_3' not in rattrs)
         self.fileh.redo()
         self.assertEqual(rattrs.attr_0, 0)
         self.assertEqual(rattrs.attr_1, 10)
@@ -2362,10 +2379,10 @@ class AttributesTestCase(unittest.TestCase):
         arr = self.fileh.createArray('/', 'array', [1])
         arr.attrs.attr_1 = 12
         self.fileh.undo()
-        self.assert_('attr_1' in self.fileh.root.array.attrs)
+        self.assertTrue('attr_1' in self.fileh.root.array.attrs)
         self.assertEqual(self.fileh.root.array.attrs.attr_1, 10)
         self.fileh.redo()
-        self.assert_('attr_1' in self.fileh.root.array.attrs)
+        self.assertTrue('attr_1' in self.fileh.root.array.attrs)
         self.assertEqual(self.fileh.root.array.attrs.attr_1, 12)
 
 
@@ -2387,17 +2404,17 @@ class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         arr = self.NotLoggedArray( self.h5file.root, 'test',
                                    [1], self._getMethodName() )
         self.h5file.undo()
-        self.assert_('/test' in self.h5file)
+        self.assertTrue('/test' in self.h5file)
 
         # Node movement is not undone.
         arr.move('/tgroup')
         self.h5file.undo()
-        self.assert_('/tgroup/test' in self.h5file)
+        self.assertTrue('/tgroup/test' in self.h5file)
 
         # Node removal is not undone.
         arr.remove()
         self.h5file.undo()
-        self.assert_('/tgroup/test' not in self.h5file)
+        self.assertTrue('/tgroup/test' not in self.h5file)
 
 
     def test01_attributes(self):
@@ -2410,12 +2427,12 @@ class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Attribute creation is not undone.
         arr._v_attrs.foo = 'bar'
         self.h5file.undo()
-        self.assert_(arr._v_attrs.foo == 'bar')
+        self.assertEqual(arr._v_attrs.foo, 'bar')
 
         # Attribute change is not undone.
         arr._v_attrs.foo = 'baz'
         self.h5file.undo()
-        self.assert_(arr._v_attrs.foo == 'baz')
+        self.assertEqual(arr._v_attrs.foo, 'baz')
 
         # Attribute removal is not undone.
         del arr._v_attrs.foo
@@ -2445,7 +2462,7 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             before = self.existing(paths)
             doit(newpath)
             after = self.existing(paths)
-            self.assert_(after.issuperset(before))
+            self.assertTrue(after.issuperset(before))
 
             self.h5file.undo()
             post(newpath)
@@ -2458,9 +2475,9 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             pass
         def doit(newpath):
             self.h5file.createArray(newpath, 'array', [1], createparents=True)
-            self.assert_(joinPath(newpath, 'array') in self.h5file)
+            self.assertTrue(joinPath(newpath, 'array') in self.h5file)
         def post(newpath):
-            self.assert_(joinPath(newpath, 'array') not in self.h5file)
+            self.assertTrue(joinPath(newpath, 'array') not in self.h5file)
         self.basetest(doit, pre, post)
 
     def test01_move(self):
@@ -2469,11 +2486,11 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.h5file.createArray('/', 'array', [1])
         def doit(newpath):
             self.h5file.moveNode('/array', newpath, createparents=True)
-            self.assert_('/array' not in self.h5file)
-            self.assert_(joinPath(newpath, 'array') in self.h5file)
+            self.assertTrue('/array' not in self.h5file)
+            self.assertTrue(joinPath(newpath, 'array') in self.h5file)
         def post(newpath):
-            self.assert_('/array' in self.h5file)
-            self.assert_(joinPath(newpath, 'array') not in self.h5file)
+            self.assertTrue('/array' in self.h5file)
+            self.assertTrue(joinPath(newpath, 'array') not in self.h5file)
         self.basetest(doit, pre, post)
 
     def test02_copy(self):
@@ -2482,9 +2499,9 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.h5file.createArray('/', 'array', [1])
         def doit(newpath):
             self.h5file.copyNode('/array', newpath, createparents=True)
-            self.assert_(joinPath(newpath, 'array') in self.h5file)
+            self.assertTrue(joinPath(newpath, 'array') in self.h5file)
         def post(newpath):
-            self.assert_(joinPath(newpath, 'array') not in self.h5file)
+            self.assertTrue(joinPath(newpath, 'array') not in self.h5file)
         self.basetest(doit, pre, post)
 
     def test03_copyChildren(self):
@@ -2495,11 +2512,11 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.h5file.createArray(g, 'array2', [1])
         def doit(newpath):
             self.h5file.copyChildren('/group', newpath, createparents=True)
-            self.assert_(joinPath(newpath, 'array1') in self.h5file)
-            self.assert_(joinPath(newpath, 'array2') in self.h5file)
+            self.assertTrue(joinPath(newpath, 'array1') in self.h5file)
+            self.assertTrue(joinPath(newpath, 'array2') in self.h5file)
         def post(newpath):
-            self.assert_(joinPath(newpath, 'array1') not in self.h5file)
-            self.assert_(joinPath(newpath, 'array2') not in self.h5file)
+            self.assertTrue(joinPath(newpath, 'array1') not in self.h5file)
+            self.assertTrue(joinPath(newpath, 'array2') not in self.h5file)
         self.basetest(doit, pre, post)
 
 

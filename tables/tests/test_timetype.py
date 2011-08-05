@@ -261,9 +261,8 @@ class CompareTestCase(common.PyTablesTestCase):
         h5file = tables.openFile(self.h5fname)
         rtime = h5file.root.test.read()[0][0]
         h5file.close()
-        self.assert_(
-                allequal(rtime, wtime),
-                "Stored and retrieved values do not match.")
+        self.assertTrue(allequal(rtime, wtime),
+                        "Stored and retrieved values do not match.")
 
 
     def test01_Compare64VLArray(self):
@@ -282,9 +281,8 @@ class CompareTestCase(common.PyTablesTestCase):
         h5file = tables.openFile(self.h5fname)
         rtime = h5file.root.test.read()[0][0]
         h5file.close()
-        self.assert_(
-                allequal(rtime, wtime),
-                "Stored and retrieved values do not match.")
+        self.assertTrue(allequal(rtime, wtime),
+                        "Stored and retrieved values do not match.")
 
 
     def test01b_Compare64VLArray(self):
@@ -317,9 +315,8 @@ class CompareTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", arr
-        self.assert_(
-                allequal(arr, orig_val),
-                "Stored and retrieved values do not match.")
+        self.assertTrue(allequal(arr, orig_val),
+                        "Stored and retrieved values do not match.")
 
 
     def test02_CompareTable(self):
@@ -346,8 +343,8 @@ class CompareTestCase(common.PyTablesTestCase):
                          "Stored and retrieved values do not match.")
 
         comp = (recarr['t64col'][0] == numpy.array((wtime, wtime)))
-        self.assert_(numpy.alltrue(comp),
-                     "Stored and retrieved values do not match.")
+        self.assertTrue(numpy.alltrue(comp),
+                        "Stored and retrieved values do not match.")
 
 
     def test02b_CompareTable(self):
@@ -382,9 +379,8 @@ class CompareTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", recarr['t32col'][:]
-        self.assert_(
-                numpy.alltrue(recarr['t32col'][:] == orig_val),
-                "Stored and retrieved values do not match.")
+        self.assertTrue(numpy.alltrue(recarr['t32col'][:] == orig_val),
+                        "Stored and retrieved values do not match.")
 
         # Time64 column.
         orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
@@ -392,9 +388,8 @@ class CompareTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", recarr['t64col'][:]
-        self.assert_(
-            allequal(recarr['t64col'][:], orig_val, numpy.float64),
-            "Stored and retrieved values do not match.")
+        self.assertTrue(allequal(recarr['t64col'][:], orig_val, numpy.float64),
+                        "Stored and retrieved values do not match.")
 
 
     def test03_Compare64EArray(self):
@@ -414,9 +409,8 @@ class CompareTestCase(common.PyTablesTestCase):
         h5file = tables.openFile(self.h5fname)
         rtime = h5file.root.test[0]
         h5file.close()
-        self.assert_(
-                allequal(rtime, wtime),
-                "Stored and retrieved values do not match.")
+        self.assertTrue(allequal(rtime, wtime),
+                        "Stored and retrieved values do not match.")
 
 
     def test03b_Compare64EArray(self):
@@ -449,9 +443,8 @@ class CompareTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", arr
-        self.assert_(
-                allequal(arr, orig_val),
-                "Stored and retrieved values do not match.")
+        self.assertTrue(allequal(arr, orig_val),
+                        "Stored and retrieved values do not match.")
 
 
 
@@ -518,18 +511,16 @@ class UnalignedTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", recarr['i8col'][:]
-        self.assert_(
-                numpy.alltrue(recarr['i8col'][:] == orig_val),
-                "Stored and retrieved values do not match.")
+        self.assertTrue(numpy.alltrue(recarr['i8col'][:] == orig_val),
+                        "Stored and retrieved values do not match.")
 
         # Time32 column.
         orig_val = numpy.arange(nrows, dtype=numpy.int32)
         if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", recarr['t32col'][:]
-        self.assert_(
-                numpy.alltrue(recarr['t32col'][:] == orig_val),
-                "Stored and retrieved values do not match.")
+        self.assertTrue(numpy.alltrue(recarr['t32col'][:] == orig_val),
+                        "Stored and retrieved values do not match.")
 
         # Time64 column.
         orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
@@ -537,9 +528,8 @@ class UnalignedTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", recarr['t64col'][:]
-        self.assert_(
-            allequal(recarr['t64col'][:], orig_val, numpy.float64),
-            "Stored and retrieved values do not match.")
+        self.assertTrue(allequal(recarr['t64col'][:], orig_val, numpy.float64),
+                        "Stored and retrieved values do not match.")
 
 
 
@@ -569,9 +559,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Retrieved values:", earr
             print "Should look like:", orig_val
-        self.assert_(
-                numpy.alltrue(earr == orig_val),
-                "Retrieved values do not match the expected values.")
+        self.assertTrue(numpy.alltrue(earr == orig_val),
+                        "Retrieved values do not match the expected values.")
 
 
     def test00b_Read64Array(self):
@@ -588,9 +577,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Retrieved values:", earr
             print "Should look like:", orig_val
-        self.assert_(
-                numpy.allclose(earr, orig_val, rtol=1.e-15),
-                "Retrieved values do not match the expected values.")
+        self.assertTrue(numpy.allclose(earr, orig_val, rtol=1.e-15),
+                        "Retrieved values do not match the expected values.")
 
 
     def test01a_ReadPlainColumn(self):
@@ -608,9 +596,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Retrieved values:", t32
             print "Should look like:", orig_val
-        self.assert_(
-                numpy.alltrue(t32 == orig_val),
-                "Retrieved values do not match the expected values.")
+        self.assertTrue(numpy.alltrue(t32 == orig_val),
+                        "Retrieved values do not match the expected values.")
 
 
     def test01b_ReadNestedColumn(self):
@@ -628,9 +615,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Retrieved values:", t64
             print "Should look like:", orig_val
-        self.assert_(
-                numpy.allclose(t64, orig_val, rtol=1.e-15),
-                "Retrieved values do not match the expected values.")
+        self.assertTrue(numpy.allclose(t64, orig_val, rtol=1.e-15),
+                        "Retrieved values do not match the expected values.")
 
 
     def test02_ReadNestedColumnTwice(self):
@@ -649,9 +635,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Retrieved values:", t64
             print "Should look like:", orig_val
-        self.assert_(
-                numpy.allclose(t64, orig_val, rtol=1.e-15),
-                "Retrieved values do not match the expected values.")
+        self.assertTrue(numpy.allclose(t64, orig_val, rtol=1.e-15),
+                        "Retrieved values do not match the expected values.")
 
 
 #----------------------------------------------------------------------
