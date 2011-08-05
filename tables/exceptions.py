@@ -41,10 +41,6 @@ Classes:
     Unsupported or unavailable flavor conversion.
 `FiltersWarning`
     Unavailable filters.
-`NoIndexingError`
-    Indexing is not supported.
-`NoIndexingWarning`
-    Indexing is not supported.
 `OldIndexWarning`
     Unsupported index format.
 `DataTypeWarning`
@@ -225,36 +221,6 @@ class FiltersWarning(Warning):
     """
     pass
 
-
-_no_indexing_message = (
-    "This version of PyTables does not support indexing. "
-    "Please consider using the PyTables Pro edition "
-    "(http://www.pytables.org/moin/PyTablesPro)." )
-
-class NoIndexingError(NotImplementedError):
-    """
-    Indexing is not supported.
-
-    This exception is raised when an indexing-related operation is
-    requested under a version of PyTables which does not support
-    indexing.  Please consider using the PyTables Pro edition
-    (http://www.pytables.org/moin/PyTablesPro).
-    """
-    def __init__(self):
-        NotImplementedError.__init__(self, _no_indexing_message)
-
-class NoIndexingWarning(Warning):
-    """
-    Indexing is not supported.
-
-    This warning is issued when opening an indexed table under a version
-    of PyTables which does not support indexing.  Please consider using
-    the PyTables Pro edition
-    (http://www.pytables.org/moin/PyTablesPro).
-    """
-    def __init__(self, message):
-        message = '%s. %s' % (message, _no_indexing_message)
-        Warning.__init__(self, message)
 
 class OldIndexWarning(Warning):
     """

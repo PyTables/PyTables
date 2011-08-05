@@ -236,9 +236,6 @@
             <para><emphasis>Indexing support for columns of tables:</emphasis>
             Very useful if you have large tables and you want to quickly look
             up for values in columns satisfying some criteria.</para>
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
           </listitem>
 
           <listitem>
@@ -3719,6 +3716,21 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
               <glossdef>
                 <para>True for PyTables Professional edition, false
                 otherwise.</para>
+
+                <note>
+                    <para>PyTables Professional edition has been released
+                    under an open source license. Starting with version 2.3,
+                    PyTables includes all features of PyTables Pro.</para>
+
+                    <para>In order to reflect the presence of advanced
+                    features <emphasis role="bold">is_pro</emphasis> is always
+                    set to True.</para>
+
+                    <para><emphasis role="bold">is_pro</emphasis> should be
+                    considered <emphasis role="bold">deprecated</emphasis>.
+                    It will be removed in the next major release.</para>
+                </note>
+
               </glossdef>
             </glossentry>
           </glosslist>
@@ -3914,9 +3926,8 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
             </glosslist>
 
             <para>In addition, it recognizes the names of parameters present
-            in <literal>tables/parameters.py</literal> (and for PyTables Pro
-            users, those in <literal>tables/_parameters_pro.py</literal> too)
-            as additional keyword arguments.  See
+            in <literal>tables/parameters.py</literal> as additional keyword
+            arguments.  See
             <xref linkend="parametersFiles" xrefstyle="select: label" /> for a
             detailed info on the supported parameters.</para>
 
@@ -4200,9 +4211,8 @@ ValueError: malformed type: 'foo bar'</screen>
             operations of nodes to see which options they support.</para>
 
             <para>In addition, it recognizes the names of parameters present
-            in <literal>tables/parameters.py</literal> (and for PyTables Pro
-            users, those in <literal>tables/_parameters_pro.py</literal> too)
-            as additional keyword arguments.  See
+            in <literal>tables/parameters.py</literal> as additional keyword
+            arguments.  See
             <xref linkend="parametersFiles" xrefstyle="select: label" /> for a
             detailed info on the supported parameters.</para>
 
@@ -6862,10 +6872,6 @@ for node in h5file.root.detector:
         a non-nested one.  Search methods automatically take advantage of
         indexing where available.</para>
 
-        <note role="pro">
-          <para>Column indexing is only available in PyTables Pro.</para>
-        </note>
-
         <para>When iterating a table, an object from the
         <literal>Row</literal> (see <xref linkend="RowClassDescr"
         xrefstyle="select: label" />) class is used.  This object allows to
@@ -6921,10 +6927,6 @@ for node in h5file.root.detector:
                 linkend="Table.reIndexDirty" />).</para>
 
                 <para>This value is persistent.
-                <note role="pro">
-                  <para>Column indexing is only available in PyTables
-                  Pro.</para>
-                </note>
                 </para>
               </glossdef>
             </glossentry>
@@ -6963,10 +6965,6 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>Is the column which name is used as a key indexed?
-                <note role="pro">
-                  <para>Column indexing is only available in PyTables
-                  Pro.</para>
-                </note>
                 </para>
               </glossdef>
             </glossentry>
@@ -7207,10 +7205,6 @@ for node in h5file.root.detector:
             of <literal>step</literal> is supported, meaning that the results
             will be returned in reverse sorted order.</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
-
           </section>
 
           <section id="Table.read" xreflabel="description">
@@ -7292,10 +7286,6 @@ for node in h5file.root.detector:
             linkend="Table.read" />).  However, in this case a negative value
             of <literal>step</literal> is supported, meaning that the results
             will be returned in reverse sorted order.</para>
-
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
 
           </section>
 
@@ -7699,10 +7689,6 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             label" /> for more information about the performance of the
             different searching modes.</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
-
             <para>You can mix this method with regular Python selections in
             order to support even more complex queries. It is strongly
             recommended that you pass the most restrictive condition as the
@@ -7776,9 +7762,6 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             make this method return different values for the same arguments at
             different times.</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
           </section>
         </section>
 
@@ -7852,9 +7835,6 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             xrefstyle="select: label" />) and you want to update the indexes
             on it.</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
           </section>
 
           <section id="Table.getEnum" xreflabel="description">
@@ -7881,9 +7861,6 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             the index information for columns is no longer valid and want to
             rebuild the indexes on it.</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
           </section>
 
           <section id="Table.reIndexDirty" xreflabel="description">
@@ -7899,9 +7876,6 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             after a invalidating index operation
             (<literal>Table.removeRows()</literal>, for example).</para>
 
-            <note role="pro">
-              <para>Column indexing is only available in PyTables Pro.</para>
-            </note>
           </section>
         </section>
 
@@ -8518,10 +8492,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
           linkend="ColsClassDescr" xrefstyle="select: label" />), but there
           are a few other associated methods to deal with indexes.</para>
 
-          <note role="pro">
-            <para>Column indexing is only available in PyTables Pro.</para>
-          </note>
-
           <section>
             <title><literal>Column</literal> instance variables</title>
 
@@ -8710,10 +8680,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
                   <xref linkend="Column.createCSIndex" />).</para>
               </warning>
 
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
             </section>
 
             <section id="Column.createCSIndex" xreflabel="description">
@@ -8756,10 +8722,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <para>This method does nothing if the column is not
               indexed.</para>
 
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
             </section>
 
             <section id="Column.reIndexDirty" xreflabel="description">
@@ -8778,10 +8740,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <para>This method does nothing if the column is not
               indexed.</para>
 
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
             </section>
 
             <section id="Column.removeIndex" xreflabel="description">
@@ -8794,10 +8752,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <literal>Column.createIndex()</literal> method (see <xref
               linkend="Column.createIndex" />).</para>
 
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
             </section>
           </section>
 
@@ -11325,10 +11279,6 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
             programmer.</para>
           </note>
 
-          <note role="pro">
-            <para>Column indexing is only available in PyTables Pro.</para>
-          </note>
-
           <section id="IndexClassInstanceVariables">
             <title><literal>Index</literal> instance variables</title>
 
@@ -12426,10 +12376,6 @@ array([ 8, 12])
         <section id="indexedSearches">
           <title>Indexed searches</title>
 
-          <note role="pro">
-            <para>Indexing is only available in PyTables Pro.</para>
-          </note>
-
           <para>When you need more speed than <emphasis>in-kernel</emphasis>
           selections can offer you, PyTables offers a third selection method,
           the so-called <emphasis>indexed</emphasis> mode (based on the highly
@@ -12526,7 +12472,7 @@ indexrows = table.cols.var3.createIndex()</screen>
             </itemizedlist></para>
 
           <note>
-            <para>From PyTables Pro 2.1 on, several indexes can be used in a
+            <para>From PyTables 2.3 on, several indexes can be used in a
             single query.</para>
           </note>
 
@@ -12538,12 +12484,13 @@ indexrows = table.cols.var3.createIndex()</screen>
             label" />).</para>
           </note>
 
-          <para>One important aspect of indexing in PyTables Pro is that it
-          has been designed from the ground up with the goal of being capable
-          to effectively manage very large tables.  To this goal, it sports a
-          wide spectrum of different quality levels (also called optimization
-          levels) for its indexes so that the user can choose the best one
-          that suits her needs (more or less size, more or less performance).
+          <para>One important aspect of the new indexing in PyTables (>= 2.3)
+          is that it has been designed from the ground up with the goal of
+          being capable to effectively manage very large tables.  To this goal,
+          it sports a wide spectrum of different quality levels (also called
+          optimization levels) for its indexes so that the user can choose the
+          best one that suits her needs (more or less size, more or less
+          performance).
           </para>
 
           <para>In <xref linkend="createIndexTimes" xrefstyle="select: label"
@@ -12668,7 +12615,7 @@ indexrows = table.cols.var3.createIndex()</screen>
           </figure>
 
           <para>You can find a more complete description and benchmarks about
-          OPSI, the indexing system of PyTables Pro in <biblioref
+          OPSI, the indexing system of PyTables (>= 2.3) in <biblioref
           linkend="OPSI" />.</para>
 
         </section>
@@ -12737,7 +12684,7 @@ indexrows = table.cols.var3.createIndex()</screen>
           5x (4x to 10x when compared with traditional relational databases).
           Best of all, as already mentioned, performance is not degraded when
           compression is used, but actually <emphasis>improved</emphasis>.
-          So, by using PyTables Pro and SSD you can query larger datasets that
+          So, by using PyTables and SSD you can query larger datasets that
           otherwise would require spinning disks when using other databases
           <footnote><para>In fact, we were unable to run the PostgreSQL
           benchmark in this case because the space needed exceeded the
@@ -13613,11 +13560,12 @@ print readFile("myfile.h5")</screen>
         to proceed to fine-tune the <literal>NODE_CACHE_SLOTS</literal>
         parameter.</para>
 
-        <note role="pro">
-          <para>PyTables Pro sports an optimized LRU cache node written in C,
-          so you should expect significantly faster LRU cache operations when
-          working with it.</para>
+        <note>
+            <para>PyTables >= 2.3 sports an optimized LRU cache node written
+            in C, so you should expect significantly faster LRU cache
+            operations when working with it.</para>
         </note>
+        <!-- TODO: Rewrite above section to include info on indexes -->
       </section>
 
       <section>
@@ -15753,15 +15701,13 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       <para>Because of these reasons, PyTables implements a couple of ways to
       change the values of these parameters.  All
       the <emphasis>tunable</emphasis> parameters live in
-      the <literal>tables/parameters.py</literal>
-      (and <literal>tables/_parameters_pro.py</literal>, for PyTables Pro
-      users).  The user can choose to change them in the parameter files
-      themselves for a global and persistent change.  Moreover, if he wants a
-      finer control, he can pass any of these parameters directly to
-      the <literal>openFile()</literal> function (see
-      <xref linkend="openFileDescr"/>), and the new parameters will only take
-      effect in the corresponding file (the defaults will continue to be in
-      the parameter files).</para>
+      the <literal>tables/parameters.py</literal>.  The user can choose to
+      change them in the parameter files themselves for a global and
+      persistent change.  Moreover, if he wants a finer control, he can pass
+      any of these parameters directly to the <literal>openFile()</literal>
+      function (see <xref linkend="openFileDescr"/>), and the new parameters
+      will only take effect in the corresponding file (the defaults will
+      continue to be in the parameter files).</para>
 
       <para>A description of all of the tunable parameters follows.  As the
       defaults stated here may change from release to release, please check
@@ -15892,91 +15838,6 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
 
           </glosslist>
         </section>
-
-        <section>
-          <title>Parameters for the I/O buffer in <literal>Leaf</literal>
-            objects</title>
-
-          <glosslist>
-
-            <glossentry>
-              <glossterm><literal>IO_BUFFER_SIZE</literal></glossterm>
-              <glossdef>
-                <para>The PyTables internal buffer size for I/O purposes.
-                  Should not exceed the amount of highest level cache size in
-                  your CPU.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><literal>BUFFER_TIMES</literal></glossterm>
-              <glossdef>
-                <para>The maximum buffersize/rowsize ratio before issuing a
-                  <literal>PerformanceWarning</literal>.</para>
-              </glossdef>
-            </glossentry>
-
-          </glosslist>
-        </section>
-
-        <section>
-          <title>Miscellaneous</title>
-
-          <glosslist>
-
-            <glossentry>
-              <glossterm><literal>EXPECTED_ROWS_EARRAY</literal></glossterm>
-              <glossdef>
-                <para>Default expected number of rows
-                for <literal>EArray</literal> objects.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><literal>EXPECTED_ROWS_TABLE</literal></glossterm>
-              <glossdef>
-                <para>Default expected number of rows
-                for <literal>Table</literal> objects.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><literal>PYTABLES_SYS_ATTRS</literal></glossterm>
-              <glossdef>
-                <para>Set this to <literal>False</literal> if you don't want
-                  to create PyTables system attributes in datasets.  Also, if
-                  set to <literal>False</literal> the possible existing system
-                  attributes are not considered for guessing the class of the
-                  node during its loading from disk (this work is delegated to
-                  the PyTables' class discoverer function for general HDF5
-                  files).</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><literal>MAX_THREADS</literal></glossterm>
-              <glossdef>
-                <para>The maximum number of threads that PyTables should use
-                  internally (mainly in Blosc and Numexpr currently).  If
-                  <literal>None</literal>, it is automatically set to the
-                  number of cores in your machine. In general, it is a good
-                  idea to set this to the number of cores in your machine or,
-                  when your machine has many of them (e.g. > 4), perhaps one
-                  less than this.</para>
-              </glossdef>
-            </glossentry>
-
-          </glosslist>
-        </section>
-      </section>
-
-      <section>
-        <title>Tunable parameters in <literal>_parameters_pro.py</literal>
-        </title>
-
-        <note role="pro">
-          <para>These parameters are only available in PyTables Pro.</para>
-        </note>
 
         <section>
           <title>Parameters for the different internal caches</title>
@@ -16120,7 +15981,84 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           </glosslist>
 
         </section>
+
+        <section>
+          <title>Parameters for the I/O buffer in <literal>Leaf</literal>
+            objects</title>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>IO_BUFFER_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The PyTables internal buffer size for I/O purposes.
+                  Should not exceed the amount of highest level cache size in
+                  your CPU.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>BUFFER_TIMES</literal></glossterm>
+              <glossdef>
+                <para>The maximum buffersize/rowsize ratio before issuing a
+                  <literal>PerformanceWarning</literal>.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+
+        <section>
+          <title>Miscellaneous</title>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>EXPECTED_ROWS_EARRAY</literal></glossterm>
+              <glossdef>
+                <para>Default expected number of rows
+                for <literal>EArray</literal> objects.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>EXPECTED_ROWS_TABLE</literal></glossterm>
+              <glossdef>
+                <para>Default expected number of rows
+                for <literal>Table</literal> objects.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>PYTABLES_SYS_ATTRS</literal></glossterm>
+              <glossdef>
+                <para>Set this to <literal>False</literal> if you don't want
+                  to create PyTables system attributes in datasets.  Also, if
+                  set to <literal>False</literal> the possible existing system
+                  attributes are not considered for guessing the class of the
+                  node during its loading from disk (this work is delegated to
+                  the PyTables' class discoverer function for general HDF5
+                  files).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>MAX_THREADS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of threads that PyTables should use
+                  internally (mainly in Blosc and Numexpr currently).  If
+                  <literal>None</literal>, it is automatically set to the
+                  number of cores in your machine. In general, it is a good
+                  idea to set this to the number of cores in your machine or,
+                  when your machine has many of them (e.g. > 4), perhaps one
+                  less than this.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
       </section>
+
     </appendix>
 
     <appendix id="NestedRecArrayClassDescr">

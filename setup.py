@@ -427,11 +427,9 @@ cython_extnames = [
     'tableExtension',
     'linkExtension',
     '_comp_lzo',
-    '_comp_bzip2' ]
-if VERSION.endswith('pro'):
-    cython_extnames.extend([
-        'lrucacheExtension',
-        'indexesExtension' ])
+    '_comp_bzip2',
+    'lrucacheExtension',
+    'indexesExtension' ]
 
 
 def get_cython_extfiles(extnames):
@@ -677,7 +675,7 @@ Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
 Intended Audience :: Information Technology
 Intended Audience :: Science/Research
-License :: Commercial. See LICENSE.txt for more info.
+License :: OSI Approved :: BSD License
 Programming Language :: Python
 Topic :: Database
 Topic :: Software Development :: Libraries :: Python Modules
@@ -703,8 +701,9 @@ interactively save and retrieve large amounts of data.
       author_email = 'pytables@pytables.org',
       maintainer = 'Francesc Alted',
       maintainer_email = 'pytables@pytables.org',
-      url = 'http://www.pytables.com/moin/PytablesPro',
-      license = 'Commercial.  See LICENSE.txt.',
+      url = 'http://www.pytables.org/',
+      license = 'http://www.opensource.org/licenses/bsd-license.php',
+      download_url = "http://www.pytables.org/download/pytables-%s/tables-%s.tar.gz" % (VERSION, VERSION),
       platforms = ['any'],
       ext_modules = extensions,
       cmdclass = cmdclass,

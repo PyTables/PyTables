@@ -1,7 +1,7 @@
 # MingW Makefile for the mswindows subdirectory
-# This Makefile is intended to create the PyTables Pro installer for Windows
+# This Makefile is intended to create the PyTables installer for Windows
 
-#Variables for software versions: PyTables Pro, Python and required libraries
+#Variables for software versions: PyTables, Python and required libraries
 VERSIONFILE=..\VERSION
 FULLVERSION=$(shell type ..\VERSION)
 VERSION = $(subst pro,,${FULLVERSION})
@@ -56,10 +56,10 @@ ifeq ($(LICENSE),evaluation)
 endif
 
 # The NSIS intstaller script
-PTPRONSIS=pytables_pro-py$(DOTPYTHONVERSION).nsi
+PTPRONSIS=pytables-py$(DOTPYTHONVERSION).nsi
 
 # Required paths
-SVN_PTPRO=..
+SVN_PT=..
 TABLES_ORIG=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\tables_orig
 NUMPY=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\numpy_orig
 NUMEXPR=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\numexpr_orig
@@ -73,20 +73,20 @@ dist:
 clean:
 	$(MAKE) -f Makefile_windows -C .. $@
 	-del $(PTPRONSIS)
-	-del PyTablesPro*.win32-py$(DOTPYTHONVERSION).exe
-	-del PyTablesPro*.win-amd64-py$(DOTPYTHONVERSION).exe
-	
+	-del PyTables*.win32-py$(DOTPYTHONVERSION).exe
+	-del PyTables*.win-amd64-py$(DOTPYTHONVERSION).exe
+
 
 # $(info $(NUMPYVERSION))
-installer: dist pytables_pro.nsi.in $(VERSIONFILE) $(LICENSEFILE)
-	type pytables_pro.nsi.in | sed -e "s/@VERSION@/$(VERSION)/g" \
+installer: dist pytables.nsi.in $(VERSIONFILE) $(LICENSEFILE)
+	type pytables.nsi.in | sed -e "s/@VERSION@/$(VERSION)/g" \
 	-e "s/@PTVERSION@/$(VERSION)/g" \
 	-e "s/@NUMPYVERSION@/$(NUMPYVERSION)/g" \
 	-e "s/@NUMEXPRVERSION@/$(NUMEXPRVERSION)/g" \
 	-e "s/@PYTHONVERSION@/$(PYTHONVERSION)/g" \
 	-e "s/@DOTPYTHONVERSION@/$(DOTPYTHONVERSION)/g" \
 	-e "s/@PLATFORM@/$(PLATFORM)/g" \
-	-e "s/@SVN_PTPRO@/$(SVN_PTPRO)/g" \
+	-e "s/@SVN_PT@/$(SVN_PT)/g" \
 	-e "s/@TABLES_ORIG@/$(TABLES_ORIG)/g" \
 	-e "s/@NUMPY@/$(NUMPY)/g" \
 	-e "s/@NUMEXPR@/$(NUMEXPR)/g" \

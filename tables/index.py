@@ -1,6 +1,6 @@
 #######################################################################
 #
-#       License: See http://www.pytables.org/moin/PyTablesProPricing
+#       License: BSD
 #       Created: June 08, 2004
 #       Author:  Francesc Alted - faltet@pytables.com
 #
@@ -55,7 +55,6 @@ from tables.group import Group
 from tables.path import joinPath
 from tables.exceptions import PerformanceWarning
 from tables.utils import is_idx, idx2long, lazyattr
-from tables._table_common import _tableColumnPathnameOfIndex
 from tables.lrucacheExtension import ObjectCache
 
 
@@ -65,7 +64,8 @@ __version__ = "$Revision: 1236 $"
 # default version for INDEX objects
 #obversion = "1.0"    # Version of indexes in PyTables 1.x series
 #obversion = "2.0"    # Version of indexes in PyTables Pro 2.0 series
-obversion = "2.1"    # Version of indexes in PyTables Pro 2.1 and up series
+obversion = "2.1"     # Version of indexes in PyTables Pro 2.1 and up series,
+                      # including the join 2.3 Std+Pro version
 
 
 debug = False
@@ -100,6 +100,16 @@ opt_search_types = ("int8", "int16", "int32", "int64",
 
 # The upper limit for uint32 ints
 max32 = 2**32
+
+
+def _tableColumnPathnameOfIndex(indexpathname):
+    names = indexpathname.split("/")
+    for i, name in enumerate(names):
+        if name.startswith('_i_'):
+            break
+    tablepathname = "/".join(names[:i])+"/"+name[3:]
+    colpathname = "/".join(names[i+1:])
+    return (tablepathname, colpathname)
 
 
 class Index(NotLoggedMixin, indexesExtension.Index, Group):

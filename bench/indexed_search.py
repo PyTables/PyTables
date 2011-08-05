@@ -249,7 +249,7 @@ if __name__=="__main__":
             -N number of iterations for reading
             -n sets the number of rows (in krows) in each table
             -d directory to save data (default: data.nobackup)
-            -O set the optimization level for PyTables Pro indexes
+            -O set the optimization level for PyTables indexes
             -t select the index type: "medium" (default) or "full", "light", "ultralight"
             -s select a type column for operations ('int' or 'float'. def all)
             -Q do a repeteated query up to 10**value

@@ -29,20 +29,24 @@ Misc variables:
 """
 
 import sys
+import math
 import warnings
 import os.path
 from time import time
 
 import numpy
+import numexpr
 
 from tables import tableExtension
 from tables.utilsExtension import lrange
+from tables.lrucacheExtension import ObjectCache, NumCache
+from tables.atom import Atom
 from tables.conditions import compile_condition
 from numexpr.necompiler import (
     getType as numexpr_getType, double, is_cpu_amd_intel)
 from numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx, lazyattr, SizeType
+from tables.utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
 from tables.leaf import Leaf
 from tables.description import (
     IsDescription, Description, Col, descr_from_dtype)
@@ -50,30 +54,10 @@ from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
      OldIndexWarning, NoSuchNodeError
 from tables.utilsExtension import getNestedField
 
-from tables._table_common import (
-    _indexNameOf, _indexPathnameOf, _indexPathnameOfColumn,
-    _indexPathnameOfColumn_ )
-
-try:
-    from tables.index import (
-        OldIndex, defaultIndexFilters)
-    from tables._table_pro import (
-        NailedDict as CacheDict, _table__autoIndex, _table__whereIndexed,
-        _column__createIndex )
-except ImportError:
-    from tables.exceptions import NoIndexingError, NoIndexingWarning
-    from tables.node import NotLoggedMixin
-    from tables.group import Group
-    from tables.utils import CacheDict
-    # Forbid accesses to this attribute.
-    _table__autoIndex = property()
-    def _checkIndexingAvailable():
-        raise NoIndexingError
-    _is_pro = False
-else:
-    def _checkIndexingAvailable():
-        pass
-    _is_pro = True
+from tables.path import joinPath, splitPath
+from tables.index import (
+    OldIndex, defaultIndexFilters, defaultAutoIndex, Index, IndexesDescG,
+    IndexesTableG)
 
 profile = False
 #profile = True  # Uncomment for profiling
@@ -112,6 +96,282 @@ _nxTypeFromNPType = {
 
 # The NumPy scalar type corresponding to `SizeType`.
 _npSizeType = numpy.array(SizeType(0)).dtype.type
+
+def _indexNameOf(node):
+    return '_i_%s' % node._v_name
+
+def _indexPathnameOf(node):
+    nodeParentPath = splitPath(node._v_pathname)[0]
+    return joinPath(nodeParentPath, _indexNameOf(node))
+
+def _indexPathnameOfColumn(table, colpathname):
+    return joinPath(_indexPathnameOf(table), colpathname)
+
+# The next are versions that work with just paths (i.e. we don't need
+# a node instance for using them, which can be critical in certain
+# situations)
+def _indexNameOf_(nodeName):
+    return '_i_%s' % nodeName
+
+def _indexPathnameOf_(nodePath):
+    nodeParentPath, nodeName = splitPath(nodePath)
+    return joinPath(nodeParentPath, _indexNameOf_(nodeName))
+
+def _indexPathnameOfColumn_(tablePath, colpathname):
+    return joinPath(_indexPathnameOf_(tablePath), colpathname)
+
+
+def _table__setautoIndex(self, auto):
+    auto = bool(auto)
+    try:
+        indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+    except NoSuchNodeError:
+        indexgroup = createIndexesTable(self)
+    indexgroup.auto = auto
+    # Update the cache in table instance as well
+    self._autoIndex = auto
+
+
+# **************** WARNING! ***********************
+# This function can be called during the destruction time of a table
+# so measures have been taken so that it doesn't have to revive
+# another node (which can fool the LRU cache). The solution devised
+# has been to add a cache for autoIndex (Table._autoIndex), populate
+# it in creation time of the cache (which is a safe period) and then
+# update the cache whenever it changes.
+# This solves the error when running test_indexes.py ManyNodesTestCase.
+# F. Alted 2007-04-20
+# **************************************************
+def _table__getautoIndex(self):
+    if self._autoIndex is None:
+        try:
+            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+        except NoSuchNodeError:
+            self._autoIndex = defaultAutoIndex  # update cache
+            return self._autoIndex
+        else:
+            self._autoIndex = indexgroup.auto   # update cache
+            return self._autoIndex
+    else:
+        # The value is in cache, return it
+        return self._autoIndex
+
+_table__autoIndex = property(
+    _table__getautoIndex , _table__setautoIndex, None,
+    """
+    Automatically keep column indexes up to date?
+
+    Setting this value states whether existing indexes should be
+    automatically updated after an append operation or recomputed
+    after an index-invalidating operation (i.e. removal and
+    modification of rows).  The default is true.
+
+    This value gets into effect whenever a column is altered.  If you
+    don't have automatic indexing activated and you want to do an an
+    immediate update use `Table.flushRowsToIndex()`; for an immediate
+    reindexing of invalidated indexes, use `Table.reIndexDirty()`.
+
+    This value is persistent.
+
+    """ )
+
+
+def restorecache(self):
+    # Define a cache for sparse table reads
+    params = self._v_file.params
+    chunksize = self._v_chunkshape[0]
+    nslots = params['TABLE_MAX_SIZE'] / (chunksize * self._v_dtype.itemsize)
+    self._chunkcache = NumCache((nslots, chunksize), self._v_dtype,
+                                'table chunk cache')
+    self._seqcache = ObjectCache(params['ITERSEQ_MAX_SLOTS'],
+                                 params['ITERSEQ_MAX_SIZE'],
+                                 'Iter sequence cache')
+    self._dirtycache = False
+
+
+def _table__whereIndexed(self, compiled, condition, condvars,
+                         start, stop, step):
+    if profile: tref = time()
+    if profile: show_stats("Entering table_whereIndexed", tref)
+    self._useIndex = True
+    # Clean the table caches for indexed queries if needed
+    if self._dirtycache:
+        restorecache(self)
+
+    # Get the values in expression that are not columns
+    values = []
+    for key, value in condvars.iteritems():
+        if isinstance(value, numpy.ndarray):
+            values.append((key, value.item()))
+    # Build a key for the sequence cache
+    seqkey = (condition, tuple(values), (start, stop, step))
+    # Do a lookup in sequential cache for this query
+    nslot = self._seqcache.getslot(seqkey)
+    if nslot >= 0:
+        # Get the row sequence from the cache
+        seq = self._seqcache.getitem(nslot)
+        if len(seq) == 0:
+            return iter([])
+        seq = numpy.array(seq, dtype='int64')
+        # Correct the ranges in cached sequence
+        if (start, stop, step) != (0, self.nrows, 1):
+            seq = seq[(seq>=start)&(seq<stop)&((seq-start)%step==0)]
+        return self.itersequence(seq)
+    else:
+        # No luck.  Set row sequence to empty.  It will be populated
+        # in the iterator. If not possible, the slot entry will be
+        # removed there.
+        self._nslotseq = self._seqcache.setitem(seqkey, [], 1)
+
+    # Compute the chunkmap for every index in indexed expression
+    idxexprs = compiled.index_expressions
+    strexpr = compiled.string_expression
+    cmvars = {}
+    tcoords = 0
+    for i, idxexpr in enumerate(idxexprs):
+        var, ops, lims = idxexpr
+        col = condvars[var]
+        index = col.index
+        assert index is not None, "the chosen column is not indexed"
+        assert not index.dirty, "the chosen column has a dirty index"
+
+        # Get the number of rows that the indexed condition yields.
+        range_ = index.getLookupRange(ops, lims)
+        ncoords = index.search(range_)
+        tcoords += ncoords
+        if index.reduction == 1 and ncoords == 0:
+            # No values from index condition, thus the chunkmap should be empty
+            nrowsinchunk = self.chunkshape[0]
+            nchunks = long(math.ceil(float(self.nrows)/nrowsinchunk))
+            chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
+        else:
+            # Get the chunkmap from the index
+            chunkmap = index.get_chunkmap()
+        # Assign the chunkmap to the cmvars dictionary
+        cmvars["e%d"%i] = chunkmap
+
+    if index.reduction == 1 and tcoords == 0:
+        # No candidates found in any indexed expression component, so leave now
+        return iter([])
+
+    # Compute the final chunkmap
+    chunkmap = numexpr.evaluate(strexpr, cmvars)
+    # Method .any() is twice as faster than method .sum()
+    if not chunkmap.any():
+        # The chunkmap is empty
+        return iter([])
+
+    if profile: show_stats("Exiting table_whereIndexed", tref)
+    return chunkmap
+
+
+def createIndexesTable(table):
+    itgroup = IndexesTableG(
+        table._v_parent, _indexNameOf(table),
+        "Indexes container for table "+table._v_pathname, new=True)
+    return itgroup
+
+
+def createIndexesDescr(igroup, dname, iname, filters):
+    idgroup = IndexesDescG(
+        igroup, iname,
+        "Indexes container for sub-description "+dname,
+        filters=filters, new=True)
+    return idgroup
+
+
+def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
+                         blocksizes, verbose):
+    name = self.name
+    table = self.table
+    tableName = table._v_name
+    dtype = self.dtype
+    descr = self.descr
+    index = self.index
+    getNode = table._v_file._getNode
+
+    # Warn if the index already exists
+    if index:
+        raise ValueError, \
+"%s for column '%s' already exists. If you want to re-create it, please, try with reIndex() method better" % (str(index), str(self.pathname))
+
+    # Check that the datatype is indexable.
+    if dtype.str[1:] == 'u8':
+        raise NotImplementedError(
+            "indexing 64-bit unsigned integer columns "
+            "is not supported yet, sorry" )
+    if dtype.kind == 'c':
+        raise TypeError("complex columns can not be indexed")
+    if dtype.shape != ():
+        raise TypeError("multidimensional columns can not be indexed")
+
+    # Get the indexes group for table, and if not exists, create it
+    try:
+        itgroup = getNode(_indexPathnameOf(table))
+    except NoSuchNodeError:
+        itgroup = createIndexesTable(table)
+
+    # Create the necessary intermediate groups for descriptors
+    idgroup = itgroup
+    dname = ""
+    pathname = descr._v_pathname
+    if pathname != '':
+        inames = pathname.split('/')
+        for iname in inames:
+            if dname == '':
+                dname = iname
+            else:
+                dname += '/'+iname
+            try:
+                idgroup = getNode('%s/%s' % (itgroup._v_pathname, dname))
+            except NoSuchNodeError:
+                idgroup = createIndexesDescr(idgroup, dname, iname, filters)
+
+    # Create the atom
+    assert dtype.shape == ()
+    atom = Atom.from_dtype(numpy.dtype((dtype, (0,))))
+
+    # Protection on tables larger than the expected rows (perhaps the
+    # user forgot to pass this parameter to the Table constructor?)
+    expectedrows = table._v_expectedrows
+    if table.nrows > expectedrows:
+        expectedrows = table.nrows
+
+    # Create the index itself
+    index = Index(
+        idgroup, name, atom=atom,
+        title="Index for %s column" % name,
+        kind=kind,
+        optlevel=optlevel,
+        filters=filters,
+        tmp_dir=tmp_dir,
+        expectedrows=expectedrows,
+        byteorder=table.byteorder,
+        blocksizes=blocksizes)
+
+    table._setColumnIndexing(self.pathname, True)
+
+    # Feed the index with values
+    slicesize = index.slicesize
+    # Add rows to the index if necessary
+    if table.nrows > 0:
+        indexedrows = table._addRowsToIndex(
+            self.pathname, 0, table.nrows, lastrow=True, update=False )
+    else:
+        indexedrows = 0
+    index.dirty = False
+    table._indexedrows = indexedrows
+    table._unsaved_indexedrows = table.nrows - indexedrows
+
+    # Optimize the index that has been already filled-up
+    index.optimize(verbose=verbose)
+
+    # We cannot do a flush here because when reindexing during a
+    # flush, the indexes are created anew, and that creates a nested
+    # call to flush().
+    ##table.flush()
+
+    return indexedrows
 
 
 class _ColIndexes(dict):
@@ -157,8 +417,6 @@ class Table(tableExtension.Table, Leaf):
     can be several times faster than searching a non-nested one.  Search
     methods automatically take advantage of indexing where available.
 
-    .. Note:: Column indexing is only available in PyTables Pro.
-
     When iterating a table, an object from the `Row` class is used.
     This object allows to read and write data one row at a time, as well
     as to perform queries which are not supported by in-kernel syntax
@@ -194,8 +452,6 @@ class Table(tableExtension.Table, Leaf):
 
         This value is persistent.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
-
     coldescrs
         Maps the name of a column to its `Col` description.
     coldflts
@@ -204,9 +460,6 @@ class Table(tableExtension.Table, Leaf):
         Maps the name of a column to its NumPy data type.
     colindexed
         Is the column which name is used as a key indexed?
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-
     colinstances
         Maps the name of a column to its `Column` or `Cols` instance.
     colnames
@@ -231,14 +484,8 @@ class Table(tableExtension.Table, Leaf):
         The index of the enlargeable dimension (always 0 for tables).
     indexed
         Does this table have any indexed columns?
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-
     indexedcolpathnames
         List of the pathnames of indexed columns in the table.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-
     nrows
         Current number of rows in the table.
     row
@@ -358,8 +605,6 @@ class Table(tableExtension.Table, Leaf):
         None, None,
         """
         The pathnames of the indexed columns of this table.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
         """ )
 
     colindexes = property(
@@ -370,8 +615,6 @@ class Table(tableExtension.Table, Leaf):
         None, None,
         """
         A dictionary with the indexes of the indexed columns.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
         """ )
 
     _dirtyindexes = property(
@@ -457,8 +700,6 @@ class Table(tableExtension.Table, Leaf):
         self.indexed = False
         """
         Does this table have any indexed columns?
-
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._indexedrows = 0
         """Number of rows indexed in disk."""
@@ -494,8 +735,6 @@ class Table(tableExtension.Table, Leaf):
         self.colindexed = {}
         """
         Is the column which name is used as a key indexed?
-
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         self._useIndex = False
@@ -627,10 +866,6 @@ class Table(tableExtension.Table, Leaf):
             if igroup:
                 indexname = _indexPathnameOfColumn(self, colname)
                 indexed = indexname in self._v_file
-                if indexed and not _is_pro:
-                    warnings.warn( "table ``%s`` has column indexes"
-                                   % self._v_pathname, NoIndexingWarning )
-                    indexed = False
                 self.colindexed[colname] = indexed
                 if indexed:
                     column = self.cols._g_col(colname)
@@ -1104,7 +1339,6 @@ class Table(tableExtension.Table, Leaf):
         this method return different values for the same arguments at
         different times.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars, depth=2)
@@ -1150,8 +1384,6 @@ class Table(tableExtension.Table, Leaf):
         place the indexed columns as left and out in the condition as
         possible.  Anyway, this method has always better performance
         than standard Python selections on the table.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
 
         You can mix this method with standard Python selections in order
         to support even more complex queries.  It is strongly
@@ -1380,7 +1612,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         value of `step` is supported, meaning that the results will be
         returned in reverse sorted order.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         index = self._check_sortby_CSI(sortby, checkCSI)
         # Adjust the slice to be used.
@@ -1412,7 +1643,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         value of `step` is supported, meaning that the results will be
         returned in reverse sorted order.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._checkFieldIfNumeric(field)
         index = self._check_sortby_CSI(sortby, checkCSI)
@@ -2128,7 +2358,6 @@ The 'names' parameter must be a list of strings.""")
         for the table (see the `Table.autoIndex` property) and you want
         to update the indexes on it.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         rowsadded = 0
@@ -2331,7 +2560,6 @@ The 'names' parameter must be a list of strings.""")
         index information for columns is no longer valid and want to
         rebuild the indexes on it.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._doReIndex(dirty=False)
 
@@ -2345,7 +2573,6 @@ The 'names' parameter must be a list of strings.""")
         invalidating index operation (`Table.removeRows()`, for
         example).
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._doReIndex(dirty=True)
 
@@ -2866,8 +3093,6 @@ class Column(object):
     class), but there are a few other associated methods to deal with
     indexes.
 
-    .. Note:: Column indexing is only available in PyTables Pro.
-
     Public instance variables
     -------------------------
 
@@ -3159,9 +3384,8 @@ class Column(object):
            sorted index (CSI).  For those cases, it is best to use the
            `createCSIndex()` method instead.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
-        _checkIndexingAvailable()
+
         kinds = ['ultralight', 'light', 'medium', 'full']
         if kind not in kinds:
             raise ValueError, \
@@ -3244,7 +3468,6 @@ class Column(object):
 
         This method does nothing if the column is not indexed.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         self._doReIndex(dirty=False)
@@ -3260,7 +3483,6 @@ class Column(object):
 
         This method does nothing if the column is not indexed.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         self._doReIndex(dirty=True)
@@ -3274,10 +3496,7 @@ class Column(object):
         removed index can be created again by calling the
         `Column.createIndex()` method.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
         """
-
-        _checkIndexingAvailable()
 
         self._tableFile._checkWritable()
 

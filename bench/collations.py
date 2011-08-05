@@ -75,11 +75,10 @@ for c in sorted(collections):
 del collections, energy_this_collection
 print "Time for second solution: %.3f" % (time()-t1)
 
-if tables.is_pro:
-    t1 = time()
-    table.cols.collection.createCSIndex()
-    #table.cols.collection.reIndex()
-    print "Time for indexing: %.3f" % (time()-t1)
+t1 = time()
+table.cols.collection.createCSIndex()
+#table.cols.collection.reIndex()
+print "Time for indexing: %.3f" % (time()-t1)
 
 #########################################################
 # Third solution: load each collection separately
@@ -95,13 +94,10 @@ del energy_this_collection
 print "Time for third solution: %.3f" % (time()-t1)
 
 
-if tables.is_pro:
-    t1 = time()
-    table2 = table.copy('/', 'EnergySortedByCollation', overwrite=True,
-               sortby="collection", propindexes=True)
-    print "Time for sorting: %.3f" % (time()-t1)
-else:
-    table2 = table
+t1 = time()
+table2 = table.copy('/', 'EnergySortedByCollation', overwrite=True,
+            sortby="collection", propindexes=True)
+print "Time for sorting: %.3f" % (time()-t1)
 
 #####################################################################
 # Fourth solution: load each collection separately.  Sorted table.

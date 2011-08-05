@@ -1,7 +1,7 @@
 #  Ei!, emacs, this is -*-Python-*- mode
 ########################################################################
 #
-#       License: See http://www.pytables.org/moin/PyTablesProPricing
+#       License: BSD
 #       Created: Aug 13, 2006
 #       Author:  Francesc Alted - faltet@pytables.com
 #

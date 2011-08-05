@@ -222,10 +222,9 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
         inherit these ones, which will in turn propagate to child nodes.
 
     In addition, it recognizes the names of parameters present in
-    ``tables/parameters.py`` (and for PyTables Pro users, those in
-    ``tables/_parameters_pro.py`` too) as additional keyword arguments.
-    Check the suitable appendix in User's Guide for a detailed info on
-    the supported parameters.
+    ``tables/parameters.py`` as additional keyword arguments. Check the
+    suitable appendix in User's Guide for a detailed info on the supported
+    parameters.
 
     """
 
@@ -1363,10 +1362,9 @@ external links are only supported when PyTables is compiled against HDF5 1.8.x s
         copying operations of nodes to see which options they support.
 
         In addition, it recognizes the names of parameters present in
-        ``tables/parameters.py`` (and for PyTables Pro users, those in
-        ``tables/_parameters_pro.py`` too) as additional keyword
-        arguments.  Check the suitable appendix in User's Guide for a
-        detailed info on the supported parameters.
+        ``tables/parameters.py`` as additional keyword arguments.  Check the
+        suitable appendix in User's Guide for a detailed info on the supported
+        parameters.
 
         Copying a file usually has the beneficial side effect of
         creating a more compact and cleaner version of the original

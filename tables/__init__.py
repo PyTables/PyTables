@@ -16,10 +16,6 @@ PyTables, hierarchical datasets in Python
 PyTables is a package for managing hierarchical datasets and designed
 to efficiently cope with extremely large amounts of data.
 
-You can support the development of PyTables by purchasing the
-PyTables Professional edition available at
-http://www.pytables.org/moin/PyTablesPro
-
 Most Important Classes
 ======================
 
@@ -66,8 +62,21 @@ __version__ = getPyTablesVersion()
 """The PyTables version number."""
 hdf5Version = getHDF5Version()
 """The underlying HDF5 library version number."""
-is_pro = __version__.endswith('pro')
-"""True for PyTables Professional edition, false otherwise."""
+is_pro = True
+"""True for PyTables Professional edition, false otherwise.
+
+.. note:: PyTables Professional edition has been released under open
+          source license. Starting with version 2.3, PyTables includes all
+          features of PyTables Pro.
+
+          In order to reflect the presence of advanced features *is_pro*
+          is always set to True.
+
+
+.. deprecated:: :data:`tables.is_pro` should be considered deprecated
+                and it will be removed in the next major release.
+
+"""
 
 from tables.utilsExtension import (
     isHDF5File, isPyTablesFile, whichLibVersion, lrange,
