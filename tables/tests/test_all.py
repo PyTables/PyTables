@@ -60,8 +60,9 @@ def suite():
         test_modules.append('tables.tests.test_indexvalues')
         test_modules.append('tables.tests.test_index_backcompat')
 
+    # Numeric is now deprecated
     # Add test_Numeric only if Numeric is installed
-    if common.numeric_imported:
+    if False:   # if common.numeric_imported:
         import Numeric
         print "Numeric (version %s) is present. Adding the Numeric test suite." % \
               (Numeric.__version__)
@@ -74,8 +75,9 @@ def suite():
         # Do not print this anymore
         #print "Skipping Numeric test suite."
 
+    # numarray is now deprecated
     # Add test_numarray only if numarray is installed
-    if common.numarray_imported:
+    if False:   # if common.numarray_imported:
         import numarray
         print \
 """numarray (version %s) is present. Adding the numarray test suite.""" % \

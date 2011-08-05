@@ -232,6 +232,9 @@ except ImportError:
     pass
 else:
     all_flavors.append('numarray')
+    import warnings
+    warnings.warn('Support for "numarray" will be removed in future versions',
+                  DeprecationWarning)
 
 try:
     import Numeric
@@ -239,6 +242,9 @@ except ImportError:
     pass
 else:
     all_flavors.append('numeric')
+    import warnings
+    warnings.warn('Support for "Numeric" will be removed in future versions',
+                  DeprecationWarning)
 
 def _register_aliases():
     """Register aliases of *available* flavors."""

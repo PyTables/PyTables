@@ -1404,7 +1404,8 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test03_copy(self):
+    # Numeric is now deprecated
+    def _test03_copy(self):
         """Checking CArray.copy() method (Numeric flavor)"""
 
         if common.verbose:
@@ -2440,26 +2441,30 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StringTestCase))
         theSuite.addTest(unittest.makeSuite(String2TestCase))
         theSuite.addTest(unittest.makeSuite(StringComprTestCase))
-        if numarray_imported:
-            theSuite.addTest(unittest.makeSuite(NumarrayInt8TestCase))
-            theSuite.addTest(unittest.makeSuite(NumarrayInt16TestCase))
-            theSuite.addTest(unittest.makeSuite(NumarrayInt32TestCase))
-            theSuite.addTest(unittest.makeSuite(NumarrayFloat32TestCase))
-            theSuite.addTest(unittest.makeSuite(NumarrayFloat64TestCase))
-            theSuite.addTest(unittest.makeSuite(NumarrayComplex64TestCase))
-            theSuite.addTest(unittest.makeSuite(NumarrayComplex128TestCase))
-            theSuite.addTest(unittest.makeSuite(NumarrayComprTestCase))
-            theSuite.addTest(unittest.makeSuite(NumarrayOffsetStrideTestCase))
-        if numeric_imported:
-            theSuite.addTest(unittest.makeSuite(NumericInt8TestCase))
-            theSuite.addTest(unittest.makeSuite(NumericInt16TestCase))
-            theSuite.addTest(unittest.makeSuite(NumericInt32TestCase))
-            theSuite.addTest(unittest.makeSuite(NumericFloat32TestCase))
-            theSuite.addTest(unittest.makeSuite(NumericFloat64TestCase))
-            theSuite.addTest(unittest.makeSuite(NumericComplex64TestCase))
-            theSuite.addTest(unittest.makeSuite(NumericComplex128TestCase))
-            theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
-            theSuite.addTest(unittest.makeSuite(NumericOffsetStrideTestCase))
+
+        # numarray is now deprecated
+        #if numarray_imported:
+        #    theSuite.addTest(unittest.makeSuite(NumarrayInt8TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumarrayInt16TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumarrayInt32TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumarrayFloat32TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumarrayFloat64TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumarrayComplex64TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumarrayComplex128TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumarrayComprTestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumarrayOffsetStrideTestCase))
+
+        # Numeric is now deprecated
+        #if numeric_imported:
+        #    theSuite.addTest(unittest.makeSuite(NumericInt8TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumericInt16TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumericInt32TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumericFloat32TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumericFloat64TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumericComplex64TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumericComplex128TestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
+        #    theSuite.addTest(unittest.makeSuite(NumericOffsetStrideTestCase))
 
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
