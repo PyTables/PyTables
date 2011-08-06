@@ -45,7 +45,8 @@ from tables.conditions import compile_condition
 from numexpr.necompiler import (
     getType as numexpr_getType, double, is_cpu_amd_intel)
 from numexpr.expressions import functions as numexpr_functions
-from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
+from tables.flavor import flavor_of, array_as_internal, internal_to_flavor, \
+        _numeric_deprecation, _numarray_deprecation
 from tables.utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
 from tables.leaf import Leaf
 from tables.description import (
@@ -1459,8 +1460,7 @@ class Table(tableExtension.Table, Leaf):
     def _checkFieldIfNumeric(self, field):
         """Check that `field` has been selected with ``numeric`` flavor."""
         if self.flavor == 'numeric' and field is None:
-            warnings.warn('Support for "numeric" will be removed in future '
-                          'versions', DeprecationWarning)
+            _numeric_deprecation()
             raise ValueError(
                 "Numeric does not support heterogeneous datasets; "
                 "you must specify a field when using the ``numeric`` flavor" )
