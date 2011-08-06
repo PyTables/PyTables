@@ -253,7 +253,7 @@ else:
     msg = 'Support for "numarray" will be removed in future versions'
     warnings.filterwarnings("once", msg, DeprecationWarning)
     def _numarray_deprecation(msg=msg):
-        warnings.warn(msg, DeprecationWarning)
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
     del msg
 
 try:
@@ -268,7 +268,7 @@ else:
     msg = 'Support for "Numeric" will be removed in future versions'
     warnings.filterwarnings("once", msg, DeprecationWarning)
     def _numeric_deprecation(msg=msg):
-        warnings.warn(msg, DeprecationWarning)
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
     del msg
 
 def _register_aliases():
