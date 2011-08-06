@@ -100,6 +100,10 @@ friendlier interfaces to flavor conversion.
 # ================
 def check_flavor(flavor):
     """Raise a ``FlavorError`` if the `flavor` is not valid."""
+    if flavor in ('numarray', 'numeric'):
+        warnings.warn('Support for "%s" will be removed in future '
+                      'versions' % flavor, DeprecationWarning)
+
     if flavor not in all_flavors:
         available_flavs = ", ".join(flav for flav in all_flavors)
         raise FlavorError(
@@ -124,6 +128,14 @@ def array_of_flavor2(array, src_flavor, dst_flavor):
         raise FlavorError( "conversion from flavor ``%s`` to flavor ``%s`` "
                            "is unsupported or unavailable in this system"
                            % (src_flavor, dst_flavor) )
+
+    if 'numarray' in convkey:
+        warnings.warn('Support for "numarray" will be removed in future '
+                      'versions' , DeprecationWarning)
+    if 'numeric' in convkey:
+        warnings.warn('Support for "numeric" will be removed in future '
+                      'versions' , DeprecationWarning)
+
     convfunc = converter_map[convkey]
     return convfunc(array)
 
@@ -177,6 +189,10 @@ def flavor_of(array):
     """
     for flavor in all_flavors:
         if identifier_map[flavor](array):
+            if flavor in ('numarray', 'numeric'):
+                warnings.warn('Support for "%s" will be removed in future '
+                              'versions' % flavor,
+                              DeprecationWarning)
             return flavor
     type_name = type(array).__name__
     supported_descs = "; ".join(description_map[fl] for fl in all_flavors)
@@ -232,9 +248,6 @@ except ImportError:
     pass
 else:
     all_flavors.append('numarray')
-    import warnings
-    warnings.warn('Support for "numarray" will be removed in future versions',
-                  DeprecationWarning)
 
 try:
     import Numeric
@@ -242,9 +255,6 @@ except ImportError:
     pass
 else:
     all_flavors.append('numeric')
-    import warnings
-    warnings.warn('Support for "Numeric" will be removed in future versions',
-                  DeprecationWarning)
 
 def _register_aliases():
     """Register aliases of *available* flavors."""
@@ -338,12 +348,22 @@ _numarray_aliases = ['NumArray', 'CharArray']
 _numarray_desc = "numarray array or record"
 def _is_numarray(array):
     na_array_or_record = (numarray.generic.NDArray, numarray.records.Record)
-    return isinstance(array, na_array_or_record)
+    #return isinstance(array, na_array_or_record)
+    ret = isinstance(array, na_array_or_record)
+    if ret:
+        warnings.warn('Support for "numarray" will be removed in future '
+                      'versions', DeprecationWarning)
+    return ret
 
 _numeric_aliases = ['Numeric']
 _numeric_desc = "Numeric array"
 def _is_numeric(array):
-    return isinstance(array, Numeric.ArrayType)
+    #return isinstance(array, Numeric.ArrayType)
+    ret = isinstance(array, Numeric.ArrayType)
+    if ret:
+        warnings.warn('Support for "numeric" will be removed in future '
+                      'versions', DeprecationWarning)
+    return ret
 
 def _numpy_contiguous(convfunc):
     """Decorate `convfunc` to return a *contiguous* NumPy array."""
@@ -364,6 +384,8 @@ def _conv_numpy_to_numpy(array):
 
 @_numpy_contiguous
 def _conv_numarray_to_numpy(array):
+    warnings.warn('Support for "numeric" will be removed in future '
+                  'versions', DeprecationWarning)
     # Homogeneous arrays.
     if isinstance(array, (numarray.NumArray, numarray.strings.CharArray)):
         return numpy.asarray(array)  # use the array protocol
@@ -390,6 +412,7 @@ def _conv_numarray_to_numpy(array):
 
 @_numpy_contiguous
 def _conv_numeric_to_numpy(array):
+    # no need of Numeric in this case
     return numpy.asarray(array)  # use the array protocol
 
 @_numpy_contiguous
@@ -413,6 +436,8 @@ if 'numeric' in all_flavors:
         _numtype_from_nptype[numpy.int64] = Numeric.Int64
 
 def _conv_numpy_to_numeric(array):
+    warnings.warn('Support for "numeric" will be removed in future '
+                  'versions', DeprecationWarning)
     kind = array.dtype.kind
     if kind == 'V':
         raise FlavorError( "the ``numeric`` flavor does not support "
@@ -444,6 +469,8 @@ if 'numarray' in all_flavors:
     from tables import nra
 
 def _conv_numpy_to_numarray(array):
+    warnings.warn('Support for "numarray" will be removed in future '
+                  'versions', DeprecationWarning)
     kind = array.dtype.kind
     if kind == 'S':  # homogeneous string array
         # We can't use the array protocol to do this conversion

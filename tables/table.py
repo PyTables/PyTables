@@ -1459,6 +1459,8 @@ class Table(tableExtension.Table, Leaf):
     def _checkFieldIfNumeric(self, field):
         """Check that `field` has been selected with ``numeric`` flavor."""
         if self.flavor == 'numeric' and field is None:
+            warnings.warn('Support for "numeric" will be removed in future '
+                          'versions', DeprecationWarning)
             raise ValueError(
                 "Numeric does not support heterogeneous datasets; "
                 "you must specify a field when using the ``numeric`` flavor" )
