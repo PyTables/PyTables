@@ -249,10 +249,12 @@ except ImportError:
     pass
 else:
     all_flavors.append('numarray')
-    def _numarray_deprecation():
-        msg = 'Support for "numarray" will be removed in future versions'
-        warnings.filterwarnings("once", "numarray", DeprecationWarning)
+
+    msg = 'Support for "numarray" will be removed in future versions'
+    warnings.filterwarnings("once", msg, DeprecationWarning)
+    def _numarray_deprecation(msg=msg):
         warnings.warn(msg, DeprecationWarning)
+    del msg
 
 try:
     import Numeric
@@ -262,10 +264,12 @@ except ImportError:
     pass
 else:
     all_flavors.append('numeric')
-    def _numeric_deprecation():
-        msg = 'Support for "Numeric" will be removed in future versions'
-        warnings.filterwarnings("once", "Numeric", DeprecationWarning)
+
+    msg = 'Support for "Numeric" will be removed in future versions'
+    warnings.filterwarnings("once", msg, DeprecationWarning)
+    def _numeric_deprecation(msg=msg):
         warnings.warn(msg, DeprecationWarning)
+    del msg
 
 def _register_aliases():
     """Register aliases of *available* flavors."""
