@@ -444,7 +444,7 @@ File methods - hierarchy manipulation
     ----------
     where : str
         These arguments work as in
-        File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
+        :meth:`File.getNode`, referencing the node to be acted
         upon.
     newparent : str or Group
         The destination group that the node will be copied
@@ -458,7 +458,7 @@ File methods - hierarchy manipulation
         new name.
     name : str
         These arguments work as in
-        File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
+        :meth:`File.getNode`, referencing the node to be acted
         upon.
 
     Notes
@@ -505,7 +505,7 @@ File methods - hierarchy manipulation
 
     Notes
     -----
-    See File.createTable() (:ref:`createTableDescr`) for more
+    See :meth:`File.createTable` for more
     information on the rest of parameters.
 
 
@@ -585,7 +585,7 @@ File methods - hierarchy manipulation
 
     Notes
     -----
-    See :ref:`File.createTable()` for more
+    See :meth:`File.createTable` for more
     information on the rest of parameters.
 
 
@@ -641,7 +641,7 @@ File methods - hierarchy manipulation
 
     Notes
     -----
-    See :ref:`File.createTable()` for more
+    See :meth:`File.createTable` for more
     information on the rest of parameters.
 
 
@@ -748,514 +748,429 @@ File methods - hierarchy manipulation
         path to exist (not done by default).
 
 
-.. _createVLArrayDescr:
+.. method:: File.createVLArray(where, name, atom, title='', filters=None, expectedsizeinMB=1.0, chunkshape=None, byteorder=None, createparents=False)
 
-createVLArray(where, name, atom, title='', filters=None,
-expectedsizeinMB=1.0, chunkshape=None, byteorder=None,
-createparents=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Create a new variable-length array with the given
+    name in where location.  See
+    the VLArray (in :ref:`VLArrayClassDescr`) class
+    for more information on variable-length arrays.
 
-Create a new variable-length array with the given
-name in where location.  See
-the VLArray (in :ref:`VLArrayClassDescr`) class
-for more information on variable-length arrays.
+    Parameters
+    ----------
+    atom : Atom
+        An Atom (see :ref:`AtomClassDescr`)
+        instance representing the *type* and
+        *shape* of the atomic objects to be
+        saved.
+    expectedsizeinMB 
+        An user estimate about the size (in MB) in the final
+        VLArray node. If not provided, the
+        default value is 1 MB. If you plan to create either a much
+        smaller or a much bigger array try providing a guess; this
+        will optimize the HDF5 B-Tree creation and management
+        process time and the amount of memory used. If you want to
+        specify your own chunk size for I/O purposes, see also the
+        chunkshape parameter below.
+    chunkshape
+        The shape of the data chunk to be read or written in a
+        single HDF5 I/O operation. Filters are applied to those
+        chunks of data. The dimensionality of
+        chunkshape must be 1. If
+        None, a sensible value is calculated
+        (which is recommended).
 
-*atom*
+    Notes
+    -----
+    See :meth:`File.createTable` for more
+    information on the rest of parameters.
 
-An Atom (see :ref:`AtomClassDescr`)
-instance representing the *type* and
-*shape* of the atomic objects to be
-saved.
 
-*expectedsizeinMB*
+.. method:: File.moveNode(where, newparent=None, newname=None, name=None, overwrite=False, createparents=False)
 
-An user estimate about the size (in MB) in the final
-VLArray node. If not provided, the
-default value is 1 MB. If you plan to create either a much
-smaller or a much bigger array try providing a guess; this
-will optimize the HDF5 B-Tree creation and management
-process time and the amount of memory used. If you want to
-specify your own chunk size for I/O purposes, see also the
-chunkshape parameter below.
+    Move the node specified by where and name to newparent/newname.
 
-*chunkshape*
+    Parameters
+    ----------
+    where, name : path
+        These arguments work as in
+        :meth:`File.getNode`, referencing the node to be acted upon.
+    newparent 
+        The destination group the node will be moved into (a
+        path name or a Group instance). If it is
+        not specified or None, the current parent
+        group is chosen as the new parent.
+    newname
+        The new name to be assigned to the node in its
+        destination (a string). If it is not specified or
+        None, the current name is chosen as the
+        new name.
 
-The shape of the data chunk to be read or written in a
-single HDF5 I/O operation. Filters are applied to those
-chunks of data. The dimensionality of
-chunkshape must be 1. If
-None, a sensible value is calculated
-(which is recommended).
+    Notes
+    -----
+    The other arguments work as in
+    :meth:`Node._f_move`.
 
-See File.createTable() (:ref:`createTableDescr`) for more
-information on the rest of parameters.
 
-moveNode(where, newparent=None, newname=None, name=None,
-overwrite=False, createparents=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Move the node specified by where and
-name to
-newparent/newname.
+.. method:: File.removeNode(where, name=None, recursive=False)
 
-*where,
-name*
+    Remove the object node *name* under *where* location.
 
-These arguments work as in
-File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
-upon.
+    Parameters
+    ----------
+    where, name 
+        These arguments work as in
+        :meth:`File.getNode`, referencing the node to be acted upon.
+    recursive : bool
+        If not supplied or false, the node will be removed
+        only if it has no children; if it does, a
+        NodeError will be raised. If supplied
+        with a true value, the node and all its descendants will be
+        completely removed.
 
-*newparent*
 
-The destination group the node will be moved into (a
-path name or a Group instance). If it is
-not specified or None, the current parent
-group is chosen as the new parent.
+.. method:: File.renameNode(where, newname, name=None, overwrite=False)
 
-*newname*
+    Change the name of the node specified by where and name to newname.
 
-The new name to be assigned to the node in its
-destination (a string). If it is not specified or
-None, the current name is chosen as the
-new name.
+    Parameters
+    ----------
+    where, name 
+        These arguments work as in
+        :meth:`File.getNode`, referencing the node to be acted upon.
+    newname : str
+        The new name to be assigned to the node (a string).
+    overwrite : bool
+        Whether to recursively remove a node with the same
+        newname if it already exists (not done by default).
 
-The other arguments work as in
-Node._f_move() (see :ref:`Node._f_move`).
 
-.. _File.removeNode:
-
-removeNode(where, name=None, recursive=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Remove the object node *name* under
-*where* location.
-
-*where,
-name*
-
-These arguments work as in
-File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
-upon.
-
-*recursive*
-
-If not supplied or false, the node will be removed
-only if it has no children; if it does, a
-NodeError will be raised. If supplied
-with a true value, the node and all its descendants will be
-completely removed.
-
-renameNode(where, newname, name=None,
-overwrite=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Change the name of the node specified by
-where and name to
-newname.
-
-*where,
-name*
-
-These arguments work as in
-File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
-upon.
-
-*newname*
-
-The new name to be assigned to the node (a
-string).
-
-*overwrite*
-
-Whether to recursively remove a node with the same
-newname if it already exists (not done by
-default).
-
-File methods — tree traversal
+File methods - tree traversal
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. method:: File.getNode(where, name=None, classname=None)
 
-.. _File.getNode:
+    Get the node under where with the given name.
 
-getNode(where, name=None, classname=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    where can be a Node instance (see :ref:`NodeClassDescr`) or a path string leading to a node. If no
+    name is specified, that node is returned.
 
-Get the node under where with the given
-name.
+    If a name is specified, this must be a
+    string with the name of a node under where.  In
+    this case the where argument can only lead to a
+    Group (see :ref:`GroupClassDescr`) instance (else a
+    TypeError is raised). The node called
+    name under the group where
+    is returned.
 
-where can be a Node
-instance (see :ref:`NodeClassDescr`) or a path string leading to a node. If no
-name is specified, that node is
-returned.
+    In both cases, if the node to be returned does not exist, a
+    NoSuchNodeError is raised. Please note that
+    hidden nodes are also considered.
 
-If a name is specified, this must be a
-string with the name of a node under where.  In
-this case the where argument can only lead to a
-Group (see :ref:`GroupClassDescr`) instance (else a
-TypeError is raised). The node called
-name under the group where
-is returned.
+    If the classname argument is specified,
+    it must be the name of a class derived from
+    Node. If the node is found but it is not an
+    instance of that class, a NoSuchNodeError is
+    also raised.
 
-In both cases, if the node to be returned does not exist, a
-NoSuchNodeError is raised. Please note that
-hidden nodes are also considered.
 
-If the classname argument is specified,
-it must be the name of a class derived from
-Node. If the node is found but it is not an
-instance of that class, a NoSuchNodeError is
-also raised.
+.. method:: File.isVisibleNode(path)
 
-isVisibleNode(path)
-^^^^^^^^^^^^^^^^^^^
+    Is the node under path visible?
 
-Is the node under path visible?
+    If the node does not exist, a
+    NoSuchNodeError is raised.
 
-If the node does not exist, a
-NoSuchNodeError is raised.
 
-.. _File.iterNodes:
+.. method:: File.iterNodes(where, classname=None)
 
-iterNodes(where, classname=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Iterate over children nodes hanging from where.
 
-Iterate over children nodes hanging from
-where.
+    Parameters
+    ----------
+    where
+        This argument works as in
+        :meth:`File.getNode`, referencing the node to be acted upon.
+    classname
+        If the name of a class derived from
+        Node (see :ref:`NodeClassDescr`) is supplied, only instances of
+        that class (or subclasses of it) will be returned.
 
-*where*
+    Notes
+    -----
+    The returned nodes are alphanumerically sorted by their
+    name.  This is an iterator version of
+    :meth:`File.listNodes`.
 
-This argument works as in
-File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
-upon.
 
-*classname*
+.. method:: File.listNodes(where, classname=None)
 
-If the name of a class derived from
-Node (see :ref:`NodeClassDescr`) is supplied, only instances of
-that class (or subclasses of it) will be returned.
+    Return a *list* with children nodes
+    hanging from where.
 
-The returned nodes are alphanumerically sorted by their
-name.  This is an iterator version of
-File.listNodes() (see :ref:`File.listNodes`).
+    This is a list-returning version of
+    :meth:`File.iterNodes`.
 
-.. _File.listNodes:
 
-listNodes(where, classname=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. method:: File.walkGroups(where='/')
 
-Return a *list* with children nodes
-hanging from where.
+    Recursively iterate over groups (not leaves) hanging from where.
 
-This is a list-returning version of
-File.iterNodes() (see :ref:`File.iterNodes`).
+    The where group itself is listed first
+    (preorder), then each of its child groups (following an
+    alphanumerical order) is also traversed, following the same
+    procedure.  If where is not supplied, the root
+    group is used.
 
-.. _walkGroupsDescr:
+    The where argument can be a path string
+    or a Group instance (see :ref:`GroupClassDescr`).
 
-walkGroups(where='/')
-^^^^^^^^^^^^^^^^^^^^^
 
-Recursively iterate over groups (not leaves) hanging from
-where.
+.. method:: File.walkNodes(where="/", classname="")
 
-The where group itself is listed first
-(preorder), then each of its child groups (following an
-alphanumerical order) is also traversed, following the same
-procedure.  If where is not supplied, the root
-group is used.
+    Recursively iterate over nodes hanging from where.
 
-The where argument can be a path string
-or a Group instance (see :ref:`GroupClassDescr`).
+    Parameters
+    ----------
+    where
+        If supplied, the iteration starts from (and includes)
+        this group. It can be a path string or a
+        Group instance (see :ref:`GroupClassDescr`).
+    classname
+        If the name of a class derived from
+        Node (see :ref:`GroupClassDescr`) is supplied, only instances of
+        that class (or subclasses of it) will be returned.
 
-.. _File.walkNodes:
+    Examples
+    --------
+    ::
 
-walkNodes(where="/", classname="")
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        # Recursively print all the nodes hanging from '/detector'.
+        print "Nodes hanging from group '/detector':"
+        for node in h5file.walkNodes('/detector', classname='EArray'):
+            print node
 
-Recursively iterate over nodes hanging from
-where.
+.. method:: File.__contains__(path)
 
-*where*
+    Is there a node with that path?
 
-If supplied, the iteration starts from (and includes)
-this group. It can be a path string or a
-Group instance (see :ref:`GroupClassDescr`).
+    Returns True if the file has a node with
+    the given path (a string),
+    False otherwise.
 
-*classname*
 
-If the name of a class derived from
-Node (see :ref:`GroupClassDescr`) is supplied, only instances of
-that class (or subclasses of it) will be returned.
+.. method:: File.__iter__()
 
-Example of use:
+    Recursively iterate over the nodes in the tree.
 
-::
+    This is equivalent to calling
+    :meth:`File.walkNodes` with no arguments.
 
-    # Recursively print all the nodes hanging from '/detector'.
-    print "Nodes hanging from group '/detector':"
-    for node in h5file.walkNodes('/detector', classname='EArray'):
-    print node
+    Example of use::
 
-__contains__(path)
-^^^^^^^^^^^^^^^^^^
+        # Recursively list all the nodes in the object tree.
+        h5file = tables.openFile('vlarray1.h5')
+        print "All nodes in the object tree:"
+        for node in h5file:
+            print node
 
-Is there a node with that path?
 
-Returns True if the file has a node with
-the given path (a string),
-False otherwise.
-
-__iter__()
-^^^^^^^^^^
-
-Recursively iterate over the nodes in the tree.
-
-This is equivalent to calling
-File.walkNodes() (see :ref:`File.walkNodes`) with no arguments.
-
-Example of use:
-
-::
-
-    # Recursively list all the nodes in the object tree.
-    h5file = tables.openFile('vlarray1.h5')
-    print "All nodes in the object tree:"
-    for node in h5file:
-    print node
-
-File methods — Undo/Redo support
+File methods - Undo/Redo support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. method:: File.disableUndo()
 
-.. _File.disableUndo:
+    Disable the Undo/Redo mechanism.
 
-disableUndo()
-^^^^^^^^^^^^^
+    Disabling the Undo/Redo mechanism leaves the database in the
+    current state and forgets past and future database states. This
+    makes :meth:`File.mark`, :meth:`File.undo`, :meth:`File.redo` and other methods fail with an
+    UndoRedoError.
 
-Disable the Undo/Redo mechanism.
+    Calling this method when the Undo/Redo mechanism is already
+    disabled raises an UndoRedoError.
 
-Disabling the Undo/Redo mechanism leaves the database in the
-current state and forgets past and future database states. This
-makes File.mark() (see :ref:`File.mark`), File.undo() (see :ref:`File.undo`), File.redo() (see :ref:`File.redo`) and other methods fail with an
-UndoRedoError.
 
-Calling this method when the Undo/Redo mechanism is already
-disabled raises an UndoRedoError.
+.. method:: File.enableUndo(filters=Filters( complevel=1))
 
-.. _File.enableUndo:
+    Enable the Undo/Redo mechanism.
 
-enableUndo(filters=Filters( complevel=1))
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    This operation prepares the database for undoing and redoing
+    modifications in the node hierarchy. This allows
+    :meth:`File.mark`, :meth:`File.undo`, :meth:`File.redo` and other methods
+    to be called.
 
-Enable the Undo/Redo mechanism.
+    The filters argument, when specified,
+    must be an instance of class Filters (see :ref:`FiltersClassDescr`) and is
+    meant for setting the compression values for the action log. The
+    default is having compression enabled, as the gains in terms of
+    space can be considerable. You may want to disable compression if
+    you want maximum speed for Undo/Redo operations.
 
-This operation prepares the database for undoing and redoing
-modifications in the node hierarchy. This allows
-File.mark() (see :ref:`File.mark`),
-File.undo() (see :ref:`File.undo`),
-File.redo() (see :ref:`File.redo`)
-and other methods to be called.
+    Calling this method when the Undo/Redo mechanism is already
+    enabled raises an UndoRedoError.
 
-The filters argument, when specified,
-must be an instance of class Filters (see :ref:`FiltersClassDescr`) and is
-meant for setting the compression values for the action log. The
-default is having compression enabled, as the gains in terms of
-space can be considerable. You may want to disable compression if
-you want maximum speed for Undo/Redo operations.
 
-Calling this method when the Undo/Redo mechanism is already
-enabled raises an UndoRedoError.
+.. method:: File.getCurrentMark()
 
-.. _File.getCurrentMark:
+    Get the identifier of the current mark.
 
-getCurrentMark()
-^^^^^^^^^^^^^^^^
+    Returns the identifier of the current mark. This can be used
+    to know the state of a database after an application crash, or to
+    get the identifier of the initial implicit mark after a call to
+    :meth:`File.enableUndo`.
 
-Get the identifier of the current mark.
+    This method can only be called when the Undo/Redo mechanism
+    has been enabled. Otherwise, an UndoRedoError
+    is raised.
 
-Returns the identifier of the current mark. This can be used
-to know the state of a database after an application crash, or to
-get the identifier of the initial implicit mark after a call to
-File.enableUndo() (see :ref:`File.enableUndo`).
 
-This method can only be called when the Undo/Redo mechanism
-has been enabled. Otherwise, an UndoRedoError
-is raised.
+.. method:: File.goto(mark)
 
-.. _File.goto:
+    Go to a specific mark of the database.
 
-goto(mark)
-^^^^^^^^^^
+    Returns the database to the state associated with the
+    specified mark. Both the identifier of a mark
+    and its name can be used.
 
-Go to a specific mark of the database.
+    This method can only be called when the Undo/Redo mechanism
+    has been enabled. Otherwise, an UndoRedoError
+    is raised.
 
-Returns the database to the state associated with the
-specified mark. Both the identifier of a mark
-and its name can be used.
 
-This method can only be called when the Undo/Redo mechanism
-has been enabled. Otherwise, an UndoRedoError
-is raised.
+.. method:: File.isUndoEnabled()
 
-isUndoEnabled()
-^^^^^^^^^^^^^^^
+    Is the Undo/Redo mechanism enabled?
 
-Is the Undo/Redo mechanism enabled?
+    Returns True if the Undo/Redo mechanism
+    has been enabled for this file, False
+    otherwise. Please note that this mechanism is persistent, so a
+    newly opened PyTables file may already have Undo/Redo
+    support enabled.
 
-Returns True if the Undo/Redo mechanism
-has been enabled for this file, False
-otherwise. Please note that this mechanism is persistent, so a
-newly opened PyTables file may already have Undo/Redo
-support enabled.
 
-.. _File.mark:
+.. method:: File.mark(name=None)
 
-mark(name=None)
-^^^^^^^^^^^^^^^
+    Mark the state of the database.
 
-Mark the state of the database.
+    Creates a mark for the current state of the database. A
+    unique (and immutable) identifier for the mark is returned. An
+    optional name (a string) can be assigned to the
+    mark. Both the identifier of a mark and its name can be used in
+    :meth:`File.undo`
+    and :meth:`File.redo` operations. When the name has already been
+    used for another mark, an UndoRedoError is raised.
 
-Creates a mark for the current state of the database. A
-unique (and immutable) identifier for the mark is returned. An
-optional name (a string) can be assigned to the
-mark. Both the identifier of a mark and its name can be used in
-File.undo() (see :ref:`File.undo`)
-and File.redo() (see :ref:`File.redo`) operations. When the name has already been
-used for another mark, an UndoRedoError is
-raised.
+    This method can only be called when the Undo/Redo mechanism
+    has been enabled. Otherwise, an UndoRedoError
+    is raised.
 
-This method can only be called when the Undo/Redo mechanism
-has been enabled. Otherwise, an UndoRedoError
-is raised.
 
-.. _File.redo:
+.. method:: File.redo(mark=None)
 
-redo(mark=None)
-^^^^^^^^^^^^^^^
+    Go to a future state of the database.
 
-Go to a future state of the database.
+    Returns the database to the state associated with the
+    specified mark. Both the identifier of a mark
+    and its name can be used. If the mark is
+    omitted, the next created mark is used. If there are no future
+    marks, or the specified mark is not newer than
+    the current one, an UndoRedoError is
+    raised.
 
-Returns the database to the state associated with the
-specified mark. Both the identifier of a mark
-and its name can be used. If the mark is
-omitted, the next created mark is used. If there are no future
-marks, or the specified mark is not newer than
-the current one, an UndoRedoError is
-raised.
+    This method can only be called when the Undo/Redo mechanism
+    has been enabled. Otherwise, an UndoRedoError
+    is raised.
 
-This method can only be called when the Undo/Redo mechanism
-has been enabled. Otherwise, an UndoRedoError
-is raised.
 
-.. _File.undo:
+.. method:: File.undo(mark=None)
 
-undo(mark=None)
-^^^^^^^^^^^^^^^
+    Go to a past state of the database.
 
-Go to a past state of the database.
+    Returns the database to the state associated with the
+    specified mark. Both the identifier of a mark
+    and its name can be used. If the mark is
+    omitted, the last created mark is used. If there are no past
+    marks, or the specified mark is not older than
+    the current one, an UndoRedoError is
+    raised.
 
-Returns the database to the state associated with the
-specified mark. Both the identifier of a mark
-and its name can be used. If the mark is
-omitted, the last created mark is used. If there are no past
-marks, or the specified mark is not older than
-the current one, an UndoRedoError is
-raised.
+    This method can only be called when the Undo/Redo mechanism
+    has been enabled. Otherwise, an UndoRedoError
+    is raised.
 
-This method can only be called when the Undo/Redo mechanism
-has been enabled. Otherwise, an UndoRedoError
-is raised.
 
-File methods — attribute handling
+File methods - attribute handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. method:: File.copyNodeAttrs(where, dstnode, name=None)
 
-copyNodeAttrs(where, dstnode, name=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Copy PyTables attributes from one node to another.
 
-Copy PyTables attributes from one node to another.
+    Parameters
+    ----------
+    where, name
+        These arguments work as in
+        :meth:`File.getNode`, referencing the node to be acted upon.
+    dstnode
+        The destination node where the attributes will be
+        copied to. It can be a path string or a
+        Node instance (see :ref:`NodeClassDescr`).
 
-*where,
-name*
 
-These arguments work as in
-File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
-upon.
+.. method:: File.delNodeAttr(where, attrname, name=None)
 
-*dstnode*
+    Delete a PyTables attribute from the given node.
 
-The destination node where the attributes will be
-copied to. It can be a path string or a
-Node instance (see :ref:`NodeClassDescr`).
+    Parameters
+    ----------
+    where, name
+        These arguments work as in
+        :meth:`File.getNode`, referencing the node to be acted upon.
+    attrname
+        The name of the attribute to delete.  If the named
+        attribute does not exist, an
+        AttributeError is raised.
 
-.. _File.delNodeAttr:
 
-delNodeAttr(where, attrname, name=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. method:: File.getNodeAttr(where, attrname, name=None)
 
-Delete a PyTables attribute from the given node.
+    Get a PyTables attribute from the given node.
 
-*where,
-name*
+    Parameters
+    ----------
+    where, name
+        These arguments work as in
+        :meth:`File.getNode`, referencing the node to be acted upon.
+    attrname
+        The name of the attribute to retrieve.  If the named
+        attribute does not exist, an
+        AttributeError is raised.
 
-These arguments work as in
-File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
-upon.
 
-*attrname*
+.. method:: File.setNodeAttr(where, attrname, attrvalue, name=None)
 
-The name of the attribute to delete.  If the named
-attribute does not exist, an
-AttributeError is raised.
+    Set a PyTables attribute for the given node.
 
-.. _File.getNodeAttr:
+    Parameters
+    ----------
+    where, name
+        These arguments work as in
+        :meth:`File.getNode`, referencing the node to be acted upon.
+    attrname
+        The name of the attribute to set.
+    attrvalue
+        The value of the attribute to set. Any kind of Python
+        object (like strings, ints, floats, lists, tuples, dicts,
+        small NumPy/Numeric/numarray objects...) can be stored as an
+        attribute. However, if necessary, cPickle
+        is automatically used so as to serialize objects that you
+        might want to save. See the AttributeSet
+        class (in :ref:`AttributeSetClassDescr`) for details.
 
-getNodeAttr(where, attrname, name=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Notes
+    -----
+    If the node already has a large number of attributes, a
+    PerformanceWarning is issued.
 
-Get a PyTables attribute from the given node.
 
-*where,
-name*
-
-These arguments work as in
-File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
-upon.
-
-*attrname*
-
-The name of the attribute to retrieve.  If the named
-attribute does not exist, an
-AttributeError is raised.
-
-.. _File.setNodeAttr:
-
-setNodeAttr(where, attrname, attrvalue, name=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Set a PyTables attribute for the given node.
-
-*where,
-name*
-
-These arguments work as in
-File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
-upon.
-
-*attrname*
-
-The name of the attribute to set.
-
-*attrvalue*
-
-The value of the attribute to set. Any kind of Python
-object (like strings, ints, floats, lists, tuples, dicts,
-small NumPy/Numeric/numarray objects...) can be stored as an
-attribute. However, if necessary, cPickle
-is automatically used so as to serialize objects that you
-might want to save. See the AttributeSet
-class (in :ref:`AttributeSetClassDescr`) for details.
-
-If the node already has a large number of attributes, a
-PerformanceWarning is issued.
-
-.. _NodeClassDescr:
 
 The Node class
 --------------
@@ -1920,7 +1835,7 @@ If there is already a child node with the same
 name, a NaturalNameWarning
 will be issued and the child node will not be accessible via
 natural naming nor getattr(). It will still be
-available via File.getNode() (see :ref:`File.getNode`), Group._f_getChild()
+available via :meth:`File.getNode`, Group._f_getChild()
 (see :ref:`Group._f_getChild`) and children
 dictionaries in the group (if visible).
 
