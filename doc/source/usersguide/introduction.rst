@@ -1,21 +1,21 @@
 Introduction
 ============
-
-Gabriel García Márquez, A wise Catalan in
-"Cien años de soledad"
-
 ::
 
     La sabiduría no vale la pena si no es posible servirse de ella para
     inventar una nueva manera de preparar los garbanzos.
-    \[Wisdom isn't worth anything if you can't use it to come up with a new
-    way to cook garbanzos.]
+
+    [Wisdom isn't worth anything if you can't use it to come up with a 
+    new way to cook garbanzos.]
+
+-Gabriel García Márquez, A wise Catalan in *"Cien años de soledad"*
+
 
 The goal of PyTables is to enable the end user to manipulate
 easily data *tables* and *array*
 objects in a hierarchical structure. The foundation of the underlying
 hierarchical data organization is the excellent HDF5
-library (see ).
+library (see [HDFG1]_).
 
 It should be noted that this package is not intended to serve as a
 complete wrapper for the entire HDF5 API, but only to provide a
@@ -43,20 +43,20 @@ naming scheme as *compound* data types.
 
 For example, you can define arbitrary tables in Python simply by
 declaring a class with named fields and type information, such as in the
-following example:
-
-::
+following example::
 
     class Particle(IsDescription):
-    name      = StringCol(16)   # 16-character String
-    idnumber  = Int64Col()      # signed 64-bit integer
-    ADCcount  = UInt16Col()     # unsigned short integer
-    TDCcount  = UInt8Col()      # unsigned byte
-    grid_i    = Int32Col()      # integer
-    grid_j    = Int32Col()      # integer
-    class Properties(IsDescription):  # A sub-structure (nested data-type)
-    pressure = Float32Col(shape=(2,3)) # 2-D float array (single-precision)
-    energy   = Float64Col(shape=(2,3,4)) # 3-D float array (double-precision)
+        name      = StringCol(16)   # 16-character String
+        idnumber  = Int64Col()      # signed 64-bit integer
+        ADCcount  = UInt16Col()     # unsigned short integer
+        TDCcount  = UInt8Col()      # unsigned byte
+        grid_i    = Int32Col()      # integer
+        grid_j    = Int32Col()      # integer
+        
+        # A sub-structure (nested data-type)
+        class Properties(IsDescription):  
+            pressure = Float32Col(shape=(2,3)) # 2-D float array (single-precision)
+            energy   = Float64Col(shape=(2,3,4)) # 3-D float array (double-precision)
 
 You then pass this class to the table constructor, fill its rows
 with your values, and save (arbitrarily large) collections of them to a
@@ -103,7 +103,7 @@ grid-like fashion to provide these features:
   up for values in columns satisfying some criteria.
 
 - *Support for numerical arrays:*
-  NumPy (see )
+  NumPy (see [NUMPY]_), Numeric (see [NUMERIC]_), and numarray (see [NUMARRAY]_)
   arrays can be used as a useful complement of tables to store
   homogeneous data.
 
@@ -229,7 +229,7 @@ of PyTables. It means that the names of instance variables of the node
 objects are the same as the names of its children
 
 I got this simple but powerful idea from the excellent
-Objectify module by David Mertz (see )
+Objectify module by David Mertz (see [MERTZ]_)
 . This is very *Pythonic* and
 intuitive in many cases. Check the tutorial :ref:`readingAndSelectingUsage` for
 usage examples.
@@ -266,43 +266,53 @@ system.
 To better understand the dynamic nature of this object tree
 entity, let's start with a sample PyTables script (which you can find
 in examples/objecttree.py) to create an HDF5
-file:
-
-::
+file::
 
     from tables import *
+
     class Particle(IsDescription):
-    identity = StringCol(itemsize=22, dflt=" ", pos=0)  # character String
-    idnumber = Int16Col(dflt=1, pos = 1)  # short integer
-    speed    = Float32Col(dflt=1, pos = 1)  # single-precision
+        identity = StringCol(itemsize=22, dflt=" ", pos=0)  # character String
+        idnumber = Int16Col(dflt=1, pos = 1)  # short integer
+        speed    = Float32Col(dflt=1, pos = 1)  # single-precision
+
     # Open a file in "w"rite mode
     fileh = openFile("objecttree.h5", mode = "w")
+
     # Get the HDF5 root group
     root = fileh.root
-    # Create the groups:
+
+    # Create the groups
     group1 = fileh.createGroup(root, "group1")
     group2 = fileh.createGroup(root, "group2")
+
     # Now, create an array in root group
-    array1 = fileh.createArray(root, "array1", \["string", "array"], "String array")
+    array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
+
     # Create 2 new tables in group1
     table1 = fileh.createTable(group1, "table1", Particle)
     table2 = fileh.createTable("/group2", "table2", Particle)
+
     # Create the last table in group2
-    array2 = fileh.createArray("/group1", "array2", \[1,2,3,4])
-    # Now, fill the tables:
+    array2 = fileh.createArray("/group1", "array2", [1,2,3,4])
+
+    # Now, fill the tables
     for table in (table1, table2):
-    # Get the record object associated with the table:
-    row = table.row
-    # Fill the table with 10 records
-    for i in xrange(10):
-    # First, assign the values to the Particle record
-    row['identity']  = 'This is particle: %2d' % (i)
-    row['idnumber'] = i
-    row['speed']  = i * 2.
-    # This injects the Record values
-    row.append()
-    # Flush the table buffers
-    table.flush()
+        # Get the record object associated with the table:
+        row = table.row
+
+        # Fill the table with 10 records
+        for i in xrange(10):
+            # First, assign the values to the Particle record
+            row['identity']  = 'This is particle: %2d' % (i)
+            row['idnumber'] = i
+            row['speed']  = i * 2.
+
+            # This injects the Record values
+            row.append()
+
+        # Flush the table buffers
+        table.flush()
+
     # Finally, close the file (this also will flush all the remaining buffers!)
     fileh.close()
 
@@ -310,7 +320,7 @@ This small program creates a simple HDF5 file called
 objecttree.h5 with the structure that appears in
 :ref:`objecttree-h5`
 
-We have used ViTables (see ) in order to create this snapshot.
+We have used ViTables (see [VITABLES]_) in order to create this snapshot.
 
 . When the file is created, the metadata in the object tree is updated
 in memory while the actual data is saved to disk. When you close the
@@ -322,13 +332,10 @@ it in exactly the same way as when you originally created it.
 
 .. _objecttree-h5:
 
-An HDF5 example with 2 subgroups, 2 tables and 1
-array.
+An HDF5 example with 2 subgroups, 2 tables and 1 array.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: objecttree-h5.png
-
-.. image:: objecttree-h5.png
+.. image:: images/objecttree-h5.png
 
 In :ref:`objecttree` you
 can see an example of the object tree created when the above
@@ -346,9 +353,56 @@ objects.
 
 .. _objecttree:
 
-A PyTables object tree example.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. figure:: images/objecttree.svg
+    :width: 1276
+    :height: 1488
+    :align: center
 
-.. image:: objecttree.svg
+    A PyTables object tree example.
 
-.. image:: objecttree.png
+
+.. [HDFG1] The HDF Group. What is HDF5?. Concise description about HDF5 capabilities and its differences from earlier versions (HDF4). http://hdfgroup.org/whatishdf5.html .
+
+.. [HDFG2] The HDF Group. Introduction to HDF5. Introduction to the HDF5 data model and programming model. http://hdfgroup.org/HDF5/doc/H5.intro.html .
+
+.. [HDFG3] The HDF Group. The HDF5 table programming model. Examples on using HDF5 tables with the C API. http://hdfgroup.org/HDF5/Tutor/h5table.html .
+
+.. [MERTZ] David Mertz. Objectify. On the 'Pythonic' treatment of XML documents as objects(II). Article describing XML Objectify, a Python module that allows working with XML documents as Python objects. Some of the ideas presented here are used in PyTables. http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html .
+
+.. [CYTHON] Stefan Behnel, Robert Bradshaw, Dag Sverre Seljebotn, and Greg Ewing. Cython. A language that makes writing C extensions for the Python language as easy as Python itself. http://cython.org .
+
+.. [NETCDF1] Glenn Davis, Russ Rew, Steve Emmerson, John Caron, and Harvey Davies. NetCDF. Network Common Data Form. An interface for array-oriented data access and a library that provides an implementation of the interface. http://www.unidata.ucar.edu/packages/netcdf/ .
+
+.. [NETCDF2] Russ Rew, Mike Folk, and et al. NetCDF-4. Network Common Data Form version 4. Merging the NetCDF and HDF5 Libraries. http://www.unidata.ucar.edu/software/netcdf/netcdf-4/ .
+
+.. [NUMPY] Travis Oliphant and et al. NumPy. Scientific Computing with Numerical Python. The latest and most powerful re-implementation of Numeric to date. It implements all the features that can be found in Numeric and numarray, plus a bunch of new others. In general, it is more efficient as well. http://numeric.scipy.org/ .
+
+.. [NUMERIC] David Ascher, Paul F Dubois, Konrad Hinsen, Jim Hugunin, and Travis Oliphant. Numerical Python. Package to speed-up arithmetic operations on arrays of numbers. http://sourceforge.net/projects/numpy/ .
+
+.. [NUMARRAY] Perry Greenfield, Todd Miller, Richard L White, J. C. Hsu, Paul Barrett, Jochen K�pper, and Peter J Verveer. Numarray. Reimplementation of Numeric which adds the ability to efficiently manipulate large numeric arrays in ways similar to Matlab and IDL. Among others, Numarray provides the record array extension. http://stsdas.stsci.edu/numarray/ .
+
+.. [NUMEXPR] David Cooke, Francesc Alted, and et al. Numexpr. Fast evaluation of array expressions by using a vector-based virtual machine. It is an enhaced computing kernel that is generally faster (between 1x and 10x, depending on the kind of operations) than NumPy at evaluating complex array expressions. http://code.google.com/p/numexpr .
+
+.. [ZLIB] JeanLoup Gailly and Mark Adler. zlib. A Massively Spiffy Yet Delicately Unobtrusive Compression Library. A standard library for compression purposes. http://www.gzip.org/zlib/ .
+
+.. [LZO] Markus F Oberhumer. LZO. A data compression library which is suitable for data de-/compression in real-time. It offers pretty fast compression and decompression with reasonable compression ratio. http://www.oberhumer.com/opensource/ .
+
+.. [BZIP] Julian Seward. bzip2. A high performance lossless compressor. It offers very high compression ratios within reasonable times. http://www.bzip.org/ .
+
+.. [BLOSC] Francesc Alted. Blosc. A blocking, shuffling and loss-less compression library. A compressor designed to transmit data from memory to CPU (and back) faster than a plain memcpy(). http://blosc.pytables.org/ .
+
+.. [GNUWIN32] Alexis Wilke, Jerry S., Kees Zeelenberg, and Mathias Michaelis. GnuWin32. GNU (and other) tools ported to Win32. GnuWin32 provides native Win32-versions of GNU tools, or tools with a similar open source licence. http://gnuwin32.sourceforge.net/ .
+
+.. [PSYCO] Armin Rigo. Psyco. A Python specializing compiler. Run existing Python software faster, with no change in your source. http://psyco.sourceforge.net .
+
+.. [SCIPY1] Konrad Hinsen. Scientific Python. Collection of Python modules useful for scientific computing. http://starship.python.net/~hinsen/ScientificPython/ .
+
+.. [SCIPY2] Eric Jones, Travis Oliphant, Pearu Peterson, and et al. SciPy. Scientific tools for Python. SciPy supplements the popular Numeric module, gathering a variety of high level science and engineering modules together as a single package. http://www.scipy.org .
+
+.. [OPTIM] Francesc Alted and Ivan Vilata. Optimization of file openings in PyTables. This document explores the savings of the opening process in terms of both CPU time and memory, due to the adoption of a LRU cache for the nodes in the object tree. http://www.pytables.org/docs/NewObjectTreeCache.pdf .
+
+.. [OPSI] Francesc Alted and Ivan Vilata. OPSI: The indexing system of PyTables 2 Professional Edition. Exhaustive description and benchmarks about the indexing engine that comes with PyTables Pro. http://www.pytables.org/docs/OPSI-indexes.pdf .
+
+.. [VITABLES] Vicent Mas. ViTables. A GUI for PyTables/HDF5 files. It is a graphical tool for browsing and editing files in both PyTables and HDF5 formats. http://www.vitables.org .
+
+

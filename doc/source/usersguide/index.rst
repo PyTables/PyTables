@@ -33,7 +33,7 @@ Contents
     nested_rec_arrays
     utilities
     file_format
-
+    bibliography
 
 --------------------------------------------------------
 Copyright Notice and Statement for PyTables User's Guide
