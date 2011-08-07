@@ -1239,7 +1239,7 @@ Node instance variables - location dependent
 Node instance variables - location independent
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. attribute:: Node._v_attrs
+.. attribute:: :attr:`Node._v_attrs`
 
     The associated AttributeSet instance
     (see :ref:`AttributeSetClassDescr`).
@@ -1407,294 +1407,259 @@ Node methods - attribute handling
 
 The Group class
 ---------------
+.. class:: Group
 
-Basic PyTables grouping structure.
+    Basic PyTables grouping structure.
 
-Instances of this class are grouping structures containing
-*child* instances of zero or more groups or leaves,
-together with supporting metadata. Each group has exactly one
-*parent* group.
+    Instances of this class are grouping structures containing
+    *child* instances of zero or more groups or leaves,
+    together with supporting metadata. Each group has exactly one
+    *parent* group.
 
-Working with groups and leaves is similar in many ways to
-working with directories and files, respectively, in a Unix
-filesystem. As with Unix directories and files, objects in the object
-tree are often described by giving their full (or absolute) path
-names. This full path can be specified either as a string (like in
-'/group1/group2') or as a complete object path
-written in *natural naming* schema (like in
-file.root.group1.group2).
+    Working with groups and leaves is similar in many ways to
+    working with directories and files, respectively, in a Unix
+    filesystem. As with Unix directories and files, objects in the object
+    tree are often described by giving their full (or absolute) path
+    names. This full path can be specified either as a string (like in
+    '/group1/group2') or as a complete object path
+    written in *natural naming* schema (like in
+    file.root.group1.group2).
 
-.. COMMENT: manual-only
-See :ref:`ObjectTreeSection` for more information on natural naming.
+    A collateral effect of the *natural naming*
+    schema is that the names of members in the Group
+    class and its instances must be carefully chosen to avoid colliding
+    with existing children node names.  For this reason and to avoid
+    polluting the children namespace all members in a
+    Group start with some reserved prefix, like
+    _f_ (for public methods), _g_
+    (for private ones), _v_ (for instance variables) or
+    _c_ (for class variables). Any attempt to create a
+    new child node whose name starts with one of these prefixes will raise
+    a ValueError exception.
 
-A collateral effect of the *natural naming*
-schema is that the names of members in the Group
-class and its instances must be carefully chosen to avoid colliding
-with existing children node names.  For this reason and to avoid
-polluting the children namespace all members in a
-Group start with some reserved prefix, like
-_f_ (for public methods), _g_
-(for private ones), _v_ (for instance variables) or
-_c_ (for class variables). Any attempt to create a
-new child node whose name starts with one of these prefixes will raise
-a ValueError exception.
+    Another effect of natural naming is that children named after
+    Python keywords or having names not valid as Python identifiers (e.g.
+    class, $a or 44) can not be accessed using the
+    node.child syntax. You will be forced to use
+    node._f_getChild(child) to access them (which is
+    recommended for programmatic accesses).
 
-Another effect of natural naming is that children named after
-Python keywords or having names not valid as Python identifiers (e.g.
-class, $a or
-44) can not be accessed using the
-node.child syntax. You will be forced to use
-node._f_getChild(child) to access them (which is
-recommended for programmatic accesses).
+    You will also need to use _f_getChild() to
+    access an existing child node if you set a Python attribute in the
+    Group with the same name as that node (you will get
+    a NaturalNameWarning when doing this).
 
-You will also need to use _f_getChild() to
-access an existing child node if you set a Python attribute in the
-Group with the same name as that node (you will get
-a NaturalNameWarning when doing this).
 
 Group instance variables
 ~~~~~~~~~~~~~~~~~~~~~~~~
-
 The following instance variables are provided in addition to
 those in Node (see :ref:`NodeClassDescr`):
 
-glosslist-presentation="list"
+.. attribute:: Group._v_children
 
-*_v_children*
+    Dictionary with all nodes hanging from this group.
 
-Dictionary with all nodes hanging from this
-group.
+.. attribute:: Group._v_filters
 
-*_v_filters*
+    Default filter properties for child nodes.
 
-Default filter properties for child nodes.
+    You can (and are encouraged to) use this property to
+    get, set and delete the FILTERS HDF5
+    attribute of the group, which stores a
+    Filters instance (see :ref:`FiltersClassDescr`). When
+    the group has no such attribute, a default
+    Filters instance is used.
 
-You can (and are encouraged to) use this property to
-get, set and delete the FILTERS HDF5
-attribute of the group, which stores a
-Filters instance (see :ref:`FiltersClassDescr`). When
-the group has no such attribute, a default
-Filters instance is used.
 
-*_v_groups*
+.. attribute:: Group._v_groups
 
-Dictionary with all groups hanging from this
-group.
+    Dictionary with all groups hanging from this group.
 
-*_v_hidden*
 
-Dictionary with all hidden nodes hanging from this
-group.
+.. attribute:: Group._v_hidden
 
-*_v_leaves*
+    Dictionary with all hidden nodes hanging from this group.
 
-Dictionary with all leaves hanging from this
-group.
+.. attribute:: Group._v_leaves
 
-*_v_links*
+    Dictionary with all leaves hanging from this group.
 
-Dictionary with all links hanging from this
-group.
+.. attribute:: Group._v_links
 
-*_v_nchildren*
+    Dictionary with all links hanging from this group.
 
-The number of children hanging from this group.
+.. attribute:: Group._v_nchildren
 
-*_v_unknown*
+    The number of children hanging from this group.
 
-Dictionary with all unknown nodes hanging from this
-group.
+.. attribute:: Group._v_unknown
+
+    Dictionary with all unknown nodes hanging from this group.
+
 
 Group methods
 ~~~~~~~~~~~~~
-
-*Caveat:*The following methods are
-documented for completeness, and they can be used without any
-problem. However, you should use the high-level counterpart methods
-in the File class (see :ref:`FileClassDescr`, because they
-are most used in documentation and examples, and are a bit more
-powerful than those exposed here.
+.. important:: *Caveat:* The following methods are
+    documented for completeness, and they can be used without any
+    problem. However, you should use the high-level counterpart methods
+    in the File class (see :ref:`FileClassDescr`, because they
+    are most used in documentation and examples, and are a bit more
+    powerful than those exposed here.
 
 The following methods are provided in addition to those in
 Node (see :ref:`NodeClassDescr`):
 
-_f_close()
-^^^^^^^^^^
 
-Close this group and all its descendents.
+.. method:: Group._f_close()
 
-This method has the behavior described in
-Node._f_close() (see :ref:`Node._f_close`).  It should be noted that this
-operation closes all the nodes descending from this group.
+    Close this group and all its descendents.
 
-You should not need to close nodes manually because they are
-automatically opened/closed when they are loaded/evicted from the
-integrated LRU cache.
+    This method has the behavior described in
+    :meth:`Node._f_close`.  It should be noted that this
+    operation closes all the nodes descending from this group.
 
-.. _Group._f_copy:
+    You should not need to close nodes manually because they are
+    automatically opened/closed when they are loaded/evicted from the
+    integrated LRU cache.
 
-_f_copy(newparent, newname, overwrite=False,
-recursive=False, createparents=False, **kwargs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Copy this node and return the new one.
+.. method:: Group._f_copy(newparent, newname, overwrite=False, recursive=False, createparents=False, **kwargs)
 
-This method has the behavior described in
-Node._f_copy() (see :ref:`Node._f_copy`). In addition, it recognizes the
-following keyword arguments:
+    Copy this node and return the new one.
 
-*title*
+    This method has the behavior described in
+    :meth:`Node._f_copy`. In addition, it recognizes the
+    following keyword arguments:
 
-The new title for the destination. If omitted or
-None, the original title is used. This
-only applies to the topmost node in recursive copies.
+    Parameters
+    ----------
+    title
+        The new title for the destination. If omitted or
+        None, the original title is used. This
+        only applies to the topmost node in recursive copies.
+    filters : Filters
+        Specifying this parameter overrides the original
+        filter properties in the source node. If specified, it must
+        be an instance of the Filters class (see
+        :ref:`FiltersClassDescr`). The default is to copy the
+        filter properties from the source node.
+    copyuserattrs
+        You can prevent the user attributes from being copied
+        by setting this parameter to False. The
+        default is to copy them.
+    stats
+        This argument may be used to collect statistics on the
+        copy process. When used, it should be a dictionary with keys
+        'groups', 'leaves',
+        'links' and
+        'bytes' having a numeric value. Their
+        values will be incremented to reflect the number of groups,
+        leaves and bytes, respectively, that have been copied during
+        the operation.
 
-*filters*
 
-Specifying this parameter overrides the original
-filter properties in the source node. If specified, it must
-be an instance of the Filters class (see
-:ref:`FiltersClassDescr`). The default is to copy the
-filter properties from the source node.
 
-*copyuserattrs*
+.. method:: Group._f_copyChildren(dstgroup, overwrite=False, recursive=False, createparents=False, **kwargs)
 
-You can prevent the user attributes from being copied
-by setting this parameter to False. The
-default is to copy them.
+    Copy the children of this group into another group.
 
-*stats*
+    Children hanging directly from this group are copied into
+    dstgroup, which can be a
+    Group (see :ref:`GroupClassDescr`) object or its pathname in string
+    form. If createparents is true, the needed
+    groups for the given destination group path to exist will be
+    created.
 
-This argument may be used to collect statistics on the
-copy process. When used, it should be a dictionary with keys
-'groups', 'leaves',
-'links' and
-'bytes' having a numeric value. Their
-values will be incremented to reflect the number of groups,
-leaves and bytes, respectively, that have been copied during
-the operation.
+    The operation will fail with a NodeError
+    if there is a child node in the destination group with the same
+    name as one of the copied children from this one, unless
+    overwrite is true; in this case, the former
+    child node is recursively removed before copying the later.
 
-.. _Group._f_copyChildren:
+    By default, nodes descending from children groups of this
+    node are not copied. If the recursive argument
+    is true, all descendant nodes of this node are recursively
+    copied.
 
-_f_copyChildren(dstgroup, overwrite=False, recursive=False,
-createparents=False, **kwargs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Additional keyword arguments may be passed to customize the
+    copying process. For instance, title and filters may be changed,
+    user attributes may be or may not be copied, data may be
+    sub-sampled, stats may be collected, etc. Arguments unknown to
+    nodes are simply ignored. Check the documentation for copying
+    operations of nodes to see which options they support.
 
-Copy the children of this group into another group.
 
-Children hanging directly from this group are copied into
-dstgroup, which can be a
-Group (see :ref:`GroupClassDescr`) object or its pathname in string
-form. If createparents is true, the needed
-groups for the given destination group path to exist will be
-created.
+.. method:: Group._f_getChild(childname)
 
-The operation will fail with a NodeError
-if there is a child node in the destination group with the same
-name as one of the copied children from this one, unless
-overwrite is true; in this case, the former
-child node is recursively removed before copying the later.
+    Get the child called childname of this group.
 
-By default, nodes descending from children groups of this
-node are not copied. If the recursive argument
-is true, all descendant nodes of this node are recursively
-copied.
+    If the child exists (be it visible or not), it is returned.
+    Else, a NoSuchNodeError is raised.
 
-Additional keyword arguments may be passed to customize the
-copying process. For instance, title and filters may be changed,
-user attributes may be or may not be copied, data may be
-sub-sampled, stats may be collected, etc. Arguments unknown to
-nodes are simply ignored. Check the documentation for copying
-operations of nodes to see which options they support.
+    Using this method is recommended over
+    getattr() when doing programmatic accesses to
+    children if childname is unknown beforehand or
+    when its name is not a valid Python identifier.
 
-.. _Group._f_getChild:
 
-_f_getChild(childname)
-^^^^^^^^^^^^^^^^^^^^^^
+.. method:: Group._f_iterNodes(classname=None)
 
-Get the child called childname of this
-group.
+    Iterate over children nodes.
 
-If the child exists (be it visible or not), it is returned.
-Else, a NoSuchNodeError is raised.
+    Child nodes are yielded alphanumerically sorted by node
+    name.  If the name of a class derived from Node
+    (see :ref:`NodeClassDescr`)
+    is supplied in the classname parameter, only
+    instances of that class (or subclasses of it) will be
+    returned.
 
-Using this method is recommended over
-getattr() when doing programmatic accesses to
-children if childname is unknown beforehand or
-when its name is not a valid Python identifier.
+    This is an iterator version of
+    :meth:`Group._f_listNodes`.
 
-.. _Group._f_iterNodes:
 
-_f_iterNodes(classname=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. method:: Group._f_listNodes(classname=None)
 
-Iterate over children nodes.
+    Return a *list* with children nodes.
 
-Child nodes are yielded alphanumerically sorted by node
-name.  If the name of a class derived from Node
-(see :ref:`NodeClassDescr`)
-is supplied in the classname parameter, only
-instances of that class (or subclasses of it) will be
-returned.
+    This is a list-returning version of
+    :meth:`Group._f_iterNodes`.
 
-This is an iterator version of
-Group._f_listNodes() (see :ref:`Group._f_listNodes`).
 
-.. _Group._f_listNodes:
+.. method:: Group._f_walkGroups()
 
-_f_listNodes(classname=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Recursively iterate over descendant groups (not leaves).
 
-Return a *list* with children
-nodes.
+    This method starts by yielding *self*,
+    and then it goes on to recursively iterate over all child groups
+    in alphanumerical order, top to bottom (preorder), following the
+    same procedure.
 
-This is a list-returning version of
-Group._f_iterNodes() (see :ref:`Group._f_iterNodes`).
 
-.. _Group._f_walkGroups:
+.. method:: Group._f_walkNodes(classname=None)
 
-_f_walkGroups()
-^^^^^^^^^^^^^^^
+    Iterate over descendant nodes.
 
-Recursively iterate over descendant groups (not
-leaves).
+    This method recursively walks *self* top
+    to bottom (preorder), iterating over child groups in
+    alphanumerical order, and yielding nodes.  If
+    classname is supplied, only instances of the
+    named class are yielded.
 
-This method starts by yielding *self*,
-and then it goes on to recursively iterate over all child groups
-in alphanumerical order, top to bottom (preorder), following the
-same procedure.
+    If *classname* is Group, it behaves like
+    :meth:`Group._f_walkGroups`, yielding only groups.  If you
+    don't want a recursive behavior, use
+    :meth:`Group._f_iterNodes` instead.
 
-.. _Group._f_walkNodes:
+    Example of use::
 
-_f_walkNodes(classname=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        # Recursively print all the arrays hanging from '/'
+        print "Arrays in the object tree '/':"
+        for array in h5file.root._f_walkNodes('Array', recursive=True):
+            print array
 
-Iterate over descendant nodes.
-
-This method recursively walks *self* top
-to bottom (preorder), iterating over child groups in
-alphanumerical order, and yielding nodes.  If
-classname is supplied, only instances of the
-named class are yielded.
-
-If *classname* is
-Group, it behaves like
-*Group._f_walkGroups()* (see :ref:`Group._f_walkGroups`), yielding only groups.  If you
-don't want a recursive behavior, use
-*Group._f_iterNodes()* (see :ref:`Group._f_iterNodes`) instead.
-
-Example of use:
-
-::
-
-    # Recursively print all the arrays hanging from '/'
-    print "Arrays in the object tree '/':"
-    for array in h5file.root._f_walkNodes('Array', recursive=True):
-    print array
 
 Group special methods
 ~~~~~~~~~~~~~~~~~~~~~
-
 Following are described the methods that automatically trigger
 actions when a Group instance is accessed in a
 special way.
@@ -1708,126 +1673,114 @@ nodes* by their name for the sake of easy interaction on
 the command line, as long as there is no Python attribute with the
 same name. Groups also allow the interactive completion (when using
 readline) of the names of child nodes. For
-instance:
+instance::
 
-::
+    # get a Python attribute
+    nchild = group._v_nchildren  
 
-    nchild = group._v_nchildren  # get a Python attribute
     # Add a Table child called 'table' under 'group'.
     h5file.createTable(group, 'table', myDescription)
     table = group.table          # get the table child instance
     group.table = 'foo'          # set a Python attribute
+
     # (PyTables warns you here about using the name of a child node.)
     foo = group.table            # get a Python attribute
     del group.table              # delete a Python attribute
     table = group.table          # get the table child instance again
 
-__contains__(name)
-^^^^^^^^^^^^^^^^^^
 
-Is there a child with that name?
+.. method:: Group.__contains__(name)
 
-Returns a true value if the group has a child node (visible
-or hidden) with the given *name* (a string),
-false otherwise.
+    Is there a child with that name?
 
-__delattr__(name)
-^^^^^^^^^^^^^^^^^
+    Returns a true value if the group has a child node (visible
+    or hidden) with the given *name* (a string),
+    false otherwise.
 
-Delete a Python attribute called
-name.
 
-This method deletes an *ordinary Python
-attribute* from the object. It does
-*not* remove children nodes from this group;
-for that, use File.removeNode() (see :ref:`File.removeNode`) or
-Node._f_remove() (see :ref:`Node._f_remove`). It does *neither*
-delete a PyTables node attribute; for that, use
-File.delNodeAttr() (see :ref:`File.delNodeAttr`),
-Node._f_delAttr() (see :ref:`Node._f_delAttr`) or Node._v_attrs
-(see :ref:`NodeClassInstanceVariables`).
+.. method:: Group.__delattr__(name)
 
-If there is an attribute and a child node with the same
-name, the child node will be made accessible
-again via natural naming.
+    Delete a Python attribute called name.
 
-__getattr__(name)
-^^^^^^^^^^^^^^^^^
+    This method deletes an *ordinary Python
+    attribute* from the object. It does
+    *not* remove children nodes from this group;
+    for that, use :meth:`File.removeNode` or
+    :meth:`Node._f_remove`. It does *neither*
+    delete a PyTables node attribute; for that, use
+    :meth:`File.delNodeAttr`,
+    :meth:`Node._f_delAttr` or :attr:`:attr:`Node._v_attrs``.
 
-Get a Python attribute or child node called
-name.
+    If there is an attribute and a child node with the same
+    name, the child node will be made accessible
+    again via natural naming.
 
-If the object has a Python attribute called
-name, its value is returned. Else, if the node
-has a child node called name, it is returned.
-Else, an AttributeError is raised.
 
-__iter__()
-^^^^^^^^^^
+.. method:: Group.__getattr__(name)
 
-Iterate over the child nodes hanging directly from the
-group.
+    Get a Python attribute or child node called name.
 
-This iterator is *not* recursive.
-Example of use:
+    If the object has a Python attribute called
+    name, its value is returned. Else, if the node
+    has a child node called name, it is returned.
+    Else, an AttributeError is raised.
 
-::
 
-    # Non-recursively list all the nodes hanging from '/detector'
-    print "Nodes in '/detector' group:"
-    for node in h5file.root.detector:
-    print node
+.. method:: Group.__iter__()
 
-__repr__()
-^^^^^^^^^^
+    Iterate over the child nodes hanging directly from the group.
 
-Return a detailed string representation of the group.
+    This iterator is *not* recursive. Example of use::
 
-Example of use:
+        # Non-recursively list all the nodes hanging from '/detector'
+        print "Nodes in '/detector' group:"
+        for node in h5file.root.detector:
+            print node
 
-::
 
-    >>> f = tables.openFile('data/test.h5')
-    >>> f.root.group0
-    /group0 (Group) 'First Group'
-    children := ['tuple1' (Table), 'group1' (Group)]
+.. method:: Group.__repr__()
 
-__setattr__(name, value)
-^^^^^^^^^^^^^^^^^^^^^^^^
+    Return a detailed string representation of the group.
 
-Set a Python attribute called name with
-the given value.
+    Example of use::
 
-This method stores an *ordinary Python
-attribute* in the object. It does
-*not* store new children nodes under this
-group; for that, use the File.create*() methods
-(see the File class in :ref:`FileClassDescr`). It does
-*neither* store a PyTables node attribute; for
-that, use File.setNodeAttr() (see :ref:`File.setNodeAttr`),
-Node._f_setAttr() (see :ref:`Node._f_setAttr`) or Node._v_attrs
-(see :ref:`NodeClassInstanceVariables`).
+        >>> f = tables.openFile('data/test.h5')
+        >>> f.root.group0
+        /group0 (Group) 'First Group'
+          children := ['tuple1' (Table), 'group1' (Group)]
 
-If there is already a child node with the same
-name, a NaturalNameWarning
-will be issued and the child node will not be accessible via
-natural naming nor getattr(). It will still be
-available via :meth:`File.getNode`, Group._f_getChild()
-(see :ref:`Group._f_getChild`) and children
-dictionaries in the group (if visible).
+.. method:: Group.__setattr__(name, value)
 
-__str__()
-^^^^^^^^^
+    Set a Python attribute called name with
+    the given value.
 
-Return a short string representation of the group.
+    This method stores an *ordinary Python
+    attribute* in the object. It does
+    *not* store new children nodes under this
+    group; for that, use the File.create*() methods
+    (see the File class in :ref:`FileClassDescr`). It does
+    *neither* store a PyTables node attribute; for
+    that, use :meth:`File.setNodeAttr`,
+    :meth`:Node._f_setAttr` or :attr:`Node._v_attrs`.
 
-Example of use:
+    If there is already a child node with the same
+    name, a NaturalNameWarning
+    will be issued and the child node will not be accessible via
+    natural naming nor getattr(). It will still be
+    available via :meth:`File.getNode`, :meth:`Group._f_getChild`
+    and children dictionaries in the group (if visible).
 
-::
 
-    >>> f=tables.openFile('data/test.h5')
-    >>> print f.root.group0
-    /group0 (Group) 'First Group'
+.. method:: Group.__str__()
+
+    Return a short string representation of the group.
+
+    Example of use::
+
+        >>> f=tables.openFile('data/test.h5')
+        >>> print f.root.group0
+        /group0 (Group) 'First Group'
+
 
 .. _LeafClassDescr:
 
@@ -1944,7 +1897,7 @@ glosslist-presentation="list"
 *attrs*
 
 The associated AttributeSet instance
-—see :ref:`AttributeSetClassDescr`— (Node._v_attrs).
+—see :ref:`AttributeSetClassDescr`— (:attr:`Node._v_attrs`).
 
 *name*
 
@@ -1981,7 +1934,7 @@ createparents=False, **kwargs)
 Copy this node and return the new one.
 
 This method has the behavior described in
-Node._f_copy() (see :ref:`Node._f_copy`). Please note that there is no
+:meth:`Node._f_copy`. Please note that there is no
 recursive flag since leaves do not have child
 nodes. In addition, this method recognizes the following keyword
 arguments:
@@ -2153,7 +2106,7 @@ _f_close(flush=True)
 Close this node in the tree.
 
 This method has the behavior described in
-Node._f_close() (see :ref:`Node._f_close`).  Besides that, the optional argument
+:meth:`Node._f_close`.  Besides that, the optional argument
 flush tells whether to flush pending data to
 disk or not before closing.
 
@@ -4917,8 +4870,8 @@ may write things like this:
 
 ::
 
-    for name in node._v_attrs._f_list():
-    print "name: %s, value: %s" % (name, node._v_attrs[name])
+    for name in :attr:`Node._v_attrs`._f_list():
+    print "name: %s, value: %s" % (name, :attr:`Node._v_attrs`[name])
 
 Use whatever idiom you prefer to access the attributes.
 
