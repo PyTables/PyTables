@@ -1,15 +1,14 @@
 Tutorials
 =========
-
-Lyrics: Vicent Andrés i Estellés. Music: Ovidi Montllor,
-Toti Soler, M'aclame a tu
-
-::
+.. epigraph::
 
     Seràs la clau que obre tots els panys,
     seràs la llum, la llum il.limitada,
     seràs confí on l'aurora comença,
     seràs forment, escala il.luminada!
+
+    -- Lyrics: Vicent Andrés i Estellés. Music: Ovidi Montllor, Toti Soler, M'aclame a tu
+
 
 This chapter consists of a series of simple yet comprehensive
 tutorials that will enable you to understand PyTables' main features. If
@@ -45,27 +44,21 @@ Importing tables objects
 
 Before starting you need to import the public objects in the
 tables package. You normally do that by
-executing:
-
-::
+executing::
 
     >>> import tables
 
 This is the recommended way to import
 tables if you don't want to pollute your
 namespace. However, PyTables has a contained set of first-level
-primitives, so you may consider using the alternative:
-
-::
+primitives, so you may consider using the alternative::
 
     >>> from tables import *
 
 If you are going to work with NumPy arrays
 (and normally, you will) you will also need to import functions from
 the numpy package. So most PyTables programs
-begin with:
-
-::
+begin with::
 
     >>> import tables        # but in this tutorial we use "from tables import \*"
     >>> import numpy
@@ -100,20 +93,18 @@ particles).
 
 Having determined our columns and their types, we can now
 declare a new Particle class that will contain
-all this information:
-
-::
+all this information::
 
     >>> from tables import *
     >>> class Particle(IsDescription):
-    name      = StringCol(16)   # 16-character String
-    idnumber  = Int64Col()      # Signed 64-bit integer
-    ADCcount  = UInt16Col()     # Unsigned short integer
-    TDCcount  = UInt8Col()      # unsigned byte
-    grid_i    = Int32Col()      # 32-bit integer
-    grid_j    = Int32Col()      # 32-bit integer
-    pressure  = Float32Col()    # float  (single-precision)
-    energy    = Float64Col()    # double (double-precision)
+    ...     name      = StringCol(16)   # 16-character String
+    ...     idnumber  = Int64Col()      # Signed 64-bit integer
+    ...     ADCcount  = UInt16Col()     # Unsigned short integer
+    ...     TDCcount  = UInt8Col()      # unsigned byte
+    ...     grid_i    = Int32Col()      # 32-bit integer
+    ...     grid_j    = Int32Col()      # 32-bit integer
+    ...     pressure  = Float32Col()    # float  (single-precision)
+    ...     energy    = Float64Col()    # double (double-precision)
     >>>
 
 This definition class is self-explanatory. Basically, you
@@ -134,9 +125,7 @@ Creating a PyTables file from scratch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use the first-level openFile function (see
-:ref:`openFileDescr`) to create a PyTables file:
-
-::
+:ref:`openFileDescr`) to create a PyTables file::
 
     >>> h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")
 
@@ -157,9 +146,7 @@ Creating a new group
 
 Now, to better organize our data, we will create a group
 called *detector* that branches from the root
-node. We will save our particle data table in this group.
-
-::
+node. We will save our particle data table in this group::
 
     >>> group = h5file.createGroup("/", 'detector', 'Detector information')
 
@@ -178,9 +165,7 @@ Creating a new table
 
 Let's now create a Table (see :ref:`TableClassDescr`) object as a
 branch off the newly-created group. We do that by calling the
-createTable (see :ref:`createTableDescr`) method of the h5file object:
-
-::
+createTable (see :ref:`createTableDescr`) method of the h5file object::
 
     >>> table = h5file.createTable(group, 'readout', Particle, "Readout example")
 
@@ -196,9 +181,7 @@ variable *table*.
 
 If you are curious about how the object tree looks right now,
 simply print the File instance
-variable *h5file*, and examine the output:
-
-::
+variable *h5file*, and examine the output::
 
     >>> print h5file
     tutorial1.h5 (File) 'Test file'
@@ -212,9 +195,7 @@ As you can see, a dump of the object tree is displayed. It's
 easy to see the Group and
 Table objects we have just created. If you want
 more information, just type the variable containing the
-File instance:
-
-::
+File instance::
 
     >>> h5file
     File(filename='tutorial1.h5', title='Test file', mode='w', rootUEP='/', filters=Filters(complevel=0, shuffle=False, fletcher32=False))
@@ -243,9 +224,7 @@ that you use it extensively.
 
 The time has come to fill this table with some values. First
 we will get a pointer to the Row (see :ref:`RowClassDescr`) instance of
-this table instance:
-
-::
+this table instance::
 
     >>> particle = table.row
 
@@ -257,20 +236,19 @@ the values for each row as if it were a dictionary (although it is
 actually an *extension class*), using the column
 names as keys.
 
-Below is an example of how to write rows:
-::
+Below is an example of how to write rows::
 
     >>> for i in xrange(10):
-    particle['name']  = 'Particle: %6d' % (i)
-    particle['TDCcount'] = i % 256
-    particle['ADCcount'] = (i * 256) % (1 << 16)
-    particle['grid_i'] = i
-    particle['grid_j'] = 10 - i
-    particle['pressure'] = float(i*i)
-    particle['energy'] = float(particle['pressure'] \** 4)
-    particle['idnumber'] = i * (2 \** 34)
-    # Insert a new particle record
-    particle.append()
+    ...     particle['name']  = 'Particle: %6d' % (i)
+    ...     particle['TDCcount'] = i % 256
+    ...     particle['ADCcount'] = (i * 256) % (1 << 16)
+    ...     particle['grid_i'] = i
+    ...     particle['grid_j'] = 10 - i
+    ...     particle['pressure'] = float(i*i)
+    ...     particle['energy'] = float(particle['pressure'] \** 4)
+    ...     particle['idnumber'] = i * (2 \** 34)
+    ...     # Insert a new particle record
+    ...     particle.append()
     >>>
 
 This code should be easy to understand. The lines inside the
@@ -282,9 +260,7 @@ table I/O buffer.
 After we have processed all our data, we should flush the
 table's I/O buffer if we want to write all this data to disk. We
 achieve that by calling the table.flush()
-method.
-
-::
+method::
 
     >>> table.flush()
 
@@ -301,15 +277,12 @@ Reading (and selecting) data in a table
 
 Ok. We have our data on disk, and now we need to access it and
 select from specific columns the values we are interested in. See
-the example below:
-
-::
+the example below::
 
     >>> table = h5file.root.detector.readout
-    >>> pressure = [ x['pressure'] for x in table.iterrows()
-    if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50 ]
+    >>> pressure = [x['pressure'] for x in table.iterrows() if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50]
     >>> pressure
-    \[25.0, 36.0, 49.0]
+    [25.0, 36.0, 49.0]
 
 The first line creates a "shortcut" to the
 *readout* table deeper on the object tree. As you
@@ -323,12 +296,11 @@ comprehension. It loops over the rows in *table*
 as they are provided by the table.iterrows()
 iterator (see :ref:`Table.iterrows`). The iterator
 returns values until all the data in table is exhausted. These rows
-are filtered using the expression:
-::
+are filtered using the expression::
 
     x['TDCcount'] > 3 and 20 <= x['pressure'] < 50
-So,
-we are selecting the values of the pressure
+
+So, we are selecting the values of the pressure
 column from filtered records to create the final list and assign it
 to pressure variable.
 
@@ -345,14 +317,11 @@ through Table.where() (see
 :ref:`Table.where`) and other related methods.
 
 Let's use an in-kernel selection to query
-the name column for the same set of cuts:
+the name column for the same set of cuts::
 
-::
-
-    >>> names = [ x['name'] for x in table.where(
-    """(TDCcount > 3) & (20 <= pressure) & (pressure < 50)""") ]
+    >>> names = [ x['name'] for x in table.where("""(TDCcount > 3) & (20 <= pressure) & (pressure < 50)""") ]
     >>> names
-    \['Particle:      5', 'Particle:      6', 'Particle:      7']
+    ['Particle:      5', 'Particle:      6', 'Particle:      7']
 
 In-kernel and indexed queries are not only much faster, but as
 you can see, they also look more compact, and are among the
@@ -370,9 +339,7 @@ In order to separate the selected data from the mass of
 detector data, we will create a new group columns
 branching off the root group. Afterwards, under this group, we will
 create two arrays that will contain the selected data. First, we
-create the group:
-
-::
+create the group::
 
     >>> gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
 
@@ -382,9 +349,7 @@ using *natural naming*
 string ("/").
 
 Now, create the first of the two Array
-objects we've just mentioned:
-
-::
+objects we've just mentioned::
 
     >>> h5file.createArray(gcolumns, 'pressure', array(pressure),
     "Pressure column selection")
@@ -408,9 +373,7 @@ selection list we created before. The fourth parameter is the
 
 Now, we will save the second array. It contains the list of
 strings we selected before: we save this object as-is, with no
-further conversion.
-
-::
+further conversion::
 
     >>> h5file.createArray(gcolumns, 'name', names, "Name column selection")
     /columns/name (Array(3,)) 'Name column selection'
@@ -436,9 +399,7 @@ variable. Don't worry, this is intentional to show the kind of
 object we have created by displaying its representation. The
 Array objects have been attached to the object
 tree and saved to disk, as you can see if you print the complete
-object tree:
-
-::
+object tree::
 
     >>> print h5file
     tutorial1.h5 (File) 'Test file'
@@ -451,15 +412,14 @@ object tree:
     /detector (Group) 'Detector information'
     /detector/readout (Table(10,)) 'Readout example'
 
+
 Closing the file and looking at its content
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To finish this first tutorial, we use the
 close method of the h5file
 File object to close the file before exiting
-Python:
-
-::
+Python::
 
     >>> h5file.close()
     >>> ^D
@@ -469,9 +429,9 @@ You have now created your first PyTables file with a table and
 two arrays. You can examine it with any generic HDF5 tool, such as
 h5dump or h5ls. Here is what
 the tutorial1.h5 looks like when read with the
-h5ls program:
+h5ls program.
 
-::
+.. code-block:: bash
 
     $ h5ls -rd tutorial1.h5
     /columns                 Group
@@ -496,9 +456,9 @@ h5ls program:
     (9) {2304, 9, 43046721, 9, 1, 154618822656, "Particle:      9", 81}
 
 Here's the output as displayed by the "ptdump" PyTables
-utility (located in utils/ directory):
+utility (located in utils/ directory).
 
-::
+.. code-block:: bash
 
     $ ptdump tutorial1.h5
     / (RootGroup) 'Test file'
@@ -508,13 +468,12 @@ utility (located in utils/ directory):
     /detector (Group) 'Detector information'
     /detector/readout (Table(10,)) 'Readout example'
 
-You can pass the -v or
--d options to ptdump if you
+You can pass the :option:`-v` or
+:option:`-d` options to ptdump if you
 want more verbosity. Try them out!
 
 Also, in :ref:`tutorial1-1-tableview`, you can admire how the
-tutorial1.h5 looks like using the `ViTables <http://www.vitables.org>`_ graphical interface
-.
+tutorial1.h5 looks like using the `ViTables <http://www.vitables.org>`_ graphical interface.
 
 .. _tutorial1-1-tableview:
 
