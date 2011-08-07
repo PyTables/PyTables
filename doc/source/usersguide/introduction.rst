@@ -15,7 +15,7 @@ The goal of PyTables is to enable the end user to manipulate
 easily data *tables* and *array*
 objects in a hierarchical structure. The foundation of the underlying
 hierarchical data organization is the excellent HDF5
-library (see [HDFG1]_).
+library (see :ref:`[HDGF1] <HDFG1>`).
 
 It should be noted that this package is not intended to serve as a
 complete wrapper for the entire HDF5 API, but only to provide a
@@ -103,7 +103,8 @@ grid-like fashion to provide these features:
   up for values in columns satisfying some criteria.
 
 - *Support for numerical arrays:*
-  NumPy (see [NUMPY]_), Numeric (see [NUMERIC]_), and numarray (see [NUMARRAY]_)
+  NumPy (see :ref:`[NUMPY] <NUMPY>`), Numeric (see :ref:`[NUMERIC] <NUMERIC>`), 
+  and numarray (see :ref:`[NUMARRAY] <NUMARRAY>`)
   arrays can be used as a useful complement of tables to store
   homogeneous data.
 
@@ -252,7 +253,7 @@ the cache without performing the de-serialization process from
 disk. This feature allows dealing with files with large hierarchies
 very quickly and with low memory consumption, while retaining all the
 powerful browsing capabilities of the previous implementation of the
-object tree. See [OPTIM]_ for
+object tree. See :ref:`[OPTIM] <OPTIM>` for
 more facts about the advantages introduced by this new metadata cache
 system.
 
@@ -343,22 +344,6 @@ objects.
     :align: center
 
     **Figure 2: A PyTables object tree example.**
-
----------------------------
-
-.. [HDFG1] The HDF Group. What is HDF5?. Concise description about HDF5 capabilities and its differences from earlier versions (HDF4). http://hdfgroup.org/whatishdf5.html .
-
-.. [MERTZ] David Mertz. Objectify. On the 'Pythonic' treatment of XML documents as objects(II). Article describing XML Objectify, a Python module that allows working with XML documents as Python objects. Some of the ideas presented here are used in PyTables. http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html .
-
-.. [NUMPY] Travis Oliphant and et al. NumPy. Scientific Computing with Numerical Python. The latest and most powerful re-implementation of Numeric to date. It implements all the features that can be found in Numeric and numarray, plus a bunch of new others. In general, it is more efficient as well. http://numeric.scipy.org/ .
-
-.. [NUMERIC] David Ascher, Paul F Dubois, Konrad Hinsen, Jim Hugunin, and Travis Oliphant. Numerical Python. Package to speed-up arithmetic operations on arrays of numbers. http://sourceforge.net/projects/numpy/ .
-
-.. [NUMARRAY] Perry Greenfield, Todd Miller, Richard L White, J. C. Hsu, Paul Barrett, Jochen Küpper, and Peter J Verveer. Numarray. Reimplementation of Numeric which adds the ability to efficiently manipulate large numeric arrays in ways similar to Matlab and IDL. Among others, Numarray provides the record array extension. http://stsdas.stsci.edu/numarray/ .
-
-.. [OPTIM] Francesc Alted and Ivan Vilata. Optimization of file openings in PyTables. This document explores the savings of the opening process in terms of both CPU time and memory, due to the adoption of a LRU cache for the nodes in the object tree. http://www.pytables.org/docs/NewObjectTreeCache.pdf .
-
-.. [VITABLES] Vicent Mas. ViTables. A GUI for PyTables/HDF5 files. It is a graphical tool for browsing and editing files in both PyTables and HDF5 formats. http://www.vitables.org .
 
 ---------------------------
 

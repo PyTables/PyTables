@@ -1,11 +1,11 @@
 Installation
 ============
-
-Albert Einstein
-
-::
+.. epigraph::
 
     Make things as simple as possible, but not any simpler.
+
+    -- Albert Einstein
+
 
 The Python Distutils are used to build and
 install PyTables, so it is fairly simple to get the application up and
