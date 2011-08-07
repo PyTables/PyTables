@@ -1,6 +1,6 @@
 Introduction
 ============
-::
+.. epigraph::
 
     La sabiduría no vale la pena si no es posible servirse de ella para
     inventar una nueva manera de preparar los garbanzos.
@@ -8,7 +8,7 @@ Introduction
     [Wisdom isn't worth anything if you can't use it to come up with a 
     new way to cook garbanzos.]
 
--Gabriel García Márquez, A wise Catalan in *"Cien años de soledad"*
+    -- Gabriel García Márquez, A wise Catalan in *"Cien años de soledad"*
 
 
 The goal of PyTables is to enable the end user to manipulate
@@ -210,11 +210,8 @@ its properties.
 Working with groups and leaves is similar in many ways to
 working with directories and files on a Unix filesystem, i.e. a node
 (file or directory) is always a *child* of one and
-only one group (directory), its *parent group*
-
-PyTables does not support hard links – for the
-moment.
-. Inside of that group, the node is accessed by its
+only one group (directory), its *parent group* [1]_. 
+Inside of that group, the node is accessed by its
 *name*. As is the case with Unix directories and
 files, objects in the object tree are often referenced by giving their
 full (absolute) path names. In PyTables this full path can be
@@ -226,13 +223,9 @@ file.root.subgroup2.table3).
 
 Support for *natural naming* is a key aspect
 of PyTables. It means that the names of instance variables of the node
-objects are the same as the names of its children
-
-I got this simple but powerful idea from the excellent
-Objectify module by David Mertz (see [MERTZ]_)
-. This is very *Pythonic* and
-intuitive in many cases. Check the tutorial :ref:`readingAndSelectingUsage` for
-usage examples.
+objects are the same as the names of its children [2]_. This is very 
+*Pythonic* and intuitive in many cases. Check the tutorial 
+:ref:`readingAndSelectingUsage` for usage examples.
 
 You should also be aware that not all the data present in a file
 is loaded into the object tree. The *metadata*
@@ -259,7 +252,7 @@ the cache without performing the de-serialization process from
 disk. This feature allows dealing with files with large hierarchies
 very quickly and with low memory consumption, while retaining all the
 powerful browsing capabilities of the previous implementation of the
-object tree. See for
+object tree. See [OPTIM]_ for
 more facts about the advantages introduced by this new metadata cache
 system.
 
@@ -318,11 +311,8 @@ file::
 
 This small program creates a simple HDF5 file called
 objecttree.h5 with the structure that appears in
-:ref:`objecttree-h5`
-
-We have used ViTables (see [VITABLES]_) in order to create this snapshot.
-
-. When the file is created, the metadata in the object tree is updated
+:ref:`Figure 1 <objecttree-h5>` [3]_.
+When the file is created, the metadata in the object tree is updated
 in memory while the actual data is saved to disk. When you close the
 file the object tree is no longer available. However, when you reopen
 this file the object tree will be reconstructed in memory from the
@@ -332,48 +322,33 @@ it in exactly the same way as when you originally created it.
 
 .. _objecttree-h5:
 
-An HDF5 example with 2 subgroups, 2 tables and 1 array.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. figure:: images/objecttree-h5.png
+    :align: center
 
-.. image:: images/objecttree-h5.png
+    **Figure 1: An HDF5 example with 2 subgroups, 2 tables and 1 array.**
 
-In :ref:`objecttree` you
+In :ref:`Figure2 <objecttree>`, you
 can see an example of the object tree created when the above
 objecttree.h5 file is read (in fact, such an object
 tree is always created when reading any supported generic HDF5 file).
-It is worthwhile to take your time to understand it
-
-Bear in mind, however, that this diagram is
-*not* a standard UML class diagram; it is
-rather meant to show the connections between the PyTables objects
-and some of its most important attributes and methods.
-
-. It will help you understand the relationships of in-memory PyTables
+It is worthwhile to take your time to understand it [4]_. 
+It will help you understand the relationships of in-memory PyTables
 objects.
 
 .. _objecttree:
 
-.. figure:: images/objecttree.svg
-    :width: 1276
-    :height: 1488
+.. figure:: images/objecttree.png
+    :width: 1276px
+    :height: 1488px
     :align: center
 
-    A PyTables object tree example.
+    **Figure 2: A PyTables object tree example.**
 
+---------------------------
 
 .. [HDFG1] The HDF Group. What is HDF5?. Concise description about HDF5 capabilities and its differences from earlier versions (HDF4). http://hdfgroup.org/whatishdf5.html .
 
-.. [HDFG2] The HDF Group. Introduction to HDF5. Introduction to the HDF5 data model and programming model. http://hdfgroup.org/HDF5/doc/H5.intro.html .
-
-.. [HDFG3] The HDF Group. The HDF5 table programming model. Examples on using HDF5 tables with the C API. http://hdfgroup.org/HDF5/Tutor/h5table.html .
-
 .. [MERTZ] David Mertz. Objectify. On the 'Pythonic' treatment of XML documents as objects(II). Article describing XML Objectify, a Python module that allows working with XML documents as Python objects. Some of the ideas presented here are used in PyTables. http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html .
-
-.. [CYTHON] Stefan Behnel, Robert Bradshaw, Dag Sverre Seljebotn, and Greg Ewing. Cython. A language that makes writing C extensions for the Python language as easy as Python itself. http://cython.org .
-
-.. [NETCDF1] Glenn Davis, Russ Rew, Steve Emmerson, John Caron, and Harvey Davies. NetCDF. Network Common Data Form. An interface for array-oriented data access and a library that provides an implementation of the interface. http://www.unidata.ucar.edu/packages/netcdf/ .
-
-.. [NETCDF2] Russ Rew, Mike Folk, and et al. NetCDF-4. Network Common Data Form version 4. Merging the NetCDF and HDF5 Libraries. http://www.unidata.ucar.edu/software/netcdf/netcdf-4/ .
 
 .. [NUMPY] Travis Oliphant and et al. NumPy. Scientific Computing with Numerical Python. The latest and most powerful re-implementation of Numeric to date. It implements all the features that can be found in Numeric and numarray, plus a bunch of new others. In general, it is more efficient as well. http://numeric.scipy.org/ .
 
@@ -381,28 +356,21 @@ objects.
 
 .. [NUMARRAY] Perry Greenfield, Todd Miller, Richard L White, J. C. Hsu, Paul Barrett, Jochen K�pper, and Peter J Verveer. Numarray. Reimplementation of Numeric which adds the ability to efficiently manipulate large numeric arrays in ways similar to Matlab and IDL. Among others, Numarray provides the record array extension. http://stsdas.stsci.edu/numarray/ .
 
-.. [NUMEXPR] David Cooke, Francesc Alted, and et al. Numexpr. Fast evaluation of array expressions by using a vector-based virtual machine. It is an enhaced computing kernel that is generally faster (between 1x and 10x, depending on the kind of operations) than NumPy at evaluating complex array expressions. http://code.google.com/p/numexpr .
-
-.. [ZLIB] JeanLoup Gailly and Mark Adler. zlib. A Massively Spiffy Yet Delicately Unobtrusive Compression Library. A standard library for compression purposes. http://www.gzip.org/zlib/ .
-
-.. [LZO] Markus F Oberhumer. LZO. A data compression library which is suitable for data de-/compression in real-time. It offers pretty fast compression and decompression with reasonable compression ratio. http://www.oberhumer.com/opensource/ .
-
-.. [BZIP] Julian Seward. bzip2. A high performance lossless compressor. It offers very high compression ratios within reasonable times. http://www.bzip.org/ .
-
-.. [BLOSC] Francesc Alted. Blosc. A blocking, shuffling and loss-less compression library. A compressor designed to transmit data from memory to CPU (and back) faster than a plain memcpy(). http://blosc.pytables.org/ .
-
-.. [GNUWIN32] Alexis Wilke, Jerry S., Kees Zeelenberg, and Mathias Michaelis. GnuWin32. GNU (and other) tools ported to Win32. GnuWin32 provides native Win32-versions of GNU tools, or tools with a similar open source licence. http://gnuwin32.sourceforge.net/ .
-
-.. [PSYCO] Armin Rigo. Psyco. A Python specializing compiler. Run existing Python software faster, with no change in your source. http://psyco.sourceforge.net .
-
-.. [SCIPY1] Konrad Hinsen. Scientific Python. Collection of Python modules useful for scientific computing. http://starship.python.net/~hinsen/ScientificPython/ .
-
-.. [SCIPY2] Eric Jones, Travis Oliphant, Pearu Peterson, and et al. SciPy. Scientific tools for Python. SciPy supplements the popular Numeric module, gathering a variety of high level science and engineering modules together as a single package. http://www.scipy.org .
-
 .. [OPTIM] Francesc Alted and Ivan Vilata. Optimization of file openings in PyTables. This document explores the savings of the opening process in terms of both CPU time and memory, due to the adoption of a LRU cache for the nodes in the object tree. http://www.pytables.org/docs/NewObjectTreeCache.pdf .
-
-.. [OPSI] Francesc Alted and Ivan Vilata. OPSI: The indexing system of PyTables 2 Professional Edition. Exhaustive description and benchmarks about the indexing engine that comes with PyTables Pro. http://www.pytables.org/docs/OPSI-indexes.pdf .
 
 .. [VITABLES] Vicent Mas. ViTables. A GUI for PyTables/HDF5 files. It is a graphical tool for browsing and editing files in both PyTables and HDF5 formats. http://www.vitables.org .
 
+---------------------------
+
+.. [1] PyTables does not support hard links – for themoment.
+
+.. [2] I got this simple but powerful idea from the excellent
+       Objectify module by David Mertz (see [MERTZ]_).
+
+.. [3] We have used ViTables (see [VITABLES]_) in order to create this snapshot.
+
+.. [4] Bear in mind, however, that this diagram is
+       *not* a standard UML class diagram; it is
+       rather meant to show the connections between the PyTables objects
+       and some of its most important attributes and methods.
 
