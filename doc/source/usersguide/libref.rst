@@ -34,278 +34,229 @@ Let's start discussing the first-level variables and functions
 available to the user, then the different classes defined in
 PyTables.
 
+.. currentmodule:: tables
+
 tables variables and functions
 ------------------------------
 
 Global variables
 ~~~~~~~~~~~~~~~~
 
-glosslist-presentation="list"
+.. data:: __version__
 
-*__version__*
+    The PyTables version number.
 
-The PyTables version number.
+.. data:: hdf5Version
 
-*hdf5Version*
+    The underlying HDF5 library version number.
 
-The underlying HDF5 library version number.
+.. data:: is_pro
 
-*is_pro*
+    True for PyTables Professional edition, false otherwise.
 
-True for PyTables Professional edition, false
-otherwise.
-
-.. note:: PyTables Professional edition has been released
-   under an open source license. Starting with version 2.3,
-   PyTables includes all features of PyTables Pro.
-   In order to reflect the presence of advanced
-   features *is_pro* is always
-   set to True.
-   *is_pro* should be
-   considered *deprecated*.
-   It will be removed in the next major release.
+    .. note:: PyTables Professional edition has been released
+       under an open source license. Starting with version 2.3,
+       PyTables includes all features of PyTables Pro.
+       In order to reflect the presence of advanced
+       features :data:`is_pro` is always
+       set to True.  :data:`is_pro` should be
+       considered *deprecated*.
+       It will be removed in the next major release.
 
 Global functions
 ~~~~~~~~~~~~~~~~
+.. function:: copyFile(srcfilename, dstfilename, overwrite=False, **kwargs)
 
-copyFile(srcfilename, dstfilename, overwrite=False,
-\**kwargs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    An easy way of copying one PyTables file to another.
 
-An easy way of copying one PyTables file to another.
+    This function allows you to copy an existing PyTables file
+    named srcfilename to another file called
+    dstfilename. The source file must exist and be
+    readable. The destination file can be overwritten in place if
+    existing by asserting the overwrite
+    argument.
 
-This function allows you to copy an existing PyTables file
-named srcfilename to another file called
-dstfilename. The source file must exist and be
-readable. The destination file can be overwritten in place if
-existing by asserting the overwrite
-argument.
+    This function is a shorthand for the
+    File.copyFile() method, which acts on an
+    already opened file. kwargs takes keyword
+    arguments used to customize the copying process. See the
+    documentation of File.copyFile() (see :ref:`File.copyFile`) for a description of those
+    arguments.
 
-This function is a shorthand for the
-File.copyFile() method, which acts on an
-already opened file. kwargs takes keyword
-arguments used to customize the copying process. See the
-documentation of File.copyFile() (see :ref:`File.copyFile`) for a description of those
-arguments.
+.. function:: isHDF5File(filename)
 
-isHDF5File(filename)
-^^^^^^^^^^^^^^^^^^^^
+    Determine whether a file is in the HDF5 format.
 
-Determine whether a file is in the HDF5 format.
+    When successful, it returns a true value if the file is an
+    HDF5 file, false otherwise. If there were problems identifying the
+    file, an HDF5ExtError is raised.
 
-When successful, it returns a true value if the file is an
-HDF5 file, false otherwise. If there were problems identifying the
-file, an HDF5ExtError is raised.
+.. function:: isPyTablesFile(filename)
 
-isPyTablesFile(filename)
-^^^^^^^^^^^^^^^^^^^^^^^^
+    Determine whether a file is in the PyTables format.
 
-Determine whether a file is in the PyTables format.
+    When successful, it returns the format version string if the
+    file is a PyTables file, None otherwise.  If
+    there were problems identifying the file,
+    an HDF5ExtError is raised.
 
-When successful, it returns the format version string if the
-file is a PyTables file, None otherwise.  If
-there were problems identifying the file,
-an HDF5ExtError is raised.
+.. function:: lrange([start, ]stop[, step])
 
-lrange(\[start, ]stop[, step])
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Iterate over long ranges.
 
-Iterate over long ranges.
+    This is similar to xrange(), but it
+    allows 64-bit arguments on all platforms.  The results of the
+    iteration are sequentially yielded in the form of
+    numpy.int64 values, but getting random
+    individual items is not supported.
 
-This is similar to xrange(), but it
-allows 64-bit arguments on all platforms.  The results of the
-iteration are sequentially yielded in the form of
-numpy.int64 values, but getting random
-individual items is not supported.
+    Because of the Python 32-bit limitation on object lengths,
+    the length attribute (which is also a
+    numpy.int64 value) should be used instead of
+    the len() syntax.
 
-Because of the Python 32-bit limitation on object lengths,
-the length attribute (which is also a
-numpy.int64 value) should be used instead of
-the len() syntax.
+    Default start and step
+    arguments are supported in the same way as in
+    xrange().  When the standard
+    [x]range() Python objects support 64-bit
+    arguments, this iterator will be deprecated.
 
-Default start and step
-arguments are supported in the same way as in
-xrange().  When the standard
-[x]range() Python objects support 64-bit
-arguments, this iterator will be deprecated.
+.. function:: openFile(filename, mode='r', title='', rootUEP="/", filters=None, **kwargs)
 
-.. _openFileDescr:
+    Open a PyTables (or generic HDF5) file and return a File object.
 
-openFile(filename, mode='r', title='', rootUEP="/",
-filters=None, \**kwargs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Parameters
+    ----------
+    filename : str
+        The name of the file (supports environment variable
+        expansion). It is suggested that file names have any of the
+        .h5, .hdf or .hdf5 extensions, although this is not mandatory.
+    mode : str
+        The mode to open the file. It can be one of the
+        following:
 
-Open a PyTables (or generic HDF5) file and return a
-File object.
+        * *'r'*: Read-only; no data can be modified.
+        * *'w'*: Write; a new file is created (an existing file with the same name would be deleted).
+        * *'a'*: Append; an existing file is opened for reading and writing, and if the file 
+          does not exist it is created.
+        * *'r+'*: It is similar to 'a', but the file must already exist.
+    title : str
+        If the file is to be created, a
+        TITLE string attribute will be set on the
+        root group with the given value. Otherwise, the title will
+        be read from disk, and this will not have any effect.
+    rootUEP : str
+        The root User Entry Point. This is a group in the HDF5
+        hierarchy which will be taken as the starting point to
+        create the object tree. It can be whatever existing group in
+        the file, named by its HDF5 path. If it does not exist, an
+        HDF5ExtError is issued. Use this if you
+        do not want to build the *entire* object
+        tree, but rather only a *subtree* of it.
+    filters : Filters
+        An instance of the Filters (see
+        :ref:`FiltersClassDescr`) class that provides
+        information about the desired I/O filters applicable to the
+        leaves that hang directly from the *root
+        group*, unless other filter properties are
+        specified for these leaves. Besides, if you do not specify
+        filter properties for child groups, they will inherit these
+        ones, which will in turn propagate to child nodes.
 
-Arguments:
+    Notes
+    -----
+    In addition, it recognizes the names of parameters present
+    in tables/parameters.py as additional keyword
+    arguments.  See
+    :ref:`parametersFiles` for a
+    detailed info on the supported parameters.
 
-*filename*
+    .. note:: If you need to deal with a large number of nodes in an
+       efficient way, please see :ref:`LRUOptim` for more info and advices about
+       the integrated node cache engine.
 
-The name of the file (supports environment variable
-expansion). It is suggested that file names have any of the
-.h5, .hdf or
-.hdf5 extensions, although this is not
-mandatory.
+.. function:: setBloscMaxThreads(nthreads)
 
-*mode*
+    Set the maximum number of threads that Blosc can use.
 
-The mode to open the file. It can be one of the
-following:
+    This actually overrides the MAX_THREADS
+    setting in tables/parameters.py, so the new
+    value will be effective until this function is called again or a
+    new file with a different MAX_THREADS value
+    is specified.
 
-*'r'*
+    Returns the previous setting for maximum threads.
 
-Read-only; no data can be modified.
+.. function:: print_versions()
 
-*'w'*
+    Print all the versions of software that PyTables relies on.
 
-Write; a new file is created (an existing file
-with the same name would be deleted).
+.. function:: restrict_flavors(keep=['python'])
 
-*'a'*
+    Disable all flavors except those in keep.
 
-Append; an existing file is opened for reading
-and writing, and if the file does not exist it is
-created.
+    Providing an empty keep sequence implies
+    disabling all flavors (but the internal one).  If the sequence is
+    not specified, only optional flavors are disabled.
 
-*'r+'*
+    .. important:: Once you disable a flavor, it can not be enabled again.
 
-It is similar to 'a', but the
-file must already exist.
+.. function:: split_type(type)
 
-*title*
+    Split a PyTables type into a PyTables
+    kind and an item size.
 
-If the file is to be created, a
-TITLE string attribute will be set on the
-root group with the given value. Otherwise, the title will
-be read from disk, and this will not have any effect.
+    Returns a tuple of (kind, itemsize). If
+    no item size is present in the type (in the
+    form of a precision), the returned item size is
+    None::
 
-*rootUEP*
+        >>> split_type('int32')
+        ('int', 4)
+        >>> split_type('string')
+        ('string', None)
+        >>> split_type('int20')
+        Traceback (most recent call last):
+        ...
+        ValueError: precision must be a multiple of 8: 20
+        >>> split_type('foo bar')
+        Traceback (most recent call last):
+        ...
+        ValueError: malformed type: 'foo bar'
 
-The root User Entry Point. This is a group in the HDF5
-hierarchy which will be taken as the starting point to
-create the object tree. It can be whatever existing group in
-the file, named by its HDF5 path. If it does not exist, an
-HDF5ExtError is issued. Use this if you
-do not want to build the *entire* object
-tree, but rather only a *subtree* of
-it.
+.. function:: test(verbose=False, heavy=False)
 
-*filters*
+    Run all the tests in the test suite.
 
-An instance of the Filters (see
-:ref:`FiltersClassDescr`) class that provides
-information about the desired I/O filters applicable to the
-leaves that hang directly from the *root
-group*, unless other filter properties are
-specified for these leaves. Besides, if you do not specify
-filter properties for child groups, they will inherit these
-ones, which will in turn propagate to child nodes.
+    If verbose is set, the test suite will
+    emit messages with full verbosity (not recommended unless you are
+    looking into a certain problem).
 
-In addition, it recognizes the names of parameters present
-in tables/parameters.py as additional keyword
-arguments.  See
-:ref:`parametersFiles` for a
-detailed info on the supported parameters.
+    If heavy is set, the test suite will be
+    run in *heavy* mode (you should be careful with
+    this because it can take a lot of time and resources from your
+    computer).
 
-.. note:: If you need to deal with a large number of nodes in an
-   efficient way, please see :ref:`LRUOptim` for more info and advices about
-   the integrated node cache engine.
+..function:: whichLibVersion(name)
 
-setBloscMaxThreads(nthreads)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Get version information about a C library.
 
-Set the maximum number of threads that Blosc can use.
+    If the library indicated by name is
+    available, this function returns a 3-tuple containing the major
+    library version as an integer, its full version as a string, and
+    the version date as a string. If the library is not available,
+    None is returned.
 
-This actually overrides the MAX_THREADS
-setting in tables/parameters.py, so the new
-value will be effective until this function is called again or a
-new file with a different MAX_THREADS value
-is specified.
-
-Returns the previous setting for maximum threads.
-
-print_versions()
-^^^^^^^^^^^^^^^^
-
-Print all the versions of software that PyTables relies
-on.
-
-restrict_flavors(keep=['python'])
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Disable all flavors except those in
-keep.
-
-Providing an empty keep sequence implies
-disabling all flavors (but the internal one).  If the sequence is
-not specified, only optional flavors are disabled.
-
-.. important:: Once you disable a flavor, it can not be enabled
-   again.
-
-split_type(type)
-^^^^^^^^^^^^^^^^
-
-Split a PyTables type into a PyTables
-kind and an item size.
-
-Returns a tuple of (kind, itemsize). If
-no item size is present in the type (in the
-form of a precision), the returned item size is
-None.
-
-::
-
-    >>> split_type('int32')
-    ('int', 4)
-    >>> split_type('string')
-    ('string', None)
-    >>> split_type('int20')
-    Traceback (most recent call last):
-    ...
-    ValueError: precision must be a multiple of 8: 20
-    >>> split_type('foo bar')
-    Traceback (most recent call last):
-    ...
-    ValueError: malformed type: 'foo bar'
-
-test(verbose=False, heavy=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Run all the tests in the test suite.
-
-If verbose is set, the test suite will
-emit messages with full verbosity (not recommended unless you are
-looking into a certain problem).
-
-If heavy is set, the test suite will be
-run in *heavy* mode (you should be careful with
-this because it can take a lot of time and resources from your
-computer).
-
-whichLibVersion(name)
-^^^^^^^^^^^^^^^^^^^^^
-
-Get version information about a C library.
-
-If the library indicated by name is
-available, this function returns a 3-tuple containing the major
-library version as an integer, its full version as a string, and
-the version date as a string. If the library is not available,
-None is returned.
-
-The currently supported library names are
-hdf5, zlib,
-lzo and bzip2. If another
-name is given, a ValueError is raised.
+    The currently supported library names are
+    hdf5, zlib,
+    lzo and bzip2. If another
+    name is given, a ValueError is raised.
 
 .. _FileClassDescr:
 
-The File class
+The File Class
 --------------
-
-In-memory representation of a PyTables file.
+The in-memory representation of a PyTables file.
 
 An instance of this class is returned when a PyTables file is
 opened with the openFile() (see :ref:`openFileDescr`) function. It offers methods to manipulate
@@ -350,577 +301,452 @@ File objects can also act as context managers when using the
 with statement introduced in Python 2.5.  When
 exiting a context, the file is automatically closed.
 
-File instance variables
-~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: File
 
-glosslist-presentation="list"
+    .. attribute:: filename
 
-*filename*
+        The name of the opened file.
 
-The name of the opened file.
+    .. attribute:: filters
 
-*filters*
+        Default filter properties for the root group (see :ref:`FiltersClassDescr`).
 
-Default filter properties for the root group (see :ref:`FiltersClassDescr`).
+    .. attribute:: format_version
 
-*format_version*
+        The PyTables version number of this file.
 
-The PyTables version number of this file.
+    .. attribute:: isopen
 
-*isopen*
+        True if the underlying file is open, false otherwise.
 
-True if the underlying file is open, false
-otherwise.
+    .. attribute:: mode
 
-*mode*
+        The mode in which the file was opened.
 
-The mode in which the file was opened.
+    .. attribute:: open_count
 
-*open_count*
+        The number of times this file has been opened currently.
 
-The number of times this file has been opened
-currently.
+    .. attribute:: root
 
-*root*
+        The *root* of the object tree hierarchy (a Group instance).
 
-The *root* of the object tree
-hierarchy (a Group instance).
+    .. attribute:: rootUEP
 
-*rootUEP*
+        The UEP (user entry point) group name in the file (see
+        the :func:`openFile` function).
 
-The UEP (user entry point) group name in the file (see
-the openFile() function in :ref:`openFileDescr`).
+    .. attribute:: title
 
-*title*
+        The title of the root group in the file.
 
-The title of the root group in the file.
-
-File methods — file handling
+File methods - file handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. method:: File.close()
 
-close()
-^^^^^^^
+    Flush all the alive leaves in object tree and close the file.
 
-Flush all the alive leaves in object tree and close the
-file.
+.. method:: File.copyFile(dstfilename, overwrite=False, **kwargs)
 
-.. _File.copyFile:
+    Copy the contents of this file to dstfilename.
 
-copyFile(dstfilename, overwrite=False, \**kwargs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    dstfilename must be a path string
+    indicating the name of the destination file. If it already exists,
+    the copy will fail with an IOError, unless the
+    overwrite argument is true, in which case the
+    destination file will be overwritten in place. In this last case,
+    the destination file should be closed or ugly errors will happen.
 
-Copy the contents of this file to
-dstfilename.
+    Additional keyword arguments may be passed to customize the
+    copying process. For instance, title and filters may be changed,
+    user attributes may be or may not be copied, data may be
+    sub-sampled, stats may be collected, etc. Arguments unknown to
+    nodes are simply ignored. Check the documentation for copying
+    operations of nodes to see which options they support.
 
-dstfilename must be a path string
-indicating the name of the destination file. If it already exists,
-the copy will fail with an IOError, unless the
-overwrite argument is true, in which case the
-destination file will be overwritten in place. In this last case,
-the destination file should be closed or ugly errors will
-happen.
+    In addition, it recognizes the names of parameters present
+    in tables/parameters.py as additional keyword
+    arguments.  See :ref:`parametersFiles` for a
+    detailed info on the supported parameters.
 
-Additional keyword arguments may be passed to customize the
-copying process. For instance, title and filters may be changed,
-user attributes may be or may not be copied, data may be
-sub-sampled, stats may be collected, etc. Arguments unknown to
-nodes are simply ignored. Check the documentation for copying
-operations of nodes to see which options they support.
+    Copying a file usually has the beneficial side effect of
+    creating a more compact and cleaner version of the original
+    file.
 
-In addition, it recognizes the names of parameters present
-in tables/parameters.py as additional keyword
-arguments.  See
-:ref:`parametersFiles` for a
-detailed info on the supported parameters.
+.. method:: File.flush()
 
-Copying a file usually has the beneficial side effect of
-creating a more compact and cleaner version of the original
-file.
+    Flush all the alive leaves in the object tree.
 
-flush()
-^^^^^^^
+.. method:: File.fileno()
 
-Flush all the alive leaves in the object tree.
+    Return the underlying OS integer file descriptor.
 
-fileno()
-^^^^^^^^
+    This is needed for lower-level file interfaces, such as the
+    fcntl module.
+    
+.. method:: File.__enter__()
 
-Return the underlying OS integer file descriptor.
+    Enter a context and return the same file.
 
-This is needed for lower-level file interfaces, such as the
-fcntl module.
+.. method:: File.__exit__([*exc_info])
 
-__enter__()
-^^^^^^^^^^^
+    Exit a context and close the file.
 
-Enter a context and return the same file.
+.. method:: File.__str__()
 
-__exit__(\[*exc_info])
-^^^^^^^^^^^^^^^^^^^^^^
+    Return a short string representation of the object tree.
+    Example of use::
 
-Exit a context and close the file.
+        >>> f = tables.openFile('data/test.h5')
+        >>> print f
+        data/test.h5 (File) 'Table Benchmark'
+        Last modif.: 'Mon Sep 20 12:40:47 2004'
+        Object Tree:
+        / (Group) 'Table Benchmark'
+        /tuple0 (Table(100,)) 'This is the table title'
+        /group0 (Group) ''
+        /group0/tuple1 (Table(100,)) 'This is the table title'
+        /group0/group1 (Group) ''
+        /group0/group1/tuple2 (Table(100,)) 'This is the table title'
+        /group0/group1/group2 (Group) ''
 
-__str__()
-^^^^^^^^^
+.. method:: File.__repr__()
 
-Return a short string representation of the object
-tree.
+    Return a detailed string representation of the object tree.
 
-Example of use:
-
-::
-
-    >>> f = tables.openFile('data/test.h5')
-    >>> print f
-    data/test.h5 (File) 'Table Benchmark'
-    Last modif.: 'Mon Sep 20 12:40:47 2004'
-    Object Tree:
-    / (Group) 'Table Benchmark'
-    /tuple0 (Table(100,)) 'This is the table title'
-    /group0 (Group) ''
-    /group0/tuple1 (Table(100,)) 'This is the table title'
-    /group0/group1 (Group) ''
-    /group0/group1/tuple2 (Table(100,)) 'This is the table title'
-    /group0/group1/group2 (Group) ''
-
-__repr__()
-^^^^^^^^^^
-
-Return a detailed string representation of the object
-tree.
-
-File methods — hierarchy manipulation
+    
+File methods - hierarchy manipulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. method:: File.copyChildren(srcgroup, dstgroup, overwrite=False, recursive=False, createparents=False, **kwargs)
+
+    Copy the children of a group into another group.
+
+    This method copies the nodes hanging from the source group
+    srcgroup into the destination group
+    dstgroup. Existing destination nodes can be
+    replaced by asserting the overwrite argument.
+    If the recursive argument is true, all
+    descendant nodes of srcnode are recursively
+    copied. If createparents is true, the needed
+    groups for the given destination parent group path to exist will
+    be created.
+
+    kwargs takes keyword arguments used to
+    customize the copying process. See the documentation of
+    Group._f_copyChildren() (see :ref:`Group._f_copyChildren`) for a description of those
+    arguments.
+
+.. method:: File.copyNode(where, newparent=None, newname=None, name=None, overwrite=False, recursive=False, createparents=False, **kwargs)
+
+    Copy the node specified by where and name to newparent/newname.
+
+    Parameters
+    ----------
+    where : str
+        These arguments work as in
+        File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
+        upon.
+    newparent : str or Group
+        The destination group that the node will be copied
+        into (a path name or a Group
+        instance). If not specified or None, the
+        current parent group is chosen as the new parent.
+    newname : str
+        The name to be assigned to the new copy in its
+        destination (a string).  If it is not specified or
+        None, the current name is chosen as the
+        new name.
+    name : str
+        These arguments work as in
+        File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
+        upon.
+
+    Notes
+    -----
+    Additional keyword arguments may be passed to customize the
+    copying process. The supported arguments depend on the kind of
+    node being copied. See Group._f_copy() (:ref:`Group._f_copy`) and Leaf.copy()
+    (:ref:`Leaf.copy`) for more information on their
+    allowed keyword arguments.
+
+    This method returns the newly created copy of the source
+    node (i.e. the destination node).  See
+    Node._f_copy() (:ref:`Node._f_copy`)
+    for further details on the semantics of copying nodes.
+
+
+.. method:: File.createArray(where, name, object, title='', byteorder=None, createparents=False)
+
+    Create a new array with the given name in
+    where location.  See the
+    Array class (in :ref:`ArrayClassDescr`) for more information on
+    arrays.
+
+    Parameters
+    ----------
+    object : python object
+        The array or scalar to be saved.  Accepted types are
+        NumPy arrays and scalars, numarray arrays
+        and string arrays (deprecated), Numeric arrays and scalars
+        (deprecated), as well as native Python sequences and scalars,
+        provided that values are regular (i.e. they are not like
+        [[1,2],2]) and homogeneous (i.e. all the
+        elements are of the same type).
+
+        Also, objects that have some of their dimensions equal
+        to 0 are not supported (use an EArray
+        node (see :ref:`EArrayClassDescr`) if you want to store an array
+        with one of its dimensions equal to 0).
+    byteorder : str
+        The byteorder of the data *on
+        disk*, specified as 'little' or
+        'big'.  If this is not specified, the
+        byteorder is that of the given object.
+
+    Notes
+    -----
+    See File.createTable() (:ref:`createTableDescr`) for more
+    information on the rest of parameters.
+
+
+.. method:: File.createCArray(where, name, atom, shape, title='', filters=None, chunkshape=None, byteorder=None, createparents=False)
+
+    Create a new chunked array with the given
+    name in where location.  See
+    the CArray class (in :ref:`CArrayClassDescr`) for more
+    information on chunked arrays.
+
+    Parameters
+    ----------
+    atom : Atom 
+        An Atom (see :ref:`AtomClassDescr`)
+        instance representing the *type* and
+        *shape* of the atomic objects to be
+        saved.
+    shape : tuple 
+        The shape of the new array.
+    chunkshape : tuple or number or None
+        The shape of the data chunk to be read or written in a
+        single HDF5 I/O operation.  Filters are applied to those
+        chunks of data.  The dimensionality of
+        chunkshape must be the same as that of
+        shape.  If None, a
+        sensible value is calculated (which is recommended).
+
+    Notes
+    -----
+    See File.createTable() (:ref:`createTableDescr`) for more
+    information on the rest of parameters.
+
+
+.. method:: File.createEArray(where, name, atom, shape, title='', filters=None, expectedrows=EXPECTED_ROWS_EARRAY, chunkshape=None, byteorder=None, createparents=False)
+
+    Create a new enlargeable array with the given
+    name in where location.  See
+    the EArray (in :ref:`EArrayClassDescr`) class for more information on
+    enlargeable arrays.
+
+    Parameters
+    ----------
+    atom : Atom 
+        An Atom (see :ref:`AtomClassDescr`)
+        instance representing the *type* and
+        *shape* of the atomic objects to be saved.
+    shape : tuple
+        The shape of the new array.  One (and only one) of the
+        shape dimensions *must* be 0.  The
+        dimension being 0 means that the resulting
+        EArray object can be extended along it.
+        Multiple enlargeable dimensions are not supported right now.
+    expectedrows 
+        A user estimate about the number of row elements that
+        will be added to the growable dimension in the
+        EArray node.  If not provided, the
+        default value is EXPECTED_ROWS_EARRAY
+        (see tables/parameters.py).  If you plan
+        to create either a much smaller or a much bigger array try
+        providing a guess; this will optimize the HDF5 B-Tree
+        creation and management process time and the amount of
+        memory used.
+    chunkshape : tuple, numeric, or None 
+        The shape of the data chunk to be read or written in a
+        single HDF5 I/O operation.  Filters are applied to those
+        chunks of data.  The dimensionality of
+        chunkshape must be the same as that of
+        shape (beware: no dimension should be 0
+        this time!).  If None, a sensible value
+        is calculated based on the expectedrows
+        parameter (which is recommended).
+    byteorder : str
+        The byteorder of the data *on
+        disk*, specified as 'little' or
+        'big'. If this is not specified, the
+        byteorder is that of the platform.
+
+    Notes
+    -----
+    See :ref:`File.createTable()` for more
+    information on the rest of parameters.
+
+
+.. method:: File.createExternalLink(where, name, target, createparents=False, warn16incompat=False)
+
+    Create an external link to a target node
+    with the given name
+    in where location.  target
+    can be a node object in another file or a path string in the
+    form file:/path/to/node.  If
+    createparents is true, the intermediate
+    groups required for reaching where are
+    created (the default is not doing so).
+
+    The purpose of the warn16incompat
+    argument is to avoid an Incompat16Warning
+    (see below).  The default is to issue the warning.
+
+    The returned node is an ExternalLink
+    instance.  See the
+    ExternalLink class (in
+    :ref:`ExternalLinkClassDescr`) for more information on external links.
+
+    .. warning:: External links are only supported when PyTables is
+       compiled against HDF5 1.8.x series.  When using PyTables with
+       HDF5 1.6.x, the *parent* group containing
+       external link objects will be mapped to
+       an Unknown instance (see
+       :ref:`UnknownClassDescr`) and you won't be able to access *any*
+       node hanging of this parent group.  It follows that if the
+       parent group containing the external link is the root group,
+       you won't be able to read *any* information
+       contained in the file when using HDF5 1.6.x.
+
+
+.. method:: File.createGroup(where, name, title='', filters=None, createparents=False)
+
+    Create a new group with the given name in
+    where location.  See the
+    Group class (in :ref:`GroupClassDescr`) for more information on
+    groups.
+
+    Parameters
+    ----------
+    filters : Filters
+        An instance of the Filters class
+        (see :ref:`FiltersClassDescr`) that provides information
+        about the desired I/O filters applicable to the leaves that
+        hang directly from this new group (unless other filter
+        properties are specified for these leaves). Besides, if you
+        do not specify filter properties for its child groups, they
+        will inherit these ones.
+
+    Notes
+    -----
+    See :ref:`File.createTable()` for more
+    information on the rest of parameters.
+
+
+.. method:: File.createHardLink(where, name, target, createparents=False)
+
+    Create a hard link to a target node with
+    the given name in where
+    location.  target can be a node object or a
+    path string.  If createparents is true, the
+    intermediate groups required for
+    reaching where are created (the default is
+    not doing so).
+
+    The returned node is a regular Group
+    or Leaf instance.
+
+
+.. method:: File.createSoftLink(where, name, target, createparents=False)
+
+    Create a soft link (aka symbolic link) to
+    a target node with the
+    given name in where
+    location.  target can be a node object or a
+    path string.  If createparents is true, the
+    intermediate groups required for
+    reaching where are created (the default is
+    not doing so).
+
+    The returned node is a SoftLink instance.
+    See the SoftLink class (in
+    :ref:`SoftLinkClassDescr`)
+    for more information on soft links.
+
+
+.. method:: File.createTable(where, name, description, title='', filters=None, expectedrows=EXPECTED_ROWS_TABLE, chunkshape=None, byteorder=None, createparents=False)
+
+    Create a new table with the given name in
+    where location.  See the
+    Table (in :ref:`TableClassDescr`) class for more information on
+    tables.
+
+    Parameters
+    ----------
+    where : path or Group
+        The parent group where the new table will hang from.
+        It can be a path string (for example
+        '/level1/leaf5'), or a
+        Group instance (see :ref:`GroupClassDescr`).
+    name : str
+        The name of the new table.
+    description : Description
+        This is an object that describes the table, i.e. how
+        many columns it has, their names, types, shapes, etc.  It
+        can be any of the following:
+
+        * *A user-defined class*: This should inherit from the IsDescription 
+          class (see :ref:`IsDescriptionClassDescr`) where table fields are specified.
+        * *A dictionary*: For example, when you do not know beforehand which structure 
+          your table will have).
+        * *A Description instance*: You can use the description attribute of another 
+          table to create a new one with the same structure.
+        * *A NumPy dtype*: A completely general structured NumPy dtype.
+        * *A NumPy (record) array instance*: The dtype of this record array will be used 
+          as the description.  Also, in case the array has actual data, it will be injected 
+          into the newly created table.
+        * *A RecArray instance (deprecated)*: Object from the numarray package.  This does 
+          not give you the possibility to create a nested table.  Array data is injected into
+          the new table.
+        * *A NestedRecArray instance (deprecated)*: If you want to have nested columns in 
+          your table and you are using numarray, you can use this object. Array data is 
+          injected into the new table.
+    title : str
+        A description for this node (it sets the TITLE HDF5 attribute on disk).
+    filters : Filters
+        An instance of the Filters class
+        (see :ref:`FiltersClassDescr`) that provides information
+        about the desired I/O filters to be applied during the life
+        of this object.
+    expectedrows : int
+        A user estimate of the number of records that will be
+        in the table. If not provided, the default value is
+        EXPECTED_ROWS_TABLE (see
+        :file:`tables/parameters.py`). If you plan to
+        create a bigger table try providing a guess; this will
+        optimize the HDF5 B-Tree creation and management process
+        time and memory used.
+    chunkshape
+        The shape of the data chunk to be read or written in a
+        single HDF5 I/O operation. Filters are applied to those
+        chunks of data. The rank of the
+        chunkshape for tables must be 1. If
+        None, a sensible value is calculated
+        based on the expectedrows parameter
+        (which is recommended).
+    byteorder : str
+        The byteorder of data *on disk*,
+        specified as 'little' or
+        'big'. If this is not specified, the
+        byteorder is that of the platform, unless you passed an
+        array as the description, in which case
+        its byteorder will be used.
+    createparents : bool
+        Whether to create the needed groups for the parent
+        path to exist (not done by default).
 
-copyChildren(srcgroup, dstgroup, overwrite=False,
-recursive=False, createparents=False, \**kwargs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Copy the children of a group into another group.
-
-This method copies the nodes hanging from the source group
-srcgroup into the destination group
-dstgroup. Existing destination nodes can be
-replaced by asserting the overwrite argument.
-If the recursive argument is true, all
-descendant nodes of srcnode are recursively
-copied. If createparents is true, the needed
-groups for the given destination parent group path to exist will
-be created.
-
-kwargs takes keyword arguments used to
-customize the copying process. See the documentation of
-Group._f_copyChildren() (see :ref:`Group._f_copyChildren`) for a description of those
-arguments.
-
-copyNode(where, newparent=None, newname=None, name=None,
-overwrite=False, recursive=False, createparents=False,
-\**kwargs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Copy the node specified by where and
-name to
-newparent/newname.
-
-*where,
-name*
-
-These arguments work as in
-File.getNode() (see :ref:`File.getNode`), referencing the node to be acted
-upon.
-
-*newparent*
-
-The destination group that the node will be copied
-into (a path name or a Group
-instance). If not specified or None, the
-current parent group is chosen as the new parent.
-
-*newname*
-
-The name to be assigned to the new copy in its
-destination (a string).  If it is not specified or
-None, the current name is chosen as the
-new name.
-
-Additional keyword arguments may be passed to customize the
-copying process. The supported arguments depend on the kind of
-node being copied. See Group._f_copy() (:ref:`Group._f_copy`) and Leaf.copy()
-(:ref:`Leaf.copy`) for more information on their
-allowed keyword arguments.
-
-This method returns the newly created copy of the source
-node (i.e. the destination node).  See
-Node._f_copy() (:ref:`Node._f_copy`)
-for further details on the semantics of copying nodes.
-
-.. _createArrayDescr:
-
-createArray(where, name, object, title='', byteorder=None,
-createparents=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create a new array with the given name in
-where location.  See the
-Array class (in :ref:`ArrayClassDescr`) for more information on
-arrays.
-
-*object*
-
-The array or scalar to be saved.  Accepted types are
-NumPy arrays and scalars, numarray arrays
-and string arrays (deprecated), Numeric arrays and scalars
-(deprecated), as well as native Python sequences and scalars,
-provided that values are regular (i.e. they are not like
-[\[1,2],2]) and homogeneous (i.e. all the
-elements are of the same type).
-
-Also, objects that have some of their dimensions equal
-to 0 are not supported (use an EArray
-node (see :ref:`EArrayClassDescr`) if you want to store an array
-with one of its dimensions equal to 0).
-
-*byteorder*
-
-The byteorder of the data *on
-disk*, specified as 'little' or
-'big'.  If this is not specified, the
-byteorder is that of the given
-object.
-
-See File.createTable() (:ref:`createTableDescr`) for more
-information on the rest of parameters.
-
-createCArray(where, name, atom, shape, title='',
-filters=None, chunkshape=None, byteorder=None,
-createparents=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create a new chunked array with the given
-name in where location.  See
-the CArray class (in :ref:`CArrayClassDescr`) for more
-information on chunked arrays.
-
-*atom*
-
-An Atom (see :ref:`AtomClassDescr`)
-instance representing the *type* and
-*shape* of the atomic objects to be
-saved.
-
-*shape*
-
-The shape of the new array.
-
-*chunkshape*
-
-The shape of the data chunk to be read or written in a
-single HDF5 I/O operation.  Filters are applied to those
-chunks of data.  The dimensionality of
-chunkshape must be the same as that of
-shape.  If None, a
-sensible value is calculated (which is recommended).
-
-See File.createTable() (:ref:`createTableDescr`) for more
-information on the rest of parameters.
-
-.. _createEArrayDescr:
-
-createEArray(where, name, atom, shape, title='',
-filters=None, expectedrows=EXPECTED_ROWS_EARRAY, chunkshape=None,
-byteorder=None, createparents=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create a new enlargeable array with the given
-name in where location.  See
-the EArray (in :ref:`EArrayClassDescr`) class for more information on
-enlargeable arrays.
-
-*atom*
-
-An Atom (see :ref:`AtomClassDescr`)
-instance representing the *type* and
-*shape* of the atomic objects to be
-saved.
-
-*shape*
-
-The shape of the new array.  One (and only one) of the
-shape dimensions *must* be 0.  The
-dimension being 0 means that the resulting
-EArray object can be extended along it.
-Multiple enlargeable dimensions are not supported right
-now.
-
-*expectedrows*
-
-A user estimate about the number of row elements that
-will be added to the growable dimension in the
-EArray node.  If not provided, the
-default value is EXPECTED_ROWS_EARRAY
-(see tables/parameters.py).  If you plan
-to create either a much smaller or a much bigger array try
-providing a guess; this will optimize the HDF5 B-Tree
-creation and management process time and the amount of
-memory used.
-
-*chunkshape*
-
-The shape of the data chunk to be read or written in a
-single HDF5 I/O operation.  Filters are applied to those
-chunks of data.  The dimensionality of
-chunkshape must be the same as that of
-shape (beware: no dimension should be 0
-this time!).  If None, a sensible value
-is calculated based on the expectedrows
-parameter (which is recommended).
-
-*byteorder*
-
-The byteorder of the data *on
-disk*, specified as 'little' or
-'big'. If this is not specified, the
-byteorder is that of the platform.
-
-See File.createTable() (:ref:`createTableDescr`) for more
-information on the rest of parameters.
-
-.. _createExternalLinkDescr:
-
-createExternalLink(where, name, target,
-createparents=False, warn16incompat=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create an external link to a target node
-with the given name
-in where location.  target
-can be a node object in another file or a path string in the
-form file:/path/to/node.  If
-createparents is true, the intermediate
-groups required for reaching where are
-created (the default is not doing so).
-
-The purpose of the warn16incompat
-argument is to avoid an Incompat16Warning
-(see below).  The default is to issue the warning.
-
-The returned node is an ExternalLink
-instance.  See the
-ExternalLink class (in
-:ref:`ExternalLinkClassDescr`) for more information on external links.
-
-.. warning:: External links are only supported when PyTables is
-   compiled against HDF5 1.8.x series.  When using PyTables with
-   HDF5 1.6.x, the *parent* group containing
-   external link objects will be mapped to
-   an Unknown instance (see
-   :ref:`UnknownClassDescr`) and you won't be able to access *any*
-   node hanging of this parent group.  It follows that if the
-   parent group containing the external link is the root group,
-   you won't be able to read *any* information
-   contained in the file when using HDF5 1.6.x.
-
-.. _createGroupDescr:
-
-createGroup(where, name, title='', filters=None,
-createparents=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create a new group with the given name in
-where location.  See the
-Group class (in :ref:`GroupClassDescr`) for more information on
-groups.
-
-*filters*
-
-An instance of the Filters class
-(see :ref:`FiltersClassDescr`) that provides information
-about the desired I/O filters applicable to the leaves that
-hang directly from this new group (unless other filter
-properties are specified for these leaves). Besides, if you
-do not specify filter properties for its child groups, they
-will inherit these ones.
-
-See File.createTable() (:ref:`createTableDescr`) for more
-information on the rest of parameters.
-
-createHardLink(where, name, target,
-createparents=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create a hard link to a target node with
-the given name in where
-location.  target can be a node object or a
-path string.  If createparents is true, the
-intermediate groups required for
-reaching where are created (the default is
-not doing so).
-
-The returned node is a regular Group
-or Leaf instance.
-
-createSoftLink(where, name, target,
-createparents=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create a soft link (aka symbolic link) to
-a target node with the
-given name in where
-location.  target can be a node object or a
-path string.  If createparents is true, the
-intermediate groups required for
-reaching where are created (the default is
-not doing so).
-
-The returned node is a SoftLink instance.
-See the
-SoftLink class (in
-:ref:`SoftLinkClassDescr`)
-for more information on soft links.
-
-.. _createTableDescr:
-
-createTable(where, name, description, title='',
-filters=None, expectedrows=EXPECTED_ROWS_TABLE, chunkshape=None,
-byteorder=None, createparents=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create a new table with the given name in
-where location.  See the
-Table (in :ref:`TableClassDescr`) class for more information on
-tables.
-
-*where*
-
-The parent group where the new table will hang from.
-It can be a path string (for example
-'/level1/leaf5'), or a
-Group instance (see :ref:`GroupClassDescr`).
-
-*name*
-
-The name of the new table.
-
-*description*
-
-This is an object that describes the table, i.e. how
-many columns it has, their names, types, shapes, etc.  It
-can be any of the following:
-
-*A user-defined
-class*
-
-This should inherit from the
-IsDescription class (see :ref:`IsDescriptionClassDescr`) where table fields are specified.
-
-*A
-dictionary*
-
-For example, when you do not know beforehand
-which structure your table will have).
-
-.. COMMENT: manual-only
-
-See :ref:`secondExample` for an example of using a
-dictionary to describe a table.
-
-*A
-Description
-instance*
-
-You can use the description
-attribute of another table to create a new one with
-the same structure.
-
-*A
-NumPy dtype*
-
-A completely general structured NumPy
-dtype.
-
-*A
-NumPy (record)
-array instance*
-
-The dtype of this record array will be used as
-the description.  Also, in case the array has actual
-data, it will be injected into the newly created
-table.
-
-*A
-RecArray
-instance* (deprecated)
-
-Object from the numarray
-package.  This does not give you the possibility to
-create a nested table.  Array data is injected into
-the new table.
-
-*A
-NestedRecArray
-instance* (deprecated)
-
-If you want to have nested columns in your table
-and you are using
-numarray, you can use this
-object. Array data is injected into the new
-table.
-
-.. COMMENT: manual-only
-
-See :ref:`NestedRecArrayClassDescr` for a description of the
-NestedRecArray class.
-
-*title*
-
-A description for this node (it sets the
-TITLE HDF5 attribute on disk).
-
-*filters*
-
-An instance of the Filters class
-(see :ref:`FiltersClassDescr`) that provides information
-about the desired I/O filters to be applied during the life
-of this object.
-
-*expectedrows*
-
-A user estimate of the number of records that will be
-in the table. If not provided, the default value is
-EXPECTED_ROWS_TABLE (see
-tables/parameters.py). If you plan to
-create a bigger table try providing a guess; this will
-optimize the HDF5 B-Tree creation and management process
-time and memory used.
-
-.. COMMENT: manual-only
-
-See :ref:`expectedRowsOptim` for a discussion on the issue
-of providing a number of expected rows.
-
-*chunkshape*
-
-The shape of the data chunk to be read or written in a
-single HDF5 I/O operation. Filters are applied to those
-chunks of data. The rank of the
-chunkshape for tables must be 1. If
-None, a sensible value is calculated
-based on the expectedrows parameter
-(which is recommended).
-
-*byteorder*
-
-The byteorder of data *on disk*,
-specified as 'little' or
-'big'. If this is not specified, the
-byteorder is that of the platform, unless you passed an
-array as the description, in which case
-its byteorder will be used.
-
-*createparents*
-
-Whether to create the needed groups for the parent
-path to exist (not done by default).
 
 .. _createVLArrayDescr:
 
@@ -1548,7 +1374,7 @@ integrated LRU cache.
 .. _Node._f_copy:
 
 _f_copy(newparent=None, newname=None, overwrite=False,
-recursive=False, createparents=False, \**kwargs)
+recursive=False, createparents=False, **kwargs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Copy this node and return the new node.
@@ -1816,7 +1642,7 @@ integrated LRU cache.
 .. _Group._f_copy:
 
 _f_copy(newparent, newname, overwrite=False,
-recursive=False, createparents=False, \**kwargs)
+recursive=False, createparents=False, **kwargs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Copy this node and return the new one.
@@ -1859,7 +1685,7 @@ the operation.
 .. _Group._f_copyChildren:
 
 _f_copyChildren(dstgroup, overwrite=False, recursive=False,
-createparents=False, \**kwargs)
+createparents=False, **kwargs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Copy the children of this group into another group.
@@ -2072,7 +1898,7 @@ Example of use:
     >>> f = tables.openFile('data/test.h5')
     >>> f.root.group0
     /group0 (Group) 'First Group'
-    children := \['tuple1' (Table), 'group1' (Group)]
+    children := ['tuple1' (Table), 'group1' (Group)]
 
 __setattr__(name, value)
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2257,7 +2083,7 @@ Leaf._f_close() (see :ref:`Leaf._f_close`).
 .. _Leaf.copy:
 
 copy(newparent, newname, overwrite=False,
-createparents=False, \**kwargs)
+createparents=False, **kwargs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Copy this node and return the new one.
@@ -2822,8 +2648,8 @@ Example of use:
 
     record = table[4]
     recarray = table[4:1000:2]
-    recarray = table[\[4,1000]]   # only retrieves rows 4 and 1000
-    recarray = table[\[True, False, ..., True]]
+    recarray = table[[4,1000]]   # only retrieves rows 4 and 1000
+    recarray = table[[True, False, ..., True]]
 
 Those statements are equivalent to:
 
@@ -2831,8 +2657,8 @@ Those statements are equivalent to:
 
     record = table.read(start=4)[0]
     recarray = table.read(start=4, stop=1000, step=2)
-    recarray = table.readCoordinates(\[4,1000])
-    recarray = table.readCoordinates(\[True, False, ..., True])
+    recarray = table.readCoordinates([4,1000])
+    recarray = table.readCoordinates([True, False, ..., True])
 
 Here, you can see how indexing can be used as a shorthand
 for the read() (see :ref:`Table.read`) and readCoordinates() (see
@@ -2901,7 +2727,7 @@ Example of use:
     fileh = openFile('test4.h5', mode='w')
     table = fileh.createTable(fileh.root, 'table', Particle, "A table")
     # Append several rows in only one call
-    table.append(\[("Particle:     10", 10, 0, 10*10, 10**2),
+    table.append([("Particle:     10", 10, 0, 10*10, 10**2),
     ("Particle:     11", 11, -1, 11*11, 11**2),
     ("Particle:     12", 12, -2, 12*12, 12**2)])
     fileh.close()
@@ -3073,24 +2899,24 @@ Example of use:
 ::
 
     # Modify just one existing row
-    table[2] = \[456,'db2',1.2]
+    table[2] = [456,'db2',1.2]
     # Modify two existing rows
-    rows = numpy.rec.array(\[[457,'db1',1.2],[6,'de2',1.3]],
+    rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
     formats='i4,a3,f8')
     table[1:30:2] = rows             # modify a table slice
-    table[\[1,3]] = rows              # only modifies rows 1 and 3
-    table[\[True,False,True]] = rows  # only modifies rows 0 and 2
+    table[[1,3]] = rows              # only modifies rows 1 and 3
+    table[[True,False,True]] = rows  # only modifies rows 0 and 2
 
 Which is equivalent to:
 
 ::
 
     table.modifyRows(start=2, rows=[456,'db2',1.2])
-    rows = numpy.rec.array(\[[457,'db1',1.2],[6,'de2',1.3]],
+    rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
     formats='i4,a3,f8')
     table.modifyRows(start=1, stop=3, step=2, rows=rows)
-    table.modifyCoordinates(\[1,3,2], rows)
-    table.modifyCoordinates(\[True, False, True], rows)
+    table.modifyCoordinates([1,3,2], rows)
+    table.modifyCoordinates([True, False, True], rows)
 
 Here, you can see how indexing can be used as a shorthand
 for the modifyRows() (see
@@ -3273,7 +3099,7 @@ Table methods — other
 .. _Table.copy:
 
 copy(newparent=None, newname=None, overwrite=False,
-createparents=False, \**kwargs)
+createparents=False, **kwargs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Copy this table and return the new one.
@@ -3655,14 +3481,14 @@ Examples of use:
 
 ::
 
-    res = \[row['var3'] for row in table.where('var2 < 20')]
+    res = [row['var3'] for row in table.where('var2 < 20')]
 
 which selects the var3 field for all
 the rows that fulfil the condition. Or:
 
 ::
 
-    res = \[row[4] for row in table if row[1] < 20]
+    res = [row[4] for row in table if row[1] < 20]
 
 which selects the field in the *4th*
 position for all the rows that fulfil the
@@ -3670,7 +3496,7 @@ condition. Or:
 
 ::
 
-    res = \[row[:] for row in table if row['var2'] < 20]
+    res = [row[:] for row in table if row['var2'] < 20]
 
 which selects the all the fields (in the form of a
 *tuple*) for all the rows that fulfil the
@@ -3678,7 +3504,7 @@ condition. Or:
 
 ::
 
-    res = \[row[1::2] for row in table.iterrows(2, 3000, 3)]
+    res = [row[1::2] for row in table.iterrows(2, 3000, 3)]
 
 which selects all the fields in even positions (in the
 form of a *tuple*) for all the rows in the
@@ -4087,11 +3913,11 @@ is:
     /table.cols.vector (Column(2,), int32, idx=None)
     /table.cols.matrix2D (Column(2, 2), float64, idx=None)
     Select table.cols.name[1]--> Particle:     11
-    Select table.cols.name[1:2]--> \['Particle:     11']
-    Select table.cols.name[:]--> \['Particle:     10'
+    Select table.cols.name[1:2]--> ['Particle:     11']
+    Select table.cols.name[:]--> ['Particle:     10'
     'Particle:     11' 'Particle:     12'
     'Particle:     13' 'Particle:     14']
-    Select table.cols._f_col('name')[:]--> \['Particle:     10'
+    Select table.cols._f_col('name')[:]--> ['Particle:     10'
     'Particle:     11' 'Particle:     12'
     'Particle:     13' 'Particle:     14']
 
@@ -4125,16 +3951,16 @@ Example of use:
     # Modify row 1
     table.cols.col1[1] = -1
     # Modify rows 1 and 3
-    table.cols.col1[1::2] = \[2,3]
+    table.cols.col1[1::2] = [2,3]
 
 Which is equivalent to:
 
 ::
 
     # Modify row 1
-    table.modifyColumns(start=1, columns=[\[-1]], names=['col1'])
+    table.modifyColumns(start=1, columns=[[-1]], names=['col1'])
     # Modify rows 1 and 3
-    columns = numpy.rec.fromarrays(\[[2,3]], formats='i4')
+    columns = numpy.rec.fromarrays([[2,3]], formats='i4')
     table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])
 
 .. _ArrayClassDescr:
@@ -4230,7 +4056,7 @@ Example of use:
 
 ::
 
-    result = \[row for row in arrayInstance.iterrows(step=4)]
+    result = [row for row in arrayInstance.iterrows(step=4)]
 
 next()
 ^^^^^^
@@ -4297,7 +4123,7 @@ Example of use:
     array1 = array[4]                       # simple selection
     array2 = array[4:1000:2]                # slice selection
     array3 = array[1, ..., ::2, 1:4, 4:]    # general slice selection
-    array4 = array[1, \[1,5,10], ..., -1]    # fancy selection
+    array4 = array[1, [1,5,10], ..., -1]    # fancy selection
     array5 = array[np.where(array[:] > 4)]  # point selection
     array6 = array[array[:] > 4]            # boolean selection
 
@@ -4317,13 +4143,13 @@ Example of use:
 
 ::
 
-    result = \[row[2] for row in array]
+    result = [row[2] for row in array]
 
 Which is equivalent to:
 
 ::
 
-    result = \[row[2] for row in array.iterrows()]
+    result = [row[2] for row in array.iterrows()]
 
 .. _Array.__setitem__:
 
@@ -4361,7 +4187,7 @@ Example of use:
     a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
     # General slice update (a5.shape = (4,3,2,8,5,10).
     a5[1, ..., ::2, 1:4, 4:] = numpy.arange(1728, shape=(4,3,2,4,3,6))
-    a6[1, \[1,5,10], ..., -1] = arr    # fancy selection
+    a6[1, [1,5,10], ..., -1] = arr    # fancy selection
     a7[np.where(a6[:] > 4)] = 4       # point selection + broadcast
     a8[arr > 4] = arr2                # boolean selection
 
@@ -4415,10 +4241,10 @@ The output for the previous script is something like:
     Object Tree:
     / (RootGroup) ''
     /carray (CArray(200, 300), shuffle, zlib(5)) ''
-    \[[0 0 0 0]
-    \[0 0 0 0]
-    \[0 0 1 1]
-    \[0 0 1 1]]
+    [[0 0 0 0]
+    [0 0 0 0]
+    [0 0 1 1]
+    [0 0 1 1]]
 
 .. _EArrayClassDescr:
 
@@ -4476,8 +4302,8 @@ examples/earray1.py:
     a = tables.StringAtom(itemsize=8)
     # Use \``a`` as the object type for the enlargeable array.
     array_c = fileh.createEArray(fileh.root, 'array_c', a, (0,), "Chars")
-    array_c.append(numpy.array(\['a'\*2, 'b'\*4], dtype='S8'))
-    array_c.append(numpy.array(\['a'\*6, 'b'\*8, 'c'\*10], dtype='S8'))
+    array_c.append(numpy.array(['a'\*2, 'b'\*4], dtype='S8'))
+    array_c.append(numpy.array(['a'\*6, 'b'\*8, 'c'\*10], dtype='S8'))
     # Read the string \``EArray`` we have created on disk.
     for s in array_c:
     print 'array_c[%s] => %r' % (array_c.nrow, s)
@@ -4672,9 +4498,9 @@ Example of use:
 
     a_row = vlarray[4]
     a_list = vlarray[4:1000:2]
-    a_list2 = vlarray[\[0,2]]   # get list of coords
-    a_list3 = vlarray[\[0,-2]]  # negative values accepted
-    a_list4 = vlarray[numpy.array(\[True,...,False])]  # array of bools
+    a_list2 = vlarray[[0,2]]   # get list of coords
+    a_list3 = vlarray[[0,-2]]  # negative values accepted
+    a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools
 
 .. _VLArray.__iter__:
 
@@ -4692,13 +4518,13 @@ Example of use:
 
 ::
 
-    result = \[row for row in vlarray]
+    result = [row for row in vlarray]
 
 Which is equivalent to:
 
 ::
 
-    result = \[row for row in vlarray.iterrows()]
+    result = [row for row in vlarray.iterrows()]
 
 __setitem__(key, value)
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -4745,7 +4571,7 @@ Example of use:
     # Negative values for the index are supported.
     vlarray[-99] = vlarray[5] * 2 + 3
     vlarray[1:30:2] = list_of_rows
-    vlarray[\[1,3]] = new_1_and_3_rows
+    vlarray[[1,3]] = new_1_and_3_rows
 
 Example of use
 ~~~~~~~~~~~~~~
@@ -4765,9 +4591,9 @@ examples/vlarray1.py:
     "ragged array of ints",
     filters=tables.Filters(1))
     # Append some (variable length) rows:
-    vlarray.append(array(\[5, 6]))
-    vlarray.append(array(\[5, 6, 7]))
-    vlarray.append(\[5, 6, 9, 8])
+    vlarray.append(array([5, 6]))
+    vlarray.append(array([5, 6, 7]))
+    vlarray.append([5, 6, 9, 8])
     # Now, read it through an iterator:
     print '-->', vlarray.title
     for x in vlarray:
@@ -4780,9 +4606,9 @@ examples/vlarray1.py:
     vlarray2.flavor = 'python'
     # Append some (variable length) rows:
     print '-->', vlarray2.title
-    vlarray2.append(\['5', '66'])
-    vlarray2.append(\['5', '6', '77'])
-    vlarray2.append(\['5', '6', '9', '88'])
+    vlarray2.append(['5', '66'])
+    vlarray2.append(['5', '6', '77'])
+    vlarray2.append(['5', '6', '9', '88'])
     # Now, read it through an iterator:
     for x in vlarray2:
     print '%s[%d]--> %s' % (vlarray2.name, vlarray2.nrow, x)
@@ -4794,13 +4620,13 @@ The output for the previous script is something like:
 ::
 
     --> ragged array of ints
-    vlarray1[0]--> \[5 6]
-    vlarray1[1]--> \[5 6 7]
-    vlarray1[2]--> \[5 6 9 8]
+    vlarray1[0]--> [5 6]
+    vlarray1[1]--> [5 6 7]
+    vlarray1[2]--> [5 6 9 8]
     --> ragged array of strings
-    vlarray2[0]--> \['5', '66']
-    vlarray2[1]--> \['5', '6', '77']
-    vlarray2[2]--> \['5', '6', '9', '88']
+    vlarray2[0]--> ['5', '66']
+    vlarray2[1]--> ['5', '6', '77']
+    vlarray2[2]--> ['5', '6', '9', '88']
 
 The Link class
 --------------
@@ -4976,7 +4802,7 @@ ExternalLink special methods
 The following methods are specific for dereferrencing and
 representing external links.
 
-__call__(\**kwargs)
+__call__(**kwargs)
 ^^^^^^^^^^^^^^^^^^^
 
 Dereference self.target and return the
@@ -5108,7 +4934,7 @@ retrieve them using a Python-aware HDF5 library.  Thus, if you want
 to save Python scalar values and make sure you are able to read them
 with generic HDF5 tools, you should make use of *scalar or
 homogeneous/structured array NumPy objects* (for example,
-numpy.int64(1) or numpy.array(\[1, 2, 3],
+numpy.int64(1) or numpy.array([1, 2, 3],
 dtype='int16')).
 
 One more advice: because of the various potential difficulties
@@ -5188,7 +5014,7 @@ next constructs:
 
     leaf.attrs.myattr = 'str attr'    # set a string (native support)
     leaf.attrs.myattr2 = 3            # set an integer (native support)
-    leaf.attrs.myattr3 = \[3, (1, 2)]  # a generic object (Pickled)
+    leaf.attrs.myattr3 = [3, (1, 2)]  # a generic object (Pickled)
     attrib = leaf.attrs.myattr        # get the attribute \``myattr``
     del leaf.attrs.myattr             # delete the attribute \``myattr``
 
@@ -5372,7 +5198,7 @@ attributes:
 Atom methods
 ^^^^^^^^^^^^
 
-copy(\**override)
+copy(**override)
 .................
 
 Get a copy of the atom, possibly overriding some
@@ -5694,7 +5520,7 @@ objects:
 
 ::
 
-    >>> enum = \['T0', 'T1', 'T2']
+    >>> enum = ['T0', 'T1', 'T2']
     >>> atom1 = EnumAtom(enum, 'T0', 'int8')  # same as \``atom2``
     >>> atom2 = EnumAtom(enum, 'T0', Int8Atom())  # same as \``atom1``
     >>> atom3 = EnumAtom(enum, 'T0', 'int16')
@@ -5730,7 +5556,7 @@ declaration:
 
 ::
 
-    >>> myEnumAtom = EnumAtom(\['T0', 'T1', 'T2'], 'T0', 'int32')
+    >>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')
 
 Please note the dflt argument with a
 value of 'T0'. Since the concrete value
@@ -5746,7 +5572,7 @@ storage atom):
 
 ::
 
-    >>> myEnumAtom = EnumAtom(\['T0', 'T1', 'T2'], 'T0', UInt8Atom())
+    >>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())
 
 You can also define multidimensional arrays for data
 elements:
@@ -5754,7 +5580,7 @@ elements:
 ::
 
     >>> myEnumAtom = EnumAtom(
-    ...    \['T0', 'T1', 'T2'], 'T0', base='uint32', shape=(3,2))
+    ...    ['T0', 'T1', 'T2'], 'T0', base='uint32', shape=(3,2))
 
 for 3x2 arrays of uint32.
 
@@ -6183,9 +6009,9 @@ Filters class:
     arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2),
     "A growable array", filters=filters)
     # Append several rows in only one call
-    arr.append(numpy.array(\[[1., 2.],
-    \[2., 3.],
-    \[3., 4.]], dtype=numpy.float32))
+    arr.append(numpy.array([[1., 2.],
+    [2., 3.],
+    [3., 4.]], dtype=numpy.float32))
     # Print information on that enlargeable array
     print "Result Array:"
     print repr(arr)
@@ -6403,7 +6229,7 @@ constructor of Enum:
   its position in the sequence; the concrete value is assigned
   automatically:
   ::
-      >>> boolEnum = Enum(\['True', 'False'])
+      >>> boolEnum = Enum(['True', 'False'])
 
 - *Mapping of names*: each enumerated
   value is named by a string and given an explicit concrete value.
@@ -6429,7 +6255,7 @@ not allowed, since they are reserved for internal usage:
 
 ::
 
-    >>> prio2 = Enum(\['_xx'])
+    >>> prio2 = Enum(['_xx'])
     Traceback (most recent call last):
     ...
     ValueError: name of enumerated value can not start with \``_``: '_xx'
@@ -6651,7 +6477,7 @@ Expr methods
 
 .. _Expr.__init__:
 
-__init__(expr, uservars=None, \**kwargs)
+__init__(expr, uservars=None, **kwargs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Compile the expression and initialize internal
@@ -6691,12 +6517,12 @@ Example of use:
 
 ::
 
-    >>> a = f.createArray('/', 'a', np.array(\[1,2,3]))
-    >>> b = f.createArray('/', 'b', np.array(\[3,4,5]))
-    >>> c = np.array(\[4,5,6])
+    >>> a = f.createArray('/', 'a', np.array([1,2,3]))
+    >>> b = f.createArray('/', 'b', np.array([3,4,5]))
+    >>> c = np.array([4,5,6])
     >>> expr = tb.Expr("2*a+b*c")   # initialize the expression
     >>> expr.eval()                 # evaluate it
-    array(\[14, 24, 36])
+    array([14, 24, 36])
     >>> sum(expr)                   # use as an iterator
     74
 
@@ -6707,13 +6533,13 @@ You can also work with multidimensional arrays:
 
 ::
 
-    >>> a2 = f.createArray('/', 'a2', np.array(\[[1,2],[3,4]]))
-    >>> b2 = f.createArray('/', 'b2', np.array(\[[3,4],[5,6]]))
-    >>> c2 = np.array(\[4,5])           # This will be broadcasted
+    >>> a2 = f.createArray('/', 'a2', np.array([[1,2],[3,4]]))
+    >>> b2 = f.createArray('/', 'b2', np.array([[3,4],[5,6]]))
+    >>> c2 = np.array([4,5])           # This will be broadcasted
     >>> expr = tb.Expr("2*a2+b2-c2")
     >>> expr.eval()
-    array(\[[1, 3],
-    \[7, 9]])
+    array([[1, 3],
+    [7, 9]])
     >>> sum(expr)
     array([ 8, 12])
 
