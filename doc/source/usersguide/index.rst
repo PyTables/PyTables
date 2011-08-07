@@ -1,30 +1,18 @@
 =====================
 PyTables User's Guide
 =====================
+Hierarchical datasets in Python
 
-Hierarchical datasets in Python - Release
+**Francesc Alted, Ivan Vilata, Scott Prater, Vicent Mas, Tom Hedley, 
+Antonio Valentino, Jeffrey Whitaker, Anthony Scopatz**
 
-Francesc Alted, Ivan Vilata, Scott Prater, Vicent Mas, Tom Hedley, Antonio Valentino, Jeffrey Whitaker
+Copyright |copy| 2002, 2003, 2004 - Francesc Alted
 
-$LastChangedDate$
+Copyright |copy| 2005, 2006, 2007 - Cárabos Coop. V.
 
-.. image:: pytables-pro.svg
+Copyright |copy| 2008, 2009, 2010 - Francesc Alted
 
-2002, 2003, 2004
-
-Francesc Alted
-
-2005, 2006, 2007
-
-Cárabos Coop. V.
-
-2008, 2009, 2010
-
-Francesc Alted
-
-2011
-
-PyTables maintainers
+Copyright |copy| 2011 - PyTables maintainers
 
 --------
 Contents
@@ -47,9 +35,9 @@ Contents
     file_format
 
 
-*Copyright Notice and Statement for
-PyTables User's Guide.*
-
+--------------------------------------------------------
+Copyright Notice and Statement for PyTables User's Guide
+--------------------------------------------------------
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
@@ -78,3 +66,4 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+.. |copy|   unicode:: U+000A9 .. COPYRIGHT SIGN
