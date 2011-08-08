@@ -3450,426 +3450,379 @@ Column methods
 
 
 
-.. _Column.createCSIndex:
+.. method:: Column.createCSIndex(filters=None, tmp_dir=None)
 
-createCSIndex(filters=None,
-tmp_dir=None)
-.........................................
+    Create a completely sorted index (CSI) for this column.
 
-Create a completely sorted index (CSI) for this
-column.
+    This method guarantees the creation of an index with zero
+    entropy, that is, a completely sorted index (CSI) -- provided
+    that the number of rows in the table does not exceed the 2**48
+    figure (that is more than 100 trillions of rows).  A CSI index
+    is needed for some table methods (like
+    :meth:`Table.itersorted` or
+    :meth:`Table.readSorted`) in order to ensure
+    completely sorted results.
 
-This method guarantees the creation of an index with zero
-entropy, that is, a completely sorted index (CSI) -- provided
-that the number of rows in the table does not exceed the 2**48
-figure (that is more than 100 trillions of rows).  A CSI index
-is needed for some table methods (like
-Table.itersorted() or
-Table.readSorted()) in order to ensure
-completely sorted results.
+    For the meaning of filters and
+    tmp_dir arguments see
+    :meth:`Column.createIndex`.
 
-For the meaning of filters and
-tmp_dir arguments see
-Column.createIndex() (:ref:`Column.createIndex`).
+    .. note:: This method is equivalent to
+       Column.createIndex(optlevel=9, kind='full', ...).
 
-.. note:: This method is equivalent to
-   Column.createIndex(optlevel=9, kind='full',
-   ...).
 
-reIndex()
-.........
+.. method:: Column.reIndex()
 
-Recompute the index associated with this column.
+    Recompute the index associated with this column.
 
-This can be useful when you suspect that, for any reason,
-the index information is no longer valid and you want to rebuild
-it.
+    This can be useful when you suspect that, for any reason,
+    the index information is no longer valid and you want to rebuild it.
 
-This method does nothing if the column is not
-indexed.
+    This method does nothing if the column is not indexed.
 
-reIndexDirty()
-..............
 
-Recompute the associated index only if it is dirty.
+.. method:: Column.reIndexDirty()
 
-This can be useful when you have set
-Table.autoIndex (see :ref:`TableInstanceVariablesDescr`) to false for the table and you want to update the column's
-index after an invalidating index operation
-(like. Table.removeRows() —see :ref:`Table.removeRows`).
+    Recompute the associated index only if it is dirty.
 
-This method does nothing if the column is not
-indexed.
+    This can be useful when you have set
+    :attr:`Table.autoIndex` to false for the table and you want to update the column's
+    index after an invalidating index operation
+    (like :meth:`Table.removeRows`).
 
-removeIndex()
-.............
+    This method does nothing if the column is not indexed.
 
-Remove the index associated with this column.
 
-This method does nothing if the column is not indexed. The
-removed index can be created again by calling the
-Column.createIndex() method (see :ref:`Column.createIndex`).
+.. method:: Column.removeIndex()
+
+    Remove the index associated with this column.
+
+    This method does nothing if the column is not indexed. The
+    removed index can be created again by calling the
+    :meth:`Column.createIndex` method.
+
+
+
 
 Column special methods
 ^^^^^^^^^^^^^^^^^^^^^^
 
-__getitem__(key)
-................
+.. method:: Column.__getitem__(key)
 
-Get a row or a range of rows from a column.
+    Get a row or a range of rows from a column.
 
-If key argument is an integer, the
-corresponding element in the column is returned as an object of
-the current flavor.  If key is a slice, the
-range of elements determined by it is returned as an array of
-the current flavor.
+    If key argument is an integer, the
+    corresponding element in the column is returned as an object of
+    the current flavor.  If key is a slice, the
+    range of elements determined by it is returned as an array of
+    the current flavor.
 
-Example of use:
+    Example of use::
 
-::
+        print "Column handlers:"
+        for name in table.colnames:
+            print table.cols._f_col(name)
+            print "Select table.cols.name[1]-->", table.cols.name[1]
+            print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
+            print "Select table.cols.name[:]-->", table.cols.name[:]
+            print "Select table.cols._f_col('name')[:]-->", table.cols._f_col('name')[:]
 
-    print "Column handlers:"
-    for name in table.colnames:
-    print table.cols._f_col(name)
-    print "Select table.cols.name[1]-->", table.cols.name[1]
-    print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
-    print "Select table.cols.name[:]-->", table.cols.name[:]
-    print "Select table.cols._f_col('name')[:]-->", table.cols._f_col('name')[:]
+    The output of this for a certain arbitrary table is::
 
-The output of this for a certain arbitrary table
-is:
+        Column handlers:
+        /table.cols.name (Column(), string, idx=None)
+        /table.cols.lati (Column(), int32, idx=None)
+        /table.cols.longi (Column(), int32, idx=None)
+        /table.cols.vector (Column(2,), int32, idx=None)
+        /table.cols.matrix2D (Column(2, 2), float64, idx=None)
+        Select table.cols.name[1]--> Particle:     11
+        Select table.cols.name[1:2]--> ['Particle:     11']
+        Select table.cols.name[:]--> ['Particle:     10'
+         'Particle:     11' 'Particle:     12'
+         'Particle:     13' 'Particle:     14']
+        Select table.cols._f_col('name')[:]--> ['Particle:     10'
+         'Particle:     11' 'Particle:     12'
+         'Particle:     13' 'Particle:     14']
 
-::
+    See the :file:`examples/table2.py` file for a
+    more complete example.
 
-    Column handlers:
-    /table.cols.name (Column(), string, idx=None)
-    /table.cols.lati (Column(), int32, idx=None)
-    /table.cols.longi (Column(), int32, idx=None)
-    /table.cols.vector (Column(2,), int32, idx=None)
-    /table.cols.matrix2D (Column(2, 2), float64, idx=None)
-    Select table.cols.name[1]--> Particle:     11
-    Select table.cols.name[1:2]--> ['Particle:     11']
-    Select table.cols.name[:]--> ['Particle:     10'
-    'Particle:     11' 'Particle:     12'
-    'Particle:     13' 'Particle:     14']
-    Select table.cols._f_col('name')[:]--> ['Particle:     10'
-    'Particle:     11' 'Particle:     12'
-    'Particle:     13' 'Particle:     14']
 
-See the examples/table2.py file for a
-more complete example.
+.. method:: Column.__len__()
 
-__len__()
-.........
+    Get the number of elements in the column.
 
-Get the number of elements in the column.
+    This matches the length in rows of the parent table.
 
-This matches the length in rows of the parent
-table.
 
-.. _Column.__setitem__:
 
-__setitem__(key, value)
-.......................
+.. method:: Column.__setitem__(key, value)
 
-Set a row or a range of rows in a column.
+    Set a row or a range of rows in a column.
 
-If key argument is an integer, the
-corresponding element is set to value.  If
-key is a slice, the range of elements
-determined by it is set to value.
+    If key argument is an integer, the
+    corresponding element is set to value.  If
+    key is a slice, the range of elements
+    determined by it is set to value.
 
-Example of use:
+    Example of use::
 
-::
+        # Modify row 1
+        table.cols.col1[1] = -1
 
-    # Modify row 1
-    table.cols.col1[1] = -1
-    # Modify rows 1 and 3
-    table.cols.col1[1::2] = [2,3]
+        # Modify rows 1 and 3
+        table.cols.col1[1::2] = [2,3]
 
-Which is equivalent to:
+    Which is equivalent to::
 
-::
+        # Modify row 1
+        table.modifyColumns(start=1, columns=[[-1]], names=['col1'])
 
-    # Modify row 1
-    table.modifyColumns(start=1, columns=[[-1]], names=['col1'])
-    # Modify rows 1 and 3
-    columns = numpy.rec.fromarrays([[2,3]], formats='i4')
-    table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])
+        # Modify rows 1 and 3
+        columns = numpy.rec.fromarrays([[2,3]], formats='i4')
+        table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])
 
-.. _ArrayClassDescr:
+
 
 The Array class
 ---------------
+.. class:: Array
 
-This class represents homogeneous datasets in an HDF5
-file.
+    This class represents homogeneous datasets in an HDF5 file.
 
-This class provides methods to write or read data to or from
-array objects in the file. This class does not allow you neither to
-enlarge nor compress the datasets on disk; use the
-EArray class (see :ref:`EArrayClassDescr`) if you want enlargeable dataset support
-or compression features, or CArray (see :ref:`CArrayClassDescr`) if you just
-want compression.
+    This class provides methods to write or read data to or from
+    array objects in the file. This class does not allow you neither to
+    enlarge nor compress the datasets on disk; use the
+    EArray class (see :ref:`EArrayClassDescr`) if you want enlargeable dataset support
+    or compression features, or CArray (see :ref:`CArrayClassDescr`) if you just
+    want compression.
 
-An interesting property of the Array class is
-that it remembers the *flavor* of the object that
-has been saved so that if you saved, for example, a
-list, you will get a list during
-readings afterwards; if you saved a NumPy array, you will get a NumPy
-object, and so forth.
+    An interesting property of the Array class is
+    that it remembers the *flavor* of the object that
+    has been saved so that if you saved, for example, a
+    list, you will get a list during
+    readings afterwards; if you saved a NumPy array, you will get a NumPy
+    object, and so forth.
 
-Note that this class inherits all the public attributes and
-methods that Leaf (see :ref:`LeafClassDescr`) already
-provides. However, as Array instances have no
-internal I/O buffers, it is not necessary to use the
-flush() method they inherit from
-Leaf in order to save their internal state to disk.
-When a writing method call returns, all the data is already on
-disk.
+    Note that this class inherits all the public attributes and
+    methods that Leaf (see :ref:`LeafClassDescr`) already
+    provides. However, as Array instances have no
+    internal I/O buffers, it is not necessary to use the
+    flush() method they inherit from
+    Leaf in order to save their internal state to disk.
+    When a writing method call returns, all the data is already on disk.
 
-.. _ArrayClassInstanceVariables:
+
 
 Array instance variables
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-glosslist-presentation="list"
+.. attribute:: Array.atom
 
-*atom*
+    An Atom (see :ref:`AtomClassDescr`)
+    instance representing the *type* and
+    *shape* of the atomic objects to be
+    saved.
 
-An Atom (see :ref:`AtomClassDescr`)
-instance representing the *type* and
-*shape* of the atomic objects to be
-saved.
+.. attribute:: Array.rowsize
 
-*rowsize*
+    The size of the rows in dimensions orthogonal to
+    *maindim*.
 
-The size of the rows in dimensions orthogonal to
-*maindim*.
+.. attribute:: Array.nrow
 
-*nrow*
+    On iterators, this is the index of the current row.
 
-On iterators, this is the index of the current
-row.
 
 Array methods
 ~~~~~~~~~~~~~
 
-getEnum()
-^^^^^^^^^
+.. method:: Array.getEnum()
 
-Get the enumerated type associated with this array.
+    Get the enumerated type associated with this array.
 
-If this array is of an enumerated type, the corresponding
-Enum instance (see :ref:`EnumClassDescr`) is
-returned. If it is not of an enumerated type, a
-TypeError is raised.
+    If this array is of an enumerated type, the corresponding
+    Enum instance (see :ref:`EnumClassDescr`) is
+    returned. If it is not of an enumerated type, a
+    TypeError is raised.
 
-.. _Array.iterrows:
 
-iterrows(start=None, stop=None, step=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. method:: Array.iterrows(start=None, stop=None, step=None)
 
-Iterate over the rows of the array.
+    Iterate over the rows of the array.
 
-This method returns an iterator yielding an object of the
-current flavor for each selected row in the array.  The returned
-rows are taken from the *main
-dimension*.
+    This method returns an iterator yielding an object of the
+    current flavor for each selected row in the array.  The returned
+    rows are taken from the *main dimension*.
 
-If a range is not supplied, *all the
-rows* in the array are iterated upon —you can also use
-the Array.__iter__() special method (see :ref:`Array.__iter__`) for that purpose.  If you only want
-to iterate over a given *range of rows* in the
-array, you may use the start,
-stop and step parameters,
-which have the same meaning as in Array.read()
-(see :ref:`Array.read`).
+    If a range is not supplied, *all the
+    rows* in the array are iterated upon - you can also use
+    the :meth:`Array.__iter__` special method for that purpose.  If you only want
+    to iterate over a given *range of rows* in the
+    array, you may use the start,
+    stop and step parameters,
+    which have the same meaning as in :meth:`Array.read`.
 
-Example of use:
+    Example of use::
 
-::
+        result = [row for row in arrayInstance.iterrows(step=4)]
 
-    result = [row for row in arrayInstance.iterrows(step=4)]
+.. method:: Array.next()
 
-next()
-^^^^^^
+    Get the next element of the array during an iteration.
 
-Get the next element of the array during an
-iteration.
+    The element is returned as an object of the current flavor.
 
-The element is returned as an object of the current
-flavor.
 
-.. _Array.read:
+.. method:: Array.read(start=None, stop=None, step=None)
 
-read(start=None, stop=None, step=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Get data in the array as an object of the current flavor.
 
-Get data in the array as an object of the current
-flavor.
+    The start, stop and
+    step parameters can be used to select only a
+    *range of rows* in the array.  Their meanings
+    are the same as in the built-in range() Python
+    function, except that negative values of step
+    are not allowed yet. Moreover, if only start is
+    specified, then stop will be set to
+    start+1. If you do not specify neither
+    start nor stop, then
+    *all the rows* in the array are
+    selected.
 
-The start, stop and
-step parameters can be used to select only a
-*range of rows* in the array.  Their meanings
-are the same as in the built-in range() Python
-function, except that negative values of step
-are not allowed yet. Moreover, if only start is
-specified, then stop will be set to
-start+1. If you do not specify neither
-start nor stop, then
-*all the rows* in the array are
-selected.
 
 Array special methods
 ~~~~~~~~~~~~~~~~~~~~~
-
 The following methods automatically trigger actions when an
 Array instance is accessed in a special way
 (e.g. array[2:3,...,::2] will be equivalent to a
 call to array.__getitem__((slice(2, 3, None), Ellipsis,
 slice(None, None, 2)))).
 
-.. _Array.__getitem__:
 
-__getitem__(key)
-^^^^^^^^^^^^^^^^
+.. method:: Array.__getitem__(key)
 
-Get a row, a range of rows or a slice from the array.
+    Get a row, a range of rows or a slice from the array.
 
-The set of tokens allowed for the key is
-the same as that for extended slicing in Python (including the
-Ellipsis or ... token).  The
-result is an object of the current flavor; its shape depends on
-the kind of slice used as key and the shape of
-the array itself.
+    The set of tokens allowed for the key is
+    the same as that for extended slicing in Python (including the
+    Ellipsis or ... token).  The
+    result is an object of the current flavor; its shape depends on
+    the kind of slice used as key and the shape of
+    the array itself.
 
-Furthermore, NumPy-style fancy indexing, where a list of
-indices in a certain axis is specified, is also supported.  Note
-that only one list per selection is supported right now.  Finally,
-NumPy-style point and boolean selections are supported as
-well.
+    Furthermore, NumPy-style fancy indexing, where a list of
+    indices in a certain axis is specified, is also supported.  Note
+    that only one list per selection is supported right now.  Finally,
+    NumPy-style point and boolean selections are supported as well.
 
-Example of use:
+    Example of use::
 
-::
+        array1 = array[4]                       # simple selection
+        array2 = array[4:1000:2]                # slice selection
+        array3 = array[1, ..., ::2, 1:4, 4:]    # general slice selection
+        array4 = array[1, [1,5,10], ..., -1]    # fancy selection
+        array5 = array[np.where(array[:] > 4)]  # point selection
+        array6 = array[array[:] > 4]            # boolean selection
 
-    array1 = array[4]                       # simple selection
-    array2 = array[4:1000:2]                # slice selection
-    array3 = array[1, ..., ::2, 1:4, 4:]    # general slice selection
-    array4 = array[1, [1,5,10], ..., -1]    # fancy selection
-    array5 = array[np.where(array[:] > 4)]  # point selection
-    array6 = array[array[:] > 4]            # boolean selection
 
-.. _Array.__iter__:
+.. method:: Array.__iter__()
 
-__iter__()
-^^^^^^^^^^
+    Iterate over the rows of the array.
 
-Iterate over the rows of the array.
+    This is equivalent to calling
+    :meth:`Array.iterrows` with default arguments, i.e. it
+    iterates over *all the rows* in the array.
 
-This is equivalent to calling
-Array.iterrows() (see :ref:`Array.iterrows`) with default arguments, i.e. it
-iterates over *all the rows* in the
-array.
+    Example of use::
 
-Example of use:
+        result = [row[2] for row in array]
 
-::
+    Which is equivalent to::
 
-    result = [row[2] for row in array]
+        result = [row[2] for row in array.iterrows()]
 
-Which is equivalent to:
 
-::
+.. method:: Array.__setitem__(key, value)
 
-    result = [row[2] for row in array.iterrows()]
+    Set a row, a range of rows or a slice in the array.
 
-.. _Array.__setitem__:
+    It takes different actions depending on the type of the
+    key parameter: if it is an integer, the
+    corresponding array row is set to value (the
+    value is broadcast when needed).  If key is a
+    slice, the row slice determined by it is set to
+    value (as usual, if the slice to be updated
+    exceeds the actual shape of the array, only the values in the
+    existing range are updated).
 
-__setitem__(key, value)
-^^^^^^^^^^^^^^^^^^^^^^^
+    If value is a multidimensional object,
+    then its shape must be compatible with the shape determined by
+    key, otherwise, a ValueError
+    will be raised.
 
-Set a row, a range of rows or a slice in the array.
+    Furthermore, NumPy-style fancy indexing, where a list of
+    indices in a certain axis is specified, is also supported.  Note
+    that only one list per selection is supported right now.  Finally,
+    NumPy-style point and boolean selections are supported as well.
 
-It takes different actions depending on the type of the
-key parameter: if it is an integer, the
-corresponding array row is set to value (the
-value is broadcast when needed).  If key is a
-slice, the row slice determined by it is set to
-value (as usual, if the slice to be updated
-exceeds the actual shape of the array, only the values in the
-existing range are updated).
+    Example of use::
 
-If value is a multidimensional object,
-then its shape must be compatible with the shape determined by
-key, otherwise, a ValueError
-will be raised.
+        a1[0] = 333        # assign an integer to a Integer Array row
+        a2[0] = 'b'        # assign a string to a string Array row
+        a3[1:4] = 5        # broadcast 5 to slice 1:4
+        a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
 
-Furthermore, NumPy-style fancy indexing, where a list of
-indices in a certain axis is specified, is also supported.  Note
-that only one list per selection is supported right now.  Finally,
-NumPy-style point and boolean selections are supported as well.
+        # General slice update (a5.shape = (4,3,2,8,5,10).
+        a5[1, ..., ::2, 1:4, 4:] = numpy.arange(1728, shape=(4,3,2,4,3,6))
+        a6[1, [1,5,10], ..., -1] = arr    # fancy selection
+        a7[np.where(a6[:] > 4)] = 4       # point selection + broadcast
+        a8[arr > 4] = arr2                # boolean selection
 
-Example of use:
 
-::
-
-    a1[0] = 333        # assign an integer to a Integer Array row
-    a2[0] = 'b'        # assign a string to a string Array row
-    a3[1:4] = 5        # broadcast 5 to slice 1:4
-    a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
-    # General slice update (a5.shape = (4,3,2,8,5,10).
-    a5[1, ..., ::2, 1:4, 4:] = numpy.arange(1728, shape=(4,3,2,4,3,6))
-    a6[1, [1,5,10], ..., -1] = arr    # fancy selection
-    a7[np.where(a6[:] > 4)] = 4       # point selection + broadcast
-    a8[arr > 4] = arr2                # boolean selection
-
-.. _CArrayClassDescr:
 
 The CArray class
 ----------------
+.. class:: CArray
 
-This class represents homogeneous datasets in an HDF5
-file.
+    This class represents homogeneous datasets in an HDF5 file.
 
-The difference between a CArray and a normal
-Array (see :ref:`ArrayClassDescr`), from which it inherits, is that a
-CArray has a chunked layout and, as a consequence,
-it supports compression.  You can use datasets of this class to easily
-save or load arrays to or from disk, with compression support
-included.
+    The difference between a CArray and a normal
+    Array (see :ref:`ArrayClassDescr`), from which it inherits, is that a
+    CArray has a chunked layout and, as a consequence,
+    it supports compression.  You can use datasets of this class to easily
+    save or load arrays to or from disk, with compression support
+    included.
 
-Example of use
-~~~~~~~~~~~~~~
 
+Examples of use
+~~~~~~~~~~~~~~~
 See below a small example of the use of the
 CArray class.  The code is available in
-examples/carray1.py:
-
-::
+:file:`examples/carray1.py`::
 
     import numpy
     import tables
+
     fileName = 'carray1.h5'
     shape = (200, 300)
     atom = tables.UInt8Atom()
     filters = tables.Filters(complevel=5, complib='zlib')
+
     h5f = tables.openFile(fileName, 'w')
     ca = h5f.createCArray(h5f.root, 'carray', atom, shape, filters=filters)
+
     # Fill a hyperslab in \``ca``.
     ca[10:60, 20:70] = numpy.ones((50, 50))
     h5f.close()
+
     # Re-open and read another hyperslab
     h5f = tables.openFile(fileName)
     print h5f
     print h5f.root.carray[8:12, 18:22]
     h5f.close()
 
-The output for the previous script is something like:
-
-::
+The output for the previous script is something like::
 
     carray1.h5 (File) ''
     Last modif.: 'Thu Apr 12 10:15:38 2007'
@@ -3881,73 +3834,69 @@ The output for the previous script is something like:
     [0 0 1 1]
     [0 0 1 1]]
 
-.. _EArrayClassDescr:
+
 
 The EArray class
 ----------------
+.. class:: EArray
 
-This class represents extendable, homogeneous datasets in an
-HDF5 file.
+    This class represents extendable, homogeneous datasets in an HDF5 file.
 
-The main difference between an EArray and a
-CArray (see :ref:`CArrayClassDescr`), from which it inherits, is that the
-former can be enlarged along one of its dimensions, the
-*enlargeable dimension*.  That means that the
-Leaf.extdim attribute (see :ref:`LeafInstanceVariables`) of any
-EArray instance will always be non-negative.
-Multiple enlargeable dimensions might be supported in the
-future.
+    The main difference between an EArray and a
+    CArray (see :ref:`CArrayClassDescr`), from which it inherits, is that the
+    former can be enlarged along one of its dimensions, the
+    *enlargeable dimension*.  That means that the
+    :attr:`Leaf.extdim` attribute (see :ref:`LeafInstanceVariables`) of any
+    EArray instance will always be non-negative.
+    Multiple enlargeable dimensions might be supported in the future.
 
-New rows can be added to the end of an enlargeable array by
-using the EArray.append() method (see :ref:`EArray.append`).
+    New rows can be added to the end of an enlargeable array by
+    using the :meth:`EArray.append` method.
+
 
 .. _EArrayMethodsDescr:
 
 EArray methods
 ~~~~~~~~~~~~~~
 
-.. _EArray.append:
+.. method:: EArray.append(sequence)
 
-append(sequence)
-^^^^^^^^^^^^^^^^
+    Add a sequence of data to the end of the dataset.
 
-Add a sequence of data to the end of the
-dataset.
+    The sequence must have the same type as the array; otherwise
+    a TypeError is raised. In the same way, the
+    dimensions of the sequence must conform to the
+    shape of the array, that is, all dimensions must match, with the
+    exception of the enlargeable dimension, which can be of any length
+    (even 0!).  If the shape of the sequence is
+    invalid, a ValueError is raised.
 
-The sequence must have the same type as the array; otherwise
-a TypeError is raised. In the same way, the
-dimensions of the sequence must conform to the
-shape of the array, that is, all dimensions must match, with the
-exception of the enlargeable dimension, which can be of any length
-(even 0!).  If the shape of the sequence is
-invalid, a ValueError is raised.
 
-Example of use
-~~~~~~~~~~~~~~
-
+Examples of use
+~~~~~~~~~~~~~~~
 See below a small example of the use of the
 EArray class.  The code is available in
-examples/earray1.py:
-
-::
+:file:`examples/earray1.py`::
 
     import tables
     import numpy
+
     fileh = tables.openFile('earray1.h5', mode='w')
     a = tables.StringAtom(itemsize=8)
+
     # Use \``a`` as the object type for the enlargeable array.
     array_c = fileh.createEArray(fileh.root, 'array_c', a, (0,), "Chars")
     array_c.append(numpy.array(['a'\*2, 'b'\*4], dtype='S8'))
     array_c.append(numpy.array(['a'\*6, 'b'\*8, 'c'\*10], dtype='S8'))
+
     # Read the string \``EArray`` we have created on disk.
     for s in array_c:
     print 'array_c[%s] => %r' % (array_c.nrow, s)
+
     # Close the file.
     fileh.close()
 
-The output for the previous script is something like:
-
-::
+The output for the previous script is something like::
 
     array_c[0] => 'aa'
     array_c[1] => 'bbbb'
@@ -3955,124 +3904,114 @@ The output for the previous script is something like:
     array_c[3] => 'bbbbbbbb'
     array_c[4] => 'cccccccc'
 
+
+
 .. _VLArrayClassDescr:
 
 The VLArray class
 -----------------
+.. class:: VLArray
+    This class represents variable length (ragged) arrays in an HDF5 file.
 
-This class represents variable length (ragged) arrays in an HDF5
-file.
+    Instances of this class represent array objects in the object
+    tree with the property that their rows can have a
+    *variable* number of homogeneous elements, called
+    *atoms*. Like Table datasets (see :ref:`TableClassDescr`),
+    variable length arrays can have only one dimension, and the elements
+    (atoms) of their rows can be fully multidimensional.
+    VLArray objects do also support compression.
 
-Instances of this class represent array objects in the object
-tree with the property that their rows can have a
-*variable* number of homogeneous elements, called
-*atoms*. Like Table datasets
-(see :ref:`TableClassDescr`),
-variable length arrays can have only one dimension, and the elements
-(atoms) of their rows can be fully multidimensional.
-VLArray objects do also support compression.
+    When reading a range of rows from a VLArray,
+    you will *always* get a Python list of objects of
+    the current flavor (each of them for a row), which may have different
+    lengths.
 
-When reading a range of rows from a VLArray,
-you will *always* get a Python list of objects of
-the current flavor (each of them for a row), which may have different
-lengths.
+    This class provides methods to write or read data to or from
+    variable length array objects in the file. Note that it also inherits
+    all the public attributes and methods that Leaf
+    (see :ref:`LeafClassDescr`)
+    already provides.
 
-This class provides methods to write or read data to or from
-variable length array objects in the file. Note that it also inherits
-all the public attributes and methods that Leaf
-(see :ref:`LeafClassDescr`)
-already provides.
 
 VLArray instance variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-glosslist-presentation="list"
+.. attribute:: VLArray.atom
 
-*atom*
+    An Atom (see :ref:`AtomClassDescr`)
+    instance representing the *type* and
+    *shape* of the atomic objects to be
+    saved. You may use a *pseudo-atom* for
+    storing a serialized object or variable length string per row.
 
-An Atom (see :ref:`AtomClassDescr`)
-instance representing the *type* and
-*shape* of the atomic objects to be
-saved. You may use a *pseudo-atom* for
-storing a serialized object or variable length string per
-row.
 
-*flavor*
+.. attribute:: VLArray.flavor
 
-The type of data object read from this leaf.
+    The type of data object read from this leaf.
 
-Please note that when reading several rows of
-VLArray data, the flavor only applies to
-the *components* of the returned Python
-list, not to the list itself.
+    Please note that when reading several rows of
+    VLArray data, the flavor only applies to
+    the *components* of the returned Python
+    list, not to the list itself.
 
-*nrow*
 
-On iterators, this is the index of the current
-row.
+.. attribute:: VLArray.nrow
+
+    On iterators, this is the index of the current row.
+
+
 
 VLArray methods
 ~~~~~~~~~~~~~~~
 
-.. _VLArray.append:
+.. method:: VLArray.append(sequence)
 
-append(sequence)
-^^^^^^^^^^^^^^^^
+    Add a sequence of data to the end of the dataset.
 
-Add a sequence of data to the end of the
-dataset.
+    This method appends the objects in the
+    sequence to a *single row*
+    in this array. The type and shape of individual objects must be
+    compliant with the atoms in the array. In the case of serialized
+    objects and variable length strings, the object or string to
+    append is itself the sequence.
 
-This method appends the objects in the
-sequence to a *single row*
-in this array. The type and shape of individual objects must be
-compliant with the atoms in the array. In the case of serialized
-objects and variable length strings, the object or string to
-append is itself the sequence.
+.. method:: VLArray.getEnum()
 
-getEnum()
-^^^^^^^^^
+    Get the enumerated type associated with this array.
 
-Get the enumerated type associated with this array.
+    If this array is of an enumerated type, the corresponding
+    Enum instance (see :ref:`EnumClassDescr`) is
+    returned. If it is not of an enumerated type, a
+    TypeError is raised.
 
-If this array is of an enumerated type, the corresponding
-Enum instance (see :ref:`EnumClassDescr`) is
-returned. If it is not of an enumerated type, a
-TypeError is raised.
 
-.. _VLArray.iterrows:
 
-iterrows(start=None, stop=None, step=None)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. method:: VLArray.iterrows(start=None, stop=None, step=None)
 
-Iterate over the rows of the array.
+    Iterate over the rows of the array.
 
-This method returns an iterator yielding an object of the
-current flavor for each selected row in the array.
+    This method returns an iterator yielding an object of the
+    current flavor for each selected row in the array.
 
-If a range is not supplied, *all the
-rows* in the array are iterated upon —you can also use
-the VLArray.__iter__() (see :ref:`VLArray.__iter__`) special method for that purpose.
-If you only want to iterate over a given *range of
-rows* in the array, you may use the
-start, stop and
-step parameters, which have the same meaning as
-in VLArray.read() (see :ref:`VLArray.read`).
+    If a range is not supplied, *all the
+    rows* in the array are iterated upon —you can also use
+    the :meth:`VLArray.__iter__` special method for that purpose.
+    If you only want to iterate over a given *range of
+    rows* in the array, you may use the
+    start, stop and
+    step parameters, which have the same meaning as
+    in :meth:`VLArray.read`.
 
-Example of use:
+    Example of use::
 
-::
+        for row in vlarray.iterrows(step=4):
+            print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, row)
 
-    for row in vlarray.iterrows(step=4):
-    print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, row)
+.. method:: VLArray.next()
 
-next()
-^^^^^^
+    Get the next element of the array during an iteration.
 
-Get the next element of the array during an
-iteration.
-
-The element is returned as a list of objects of the current
-flavor.
+    The element is returned as a list of objects of the current flavor.
 
 .. _VLArray.read:
 
