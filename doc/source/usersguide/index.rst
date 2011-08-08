@@ -1,18 +1,19 @@
 =====================
 PyTables User's Guide
 =====================
+-------------------------------
 Hierarchical datasets in Python
+-------------------------------
 
-**Francesc Alted, Ivan Vilata, Scott Prater, Vicent Mas, Tom Hedley,
-Antonio Valentino, Jeffrey Whitaker, Anthony Scopatz**
+:Authors: **Francesc Alted, Ivan Vilata, Scott Prater, Vicent Mas, Tom Hedley,
+          Antonio Valentino, Jeffrey Whitaker, Anthony Scopatz**
+:Copyright: |copy| 2002, 2003, 2004 - Francesc Alted
 
-Copyright |copy| 2002, 2003, 2004 - Francesc Alted
+            |copy| 2005, 2006, 2007 - Cárabos Coop. V.
 
-Copyright |copy| 2005, 2006, 2007 - Cárabos Coop. V.
+            |copy| 2008, 2009, 2010 - Francesc Alted
 
-Copyright |copy| 2008, 2009, 2010 - Francesc Alted
-
-Copyright |copy| 2011 - PyTables maintainers
+            |copy| 2011 - PyTables maintainers
 
 --------
 Contents
