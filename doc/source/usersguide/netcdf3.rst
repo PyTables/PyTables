@@ -4,9 +4,10 @@ netcdf3 - a PyTables NetCDF3 emulation API (deprecated)
 .. warning:: The tables.netcdf3 module is not actively maintained anymore.
    It is deprecated and will be removed in the future versions.
 
+.. currentmodule:: tables.netcdf3
+
 What is netcdf3?
 ----------------
-
 The netCDF format is a popular format for binary files. It is
 portable between machines and self-describing, i.e. it contains the
 information necessary to interpret its contents. A free library
@@ -21,9 +22,9 @@ software layer on top of HDF5 (see ). The tables.netcdf3
 package does not create HDF5 files that are compatible with netCDF 4
 (although this is a long-term goal).
 
+
 Using the tables.netcdf3 package
 --------------------------------
-
 The package tables.netcdf3 emulates the
 Scientific.IO.NetCDF API using PyTables. It
 presents the data in the form of objects that behave very much like
@@ -44,10 +45,9 @@ tables.netcdf3 and
 Scientific.IO.NetCDF are summarized in the last
 section of this chapter.
 
-Creating/Opening/Closing a tables.netcdf3
-file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Creating/Opening/Closing a tables.netcdf3 file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 To create a tables.netcdf3 file from
 python, you simply call the NetCDFFile
 constructor. This is also the method used to open an existing
@@ -63,9 +63,7 @@ tables.netcdf3 file is accomplished via the
 close method of NetCDFFile
 object.
 
-Here's an example:
-
-::
+Here's an example::
 
     >>> import tables.netcdf3 as NetCDF
     >>> import time
@@ -73,10 +71,8 @@ Here's an example:
     >>> file = NetCDF.NetCDFFile('test.h5', 'w', history=history)
     >>> file.close()
 
-Dimensions in a tables.netcdf3
-file
+Dimensions in a tables.netcdf3 file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 NetCDF defines the sizes of all variables in terms of
 dimensions, so before any variables can be created the dimensions
 they use must be created first. A dimension is created using the
@@ -85,9 +81,7 @@ NetCDFFile object. A Python string is used to set
 the name of the dimension, and an integer value is used to set the
 size. To create an *unlimited* dimension (a
 dimension that can be appended to), the size value is set to
-None.
-
-::
+None::
 
     >>> import tables.netcdf3 as NetCDF
     >>> file = NetCDF.NetCDFFile('test.h5', 'a')
@@ -96,12 +90,11 @@ None.
     >>> file.NetCDFFile.createDimension('lat', 90)
 
 All of the dimension names and their associated sizes are
-stored in a Python dictionary.
-
-::
+stored in a Python dictionary::
 
     >>> print file.dimensions
     {'lat': 90, 'time': None, 'level': 12}
+
 
 Variables in a tables.netcdf3 file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -124,9 +117,7 @@ createDimension). The dimensions themselves are
 usually defined as variables, called coordinate variables. The
 createVariable method returns an instance of the
 NetCDFVariable class whose methods can be used
-later to access and set variable data and attributes.
-
-::
+later to access and set variable data and attributes::
 
     >>> times = file.createVariable('time','d',('time',))
     >>> levels = file.createVariable('level','i',('level',))
@@ -135,21 +126,17 @@ later to access and set variable data and attributes.
     >>> pressure = file.createVariable('pressure','i',('level','lat',))
 
 All of the variables in the file are stored in a Python
-dictionary, in the same way as the dimensions:
-
-::
+dictionary, in the same way as the dimensions::
 
     >>> print file.variables
     {'latitude': <tables.netcdf3.NetCDFVariable instance at 0x244f350>,
-    'pressure': <tables.netcdf3.NetCDFVariable instance at 0x244f508>,
-    'level': <tables.netcdf3.NetCDFVariable instance at 0x244f0d0>,
-    'temp': <tables.netcdf3.NetCDFVariable instance at 0x244f3a0>,
-    'time': <tables.netcdf3.NetCDFVariable instance at 0x2564c88>}
+     'pressure': <tables.netcdf3.NetCDFVariable instance at 0x244f508>,
+     'level': <tables.netcdf3.NetCDFVariable instance at 0x244f0d0>,
+     'temp': <tables.netcdf3.NetCDFVariable instance at 0x244f3a0>,
+     'time': <tables.netcdf3.NetCDFVariable instance at 0x2564c88>}
 
-Attributes in a tables.netcdf3
-file
+Attributes in a tables.netcdf3 file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 There are two types of attributes in a
 tables.netcdf3 file, global (or file) and
 variable. Global attributes provide information about the dataset,
@@ -160,9 +147,7 @@ variables. Variable attributes are set by assigning values to
 NetCDFVariable instance variables.
 
 Attributes can be strings, numbers or sequences. Returning to
-our example,
-
-::
+our example::
 
     >>> file.description = 'bogus example to illustrate the use of tables.netcdf3'
     >>> file.source = 'PyTables Users Guide'
@@ -181,12 +166,10 @@ cannot (or should not) be modified by the user. Similarly, the
 ncattrs method of a
 NetCDFVariable object returns all of the netCDF
 variable attribute names. These functions can be used to easily
-print all of the attributes currently defined, like this
-
-::
+print all of the attributes currently defined, like this::
 
     >>> for name in file.ncattrs():
-    >>>     print 'Global attr', name, '=', getattr(file,name)
+    ...     print 'Global attr', name, '=', getattr(file,name)
     Global attr description = bogus example to illustrate the use of tables.netcdf3
     Global attr history = Created Mon Nov  7 10:30:56 2005
     Global attr source = PyTables Users Guide
@@ -194,16 +177,13 @@ print all of the attributes currently defined, like this
 Note that the ncattrs function is not part
 of the Scientific.IO.NetCDF interface.
 
-Writing data to and retrieving data from a
-tables.netcdf3 variable
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Writing data to and retrieving data from a tables.netcdf3 variable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Now that you have a netCDF variable object, how do you put
 data into it? If the variable has no *unlimited*
 dimension, you just treat it like a Numeric array object and assign
-data to a slice.
-
-::
+data to a slice::
 
     >>> import numpy
     >>> levels[:] = numpy.arange(12)+1
@@ -212,9 +192,9 @@ data to a slice.
     >>>     pressure[:,:] = 1000.-100.*lev
     >>> print 'levels = ',levels[:]
     levels =  [ 1  2  3  4  5  6  7  8  9 10 11 12]
-    >>> print 'latitudes =\\n',latitudes[:]
+    >>> print 'latitudes =\n',latitudes[:]
     latitudes =
-    \[-89. -87. -85. -83. -81. -79. -77. -75. -73. -71. -69. -67. -65. -63.
+    [-89. -87. -85. -83. -81. -79. -77. -75. -73. -71. -69. -67. -65. -63.
     -61. -59. -57. -55. -53. -51. -49. -47. -45. -43. -41. -39. -37. -35.
     -33. -31. -29. -27. -25. -23. -21. -19. -17. -15. -13. -11.  -9.  -7.
     -5.  -3.  -1.   1.   3.   5.   7.   9.  11.  13.  15.  17.  19.  21.
@@ -226,9 +206,7 @@ Note that retrieving data from the netCDF variable object
 works just like a Numeric array too. If the netCDF variable has an
 *unlimited* dimension, and there is not yet an
 entry for the data along that dimension, the
-append method must be used.
-
-::
+append method must be used::
 
     >>> for n in range(10):
     >>>     times.append(n)
@@ -273,9 +251,7 @@ indicate that the data was never defined). The
 sync method is automatically invoked with a
 NetCDFFile object is closed. Once the
 sync method has been invoked, the filled-in
-values can be assigned real data with slices.
-
-::
+values can be assigned real data with slices::
 
     >>> print 'temp.shape before sync = ',temp.shape
     temp.shape before sync =  (0, 12, 90)
@@ -284,8 +260,8 @@ values can be assigned real data with slices.
     temp.shape after sync =  (10, 12, 90)
     >>> from numarray import random_array
     >>> for n in range(10):
-    >>>     temp[n] = 10.*random_array.random(pressure.shape)
-    >>>     print 'time, min/max temp, temp[n,0,0] = ',\\
+    ...     temp[n] = 10.*random_array.random(pressure.shape)
+    ...     print 'time, min/max temp, temp[n,0,0] = ',\\
     times[n],min(temp[n].flat),max(temp[n].flat),temp[n,0,0]
     time, min/max temp, temp[n,0,0] = 0.0 0.0122650898993 9.99259281158 6.13053750992
     time, min/max temp, temp[n,0,0] = 1.0 0.00115821603686 9.9915933609 6.68516159058
@@ -305,9 +281,7 @@ with an *unlimited* dimension with a slice
 operation does not change its shape. Finally, before closing the
 file we can get a summary of its contents simply by printing the
 NetCDFFile object. This produces output very
-similar to running 'ncdump -h' on a netCDF file.
-
-::
+similar to running 'ncdump -h' on a netCDF file::
 
     >>> print file
     test.h5 {
@@ -332,10 +306,8 @@ similar to running 'ncdump -h' on a netCDF file.
     :source = 'PyTables Users Guide' ;
     }
 
-Efficient compression of tables.netcdf3
-variables
+Efficient compression of tables.netcdf3 variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Data stored in NetCDFVariable objects is
 compressed on disk by default. The parameters for the default
 compression are determined from a Filters class
@@ -360,18 +332,13 @@ scale = 2**bits, and bits is determined so that a
 precision of 0.1 is retained (in this case
 bits=4).
 
-In our example, try replacing the line
-
-::
+In our example, try replacing the line::
 
     >>> temp = file.createVariable('temp','f',('time','level','lat',))
 
-with
+with::
 
-::
-
-    >>> temp = file.createVariable('temp','f',('time','level','lat',),
-    least_significant_digit=1)
+    >>> temp = file.createVariable('temp','f',('time','level','lat',), least_significant_digit=1)
 
 and see how much smaller the resulting file is.
 
@@ -393,250 +360,232 @@ than 10000 entries along the *unlimited*
 dimension, you may consider setting this keyword to improve
 efficiency (see :ref:`expectedRowsOptim` for details).
 
+
 tables.netcdf3 package reference
 --------------------------------
 
 Global constants
 ~~~~~~~~~~~~~~~~
 
-glosslist-presentation="list"
+.. data:: _fillvalue_dict
 
-*_fillvalue_dict*
+    Dictionary whose keys are
+    NetCDFVariable single character typecodes
+    and whose values are the netCDF _FillValue for that
+    typecode.
 
-Dictionary whose keys are
-NetCDFVariable single character typecodes
-and whose values are the netCDF _FillValue for that
-typecode.
+.. data:: ScientificIONetCDF_imported
 
-*ScientificIONetCDF_imported*
+    True if Scientific.IO.NetCDF is installed and can be imported.
 
-True if
-Scientific.IO.NetCDF is installed and can
-be imported.
 
 The NetCDFFile class
 ~~~~~~~~~~~~~~~~~~~~
+.. class:: NetCDFFile(filename, mode='r', history=None)
 
-*NetCDFFile(filename, mode='r',
-history=None)*
+    Opens an existing tables.netcdf3 file (mode
+    = 'r' or 'a') or creates a new
+    one (mode = 'w'). The history
+    keyword can be used to set the NetCDFFile.history
+    global attribute (if mode = 'a' or 'w').
 
-Opens an existing tables.netcdf3 file (mode
-= 'r' or 'a') or creates a new
-one (mode = 'w'). The history
-keyword can be used to set the NetCDFFile.history
-global attribute (if mode = 'a' or
-'w').
+    A NetCDFFile object has two standard
+    attributes: dimensions and
+    variables. The values of both are dictionaries,
+    mapping dimension names to their associated lengths and variable
+    names to variables. All other attributes correspond to global
+    attributes defined in a netCDF file. Global file attributes are
+    created by assigning to an attribute of the NetCDFFile object.
 
-A NetCDFFile object has two standard
-attributes: dimensions and
-variables. The values of both are dictionaries,
-mapping dimension names to their associated lengths and variable
-names to variables. All other attributes correspond to global
-attributes defined in a netCDF file. Global file attributes are
-created by assigning to an attribute of the
-NetCDFFile object.
 
 NetCDFFile methods
 ^^^^^^^^^^^^^^^^^^
 
-close()
-.......
+.. method:: NetCDFFile.close()
 
-Closes the file (after invoking the
-sync method).
+    Closes the file (after invoking the sync method).
 
-sync()
-......
 
-Synchronizes the size of variables along the
-*unlimited* dimension, by filling in data
-with default netCDF _FillValue. Returns the length of the
-*unlimited* dimension. Invoked automatically
-when the NetCDFFile object is closed.
+.. method:: NetCDFFile.sync()
 
-ncattrs()
-.........
+    Synchronizes the size of variables along the
+    *unlimited* dimension, by filling in data
+    with default netCDF _FillValue. Returns the length of the
+    *unlimited* dimension. Invoked automatically
+    when the NetCDFFile object is closed.
 
-Returns a list with the names of all currently defined
-netCDF global file attributes.
 
-createDimension(name, length)
-.............................
+.. method:: NetCDFFile.ncattrs()
 
-Creates a netCDF dimension with a name given by the Python
-string name and a size given by the integer
-size. If size = None, the
-dimension is *unlimited* (i.e. it can grow
-dynamically). There can be only one
-*unlimited* dimension in a file.
+    Returns a list with the names of all currently defined
+    netCDF global file attributes.
 
-createVariable(name, type, dimensions,
-least_significant_digit= None, expectedsize=10000,
-filters=None)
-.......................................................................................................
+.. method:: NetCDFFile.createDimension(name, length)
 
-Creates a new variable with the given name, type,
-and dimensions. The type is a one-letter Numeric
-typecode string which can be one of f
-(Float32), d (Float64), i
-(Int32), l (Int32), s
-(Int16), c (CharType - length 1),
-F (Complex32), D
-(Complex64) or 1 (Int8); the predefined type
-constants from Numeric can also be used. The
-F and D types are not
-supported in netCDF or Scientific.IO.NetCDF, if they are used in
-a tables.netcdf3 file, that file cannot be
-converted to a true netCDF file nor can it be shared over the
-Internet with OPeNDAP. Dimensions must be a tuple containing
-dimension names (strings) that have been defined previously by
-createDimensions. The
-least_significant_digit is the power of ten
-of the smallest decimal place in the variable's data that is a
-reliable value. If this keyword is specified, the variable's
-data truncated to this precision to improve compression. The
-expectedsize keyword can be used to set the
-expected number of entries along the
-*unlimited* dimension (default 10000). If you
-expect that your data with have an order of magnitude more or
-less than 10000 entries along the *unlimited*
-dimension, you may consider setting this keyword to improve
-efficiency (see :ref:`expectedRowsOptim` for details). The
-filters keyword is a PyTables
-Filters instance that describes how to store
-the data on disk. The default corresponds to
-complevel=6,
-complib='zlib',
-shuffle=True and
-fletcher32=False.
+    Creates a netCDF dimension with a name given by the Python
+    string name and a size given by the integer
+    size. If size = None, the
+    dimension is *unlimited* (i.e. it can grow
+    dynamically). There can be only one
+    *unlimited* dimension in a file.
 
-nctoh5(filename, unpackshort=True, filters=None)
-................................................
+.. method:: NetCDFFile.createVariable(name, type, dimensions, least_significant_digit= None, expectedsize=10000, filters=None)
 
-Imports the data in a netCDF version 3 file
-(filename) into a
-NetCDFFile object using
-Scientific.IO.NetCDF
-(ScientificIONetCDF_imported must be
-True). If
-unpackshort=True, data packed as short
-integers (type s) in the netCDF file will be
-unpacked to type f using the
-scale_factor and
-add_offset netCDF variable attributes. The
-filters keyword can be set to a PyTables
-Filters instance to change the default
-parameters used to compress the data in the
-tables.netcdf3 file. The default corresponds
-to complevel=6,
-complib='zlib',
-shuffle=True and
-fletcher32=False.
+    Creates a new variable with the given name, type,
+    and dimensions. The type is a one-letter Numeric
+    typecode string which can be one of f
+    (Float32), d (Float64), i
+    (Int32), l (Int32), s
+    (Int16), c (CharType - length 1),
+    F (Complex32), D
+    (Complex64) or 1 (Int8); the predefined type
+    constants from Numeric can also be used. The
+    F and D types are not
+    supported in netCDF or Scientific.IO.NetCDF, if they are used in
+    a tables.netcdf3 file, that file cannot be
+    converted to a true netCDF file nor can it be shared over the
+    Internet with OPeNDAP. Dimensions must be a tuple containing
+    dimension names (strings) that have been defined previously by
+    createDimensions. The
+    least_significant_digit is the power of ten
+    of the smallest decimal place in the variable's data that is a
+    reliable value. If this keyword is specified, the variable's
+    data truncated to this precision to improve compression. The
+    expectedsize keyword can be used to set the
+    expected number of entries along the
+    *unlimited* dimension (default 10000). If you
+    expect that your data with have an order of magnitude more or
+    less than 10000 entries along the *unlimited*
+    dimension, you may consider setting this keyword to improve
+    efficiency (see :ref:`expectedRowsOptim` for details). The
+    filters keyword is a PyTables
+    Filters instance that describes how to store
+    the data on disk. The default corresponds to
+    complevel=6,
+    complib='zlib',
+    shuffle=True and fletcher32=False.
 
-h5tonc(filename, packshort=False, scale_factor=None,
-add_offset=None)
-.....................................................................
 
-Exports the data in a tables.netcdf3
-file defined by the NetCDFFile instance into
-a netCDF version 3 file using
-Scientific.IO.NetCDF
-(ScientificIONetCDF_imported must be
-True). If
-packshort=True> the dictionaries
-scale_factor and
-add_offset are used to pack data of type
-f as short integers (of type
-s) in the netCDF file. Since netCDF version 3
-does not provide automatic compression, packing as short
-integers is a commonly used way of saving disk space (see this
-`page <http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml>`_
-for more details). The keys of these dictionaries are the
-variable names to pack, the values are the scale_factors and
-offsets to use in the packing. The data are packed so that the
-original Float32 values can be reconstructed by multiplying the
-scale_factor and adding
-add_offset. The resulting netCDF file will
-have the scale_factor and
-add_offset variable attributes set
-appropriately.
+.. method:: NetCDFFile.nctoh5(filename, unpackshort=True, filters=None)
+
+    Imports the data in a netCDF version 3 file
+    (filename) into a
+    NetCDFFile object using
+    Scientific.IO.NetCDF
+    (ScientificIONetCDF_imported must be True). If
+    unpackshort=True, data packed as short
+    integers (type s) in the netCDF file will be
+    unpacked to type f using the scale_factor and
+    add_offset netCDF variable attributes. The
+    filters keyword can be set to a PyTables
+    Filters instance to change the default
+    parameters used to compress the data in the
+    tables.netcdf3 file. The default corresponds
+    to complevel=6,
+    complib='zlib',
+    shuffle=True and
+    fletcher32=False.
+
+
+.. method:: NetCDFFile.h5tonc(filename, packshort=False, scale_factor=None, add_offset=None)
+
+    Exports the data in a tables.netcdf3
+    file defined by the NetCDFFile instance into
+    a netCDF version 3 file using
+    Scientific.IO.NetCDF (ScientificIONetCDF_imported must be True). If
+    packshort=True> the dictionaries
+    scale_factor and
+    add_offset are used to pack data of type
+    f as  short integers (of types) in the netCDF file. Since netCDF version 3
+    does not provide automatic compression, packing as short
+    integers is a commonly used way of saving disk space (see this
+    `page <http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml>`_
+    for more details). The keys of these dictionaries are the
+    variable names to pack, the values are the scale_factors and
+    offsets to use in the packing. The data are packed so that the
+    original Float32 values can be reconstructed by multiplying the
+    scale_factor and adding
+    add_offset. The resulting netCDF file will
+    have the scale_factor and
+    add_offset variable attributes set
+    appropriately.
+
 
 The NetCDFVariable class
 ~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: NetCDFVariable
 
-The NetCDFVariable constructor is not
-called explicitly, rather an NetCDFVariable
-instance is returned by an invocation of
-NetCDFFile.createVariable.
-NetCDFVariable objects behave like arrays, and
-have the standard attributes of arrays (such as
-shape). Data can be assigned or extracted from
-NetCDFVariable objects via slices.
+    The NetCDFVariable constructor is not
+    called explicitly, rather an NetCDFVariable
+    instance is returned by an invocation of
+    NetCDFFile.createVariable.
+    NetCDFVariable objects behave like arrays, and
+    have the standard attributes of arrays (such as
+    shape). Data can be assigned or extracted from
+    NetCDFVariable objects via slices.
+
 
 NetCDFVariable methods
 ^^^^^^^^^^^^^^^^^^^^^^
 
-typecode()
-..........
+.. method:: NetCDFVariable.typecode()
 
-Returns a single character typecode describing the type of
-the variable, one of f (Float32),
-d (Float64), i (Int32),
-l (Int32), s (Int16),
-c (CharType - length 1), F
-(Complex32), D (Complex64) or
-1 (Int8).
+    Returns a single character typecode describing the type of
+    the variable, one of f (Float32),
+    d (Float64), i (Int32),
+    l (Int32), s (Int16),
+    c (CharType - length 1), F
+    (Complex32), D (Complex64) or
+    1 (Int8).
 
-append(data)
-............
 
-Append data to a variable along its
-*unlimited* dimension. The data you append
-must have either the same number of dimensions as the
-NetCDFVariable, or one less. The shape of the
-data you append must be the same as the
-NetCDFVariable for all of the dimensions
-except the *unlimited* dimension. The length
-of the data long the *unlimited* dimension
-controls how may entries along the
-*unlimited* dimension are appended. If the
-data you append has one fewer number of dimensions than the
-NetCDFVariable, it is assumed that you are
-appending one entry along the *unlimited*
-dimension. For variables without an
-*unlimited* dimension, data can simply be
-assigned to a slice without using the append
-method.
+.. method:: NetCDFVariable.append(data)
 
-ncattrs()
-.........
+    Append data to a variable along its
+    *unlimited* dimension. The data you append
+    must have either the same number of dimensions as the
+    NetCDFVariable, or one less. The shape of the
+    data you append must be the same as the
+    NetCDFVariable for all of the dimensions
+    except the *unlimited* dimension. The length
+    of the data long the *unlimited* dimension
+    controls how may entries along the
+    *unlimited* dimension are appended. If the
+    data you append has one fewer number of dimensions than the
+    NetCDFVariable, it is assumed that you are
+    appending one entry along the *unlimited*
+    dimension. For variables without an
+    *unlimited* dimension, data can simply be
+    assigned to a slice without using the append
+    method.
 
-Returns a list with all the names of the currently defined
-netCDF variable attributes.
 
-assignValue(data)
-.................
+.. method:: NetCDFVariable.ncattrs()
 
-Provided for compatibility with
-Scientific.IO.NetCDF. Assigns data to the
-variable. If the variable has an *unlimited*
-dimension, it is equivalent to append(data).
-If the variable has no *unlimited* dimension,
-it is equivalent to assigning data to the variable with the
-slice [:].
+    Returns a list with all the names of the currently defined
+    netCDF variable attributes.
 
-getValue()
-..........
 
-Provided for compatibility with
-Scientific.IO.NetCDF. Returns all the data in
-the variable. Equivalent to extracting the slice
-[:] from the variable.
+.. method:: NetCDFVariable.assignValue(data)
 
-Converting between true netCDF files and
-tables.netcdf3 files
+    Provided for compatibility with
+    Scientific.IO.NetCDF. Assigns data to the
+    variable. If the variable has an *unlimited*
+    dimension, it is equivalent to append(data).
+    If the variable has no *unlimited* dimension,
+    it is equivalent to assigning data to the variable with the
+    slice [:].
+
+
+.. method:: NetCDFVariable.getValue()
+
+    Provided for compatibility with
+    Scientific.IO.NetCDF. Returns all the data in
+    the variable. Equivalent to extracting the slice [:] from the variable.
+
+
+Converting between true netCDF files and tables.netcdf3 files
 -------------------------------------------------------------
-
 If Scientific.IO.NetCDF is installed,
 tables.netcdf3 provides facilities for converting
 between true netCDF version 3 files and
@@ -648,9 +597,7 @@ NetCDFFile.nctoh5() class method.
 
 As an example, look how to convert a
 tables.netcdf3 hdf5 file to a true netCDF version 3
-file (named test.nc)
-
-::
+file (named test.nc)::
 
     >>> scale_factor = {'temp': 1.75e-4}
     >>> add_offset = {'temp': 5.}
@@ -671,9 +618,7 @@ scale_factor and add_offset
 variable attributes set appropriately.
 
 To convert the netCDF file back to a
-tables.netcdf3 hdf5 file:
-
-::
+tables.netcdf3 hdf5 file::
 
     >>> history = 'Convert from netCDF ' + time.ctime(time.time())
     >>> file = NetCDF.NetCDFFile('test2.h5', 'w', history=history)
@@ -685,7 +630,7 @@ tables.netcdf3 hdf5 file:
     >>> print 'temp.shape after h5 --> netCDF --> h5 conversion = ',temp.shape
     temp.shape after h5 --> netCDF --> h5 conversion =  (10, 12, 90)
     >>> for n in range(10):
-    >>>     print 'time, min/max temp, temp[n,0,0] = ',\\
+    ...     print 'time, min/max temp, temp[n,0,0] = ',\\
     times[n],min(temp[n].flat),max(temp[n].flat),temp[n,0,0]
     time, min/max temp, temp[n,0,0] = 0.0 0.0123250000179 9.99257469177 6.13049983978
     time, min/max temp, temp[n,0,0] = 1.0 0.00130000000354 9.99152469635 6.68507480621
@@ -710,9 +655,9 @@ tables.netcdf3 files which utilize these features
 cannot be converted to netCDF using
 NetCDFFile.h5tonc.
 
+
 tables.netcdf3 file structure
 -----------------------------
-
 A tables.netcdf3 file consists of array
 objects (either EArrays or
 CArrays) located in the root group of a pytables
@@ -723,10 +668,9 @@ rank of the array object). Any array objects with one of the supported
 datatypes in a pytables file that conforms to this simple structure
 can be read with the tables.netcdf3 package.
 
-Sharing data in tables.netcdf3 files over
-the Internet with OPeNDAP
--------------------------------------------------------------------
 
+Sharing data in tables.netcdf3 files over the Internet with OPeNDAP
+-------------------------------------------------------------------
 tables.netcdf3 datasets can be shared over
 the Internet with the OPeNDAP protocol (http://opendap.org), via the python
 OPeNDAP module (http://opendap.oceanografia.org).
@@ -748,101 +692,94 @@ OPeNDAP client if it is linked with the OPeNDAP netCDF client library.
 Either of these python modules can be used to remotely access
 tables.netcdf3 datasets with OPeNDAP.
 
-Differences between the Scientific.IO.NetCDF
-API and the tables.netcdf3 API
+
+Differences between the Scientific.IO.NetCDF API and the tables.netcdf3 API
 ---------------------------------------------------------------------------
 
 #. tables.netcdf3 data is stored in an HDF5
-  file instead of a netCDF file.
-
+   file instead of a netCDF file.
 #. Although each variable can have only one
-  *unlimited* dimension in a
-  tables.netcdf3 file, it need not be the first
-  as in a true NetCDF file. Complex data types F
-  (Complex32) and D (Complex64) are supported in
-  tables.netcdf3, but are not supported in netCDF
-  (or Scientific.IO.NetCDF). Files with variables
-  that have these datatypes, or an *unlimited*
-  dimension other than the first, cannot be converted to netCDF
-  using h5tonc.
-
+   *unlimited* dimension in a
+   tables.netcdf3 file, it need not be the first
+   as in a true NetCDF file. Complex data types F
+   (Complex32) and D (Complex64) are supported in
+   tables.netcdf3, but are not supported in netCDF
+   (or Scientific.IO.NetCDF). Files with variables
+   that have these datatypes, or an *unlimited*
+   dimension other than the first, cannot be converted to netCDF
+   using h5tonc.
 #. Variables in a tables.netcdf3 file are
-  compressed on disk by default using HDF5 zlib compression with the
-  *shuffle* filter. If the
-  *least_significant_digit* keyword is used when
-  a variable is created with the createVariable
-  method, data will be truncated (quantized) before being
-  written to the file. This can significantly improve compression.
-  For example, if least_significant_digit=1, data
-  will be quantized using
-  numpy.around(scale*data)/scale, where
-  scale = 2**bits, and bits is determined so that
-  a precision of 0.1 is retained (in this case
-  bits=4). From http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml:
-  "least_significant_digit -- power of ten of the smallest
-              decimal place in unpacked data that is a reliable value."
-  Automatic data compression is not available in netCDF version 3,
-  and hence is not available in the
-  Scientific.IO.NetCDF module.
+   compressed on disk by default using HDF5 zlib compression with the
+   *shuffle* filter. If the
+   *least_significant_digit* keyword is used when
+   a variable is created with the createVariable
+   method, data will be truncated (quantized) before being
+   written to the file. This can significantly improve compression.
+   For example, if least_significant_digit=1, data
+   will be quantized using
+   numpy.around(scale*data)/scale, where
+   scale = 2**bits, and bits is determined so that
+   a precision of 0.1 is retained (in this case
+   bits=4). From http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml::
 
+       "least_significant_digit -- power of ten of the smallest
+        decimal place in unpacked data that is a reliable value."
+
+   Automatic data compression is not available in netCDF version 3,
+   and hence is not available in the
+   Scientific.IO.NetCDF module.
 #. In tables.netcdf3, data must be appended
-  to a variable with an *unlimited* dimension
-  using the append method of the
-  netCDF variable object. In
-  Scientific.IO.NetCDF, data can be added along
-  an *unlimited* dimension by assigning it to a
-  slice (there is no append method). The sync
-  method of a tables.netcdf3 NetCDFVariable
-  object synchronizes the size of all variables with an
-  *unlimited* dimension by filling in data using
-  the default netCDF _FillValue. The
-  sync method is automatically invoked with a
-  NetCDFFile object is closed. In
-  Scientific.IO.NetCDF, the
-  sync() method flushes the data to disk.
-
+   to a variable with an *unlimited* dimension
+   using the append method of the
+   netCDF variable object. In
+   Scientific.IO.NetCDF, data can be added along
+   an *unlimited* dimension by assigning it to a
+   slice (there is no append method). The sync
+   method of a tables.netcdf3 NetCDFVariable
+   object synchronizes the size of all variables with an
+   *unlimited* dimension by filling in data using
+   the default netCDF _FillValue. The
+   sync method is automatically invoked with a
+   NetCDFFile object is closed. In
+   Scientific.IO.NetCDF, the
+   sync() method flushes the data to disk.
 #. The tables.netcdf3 createVariable()
-  method has three extra optional keyword arguments not found in the
-  Scientific.IO.NetCDF interface,
-  *least_significant_digit* (see item (2) above),
-  *expectedsize* and
-  *filters*. The
-  *expectedsize* keyword applies only to
-  variables with an *unlimited* dimension, and is
-  an estimate of the number of entries that will be added along that
-  dimension (default 1000). This estimate is used to optimize HDF5
-  file access and memory usage. The *filters*
-  keyword is a PyTables filters instance that describes how to store
-  the data on disk. The default corresponds to
-  complevel=6, complib='zlib',
-  shuffle=True and
-  fletcher32=False.
-
+   method has three extra optional keyword arguments not found in the
+   Scientific.IO.NetCDF interface,
+   *least_significant_digit* (see item (2) above),
+   *expectedsize* and
+   *filters*. The
+   *expectedsize* keyword applies only to
+   variables with an *unlimited* dimension, and is
+   an estimate of the number of entries that will be added along that
+   dimension (default 1000). This estimate is used to optimize HDF5
+   file access and memory usage. The *filters*
+   keyword is a PyTables filters instance that describes how to store
+   the data on disk. The default corresponds to
+   complevel=6, complib='zlib',
+   shuffle=True and
+   fletcher32=False.
 #. tables.netcdf3 data can be saved to a
-  true netCDF file using the NetCDFFile class
-  method h5tonc (if
-  Scientific.IO.NetCDF is installed). The
-  *unlimited* dimension must be the first (for
-  all variables in the file) in order to use the
-  h5tonc method. Data can also be imported from a
-  true netCDF file and saved in an HDF5
-  tables.netcdf3 file using the
-  nctoh5 class method.
-
+   true netCDF file using the NetCDFFile class
+   method h5tonc (if
+   Scientific.IO.NetCDF is installed). The
+   *unlimited* dimension must be the first (for
+   all variables in the file) in order to use the
+   h5tonc method. Data can also be imported from a
+   true netCDF file and saved in an HDF5
+   tables.netcdf3 file using the
+   nctoh5 class method.
 #. In tables.netcdf3 a list of attributes
-  corresponding to global netCDF attributes defined in the file can
-  be obtained with the NetCDFFile ncattrs method.
-  Similarly, netCDF variable attributes can be obtained with the
-  NetCDFVariable ncattrs
-  method. These functions are not available in the
-  Scientific.IO.NetCDF API.
-
+   corresponding to global netCDF attributes defined in the file can
+   be obtained with the NetCDFFile ncattrs method.
+   Similarly, netCDF variable attributes can be obtained with the
+   NetCDFVariable ncattrs
+   method. These functions are not available in the
+   Scientific.IO.NetCDF API.
 #. You should not define tables.netcdf3
-  global or variable attributes that start with
-  _NetCDF_. Those names are reserved for internal
-  use.
-
+   global or variable attributes that start with
+   _NetCDF_. Those names are reserved for internal use.
 #. Output similar to 'ncdump -h' can be obtained by simply
-  printing a tables.netcdf3
-  NetCDFFile instance.
+   printing a tables.netcdf3
+   NetCDFFile instance.
 

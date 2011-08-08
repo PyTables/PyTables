@@ -1,7 +1,7 @@
 filenode - simulating a filesystem with PyTables
 ================================================
 
-.. currentmodule:: tables
+.. currentmodule:: tables.nodes.filenode
 
 What is filenode?
 -----------------
