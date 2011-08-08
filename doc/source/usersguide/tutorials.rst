@@ -14,7 +14,7 @@ This chapter consists of a series of simple yet comprehensive
 tutorials that will enable you to understand PyTables' main features. If
 you would like more information about some particular instance variable,
 global function, or method, look at the doc strings or go to the library
-reference in :ref:`libraryReference`. If you are reading this in PDF or HTML
+reference in :ref:`library_reference`. If you are reading this in PDF or HTML
 formats, follow the corresponding hyperlink near each newly introduced
 entity.
 
@@ -112,7 +112,7 @@ declare a class variable for each field you need. As its value you
 assign an instance of the appropriate Col
 subclass, according to the kind of column defined (the data type,
 the length, the shape, etc). See the :ref:`ColClassDescr` for a complete description of these
-subclasses. See also :ref:`datatypesSupported` for a list of data types supported by
+subclasses. See also :ref:`datatypes` for a list of data types supported by
 the Col constructor.
 
 From now on, we can use Particle instances
@@ -143,7 +143,6 @@ attribute.
 
 Creating a new group
 ~~~~~~~~~~~~~~~~~~~~
-
 Now, to better organize our data, we will create a group
 called *detector* that branches from the root
 node. We will save our particle data table in this group::
@@ -152,7 +151,7 @@ node. We will save our particle data table in this group::
 
 Here, we have taken the File instance
 h5file and invoked its
-createGroup() method (see :ref:`createGroupDescr`) to create a
+:meth:`File.createGroup` method to create a
 new group called *detector* branching from
 "*/*" (another way to refer to the
 h5file.root object we mentioned above). This will
@@ -165,7 +164,7 @@ Creating a new table
 
 Let's now create a Table (see :ref:`TableClassDescr`) object as a
 branch off the newly-created group. We do that by calling the
-createTable (see :ref:`createTableDescr`) method of the h5file object::
+:meth:`File.createTable` method of the h5file object::
 
     >>> table = h5file.createTable(group, 'readout', Particle, "Readout example")
 
@@ -293,8 +292,8 @@ on.
 
 You will recognize the last two lines as a Python list
 comprehension. It loops over the rows in *table*
-as they are provided by the table.iterrows()
-iterator (see :ref:`Table.iterrows`). The iterator
+as they are provided by the :meth:`Table.iterrows`
+iterator. The iterator
 returns values until all the data in table is exhausted. These rows
 are filtered using the expression::
 
@@ -313,8 +312,7 @@ selections which may be more suitable if you have very large tables
 or if you need very high query speeds. They are called
 *in-kernel* and *indexed*
 queries, and you can use them
-through Table.where() (see
-:ref:`Table.where`) and other related methods.
+through :meth:`Table.where` and other related methods.
 
 Let's use an in-kernel selection to query
 the name column for the same set of cuts::
@@ -326,7 +324,7 @@ the name column for the same set of cuts::
 In-kernel and indexed queries are not only much faster, but as
 you can see, they also look more compact, and are among the
 greatests features for PyTables, so be sure that you use them a
-lot. See :ref:`conditionSyntax` and :ref:`searchOptim` for
+lot. See :ref:`condition_syntax` and :ref:`searchOptim` for
 more information on in-kernel and indexed selections.
 
 That's enough about selections for now. The next section will
@@ -361,7 +359,7 @@ objects we've just mentioned::
       chunkshape := None
 
 We already know the first two parameters of the
-createArray (see :ref:`createArrayDescr`) methods (these are the same as the
+:meth:`File.createArray` methods (these are the same as the
 first two in createTable): they are the parent
 group *where* Array will be
 created and the Array instance
@@ -383,10 +381,10 @@ further conversion::
       byteorder := 'irrelevant'
       chunkshape := None
 
-As you can see, createArray() accepts
+As you can see, :meth:`File.createArray` accepts
 *names* (which is a regular Python list) as an
 *object* parameter. Actually, it accepts a
-variety of different regular objects (see :ref:`createArrayDescr`) as parameters. The
+variety of different regular objects as parameters. The
 flavor attribute (see the output above) saves the
 original kind of object that was saved. Based on this
 *flavor*, PyTables will be able to retrieve
@@ -538,7 +536,7 @@ nodes in the object tree::
     /columns/pressure (Array(3,)) 'Pressure column selection'
     /detector/readout (Table(10,)) 'Readout example'
 
-We can use the walkGroups method (see :ref:`walkGroupsDescr`) of the File class
+We can use the :meth:`File.walkGroups` method of the File class
 to list only the *groups* on tree::
 
     >>> for group in h5file.walkGroups():
@@ -547,7 +545,7 @@ to list only the *groups* on tree::
     /columns (Group) 'Pressure and Name'
     /detector (Group) 'Detector information'
 
-Note that walkGroups() actually returns an
+Note that :meth:`File.walkGroups` actually returns an
 *iterator*, not a list of objects. Using this
 iterator with the listNodes() method is a
 powerful combination. Let's see an example listing of all the arrays
@@ -559,19 +557,18 @@ in the tree::
     /columns/name (Array(3,)) 'Name column selection'
     /columns/pressure (Array(3,)) 'Pressure column selection'
 
-listNodes() (see :ref:`File.listNodes`) returns a list containing all the nodes
+:meth:`File.listNodes` returns a list containing all the nodes
 hanging off a specific Group. If the
 *classname* keyword is specified, the method will
 filter out all instances which are not descendants of the class. We
 have asked for only Array instances. There exist
-also an iterator counterpart called iterNodes()
-(see :ref:`File.iterNodes`) that might be handy is some
+also an iterator counterpart called :meth:`File.iterNodes` that might be handy is some
 situations, like for example when dealing with groups with a large
 number of nodes behind it.
 
 We can combine both calls by using the
-walkNodes(where, classname) special method of the
-File object (see :ref:`File.walkNodes`). For example::
+:meth:`File.walkNodes` special method of the
+File object. For example::
 
     >>> for array in h5file.walkNodes("/", "Array"):
     ...     print array
@@ -593,16 +590,17 @@ will be selected in this group (as should be the case)::
     /detector/readout (Table(10,)) 'Readout example'
 
 We have used a call to the
-Group._f_walkNodes(classname) method (see :ref:`Group._f_walkNodes`), using the *natural
+:meth:`Group._f_walkNodes` method, using the *natural
 naming* path specification.
 
 Of course you can do more sophisticated node selections using
 these powerful methods. But first, let's take a look at some
 important PyTables object instance variables.
 
+
+
 Setting and getting user attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 PyTables provides an easy and concise way to complement the
 meaning of your node objects on the tree by using the
 AttributeSet class (see :ref:`AttributeSetClassDescr`). You
@@ -920,11 +918,11 @@ To examine metadata in the
     >>> print "  atom: ==>", pressureObject.atom
       atom: ==> Float64Atom(shape=(), dflt=0.0)
 
-Observe that we have used the getNode()
+Observe that we have used the :meth:`File.getNode`
 method of the File class to access a node in the
 tree, instead of the natural naming method. Both are useful, and
 depending on the context you will prefer one or the other.
-getNode() has the advantage that it can get a
+:meth:`File.getNode` has the advantage that it can get a
 node from the pathname string (as in this example) and can also act
 as a filter to show only nodes in a particular location that are
 instances of class *classname*. In general,
@@ -967,8 +965,8 @@ object to retrieve its data::
     Particle:      6 --> 36.0
     Particle:      7 --> 49.0
 
-You can see that the read() method (see
-:ref:`Array.read`) returns
+You can see that the :meth:`Array.read` method 
+returns
 an authentic NumPy object for the
 pressureObject instance by looking at the output
 of the type() call. A read()
@@ -981,13 +979,13 @@ Array.attrs.FLAVOR variable), enabling the read
 array to be converted into the original object. This provides a
 means to save a large variety of objects as arrays with the
 guarantee that you will be able to later recover them in their
-original form. See :ref:`createArrayDescr` for a
+original form. See :meth:`File.createArray` for a
 complete list of supported objects for the Array
 object class.
 
+
 Commiting data to tables and arrays
 -----------------------------------
-
 We have seen how to create tables and arrays and how to browse
 both data and metadata in the object tree. Let's examine more closely
 now one of the most powerful capabilities of PyTables, namely, how to
@@ -1102,7 +1100,7 @@ Check that the values have been correctly modified!
 *Hint:* remember that column
 TDCcount is the second one, and that
 energy is the third. Look for more info on
-modifying columns in :ref:`Column.__setitem__`.
+modifying columns in :meth:`Column.__setitem__`.
 
 PyTables also lets you modify complete sets of rows at the
 same time. As a demonstration of these capability, see the next
@@ -1124,14 +1122,13 @@ As you can see, the modifyRows() call has
 modified the rows second and fifth, and it returned the number of
 modified rows.
 
-Apart of modifyRows(), there exists another
-method, called modifyColumn() to modify specific
-columns as well. Please check sections :ref:`Table.modifyRows` and :ref:`Table.modifyColumn` for a more in-depth description of
-them.
+Apart of :meth:`Table.modifyRows`, there exists another
+method, called :meth:`Table.modifyColumn` to modify specific
+columns as well. 
 
 Finally, it exists another way of modifying tables that is
 generally more handy than the described above. This new way uses the
-method update() (see :ref:`Row.update`) of the Row instance that
+method :meth:`Row.update` of the Row instance that
 is attached to every table, so it is meant to be used in table
 iterators. Look at the next example::
 
@@ -1155,7 +1152,7 @@ Modifying data in arrays
 
 We are going now to see how to modify data in array objects.
 The basic way to do this is through the use of
-__setitem__ special method (see :ref:`Array.__setitem__`). Let's see at how modify data on the
+:meth:`Array.__setitem__` special method. Let's see at how modify data on the
 pressureObject array::
 
     >>> pressureObject = h5file.root.columns.pressure
@@ -1176,7 +1173,7 @@ So, in general, you can use any combination of
 
 With the sole exception that you cannot use negative
 values for step.
-to refer to indexes that you want to modify. See :ref:`Array.__getitem__` for
+to refer to indexes that you want to modify. See :meth:`Array.__getitem__` for
 more examples on how to use extended slicing in PyTables
 objects.
 
@@ -1205,7 +1202,7 @@ rows (inclusive)::
     >>> table.removeRows(5,10)
     5
 
-removeRows(start, stop) (see :ref:`Table.removeRows`) deletes the rows in the range (start,
+:meth:`Table.removeRows` deletes the rows in the range (start,
 stop). It returns the number of rows effectively removed.
 
 We have reached the end of this first tutorial. Don't forget
@@ -1256,7 +1253,7 @@ records. Finally, we will read the newly-created table
 using a comprehension list.
 
 Look at the next script (you can find it in
-examples/tutorial2.py). It appears to do all of the
+:file:`examples/tutorial2.py`). It appears to do all of the
 above, but it contains some small bugs. Note that this
 Particle class is not directly related to the one
 defined in last tutorial; this class is simpler (note, however, the
@@ -1267,8 +1264,8 @@ temperature).
 We also introduce a new manner to describe a
 Table as a structured NumPy dtype (or even as a
 dictionary), as you can see in the Event
-description. See :ref:`createTableDescr` about the different kinds of descriptor objects that can be
-passed to the createTable() method::
+description. See :meth:`File.createTable` about the different kinds of descriptor objects that can be
+passed to this method::
 
     from tables import *
     from numpy import *
@@ -1642,8 +1639,7 @@ external links are not readable with applications linked with HDF5
 1.6.x.  You should have this in mind if interoperability is
 important to you.  At any rate, you can disable the warning by
 setting the warn16incompat argument to true.
-See File.createExternalLink()
-:ref:`createExternalLinkDescr`
+See :meth:`File.createExternalLink`
 for more info.
 
 But, when using HDF5 1.8.x (I'm supposing that you are using
@@ -1737,7 +1733,7 @@ First, let's create a file::
     >>> fileh = tables.openFile("tutorial3-1.h5", "w", title="Undo/Redo demo 1")
 
 And now, activate the Undo/Redo feature with the method
-enableUndo (see :ref:`File.enableUndo`) of File::
+:meth:`File.enableUndo` of File::
 
     >>> fileh.enableUndo()
 
@@ -1757,7 +1753,7 @@ In addition, the mark() method has returned the
 identifier assigned to this new mark, that is 1 (mark #0 is reserved
 for the implicit mark at the beginning of the action log). In the
 next section we will see that you can also assign a
-*name* to a mark (see :ref:`File.mark` for more info on mark()).
+*name* to a mark (see :meth:`File.mark` for more info on mark()).
 Now, we are going to create another array::
 
     >>> another = fileh.createArray('/', 'anotherarray', [4,5], "Another array")
@@ -1765,7 +1761,7 @@ Now, we are going to create another array::
 Right. Now, we can start doing funny things. Let's say that we
 want to pop back to the previous mark (that whose value was 1, do
 you remember?). Let's introduce the undo() method
-(see :ref:`File.undo`)::
+(see :meth:`File.undo`)::
 
     >>> fileh.undo()
 
@@ -1799,7 +1795,7 @@ Now, unwind once more, and look at the object tree::
 Oops, /anarray has disappeared as well!.
 Don't worry, it will revisit us very shortly. So, you might be
 somewhat lost right now; in which mark are we?. Let's ask the
-getCurrentMark() method (see :ref:`File.getCurrentMark`) in the file handler::
+:meth:`File.getCurrentMark` method in the file handler::
 
     >>> print fileh.getCurrentMark()
     0
@@ -1808,7 +1804,7 @@ So we are at mark #0, remember? Mark #0 is an implicit mark
 that is created when you start the log of actions when calling
 File.enableUndo(). Fine, but you are missing your
 too-young-to-die arrays. What can we do about that?
-File.redo() (see :ref:`File.redo`) to
+:meth:`File.redo` to
 the rescue::
 
     >>> fileh.redo()
@@ -1942,8 +1938,7 @@ the database::
     assert '/agroup/otherarray5' not in fileh
 
 Well, the code above shows how easy is to jump to a certain
-mark in the database by using the goto() method
-(see :ref:`File.goto`).
+mark in the database by using the :meth:`File.goto` method.
 
 There are also a couple of implicit marks for going to the
 beginning or the end of the saved states: 0 and -1. Going to mark #0
@@ -2147,11 +2142,11 @@ we can see the results of the insertions::
 As a last note, you may be wondering how to have access to the
 enumeration associated with ballColor once the
 file is closed and reopened. You can call
-tbl.getEnum('ballColor') (see :ref:`Table.getEnum`) to get the enumeration back.
+tbl.getEnum('ballColor') (see :meth:`Table.getEnum`) to get the enumeration back.
+
 
 Enumerated arrays
 ~~~~~~~~~~~~~~~~~
-
 EArray and VLArray
 leaves can also be declared to store enumerated values by means of
 the EnumAtom (see :ref:`AtomClassDescr`) class, which works very much like

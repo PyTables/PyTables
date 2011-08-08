@@ -23,8 +23,8 @@ the *tunable* parameters live in
 the tables/parameters.py.  The user can choose to
 change them in the parameter files themselves for a global and
 persistent change.  Moreover, if he wants a finer control, he can pass
-any of these parameters directly to the openFile()
-function (see :ref:`openFileDescr`), and the new parameters
+any of these parameters directly to the :func:`tables.openFile`
+function, and the new parameters
 will only take effect in the corresponding file (the defaults will
 continue to be in the parameter files).
 

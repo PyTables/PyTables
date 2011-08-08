@@ -1,3 +1,5 @@
+.. _library_reference:
+
 Library Reference
 =================
 PyTables implements several classes to represent the different
@@ -921,6 +923,7 @@ File methods - tree traversal
 
     The where argument can be a path string
     or a Group instance (see :ref:`GroupClassDescr`).
+
 
 
 .. method:: File.walkNodes(where="/", classname="")
@@ -3613,6 +3616,7 @@ The Array class
     When a writing method call returns, all the data is already on disk.
 
 
+.. _ArrayClassInstanceVariables:
 
 Array instance variables
 ~~~~~~~~~~~~~~~~~~~~~~~~
