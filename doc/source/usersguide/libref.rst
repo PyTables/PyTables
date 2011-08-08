@@ -1,6 +1,5 @@
 Library Reference
 =================
-
 PyTables implements several classes to represent the different
 nodes in the object tree. They are named File,
 Group, Leaf,
@@ -1239,7 +1238,7 @@ Node instance variables - location dependent
 Node instance variables - location independent
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. attribute:: :attr:`Node._v_attrs`
+.. attribute:: Node._v_attrs
 
     The associated AttributeSet instance
     (see :ref:`AttributeSetClassDescr`).
@@ -2495,14 +2494,14 @@ Table methods - writing
             pressure    = Float32Col(pos=4)    # float  (single-precision)
             temperature = FloatCol(pos=5)      # double (double-precision)
 
-    fileh = openFile('test4.h5', mode='w')
-    table = fileh.createTable(fileh.root, 'table', Particle, "A table")
+        fileh = openFile('test4.h5', mode='w')
+        table = fileh.createTable(fileh.root, 'table', Particle, "A table")
 
-    # Append several rows in only one call
-    table.append([("Particle:     10", 10, 0, 10*10, 10**2),
-                  ("Particle:     11", 11, -1, 11*11, 11**2),
-                  ("Particle:     12", 12, -2, 12*12, 12**2)])
-    fileh.close()
+        # Append several rows in only one call
+        table.append([("Particle:     10", 10, 0, 10*10, 10**2),
+                      ("Particle:     11", 11, -1, 11*11, 11**2),
+                      ("Particle:     12", 12, -2, 12*12, 12**2)])
+        fileh.close()
 
 
 
@@ -5937,9 +5936,9 @@ Expr methods
     rest will be retrieved from the current local and global
     namespaces.
 
-    **kwargs is meant to pass additional
+    *kwargs* is meant to pass additional
     parameters to the Numexpr kernel.  This is basically the same as
-    the **kwargs argument
+    the *kwargs* argument
     in Numexpr.evaluate(), and is mainly meant
     for advanced use.
 

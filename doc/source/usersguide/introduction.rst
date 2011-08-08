@@ -347,12 +347,12 @@ objects.
 
 ---------------------------
 
-.. [1] PyTables does not support hard links – for themoment.
+.. [1] PyTables does not support hard links - for themoment.
 
 .. [2] I got this simple but powerful idea from the excellent
-       Objectify module by David Mertz (see [MERTZ]_).
+       Objectify module by David Mertz (see :ref:`[MERTZ] <MERTZ>`).
 
-.. [3] We have used ViTables (see [VITABLES]_) in order to create this snapshot.
+.. [3] We have used ViTables (see :ref:`[VITABLES] <VITABLES>`) in order to create this snapshot.
 
 .. [4] Bear in mind, however, that this diagram is
        *not* a standard UML class diagram; it is

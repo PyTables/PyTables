@@ -23,9 +23,10 @@ Please note that throughout this document the terms
 interchangeably, as will the terms *row* and
 *record*.
 
+.. currentmodule:: tables
+
 Getting started
 ---------------
-
 In this section, we will see how to define our own records in
 Python and save collections of them (i.e. a
 *table*) into a file. Then we will select some of
@@ -41,7 +42,6 @@ during the course of the tutorial!
 
 Importing tables objects
 ~~~~~~~~~~~~~~~~~~~~~~~~
-
 Before starting you need to import the public objects in the
 tables package. You normally do that by
 executing::
@@ -124,13 +124,13 @@ be saved.
 Creating a PyTables file from scratch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the first-level openFile function (see
-:ref:`openFileDescr`) to create a PyTables file::
+Use the top-level :func:`openFile` function 
+to create a PyTables file::
 
     >>> h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")
 
-openFile() (see :ref:`openFileDescr`) is one of the objects imported by the
-"from tables import *" statement. Here, we are
+:func:`openFile` is one of the objects imported by the
+```from tables import *``` statement. Here, we are
 saying that we want to create a new file in the current working
 directory called "tutorial1.h5" in
 "w"rite mode and with an descriptive title string
