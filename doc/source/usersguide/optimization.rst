@@ -732,10 +732,10 @@ performance (and in some points it is actually better), Zlib makes
 speed drop to a half, while bzip2 is performing very slow (up to 8x
 slower).
 
-Also, in the same :ref:`comprReadNoCacheComparison` you can notice some strange peaks in the
+Also, in the same :ref:`Figure 16 <comprReadNoCacheComparison>` you can notice some strange peaks in the
 speed that we might be tempted to attribute to libraries on which
 PyTables relies (HDF5, compressors...), or to PyTables itself.
-However, :ref:`comprReadCacheComparison` reveals that, if we put the file in the filesystem cache (by
+However, :ref:`Figure 17 <comprReadCacheComparison>` reveals that, if we put the file in the filesystem cache (by
 reading it several times before, for example), the evolution of the
 performance is much smoother. So, the most probable explanation would
 be that such peaks are a consequence of the underlying OS filesystem,
@@ -760,26 +760,23 @@ Zlib), but this was somewhat expected anyway.
 
 .. _comprReadCacheComparison:
 
-Selecting values in tables with several compressors. The file
-is in the OS cache.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. figure:: images/compressed-select-cache.svg
-
 .. figure:: images/compressed-select-cache.png
+    :align: center
+
+    **Figure 17. Selecting values in tables with several compressors. The file is in the OS cache.**
 
 So, generally speaking and looking at the experiments above, you
 can expect that LZO will be the fastest in both compressing and
 decompressing, but the one that achieves the worse compression ratio
 (although that may be just OK for many situations, specially when used
-with shuffling —see :ref:`ShufflingOptim`).  bzip2 is the slowest, by large, in both compressing and
+with shuffling - see :ref:`ShufflingOptim`).  bzip2 is the slowest, by large, in both compressing and
 decompressing, and besides, it does not achieve any better compression
 ratio than Zlib. Zlib represents a balance between them: it's somewhat
 slow compressing (2x) and decompressing (3x) than LZO, but it normally
 achieves better compression ratios.
 
-Finally, by looking at the plots :ref:`comprWriteZlibComparison`,
-:ref:`comprReadZlibComparison`, and the aforementioned :ref:`comprZlibComparison` you
+Finally, by looking at the plots :ref:`Figure 18 <comprWriteZlibComparison>`,
+:ref:`Figure 19 <comprReadZlibComparison>`, and the aforementioned :ref:`Figure 14 <comprZlibComparison>` you
 can see why the recommended compression level to use for all
 compression libraries is 1.  This is the lowest level of compression,
 but as the size of the underlying HDF5 chunk size is normally rather
@@ -813,30 +810,25 @@ string datasets).
 
 .. _comprWriteZlibComparison:
 
-Writing in tables with different levels of
-compression.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. figure:: images/compressed-writing-zlib.svg
-
 .. figure:: images/compressed-writing-zlib.png
+    :align: center
+
+    **Figure 18. Writing in tables with different levels of compression.**
 
 .. _comprReadZlibComparison:
 
-Selecting values in tables with different levels of
-compression. The file is in the OS cache.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. figure:: images/compressed-select-cache-zlib.svg
-
 .. figure:: images/compressed-select-cache-zlib.png
+    :align: center
+
+    **Figure 19. Selecting values in tables with different levels of compression. The file is in the OS cache.**
+
+
+
 
 .. _ShufflingOptim:
 
-Shuffling (or how to make the compression process more
-effective)
+Shuffling (or how to make the compression process more effective)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 The HDF5 library provides an interesting filter that can
 leverage the results of your favorite compressor. Its name is
 *shuffle*, and because it can greatly benefit
@@ -848,7 +840,9 @@ is the default, as you already should know). Of course, you can
 deactivate it if you want, but this is not recommended.
 
 So, how does this mysterious filter exactly work? From the HDF5
-reference manual: "The shuffle filter de-interlaces a block of
+reference manual:: 
+
+          "The shuffle filter de-interlaces a block of
           data by reordering the bytes. All the bytes from one consistent byte
           position of each data element are placed together in one block; all
           bytes from a second consistent byte position of each data element are
@@ -859,28 +853,20 @@ reference manual: "The shuffle filter de-interlaces a block of
           position are often closely related to each other and putting them
           together can increase the compression ratio."
 
-In :ref:`comprShuffleComparison` you can see a benchmark that shows how
+In :ref:`Figure 20 <comprShuffleComparison>` you can see a benchmark that shows how
 the *shuffle* filter can help the different
 libraries in compressing data. In this experiment, shuffle has made
 LZO compress almost 3x more (!), while Zlib and bzip2 are seeing
 improvements of 2x. Once again, the data for this experiment is
 synthetic, and *shuffle* seems to do a great work
-with it, but in general, the results will vary in each case
-
-Some users reported that the typical improvement with real
-data is between a factor 1.5x and 2.5x over the already compressed
-datasets.
-.
+with it, but in general, the results will vary in each case [3]_.
 
 .. _comprShuffleComparison:
 
-Comparison between different compression libraries with and
-without the *shuffle* filter.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. figure:: images/compressed-recordsize-shuffle.svg
-
 .. figure:: images/compressed-recordsize-shuffle.png
+    :align: center
+
+    **Figure 20. Comparison between different compression libraries with and without the shuffle filter.**
 
 At any rate, the most remarkable fact about the
 *shuffle* filter is the relatively high level of
@@ -896,7 +882,9 @@ own data before widely applying the Bzip2+shuffle combination in order
 to avoid surprises.
 
 Now, how does shuffling affect performance? Well, if you look at
-plots :ref:`comprWriteShuffleComparison`, :ref:`comprReadNoCacheShuffleComparison` and :ref:`comprReadCacheShuffleComparison`, you will get a somewhat unexpected
+plots :ref:`Figure 21 <comprWriteShuffleComparison>`, 
+:ref:`Figure 22 <comprReadNoCacheShuffleComparison>` and 
+:ref:`Figure 23 <comprReadCacheShuffleComparison>`, you will get a somewhat unexpected
 (but pleasant) surprise. Roughly, *shuffle* makes
 the writing process (shuffling+compressing) faster (approximately a 15%
 for LZO, 30% for Bzip2 and a 80% for Zlib), which is an interesting
@@ -907,35 +895,28 @@ roughly).
 
 .. _comprWriteShuffleComparison:
 
-Writing with different compression libraries with and without
-the *shuffle* filter.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. figure:: images/compressed-writing-shuffle.svg
-
 .. figure:: images/compressed-writing-shuffle.png
+    :align: center
+
+    **Figure 21. Writing with different compression libraries with and without the shuffle filter.**
+
 
 .. _comprReadNoCacheShuffleComparison:
 
-Reading with different compression libraries with the
-*shuffle* filter. The file is not in OS
-cache.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. figure:: images/compressed-select-nocache-shuffle-only.svg
-
 .. figure:: images/compressed-select-nocache-shuffle-only.png
+    :align: center
+
+    **Figure 22. Reading with different compression libraries with the shuffle filter. The file is not in OS cache.**
+
+
 
 .. _comprReadCacheShuffleComparison:
 
-Reading with different compression libraries with and without
-the *shuffle* filter. The file is in OS
-cache.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. figure:: images/compressed-select-cache-shuffle.svg
-
 .. figure:: images/compressed-select-cache-shuffle.png
+    :align: center
+
+    **Figure 23. Reading with different compression libraries with and without the shuffle filter. The file is in OS cache.**
+
 
 You may wonder why introducing another filter in the write/read
 pipelines does effectively accelerate the throughput. Well, maybe data
@@ -953,10 +934,11 @@ such a filter enabled by default in the battle for discovering
 redundancy when you want to compress your data, just as PyTables
 does.
 
+
 Using Psyco
 -----------
 
-Psyco (see ) is a kind of
+Psyco (see :ref:`[PSYCO] <PSYCO>`) is a kind of
 specialized compiler for Python that typically accelerates Python
 applications with no change in source code. You can think of Psyco as
 a kind of just-in-time (JIT) compiler, a little bit like Java's, that
@@ -975,44 +957,38 @@ fact, the only important situation that you might benefit right now
 from using Psyco (I mean, in PyTables contexts) is for speeding-up the
 write speed in tables when using the Row interface (see
 :ref:`RowClassDescr`).  But again, this latter case can
-also be accelerated by using the Table.append() (see
-:ref:`Table.append`) method and building your own
-buffers
-
-So, there is not much point in using Psyco
-with recent versions of PyTables anymore.
+also be accelerated by using the :meth:`Table.append`
+method and building your own buffers [4]_.
 
 As an example, imagine that you have a small script that reads
-and selects data over a series of datasets, like this:
-
-::
+and selects data over a series of datasets, like this::
 
     def readFile(filename):
-    "Select data from all the tables in filename"
-    fileh = openFile(filename, mode = "r")
-    result = []
-    for table in fileh("/", 'Table'):
-    result = [p['var3'] for p in table if p['var2'] <= 20]
-    fileh.close()
-    return result
+        "Select data from all the tables in filename"
+        fileh = openFile(filename, mode = "r")
+        result = []
+        for table in fileh("/", 'Table'):
+            result = [p['var3'] for p in table if p['var2'] <= 20]
+        fileh.close()
+        return result
+
     if __name__=="__main__":
-    print readFile("myfile.h5")
+        print readFile("myfile.h5")
 
 In order to accelerate this piece of code, you can rewrite your
-main program to look like:
-
-::
+main program to look like::
 
     if __name__=="__main__":
-    import psyco
-    psyco.bind(readFile)
-    print readFile("myfile.h5")
+        import psyco
+        psyco.bind(readFile)
+        print readFile("myfile.h5")
 
 That's all!  From now on, each time that you execute your Python
 script, Psyco will deploy its sophisticated algorithms so as to
 accelerate your calculations.
 
-You can see in the graphs :ref:`psycoWriteComparison` and :ref:`psycoReadComparison` how much I/O speed
+You can see in the graphs :ref:`Figure 24 <psycoWriteComparison>` and 
+:ref:`Figure 25 <psycoReadComparison>` how much I/O speed
 improvement you can get by using Psyco. By looking at this figures you
 can get an idea if these improvements are of your interest or not. In
 general, if you are not going to use compression you will take
@@ -1026,21 +1002,19 @@ dataset.
 
 .. _psycoWriteComparison:
 
-Writing tables with/without Psyco.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. figure:: images/write-medium-psyco-nopsyco-comparison.svg
-
 .. figure:: images/write-medium-psyco-nopsyco-comparison.png
+    :align: center
+
+    **Figure 24. Writing tables with/without Psyco.**
+
 
 .. _psycoReadComparison:
 
-Reading tables with/without Psyco.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. figure:: images/read-medium-psyco-nopsyco-comparison.svg
-
 .. figure:: images/read-medium-psyco-nopsyco-comparison.png
+    :align: center
+
+    **Figure 25. Reading tables with/without Psyco.**
+
 
 .. _LRUOptim:
 
@@ -1075,46 +1049,46 @@ at any time. As PyTables is meant to be deployed in machines that can
 have potentially low memory, the default for it is quite conservative
 (you can look at its actual value in the
 NODE_CACHE_SLOTS parameter in module
-tables/parameters.py). However, if you usually need
+:file:`tables/parameters.py`). However, if you usually need
 to deal with files that have many more nodes than the maximum default,
 and you have a lot of free memory in your system, then you may want to
 experiment in order to see which is the appropriate value of
 NODE_CACHE_SLOTS that fits better your
 needs.
 
-As an example, look at the next code:
-
-::
+As an example, look at the next code::
 
     def browse_tables(filename):
-    fileh = openFile(filename,'a')
-    group = fileh.root.newgroup
-    for j in range(10):
-    for tt in fileh.walkNodes(group, "Table"):
-    title = tt.attrs.TITLE
-    for row in tt:
-    pass
-    fileh.close()
+        fileh = openFile(filename,'a')
+        group = fileh.root.newgroup
+        for j in range(10):
+            for tt in fileh.walkNodes(group, "Table"):
+                title = tt.attrs.TITLE
+                for row in tt:
+                    pass
+        fileh.close()
 
 We will be running the code above against a couple of files
 having a /newgroup containing 100 tables and 1000
 tables respectively.  In addition, this benchmark is run twice for two
 different values of the LRU cache size, specifically 256 and 1024. You
-can see the results in :ref:`LRUTblComparison`.
+can see the results in Table 1.
 
-Retrieval speed and memory consumption depending on the
-          number of nodes in LRU cache.
 
-====================== =========== ==========
-                       100
-nodes   1000
-nodes
-====================== =========== ==========
-Disk                               14
-Cache                              14
-====================== =========== ==========
+**Table 1. Retrieval speed and memory consumption depending on the number of nodes in LRU cache.**
 
-From the data in :ref:`LRUTblComparison`, one can see that when the number of
+====================== =========== === ======= ==== ==== === ======= ==== ====
+Number:                                   100 nodes             1000 nodes          
+---------------------------------- --------------------- ---------------------
+Mem & Speed                        Memory (MB) Time (ms) Memory (MB) Time (ms)
+---------------------------------- ----------- --------- ----------- ---------
+Node is coming from... Cache size  256 1024    256  1024 256 1024    256  1024
+====================== =========== === ======= ==== ==== === ======= ==== ====
+Disk                               14  14      1.24 1.24 51  66      1.33 1.31
+Cache                              14  14      0.53 0.52 65  73      1.35 0.68
+====================== =========== === ======= ==== ==== === ======= ==== ====
+
+From the data in Table 1, one can see that when the number of
 objects that you are dealing with does fit in cache, you will get
 better access times to them. Also, incrementing the node cache size
 effectively consumes more memory *only* if the
@@ -1147,7 +1121,6 @@ parameter.
    in C, so you should expect significantly faster LRU cache
    operations when working with it.
 
-.. COMMENT: TODO: Rewrite above section to include info on indexes
 
 Compacting your PyTables files
 ------------------------------
@@ -1187,4 +1160,11 @@ filters.
        automatically computed at creation time, since their final shape is known.
 
 .. [2] Except for Array objects.
+
+.. [3] Some users reported that the typical improvement with real
+       data is between a factor 1.5x and 2.5x over the already compressed
+       datasets.
+
+.. [4] So, there is not much point in using Psyco
+       with recent versions of PyTables anymore.
 
