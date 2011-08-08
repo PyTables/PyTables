@@ -316,16 +316,13 @@ so it lacks some functionality. This is a list of known current
 limitations:
 
 #. Node files can only be opened for read-only or read and
-  append mode. This should be enhanced in the future.
-
+   append mode. This should be enhanced in the future.
 #. Near future?
-
 #. There is no universal newline support yet. This is likely to
-  be implemented in a near future.
-
+   be implemented in a near future.
 #. Sparse files (files with lots of zeros) are not treated
-  specially; if you want them to take less space, you should be
-  better off using compression.
+   specially; if you want them to take less space, you should be
+   better off using compression.
 
 These limitations still make filenode
 entirely adequate to work with most binary and text files. Of course,
@@ -350,193 +347,183 @@ Global constants
 Global functions
 ~~~~~~~~~~~~~~~~
 
-newNode(h5file, where, name, title="", filters=None,
-expectedsize=1000)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. function:: newNode(h5file, where, name, title="", filters=None, expectedsize=1000)
 
-Creates a new file node object in the specified PyTables
-file object. Additional named arguments where
-and name must be passed to specify where the
-file node is to be created. Other named arguments such as
-title and filters may also
-be passed. The special named argument
-expectedsize, indicating an estimate of the
-file size in bytes, may also be passed. It returns the file node
-object.
+    Creates a new file node object in the specified PyTables
+    file object. Additional named arguments where
+    and name must be passed to specify where the
+    file node is to be created. Other named arguments such as
+    title and filters may also
+    be passed. The special named argument
+    expectedsize, indicating an estimate of the
+    file size in bytes, may also be passed. It returns the file node
+    object.
 
-openNode(node, mode = 'r')
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. function:: openNode(node, mode = 'r')
 
-Opens an existing file node. Returns a file node object from
-the existing specified PyTables node. If mode is not specified or
-it is 'r', the file can only be read, and the
-pointer is positioned at the beginning of the file. If mode is
-'a+', the file can be read and appended, and
-the pointer is positioned at the end of the file.
+    Opens an existing file node. Returns a file node object from
+    the existing specified PyTables node. If mode is not specified or
+    it is 'r', the file can only be read, and the
+    pointer is positioned at the beginning of the file. If mode is
+    'a+', the file can be read and appended, and
+    the pointer is positioned at the end of the file.
+
 
 The FileNode abstract class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: FileNode
 
-This is the ancestor of ROFileNode and
-RAFileNode (see below). Instances of these
-classes are returned when newNode() or
-openNode() are called. It represents a new file
-node associated with a PyTables node, providing a standard Python
-file interface to it.
+    This is the ancestor of ROFileNode and
+    RAFileNode (see below). Instances of these
+    classes are returned when newNode() or
+    openNode() are called. It represents a new file
+    node associated with a PyTables node, providing a standard Python
+    file interface to it.
 
-This abstract class provides only an implementation of the
-reading methods needed to implement a file-like object over a
-PyTables node. The attribute set of the node becomes available via
-the attrs property. You can add attributes there,
-but try to avoid attribute names in all caps or starting with
-'_', since they may clash with internal
-attributes.
+    This abstract class provides only an implementation of the
+    reading methods needed to implement a file-like object over a
+    PyTables node. The attribute set of the node becomes available via
+    the attrs property. You can add attributes there,
+    but try to avoid attribute names in all caps or starting with
+    '_', since they may clash with internal
+    attributes.
 
-The node used as storage is also made available via the
-read-only attribute node. Please do not tamper
-with this object unless unavoidably, since you may break the
-operation of the file node object.
+    The node used as storage is also made available via the
+    read-only attribute node. Please do not tamper
+    with this object unless unavoidably, since you may break the
+    operation of the file node object.
 
-The lineSeparator property contains the
-string used as a line separator, and defaults to
-os.linesep. It can be set to any reasonably-sized
-string you want.
+    The lineSeparator property contains the
+    string used as a line separator, and defaults to
+    os.linesep. It can be set to any reasonably-sized
+    string you want.
 
-The constructor sets the closed,
-softspace and _lineSeparator
-attributes to their initial values, as well as the
-node attribute to None.
-Sub-classes should set the node,
-mode and offset
-attributes.
+    The constructor sets the closed,
+    softspace and _lineSeparator
+    attributes to their initial values, as well as the
+    node attribute to None.
+    Sub-classes should set the node,
+    mode and offset attributes.
 
-Version 1 implements the file storage as a
-UInt8 uni-dimensional
-EArray.
+    Version 1 implements the file storage as a
+    UInt8 uni-dimensional EArray.
+
 
 FileNode methods
 ^^^^^^^^^^^^^^^^
 
-*getLineSeparator()*
-....................
+.. method:: FileNode.getLineSeparator()
 
-Returns the line separator string.
+    Returns the line separator string.
 
-*setLineSeparator()*
-....................
+.. method:: FileNode.setLineSeparator()
 
-Sets the line separator string.
+    Sets the line separator string.
 
-*getAttrs()*
-............
+.. method:: FileNode.getAttrs()
 
-Returns the attribute set of the file node.
+    Returns the attribute set of the file node.
 
-*close()*
-.........
+.. method:: FileNode.close()
 
-Flushes the file and closes it. The
-node attribute becomes
-None and the attrs
-property becomes no longer available.
+    Flushes the file and closes it. The
+    node attribute becomes
+    None and the attrs
+    property becomes no longer available.
 
-*next()*
-........
+.. method:: FileNode.next()
 
-Returns the next line of text. Raises
-StopIteration when lines are exhausted. See
-file.next.__doc__ for more
-information.
+    Returns the next line of text. Raises
+    StopIteration when lines are exhausted. See
+    file.next.__doc__ for more
+    information.
 
-*read(size=None)*
-.................
+.. method:: FileNode.read(size=None)
 
-Reads at most size bytes. See
-file.read.__doc__ for more information
+    Reads at most size bytes. See
+    file.read.__doc__ for more information
 
-*readline(size=-1)*
-...................
 
-Reads the next text line. See
-file.readline.__doc__ for more
-information
+.. method:: FileNode.readline(size=-1)
 
-*readlines(sizehint=-1)*
-........................
+    Reads the next text line. See
+    file.readline.__doc__ for more
+    information.
 
-Reads the text lines. See
-file.readlines.__doc__ for more
-information.
 
-*seek(offset,
-whence=0)*
-........................
+.. method:: FileNode.readlines(sizehint=-1)
 
-Moves to a new file position. See
-file.seek.__doc__ for more
-information.
+    Reads the text lines. See
+    file.readlines.__doc__ for more
+    information.
 
-*tell()*
-........
+.. method:: FileNode.seek(offset, whence=0)
 
-Gets the current file position. See
-file.tell.__doc__ for more
-information.
+    Moves to a new file position. See
+    file.seek.__doc__ for more
+    information.
 
-*xreadlines()*
-..............
 
-For backward compatibility. See
-file.xreadlines.__doc__ for more
-information.
+.. method:: FileNode.tell()
+
+    Gets the current file position. See
+    file.tell.__doc__ for more
+    information.
+
+.. method:: FileNode.xreadlines()
+
+    For backward compatibility. See
+    file.xreadlines.__doc__ for more
+    information.
+
 
 The ROFileNode class
 ~~~~~~~~~~~~~~~~~~~~
+.. class:: ROFileNode
 
-Instances of this class are returned when
-openNode() is called in read-only mode
-('r'). This is a descendant of
-FileNode class, so it inherits all its methods.
-Moreover, it does not define any other useful method, just some
-protections against users intents to write on file.
+    Instances of this class are returned when
+    openNode() is called in read-only mode
+    ('r'). This is a descendant of
+    FileNode class, so it inherits all its methods.
+    Moreover, it does not define any other useful method, just some
+    protections against users intents to write on file.
+
 
 The RAFileNode class
 ~~~~~~~~~~~~~~~~~~~~
+.. class:: RAFileNode
 
-Instances of this class are returned when either
-newNode() is called or when
-openNode() is called in append mode
-('a+'). This is a descendant of
-FileNode class, so it inherits all its methods.
-It provides additional methods that allow to write on file
-nodes.
+    Instances of this class are returned when either
+    newNode() is called or when
+    openNode() is called in append mode
+    ('a+'). This is a descendant of
+    FileNode class, so it inherits all its methods.
+    It provides additional methods that allow to write on file
+    nodes.
 
-flush()
-^^^^^^^
 
-Flushes the file node. See
-file.flush.__doc__ for more information.
+.. method:: RAFileNode.flush()
 
-truncate(size=None)
-^^^^^^^^^^^^^^^^^^^
+    Flushes the file node. See
+    file.flush.__doc__ for more information.
 
-Truncates the file node to at most size
-bytes. Currently, this method only makes sense to grow the file
-node, since data can not be rewritten nor deleted. See
-file.truncate.__doc__ for more
-information.
 
-write(string)
-^^^^^^^^^^^^^
+.. method:: RAFileNode.truncate(size=None)
 
-Writes the string to the file. Writing an empty string does
-nothing, but requires the file to be open. See
-file.write.__doc__ for more information.
+    Truncates the file node to at most size
+    bytes. Currently, this method only makes sense to grow the file
+    node, since data can not be rewritten nor deleted. See
+    file.truncate.__doc__ for more information.
 
-writelines(sequence)
-^^^^^^^^^^^^^^^^^^^^
+.. method:: RAFileNode.write(string)
 
-Writes the sequence of strings to the file. See
-file.writelines.__doc__ for more
-information.
+    Writes the string to the file. Writing an empty string does
+    nothing, but requires the file to be open. See
+    file.write.__doc__ for more information.
+
+
+.. method:: RAFileNode.writelines(sequence)
+
+    Writes the sequence of strings to the file. See
+    file.writelines.__doc__ for more information.
 
