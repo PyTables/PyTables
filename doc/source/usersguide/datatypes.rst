@@ -76,8 +76,7 @@ supports other kinds on enumerated values.
 Here you have a quick reference to the complete set of supported
 data types:
 
-Data types supported for array elements and tables columns in
-        PyTables.
+**Table 1. Data types supported for array elements and tables columns in PyTables.**
 
 ========== ======================== ====================== =============== ==================
 Type Code  Description              C Type                 Size (in bytes) Python Counterpart
