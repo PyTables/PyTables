@@ -2865,636 +2865,590 @@ Table methods - other
 
 
 
+
 .. _DescriptionClassDescr:
 
 The Description class
 ~~~~~~~~~~~~~~~~~~~~~
+.. class:: Description
 
-This class represents descriptions of the structure of
-tables.
+    This class represents descriptions of the structure of tables.
 
-An instance of this class is automatically bound to
-Table (see :ref:`TableClassDescr`) objects when they are created.  It
-provides a browseable representation of the structure of the table,
-made of non-nested (Col —see :ref:`ColClassDescr`) and nested
-(Description) columns. It also contains
-information that will allow you to build
-NestedRecArray (see :ref:`NestedRecArrayClassDescr`)
-objects suited for the different columns in a table (be they nested
-or not).
+    An instance of this class is automatically bound to
+    Table (see :ref:`TableClassDescr`) objects when they are created.  It
+    provides a browseable representation of the structure of the table,
+    made of non-nested (Col - see :ref:`ColClassDescr`) and nested
+    (Description) columns. It also contains
+    information that will allow you to build
+    NestedRecArray (see :ref:`NestedRecArrayClassDescr`)
+    objects suited for the different columns in a table (be they nested
+    or not).
 
-Column definitions under a description can be accessed as
-attributes of it (*natural naming*). For
-instance, if table.description is a
-Description instance with a column named
-col1 under it, the later can be accessed as
-table.description.col1. If
-col1 is nested and contains a
-col2 column, this can be accessed as
-table.description.col1.col2. Because of natural
-naming, the names of members start with special prefixes, like in
-the Group class (see :ref:`GroupClassDescr`).
+    Column definitions under a description can be accessed as
+    attributes of it (*natural naming*). For
+    instance, if table.description is a
+    Description instance with a column named
+    col1 under it, the later can be accessed as
+    table.description.col1. If
+    col1 is nested and contains a
+    col2 column, this can be accessed as
+    table.description.col1.col2. Because of natural
+    naming, the names of members start with special prefixes, like in
+    the Group class (see :ref:`GroupClassDescr`).
+
 
 Description instance variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-glosslist-presentation="list"
+.. attribute:: Description._v_colObjects
 
-*_v_colObjects*
+    A dictionary mapping the names of the columns hanging
+    directly from the associated table or nested column to their
+    respective descriptions (Col - see :ref:`ColClassDescr or
+    Description - see :ref:`DescriptionClassDescr` instances).
 
-A dictionary mapping the names of the columns hanging
-directly from the associated table or nested column to their
-respective descriptions (Col —see :ref:`ColClassDescr`— or
-Description —see :ref:`DescriptionClassDescr`— instances).
+.. attribute:: Description._v_dflts
 
-*_v_dflts*
+    A dictionary mapping the names of non-nested columns
+    hanging directly from the associated table or nested column
+    to their respective default values.
 
-A dictionary mapping the names of non-nested columns
-hanging directly from the associated table or nested column
-to their respective default values.
+.. attribute:: Description._v_dtype
 
-*_v_dtype*
+    The NumPy type which reflects the structure of this
+    table or nested column.  You can use this as the
+    dtype argument of NumPy array factories.
 
-The NumPy type which reflects the structure of this
-table or nested column.  You can use this as the
-dtype argument of NumPy array
-factories.
+.. attribute:: Description._v_dtypes
 
-*_v_dtypes*
+    A dictionary mapping the names of non-nested columns
+    hanging directly from the associated table or nested column
+    to their respective NumPy types.
 
-A dictionary mapping the names of non-nested columns
-hanging directly from the associated table or nested column
-to their respective NumPy types.
+.. attribute:: Description._v_is_nested
 
-*_v_is_nested*
+    Whether the associated table or nested column contains
+    further nested columns or not.
 
-Whether the associated table or nested column contains
-further nested columns or not.
+.. attribute:: Description._v_itemsize
 
-*_v_itemsize*
+    The size in bytes of an item in this table or nested column.
 
-The size in bytes of an item in this table or nested
-column.
+.. attribute:: Description._v_name
 
-*_v_name*
+    The name of this description group. The name of the
+    root group is '/'.
 
-The name of this description group. The name of the
-root group is '/'.
+.. attribute:: Description._v_names
 
-*_v_names*
+    A list of the names of the columns hanging directly
+    from the associated table or nested column. The order of the
+    names matches the order of their respective columns in the
+    containing table.
 
-A list of the names of the columns hanging directly
-from the associated table or nested column. The order of the
-names matches the order of their respective columns in the
-containing table.
+.. attribute:: Description._v_nestedDescr
 
-*_v_nestedDescr*
+    A nested list of pairs of (name,
+    format) tuples for all the columns under this
+    table or nested column. You can use this as the
+    dtype and descr
+    arguments of NumPy array and
+    NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories, respectively.
 
-A nested list of pairs of (name,
-format) tuples for all the columns under this
-table or nested column. You can use this as the
-dtype and descr
-arguments of NumPy array and
-NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories, respectively.
+.. attribute:: Description._v_nestedFormats
 
-*_v_nestedFormats*
+    A nested list of the NumPy string formats (and shapes)
+    of all the columns under this table or nested column. You
+    can use this as the formats argument of
+    NumPy array and NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
 
-A nested list of the NumPy string formats (and shapes)
-of all the columns under this table or nested column. You
-can use this as the formats argument of
-NumPy array and NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
+.. attribute:: Description._v_nestedlvl
 
-*_v_nestedlvl*
+    The level of the associated table or nested column in
+    the nested datatype.
 
-The level of the associated table or nested column in
-the nested datatype.
+.. attribute:: Description._v_nestedNames
 
-*_v_nestedNames*
+    A nested list of the names of all the columns under
+    this table or nested column. You can use this as the
+    names argument of NumPy array and
+    NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
 
-A nested list of the names of all the columns under
-this table or nested column. You can use this as the
-names argument of NumPy array and
-NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
+.. attribute:: Description._v_pathnames
 
-*_v_pathnames*
+    A list of the pathnames of all the columns under this
+    table or nested column (in preorder).  If it does not
+    contain nested columns, this is exactly the same as the
+    :attr:`Description._v_names` attribute.
 
-A list of the pathnames of all the columns under this
-table or nested column (in preorder).  If it does not
-contain nested columns, this is exactly the same as the
-Description._v_names attribute.
+.. attribute:: Description._v_types
 
-*_v_types*
+    A dictionary mapping the names of non-nested columns
+    hanging directly from the associated table or nested column
+    to their respective PyTables types.
 
-A dictionary mapping the names of non-nested columns
-hanging directly from the associated table or nested column
-to their respective PyTables types.
+
 
 Description methods
 ^^^^^^^^^^^^^^^^^^^
 
-_f_walk(type='All')
-...................
+.. method:: Description._f_walk(type='All')
 
-Iterate over nested columns.
+    Iterate over nested columns.
 
-If type is 'All'
-(the default), all column description objects
-(Col and Description
-instances) are yielded in top-to-bottom order (preorder).
+    If type is 'All'
+    (the default), all column description objects
+    (Col and Description
+    instances) are yielded in top-to-bottom order (preorder).
 
-If type is 'Col' or
-'Description', only column descriptions of
-that type are yielded.
+    If type is 'Col' or
+    'Description', only column descriptions of
+    that type are yielded.
+
+
 
 .. _RowClassDescr:
 
 The Row class
 ~~~~~~~~~~~~~
+.. class:: Row
 
-Table row iterator and field accessor.
+    Table row iterator and field accessor.
 
-Instances of this class are used to fetch and set the values
-of individual table fields.  It works very much like a dictionary,
-where keys are the pathnames or positions (extended slicing is
-supported) of the fields in the associated table in a specific
-row.
+    Instances of this class are used to fetch and set the values
+    of individual table fields.  It works very much like a dictionary,
+    where keys are the pathnames or positions (extended slicing is
+    supported) of the fields in the associated table in a specific row.
 
-This class provides an *iterator interface*
-so that you can use the same Row instance to
-access successive table rows one after the other.  There are also
-some important methods that are useful for accessing, adding and
-modifying values in tables.
+    This class provides an *iterator interface*
+    so that you can use the same Row instance to
+    access successive table rows one after the other.  There are also
+    some important methods that are useful for accessing, adding and
+    modifying values in tables.
+
 
 Row instance variables
 ^^^^^^^^^^^^^^^^^^^^^^
 
-*nrow*
+.. attribute:: Row.nrow
 
-The current row number.
+    The current row number.
 
-This property is useful for knowing which row is being
-dealt with in the middle of a loop or iterator.
+    This property is useful for knowing which row is being
+    dealt with in the middle of a loop or iterator.
+
 
 Row methods
 ^^^^^^^^^^^
 
-.. _Row.append:
+.. method:: Row.append()
 
-append()
-........
+    Add a new row of data to the end of the dataset.
 
-Add a new row of data to the end of the dataset.
+    Once you have filled the proper fields for the current
+    row, calling this method actually appends the new data to the
+    *output buffer* (which will eventually be
+    dumped to disk).  If you have not set the value of a field, the
+    default value of the column will be used.
 
-Once you have filled the proper fields for the current
-row, calling this method actually appends the new data to the
-*output buffer* (which will eventually be
-dumped to disk).  If you have not set the value of a field, the
-default value of the column will be used.
+    Example of use::
 
-Example of use:
+        row = table.row
+        for i in xrange(nrows):
+            row['col1'] = i-1
+            row['col2'] = 'a'
+            row['col3'] = -1.0
+            row.append()
+        table.flush()
 
-::
+    .. warning:: After completion of the loop in which
+       :meth:`Row.append` has been called, it is always
+       convenient to make a call to :meth:`Table.flush`
+       in order to avoid losing the last rows that may still remain
+       in internal buffers.
 
-    row = table.row
-    for i in xrange(nrows):
-    row['col1'] = i-1
-    row['col2'] = 'a'
-    row['col3'] = -1.0
-    row.append()
-    table.flush()
 
-.. warning:: After completion of the loop in which
-   Row.append() has been called, it is always
-   convenient to make a call to Table.flush()
-   in order to avoid losing the last rows that may still remain
-   in internal buffers.
+.. method:: Row.fetch_all_fields()
 
-fetch_all_fields()
-..................
+    Retrieve all the fields in the current row.
 
-Retrieve all the fields in the current row.
+    Contrarily to row[:] (see :ref:`RowSpecialMethods`), this returns row data as a
+    NumPy void scalar.  For instance::
 
-Contrarily to row[:] (see :ref:`RowSpecialMethods`), this returns row data as a
-NumPy void scalar.  For instance:
+        [row.fetch_all_fields() for row in table.where('col1 < 3')]
 
-::
+    will select all the rows that fulfill the given condition
+    as a list of NumPy records.
 
-    [row.fetch_all_fields() for row in table.where('col1 < 3')]
 
-will select all the rows that fulfill the given condition
-as a list of NumPy records.
+.. method:: Row.update()
 
-.. _Row.update:
+    Change the data of the current row in the dataset.
 
-update()
-........
+    This method allows you to modify values in a table when
+    you are in the middle of a table iterator like
+    :meth:`Table.iterrows` or :meth:`Table.where`.
 
-Change the data of the current row in the dataset.
+    Once you have filled the proper fields for the current
+    row, calling this method actually changes data in the
+    *output buffer* (which will eventually be
+    dumped to disk).  If you have not set the value of a field, its
+    original value will be used.
 
-This method allows you to modify values in a table when
-you are in the middle of a table iterator like
-Table.iterrows() (see :ref:`Table.iterrows`) or Table.where()
-(see :ref:`Table.where`).
+    Examples of use::
 
-Once you have filled the proper fields for the current
-row, calling this method actually changes data in the
-*output buffer* (which will eventually be
-dumped to disk).  If you have not set the value of a field, its
-original value will be used.
+        for row in table.iterrows(step=10):
+            row['col1'] = row.nrow
+            row['col2'] = 'b'
+            row['col3'] = 0.0
+            row.update()
+        table.flush()
 
-Examples of use:
+    which modifies every tenth row in table.  Or::
 
-::
+        for row in table.where('col1 > 3'):
+            row['col1'] = row.nrow
+            row['col2'] = 'b'
+            row['col3'] = 0.0
+            row.update()
+        table.flush()
 
-    for row in table.iterrows(step=10):
-    row['col1'] = row.nrow
-    row['col2'] = 'b'
-    row['col3'] = 0.0
-    row.update()
-    table.flush()
+    which just updates the rows with values bigger than 3 in
+    the first column.
 
-which modifies every tenth row in table.  Or:
+    .. warning:: After completion of the loop in which
+       :meth:`Row.update` has been called, it is always
+       convenient to make a call to :meth:`Table.flush`
+       in order to avoid losing changed rows that may still remain in
+       internal buffers.
 
-::
 
-    for row in table.where('col1 > 3'):
-    row['col1'] = row.nrow
-    row['col2'] = 'b'
-    row['col3'] = 0.0
-    row.update()
-    table.flush()
-
-which just updates the rows with values bigger than 3 in
-the first column.
-
-.. warning:: After completion of the loop in which
-   Row.update() has been called, it is always
-   convenient to make a call to Table.flush()
-   in order to avoid losing changed rows that may still remain in
-   internal buffers.
-
-.. _RowSpecialMethods:
 
 Row special methods
 ^^^^^^^^^^^^^^^^^^^
 
-__contains__(item)
-..................
+.. method:: Row.__contains__(item)
 
-Is item in this row?
+    Is item in this row?
 
-A true value is returned if item is
-found in current row, false otherwise.
+    A true value is returned if item is
+    found in current row, false otherwise.
 
-__getitem__(key)
-................
 
-Get the row field specified by the
-key.
+.. method:: Row.__getitem__(key)
 
-The key can be a string (the name of
-the field), an integer (the position of the field) or a slice
-(the range of field positions). When key is a
-slice, the returned value is a *tuple*
-containing the values of the specified fields.
+    Get the row field specified by the key.
 
-Examples of use:
+    The key can be a string (the name of
+    the field), an integer (the position of the field) or a slice
+    (the range of field positions). When key is a
+    slice, the returned value is a *tuple*
+    containing the values of the specified fields.
 
-::
+    Examples of use::
 
-    res = [row['var3'] for row in table.where('var2 < 20')]
+        res = [row['var3'] for row in table.where('var2 < 20')]
 
-which selects the var3 field for all
-the rows that fulfil the condition. Or:
+    which selects the var3 field for all
+    the rows that fulfil the condition. Or::
 
-::
+        res = [row[4] for row in table if row[1] < 20]
 
-    res = [row[4] for row in table if row[1] < 20]
+    which selects the field in the *4th*
+    position for all the rows that fulfil the
+    condition. Or::
 
-which selects the field in the *4th*
-position for all the rows that fulfil the
-condition. Or:
+        res = [row[:] for row in table if row['var2'] < 20]
 
-::
+    which selects the all the fields (in the form of a
+    *tuple*) for all the rows that fulfil the
+    condition. Or::
 
-    res = [row[:] for row in table if row['var2'] < 20]
+        res = [row[1::2] for row in table.iterrows(2, 3000, 3)]
 
-which selects the all the fields (in the form of a
-*tuple*) for all the rows that fulfil the
-condition. Or:
+    which selects all the fields in even positions (in the
+    form of a *tuple*) for all the rows in the
+    slice [2:3000:3].
 
-::
 
-    res = [row[1::2] for row in table.iterrows(2, 3000, 3)]
+.. method:: Row.__setitem__(key, value)
 
-which selects all the fields in even positions (in the
-form of a *tuple*) for all the rows in the
-slice [2:3000:3].
+    Set the key row field to the specified value.
 
-__setitem__(key, value)
-.......................
+    Differently from its __getitem__()
+    counterpart, in this case key can only be a
+    string (the name of the field). The changes done via
+    __setitem__() will not take effect on the
+    data on disk until any of the :meth:`Row.append` or
+    :meth:`Row.update` methods are called.
 
-Set the key row field to the specified
-value.
+    Example of use::
 
-Differently from its __getitem__()
-counterpart, in this case key can only be a
-string (the name of the field). The changes done via
-__setitem__() will not take effect on the
-data on disk until any of the Row.append()
-(see :ref:`Row.append`) or
-Row.update() (see :ref:`Row.update`) methods are called.
+        for row in table.iterrows(step=10):
+            row['col1'] = row.nrow
+            row['col2'] = 'b'
+            row['col3'] = 0.0
+            row.update()
+        table.flush()
 
-Example of use:
+    which modifies every tenth row in the table.
 
-::
 
-    for row in table.iterrows(step=10):
-    row['col1'] = row.nrow
-    row['col2'] = 'b'
-    row['col3'] = 0.0
-    row.update()
-    table.flush()
-
-which modifies every tenth row in the table.
 
 .. _ColsClassDescr:
 
 The Cols class
 ~~~~~~~~~~~~~~
+.. class:: Cols 
 
-Container for columns in a table or nested column.
+    Container for columns in a table or nested column.
 
-This class is used as an *accessor* to the
-columns in a table or nested column.  It supports the
-*natural naming* convention, so that you can
-access the different columns as attributes which lead to
-Column instances (for non-nested columns) or
-other Cols instances (for nested columns).
+    This class is used as an *accessor* to the
+    columns in a table or nested column.  It supports the
+    *natural naming* convention, so that you can
+    access the different columns as attributes which lead to
+    Column instances (for non-nested columns) or
+    other Cols instances (for nested columns).
 
-For instance, if table.cols is a
-Cols instance with a column named
-col1 under it, the later can be accessed as
-table.cols.col1. If col1 is
-nested and contains a col2 column, this can be
-accessed as table.cols.col1.col2 and so
-on. Because of natural naming, the names of members start with
-special prefixes, like in the Group class (see
-:ref:`GroupClassDescr`).
+    For instance, if table.cols is a
+    Cols instance with a column named
+    col1 under it, the later can be accessed as
+    table.cols.col1. If col1 is
+    nested and contains a col2 column, this can be
+    accessed as table.cols.col1.col2 and so
+    on. Because of natural naming, the names of members start with
+    special prefixes, like in the Group class (see
+    :ref:`GroupClassDescr`).
 
-Like the Column class (see :ref:`ColumnClassDescr`),
-Cols supports item access to read and write
-ranges of values in the table or nested column.
+    Like the Column class (see :ref:`ColumnClassDescr`),
+    Cols supports item access to read and write
+    ranges of values in the table or nested column.
+
 
 Cols instance variables
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-glosslist-presentation="list"
+.. attribute:: Cols._v_colnames
 
-*_v_colnames*
+    A list of the names of the columns hanging directly
+    from the associated table or nested column.  The order of
+    the names matches the order of their respective columns in
+    the containing table.
 
-A list of the names of the columns hanging directly
-from the associated table or nested column.  The order of
-the names matches the order of their respective columns in
-the containing table.
+.. attribute:: Cols._v_colpathnames
 
-*_v_colpathnames*
+    A list of the pathnames of all the columns under the
+    associated table or nested column (in preorder).  If it does
+    not contain nested columns, this is exactly the same as the
+    :attr:`Cols._v_colnames` attribute.
 
-A list of the pathnames of all the columns under the
-associated table or nested column (in preorder).  If it does
-not contain nested columns, this is exactly the same as the
-Cols._v_colnames attribute.
+.. attribute:: Cols._v_desc
 
-*_v_desc*
+    The associated Description instance
+    (see :ref:`DescriptionClassDescr`).
 
-The associated Description instance
-(see :ref:`DescriptionClassDescr`).
+.. attribute:: Cols._v_table
 
-*_v_table*
+    The parent Table instance (see :ref:`TableClassDescr`).
 
-The parent Table instance (see
-:ref:`TableClassDescr`).
 
 Cols methods
 ^^^^^^^^^^^^
 
-_f_col(colname)
-...............
+.. method:: Cols._f_col(colname)
 
-Get an accessor to the column
-colname.
+    Get an accessor to the column colname.
 
-This method returns a Column instance
-(see :ref:`ColumnClassDescr`) if the requested column is not nested, and a
-Cols instance (see :ref:`ColsClassDescr`) if it is.
-You may use full column pathnames in
-colname.
+    This method returns a Column instance
+    (see :ref:`ColumnClassDescr`) if the requested column is not nested, and a
+    Cols instance (see :ref:`ColsClassDescr`) if it is.
+    You may use full column pathnames in colname.
 
-Calling cols._f_col('col1/col2') is
-equivalent to using cols.col1.col2.  However,
-the first syntax is more intended for programmatic use.  It is
-also better if you want to access columns with names that are
-not valid Python identifiers.
+    Calling cols._f_col('col1/col2') is
+    equivalent to using cols.col1.col2.  However,
+    the first syntax is more intended for programmatic use.  It is
+    also better if you want to access columns with names that are
+    not valid Python identifiers.
 
-__getitem__(key)
-................
 
-Get a row or a range of rows from a table or nested
-column.
+.. method:: Cols.__getitem__(key)
 
-If key argument is an integer, the
-corresponding nested type row is returned as a record of the
-current flavor. If key is a slice, the range
-of rows determined by it is returned as a record array of the
-current flavor.
+    Get a row or a range of rows from a table or nested column.
 
-Example of use:
+    If key argument is an integer, the
+    corresponding nested type row is returned as a record of the
+    current flavor. If key is a slice, the range
+    of rows determined by it is returned as a record array of the
+    current flavor.
 
-::
+    Example of use::
 
-    record = table.cols[4]  # equivalent to table[4]
-    recarray = table.cols.Info[4:1000:2]
+        record = table.cols[4]  # equivalent to table[4]
+        recarray = table.cols.Info[4:1000:2]
 
-Those statements are equivalent to:
+    Those statements are equivalent to::
 
-::
+        nrecord = table.read(start=4)[0]
+        nrecarray = table.read(start=4, stop=1000, step=2).field('Info')
 
-    nrecord = table.read(start=4)[0]
-    nrecarray = table.read(start=4, stop=1000, step=2).field('Info')
+    Here you can see how a mix of natural naming, indexing and
+    slicing can be used as shorthands for the
+    :meth:`Table.read` method.
 
-Here you can see how a mix of natural naming, indexing and
-slicing can be used as shorthands for the
-:meth:`Table.read` method.
 
-__len__()
-.........
+.. method:: Cols.__len__()
 
-Get the number of top level columns in table.
+    Get the number of top level columns in table.
 
-__setitem__(key)
-................
 
-Set a row or a range of rows in a table or nested
-column.
+.. method:: Cols.__setitem__(key)
 
-If key argument is an integer, the
-corresponding row is set to value. If
-key is a slice, the range of rows determined
-by it is set to value.
+    Set a row or a range of rows in a table or nested column.
 
-Example of use:
+    If key argument is an integer, the
+    corresponding row is set to value. If
+    key is a slice, the range of rows determined
+    by it is set to value.
 
-::
+    Example of use::
 
-    table.cols[4] = record
-    table.cols.Info[4:1000:2] = recarray
+        table.cols[4] = record
+        table.cols.Info[4:1000:2] = recarray
 
-Those statements are equivalent to:
+    Those statements are equivalent to::
 
-::
+        table.modifyRows(4, rows=record)
+        table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)
 
-    table.modifyRows(4, rows=record)
-    table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)
+    Here you can see how a mix of natural naming, indexing and
+    slicing can be used as shorthands for the
+    :meth:`Table.modifyRows` and
+    :meth:`Table.modifyColumn` methods.
 
-Here you can see how a mix of natural naming, indexing and
-slicing can be used as shorthands for the
-Table.modifyRows() (see :ref:`Table.modifyRows`) and
-Table.modifyColumn() (see :ref:`Table.modifyColumn`) methods.
+
 
 .. _ColumnClassDescr:
 
 The Column class
 ~~~~~~~~~~~~~~~~
+.. class:: Column
 
-Accessor for a non-nested column in a table.
+    Accessor for a non-nested column in a table.
 
-Each instance of this class is associated with one
-*non-nested* column of a table. These instances
-are mainly used to read and write data from the table columns using
-item access (like the Cols class —see :ref:`ColsClassDescr`), but there
-are a few other associated methods to deal with indexes.
+    Each instance of this class is associated with one
+    *non-nested* column of a table. These instances
+    are mainly used to read and write data from the table columns using
+    item access (like the Cols class - see :ref:`ColsClassDescr`), but there
+    are a few other associated methods to deal with indexes.
+
 
 Column instance variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^
+.. attribute:: Column.descr
 
-glosslist-presentation="list"
+    The Description (see :ref:`DescriptionClassDescr`) instance of the parent table or nested column.
 
-*descr*
+.. attribute:: Column.dtype
 
-The Description (see :ref:`DescriptionClassDescr`) instance of the parent table or nested column.
+    The NumPy dtype that most closely matches this column.
 
-*dtype*
+.. attribute:: Column.index
 
-The NumPy dtype that most closely
-matches this column.
+    The Index instance (see :ref:`IndexClassDescr`)
+    associated with this column (None if the
+    column is not indexed).
 
-*index*
+.. attribute:: Column.is_indexed
 
-The Index instance (see :ref:`IndexClassDescr`)
-associated with this column (None if the
-column is not indexed).
+    True if the column is indexed, false otherwise.
 
-*is_indexed*
+.. attribute:: Column.maindim
 
-True if the column is indexed, false otherwise.
+    The dimension along which iterators work.
 
-*maindim*
+    Its value is 0 (i.e. the first dimension).
 
-The dimension along which iterators work.
+.. attribute:: Column.name
 
-Its value is 0 (i.e. the first dimension).
+    The name of the associated column.
 
-*name*
+.. attribute:: Column.pathname
 
-The name of the associated column.
+    The complete pathname of the associated column (the
+    same as Column.name if the column is not
+    inside a nested column).
 
-*pathname*
+.. attribute:: Column.shape
 
-The complete pathname of the associated column (the
-same as Column.name if the column is not
-inside a nested column).
+    The shape of this column.
 
-*shape*
+.. attribute:: Column.table
 
-The shape of this column.
+    The parent Table instance (see :ref:`TableClassDescr`).
 
-*table*
+.. attribute:: Column.type
 
-The parent Table instance (see
-:ref:`TableClassDescr`).
+    The PyTables type of the column (a string).
 
-*type*
-
-The PyTables type of the column (a string).
 
 Column methods
 ^^^^^^^^^^^^^^
 
-.. _Column.createIndex:
+.. method:: Column.createIndex(optlevel=6, kind="medium", filters=None, tmp_dir=None)
 
-createIndex(optlevel=6, kind="medium",
-filters=None, tmp_dir=None)
-..................................................................
+    Create an index for this column.
 
-Create an index for this column.
+    Parameters
+    ----------
+    optlevel : int
+        The optimization level for building the index.  The
+        levels ranges from 0 (no optimization) up to 9 (maximum
+        optimization).  Higher levels of optimization mean better
+        chances for reducing the entropy of the index at the price
+        of using more CPU, memory and I/O resources for creating
+        the index.
+    kind : str
+        The kind of the index to be built.  It can take the
+        'ultralight', 'light',
+        'medium' or 'full'
+        values.  Lighter kinds ('ultralight'
+        and 'light') mean that the index takes
+        less space on disk, but will perform queries slower.
+        Heavier kinds ('medium'
+        and 'full') mean better chances for
+        reducing the entropy of the index (increasing the query
+        speed) at the price of using more disk space as well as
+        more CPU, memory and I/O resources for creating the index.
 
-Keyword arguments:
+        Note that selecting a full kind
+        with an optlevel of 9 (the maximum)
+        guarantees the creation of an index with zero entropy,
+        that is, a completely sorted index (CSI) - provided that
+        the number of rows in the table does not exceed the 2**48
+        figure (that is more than 100 trillions of rows).  See
+        :meth:`Column.createCSIndex` method for a
+        more direct way to create a CSI index.
+    filters : Filters
+        Specify the Filters instance used
+        to compress the index.  If None,
+        default index filters will be used (currently, zlib level
+        1 with shuffling).
+    tmp_dir
+        When kind is other
+        than 'ultralight', a temporary file is
+        created during the index build process.  You can use the
+        tmp_dir argument to specify the
+        directory for this temporary file.  The default is to
+        create it in the same directory as the file containing the
+        original table.
 
-*optlevel*
+    Notes
+    -----
+    .. warning:: In some situations it is useful to get a completely
+       sorted index (CSI).  For those cases, it is best to use the
+       :meth:`Column.createCSIndex` method instead. 
 
-The optimization level for building the index.  The
-levels ranges from 0 (no optimization) up to 9 (maximum
-optimization).  Higher levels of optimization mean better
-chances for reducing the entropy of the index at the price
-of using more CPU, memory and I/O resources for creating
-the index.
 
-*kind*
-
-The kind of the index to be built.  It can take the
-'ultralight', 'light',
-'medium' or 'full'
-values.  Lighter kinds ('ultralight'
-and 'light') mean that the index takes
-less space on disk, but will perform queries slower.
-Heavier kinds ('medium'
-and 'full') mean better chances for
-reducing the entropy of the index (increasing the query
-speed) at the price of using more disk space as well as
-more CPU, memory and I/O resources for creating the
-index.
-
-Note that selecting a full kind
-with an optlevel of 9 (the maximum)
-guarantees the creation of an index with zero entropy,
-that is, a completely sorted index (CSI) — provided that
-the number of rows in the table does not exceed the 2**48
-figure (that is more than 100 trillions of rows).  See
-Column.createCSIndex()
-(:ref:`Column.createCSIndex`) method for a
-more direct way to create a CSI index.
-
-*filters*
-
-Specify the Filters instance used
-to compress the index.  If None,
-default index filters will be used (currently, zlib level
-1 with shuffling).
-
-*tmp_dir*
-
-When kind is other
-than 'ultralight', a temporary file is
-created during the index build process.  You can use the
-tmp_dir argument to specify the
-directory for this temporary file.  The default is to
-create it in the same directory as the file containing the
-original table.
-
-.. warning:: In some situations it is useful to get a completely
-   sorted index (CSI).  For those cases, it is best to use the
-   createCSIndex() method instead (see
-   :ref:`Column.createCSIndex`).
 
 .. _Column.createCSIndex:
 
