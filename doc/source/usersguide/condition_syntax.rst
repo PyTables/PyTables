@@ -1,12 +1,12 @@
 Condition syntax
 ================
+.. currentmodule:: tables
 
 Conditions in PyTables are used in methods related with in-kernel
-and indexed searches such as Table.where() (see
-:ref:`Table.where`) or Table.readWhere()
-(see :ref:`Table.readWhere`).  They are interpreted using
+and indexed searches such as :meth:`Table.where` or :meth:`Table.readWhere`.  
+They are interpreted using
 Numexpr, a powerful package for achieving C-speed computation of array
-operations (see ).
+operations (see :ref:`[NUMEXPR] <NUMEXPR>`).
 
 A condition on a table is just a *string*
 containing a Python expression involving *at least one
@@ -42,7 +42,7 @@ x and y are examples of
 *variables* which are associated with columns.
 Methods supporting conditions do usually provide their own ways of
 binding variable names to columns and other values. You can read the
-documentation of Table.where() (see :ref:`Table.where`) for more information on that. Also, please
+documentation of :meth:`Table.where` for more information on that. Also, please
 note that the names None, True and
 False, besides the names of functions (see below)
 *can not be overridden*, but you can always define
@@ -98,8 +98,7 @@ operators, and complex comparisons can only check for strict
 NotImplementedError exceptions.
 
 You may have noticed the special meaning of the usually bitwise
-operators &, | and
-~. Because of the way Python handles the
+operators &, | and ~. Because of the way Python handles the
 short-circuiting of logical operators and the truth values of their
 operands, conditions must use the bitwise operator equivalents instead.
 This is not difficult to remember, but you must be careful because
@@ -118,52 +117,47 @@ use '(0 < x) & (x < 1)'
 
 All of this may be solved if Python supported overloadable
 boolean operators (see PEP 335) or some kind of non-shortcircuiting
-boolean operators (like C's &&,
-|| and !).
+boolean operators (like C's &&, || and !).
 
 You can also use the following functions in conditions:
 
-- where(bool, number1, number2): number —
-  number1 if the bool
+- where(bool, number1, number2): number - number1 if the bool
   condition is true, number2 otherwise.
 
 - {sin,cos,tan}(float|complex):
-  float|complex — trigonometric sine, cosine or
+  float|complex - trigonometric sine, cosine or
   tangent.
 
 - {arcsin,arccos,arctan}(float|complex):
-  float|complex — trigonometric inverse sine, cosine or
+  float|complex - trigonometric inverse sine, cosine or
   tangent.
 
-- arctan2(float1, float2): float —
-  trigonometric inverse tangent of
+- arctan2(float1, float2): float - trigonometric inverse tangent of
   float1/float2.
 
 - {sinh,cosh,tanh}(float|complex):
-  float|complex — hyperbolic sine, cosine or
+  float|complex - hyperbolic sine, cosine or
   tangent.
 
 - {arcsinh,arccosh,arctanh}(float|complex):
-  float|complex — hyperbolic inverse sine, cosine or
+  float|complex - hyperbolic inverse sine, cosine or
   tangent.
 
 - {log,log10,log1p}(float|complex):
-  float|complex — natural, base-10
+  float|complex - natural, base-10
   and log(1+x) logarithms.
 
 - {exp,expm1}(float|complex):
-  float|complex — exponential and exponential minus
+  float|complex - exponential and exponential minus
   one.
 
-- sqrt(float|complex): float|complex —
-  square root.
+- sqrt(float|complex): float|complex - square root.
 
-- {abs}(float|complex): float|complex —
-  absolute value.
+- {abs}(float|complex): float|complex - absolute value.
 
-- {real,imag}(complex): float — real or
+- {real,imag}(complex): float - real or
   imaginary part of complex.
 
-- complex(float, float): complex — complex
+- complex(float, float): complex - complex
   from real and imaginary parts.
 
