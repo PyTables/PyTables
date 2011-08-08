@@ -139,7 +139,7 @@ Global functions
 
         * *'r'*: Read-only; no data can be modified.
         * *'w'*: Write; a new file is created (an existing file with the same name would be deleted).
-        * *'a'*: Append; an existing file is opened for reading and writing, and if the file 
+        * *'a'*: Append; an existing file is opened for reading and writing, and if the file
           does not exist it is created.
         * *'r+'*: It is similar to 'a', but the file must already exist.
     title : str
@@ -382,7 +382,7 @@ File methods - file handling
 
     This is needed for lower-level file interfaces, such as the
     fcntl module.
-    
+
 .. method:: File.__enter__()
 
     Enter a context and return the same file.
@@ -413,7 +413,7 @@ File methods - file handling
 
     Return a detailed string representation of the object tree.
 
-    
+
 File methods - hierarchy manipulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. method:: File.copyChildren(srcgroup, dstgroup, overwrite=False, recursive=False, createparents=False, **kwargs)
@@ -464,7 +464,7 @@ File methods - hierarchy manipulation
     -----
     Additional keyword arguments may be passed to customize the
     copying process. The supported arguments depend on the kind of
-    node being copied. See :meth:`Group._f_copy` and 
+    node being copied. See :meth:`Group._f_copy` and
     :meth:`Leaf.copy` for more information on their
     allowed keyword arguments.
 
@@ -478,7 +478,7 @@ File methods - hierarchy manipulation
 
     Create a new array with the given name in
     where location.  See the
-    Array class (in :ref:`ArrayClassDescr`) for more information on
+    Array class (in :class:`Array`) for more information on
     arrays.
 
     Parameters
@@ -494,10 +494,10 @@ File methods - hierarchy manipulation
 
         Also, objects that have some of their dimensions equal
         to 0 are not supported (use an EArray
-        node (see :ref:`EArrayClassDescr`) if you want to store an array
+        node (see :class:`EArray`) if you want to store an array
         with one of its dimensions equal to 0).
     byteorder : str
-        The byteorder of the data *on disk*, specified as 
+        The byteorder of the data *on disk*, specified as
         'little' or
         'big'.  If this is not specified, the
         byteorder is that of the given object.
@@ -512,17 +512,17 @@ File methods - hierarchy manipulation
 
     Create a new chunked array with the given
     name in where location.  See
-    the CArray class (in :ref:`CArrayClassDescr`) for more
+    the CArray class (in :class:`CArray`) for more
     information on chunked arrays.
 
     Parameters
     ----------
-    atom : Atom 
+    atom : Atom
         An Atom (see :ref:`AtomClassDescr`)
         instance representing the *type* and
         *shape* of the atomic objects to be
         saved.
-    shape : tuple 
+    shape : tuple
         The shape of the new array.
     chunkshape : tuple or number or None
         The shape of the data chunk to be read or written in a
@@ -543,12 +543,12 @@ File methods - hierarchy manipulation
 
     Create a new enlargeable array with the given
     name in where location.  See
-    the EArray (in :ref:`EArrayClassDescr`) class for more information on
+    the EArray (in :class:`EArray`) class for more information on
     enlargeable arrays.
 
     Parameters
     ----------
-    atom : Atom 
+    atom : Atom
         An Atom (see :ref:`AtomClassDescr`)
         instance representing the *type* and
         *shape* of the atomic objects to be saved.
@@ -558,7 +558,7 @@ File methods - hierarchy manipulation
         dimension being 0 means that the resulting
         EArray object can be extended along it.
         Multiple enlargeable dimensions are not supported right now.
-    expectedrows 
+    expectedrows
         A user estimate about the number of row elements that
         will be added to the growable dimension in the
         EArray node.  If not provided, the
@@ -568,7 +568,7 @@ File methods - hierarchy manipulation
         providing a guess; this will optimize the HDF5 B-Tree
         creation and management process time and the amount of
         memory used.
-    chunkshape : tuple, numeric, or None 
+    chunkshape : tuple, numeric, or None
         The shape of the data chunk to be read or written in a
         single HDF5 I/O operation.  Filters are applied to those
         chunks of data.  The dimensionality of
@@ -613,8 +613,8 @@ File methods - hierarchy manipulation
        compiled against HDF5 1.8.x series.  When using PyTables with
        HDF5 1.6.x, the *parent* group containing
        external link objects will be mapped to
-       an Unknown instance (see
-       :ref:`UnknownClassDescr`) and you won't be able to access *any*
+       an Unknown instance (see :ref:`UnknownClassDescr`)
+       and you won't be able to access *any*
        node hanging of this parent group.  It follows that if the
        parent group containing the external link is the root group,
        you won't be able to read *any* information
@@ -697,21 +697,21 @@ File methods - hierarchy manipulation
         many columns it has, their names, types, shapes, etc.  It
         can be any of the following:
 
-        * *A user-defined class*: This should inherit from the IsDescription 
+        * *A user-defined class*: This should inherit from the IsDescription
           class (see :ref:`IsDescriptionClassDescr`) where table fields are specified.
-        * *A dictionary*: For example, when you do not know beforehand which structure 
+        * *A dictionary*: For example, when you do not know beforehand which structure
           your table will have).
-        * *A Description instance*: You can use the description attribute of another 
+        * *A Description instance*: You can use the description attribute of another
           table to create a new one with the same structure.
         * *A NumPy dtype*: A completely general structured NumPy dtype.
-        * *A NumPy (record) array instance*: The dtype of this record array will be used 
-          as the description.  Also, in case the array has actual data, it will be injected 
+        * *A NumPy (record) array instance*: The dtype of this record array will be used
+          as the description.  Also, in case the array has actual data, it will be injected
           into the newly created table.
-        * *A RecArray instance (deprecated)*: Object from the numarray package.  This does 
+        * *A RecArray instance (deprecated)*: Object from the numarray package.  This does
           not give you the possibility to create a nested table.  Array data is injected into
           the new table.
-        * *A NestedRecArray instance (deprecated)*: If you want to have nested columns in 
-          your table and you are using numarray, you can use this object. Array data is 
+        * *A NestedRecArray instance (deprecated)*: If you want to have nested columns in
+          your table and you are using numarray, you can use this object. Array data is
           injected into the new table.
     title : str
         A description for this node (it sets the TITLE HDF5 attribute on disk).
@@ -762,7 +762,7 @@ File methods - hierarchy manipulation
         instance representing the *type* and
         *shape* of the atomic objects to be
         saved.
-    expectedsizeinMB 
+    expectedsizeinMB
         An user estimate about the size (in MB) in the final
         VLArray node. If not provided, the
         default value is 1 MB. If you plan to create either a much
@@ -794,7 +794,7 @@ File methods - hierarchy manipulation
     where, name : path
         These arguments work as in
         :meth:`File.getNode`, referencing the node to be acted upon.
-    newparent 
+    newparent
         The destination group the node will be moved into (a
         path name or a Group instance). If it is
         not specified or None, the current parent
@@ -818,7 +818,7 @@ File methods - hierarchy manipulation
 
     Parameters
     ----------
-    where, name 
+    where, name
         These arguments work as in
         :meth:`File.getNode`, referencing the node to be acted upon.
     recursive : bool
@@ -835,7 +835,7 @@ File methods - hierarchy manipulation
 
     Parameters
     ----------
-    where, name 
+    where, name
         These arguments work as in
         :meth:`File.getNode`, referencing the node to be acted upon.
     newname : str
@@ -1677,7 +1677,7 @@ readline) of the names of child nodes. For
 instance::
 
     # get a Python attribute
-    nchild = group._v_nchildren  
+    nchild = group._v_nchildren
 
     # Add a Table child called 'table' under 'group'.
     h5file.createTable(group, 'table', myDescription)
@@ -1791,18 +1791,18 @@ The Leaf class
 
     Abstract base class for all PyTables leaves.
 
-    A leaf is a node (see the Node class in :ref:`NodeClassDescr`) which hangs
-    from a group (see the Group class in :ref:`GroupClassDescr`) but, unlike a
+    A leaf is a node (see the Node class in :class:`Node`) which hangs
+    from a group (see the Group class in :class:`Group`) but, unlike a
     group, it can not have any further children below it (i.e. it is an
     end node).
 
     This definition includes all nodes which contain actual data
     (datasets handled by the Table - see :ref:`TableClassDescr`,
-    Array - see :ref:`ArrayClassDescr`, CArray - see :ref:`CArrayClassDescr`,
-    EArray - see :ref:`EArrayClassDescr`, and VLArray - see
-    :ref:`VLArrayClassDescr`
+    Array - see :class:`Array`, CArray - see :class:`CArray`,
+    EArray - see :class:`EArray`, and VLArray - see
+    :class:`VLArray`
     classes) and unsupported nodes (the UnImplemented
-    class - :ref:`UnImplementedClassDescr`) these classes do in fact inherit from
+    class - :class:`UnImplemented`) these classes do in fact inherit from
     Leaf.
 
 
@@ -1925,7 +1925,7 @@ Leaf methods
     This method has the behavior described in
     :meth:`Node._f_copy`. Please note that there is no
     recursive flag since leaves do not have child
-    nodes. 
+    nodes.
 
     Parameters
     ----------
@@ -2311,22 +2311,21 @@ Table methods - reading
 
         result = [ row['var2'] for row in table.iterrows(step=5) if row['var1'] <= 20 ]
 
-    .. note:: This iterator can be nested (see
-       :meth:`Table.where` for an example).
+    .. note:: This iterator can be nested (see :meth:`Table.where` for an
+       example).
 
     .. warning:: When in the middle of a table row iterator, you should not
        use methods that can change the number of rows in the table
-       (like :meth:`Table.append` or
-       :meth:`Table.removeRows`) or unexpected errors will
-       happen.
+       (like :meth:`Table.append` or :meth:`Table.removeRows`)
+       or unexpected errors will happen.
 
 
 .. method:: Table.itersequence(sequence)
 
     Iterate over a sequence of row coordinates.
 
-    .. note:: This iterator can be nested (see
-       :meth:`Table.where` for an example).
+    .. note:: This iterator can be nested (see :meth:`Table.where` for an
+       example).
 
 
 .. method:: Table.itersorted(sortby, checkCSI=False, start=None, stop=None, step=None)
@@ -2466,8 +2465,8 @@ Table methods - reading
 
         result = [ row['var2'] for row in table.iterrows() if row['var1'] <= 20 ]
 
-    .. note:: This iterator can be nested (see
-       :meth:`Table.where` for an example).
+    .. note:: This iterator can be nested (see :meth:`Table.where` for an
+       example).
 
 
 Table methods - writing
@@ -2650,6 +2649,7 @@ Table methods - writing
     for the :meth:`Table.modifyRows`  and :meth:`Table.modifyCoordinates` methods.
 
 
+.. _TableMethods_querying:
 
 Table methods - querying
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2752,8 +2752,8 @@ Table methods - querying
 
     .. warning:: When in the middle of a table row iterator, you should not
        use methods that can change the number of rows in the table
-       (like :meth:`Table.append` or
-       :meth:`Table.removeRows`) or unexpected errors will happen.
+       (like :meth:`Table.append` or :meth:`Table.removeRows`) or unexpected
+       errors will happen.
 
 
 .. method:: Table.whereAppend(dstTable, condition, condvars=None, start=None, stop=None, step=None)
@@ -2859,7 +2859,7 @@ Table methods - other
     Recompute the existing indexes in table, *if* they are dirty.
 
     This can be useful when you have set
-    :attr:`Table.autoIndex` (see :ref:`TableInstanceVariablesDescr`) to false for the table 
+    :attr:`Table.autoIndex` (see :ref:`TableInstanceVariablesDescr`) to false for the table
     and you want to update the indexes
     after a invalidating index operation
     (:meth:`Table.removeRows`, for example).
@@ -2876,12 +2876,12 @@ The Description class
     This class represents descriptions of the structure of tables.
 
     An instance of this class is automatically bound to
-    Table (see :ref:`TableClassDescr`) objects when they are created.  It
+    Table (see :class:`Table`) objects when they are created.  It
     provides a browseable representation of the structure of the table,
-    made of non-nested (Col - see :ref:`ColClassDescr`) and nested
+    made of non-nested (Col - see :class:`Col`) and nested
     (Description) columns. It also contains
     information that will allow you to build
-    NestedRecArray (see :ref:`NestedRecArrayClassDescr`)
+    NestedRecArray (see :class:`NestedRecArray`)
     objects suited for the different columns in a table (be they nested
     or not).
 
@@ -2895,7 +2895,7 @@ The Description class
     col2 column, this can be accessed as
     table.description.col1.col2. Because of natural
     naming, the names of members start with special prefixes, like in
-    the Group class (see :ref:`GroupClassDescr`).
+    the Group class (see :class:`Group`).
 
 
 Description instance variables
@@ -2954,14 +2954,14 @@ Description instance variables
     table or nested column. You can use this as the
     dtype and descr
     arguments of NumPy array and
-    NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories, respectively.
+    NestedRecArray (see :class:`NestedRecArray`) factories, respectively.
 
 .. attribute:: Description._v_nestedFormats
 
     A nested list of the NumPy string formats (and shapes)
     of all the columns under this table or nested column. You
     can use this as the formats argument of
-    NumPy array and NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
+    NumPy array and NestedRecArray (see :class:`NestedRecArray`) factories.
 
 .. attribute:: Description._v_nestedlvl
 
@@ -2973,7 +2973,7 @@ Description instance variables
     A nested list of the names of all the columns under
     this table or nested column. You can use this as the
     names argument of NumPy array and
-    NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
+    NestedRecArray (see :class:`NestedRecArray`) factories.
 
 .. attribute:: Description._v_pathnames
 
@@ -3062,8 +3062,8 @@ Row methods
             row.append()
         table.flush()
 
-    .. warning:: After completion of the loop in which
-       :meth:`Row.append` has been called, it is always
+    .. warning:: After completion of the loop in which :meth:`Row.append` has
+       been called, it is always
        convenient to make a call to :meth:`Table.flush`
        in order to avoid losing the last rows that may still remain
        in internal buffers.
@@ -3117,8 +3117,8 @@ Row methods
     which just updates the rows with values bigger than 3 in
     the first column.
 
-    .. warning:: After completion of the loop in which
-       :meth:`Row.update` has been called, it is always
+    .. warning:: After completion of the loop in which :meth:`Row.update` has
+       been called, it is always
        convenient to make a call to :meth:`Table.flush`
        in order to avoid losing changed rows that may still remain in
        internal buffers.
@@ -3201,7 +3201,7 @@ Row special methods
 
 The Cols class
 ~~~~~~~~~~~~~~
-.. class:: Cols 
+.. class:: Cols
 
     Container for columns in a table or nested column.
 
@@ -3447,8 +3447,8 @@ Column methods
     Notes
     -----
     .. warning:: In some situations it is useful to get a completely
-       sorted index (CSI).  For those cases, it is best to use the
-       :meth:`Column.createCSIndex` method instead. 
+       sorted index (CSI).  For those cases, it is best to use
+       the :meth:`Column.createCSIndex` method instead.
 
 
 
@@ -3596,8 +3596,8 @@ The Array class
     This class provides methods to write or read data to or from
     array objects in the file. This class does not allow you neither to
     enlarge nor compress the datasets on disk; use the
-    EArray class (see :ref:`EArrayClassDescr`) if you want enlargeable dataset support
-    or compression features, or CArray (see :ref:`CArrayClassDescr`) if you just
+    EArray class (see :class:`EArray`) if you want enlargeable dataset support
+    or compression features, or CArray (see :class:`CArray`) if you just
     want compression.
 
     An interesting property of the Array class is
@@ -3794,7 +3794,7 @@ The CArray class
     This class represents homogeneous datasets in an HDF5 file.
 
     The difference between a CArray and a normal
-    Array (see :ref:`ArrayClassDescr`), from which it inherits, is that a
+    Array (see :class:`Array`), from which it inherits, is that a
     CArray has a chunked layout and, as a consequence,
     it supports compression.  You can use datasets of this class to easily
     save or load arrays to or from disk, with compression support
@@ -3850,7 +3850,7 @@ The EArray class
     This class represents extendable, homogeneous datasets in an HDF5 file.
 
     The main difference between an EArray and a
-    CArray (see :ref:`CArrayClassDescr`), from which it inherits, is that the
+    CArray (see :class:`CArray`), from which it inherits, is that the
     former can be enlarged along one of its dimensions, the
     *enlargeable dimension*.  That means that the
     :attr:`Leaf.extdim` attribute (see :ref:`LeafInstanceVariables`) of any
@@ -4890,7 +4890,7 @@ Atom-derived constructors:
     shape : tuple
         Sets the shape of the atom. An integer shape of
         N is equivalent to the tuple (N,).
-    dflt 
+    dflt
         Sets the default value for the atom.
 
 

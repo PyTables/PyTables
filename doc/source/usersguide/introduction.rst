@@ -347,7 +347,7 @@ objects.
 
 ---------------------------
 
-.. [1] PyTables does not support hard links - for themoment.
+.. [1] PyTables does not support hard links - for the moment.
 
 .. [2] I got this simple but powerful idea from the excellent
        Objectify module by David Mertz (see :ref:`[MERTZ] <MERTZ>`).

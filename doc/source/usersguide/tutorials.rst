@@ -124,7 +124,7 @@ be saved.
 Creating a PyTables file from scratch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the top-level :func:`openFile` function 
+Use the top-level :func:`openFile` function
 to create a PyTables file::
 
     >>> h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")
@@ -162,7 +162,7 @@ group.
 Creating a new table
 ~~~~~~~~~~~~~~~~~~~~
 
-Let's now create a Table (see :ref:`TableClassDescr`) object as a
+Let's now create a Table (see :class:`Table`) object as a
 branch off the newly-created group. We do that by calling the
 :meth:`File.createTable` method of the h5file object::
 
@@ -384,7 +384,7 @@ further conversion::
 As you can see, :meth:`File.createArray` accepts
 *names* (which is a regular Python list) as an
 *object* parameter. Actually, it accepts a
-variety of different regular objects as parameters. The
+variety of different regular objects (see :func:`createArray`) as parameters. The
 flavor attribute (see the output above) saves the
 original kind of object that was saved. Based on this
 *flavor*, PyTables will be able to retrieve
@@ -965,7 +965,7 @@ object to retrieve its data::
     Particle:      6 --> 36.0
     Particle:      7 --> 49.0
 
-You can see that the :meth:`Array.read` method 
+You can see that the :meth:`Array.read` method
 returns
 an authentic NumPy object for the
 pressureObject instance by looking at the output
@@ -1124,7 +1124,7 @@ modified rows.
 
 Apart of :meth:`Table.modifyRows`, there exists another
 method, called :meth:`Table.modifyColumn` to modify specific
-columns as well. 
+columns as well.
 
 Finally, it exists another way of modifying tables that is
 generally more handy than the described above. This new way uses the
@@ -1463,7 +1463,7 @@ And, if we change the affected line to read::
 we will see that the script ends well.
 
 You can see the structure created with this (corrected) script
-in :ref:`Figure 3 <tutorial2-tableview>`.
+in :ref:`Figure 4 <tutorial2-tableview>`.
 In particular, note the multidimensional column cells in table
 /Particles/TParticle2.
 
@@ -1472,7 +1472,7 @@ In particular, note the multidimensional column cells in table
 .. figure:: images/tutorial2-tableview.png
     :align: center
 
-    **Figure 3. Table hierarchy for tutorial 2.**
+    **Figure 4. Table hierarchy for tutorial 2.**
 
 .. _LinksTutorial:
 
@@ -2317,7 +2317,7 @@ giving a result of three rows.
           NestedRecArray is actually a subclass of the
           RecArray object of the
           numarray.records module. You can get more info
-          about NestedRecArray object in :ref:`NestedRecArrayClassDescr`.
+          about NestedRecArray object in :class:`NestedRecArray`.
 
 You can make use of the above object in many different ways.
 For example, you can use it to append new data to the existing table
@@ -2483,7 +2483,7 @@ subtable thereof)::
 You can see we have created two equivalent arrays: one with
 NumPy (the first) and one with the nra package
 (the last). The later implements nested record arrays for
-numarray (see :ref:`NestedRecArrayClassDescr`).
+numarray (see :class:`NestedRecArray`).
 
 Finally, there is a special iterator of the
 Description class, called
@@ -2565,7 +2565,7 @@ it can be used in the real world.
 ------------
 
 .. [1] Appending data to arrays is also supported, but you need to
-       create special objects called EArray (see :ref:`EArrayClassDescr` for more
+       create special objects called EArray (see :class:`EArray` for more
        info).
 
 .. [2] Note that you can append not only scalar values to tables,

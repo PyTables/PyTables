@@ -62,7 +62,7 @@ of rows for an extensible leaf [1]_.  You should provide this information at
 leaf creation time by passing this value to the
 expectedrows argument of the
 :meth:`File.createTable` method or
-:meth:`File.createEArray` method (see :ref:`EArrayClassDescr`).  
+:meth:`File.createEArray` method (see :ref:`EArrayClassDescr`).
 For VLArray leaves, you must pass the expected size
 in MBytes by using the argument expectedsizeinMB
 of :meth:`File.createVLArray` (see :ref:`VLArrayClassDescr`)
@@ -113,8 +113,8 @@ filesystem.  The script used for the benchmarks is available in
 bench/optimal-chunksize.py.
 
 In figures :ref:`Figure 1 <createTime-chunksize>`,
-:ref:`Figure 2 <fileSizes-chunksize>`, :ref:`Figure 3 <seqTime-chunksize>` and 
-:ref:`Figure 4 <randomTime-chunksize>`, 
+:ref:`Figure 2 <fileSizes-chunksize>`, :ref:`Figure 3 <seqTime-chunksize>` and
+:ref:`Figure 4 <randomTime-chunksize>`,
 you can see how the chunksize
 affects different aspects, like creation time, file sizes,
 sequential read time and random read time.  So, if you properly
@@ -161,7 +161,7 @@ important parameter for improve performance.
 
 .. figure:: images/random-chunksize-15GB.png
     :align: center
-    
+
     **Figure 4. Random access time per element for a 15 GB EArray and different chunksizes.**
 
 
@@ -220,8 +220,8 @@ In the next sections, we will be optimizing the times for a
 relatively complex query like this::
 
     result = [row['col2'] for row in table if (
-              ((row['col4'] >= lim1 and row['col4'] < lim2) or 
-              ((row['col2'] > lim3 and row['col2'] < lim4])) and 
+              ((row['col4'] >= lim1 and row['col4'] < lim2) or
+              ((row['col2'] > lim3 and row['col2'] < lim4])) and
               ((row['col1']+3.1*row['col2']+row['col3']*row['col4']) > lim5)
               )]
 
@@ -239,7 +239,7 @@ In-kernel searches
 
 PyTables provides a way to accelerate data selections inside
 of a single table, through the use of the
-:meth:`Table.where` iterator and related query methods.  
+:meth:`Table.where` iterator and related query methods.
 This mode of selecting data is called
 *in-kernel*.  Let's see an example of an
 *in-kernel* query based on the
@@ -640,8 +640,8 @@ of lower compression ratios or more CPU wasted on compression, as we
 will see soon). In others, the emphasis is put in achieving the
 *maximum compression ratios*, no matter which
 reading speed will result. This is why support for two additional
-compressors has been added to PyTables: LZO (see :ref:`[LZO] <LZO>`) 
-and bzip2 (see :ref:`[BZIP2] <BZIP2>`). Following the author of LZO 
+compressors has been added to PyTables: LZO (see :ref:`[LZO] <LZO>`)
+and bzip2 (see :ref:`[BZIP2] <BZIP2>`). Following the author of LZO
 (and checked by the author of this
 section, as you will see soon), LZO offers pretty fast compression
 and extremely fast decompression. In fact, LZO is so fast when
@@ -839,7 +839,7 @@ is the default, as you already should know). Of course, you can
 deactivate it if you want, but this is not recommended.
 
 So, how does this mysterious filter exactly work? From the HDF5
-reference manual:: 
+reference manual::
 
           "The shuffle filter de-interlaces a block of
           data by reordering the bytes. All the bytes from one consistent byte
@@ -881,8 +881,8 @@ own data before widely applying the Bzip2+shuffle combination in order
 to avoid surprises.
 
 Now, how does shuffling affect performance? Well, if you look at
-plots :ref:`Figure 21 <comprWriteShuffleComparison>`, 
-:ref:`Figure 22 <comprReadNoCacheShuffleComparison>` and 
+plots :ref:`Figure 21 <comprWriteShuffleComparison>`,
+:ref:`Figure 22 <comprReadNoCacheShuffleComparison>` and
 :ref:`Figure 23 <comprReadCacheShuffleComparison>`, you will get a somewhat unexpected
 (but pleasant) surprise. Roughly, *shuffle* makes
 the writing process (shuffling+compressing) faster (approximately a 15%
@@ -986,7 +986,7 @@ That's all!  From now on, each time that you execute your Python
 script, Psyco will deploy its sophisticated algorithms so as to
 accelerate your calculations.
 
-You can see in the graphs :ref:`Figure 24 <psycoWriteComparison>` and 
+You can see in the graphs :ref:`Figure 24 <psycoWriteComparison>` and
 :ref:`Figure 25 <psycoReadComparison>` how much I/O speed
 improvement you can get by using Psyco. By looking at this figures you
 can get an idea if these improvements are of your interest or not. In
@@ -1077,7 +1077,7 @@ can see the results in Table 1.
 **Table 1. Retrieval speed and memory consumption depending on the number of nodes in LRU cache.**
 
 ====================== =========== === ======= ==== ==== === ======= ==== ====
-Number:                                   100 nodes             1000 nodes          
+Number:                                   100 nodes             1000 nodes
 ---------------------------------- --------------------- ---------------------
 Mem & Speed                        Memory (MB) Time (ms) Memory (MB) Time (ms)
 ---------------------------------- ----------- --------- ----------- ---------

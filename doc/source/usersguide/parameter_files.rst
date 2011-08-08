@@ -2,6 +2,9 @@
 
 PyTables parameter files
 ========================
+
+.. currentmodule:: tables
+
 PyTables issues warnings when certain limits are exceeded.  Those
 limits are not intrinsic limitations of the underlying software, but
 rather are proactive measures to avoid large resource consumptions.  The
@@ -46,7 +49,7 @@ Tunable parameters in parameters.py.
 Recommended maximum values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. data:: MAX_COLUMNS 
+.. data:: MAX_COLUMNS
 
     Maximum number of columns in Table
     objects before a PerformanceWarning is

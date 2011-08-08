@@ -5,7 +5,7 @@ Condition Syntax
 .. currentmodule:: tables
 
 Conditions in PyTables are used in methods related with in-kernel
-and indexed searches such as :meth:`Table.where` or :meth:`Table.readWhere`.  
+and indexed searches such as :meth:`Table.where` or :meth:`Table.readWhere`.
 They are interpreted using
 Numexpr, a powerful package for achieving C-speed computation of array
 operations (see :ref:`[NUMEXPR] <NUMEXPR>`).
