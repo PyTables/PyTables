@@ -1,6 +1,5 @@
 PyTables File Format
 ====================
-
 PyTables has a powerful capability to deal with native HDF5 files
 created with another tools. However, there are situations were you may
 want to create truly native PyTables files with those tools while
@@ -34,6 +33,7 @@ PyTables file, provided that the filter is a standard one in HDF5, like
 within PyTables to create a new file, datasets compressed with szip can
 be read, because it is the HDF5 library which do the decompression
 transparently).
+
 
 Mandatory attributes for a File
 -------------------------------
