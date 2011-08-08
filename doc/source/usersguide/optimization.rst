@@ -1076,16 +1076,36 @@ can see the results in Table 1.
 
 **Table 1. Retrieval speed and memory consumption depending on the number of nodes in LRU cache.**
 
-====================== =========== === ======= ==== ==== === ======= ==== ====
-Number:                                   100 nodes             1000 nodes
----------------------------------- --------------------- ---------------------
-Mem & Speed                        Memory (MB) Time (ms) Memory (MB) Time (ms)
----------------------------------- ----------- --------- ----------- ---------
-Node is coming from... Cache size  256 1024    256  1024 256 1024    256  1024
-====================== =========== === ======= ==== ==== === ======= ==== ====
-Disk                               14  14      1.24 1.24 51  66      1.33 1.31
-Cache                              14  14      0.53 0.52 65  73      1.35 0.68
-====================== =========== === ======= ==== ==== === ======= ==== ====
+.. only:: not latex
+
+    ====================== =========== === ======= ==== ==== === ======= ==== ====
+    Number:                                   100 nodes             1000 nodes
+    ---------------------------------- --------------------- ---------------------
+    Mem & Speed                        Memory (MB) Time (ms) Memory (MB) Time (ms)
+    ---------------------------------- ----------- --------- ----------- ---------
+    Node is coming from... Cache size  256 1024    256  1024 256 1024    256  1024
+    ====================== =========== === ======= ==== ==== === ======= ==== ====
+    Disk                               14  14      1.24 1.24 51  66      1.33 1.31
+    Cache                              14  14      0.53 0.52 65  73      1.35 0.68
+    ====================== =========== === ======= ==== ==== === ======= ==== ====
+
+
+.. raw:: latex
+
+    \\
+    \begin{tabulary}{\linewidth}{|l|l|r|r|r|r|r|r|r|r|}
+    \hline
+    \multicolumn{2}{|l|}{\textbf{Number:}} & \multicolumn{4}{|c|}{\textbf{100 nodes}} & \multicolumn{4}{|c|}{\textbf{1000 nodes}} \\
+    \hline
+    \multicolumn{2}{|l|}{\textbf{Mem and Speed}} & \multicolumn{2}{|c|}{\textbf{Memory (MB)}} & \multicolumn{2}{|c|}{\textbf{Time (ms)}}  & \multicolumn{2}{|c|}{\textbf{Memory (MB)}} & \multicolumn{2}{|c|}{\textbf{Time (ms)}}\\
+    \hline
+    \textbf{Node is coming from...} & \textbf{Cache size} & \textbf{256} & \textbf{1024} & \textbf{256} & \textbf{1024} & \textbf{256} & \textbf{1024} & \textbf{256} & \textbf{1024}\\
+    \hline
+    Disk   &  & 14 & 14 & 1.24 & 1.24 & 51 & 66 & 1.33 & 1.31 \\
+    Cache  &  & 14 & 14 & 0.53 & 0.52 & 65 & 73 & 1.35 & 0.68 \\
+    \hline
+    \end{tabulary}
+    \\
 
 From the data in Table 1, one can see that when the number of
 objects that you are dealing with does fit in cache, you will get
