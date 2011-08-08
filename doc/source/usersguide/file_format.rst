@@ -75,7 +75,7 @@ structures:
   where
 
   - *byte 0* (the least-significant byte) is the compression level (complevel).
-  - *byte 1* is the compression library used (complib): 0 
+  - *byte 1* is the compression library used (complib): 0
     when irrelevant, 1 for Zlib, 2 for LZO and 3 for Bzip2.
   - *byte 2* indicates which parameterless filters are enabled
     (shuffle and fletcher32): bit 0 is for
@@ -114,7 +114,7 @@ The next attributes are mandatory for *table* structures:
   attributes of this kind as fields you have in your records.
   These fields are meant for saving the default values
   persistently and their existence is optional.
-* *NROWS*: This should contain the number of *compound* data type entries in the 
+* *NROWS*: This should contain the number of *compound* data type entries in the
   dataset. It must be an *int* data type.
 
 
@@ -167,12 +167,12 @@ types *classes*:
       to represent a 'Time64' aliasing type, which corresponds to a Float64 type.
 * *H5T_STRING*: The datatype used to describe strings in PyTables is H5T_C_S1 (i.e. a *string* C type)
   followed with a call to the HDF5 H5Tset_size() function to set their length.
-* *H5T_ARRAY*: This allows the construction of homogeneous, multidimensional arrays, 
+* *H5T_ARRAY*: This allows the construction of homogeneous, multidimensional arrays,
   so that you can include such objects in compound records. The types supported as elements
   of H5T_ARRAY data types are the ones described above.
   Currently, PyTables does not support nested H5T_ARRAY types.
-* *H5T_COMPOUND*: This allows the support for datatypes that are compounds of compounds 
-  (this is also known as *nested types* along this manual). 
+* *H5T_COMPOUND*: This allows the support for datatypes that are compounds of compounds
+  (this is also known as *nested types* along this manual).
 
   This support can also be used for defining complex numbers. Its format is described below:
 

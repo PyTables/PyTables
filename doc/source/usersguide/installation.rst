@@ -27,7 +27,7 @@ recent version of MS Visual C++ compiler installed.
 A GCC compiler is assumed for Unix, but other
 compilers should work as well.
 
-Extensions in PyTables have been developed in Cython (see :ref:`[CYTHON] <CYTHON>`) 
+Extensions in PyTables have been developed in Cython (see :ref:`[CYTHON] <CYTHON>`)
 and the C language. You can rebuild
 everything from scratch if you have Cython installed, but this is not
 necessary, as the Cython compiled source is included in the source
@@ -37,8 +37,8 @@ To compile PyTables you will need a recent version of Python,
 the HDF5 (C flavor) library from `http://hdfgroup.org/ <http://hdfgroup.org/>`_,
 and the NumPy (see :ref:`[NUMPY] <NUMPY>`)
 and Numexpr (see :ref:`[NUMEXPR] <NUMEXPR>`)
-packages. Although you won't need numarray 
-(see :ref:`[NUMARRAY] <NUMARRAY>`) or Numeric 
+packages. Although you won't need numarray
+(see :ref:`[NUMARRAY] <NUMARRAY>`) or Numeric
 (see :ref:`[NUMERIC] <NUMERIC>`) in order to compile PyTables, they
 are supported; you only need a reasonably recent version of them
 (>= 1.5.2 for numarray and >= 24.2 for Numeric) if you plan on
@@ -70,7 +70,7 @@ need to install the Zlib (see :ref:`[ZLIB] <ZLIB>`), which is also required by H
 well. You may also optionally install the
 excellent LZO compression library (see :ref:`[LZO] <LZO>`
 and :ref:`compressionIssues`). The high-performance bzip2
-compression library can also be used with PyTables (see :ref:`[BZIP2] <BZIP2>`).  
+compression library can also be used with PyTables (see :ref:`[BZIP2] <BZIP2>`).
 The Blosc (see :ref:`[BLOSC] <BLOSC>`) compression library is
 embedded in PyTables, so you don't need to install it
 separately.
@@ -84,7 +84,7 @@ separately.
     installations as well as installations from
     packages. If setup.py can not find
     libhdf5, libhdf5
-    (or liblzo, or libbz2 that you may wish to use) or if you have 
+    (or liblzo, or libbz2 that you may wish to use) or if you have
     several versions of a
     library installed and want to use a particular one, then you
     can set the path to the resource in the environment, by

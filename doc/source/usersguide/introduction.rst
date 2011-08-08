@@ -5,7 +5,7 @@ Introduction
     La sabiduría no vale la pena si no es posible servirse de ella para
     inventar una nueva manera de preparar los garbanzos.
 
-    [Wisdom isn't worth anything if you can't use it to come up with a 
+    [Wisdom isn't worth anything if you can't use it to come up with a
     new way to cook garbanzos.]
 
     -- Gabriel García Márquez, A wise Catalan in *"Cien años de soledad"*
@@ -52,9 +52,9 @@ following example::
         TDCcount  = UInt8Col()      # unsigned byte
         grid_i    = Int32Col()      # integer
         grid_j    = Int32Col()      # integer
-        
+
         # A sub-structure (nested data-type)
-        class Properties(IsDescription):  
+        class Properties(IsDescription):
             pressure = Float32Col(shape=(2,3)) # 2-D float array (single-precision)
             energy   = Float64Col(shape=(2,3,4)) # 3-D float array (double-precision)
 
@@ -103,7 +103,7 @@ grid-like fashion to provide these features:
   up for values in columns satisfying some criteria.
 
 - *Support for numerical arrays:*
-  NumPy (see :ref:`[NUMPY] <NUMPY>`), Numeric (see :ref:`[NUMERIC] <NUMERIC>`), 
+  NumPy (see :ref:`[NUMPY] <NUMPY>`), Numeric (see :ref:`[NUMERIC] <NUMERIC>`),
   and numarray (see :ref:`[NUMARRAY] <NUMARRAY>`)
   arrays can be used as a useful complement of tables to store
   homogeneous data.
@@ -211,7 +211,7 @@ its properties.
 Working with groups and leaves is similar in many ways to
 working with directories and files on a Unix filesystem, i.e. a node
 (file or directory) is always a *child* of one and
-only one group (directory), its *parent group* [1]_. 
+only one group (directory), its *parent group* [1]_.
 Inside of that group, the node is accessed by its
 *name*. As is the case with Unix directories and
 files, objects in the object tree are often referenced by giving their
@@ -224,8 +224,8 @@ file.root.subgroup2.table3).
 
 Support for *natural naming* is a key aspect
 of PyTables. It means that the names of instance variables of the node
-objects are the same as the names of its children [2]_. This is very 
-*Pythonic* and intuitive in many cases. Check the tutorial 
+objects are the same as the names of its children [2]_. This is very
+*Pythonic* and intuitive in many cases. Check the tutorial
 :ref:`readingAndSelectingUsage` for usage examples.
 
 You should also be aware that not all the data present in a file
@@ -332,7 +332,7 @@ In :ref:`Figure2 <objecttree>`, you
 can see an example of the object tree created when the above
 objecttree.h5 file is read (in fact, such an object
 tree is always created when reading any supported generic HDF5 file).
-It is worthwhile to take your time to understand it [4]_. 
+It is worthwhile to take your time to understand it [4]_.
 It will help you understand the relationships of in-memory PyTables
 objects.
 
