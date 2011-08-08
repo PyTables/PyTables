@@ -1,4 +1,6 @@
-Condition syntax
+.. _condition_syntax:
+
+Condition Syntax
 ================
 .. currentmodule:: tables
 

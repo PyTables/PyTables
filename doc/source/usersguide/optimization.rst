@@ -56,17 +56,16 @@ start with the fine-tuning of this important parameter.
 
 Informing PyTables about expected number of rows in tables or arrays
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 PyTables can determine a sensible chunk size to your dataset
 size if you helps it by providing an estimation of the final number
 of rows for an extensible leaf [1]_.  You should provide this information at
 leaf creation time by passing this value to the
 expectedrows argument of the
-createTable() method (see :ref:`createTableDescr`) or
-createEArray() method (see :ref:`createEArrayDescr`).  For
-VLArray leaves, you must pass the expected size
+:meth:`File.createTable` method or
+:meth:`File.createEArray` method (see :ref:`EArrayClassDescr`).  
+For VLArray leaves, you must pass the expected size
 in MBytes by using the argument expectedsizeinMB
-of createVLArray() (see :ref:`createVLArrayDescr`)
+of :meth:`File.createVLArray` (see :ref:`VLArrayClassDescr`)
 instead.
 
 When your leaf size is bigger than 10 MB (take this figure
@@ -115,7 +114,7 @@ bench/optimal-chunksize.py.
 
 In figures :ref:`Figure 1 <createTime-chunksize>`,
 :ref:`Figure 2 <fileSizes-chunksize>`, :ref:`Figure 3 <seqTime-chunksize>` and 
-:ref:`Figure 4 randomTime-chunksize>`, 
+:ref:`Figure 4 <randomTime-chunksize>`, 
 you can see how the chunksize
 affects different aspects, like creation time, file sizes,
 sequential read time and random read time.  So, if you properly
@@ -240,8 +239,8 @@ In-kernel searches
 
 PyTables provides a way to accelerate data selections inside
 of a single table, through the use of the
-Table.where() iterator and related query methods
-(see :ref:`TableMethods_querying`).  This mode of selecting data is called
+:meth:`Table.where` iterator and related query methods.  
+This mode of selecting data is called
 *in-kernel*.  Let's see an example of an
 *in-kernel* query based on the
 *regular* one mentioned above::
@@ -345,7 +344,7 @@ However, since in-kernel condition strings allow rich
 expressions allowing the coexistence of multiple columns, variables,
 arithmetic operations and many typical functions, it is unlikely
 that you will be forced to use external regular selections in
-conditions of small to medium complexity. See :ref:`conditionSyntax` for more
+conditions of small to medium complexity. See :ref:`condition_syntax` for more
 information on in-kernel condition syntax.
 
 

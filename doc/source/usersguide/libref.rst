@@ -76,10 +76,10 @@ Global functions
     argument.
 
     This function is a shorthand for the
-    File.copyFile() method, which acts on an
+    :meth:`File.copyFile` method, which acts on an
     already opened file. kwargs takes keyword
     arguments used to customize the copying process. See the
-    documentation of File.copyFile() (see :ref:`File.copyFile`) for a description of those
+    documentation of :meth:`File.copyFile` for a description of those
     arguments.
 
 .. function:: isHDF5File(filename)
@@ -119,6 +119,7 @@ Global functions
     xrange().  When the standard
     [x]range() Python objects support 64-bit
     arguments, this iterator will be deprecated.
+
 
 .. function:: openFile(filename, mode='r', title='', rootUEP="/", filters=None, **kwargs)
 
@@ -165,23 +166,23 @@ Global functions
     Notes
     -----
     In addition, it recognizes the names of parameters present
-    in tables/parameters.py as additional keyword
-    arguments.  See
-    :ref:`parametersFiles` for a
+    in :file:`tables/parameters.py` as additional keyword
+    arguments.  See :ref:`parameter_files` for a
     detailed info on the supported parameters.
 
     .. note:: If you need to deal with a large number of nodes in an
        efficient way, please see :ref:`LRUOptim` for more info and advices about
        the integrated node cache engine.
 
+
 .. function:: setBloscMaxThreads(nthreads)
 
     Set the maximum number of threads that Blosc can use.
 
-    This actually overrides the MAX_THREADS
-    setting in tables/parameters.py, so the new
+    This actually overrides the :data:`parameters.MAX_THREADS`
+    setting in :file:`tables/parameters.py`, so the new
     value will be effective until this function is called again or a
-    new file with a different MAX_THREADS value
+    new file with a different :data:`parameters.MAX_THREADS` value
     is specified.
 
     Returns the previous setting for maximum threads.
@@ -258,19 +259,18 @@ The File Class
 The in-memory representation of a PyTables file.
 
 An instance of this class is returned when a PyTables file is
-opened with the openFile() (see :ref:`openFileDescr`) function. It offers methods to manipulate
+opened with the :func:`openFile` function. It offers methods to manipulate
 (create, rename, delete...) nodes and handle their attributes, as well
 as methods to traverse the object tree. The *user entry
 point* to the object tree attached to the HDF5 file is
 represented in the rootUEP attribute. Other
 attributes are available.
 
-File objects support an *Undo/Redo
-mechanism* which can be enabled with the
-enableUndo() (see :ref:`File.enableUndo`) method. Once the Undo/Redo mechanism is
+File objects support an *Undo/Redo mechanism* which can be enabled with the
+:meth:`File.enableUndo` method. Once the Undo/Redo mechanism is
 enabled, explicit *marks* (with an optional unique
 name) can be set on the state of the database using the
-mark() (see :ref:`File.mark`)
+:meth:`File.mark`
 method. There are two implicit marks which are always available: the
 initial mark (0) and the final mark (-1).  Both the identifier of a
 mark and its name can be used in *undo* and
@@ -278,11 +278,10 @@ mark and its name can be used in *undo* and
 
 Hierarchy manipulation operations (node creation, movement and
 removal) and attribute handling operations (setting and deleting) made
-after a mark can be undone by using the undo() (see
-:ref:`File.undo`) method, which returns the database to the
+after a mark can be undone by using the :meth:`File.undo` method, which returns the database to the
 state of a past mark. If undo() is not followed by
 operations that modify the hierarchy or attributes, the
-redo() (see :ref:`File.redo`) method can
+:meth:`File.redo` method can
 be used to return the database to the state of a future mark. Else,
 future states of the database are forgotten.
 
@@ -293,8 +292,7 @@ UndoRedoWarning *before*
 changing the database.
 
 The Undo/Redo mechanism is persistent between sessions and can
-only be disabled by calling the disableUndo() (see
-:ref:`File.disableUndo`) method.
+only be disabled by calling the :meth:`File.disableUndo` method.
 
 File objects can also act as context managers when using the
 with statement introduced in Python 2.5.  When
@@ -364,8 +362,8 @@ File methods - file handling
     operations of nodes to see which options they support.
 
     In addition, it recognizes the names of parameters present
-    in tables/parameters.py as additional keyword
-    arguments.  See :ref:`parametersFiles` for a
+    in :file:`tables/parameters.py` as additional keyword
+    arguments.  See :ref:`parameter_files` for a
     detailed info on the supported parameters.
 
     Copying a file usually has the beneficial side effect of
@@ -432,7 +430,7 @@ File methods - hierarchy manipulation
 
     kwargs takes keyword arguments used to
     customize the copying process. See the documentation of
-    Group._f_copyChildren() (see :ref:`Group._f_copyChildren`) for a description of those
+    :meth:`Group._f_copyChildren` for a description of those
     arguments.
 
 .. method:: File.copyNode(where, newparent=None, newname=None, name=None, overwrite=False, recursive=False, createparents=False, **kwargs)
@@ -464,13 +462,13 @@ File methods - hierarchy manipulation
     -----
     Additional keyword arguments may be passed to customize the
     copying process. The supported arguments depend on the kind of
-    node being copied. See Group._f_copy() (:ref:`Group._f_copy`) and Leaf.copy()
-    (:ref:`Leaf.copy`) for more information on their
+    node being copied. See :meth:`Group._f_copy` and 
+    :meth:`Leaf.copy` for more information on their
     allowed keyword arguments.
 
     This method returns the newly created copy of the source
     node (i.e. the destination node).  See
-    Node._f_copy() (:ref:`Node._f_copy`)
+    :meth:`Node._f_copy`
     for further details on the semantics of copying nodes.
 
 
@@ -497,8 +495,8 @@ File methods - hierarchy manipulation
         node (see :ref:`EArrayClassDescr`) if you want to store an array
         with one of its dimensions equal to 0).
     byteorder : str
-        The byteorder of the data *on
-        disk*, specified as 'little' or
+        The byteorder of the data *on disk*, specified as 
+        'little' or
         'big'.  If this is not specified, the
         byteorder is that of the given object.
 
@@ -534,8 +532,9 @@ File methods - hierarchy manipulation
 
     Notes
     -----
-    See File.createTable() (:ref:`createTableDescr`) for more
+    See :meth:`File.createTable` for more
     information on the rest of parameters.
+
 
 
 .. method:: File.createEArray(where, name, atom, shape, title='', filters=None, expectedrows=EXPECTED_ROWS_EARRAY, chunkshape=None, byteorder=None, createparents=False)
@@ -2571,7 +2570,7 @@ Table methods - writing
     before changing data.
 
     The possible values for the rows argument
-    are the same as in Table.append() (see :ref:`Table.append`).
+    are the same as in :meth:`Table.append`.
 
 
 
@@ -2903,7 +2902,7 @@ Description instance variables
 
     A dictionary mapping the names of the columns hanging
     directly from the associated table or nested column to their
-    respective descriptions (Col - see :ref:`ColClassDescr or
+    respective descriptions (Col - see :ref:`ColClassDescr` or
     Description - see :ref:`DescriptionClassDescr` instances).
 
 .. attribute:: Description._v_dflts
@@ -3122,6 +3121,7 @@ Row methods
        internal buffers.
 
 
+.. _RowSpecialMethods:
 
 Row special methods
 ^^^^^^^^^^^^^^^^^^^
@@ -3582,6 +3582,7 @@ Column special methods
         table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])
 
 
+.. _ArrayClassDescr:
 
 The Array class
 ---------------
@@ -3780,6 +3781,8 @@ slice(None, None, 2)))).
 
 
 
+.. _CArrayClassDescr:
+
 The CArray class
 ----------------
 .. class:: CArray
@@ -3834,6 +3837,7 @@ The output for the previous script is something like::
     [0 0 1 1]]
 
 
+.. _EArrayClassDescr:
 
 The EArray class
 ----------------

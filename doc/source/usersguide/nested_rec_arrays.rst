@@ -1,3 +1,5 @@
+.. _NestedRecArrayClassDescr:
+
 Using nested record arrays (deprecated)
 =======================================
 

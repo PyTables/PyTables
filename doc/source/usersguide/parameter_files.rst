@@ -1,3 +1,5 @@
+.. _parameter_files:
+
 PyTables parameter files
 ========================
 PyTables issues warnings when certain limits are exceeded.  Those
