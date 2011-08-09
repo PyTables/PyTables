@@ -1,0 +1,297 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with matplotlib (http://matplotlib.sourceforge.net/) -->
+<svg width="576" height="432" viewBox="0 0 576 432"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.1"
+   id="svg1">
+<g id="figure1">
+<polygon style="fill: #ffffff; stroke: #ffffff; stroke-width: 1.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " points = "0.000000,432.000000 0.000000,0.000000 576.000000,0.000000 576.000000,432.000000"/>
+<g id="axes1">
+<polygon style="fill: #ffffff; stroke: #000000; stroke-width: 1.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " points = "72.000000,388.800000 72.000000,43.200000 518.400000,43.200000 518.400000,388.800000"/>
+<defs>
+    <clipPath id="1499967875">
+    <rect x="72.000000" y="43.200000" width="446.400000" height="345.600000"
+    style="stroke: gray; fill: none;"/>
+    </clipPath>
+</defs>
+<path style="fill: none; stroke: #0000ff; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,369.786996 L 98.875958,365.808764 L 134.404042,362.230416 L 161.280000,356.420813 L 188.155958,321.594061 L 223.684042,292.260033 L 250.560000,276.737453 L 277.435958,219.826249 L 312.964042,145.950453 L 339.840000,105.253844 L 366.715958,69.749975 L 402.244042,50.672385 L 429.120000,47.914638 L 455.995958,318.754797 L 491.524042,303.050856 L 518.400000,319.089988 "/>
+<path style="fill: none; stroke: #008000; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,376.146792 L 98.875958,374.342653 L 134.404042,373.174984 L 161.280000,369.084864 L 188.155958,359.952057 L 223.684042,355.928086 L 250.560000,349.103662 L 277.435958,343.884199 L 312.964042,339.477007 L 339.840000,337.917807 L 366.715958,335.064172 L 402.244042,334.648350 L 429.120000,334.563856 L 455.995958,337.487156 L 491.524042,350.279487 L 518.400000,337.708020 "/>
+<path style="fill: none; stroke: #ff0000; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,374.543986 L 98.875958,371.884958 L 134.404042,369.766224 L 161.280000,365.331715 L 188.155958,351.876655 L 223.684042,344.941819 L 250.560000,337.343162 L 277.435958,326.640846 L 312.964042,318.116101 L 339.840000,317.089954 L 366.715958,311.301451 L 402.244042,310.143732 L 429.120000,311.837561 L 455.995958,307.690635 L 491.524042,306.362186 L 518.400000,305.497761 "/>
+<path style="fill: none; stroke: #00bfbf; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,371.657717 L 98.875958,368.631486 L 134.404042,365.634160 L 161.280000,361.551153 L 188.155958,340.107661 L 223.684042,326.198448 L 250.560000,321.130734 L 277.435958,303.899437 L 312.964042,288.738850 L 339.840000,282.079610 L 366.715958,275.009446 L 402.244042,268.923482 L 429.120000,268.300794 L 455.995958,265.233629 L 491.524042,300.923671 L 518.400000,298.320326 "/>
+<path style="fill: none; stroke: #bf00bf; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,371.618705 L 98.875958,368.431977 L 134.404042,365.296403 L 161.280000,360.842288 L 188.155958,337.922836 L 223.684042,322.949610 L 250.560000,314.948794 L 277.435958,294.173358 L 312.964042,274.962406 L 339.840000,266.175136 L 366.715958,258.828676 L 402.244042,255.863855 L 429.120000,253.529123 L 455.995958,250.336827 L 491.524042,251.184411 L 518.400000,288.137675 "/>
+<path style="fill: none; stroke: #bfbf00; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,381.527224 L 98.875958,381.062291 L 134.404042,380.929394 L 161.280000,380.123958 L 188.155958,378.844508 L 223.684042,378.798613 L 250.560000,377.900763 L 277.435958,377.603557 L 312.964042,377.445839 L 339.840000,377.453699 L 366.715958,377.093194 L 402.244042,377.265257 L 429.120000,377.515778 L 455.995958,377.413691 L 491.524042,377.703236 L 518.400000,377.670534 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,379.856568 L 98.875958,379.054723 L 134.404042,378.524973 L 161.280000,376.892664 L 188.155958,374.493898 L 223.684042,374.474285 L 250.560000,371.832338 L 277.435958,370.659927 L 312.964042,369.808152 L 339.840000,370.497383 L 366.715958,369.200154 L 402.244042,368.883939 L 429.120000,370.374127 L 455.995958,369.696775 L 491.524042,369.655750 L 518.400000,369.350866 "/>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="98.200000" y="36.288000" >Selecting with small (16 bytes) record size (file in cache)</text>
+<g id="matplotlib.axis1">
+<g id="xtick1">
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="63.585938" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="77.885937" y="397.300000" >3</text>
+</g>
+<g id="xtick2">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 161.280000,388.800000 L 161.280000,43.200000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 161.280000,388.800000 L 161.280000,384.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 161.280000,47.200000 L 161.280000,43.200000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="152.576875" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="166.876875" y="397.300000" >4</text>
+</g>
+<g id="xtick3">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 250.560000,388.800000 L 250.560000,43.200000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 250.560000,388.800000 L 250.560000,384.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 250.560000,47.200000 L 250.560000,43.200000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="242.169375" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="256.469375" y="397.300000" >5</text>
+</g>
+<g id="xtick4">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 339.840000,388.800000 L 339.840000,43.200000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 339.840000,388.800000 L 339.840000,384.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 339.840000,47.200000 L 339.840000,43.200000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="331.277500" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="345.577500" y="397.300000" >6</text>
+</g>
+<g id="xtick5">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 429.120000,388.800000 L 429.120000,43.200000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 429.120000,388.800000 L 429.120000,384.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 429.120000,47.200000 L 429.120000,43.200000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="420.635625" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="434.935625" y="397.300000" >7</text>
+</g>
+<g id="xtick6">
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="509.837500" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="524.137500" y="397.300000" >8</text>
+</g>
+<g id="xtick7">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 98.875958,388.800000 L 98.875958,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 98.875958,45.200000 L 98.875958,43.200000"/>
+</g>
+<g id="xtick8">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 114.597386,388.800000 L 114.597386,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 114.597386,45.200000 L 114.597386,43.200000"/>
+</g>
+<g id="xtick9">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 125.751916,388.800000 L 125.751916,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 125.751916,45.200000 L 125.751916,43.200000"/>
+</g>
+<g id="xtick10">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 134.404042,388.800000 L 134.404042,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 134.404042,45.200000 L 134.404042,43.200000"/>
+</g>
+<g id="xtick11">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 141.473344,388.800000 L 141.473344,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 141.473344,45.200000 L 141.473344,43.200000"/>
+</g>
+<g id="xtick12">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 147.450353,388.800000 L 147.450353,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 147.450353,45.200000 L 147.450353,43.200000"/>
+</g>
+<g id="xtick13">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 152.627874,388.800000 L 152.627874,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 152.627874,45.200000 L 152.627874,43.200000"/>
+</g>
+<g id="xtick14">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 157.194771,388.800000 L 157.194771,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 157.194771,45.200000 L 157.194771,43.200000"/>
+</g>
+<g id="xtick15">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 188.155958,388.800000 L 188.155958,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 188.155958,45.200000 L 188.155958,43.200000"/>
+</g>
+<g id="xtick16">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 203.877386,388.800000 L 203.877386,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 203.877386,45.200000 L 203.877386,43.200000"/>
+</g>
+<g id="xtick17">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 215.031916,388.800000 L 215.031916,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 215.031916,45.200000 L 215.031916,43.200000"/>
+</g>
+<g id="xtick18">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 223.684042,388.800000 L 223.684042,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 223.684042,45.200000 L 223.684042,43.200000"/>
+</g>
+<g id="xtick19">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 230.753344,388.800000 L 230.753344,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 230.753344,45.200000 L 230.753344,43.200000"/>
+</g>
+<g id="xtick20">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 236.730353,388.800000 L 236.730353,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 236.730353,45.200000 L 236.730353,43.200000"/>
+</g>
+<g id="xtick21">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 241.907874,388.800000 L 241.907874,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 241.907874,45.200000 L 241.907874,43.200000"/>
+</g>
+<g id="xtick22">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 246.474771,388.800000 L 246.474771,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 246.474771,45.200000 L 246.474771,43.200000"/>
+</g>
+<g id="xtick23">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 277.435958,388.800000 L 277.435958,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 277.435958,45.200000 L 277.435958,43.200000"/>
+</g>
+<g id="xtick24">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 293.157386,388.800000 L 293.157386,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 293.157386,45.200000 L 293.157386,43.200000"/>
+</g>
+<g id="xtick25">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 304.311916,388.800000 L 304.311916,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 304.311916,45.200000 L 304.311916,43.200000"/>
+</g>
+<g id="xtick26">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 312.964042,388.800000 L 312.964042,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 312.964042,45.200000 L 312.964042,43.200000"/>
+</g>
+<g id="xtick27">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 320.033344,388.800000 L 320.033344,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 320.033344,45.200000 L 320.033344,43.200000"/>
+</g>
+<g id="xtick28">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 326.010353,388.800000 L 326.010353,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 326.010353,45.200000 L 326.010353,43.200000"/>
+</g>
+<g id="xtick29">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 331.187874,388.800000 L 331.187874,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 331.187874,45.200000 L 331.187874,43.200000"/>
+</g>
+<g id="xtick30">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 335.754771,388.800000 L 335.754771,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 335.754771,45.200000 L 335.754771,43.200000"/>
+</g>
+<g id="xtick31">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 366.715958,388.800000 L 366.715958,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 366.715958,45.200000 L 366.715958,43.200000"/>
+</g>
+<g id="xtick32">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 382.437386,388.800000 L 382.437386,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 382.437386,45.200000 L 382.437386,43.200000"/>
+</g>
+<g id="xtick33">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 393.591916,388.800000 L 393.591916,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 393.591916,45.200000 L 393.591916,43.200000"/>
+</g>
+<g id="xtick34">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 402.244042,388.800000 L 402.244042,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 402.244042,45.200000 L 402.244042,43.200000"/>
+</g>
+<g id="xtick35">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 409.313344,388.800000 L 409.313344,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 409.313344,45.200000 L 409.313344,43.200000"/>
+</g>
+<g id="xtick36">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 415.290353,388.800000 L 415.290353,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 415.290353,45.200000 L 415.290353,43.200000"/>
+</g>
+<g id="xtick37">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 420.467874,388.800000 L 420.467874,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 420.467874,45.200000 L 420.467874,43.200000"/>
+</g>
+<g id="xtick38">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 425.034771,388.800000 L 425.034771,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 425.034771,45.200000 L 425.034771,43.200000"/>
+</g>
+<g id="xtick39">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 455.995958,388.800000 L 455.995958,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 455.995958,45.200000 L 455.995958,43.200000"/>
+</g>
+<g id="xtick40">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 471.717386,388.800000 L 471.717386,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 471.717386,45.200000 L 471.717386,43.200000"/>
+</g>
+<g id="xtick41">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 482.871916,388.800000 L 482.871916,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 482.871916,45.200000 L 482.871916,43.200000"/>
+</g>
+<g id="xtick42">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 491.524042,388.800000 L 491.524042,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 491.524042,45.200000 L 491.524042,43.200000"/>
+</g>
+<g id="xtick43">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 498.593344,388.800000 L 498.593344,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 498.593344,45.200000 L 498.593344,43.200000"/>
+</g>
+<g id="xtick44">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 504.570353,388.800000 L 504.570353,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 504.570353,45.200000 L 504.570353,43.200000"/>
+</g>
+<g id="xtick45">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 509.747874,388.800000 L 509.747874,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 509.747874,45.200000 L 509.747874,43.200000"/>
+</g>
+<g id="xtick46">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.314771,388.800000 L 514.314771,386.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.314771,45.200000 L 514.314771,43.200000"/>
+</g>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="245.645313" y="416.800000" >Number of rows</text>
+</g>
+<g id="matplotlib.axis2">
+<g id="ytick1">
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="62.000000" y="393.300000" >0</text>
+</g>
+<g id="ytick2">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,345.600000 L 518.400000,345.600000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,345.600000 L 76.000000,345.600000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,345.600000 L 518.400000,345.600000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="62.000000" y="350.100000" >2</text>
+</g>
+<g id="ytick3">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,302.400000 L 518.400000,302.400000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,302.400000 L 76.000000,302.400000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,302.400000 L 518.400000,302.400000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="61.000000" y="306.900000" >4</text>
+</g>
+<g id="ytick4">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,259.200000 L 518.400000,259.200000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,259.200000 L 76.000000,259.200000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,259.200000 L 518.400000,259.200000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="62.000000" y="263.700000" >6</text>
+</g>
+<g id="ytick5">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,216.000000 L 518.400000,216.000000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,216.000000 L 76.000000,216.000000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,216.000000 L 518.400000,216.000000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="62.000000" y="220.500000" >8</text>
+</g>
+<g id="ytick6">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,172.800000 L 518.400000,172.800000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,172.800000 L 76.000000,172.800000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,172.800000 L 518.400000,172.800000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="55.000000" y="177.300000" >10</text>
+</g>
+<g id="ytick7">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,129.600000 L 518.400000,129.600000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,129.600000 L 76.000000,129.600000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,129.600000 L 518.400000,129.600000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="55.000000" y="134.100000" >12</text>
+</g>
+<g id="ytick8">
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,86.400000 L 518.400000,86.400000 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,86.400000 L 76.000000,86.400000"/>
+<path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,86.400000 L 518.400000,86.400000"/>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="54.000000" y="90.900000" >14</text>
+</g>
+<g id="ytick9">
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="55.000000" y="47.700000" >16</text>
+</g>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="49.000000" y="243.054688" transform="translate(49.000000,243.054688) rotate(-90.0) translate(-49.000000,-243.054688)">MRows/s</text>
+</g>
+<g id="legend1">
+<polygon style="fill: #ffffff; stroke: #000000; stroke-width: 1.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " points = "80.928000,198.411840 80.928000,50.112000 279.225600,50.112000 279.225600,198.411840"/>
+<path style="fill: none; stroke: #0000ff; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " d="M 100.452800,68.970320 L 107.892800,68.970320 L 115.332800,68.970320 L 122.772800,68.970320 "/>
+<path style="fill: none; stroke: #008000; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " d="M 100.452800,86.417520 L 107.892800,86.417520 L 115.332800,86.417520 L 122.772800,86.417520 "/>
+<path style="fill: none; stroke: #ff0000; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " d="M 100.452800,104.164720 L 107.892800,104.164720 L 115.332800,104.164720 L 122.772800,104.164720 "/>
+<path style="fill: none; stroke: #00bfbf; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " d="M 100.452800,122.211920 L 107.892800,122.211920 L 115.332800,122.211920 L 122.772800,122.211920 "/>
+<path style="fill: none; stroke: #bf00bf; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " d="M 100.452800,139.959120 L 107.892800,139.959120 L 115.332800,139.959120 L 122.772800,139.959120 "/>
+<path style="fill: none; stroke: #bfbf00; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " d="M 100.452800,159.506320 L 107.892800,159.506320 L 115.332800,159.506320 L 122.772800,159.506320 "/>
+<path style="fill: none; stroke: #000000; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " d="M 100.452800,179.053520 L 107.892800,179.053520 L 115.332800,179.053520 L 122.772800,179.053520 "/>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="75.470320" >No compression</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="91.917520" >zlib lvl1</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="111.164720" >zlib lvl1 (Shuffle)</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="127.711920" >lzo lvl1</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="146.959120" >lzo lvl1 (Shuffle)</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="166.506320" >bzip2 lvl1</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="186.053520" >bzip2 lvl1 (Shuffle)</text>
+</g>
+</g>
+</g>
+</svg>

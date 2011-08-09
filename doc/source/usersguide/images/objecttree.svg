@@ -1,0 +1,828 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="36cm"
+   height="42cm"
+   viewBox="5 0 36 42"
+   id="svg1596"
+   sodipodi:version="0.32"
+   inkscape:version="0.45"
+   sodipodi:docname="objecttree.svg"
+   sodipodi:docbase="/home/ivan/svn/pytables/doc/xml"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   sodipodi:modified="true">
+  <metadata
+     id="metadata1835">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs1833" />
+  <sodipodi:namedview
+     inkscape:cy="744.09448"
+     inkscape:cx="637.79529"
+     inkscape:zoom="1"
+     inkscape:window-height="734"
+     inkscape:window-width="1022"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     showgrid="true"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:current-layer="svg1596" />
+  <rect
+     style="fill: #ffffff"
+     x="10.0125"
+     y="0.1625"
+     width="24.95"
+     height="1.4"
+     id="rect1598" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="10.0125"
+     y="0.1625"
+     width="24.95"
+     height="1.4"
+     id="rect1600" />
+  <rect
+     style="fill: #ffffff"
+     x="10.0125"
+     y="1.5625"
+     width="24.95"
+     height="1.8"
+     id="rect1604" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="10.0125"
+     y="1.5625"
+     width="24.95"
+     height="1.8"
+     id="rect1606" />
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="10.1625"
+     y="2.2367225"
+     id="text1608"
+     sodipodi:linespacing="125%">+name: string = &quot;objecttree.h5&quot;</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="10.1625"
+     y="3.0367224"
+     id="text1610"
+     sodipodi:linespacing="125%">+root: Group = rootGroupObject</text>
+  <rect
+     style="fill: #ffffff"
+     x="10.0125"
+     y="3.3625"
+     width="24.95"
+     height="3.4"
+     id="rect1612" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="10.0125"
+     y="3.3625"
+     width="24.95"
+     height="3.4"
+     id="rect1614" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
+     x="10.1625"
+     y="4.0125"
+     id="text1616"
+     sodipodi:linespacing="125%">+createGroup(where:Group,name:string): Group</text>
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
+     x="10.1625"
+     y="4.8125"
+     id="text1618"
+     sodipodi:linespacing="125%">+createTable(where:Group,name:string,description:IsDescription): Table</text>
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
+     x="10.1625"
+     y="5.6125"
+     id="text1620"
+     sodipodi:linespacing="125%">+createArray(where:Group,name:string,object:array): Array</text>
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
+     x="10.1625"
+     y="6.4125"
+     id="text1622"
+     sodipodi:linespacing="125%">+close()</text>
+  <rect
+     style="fill: #ffffff"
+     x="17.05"
+     y="10.5"
+     width="10.65"
+     height="1.4"
+     id="rect1624" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="17.05"
+     y="10.5"
+     width="10.65"
+     height="1.4"
+     id="rect1626" />
+  <rect
+     style="fill: #ffffff"
+     x="17.05"
+     y="11.9"
+     width="10.65"
+     height="3.4"
+     id="rect1630" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="17.05"
+     y="11.9"
+     width="10.65"
+     height="3.4"
+     id="rect1632" />
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="17.200001"
+     y="12.574224"
+     id="text1634"
+     sodipodi:linespacing="125%">+_v_name: string = &quot;/&quot;</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="17.200001"
+     y="13.374224"
+     id="text1636"
+     sodipodi:linespacing="125%">+group1: Group = groupObject1</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="17.200001"
+     y="14.174223"
+     id="text1638"
+     sodipodi:linespacing="125%">+group2: Group = groupObject2</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="17.200001"
+     y="14.974223"
+     id="text1640"
+     sodipodi:linespacing="125%">+array1: Array = arrayObject1</text>
+  <rect
+     style="fill: #ffffff"
+     x="5.44"
+     y="23.0525"
+     width="10.65"
+     height="1.4"
+     id="rect1642" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="5.44"
+     y="23.0525"
+     width="10.65"
+     height="1.4"
+     id="rect1644" />
+  <rect
+     style="fill: #ffffff"
+     x="5.44"
+     y="24.4525"
+     width="10.65"
+     height="2.6"
+     id="rect1648" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="5.44"
+     y="24.4525"
+     width="10.65"
+     height="2.6"
+     id="rect1650" />
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="5.5900002"
+     y="25.126724"
+     id="text1652"
+     sodipodi:linespacing="125%">+_v_name: string = &quot;group1&quot;</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="5.5900002"
+     y="25.926723"
+     id="text1654"
+     sodipodi:linespacing="125%">+table1: Table = tableObject1</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="5.5900002"
+     y="26.726723"
+     id="text1656"
+     sodipodi:linespacing="125%">+array2: Array = arrayObject2</text>
+  <rect
+     style="fill: #ffffff"
+     x="26.42"
+     y="23.0175"
+     width="10.65"
+     height="1.4"
+     id="rect1658" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="26.42"
+     y="23.0175"
+     width="10.65"
+     height="1.4"
+     id="rect1660" />
+  <rect
+     style="fill: #ffffff"
+     x="26.42"
+     y="24.4175"
+     width="10.65"
+     height="1.8"
+     id="rect1664" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="26.42"
+     y="24.4175"
+     width="10.65"
+     height="1.8"
+     id="rect1666" />
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="26.57"
+     y="25.148167"
+     id="text1668"
+     sodipodi:linespacing="125%">+_v_name: string = &quot;group2&quot;</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="26.57"
+     y="25.948168"
+     id="text1670"
+     sodipodi:linespacing="125%">+table2: Table = tableObject2</text>
+  <rect
+     style="fill: #ffffff"
+     x="32.64"
+     y="35.8979"
+     width="7.85"
+     height="1.4"
+     id="rect1672" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="32.64"
+     y="35.8979"
+     width="7.85"
+     height="1.4"
+     id="rect1674" />
+  <rect
+     style="fill: #ffffff"
+     x="32.64"
+     y="37.2979"
+     width="7.85"
+     height="3.4"
+     id="rect1678" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="32.64"
+     y="37.2979"
+     width="7.85"
+     height="3.4"
+     id="rect1680" />
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="32.790001"
+     y="38.028561"
+     id="text1682"
+     sodipodi:linespacing="125%">+['identity']: string</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="32.790001"
+     y="38.82856"
+     id="text1684"
+     sodipodi:linespacing="125%">+['idnumber']: int16</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="32.790001"
+     y="39.628563"
+     id="text1686"
+     sodipodi:linespacing="125%">+['speed']: int32</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="32.790001"
+     y="40.428562"
+     id="text1688"
+     sodipodi:linespacing="125%">+nrow: int64</text>
+  <rect
+     style="fill: #ffffff"
+     x="32.64"
+     y="40.6979"
+     width="7.85"
+     height="1"
+     id="rect1690" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="32.64"
+     y="40.6979"
+     width="7.85"
+     height="1"
+     id="rect1692" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
+     x="32.79"
+     y="41.3479"
+     id="text1694"
+     sodipodi:linespacing="125%">+append()</text>
+  <rect
+     style="fill: #ffffff"
+     x="31.09"
+     y="28.5479"
+     width="8.85"
+     height="1.4"
+     id="rect1696" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="31.09"
+     y="28.5479"
+     width="8.85"
+     height="1.4"
+     id="rect1698" />
+  <rect
+     style="fill: #ffffff"
+     x="31.09"
+     y="29.9479"
+     width="8.85"
+     height="1.8"
+     id="rect1702" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="31.09"
+     y="29.9479"
+     width="8.85"
+     height="1.8"
+     id="rect1704" />
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="31.24"
+     y="30.678568"
+     id="text1706"
+     sodipodi:linespacing="125%">+name: string = &quot;table2&quot;</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="31.24"
+     y="31.478567"
+     id="text1708"
+     sodipodi:linespacing="125%">+row: Row = rowObject2</text>
+  <rect
+     style="fill: #ffffff"
+     x="31.09"
+     y="31.7479"
+     width="8.85"
+     height="1"
+     id="rect1710" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="31.09"
+     y="31.7479"
+     width="8.85"
+     height="1"
+     id="rect1712" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
+     x="31.24"
+     y="32.3979"
+     id="text1714"
+     sodipodi:linespacing="125%">+read(): table</text>
+  <rect
+     style="fill: #ffffff"
+     x="31.4325"
+     y="14.9335"
+     width="8.85"
+     height="1.4"
+     id="rect1716" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="31.4325"
+     y="14.9335"
+     width="8.85"
+     height="1.4"
+     id="rect1718" />
+  <rect
+     style="fill: #ffffff"
+     x="31.4325"
+     y="16.3335"
+     width="8.85"
+     height="1"
+     id="rect1722" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="31.4325"
+     y="16.3335"
+     width="8.85"
+     height="1"
+     id="rect1724" />
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="31.5825"
+     y="17.007723"
+     id="text1726"
+     sodipodi:linespacing="125%">+name: string = &quot;array1&quot;</text>
+  <rect
+     style="fill: #ffffff"
+     x="31.4325"
+     y="17.3335"
+     width="8.85"
+     height="1"
+     id="rect1728" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="31.4325"
+     y="17.3335"
+     width="8.85"
+     height="1"
+     id="rect1730" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
+     x="31.5825"
+     y="17.9835"
+     id="text1732"
+     sodipodi:linespacing="125%">+read(): array</text>
+  <polyline
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     points="22.4875,6.7625 22.4875,8.73501 22.49,8.73501 22.49,10.385 "
+     id="polyline1734" />
+  <text
+     style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: monospace; font-style: normal; font-weight: normal"
+     x="22.4887"
+     y="8.58501"
+     id="text1736" />
+  <polyline
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     points="27.7,13.2 27.7,13.05 35.8575,13.05 35.8575,14.9335 "
+     id="polyline1738" />
+  <text
+     style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: monospace; font-style: normal; font-weight: normal"
+     x="31.7788"
+     y="12.9"
+     id="text1740" />
+  <polyline
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     points="22.375,15.3 22.375,21.035 10.765,21.035 10.765,23.0525 "
+     id="polyline1742" />
+  <text
+     style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: monospace; font-style: normal; font-weight: normal"
+     x="16.57"
+     y="20.885"
+     id="text1744" />
+  <polyline
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     points="22.375,15.3 22.375,21.05 31.745,21.05 31.745,23.0175 "
+     id="polyline1746" />
+  <text
+     style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: monospace; font-style: normal; font-weight: normal"
+     x="27.06"
+     y="20.9"
+     id="text1748" />
+  <polyline
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     points="31.745,26.2175 31.745,27.5 35.515,27.5 35.515,28.5479 "
+     id="polyline1750" />
+  <text
+     style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: monospace; font-style: normal; font-weight: normal"
+     x="33.63"
+     y="27.35"
+     id="text1752" />
+  <polyline
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     points="35.515,32.7479 35.515,34.3 36.565,34.3 36.565,35.8979 "
+     id="polyline1754" />
+  <text
+     style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: monospace; font-style: normal; font-weight: normal"
+     x="36.04"
+     y="34.15"
+     id="text1756" />
+  <polyline
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     points="10.765,27.0525 10.765,28.05 10.76,28.05 10.76,29.0662 "
+     id="polyline1758" />
+  <text
+     style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: monospace; font-style: normal; font-weight: normal"
+     x="10.7625"
+     y="27.9"
+     id="text1760" />
+  <polyline
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     points="10.76,33.2662 10.76,34.2011 10.7605,34.2011 10.7605,36.2214 "
+     id="polyline1762" />
+  <text
+     style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: monospace; font-style: normal; font-weight: normal"
+     x="10.7602"
+     y="34.0511"
+     id="text1764" />
+  <polyline
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     points="16.09,25.7525 16.09,25.75 23.36,25.75 23.36,34.19 "
+     id="polyline1766" />
+  <text
+     style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: monospace; font-style: normal; font-weight: normal"
+     x="19.725"
+     y="25.6"
+     id="text1768" />
+  <rect
+     style="fill: #ffffff"
+     x="6.335"
+     y="29.0662"
+     width="8.85"
+     height="1.4"
+     id="rect1770" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="6.335"
+     y="29.0662"
+     width="8.85"
+     height="1.4"
+     id="rect1772" />
+  <rect
+     style="fill: #ffffff"
+     x="6.335"
+     y="30.4662"
+     width="8.85"
+     height="1.8"
+     id="rect1776" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="6.335"
+     y="30.4662"
+     width="8.85"
+     height="1.8"
+     id="rect1778" />
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="6.4850001"
+     y="31.140423"
+     id="text1780"
+     sodipodi:linespacing="125%">+name: string = &quot;table1&quot;</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="6.4850001"
+     y="31.940418"
+     id="text1782"
+     sodipodi:linespacing="125%">+row: Row = rowObject1</text>
+  <rect
+     style="fill: #ffffff"
+     x="6.335"
+     y="32.2662"
+     width="8.85"
+     height="1"
+     id="rect1784" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="6.335"
+     y="32.2662"
+     width="8.85"
+     height="1"
+     id="rect1786" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
+     x="6.485"
+     y="32.9162"
+     id="text1788"
+     sodipodi:linespacing="125%">+read(): table</text>
+  <rect
+     style="fill: #ffffff"
+     x="6.83552"
+     y="36.2214"
+     width="7.85"
+     height="1.4"
+     id="rect1790" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="6.83552"
+     y="36.2214"
+     width="7.85"
+     height="1.4"
+     id="rect1792" />
+  <rect
+     style="fill: #ffffff"
+     x="6.83552"
+     y="37.6214"
+     width="7.85"
+     height="3.4"
+     id="rect1796" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="6.83552"
+     y="37.6214"
+     width="7.85"
+     height="3.4"
+     id="rect1798" />
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="6.9855199"
+     y="38.352062"
+     id="text1800"
+     sodipodi:linespacing="125%">+['identity']: string</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="6.9855199"
+     y="39.152061"
+     id="text1802"
+     sodipodi:linespacing="125%">+['idnumber']: int16</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="6.9855199"
+     y="39.952061"
+     id="text1804"
+     sodipodi:linespacing="125%">+['speed']: float32</text>
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="6.9855199"
+     y="40.75206"
+     id="text1806"
+     sodipodi:linespacing="125%">+nrow: int64</text>
+  <rect
+     style="fill: #ffffff"
+     x="6.83552"
+     y="41.0214"
+     width="7.85"
+     height="1"
+     id="rect1808" />
+  <rect
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;font-family:Monospace;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:0.56444445;text-anchor:start;text-align:start;writing-mode:lr;line-height:125%"
+     x="6.83552"
+     y="41.0214"
+     width="7.85"
+     height="1"
+     id="rect1810" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
+     x="6.98552"
+     y="41.6714"
+     id="text1812"
+     sodipodi:linespacing="125%">+append()</text>
+  <rect
+     style="fill: #ffffff"
+     x="18.935"
+     y="34.19"
+     width="8.85"
+     height="1.4"
+     id="rect1814" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="18.935"
+     y="34.19"
+     width="8.85"
+     height="1.4"
+     id="rect1816" />
+  <rect
+     style="fill: #ffffff"
+     x="18.935"
+     y="35.59"
+     width="8.85"
+     height="1"
+     id="rect1820" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="18.935"
+     y="35.59"
+     width="8.85"
+     height="1"
+     id="rect1822" />
+  <text
+     style="font-size:0.56444442px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;font-family:Monospace"
+     x="19.084999"
+     y="36.264217"
+     id="text1824"
+     sodipodi:linespacing="125%">+name: string = &quot;array2&quot;</text>
+  <rect
+     style="fill: #ffffff"
+     x="18.935"
+     y="36.59"
+     width="8.85"
+     height="1"
+     id="rect1826" />
+  <rect
+     style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000"
+     x="18.935"
+     y="36.59"
+     width="8.85"
+     height="1"
+     id="rect1828" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
+     x="19.085"
+     y="37.24"
+     id="text1830"
+     sodipodi:linespacing="125%">+read(): array</text>
+  <text
+     xml:space="preserve"
+     style="font-size:0.73377776px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans"
+     x="22.511326"
+     y="1.0620675"
+     id="text2281"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan2283"
+       x="22.511326"
+       y="1.0620675">fileObject(File)</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:0.73377776px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans"
+     x="22.375715"
+     y="11.399568"
+     id="text2285"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan2287"
+       x="22.375715"
+       y="11.399568">rootGroupObject(Group)</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:0.73377776px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans"
+     x="35.873264"
+     y="15.833068"
+     id="text2289"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan2291"
+       x="35.873264"
+       y="15.833068">arrayObject1(Array)</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:0.73377776px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans"
+     x="31.760048"
+     y="23.917067"
+     id="text2293"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan2295"
+       x="31.760048"
+       y="23.917067">groupObject2(Group)</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:0.73377776px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans"
+     x="10.780048"
+     y="23.952066"
+     id="text2297"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan2299"
+       x="10.780049"
+       y="23.952066">groupObject1(Group)</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:0.73377776px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans"
+     x="10.786693"
+     y="29.965767"
+     id="text2301"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan2303"
+       x="10.786693"
+       y="29.965767">tableObject1(Table)</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:0.73377776px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans"
+     x="10.761236"
+     y="37.120968"
+     id="text2305"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan2307"
+       x="10.761236"
+       y="37.120968">rowObject1(Row)</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:0.73377776px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans"
+     x="23.375765"
+     y="35.089565"
+     id="text2309"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan2311"
+       x="23.375765"
+       y="35.089565">arrayObject2(Array)</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:0.73377776px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans"
+     x="35.541695"
+     y="29.447466"
+     id="text2313"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan2315"
+       x="35.541695"
+       y="29.447466">tableObject2(Table)</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:0.73377776px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans"
+     x="36.565716"
+     y="36.797466"
+     id="text2317"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan2319"
+       x="36.565716"
+       y="36.797466">rowObject2(Row)</tspan></text>
+</svg>
