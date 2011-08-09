@@ -8,10 +8,12 @@ The PyTables team includes:
 * Scott Prater
 * Vicent Mas
 * Tom Hedley
-* Antonio Valentino
+* `Antonio Valentino`_
 * Jeffrey Whitaker
-* Josh Moore
+* `Josh Moore`_
 * `Anthony Scopatz`_
 
 .. _Anthony Scopatz: http://www.scopatz.com/
+.. _Antonio Valentino: https://github.com/avalentino
+.. _Josh Moore: https://github.com/joshmoore
 
