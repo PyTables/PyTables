@@ -1071,28 +1071,32 @@ We will be running the code above against a couple of files
 having a /newgroup containing 100 tables and 1000
 tables respectively.  In addition, this benchmark is run twice for two
 different values of the LRU cache size, specifically 256 and 1024. You
-can see the results in Table 1.
+can see the results in :ref:`table <optimization_table_1>`.
 
-
-**Table 1. Retrieval speed and memory consumption depending on the number of nodes in LRU cache.**
+.. _optimization_table_1:
 
 .. only:: not latex
 
-    ====================== =========== === ======= ==== ==== === ======= ==== ====
-    Number:                                   100 nodes             1000 nodes
-    ---------------------------------- --------------------- ---------------------
-    Mem & Speed                        Memory (MB) Time (ms) Memory (MB) Time (ms)
-    ---------------------------------- ----------- --------- ----------- ---------
-    Node is coming from... Cache size  256 1024    256  1024 256 1024    256  1024
-    ====================== =========== === ======= ==== ==== === ======= ==== ====
-    Disk                               14  14      1.24 1.24 51  66      1.33 1.31
-    Cache                              14  14      0.53 0.52 65  73      1.35 0.68
-    ====================== =========== === ======= ==== ==== === ======= ==== ====
+    .. table:: **Retrieval speed and memory consumption depending on the number of nodes in LRU cache.**
 
+        ====================== =========== === ======= ==== ==== === ======= ==== ====
+        Number:                                   100 nodes             1000 nodes
+        ---------------------------------- --------------------- ---------------------
+        Mem & Speed                        Memory (MB) Time (ms) Memory (MB) Time (ms)
+        ---------------------------------- ----------- --------- ----------- ---------
+        Node is coming from... Cache size  256 1024    256  1024 256 1024    256  1024
+        ====================== =========== === ======= ==== ==== === ======= ==== ====
+        Disk                               14  14      1.24 1.24 51  66      1.33 1.31
+        Cache                              14  14      0.53 0.52 65  73      1.35 0.68
+        ====================== =========== === ======= ==== ==== === ======= ==== ====
 
 .. raw:: latex
 
     \\
+    \\
+    \begin{threeparttable}
+    \capstart\caption{Retrieval speed and memory consumption depending on the number of nodes in LRU cache.}
+
     \begin{tabulary}{\linewidth}{|l|l|r|r|r|r|r|r|r|r|}
     \hline
     \multicolumn{2}{|l|}{\textbf{Number:}} & \multicolumn{4}{|c|}{\textbf{100 nodes}} & \multicolumn{4}{|c|}{\textbf{1000 nodes}} \\
@@ -1105,11 +1109,15 @@ can see the results in Table 1.
     Cache  &  & 14 & 14 & 0.53 & 0.52 & 65 & 73 & 1.35 & 0.68 \\
     \hline
     \end{tabulary}
+
+    \end{threeparttable}
+    \\
     \\
 
-From the data in Table 1, one can see that when the number of
-objects that you are dealing with does fit in cache, you will get
-better access times to them. Also, incrementing the node cache size
+
+From the data in :ref:`table <optimization_table_1>`, one can see that when
+the number of objects that you are dealing with does fit in cache, you will
+get better access times to them. Also, incrementing the node cache size
 effectively consumes more memory *only* if the
 total nodes exceeds the slots in cache; otherwise the memory
 consumption remains the same. It is also worth noting that

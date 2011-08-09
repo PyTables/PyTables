@@ -7,7 +7,7 @@ PyTables User's Guide
 .. raw:: latex
 
     \listoffigures
-    % \listoftables
+    \listoftables
     \clearpage
 
 
