@@ -39,7 +39,7 @@ Bibliography
 
 .. _NUMARRAY:
 
-:ref:`[NUMARRAY] <NUMARRAY>` Perry Greenfield, Todd Miller, Richard L White, J. C. Hsu, Paul Barrett, Jochen Kupper, and Peter J Verveer. Numarray. Reimplementation of Numeric which adds the ability to efficiently manipulate large numeric arrays in ways similar to Matlab and IDL. Among others, Numarray provides the record array extension. `<http://stsdas.stsci.edu/numarray/>`_.
+:ref:`[NUMARRAY] <NUMARRAY>` Perry Greenfield, Todd Miller, Richard L White, J. C. Hsu, Paul Barrett, Jochen |Kuepper|, and Peter J Verveer. Numarray. Reimplementation of Numeric which adds the ability to efficiently manipulate large numeric arrays in ways similar to Matlab and IDL. Among others, Numarray provides the record array extension. `<http://stsdas.stsci.edu/numarray/>`_.
 
 .. _NUMEXPR:
 
@@ -90,3 +90,4 @@ Bibliography
 :ref:`[VITABLES] <VITABLES>` Vicent Mas. ViTables. A GUI for PyTables/HDF5 files. It is a graphical tool for browsing and editing files in both PyTables and HDF5 formats. `<http://www.vitables.org>`_.
 
 
+.. |Kuepper| unicode:: K U+00FC pper .. Kuepper
