@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.abspath('../sphinxext'))
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.pngmath',
               'sphinx.ext.inheritance_diagram', 'numpydoc', #'sphinx.ext.autosummary',
-              'ipython_console_highlighting',
+              'ipython_console_highlighting', 'sphinx.ext.todo',
               ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -215,10 +215,20 @@ latex_use_parts = True
 
 # A dictionary that contains LaTeX snippets that override those Sphinx
 # usually puts into the generated .tex files.
-#latex_elements = {}
+latex_elements = {
+    'preamble': '\usepackage{bookmark,hyperref}',
+}
 
 # Documents to append as an appendix to all manuals.
-#latex_appendices = []
+#latex_appendices = [
+#    'usersguide/datatypes',
+#    'usersguide/condition_syntax',
+#    'usersguide/parameter_files',
+#    'usersguide/nested_rec_arrays',
+#    'usersguide/utilities',
+#    'usersguide/file_format',
+#    'usersguide/bibliography',
+#]
 
 # If false, no module index is generated.
 #latex_domain_indices = True
