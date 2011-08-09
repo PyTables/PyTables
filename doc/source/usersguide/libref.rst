@@ -64,6 +64,8 @@ Global variables
        considered *deprecated*.
        It will be removed in the next major release.
 
+    .. deprecated:: 2.3
+
 Global functions
 ~~~~~~~~~~~~~~~~
 .. function:: copyFile(srcfilename, dstfilename, overwrite=False, **kwargs)

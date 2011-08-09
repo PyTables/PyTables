@@ -364,6 +364,8 @@ efficiency (see :ref:`expectedRowsOptim` for details).
 tables.netcdf3 package reference
 --------------------------------
 
+.. deprecated:: 2.3
+
 Global constants
 ~~~~~~~~~~~~~~~~
 
