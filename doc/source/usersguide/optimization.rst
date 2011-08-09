@@ -239,7 +239,7 @@ In-kernel searches
 
 PyTables provides a way to accelerate data selections inside
 of a single table, through the use of the
-:meth:`Table.where` iterator and related query methods.
+:ref:`TableMethods_querying` iterator and related query methods.
 This mode of selecting data is called
 *in-kernel*.  Let's see an example of an
 *in-kernel* query based on the
