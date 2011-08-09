@@ -189,7 +189,9 @@ Parameters for the different internal caches
     The maximum number of chunks for SORTEDLR cache.
 
 
-Parameters for general cache behameters will not take any effect if passed to
+Parameters for general cache behaviour
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. warning:: The next parameters will not take any effect if passed to
    the openFile() function, so they can only be
    changed in a *global* way.  You can change
    them in the file, but this is strongly discouraged unless you know
