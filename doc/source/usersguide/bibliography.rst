@@ -137,7 +137,7 @@ Bibliography
 :ref:`[SCIPY1] <SCIPY1>`
     Konrad Hinsen. Scientific Python. Collection of Python modules useful for
     scientific computing.
-    `<http://starship.python.net/~hinsen/ScientificPython/>`_.
+    `<http://dirac.cnrs-orleans.fr/ScientificPython>`_.
 
 .. _SCIPY2:
 
