@@ -130,5 +130,6 @@ doctest:
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
 dist: html latexpdf
-	mv -f $(BUILDDIR)/html .
-	mv -f $(BUILDDIR)/latex/usersguide.pdf .
+	rm -rf html usersguide.pdf
+	mv  $(BUILDDIR)/html .
+	mv  $(BUILDDIR)/latex/usersguide.pdf .
