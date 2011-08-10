@@ -11,8 +11,8 @@ PyTables User's Guide
     \clearpage
 
 
-:Authors: **Francesc Alted, Ivan Vilata, Scott Prater, Vicent Mas, Tom Hedley,
-          Antonio Valentino, Jeffrey Whitaker, Anthony Scopatz**
+:Authors:   Francesc Alted, Ivan Vilata, Scott Prater, Vicent Mas, Tom Hedley,
+            Antonio Valentino, Jeffrey Whitaker, Anthony Scopatz
 :Copyright: |copy| 2002, 2003, 2004 - Francesc Alted
 
             |copy| 2005, 2006, 2007 - Cárabos Coop. V.
@@ -20,7 +20,9 @@ PyTables User's Guide
             |copy| 2008, 2009, 2010 - Francesc Alted
 
             |copy| 2011 - PyTables maintainers
-
+:Date:      |today|
+:Version:   |version|
+:Home Page: http://www.pytables.org
 
 .. raw:: latex
 
