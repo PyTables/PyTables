@@ -1,9 +1,8 @@
 include MANIFEST.in
 include *.txt THANKS
-exclude LICENSE-*.txt
 include setup.py setup.cfg VERSION Makefile
 
-recursive-include tables *.py *.pyx *.pxd *.pxi *.c Makefile
+recursive-include tables *.py *.pyx *.pxd *.pxi *.c
 exclude tables/linkExtension.pyx   # depends on the HDF5 version
 recursive-include tables/tests *.h5
 recursive-include tables/nodes/tests *.h5 *.dat *.xbm
@@ -12,9 +11,10 @@ recursive-include blosc *.c *.h
 
 recursive-include LICENSES *
 recursive-include utils *
-recursive-include doc *.txt *.pdf *.html *.css *.png Makefile
+recursive-include doc *.txt *.pdf *.html *.css *.png Makefile make.bat
 recursive-include doc/scripts *.py
-recursive-exclude doc/xml *
+recursive-include doc/sphinxext *
+recursive-exclude doc/build *
 recursive-include examples *.py *.sh
 recursive-include bench *.sh *.py *.txt
 recursive-include contrib README *.py

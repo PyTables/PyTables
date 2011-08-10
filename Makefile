@@ -8,7 +8,7 @@ SRCDIRS = tables src doc
 GENERATED = ANNOUNCE.txt
 
 
-.PHONY:		dist clean
+.PHONY:		dist clean distclean
 
 
 dist:		$(GENERATED)
@@ -19,6 +19,11 @@ clean:
 	rm -f $(GENERATED) tables/*.so tables/numexpr/*.so
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
+
+distclean: clean
+	rm -rf doc/html
+	rm -f doc/usersguide.pdf
+	rm -f tables/_comp_*.c tables/*Extension.c tables/linkExtension.pyx
 
 %:		%.in VERSION
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
