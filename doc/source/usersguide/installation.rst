@@ -48,9 +48,15 @@ Numeric automatically.
 Prerequisites
 ~~~~~~~~~~~~~
 
-First, make sure that you have at least Python 2.4, HDF5 1.6.10, NumPy 1.4.1,
-Numexpr 1.4.1 and Cython 0.13 or higher installed (for testing purposes, we
-are using HDF5 1.6.10/1.8.5, NumPy 1.5 and Numexpr 1.4.1 currently).
+First, make sure that you have
+
+* Python >= 2.4 (Python 3.x is not supported currently),
+* HDF5 >= 1.6.10,
+* NumPy >= 1.4.1,
+* Numexpr >= 1.4.1 and
+* Cython >= 0.13
+
+installed (for testing purposes, we are using HDF5 1.6.10/1.8.5, NumPy 1.5 and Numexpr 1.4.1 currently).
 If you don't, fetch and install them before proceeding.
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
