@@ -478,9 +478,8 @@ File methods - hierarchy manipulation
 
 .. method:: File.createArray(where, name, object, title='', byteorder=None, createparents=False)
 
-    Create a new array with the given name in
-    where location.  See the
-    Array class (in :class:`Array`) for more information on
+    Create a new array with the given name in where location.
+    See the Array class (in :ref:`ArrayClassDescr`) for more information on
     arrays.
 
     Parameters
@@ -494,10 +493,9 @@ File methods - hierarchy manipulation
         [[1,2],2]) and homogeneous (i.e. all the
         elements are of the same type).
 
-        Also, objects that have some of their dimensions equal
-        to 0 are not supported (use an EArray
-        node (see :class:`EArray`) if you want to store an array
-        with one of its dimensions equal to 0).
+        Also, objects that have some of their dimensions equal to 0 are not
+        supported (use an EArray node (see :ref:`EArrayClassDescr`) if you
+        want to store an array with one of its dimensions equal to 0).
     byteorder : str
         The byteorder of the data *on disk*, specified as
         'little' or
@@ -512,10 +510,9 @@ File methods - hierarchy manipulation
 
 .. method:: File.createCArray(where, name, atom, shape, title='', filters=None, chunkshape=None, byteorder=None, createparents=False)
 
-    Create a new chunked array with the given
-    name in where location.  See
-    the CArray class (in :class:`CArray`) for more
-    information on chunked arrays.
+    Create a new chunked array with the given name in where location.
+    See the CArray class (in :ref:`CArrayClassDescr`) for more information on
+    chunked arrays.
 
     Parameters
     ----------
@@ -543,9 +540,8 @@ File methods - hierarchy manipulation
 
 .. method:: File.createEArray(where, name, atom, shape, title='', filters=None, expectedrows=EXPECTED_ROWS_EARRAY, chunkshape=None, byteorder=None, createparents=False)
 
-    Create a new enlargeable array with the given
-    name in where location.  See
-    the EArray (in :class:`EArray`) class for more information on
+    Create a new enlargeable array with the given name in where location.
+    See the EArray (in :ref:`EArrayClassDescr`) class for more information on
     enlargeable arrays.
 
     Parameters
@@ -1798,13 +1794,12 @@ The Leaf class
     group, it can not have any further children below it (i.e. it is an
     end node).
 
-    This definition includes all nodes which contain actual data
-    (datasets handled by the Table - see :ref:`TableClassDescr`,
-    Array - see :class:`Array`, CArray - see :class:`CArray`,
-    EArray - see :class:`EArray`, and VLArray - see
-    :class:`VLArray`
-    classes) and unsupported nodes (the UnImplemented
-    class - :class:`UnImplemented`) these classes do in fact inherit from
+    This definition includes all nodes which contain actual data (datasets
+    handled by the Table - see :ref:`TableClassDescr`, Array - see
+    :ref:`ArrayClassDescr`, CArray - see :ref:`CArrayClassDescr`, EArray -
+    see :ref:`EArrayClassDescr`, and VLArray - see :ref:`VLArrayClassDescr`
+    classes) and unsupported nodes (the UnImplemented class -
+    :ref:`UnImplementedClassDescr`) these classes do in fact inherit from
     Leaf.
 
 
@@ -2877,15 +2872,13 @@ The Description class
 
     This class represents descriptions of the structure of tables.
 
-    An instance of this class is automatically bound to
-    Table (see :class:`Table`) objects when they are created.  It
-    provides a browseable representation of the structure of the table,
-    made of non-nested (Col - see :class:`Col`) and nested
-    (Description) columns. It also contains
-    information that will allow you to build
-    NestedRecArray (see :class:`NestedRecArray`)
-    objects suited for the different columns in a table (be they nested
-    or not).
+    An instance of this class is automatically bound to Table (see 
+    :ref:`TableClassDescr`) objects when they are created.  It provides a
+    browseable representation of the structure of the table, made of
+    non-nested (Col - see :ref:`ColClassDescr`) and nested (Description)
+    columns. It also contains information that will allow you to build
+    NestedRecArray (see :class:`NestedRecArray`) objects suited for the
+    different columns in a table (be they nested or not).
 
     Column definitions under a description can be accessed as
     attributes of it (*natural naming*). For
@@ -2897,7 +2890,7 @@ The Description class
     col2 column, this can be accessed as
     table.description.col1.col2. Because of natural
     naming, the names of members start with special prefixes, like in
-    the Group class (see :class:`Group`).
+    the Group class (see :ref:`GroupClassDescr`).
 
 
 Description instance variables
@@ -2951,12 +2944,10 @@ Description instance variables
 
 .. attribute:: Description._v_nestedDescr
 
-    A nested list of pairs of (name,
-    format) tuples for all the columns under this
-    table or nested column. You can use this as the
-    dtype and descr
-    arguments of NumPy array and
-    NestedRecArray (see :class:`NestedRecArray`) factories, respectively.
+    A nested list of pairs of (name, format) tuples for all the columns under
+    this table or nested column. You can use this as the dtype and descr
+    arguments of NumPy array and NestedRecArray (see 
+    :ref:`NestedRecArrayClassDescr`) factories, respectively.
 
 .. attribute:: Description._v_nestedFormats
 
@@ -2972,10 +2963,9 @@ Description instance variables
 
 .. attribute:: Description._v_nestedNames
 
-    A nested list of the names of all the columns under
-    this table or nested column. You can use this as the
-    names argument of NumPy array and
-    NestedRecArray (see :class:`NestedRecArray`) factories.
+    A nested list of the names of all the columns under this table or nested
+    column. You can use this as the names argument of NumPy array and
+    NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
 
 .. attribute:: Description._v_pathnames
 
@@ -3595,12 +3585,11 @@ The Array class
 
     This class represents homogeneous datasets in an HDF5 file.
 
-    This class provides methods to write or read data to or from
-    array objects in the file. This class does not allow you neither to
-    enlarge nor compress the datasets on disk; use the
-    EArray class (see :class:`EArray`) if you want enlargeable dataset support
-    or compression features, or CArray (see :class:`CArray`) if you just
-    want compression.
+    This class provides methods to write or read data to or from array objects
+    in the file. This class does not allow you neither to enlarge nor compress
+    the datasets on disk; use the EArray class (see :ref:`EArrayClassDescr`)
+    if you want enlargeable dataset support or compression features, or CArray
+    (see :ref:`CArrayClassDescr`) if you just want compression.
 
     An interesting property of the Array class is
     that it remembers the *flavor* of the object that
@@ -3795,12 +3784,11 @@ The CArray class
 
     This class represents homogeneous datasets in an HDF5 file.
 
-    The difference between a CArray and a normal
-    Array (see :class:`Array`), from which it inherits, is that a
-    CArray has a chunked layout and, as a consequence,
-    it supports compression.  You can use datasets of this class to easily
-    save or load arrays to or from disk, with compression support
-    included.
+    The difference between a CArray and a normal Array (see
+    :ref:`ArrayClassDescr`), from which it inherits, is that a CArray has a
+    chunked layout and, as a consequence, it supports compression.
+    You can use datasets of this class to easily save or load arrays to or
+    from disk, with compression support included.
 
 
 Examples of use
@@ -3851,16 +3839,16 @@ The EArray class
 
     This class represents extendable, homogeneous datasets in an HDF5 file.
 
-    The main difference between an EArray and a
-    CArray (see :class:`CArray`), from which it inherits, is that the
-    former can be enlarged along one of its dimensions, the
-    *enlargeable dimension*.  That means that the
-    :attr:`Leaf.extdim` attribute (see :ref:`LeafInstanceVariables`) of any
-    EArray instance will always be non-negative.
+    The main difference between an EArray and a CArray (see 
+    :ref:`CArrayClassDescr`), from which it inherits, is that the former can
+    be enlarged along one of its dimensions, the *enlargeable dimension*.
+    That means that the :attr:`Leaf.extdim` attribute (see
+    :ref:`LeafInstanceVariables`) of any EArray instance will always be
+    non-negative.
     Multiple enlargeable dimensions might be supported in the future.
 
-    New rows can be added to the end of an enlargeable array by
-    using the :meth:`EArray.append` method.
+    New rows can be added to the end of an enlargeable array by using the
+    :meth:`EArray.append` method.
 
 
 .. _EArrayMethodsDescr:

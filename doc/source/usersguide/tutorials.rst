@@ -60,7 +60,7 @@ If you are going to work with NumPy arrays
 the numpy package. So most PyTables programs
 begin with::
 
-    >>> import tables        # but in this tutorial we use "from tables import \*"
+    >>> import tables   # but in this tutorial we use "from tables import \*"
     >>> import numpy
 
 Declaring a Column Descriptor
@@ -107,13 +107,12 @@ all this information::
     ...     energy    = Float64Col()    # double (double-precision)
     >>>
 
-This definition class is self-explanatory. Basically, you
-declare a class variable for each field you need. As its value you
-assign an instance of the appropriate Col
-subclass, according to the kind of column defined (the data type,
-the length, the shape, etc). See the :ref:`ColClassDescr` for a complete description of these
-subclasses. See also :ref:`datatypes` for a list of data types supported by
-the Col constructor.
+This definition class is self-explanatory. Basically, you declare a class
+variable for each field you need. As its value you assign an instance of the
+appropriate Col subclass, according to the kind of column defined (the data
+type, the length, the shape, etc). See the :ref:`ColClassDescr` for a complete
+description of these subclasses. See also :ref:`datatypes` for a list of data
+types supported by the Col constructor.
 
 From now on, we can use Particle instances
 as a descriptor for our detector data table. We will see later on
@@ -162,9 +161,9 @@ group.
 Creating a new table
 ~~~~~~~~~~~~~~~~~~~~
 
-Let's now create a Table (see :class:`Table`) object as a
-branch off the newly-created group. We do that by calling the
-:meth:`File.createTable` method of the h5file object::
+Let's now create a Table (see :ref:`TableClassDescr`) object as a branch off
+the newly-created group. We do that by calling the :meth:`File.createTable`
+method of the h5file object::
 
     >>> table = h5file.createTable(group, 'readout', Particle, "Readout example")
 
@@ -2310,14 +2309,12 @@ datatype* (its dtype is a list of
 name-datatype tuples). We read one row for each four in the table,
 giving a result of three rows.
 
-.. note:: When using the numarray flavor
-          (deprecated), you will get an instance of the
-          NestedRecArray class that lives in the
-          tables.nra package.
-          NestedRecArray is actually a subclass of the
-          RecArray object of the
-          numarray.records module. You can get more info
-          about NestedRecArray object in :class:`NestedRecArray`.
+.. note:: When using the numarray flavor (deprecated), you will get an
+          instance of the NestedRecArray class that lives in the tables.nra
+          package.
+          NestedRecArray is actually a subclass of the RecArray object of the
+          numarray.records module. You can get more info about NestedRecArray
+          object in :ref:`NestedRecArrayClassDescr`.
 
 You can make use of the above object in many different ways.
 For example, you can use it to append new data to the existing table
@@ -2564,8 +2561,8 @@ it can be used in the real world.
 
 ------------
 
-.. [1] Appending data to arrays is also supported, but you need to
-       create special objects called EArray (see :class:`EArray` for more
+.. [1] Appending data to arrays is also supported, but you need to create
+       special objects called EArray (see :ref:`EArrayClassDescr` for more
        info).
 
 .. [2] Note that you can append not only scalar values to tables,
