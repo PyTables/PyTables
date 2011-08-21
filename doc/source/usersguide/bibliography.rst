@@ -173,5 +173,18 @@ Bibliography
     and HDF5 formats.
     `<http://www.vitables.org>`_.
 
+.. _GIT:
+
+:ref:`[GIT] <GIT>`
+    Git is a free and open source, distributed version control system designed
+    to handle everything from small to very large projects with speed and
+    efficiency `<http://git-scm.com>`_.
+
+.. _SPHINX:
+
+:ref:`[SPHINX] <SPHINX>`
+    Sphinx is a tool that makes it easy to create intelligent and beautiful
+    documentation, written by Georg Brandl and licensed under the BSD license
+    `<http://sphinx.pocoo.org/>`_.
 
 .. |Kuepper| unicode:: K U+00FC pper .. Kuepper

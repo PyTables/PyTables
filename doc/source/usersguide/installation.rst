@@ -26,9 +26,9 @@ compiler installed.
 A GCC compiler is assumed for Unix, but other compilers should work as well.
 
 Extensions in PyTables have been developed in Cython (see
-:ref:`[CYTHON] <CYTHON>`) and the C language. You can rebuild everything
-from scratch if you have Cython installed, but this is not necessary, as the
-Cython compiled source is included in the source distribution.
+:ref:`[CYTHON] <CYTHON>`) and the C language. You can rebuild everything from
+scratch if you have Cython installed, but this is not necessary, as the Cython
+compiled source is included in the source distribution.
 
 To compile PyTables you will need a recent version of Python, the HDF5 (C
 flavor) library from http://hdfgroup.org, and the NumPy (see
@@ -56,8 +56,15 @@ First, make sure that you have
 * Numexpr >= 1.4.1 and
 * Cython >= 0.13
 
-installed (for testing purposes, we are using HDF5 1.6.10/1.8.5, NumPy 1.5 and Numexpr 1.4.1 currently).
-If you don't, fetch and install them before proceeding.
+installed (for testing purposes, we are using HDF5 1.6.10/1.8.5, NumPy 1.5 and
+Numexpr 1.4.1 currently). If you don't, fetch and install them before
+proceeding.
+
+.. note:: Currently PyTables does not use setuptools_ so do not expect that
+          the setup.py script automatically install all packages PyTables
+          depends on.
+
+.. _setuptools: http://pypi.python.org/pypi/setuptools
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
 instructions on how to install precompiled binaries if you are not willing to
@@ -143,6 +150,28 @@ PyTables, so you don't need to install it separately.
         --hdf5=c:\\stuff\\hdf5-1.8.5-32bit-VS2008-IVF101\\release
         --lzo=c:\\Program Files (x86)\\GnuWin32
         --bzip2=c:\\Program Files (x86)\\GnuWin32
+
+**Development version (Unix)**
+
+    Installation of the development version is very similar to installation
+    from a source package (described above).  There are two main differences:
+
+    #. sources have to be downloaded from the `PyTables source repository`_
+       hosted on GitHub_. Git (see :ref:`[GIT] <GIT>`) is used as VCS.
+       The following command create a local copy of latest development version
+       sources::
+
+        $ git clone https://github.com/PyTables/PyTables.git
+
+    #. sources in the git repository do not include pre-built documentation
+       and pre-generated C code of Cython extension modules.  To be able to
+       generate them, both Cython (see :ref:`[CYTHON] <CYTHON>`) and
+       sphinx >= 1.0.7 (see :ref:`[SPHINX] <SPHINX>`) are mandatory
+       prerequisites.
+
+.. _`PyTables source repository`: https://github.com/PyTables/PyTables
+.. _GitHub: http://www.github.com
+
 
 PyTables package installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
