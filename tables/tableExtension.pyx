@@ -917,9 +917,8 @@ cdef class Row:
         self.indexValid = call_on_recarr(
           self.condfunc, self.condargs, IObuf)
         self.indexValidData = <char *>self.indexValid.data
-
         # Get the valid coordinates
-        self.indexValues = self.bufcoords[self.indexValid]
+        self.indexValues = self.bufcoords[:recout][self.indexValid]
         self.indexValuesData = <hsize_t *>self.indexValues.data
         self.lenbuf = self.indexValues.size
         # Place the valid results at the beginning of the buffer

@@ -104,6 +104,7 @@ class BasicTestCase(PyTablesTestCase):
         # Do a selection
         results = [p["var1"] for p in table.where('var1 == "1"')]
         self.assertEqual(len(results), 2)
+        self.assertEqual(results, ['1']*2)
 
     def test00_update(self):
         """Checking automatic re-indexing after an update operation."""
@@ -132,8 +133,10 @@ class BasicTestCase(PyTablesTestCase):
         # Do a couple of selections
         results = [p["var1"] for p in table.where('var1 == "1"')]
         self.assertEqual(len(results), 2)
+        self.assertEqual(results, ['1']*2)
         results = [p["var3"] for p in table.where('var3 == 0')]
         self.assertEqual(len(results), 2)
+        self.assertEqual(results, [0]*2)
 
     def test01_readIndex(self):
         """Checking reading an Index (string flavor)"""
@@ -154,6 +157,7 @@ class BasicTestCase(PyTablesTestCase):
         # Do a selection
         results = [p["var1"] for p in table.where('var1 == "1"')]
         self.assertEqual(len(results), 1)
+        self.assertEqual(results, ['1'])
 
     def test02_readIndex(self):
         """Checking reading an Index (bool flavor)"""
@@ -177,6 +181,7 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", results
         self.assertEqual(len(results), self.nrows // 2)
+        self.assertEqual(results, [True]*(self.nrows // 2))
 
     def test03_readIndex(self):
         """Checking reading an Index (int flavor)"""
@@ -199,6 +204,7 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", results
         self.assertEqual(len(results), min(10, table.nrows) - 2)
+        self.assertEqual(results, range(2,min(10, table.nrows)))
 
     def test04_readIndex(self):
         """Checking reading an Index (float flavor)"""
@@ -223,6 +229,8 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", results
         self.assertEqual(len(results), min(10, table.nrows))
+        self.assertEqual(results, [float(i) for i in
+                                   reversed(range(min(10, table.nrows)))])
 
     def test05_getWhereList(self):
         """Checking reading an Index with getWhereList (string flavor)"""
