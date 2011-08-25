@@ -1,2 +1,11 @@
+# Dirs
+build/
 doc/build/
+
+# File types
 *.pyc
+tables/*.c
+
+# specific files
+src/version.h
+tables/linkExtension.pyx

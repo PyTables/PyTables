@@ -801,7 +801,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "repr(tbl.cols)-->", repr(tbl.cols)
 
         self.assertEqual(str(tbl.cols), "/test.cols (Cols), 6 columns")
-        self.assertEqual(repr(tbl.cols),
+        try: 
+            self.assertEqual(repr(tbl.cols),
 """/test.cols (Cols), 6 columns
   x (Column(0, 2), ('int32',(2,)))
   Info (Cols(), Description)
@@ -809,7 +810,19 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
   info (Cols(), Description)
   y (Column(0, 2, 2), ('float64',(2, 2)))
   z (Column(0,), uint8)
-""")
+"""
+)
+        except AssertionError:
+            self.assertEqual(repr(tbl.cols),
+"""/test.cols (Cols), 6 columns
+  x (Column(0, 2), ('<i4', (2,)))
+  Info (Cols(), Description)
+  color (Column(0,), |S2)
+  info (Cols(), Description)
+  y (Column(0, 2, 2), ('<f8', (2, 2)))
+  z (Column(0,), uint8)
+"""
+)
 
     def test00b_repr(self):
         """Checking string representation of nested Cols."""
