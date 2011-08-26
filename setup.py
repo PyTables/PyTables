@@ -440,15 +440,17 @@ def get_cython_extfiles(extnames):
         extfile = os.path.join(extdir, extname)
         extpfile = '%s.pyx' % extfile
         extcfile = '%s.c' % extfile
+
+        # Copy extensions that depends on the HDF5 version
+        hdf5_maj_version, hdf5_min_version = hdf5_version[:2]
+        hdf5_majmin = "%d%d" % (hdf5_maj_version, hdf5_min_version)
+        if not hdf5_majmin in ("16", "18"):
+            exit_with_error("Unsupported HDF5 version!")
+        specific_ext = os.path.join(extdir, extname + hdf5_majmin + ".pyx")
+        if exists(specific_ext):
+            shutil.copy(specific_ext, extpfile)
+
         if not exists(extcfile) or newer(extpfile, extcfile):
-            # Copy extensions that depends on the HDF5 version
-            hdf5_maj_version, hdf5_min_version = hdf5_version[:2]
-            hdf5_majmin = "%d%d" % (hdf5_maj_version, hdf5_min_version)
-            if not hdf5_majmin in ("16", "18"):
-                exit_with_error("Unsupported HDF5 version!")
-            specific_ext = os.path.join(extdir, extname + hdf5_majmin + ".pyx")
-            if exists(specific_ext):
-                shutil.copy(specific_ext, extpfile)
             # For some reason, setup in setuptools does not compile
             # Cython files (!)  Do that manually...
             print "cythoning %s to %s" % (extpfile, extcfile)
