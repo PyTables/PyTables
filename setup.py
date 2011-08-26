@@ -2,6 +2,7 @@
 #----------------------------------------------------------------------
 # Setup script for the tables package
 
+import ctypes
 import sys, os, shutil
 import textwrap
 from os.path import exists, expanduser
@@ -103,12 +104,30 @@ default_header_dirs = None
 default_library_dirs = None
 default_runtime_dirs = None
 
+def add_from_path(envname, dirs):
+    try:
+        dirs.extend(os.environ[envname].split(os.pathsep))
+    except KeyError:
+        pass
+
+def add_from_flags(envname, flag_key, dirs):
+    for flag in os.environ.get(envname, "").split():
+        if flag.startswith(flag_key):
+            dirs.append(flag[len(flag_key):])
+
 if os.name == 'posix':
-    default_header_dirs = ['/usr/include', '/usr/local/include']
-    default_library_dirs = [
+    default_header_dirs = []
+    add_from_path("CPATH", default_header_dirs)
+    add_from_path("C_INCLUDE_PATH", default_header_dirs)
+    add_from_flags("CPPFLAGS", "-I", default_header_dirs)
+    default_header_dirs.extend(['/usr/include', '/usr/local/include'])
+
+    default_library_dirs = []
+    add_from_flags("LDFLAGS", "-L", default_library_dirs)
+    default_library_dirs.extend(
         os.path.join(_tree, _arch)
         for _tree in ('/', '/usr', '/usr/local')
-        for _arch in ('lib64', 'lib') ]
+        for _arch in ('lib64', 'lib') )
     default_runtime_dirs = default_library_dirs
 
 elif os.name == 'nt':
@@ -152,11 +171,22 @@ class Package(object):
             self._library_prefixes, self._library_suffixes )
 
     def find_runtime_path(self, locations=default_runtime_dirs):
+        """
+        returns True if the runtime can be found
+        returns None otherwise
+        """
         # An explicit path can not be provided for runtime libraries.
         # (The argument is accepted for compatibility with previous methods.)
-        return _find_file_path(
-            self.runtime_name, default_runtime_dirs,
-            self._runtime_prefixes, self._runtime_suffixes )
+
+        # dlopen() won't tell us where the file is, just whether
+        # success occurred, so this returns True instead of a filename
+        for prefix in self._runtime_prefixes:
+            for suffix in self._runtime_suffixes:
+                try:
+                    ctypes.CDLL(prefix + self.runtime_name + suffix)
+                    return True
+                except OSError:
+                    pass
 
     def find_directories(self, location):
         dirdata = [
@@ -180,6 +210,10 @@ class Package(object):
         for idx, (name, find_path, default_dirs) in enumerate(dirdata):
             path = find_path(locations or default_dirs)
             if path:
+                if path is True:
+                    directories[idx] = True
+                    continue
+
                 # Take care of not returning a directory component
                 # included in the name.  For instance, if name is
                 # 'foo/bar' and path is '/path/foo/bar.h', do *not*
