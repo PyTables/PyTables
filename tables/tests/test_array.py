@@ -1950,7 +1950,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = fileh = openFile(self.file, "w")
         # Create a sample array
-        size = reduce(lambda x,y: x*y, self.shape)
+        size = numpy.prod(self.shape)
         nparr = numpy.arange(size, dtype=numpy.int32).reshape(self.shape)
         self.nparr = nparr
         self.tbarr = fileh.createArray(fileh.root, 'array', nparr)
