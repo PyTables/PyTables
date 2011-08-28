@@ -397,7 +397,7 @@ cdef class Table(Leaf):
     byteoffset = 0   # NumPy objects doesn't have an offset
     bytestride = nparr.strides[0]  # supports multi-dimensional recarray
     # Compute the number of elements in the multidimensional cell
-    nelements = nparr.size / len(nparr)
+    nelements = nparr.size // len(nparr)
     t64buf = nparr.data
 
     conv_float64_timeval32(

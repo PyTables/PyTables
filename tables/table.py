@@ -33,6 +33,11 @@ import math
 import warnings
 import os.path
 from time import time
+try:
+    # functools.reduce is new in python 2.6
+    from functools import reduce as _reduce
+except ImprtError:
+    _reduce = reduce
 
 import numpy
 import numexpr
@@ -1110,7 +1115,7 @@ class Table(tableExtension.Table, Leaf):
         raised.
         """
         try:
-            return reduce(getattr, colpathname.split('/'), self.description)
+            return _reduce(getattr, colpathname.split('/'), self.description)
         except AttributeError:
             raise KeyError( "table ``%s`` does not have a column named ``%s``"
                             % (self._v_pathname, colpathname) )
