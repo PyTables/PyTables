@@ -123,9 +123,9 @@ class LRUCache(object):
     def __init__(self, size=DEFAULT_SIZE):
         # Check arguments
         if size <= 0:
-            raise ValueError, size
+            raise ValueError(size)
         elif type(size) is not type(0):
-            raise TypeError, size
+            raise TypeError(size)
         object.__init__(self)
         self.__heap = []
         self.__dict = {}

@@ -229,14 +229,16 @@ class NetCDFFile:
                             # name has already been encountered with a
                             # different value.
                             if self.dimensions[dim] != val:
-                                raise KeyError,'dimension lengths not consistent'
+                                raise KeyError(
+                                        'dimension lengths not consistent')
                         n = n + 1
                 else:
                     print 'object',var.name,'does not have a dimensions attribute, skipping ..'
                     continue
                 self.variables[var.name]=_NetCDFVariable(var,self)
             if len(self.variables.keys()) == 0:
-                raise IOError, 'file does not contain any objects compatible with tables.netcdf3'
+                raise IOError('file does not contain any objects compatible '
+                              'with tables.netcdf3')
         else:
         # initialize dimension and variable dictionaries for a new file.
             self.dimensions = {}
@@ -254,7 +256,7 @@ class NetCDFFile:
         self.dimensions[dimname] = size
         # make sure there is only one unlimited dimension.
         if self.dimensions.values().count(None) > 1:
-            raise ValueError, 'only one unlimited dimension allowed!'
+            raise ValueError('only one unlimited dimension allowed!')
 
     def createVariable(self,varname,datatype,dimensions,least_significant_digit=None,expectedsize=1000,filters=None):
         """Creates a new variable with the given "varname", "datatype", and
@@ -416,7 +418,10 @@ class NetCDFFile:
             dimsizes = [self.dimensions[dim] for dim in dims]
             if None in dimsizes:
                 if dimsizes.index(None) != 0:
-                    raise ValueError,'unlimited or enlargeable dimension must be most significant (slowest changing, or first) one in order to convert to a true netCDF file'
+                    raise ValueError('unlimited or enlargeable dimension must '
+                                     'be most significant (slowest changing, '
+                                     'or first) one in order to convert to a '
+                                     'true netCDF file')
             if packshort and scale_factor.has_key(varname) and add_offset.has_key(varname):
                 print 'packing %s as short integers ...'%(varname)
                 datatype = 's'
@@ -424,7 +429,8 @@ class NetCDFFile:
             else:
                 datatype = varin.typecode()
             if not _netcdftype_dict[datatype]:
-                raise ValueError,'datatype not supported in netCDF, cannot convert to a true netCDF file'
+                raise ValueError('datatype not supported in netCDF, cannot '
+                                 'convert to a true netCDF file')
 
             varout = ncfile.createVariable(varname,datatype,dims)
             for key in varin.ncattrs():
@@ -581,7 +587,8 @@ class NetCDFVariable:
 
     def __init__(self, varname, NetCDFFile, datatype, dimensions, least_significant_digit=None,expectedsize=1000,filters=None):
         if datatype not in _netcdftype_dict.keys():
-            raise ValueError, 'datatype must be one of %s'%_netcdftype_dict.keys()
+            raise ValueError('datatype must be one of %s' %
+                                                netcdftype_dict.keys())
         self._NetCDF_parent = NetCDFFile
         _NetCDF_FillValue = _fillvalue_dict[datatype]
         vardimsizes = []
@@ -655,7 +662,8 @@ class NetCDFVariable:
         # (not stored in the hdf5 file).
         # dimensions is a read only attribute
         if name in ['dimensions']:
-            raise KeyError, '"dimensions" is a  read-only attribute - cannot modify'
+            raise KeyError('"dimensions" is a  read-only attribute - cannot '
+                           'modify')
         if not name.startswith('_NetCDF_'):
             setattr(self._NetCDF_varobj.attrs,name,value)
         elif not name.endswith('__'):
@@ -702,7 +710,7 @@ class NetCDFVariable:
  the data is truncated (quantized) to improve compression.
         """
         if self._NetCDF_parent._NetCDF_mode == 'r':
-            raise IOError, 'file is read only'
+            raise IOError('file is read only')
         # if data is not an array, try to make it so.
         try:
             datashp = data.shape
@@ -712,7 +720,7 @@ class NetCDFVariable:
         # (i.e. data is in an EArray).
         extdim = self._NetCDF_varobj.extdim
         if extdim < 0:
-            raise IndexError, 'variable has no unlimited dimension'
+            raise IndexError('variable has no unlimited dimension')
         # name of unlimited dimension.
         extdim_name = self.dimensions[extdim]
         # special case that data array is same
@@ -728,7 +736,9 @@ class NetCDFVariable:
                 shapenew[extdim]=1
                 data = numpy.reshape(data, shapenew)
             else:
-                raise IndexError,'data must either have same number of dimensions as variable, or one less (excluding unlimited dimension)'
+                raise IndexError('data must either have same number of '
+                                 'dimensions as variable, or one less '
+                                 '(excluding unlimited dimension)')
         # append the data to the variable object.
         if hasattr(self,'least_significant_digit'):
             self._NetCDF_varobj.append(quantize(data,self.least_significant_digit))

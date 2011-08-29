@@ -39,7 +39,7 @@ class Handler(BaseHandler):
         try:
             self._file = NetCDFFile(filepath)
         except:
-            raise OpenFileError, 'Unable to open file %s.' % filepath
+            raise OpenFileError('Unable to open file %s.' % filepath)
 
     def _parseconstraints(self, constraints=None):
         # Build the dataset.
@@ -141,7 +141,8 @@ class Handler(BaseHandler):
                             assert grid in grids
                             assert name in self._file.variables[grid].dimensions or name == grid
                         except:
-                            raise ConstraintExpressionError, 'Invalid name in constraint expression: %s.' % c['name']
+                            raise ConstraintExpressionError('Invalid name in '
+                                    'constraint expression: %s.' % c['name'])
 
                         array_ = self._file.variables[name]
                         slice_ = getslice(c['shape'], array_.shape)

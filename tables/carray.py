@@ -186,9 +186,9 @@ class CArray(Array):
 
         if new:
             if not isinstance(atom, Atom):
-                raise ValueError, """\
-atom parameter should be an instance of tables.Atom and you passed a %s.""" \
-% type(atom)
+                raise ValueError("atom parameter should be an instance of "
+                                 "tables.Atom and you passed a %s." % 
+                                                                  type(atom))
             if shape is None:
                 raise ValueError("you must specify a non-empty shape")
             try:
@@ -207,12 +207,12 @@ atom parameter should be an instance of tables.Atom and you passed a %s.""" \
                         "`chunkshape` parameter must be a sequence "
                         "and you passed a %s" % type(chunkshape) )
                 if len(shape) != len(chunkshape):
-                    raise ValueError, """\
-the shape (%s) and chunkshape (%s) ranks must be equal.""" \
-% (shape, chunkshape)
+                    raise ValueError("the shape (%s) and chunkshape (%s) "
+                                     "ranks must be equal." %
+                                                        (shape, chunkshape))
                 elif min(chunkshape) < 1:
-                    raise ValueError, """ \
-chunkshape parameter cannot have zero-dimensions."""
+                    raise ValueError("chunkshape parameter cannot have "
+                                     "zero-dimensions.")
                 self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         # The `Array` class is not abstract enough! :(

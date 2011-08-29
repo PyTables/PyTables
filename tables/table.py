@@ -293,8 +293,9 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
 
     # Warn if the index already exists
     if index:
-        raise ValueError, \
-"%s for column '%s' already exists. If you want to re-create it, please, try with reIndex() method better" % (str(index), str(self.pathname))
+        raise ValueError("%s for column '%s' already exists. If you want to "
+                         "re-create it, please, try with reIndex() method "
+                         "better" % (str(index), str(self.pathname)))
 
     # Check that the datatype is indexable.
     if dtype.str[1:] == 'u8':
@@ -1719,8 +1720,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                     select_field = field
                     field = None
                 else:
-                    raise KeyError, "Field %s not found in table %s" % \
-                          (field, self)
+                    raise KeyError("Field %s not found in table %s" %
+                                                            (field, self))
             else:
                 # The column hangs directly from the top
                 dtypeField = self.coldtypes[field]
@@ -1928,7 +1929,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         if is_idx(key):
             # Index out of range protection
             if key >= self.nrows:
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             if key < 0:
                 # To support negative values
                 key += self.nrows
@@ -1994,7 +1995,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         if is_idx(key):
             # Index out of range protection
             if key >= self.nrows:
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             if key < 0:
                 # To support negative values
                 key += self.nrows
@@ -2072,8 +2073,9 @@ You cannot append rows to a non-chunked table.""")
             # so the resulting object is safe for in-place conversion.
             wbufRA = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
-            raise ValueError, \
-"rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), exc)
+            raise ValueError("rows parameter cannot be converted into a "
+                             "recarray object compliant with table '%s'. "
+                             "The error was: <%s>" % (str(self), exc))
         lenrows = wbufRA.shape[0]
         # If the number of rows to append is zero, don't do anything else
         if lenrows > 0:
@@ -2098,10 +2100,10 @@ You cannot append rows to a non-chunked table.""")
                 # so the resulting object is safe for in-place conversion.
                 recarr = numpy.rec.array(obj, dtype=self._v_dtype)
         except Exception, exc:  #XXX
-            raise ValueError, \
-"""Object cannot be converted into a recarray object compliant with
-table format '%s'. The error was: <%s>
-""" % (self.description._v_nestedDescr, exc)
+            raise ValueError("Object cannot be converted into a recarray "
+                             "object compliant with table format '%s'. "
+                             "The error was: <%s>" %
+                                    (self.description._v_nestedDescr, exc))
 
         return recarr
 
@@ -2126,8 +2128,8 @@ table format '%s'. The error was: <%s>
 
         lcoords = len(coords)
         if len(rows) < lcoords:
-            raise ValueError, \
-           "The value has not enough elements to fill-in the specified range"
+            raise ValueError("The value has not enough elements to fill-in "
+                             "the specified range")
 
         # Convert rows into a recarray
         recarr = self._conv_to_recarr(rows)
@@ -2170,21 +2172,21 @@ table format '%s'. The error was: <%s>
 
         (start, stop, step) = self._processRange(start, stop, step)
         if stop > self.nrows:
-            raise IndexError, \
-"This modification will exceed the length of the table. Giving up."
+            raise IndexError("This modification will exceed the length of "
+                             "the table. Giving up.")
         # Compute the number of rows to read.
         nrows = lrange(start, stop, step).length
         if len(rows) != nrows:
-            raise ValueError, \
-           "The value has different elements than the specified range"
+            raise ValueError("The value has different elements than the "
+                             "specified range")
 
         # Convert rows into a recarray
         recarr = self._conv_to_recarr(rows)
 
         lenrows = len(recarr)
         if start + lenrows > self.nrows:
-            raise IndexError, \
-"This modification will exceed the length of the table. Giving up."
+            raise IndexError("This modification will exceed the length of the "
+                             "table. Giving up.")
 
         # Do the actual update
         self._update_records(start, stop, step, recarr)
@@ -2242,8 +2244,9 @@ table format '%s'. The error was: <%s>
                 iflavor = flavor_of(column)
                 column = array_as_internal(column, iflavor)
         except Exception, exc:  #XXX
-            raise ValueError, \
-"column parameter cannot be converted into a ndarray object compliant with specified column '%s'. The error was: <%s>" % (str(column), exc)
+            raise ValueError("column parameter cannot be converted into a "
+                             "ndarray object compliant with specified column "
+                             "'%s'. The error was: <%s>" % (str(column), exc))
 
         # Get rid of single-dimensional dimensions
         column = column.squeeze()
@@ -2256,13 +2259,13 @@ table format '%s'. The error was: <%s>
             stop = start + (len(column)-1)*step + 1
         (start, stop, step) = self._processRange(start, stop, step)
         if stop > self.nrows:
-            raise IndexError, \
-"This modification will exceed the length of the table. Giving up."
+            raise IndexError("This modification will exceed the length of "
+                             "the table. Giving up.")
         # Compute the number of rows to read.
         nrows = lrange(start, stop, step).length
         if len(column) < nrows:
-            raise ValueError, \
-                  "The value has not enough elements to fill-in the specified range"
+            raise ValueError("The value has not enough elements to fill-in "
+                             "the specified range")
         # Now, read the original values:
         mod_recarr = self._read(start, stop, step)
         # Modify the appropriate column in the original recarray
@@ -2323,21 +2326,22 @@ The 'names' parameter must be a list of strings.""")
             else:
                 recarray = numpy.rec.fromarrays(columns, dtype=descr)
         except Exception, exc:  #XXX
-            raise ValueError, \
-"columns parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), exc)
+            raise ValueError("columns parameter cannot be converted into a "
+                             "recarray object compliant with table '%s'. "
+                             "The error was: <%s>" % (str(self), exc))
 
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
             stop = start + (len(recarray)-1)*step + 1
         (start, stop, step) = self._processRange(start, stop, step)
         if stop > self.nrows:
-            raise IndexError, \
-"This modification will exceed the length of the table. Giving up."
+            raise IndexError("This modification will exceed the length of "
+                             "the table. Giving up.")
         # Compute the number of rows to read.
         nrows = lrange(start, stop, step).length
         if len(recarray) < nrows:
-            raise ValueError, \
-           "The value has not enough elements to fill-in the specified range"
+            raise ValueError("The value has not enough elements to fill-in "
+                             "the specified range")
         # Now, read the original values:
         mod_recarr = self._read(start, stop, step)
         # Modify the appropriate columns in the original recarray
@@ -2434,8 +2438,10 @@ The 'names' parameter must be a list of strings.""")
         (start, stop, step) = self._processRangeRead(start, stop, 1)
         nrows = stop - start
         if nrows >= self.nrows:
-            raise NotImplementedError, \
-"""You are trying to delete all the rows in table "%s". This is not supported right now due to limitations on the underlying HDF5 library. Sorry!""" % self._v_pathname
+            raise NotImplementedError('You are trying to delete all the rows '
+                    'in table "%s". This is not supported right now due to '
+                    'limitations on the underlying HDF5 library. Sorry!' %
+                                                            self._v_pathname)
         nrows = self._remove_row(start, nrows)
         # removeRows is a invalidating index operation
         self._reIndex(self.colpathnames)
@@ -2910,8 +2916,8 @@ class Cols(object):
         """
 
         if not isinstance(colname, str):
-            raise TypeError, \
-"Parameter can only be an string. You passed object: %s" % colname
+            raise TypeError("Parameter can only be an string. You passed "
+                            "object: %s" % colname)
         if ((colname.find('/') > -1 and
              not colname in self._v_colpathnames) and
             not colname in self._v_colnames):
@@ -2959,7 +2965,7 @@ class Cols(object):
         if is_idx(key):
             # Index out of range protection
             if key >= nrows:
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             if key < 0:
                 # To support negative values
                 key += nrows
@@ -3014,7 +3020,7 @@ class Cols(object):
         if is_idx(key):
             # Index out of range protection
             if key >= nrows:
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             if key < 0:
                 # To support negative values
                 key += nrows
@@ -3275,7 +3281,7 @@ class Column(object):
         if is_idx(key):
             # Index out of range protection
             if key >= table.nrows:
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             if key < 0:
                 # To support negative values
                 key += table.nrows
@@ -3326,7 +3332,7 @@ class Column(object):
         if is_idx(key):
             # Index out of range protection
             if key >= table.nrows:
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             if key < 0:
                 # To support negative values
                 key += table.nrows
@@ -3338,7 +3344,7 @@ class Column(object):
             return table.modifyColumn(start, stop, step,
                                       value, self.pathname)
         else:
-            raise ValueError, "Non-valid index or slice: %s" % key
+            raise ValueError("Non-valid index or slice: %s" % key)
 
 
     def createIndex( self, optlevel=6, kind="medium", filters=None,
@@ -3390,24 +3396,23 @@ class Column(object):
 
         kinds = ['ultralight', 'light', 'medium', 'full']
         if kind not in kinds:
-            raise ValueError, \
-                  "Kind must have any of these values: %s" % kinds
+            raise ValueError("Kind must have any of these values: %s" % kinds)
         if (not isinstance(optlevel, (int, long)) or
             (optlevel < 0 or optlevel > 9)):
-            raise ValueError, \
-                  "Optimization level must be an integer in the range 0-9"
+            raise ValueError("Optimization level must be an integer in the "
+                             "range 0-9")
         if filters is None:
             filters = defaultIndexFilters
         if tmp_dir is None:
             tmp_dir = os.path.dirname(self._tableFile.filename)
         else:
             if not os.path.isdir(tmp_dir):
-                raise ValueError, \
-                      "Temporary directory '%s' does not exist" % tmp_dir
+                raise ValueError("Temporary directory '%s' does not exist" %
+                                                                    tmp_dir)
         if (_blocksizes is not None and
             (type(_blocksizes) is not tuple or len(_blocksizes) != 4)):
-            raise ValueError, \
-                  "_blocksizes must be a tuple with exactly 4 elements"
+            raise ValueError("_blocksizes must be a tuple with exactly 4 "
+                             "elements")
         idxrows = _column__createIndex(self, optlevel, kind, filters,
                                        tmp_dir, _blocksizes, _verbose)
         return SizeType(idxrows)

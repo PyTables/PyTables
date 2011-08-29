@@ -62,7 +62,7 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
         elif atom == "float":
             indexrows = table.cols.var3.createIndex()
         else:
-            raise ValueError, "Index type not supported yet"
+            raise ValueError("Index type not supported yet")
         if verbose:
             print "Number of indexed rows:", indexrows
     # Close the file (eventually destroy the extended type)
@@ -130,7 +130,7 @@ def readFile(filename, atom, niter, verbose):
 #                         if (1000.-i <= p["var3"] < 1000.+i) ]
             rowselected += len(results)
         else:
-            raise ValueError, "Unsuported atom value"
+            raise ValueError("Unsuported atom value")
     if verbose and 1:
         print "Values that fullfill the conditions:"
         print results
@@ -157,7 +157,7 @@ def searchFile(filename, atom, verbose, item):
     elif atom == "float":
         idxcol = table.cols.var3.index
     else:
-        raise ValueError, "Unsuported atom value"
+        raise ValueError("Unsuported atom value")
     print "Searching", table, "..."
     if verbose:
         print "Chunk size:", idxcol.sorted.chunksize
