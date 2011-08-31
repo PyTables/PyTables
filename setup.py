@@ -263,6 +263,12 @@ class WindowsPackage(Package):
         self.library_name = library_name
         self.runtime_name = runtime_name
 
+    def find_runtime_path(self, locations=default_runtime_dirs):
+        # An explicit path can not be provided for runtime libraries.
+        # (The argument is accepted for compatibility with previous methods.)
+        return _find_file_path(
+            self.runtime_name, default_runtime_dirs,
+            self._runtime_prefixes, self._runtime_suffixes )
 
 # Get the HDF5 version provided the 'H5public.h' header
 def get_hdf5_version(headername):
