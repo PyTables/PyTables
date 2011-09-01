@@ -36,7 +36,7 @@ from time import time
 try:
     # functools.reduce is new in python 2.6
     from functools import reduce as _reduce
-except ImprtError:
+except ImportError:
     _reduce = reduce
 
 import numpy
