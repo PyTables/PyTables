@@ -6,8 +6,12 @@
 :Contact: faltet@pytables.org
 
 
-Changes from 2.2.1 to 2.3b1
-===========================
+Changes from 2.2.1 to 2.3rc1
+============================
+
+- New OPSI engine (indexing) coming from (now liberated) PyTables Pro 
+
+- Enhanced caching
 
 - Indexes with no elements are now evaluated as non-CSI ones.  Closes
   #312.
@@ -25,6 +29,33 @@ Changes from 2.2.1 to 2.3b1
 
 - The number of times a file has been currently reopened is available
   now in the new `File.open_count` read-only attribute.
+
+- The entire documentation set has been converted to sphinx (closed gh-85 and
+  gh-86) that now also has an index (closes gh-39).
+
+- The entire test suite has been updated to use unittest specific assertions
+  (closes gh-66).
+
+- PyTables has been tested against latest version of numpy (v. 1.6.1 and
+  2.0dev) and Cython (v, 0.15) packages. Closes gh-84.
+
+- The satup.py script has been improved to better detect runtimes
+  (closes gh-73).
+
+Deprecations
+------------
+
+Support for some old packages and related features has been deprecated and
+will be removed in future versions:
+
+- Nueric (closes gh-76)
+- numarray (closes gh-76 and gh-75)
+
+At API level are now deprecated:
+
+- the tables.is_pro constant is deprecated because no more needed (see above).
+- the netcdf3 sub-package (closes gh-67)
+- the nra sub-package
 
 
 Changes from 2.2 to 2.2.1
