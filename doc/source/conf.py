@@ -27,7 +27,8 @@ sys.path.insert(0, os.path.abspath('../sphinxext'))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.pngmath',
-              'sphinx.ext.inheritance_diagram', 'numpydoc', #'sphinx.ext.autosummary',
+              'sphinx.ext.inheritance_diagram', 'sphinx.ext.extlinks',
+              'numpydoc', #'sphinx.ext.autosummary',
               'ipython_console_highlighting', 'sphinx.ext.todo',
               ]
 
@@ -233,7 +234,7 @@ latex_elements = {
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-# -- Options for autodocumentation -----------------------------------------------------
+# -- Options for autodocumentation ---------------------------------------------
 autodoc_member_order = "groupwise"
 autoclass_content = "both"
 autosummary_generate = []
@@ -245,3 +246,9 @@ epub_title = u'PyTables'
 epub_author = u'The PyTables Governance Team'
 epub_publisher = u'The PyTables Governance Team'
 epub_copyright = u'2011, The PyTables Governance Team'
+
+# -- External link oOptions ----------------------------------------------------
+extlinks = {
+    'issue': ('https://github.com/PyTables/PyTables/issues/%s', 'gh-'),
+    'irc': ('http://pytables.github.com/irc/%s.html', ''),
+}

@@ -38,6 +38,8 @@ Contents
 
     usersguide/index
     dev_team
+    irclogs
+
 
 =============
 Helpful Links
