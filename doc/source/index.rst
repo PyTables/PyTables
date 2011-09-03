@@ -39,6 +39,7 @@ Contents
     usersguide/index
     dev_team
     irclogs
+    release_notes
 
 
 =============
