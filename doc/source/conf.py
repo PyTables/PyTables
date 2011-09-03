@@ -100,8 +100,8 @@ pygments_style = 'tango'
 
 # -- Options for HTML output ---------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  Major themes that come with
-# Sphinx are currently 'default' and 'sphinxdoc'.
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
 #html_theme = 'default'
 html_theme = 'altered_nature'
 #html_theme = 'sphinxdoc'
@@ -233,7 +233,15 @@ latex_elements = {
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-#Autodocumentation Flags
+# -- Options for autodocumentation -----------------------------------------------------
 autodoc_member_order = "groupwise"
 autoclass_content = "both"
 autosummary_generate = []
+
+# -- Options for Epub output ---------------------------------------------------
+
+# Bibliographic Dublin Core info.
+epub_title = u'PyTables'
+epub_author = u'The PyTables Governance Team'
+epub_publisher = u'The PyTables Governance Team'
+epub_copyright = u'2011, The PyTables Governance Team'
