@@ -3,6 +3,7 @@ import unittest
 import os
 import tempfile
 import warnings
+import subprocess
 
 import numpy
 
@@ -2312,6 +2313,60 @@ class BloscSubprocess(common.PyTablesTestCase):
 
 
 
+class HDF5ErrorHandling(common.PyTablesTestCase):
+    def test_silence_messages(self):
+        code = """
+import tables
+tables.silenceHDF5Messages()
+try:
+    tables.openFile('%s')
+except tables.HDF5ExtError, e:
+    pass
+"""
+
+        fn = tempfile.mktemp(prefix="hdf5-error-handling-", suffix=".py")
+        fp = open(fn, 'w')
+        try:
+            fp.write(code % fn)
+            fp.close()
+
+            p = subprocess.Popen(["python", fn],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            (stdout, stderr) = p.communicate()
+
+            self.assertFalse("HDF5-DIAG" in stderr)
+        finally:
+            os.remove(fn)
+
+    def test_enable_messages(self):
+        code = """
+import tables
+tables.silenceHDF5Messages()
+tables.silenceHDF5Messages(False)
+try:
+    tables.openFile('%s')
+except tables.HDF5ExtError, e:
+    pass
+"""
+
+        fn = tempfile.mktemp(prefix="hdf5-error-handling-", suffix=".py")
+        fp = open(fn, 'w')
+        try:
+            fp.write(code % fn)
+            fp.close()
+
+            p = subprocess.Popen(["python", fn],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            (stdout, stderr) = p.communicate()
+
+            self.assertTrue("HDF5-DIAG" in stderr)
+        finally:
+            os.remove(fn)
+
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -2328,6 +2383,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBigEndian))
         theSuite.addTest(unittest.makeSuite(BloscSubprocess))
+        theSuite.addTest(unittest.makeSuite(HDF5ErrorHandling))
 
     return theSuite
 

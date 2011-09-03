@@ -80,7 +80,7 @@ is_pro = True
 
 from tables.utilsExtension import (
     isHDF5File, isPyTablesFile, whichLibVersion, lrange,
-    setBloscMaxThreads )
+    setBloscMaxThreads, silenceHDF5Messages)
 
 from tables.misc.enum import Enum
 from tables.atom import *
@@ -118,6 +118,7 @@ __all__ = [
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
     'copyFile', 'openFile', 'print_versions', 'test',
     'split_type', 'restrict_flavors', 'lrange',
+    'silenceHDF5Messages',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
     # Types:
