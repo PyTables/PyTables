@@ -40,6 +40,7 @@ Contents
     dev_team
     irclogs
     release_notes
+    project_pointers
 
 
 =============
