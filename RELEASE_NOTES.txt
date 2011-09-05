@@ -6,8 +6,20 @@
 :Contact: faltet@pytables.org
 
 
-Changes from 2.2.1 to 2.3b1
-===========================
+Changes from 2.2.1 to 2.3rc1
+============================
+
+Feature coming from (now liberated) PyTables Pro
+------------------------------------------------
+
+- New OPSI engine (indexing)
+
+- Enhanced caching
+
+.. todo:: enhance this section
+
+Other changes
+-------------
 
 - Indexes with no elements are now evaluated as non-CSI ones.  Closes
   #312.
@@ -26,52 +38,35 @@ Changes from 2.2.1 to 2.3b1
 - The number of times a file has been currently reopened is available
   now in the new `File.open_count` read-only attribute.
 
+- The entire documentation set has been converted to sphinx (close
+  :issue:`85` and :issue:`86`) that now also has an index
+  (closes :issue`39`).
 
-Changes from 2.2 to 2.2.1
-=========================
+- The entire test suite has been updated to use unittest specific
+  assertions (closes :issue:`66`).
 
-- When using `ObjectAtom` objects in `VLArrays` the ``HIGHEST_PROTOCOL``
-  is used for pickling objects.  For NumPy arrays, this simple change
-  leads to space savings up to 3x and time improvements up to 30x.
-  Closes #301.
+- PyTables has been tested against latest version of numpy (v. 1.6.1
+  and 2.0dev) and Cython (v, 0.15) packages. Closes :issue:`84`.
 
-- The `Row` accessor implements a new `__contains__` special method that
-  allows doing things like::
+- The satup.py script has been improved to better detect runtimes
+  (closes :issue:`73`).
 
-    for row in table:
-        if item in row:
-            print "Value found in row", row.nrow
-            break
+Deprecations
+------------
 
-  Closes #309.
+Support for some old packages and related features has been deprecated
+and will be removed in future versions:
 
-- tables.Expr can perform operations on scalars now.  Thanks to Gaëtan
-  de Menten for providing a patch for this.  Closes #287.
+- Numeric (closes :issue:`76`)
+- numarray (closes :issue`76` and :issue:`75`)
+- HDF5 1.6.x (closes :issue`96`)
 
-- Fixed a problem with indexes larger than 32-bit on leaf objects on
-  32-bit machines.  Fixes #283.
+At API level are now deprecated:
 
-- ``leaf[numpy.array[scalar]]`` idiom returns a NumPy array instead of
-  an scalar.  This has been done for compatibility with NumPy.  Closes
-  #303.
-
-- Optimization for `Table.copy()` so that ``FIELD_*`` attrs are not
-  overwritten during the copy.  This can lead to speed-ups up to 100x
-  for short tables that have hundreds of columns.  Closes #304.
-
-- For external links, its relative paths are resolved now with respect
-  to the directory of the main HDF5 file, rather than with respect to
-  the current directory.  Closes #306.
-
-- ``Expr.setInputsRange()`` and ``Expr.setOutputRange()`` do support
-  ``numpy.integer`` types now.  Closes #285.
-
-- Column names in tables can start with '__' now.  Closes #291.
-
-- Unicode empty strings are supported now as atributes.  Addresses #307.
-
-- Cython 0.13 and higher is supported now.  Fixes #293.
-
+- the tables.is_pro constant is deprecated because no more needed after
+  PyTables Pro has been released under open source license.
+- the netcdf3 sub-package (closes :issue:`67`)
+- the nra sub-package
 
 
   **Enjoy data!**

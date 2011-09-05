@@ -50,9 +50,9 @@ __version__, hdf5Version, is_pro
 
 import sys, os
 if os.name == 'nt':
-     module_path = os.path.abspath(os.path.dirname(__file__))
-     os.environ['PATH'] = ';'.join((os.environ['PATH'], module_path))
-     sys.path.append(module_path)
+    module_path = os.path.abspath(os.path.dirname(__file__))
+    os.environ['PATH'] = ';'.join((os.environ['PATH'], module_path))
+    sys.path.append(module_path)
 
 
 # Necessary imports to get versions stored on the Pyrex extension
