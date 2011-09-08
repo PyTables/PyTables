@@ -147,3 +147,8 @@ __all__ = [
     # Expr class
     'Expr',
     ]
+
+if hdf5Version < "1.8.0":
+    import warnings
+    warnings.warn("Support for HDF5 v1.6.x will be removed in future releases",
+                  DeprecationWarning)
