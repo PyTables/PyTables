@@ -9,14 +9,22 @@
 Changes from 2.2.1 to 2.3rc1
 ============================
 
-Feature coming from (now liberated) PyTables Pro
-------------------------------------------------
+Features coming from (now liberated) PyTables Pro
+-------------------------------------------------
 
-- New OPSI engine (indexing)
+- OPSI is a powerful and innovative indexing engine allowing PyTables to
+  perform fast queries on arbitrarily large tables. Moreover, it offers a wide
+  range of optimization levels for its indexes so that the user can choose the
+  best one that suits her needs (more or less size, more or less performance).
+  Indexation code also takes advantage of the vectorization capabilities of the
+  NumPy and Numexpr packages to ensure really short indexing and search times.
 
-- Enhanced caching
-
-.. todo:: enhance this section
+- A fine-tuned LRU cache for both metadata (nodes) and regular data that lets
+  you achieve maximum speed for intensive object tree browsing during data
+  reads and queries. It complements the already efficient cache present in
+  HDF5, although this is more geared towards high-level structures that are
+  specific to PyTables and that are critical for achieving very high
+  performance.
 
 Other changes
 -------------
@@ -45,7 +53,7 @@ Other changes
 - The entire test suite has been updated to use unittest specific
   assertions (closes :issue:`66`).
 
-- PyTables has been tested against latest version of numpy (v. 1.6.1
+- PyTables has been tested against the latest version of numpy (v. 1.6.1
   and 2.0dev) and Cython (v, 0.15) packages. Closes :issue:`84`.
 
 - The setup.py script has been improved to better detect runtimes
