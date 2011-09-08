@@ -48,7 +48,7 @@ Other changes
 - PyTables has been tested against latest version of numpy (v. 1.6.1
   and 2.0dev) and Cython (v, 0.15) packages. Closes :issue:`84`.
 
-- The satup.py script has been improved to better detect runtimes
+- The setup.py script has been improved to better detect runtimes
   (closes :issue:`73`).
 
 Deprecations
@@ -61,10 +61,10 @@ and will be removed in future versions:
 - numarray (closes :issue`76` and :issue:`75`)
 - HDF5 1.6.x (closes :issue`96`)
 
-At API level are now deprecated:
+At the API level the following are now deprecated:
 
-- the tables.is_pro constant is deprecated because no more needed after
-  PyTables Pro has been released under open source license.
+- the tables.is_pro constant is deprecated because PyTables Pro
+  has been released under an open source license.
 - the netcdf3 sub-package (closes :issue:`67`)
 - the nra sub-package
 
