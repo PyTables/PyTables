@@ -7,6 +7,7 @@ import sys, os, shutil
 import textwrap
 from os.path import exists, expanduser
 import re
+import warnings
 import subprocess
 
 # Using ``setuptools`` enables lots of goodies, such as building eggs.
@@ -416,6 +417,9 @@ for (package, location) in [
     if package.tag in ['HDF5']:
         hdf5_header = os.path.join(hdrdir, "H5public.h")
         hdf5_version = get_hdf5_version(hdf5_header)
+        if hdf5_version < (1, 8, 0):
+            warnings.warn("Support for HDF5 v1.6.x will be removed in future "
+                          "releases")
 
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
