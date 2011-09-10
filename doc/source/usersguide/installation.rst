@@ -130,7 +130,7 @@ PyTables, so you don't need to install it separately.
     most of the following libraries from the GnuWin32 project (see
     :ref:`[GNUWIN32] <GNUWIN32>`).  In case you cannot find the LZO binaries
     in the GnuWin32 repository, you can find them at
-    http://www.pytables.org/download/lzo-win.
+    http://sourceforge.net/projects/pytables/files/lzo-win.
     Once you have installed the prerequisites, setup.py needs to know where
     the necessary library *stub* (.lib) and *header* (.h) files are installed.
     You can set the path to the include and dll directories for the HDF5
@@ -315,10 +315,11 @@ directives to install it if you want so).
 To enable compression with the optional LZO library (see the
 :ref:`compressionIssues` for hints about how it may be used to improve
 performance), fetch and install the LZO from
-http://www.pytables.org/download/lzo-win (choose v1.x for Windows 32-bit and
-v2.x for Windows 64-bit). Normally, you will only need to fetch that package
-and copy the included lzo1.dll/lzo2.dll file in a directory in the PATH
-environment variable (for example C:\\WINDOWS\\SYSTEM) or
+http://sourceforge.net/projects/pytables/files/lzo-win (choose v1.x for
+Windows 32-bit and v2.x for Windows 64-bit).
+Normally, you will only need to fetch that package and copy the included
+lzo1.dll/lzo2.dll file in a directory in the PATH environment variable
+(for example C:\\WINDOWS\\SYSTEM) or
 python_installation_path\\Lib\\site-packages\\tables (the last directory may
 not exist yet, so if you want to install the DLL there, you should do so
 *after* installing the PyTables package), so that it can be found by the

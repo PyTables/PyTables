@@ -749,7 +749,7 @@ interactively save and retrieve large amounts of data.
       maintainer_email = 'pytables@pytables.org',
       url = 'http://www.pytables.org/',
       license = 'http://www.opensource.org/licenses/bsd-license.php',
-      download_url = "http://www.pytables.org/download/pytables-%s/tables-%s.tar.gz" % (VERSION, VERSION),
+      download_url = "http://sourceforge.net/projects/pytables/files/pytables/%s/tables-%s.tar.gz" % (VERSION, VERSION),
       platforms = ['any'],
       ext_modules = extensions,
       cmdclass = cmdclass,
