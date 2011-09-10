@@ -2,8 +2,8 @@
  Release notes for PyTables 2.3 series
 =======================================
 
-:Author: Francesc Alted i Abad
-:Contact: faltet@pytables.org
+:Author: PyTables maintainers
+:Contact: pytables@googlemail.com
 
 
 Changes from 2.2.1 to 2.3rc1
