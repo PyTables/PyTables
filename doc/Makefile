@@ -132,4 +132,4 @@ doctest:
 dist: html latexpdf
 	rm -rf html usersguide.pdf
 	mv  $(BUILDDIR)/html .
-	mv  $(BUILDDIR)/latex/usersguide.pdf .
+	mv  $(BUILDDIR)/latex/usersguide-*.pdf .

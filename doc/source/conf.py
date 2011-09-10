@@ -195,8 +195,8 @@ htmlhelp_basename = 'pytablesdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('usersguide/usersguide', 'usersguide.tex', u'PyTables User Guide',
-   u'The PyTables Governance Team', 'manual'),
+  ('usersguide/usersguide', 'usersguide-%s.tex' % version,
+   u'PyTables User Guide', u'The PyTables Governance Team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

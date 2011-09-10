@@ -10,19 +10,22 @@ GENERATED = ANNOUNCE.txt
 
 .PHONY:		dist clean distclean
 
-
 dist:		$(GENERATED)
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
+	python setup.py sdist
+	cp doc/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
+	tar -C doc -cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz html
+	cd dist && md5sum tables-$(VERSION).tar.gz > pytables-$(VERSION).md5 && cd -
 
 clean:
-	rm -rf MANIFEST build dist
+	rm -rf MANIFEST build dist doc/build
 	rm -f $(GENERATED) tables/*.so tables/numexpr/*.so
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
 
 distclean: clean
 	rm -rf doc/html
-	rm -f doc/usersguide.pdf
+	rm -f doc/usersguide-*.pdf
 	rm -f tables/_comp_*.c tables/*Extension.c tables/linkExtension.pyx
 
 %:		%.in VERSION
