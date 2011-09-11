@@ -33,6 +33,7 @@ Contents
 .. toctree::
     :maxdepth: 1
 
+    downloads
     usersguide/index
     release_notes
     project_pointers
