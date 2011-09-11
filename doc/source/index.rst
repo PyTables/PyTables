@@ -53,6 +53,4 @@ Helpful Links
 
 
 .. _GitHub project site: https://github.com/PyTables
-
 .. _github: https://github.com/PyTables/PyTables
-
