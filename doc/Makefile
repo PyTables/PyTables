@@ -12,7 +12,7 @@ PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
-.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest dist
+.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest all dist distclean
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -34,7 +34,7 @@ help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
 clean:
-	-rm -rf $(BUILDDIR)/*
+	-rm -rf $(BUILDDIR)
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
@@ -129,7 +129,17 @@ doctest:
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
-dist: html latexpdf
-	rm -rf html usersguide.pdf
+VERSION = $(shell cat ../VERSION)
+
+all: html latexpdf
+	rm -rf html usersguide-$(VERSION).pdf
 	mv  $(BUILDDIR)/html .
-	mv  $(BUILDDIR)/latex/usersguide-*.pdf .
+	mv  $(BUILDDIR)/latex/usersguide-$(VERSION).pdf .
+
+dist: all
+	mkdir -p ../dist
+	cp usersguide-$(VERSION).pdf ../dist/pytablesmanual-$(VERSION).pdf
+	tar cvzf ../dist/pytablesmanual-$(VERSION)-html.tar.gz html
+
+distclean: clean
+	-rm -rf html usersguide-*.pdf
