@@ -8,6 +8,7 @@ Project pointers
 * `Download area <http://sourceforge.net/projects/pytables/files/pytables>`_
 * `Git Repository browser <https://github.com/PyTables/PyTables>`_
 * `Users Mailing List <http://lists.sourceforge.net/lists/listinfo/pytables-users>`_
+* `Announce Mailing List <http://lists.sourceforge.net/lists/listinfo/pytables-announce>`_
 * `Developers Mailing List <https://groups.google.com/group/pytables-dev>`_
 * `Continuous Integration <http://hudson.openmicroscopy.org.uk/job/PyTables>`_
 * `Project Page on Read the Docs <http://readthedocs.org/projects/pytables>`_
@@ -17,3 +18,4 @@ Project pointers
   (needs update)
 * `Project page on Launchpad <https://launchpad.net/pytables>`_
   (going to be closed)
+* `Old trac site <http://www.pytables.org/trac-bck>`_
