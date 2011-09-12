@@ -95,7 +95,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         try:
             self.nrows = SizeType(self.shape[0])
         except IndexError:
-            self.nrows = 0
+            self.nrows = SizeType(0)
         return objectID
 
 
