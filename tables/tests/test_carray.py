@@ -8,12 +8,8 @@ import tempfile
 import numpy
 
 from tables import *
-from tables.flavor import flavor_to_flavor
 from tables.tests import common
-from tables.tests.common import typecode, allequal, numeric_imported
-
-if numeric_imported:
-    import Numeric
+from tables.tests.common import allequal
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
@@ -65,6 +61,7 @@ class BasicTestCase(unittest.TestCase):
         # Fill it with data
         self.rowshape = list(carray.shape)
         self.objsize = self.length * numpy.prod(self.shape)
+
         if self.flavor == "numpy":
             if self.type == "string":
                 object = numpy.ndarray(buffer="a"*self.objsize,
@@ -73,10 +70,6 @@ class BasicTestCase(unittest.TestCase):
             else:
                 object = numpy.arange(self.objsize, dtype=carray.atom.dtype)
                 object.shape = self.shape
-        else:  # Numeric flavor
-            object = Numeric.arange(self.objsize,
-                                    typecode=typecode[carray.atom.type])
-            object = Numeric.reshape(object, self.shape)
         if common.verbose:
             print "Object to append -->", repr(object)
 
@@ -130,10 +123,6 @@ class BasicTestCase(unittest.TestCase):
             else:
                 object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
                 object_.shape = self.shape
-        else:
-            object_ = Numeric.arange(self.objsize,
-                                     typecode=typecode[carray.atom.type])
-            object_ = Numeric.reshape(object_, self.shape)
 
         stop = self.stop
         # stop == None means read only the element designed by start
@@ -151,9 +140,6 @@ class BasicTestCase(unittest.TestCase):
             stop = int(carray.nrows)
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
-        # Numeric 23.8 will issue an error with slices like -1:20:20
-        # but this is an error with this Numeric version (and perhaps
-        # lower ones).
         object = object_[self.start:stop:self.step].copy()
 
         # Read all the array
@@ -163,7 +149,7 @@ class BasicTestCase(unittest.TestCase):
             if self.flavor == "numpy":
                 data = numpy.empty(shape=self.shape, dtype=self.type)
             else:
-                data = Numeric.zeros(self.shape, typecode[self.type])
+                data = numpy.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
             if hasattr(object, "shape"):
@@ -213,10 +199,6 @@ class BasicTestCase(unittest.TestCase):
         # actually do a measure of its length
         object = object_.__getitem__(self.slices).copy()
 
-        if self.flavor == "numeric":
-            # Convert the object to Numeric
-            object = flavor_to_flavor(object, 'numpy', 'numeric')
-
         # Read data from the array
         try:
             data = carray.__getitem__(self.slices)
@@ -225,7 +207,7 @@ class BasicTestCase(unittest.TestCase):
             if self.flavor == "numpy":
                 data = numpy.empty(shape=self.shape, dtype=self.type)
             else:
-                data = Numeric.zeros(self.shape, typecode[self.type])
+                data = numpy.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
             print "Object read:\n", repr(data) #, data.info()
@@ -278,10 +260,6 @@ class BasicTestCase(unittest.TestCase):
         # actually do a measure of its length
         object = object_.__getitem__(self.slices).copy()
 
-        if self.flavor == "numeric":
-            # Convert the object to Numeric
-            object = flavor_to_flavor(object, 'numpy', 'numeric')
-
         if self.type == "string":
             if hasattr(self, "wslice"):
                 object[self.wslize] = "xXx"
@@ -308,7 +286,7 @@ class BasicTestCase(unittest.TestCase):
             if self.flavor == "numpy":
                 data = numpy.empty(shape=self.shape, dtype=self.type)
             else:
-                data = Numeric.zeros(self.shape, typecode[self.type])
+                data = numpy.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
             print "Object read:\n", repr(data) #, data.info()
@@ -723,95 +701,6 @@ class ComprTestCase(BasicTestCase):
     stop = 100
     step = 7
 
-class NumericInt8TestCase(BasicTestCase):
-    flavor = "numeric"
-    type = "int8"
-    shape = (2, 2)
-    compress = 1
-    shuffle = 1
-    chunkshape = (50, 50)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumericInt16TestCase(BasicTestCase):
-    flavor = "numeric"
-    type = "int16"
-    shape = (2, 2)
-    compress = 1
-    shuffle = 1
-    chunkshape = (50, 50)
-    start = 1
-    stop = 100
-    step = 1
-
-class NumericInt32TestCase(BasicTestCase):
-    flavor = "numeric"
-    type = "int32"
-    shape = (2, 2)
-    compress = 1
-    shuffle = 1
-    chunkshape = (50, 50)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumericFloat32TestCase(BasicTestCase):
-    flavor = "numeric"
-    type = "float32"
-    shape = (200,)
-    compress = 1
-    shuffle = 1
-    chunkshape = (20,)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumericFloat64TestCase(BasicTestCase):
-    flavor = "numeric"
-    type = "float64"
-    shape = (200,)
-    compress = 1
-    shuffle = 1
-    chunkshape = (20,)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumericComplex64TestCase(BasicTestCase):
-    flavor = "numeric"
-    type = "complex64"
-    shape = (4,)
-    compress = 1
-    shuffle = 1
-    chunkshape = (2,)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumericComplex128TestCase(BasicTestCase):
-    flavor = "numeric"
-    type = "complex128"
-    shape = (20,)
-    compress = 1
-    shuffle = 1
-    chunkshape = (2,)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumericComprTestCase(BasicTestCase):
-    flavor = "numeric"
-    type = "float64"
-    compress = 1
-    shuffle = 1
-    shape = (200,)
-    compr = 1
-    chunkshape = (21,)
-    start = 51
-    stop = 100
-    step = 7
-
 
 class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
@@ -879,8 +768,6 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
             self.assertTrue(
                 abs(self.array.size_on_disk - 10000 * 10 * 2) < 200)
 
-
-# It remains a test of Numeric char types, but the code is getting too messy
 
 class OffsetStrideTestCase(unittest.TestCase):
     mode  = "w"
@@ -1026,88 +913,6 @@ class OffsetStrideTestCase(unittest.TestCase):
         self.assertTrue(allequal(data[0], numpy.array([0, 0, 0], dtype='int32')))
         self.assertTrue(allequal(data[1], numpy.array([3, 3, 3], dtype='int32')))
         self.assertTrue(allequal(data[2], numpy.array([1, 1, 1], dtype='int32')))
-
-
-class NumericOffsetStrideTestCase(unittest.TestCase):
-    mode  = "w"
-    compress = 0
-    complib = "zlib"  # Default compression library
-
-    def setUp(self):
-
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, self.mode)
-        self.rootgroup = self.fileh.root
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
-
-    #----------------------------------------
-
-    def test02a_int(self):
-        """Checking carray with offseted Numeric ints appends"""
-
-        root = self.rootgroup
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02a_int..." % self.__class__.__name__
-
-        shape = (3, 3)
-        # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom',
-                                         Int32Atom(), shape,
-                                         "array of ints",
-                                         chunkshape=(1, 3))
-        a = Numeric.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], typecode='i')
-        carray[0:2] = a[2:]  # Introduce an offset
-        a = Numeric.array([(1, 1, 1), (-1, 0, 0)], typecode='i')
-        carray[2:3] = a[1:]  # Introduce an offset
-
-        # Read all the rows:
-        data = carray.read()
-        if common.verbose:
-            print "Object read:", data
-            print "Nrows in", carray._v_pathname, ":", carray.nrows
-            print "Third row in carray ==>", data[2]
-
-        self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([1, 1, 1], dtype='i4')))
-        self.assertTrue(allequal(data[1], numpy.array([0, 0, 0], dtype='i4')))
-        self.assertTrue(allequal(data[2], numpy.array([-1, 0, 0], dtype='i4')))
-
-    def test02b_int(self):
-        """Checking carray with strided Numeric ints appends"""
-
-        root = self.rootgroup
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b_int..." % self.__class__.__name__
-
-        shape = (3, 3)
-        # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom',
-                                         Int32Atom(), shape,
-                                         "array of ints",
-                                         chunkshape=(1, 3))
-        a=Numeric.array([(0, 0, 0), (1, 0, 3), (1, 2, 1), (3, 2, 3)], typecode='i')
-        carray[0:2] = a[::3]  # Create a strided object
-        a=Numeric.array([(1, 0, 1), (-1, 0, 0)], typecode='i')
-        carray[2:3] = a[::2]  # Create a strided object
-
-        # Read all the rows:
-        data = carray.read()
-        if common.verbose:
-            print "Object read:", data
-            print "Nrows in", carray._v_pathname, ":", carray.nrows
-            print "Third row in carray ==>", data[2]
-
-        self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([0, 0, 0], dtype='i')))
-        self.assertTrue(allequal(data[1], numpy.array([3, 2, 3], dtype='i')))
-        self.assertTrue(allequal(data[2], numpy.array([1, 0, 1], dtype='i')))
 
 
 class CopyTestCase(unittest.TestCase):
@@ -1367,71 +1172,7 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    # Numeric is now deprecated
-    def _test03_copy(self):
-        """Checking CArray.copy() method (Numeric flavor)"""
-
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_copy..." % self.__class__.__name__
-
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        if numeric_imported:
-            flavor="numeric"
-        else:
-            flavor="numpy"
-
-        arr = Int16Atom()
-        shape = (2, 2)
-        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
-                                    "title array1", chunkshape=(2, 2))
-        array1.flavor = flavor
-        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
-
-        if self.close:
-            if common.verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "a")
-            array1 = fileh.root.array1
-
-        # Copy to another location
-        array2 = array1.copy('/', 'array2')
-
-        if self.close:
-            if common.verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
-
-        if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
-
-        # Assert other properties in array
-        self.assertEqual(array1.nrows, array2.nrows)
-        self.assertEqual(array1.shape, array2.shape)
-        self.assertEqual(array1.extdim, array2.extdim)
-        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
-        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
-        self.assertEqual(array1.atom.type, array2.atom.type)
-        self.assertEqual(array1.title, array2.title)
-        self.assertEqual(str(array1.atom), str(array2.atom))
-        # The next line is commented out because a copy should not
-        # keep the same chunkshape anymore.
-        # F. Alted 2006-11-27
-        #self.assertEqual(array1.chunkshape, array2.chunkshape)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
-    def test03c_copy(self):
+    def test03a_copy(self):
         """Checking CArray.copy() method (python flavor)"""
 
         if common.verbose:
@@ -1491,7 +1232,7 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test03d_copy(self):
+    def test03b_copy(self):
         """Checking CArray.copy() method (string python flavor)"""
 
         if common.verbose:
@@ -1554,7 +1295,7 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test03e_copy(self):
+    def test03c_copy(self):
         """Checking CArray.copy() method (chararray flavor)"""
 
         if common.verbose:
@@ -2384,7 +2125,6 @@ class MDLargeAtomReopen(MDLargeAtomTestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    global numeric
     niter = 1
     #common.heavy = 1  # uncomment this only for testing purposes
 
@@ -2422,19 +2162,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Complex64TestCase))
         theSuite.addTest(unittest.makeSuite(Complex128TestCase))
         theSuite.addTest(unittest.makeSuite(ComprTestCase))
-
-        # Numeric is now deprecated
-        #if numeric_imported:
-        #    theSuite.addTest(unittest.makeSuite(NumericInt8TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumericInt16TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumericInt32TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumericFloat32TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumericFloat64TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumericComplex64TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumericComplex128TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumericOffsetStrideTestCase))
-
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))

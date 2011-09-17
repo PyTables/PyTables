@@ -28,23 +28,6 @@ else:
 
 import numpy
 
-# Numeric has serious problems with Python2.5 and 64-bit
-# platforms, so we won't even try to import them on this scenario
-plat64 = (numpy.int_(0).itemsize == 8)
-py25 = (sys.version_info[0] >= 2 and sys.version_info[1] >= 5)
-# Numeric is now deprecated
-if False:   # if not (plat64 and py25):
-    try:
-        import Numeric
-        numeric_imported = True
-    except ImportError:
-        numeric_imported = False
-else:
-    numeric_imported = False
-
-if plat64 and py25 and numeric_imported:
-    print "***Python2.5 in 64-bit platform detected: disabling Numeric tests***"
-
 import tables
 
 verbose = False
@@ -68,23 +51,6 @@ if '--heavy' in sys.argv:
     heavy = True
     sys.argv.remove('--heavy')
 
-
-# Map between PyTables types and Numeric typecodes
-typecode = {
-    'bool': 'B',
-    'int8': '1',
-    'int16': 's',
-    'int32': 'i',
-    'int64': 'N',
-    'uint8': 'b',
-    'uint16': 'w',
-    'uint32': 'u',
-    'uint64': 'U',
-    'float32': 'f',
-    'float64': 'd',
-    'complex64': 'F',
-    'complex128': 'D',
-    }
 
 def verbosePrint(string, nonl=False):
     """Print out the `string` if verbose output is enabled."""
@@ -112,25 +78,6 @@ def allequal(a,b, flavor="numpy"):
     if not hasattr(b, "shape"):
         # Scalar case
         return a == b
-
-    if flavor == "numeric":
-        # Convert the parameters to numpy objects
-        if a.typecode() == "c":
-            shape = a.shape
-            if shape == ():
-                a = numpy.array(a.tostring(), dtype="S1")
-            else:
-                a = numpy.array(a.tolist(), dtype="S1")
-            a.shape = shape
-            shape = b.shape
-            if shape == ():
-                b = numpy.array(a.tostring(), dtype="S1")
-            else:
-                b = numpy.array(a.tolist(), dtype="S1")
-            b.shape = shape
-        else:
-            a = numpy.asarray(a)
-            b = numpy.asarray(b)
 
     if ((not hasattr(a, "shape") or a.shape == ()) and
         (not hasattr(b, "shape") or b.shape == ())):

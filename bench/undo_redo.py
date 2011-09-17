@@ -7,7 +7,7 @@
 # 2005-03-09
 ###########################################################################
 
-import Numeric
+import numpy
 from time import time
 import tables
 
@@ -24,9 +24,9 @@ class BasicBenchmark(object):
         self.niter = niter
 
         # Initialize the arrays
-        self.a1 = Numeric.arange(0, 1*self.vecsize)
-        self.a2 = Numeric.arange(1*self.vecsize, 2*self.vecsize)
-        self.a3 = Numeric.arange(2*self.vecsize, 3*self.vecsize)
+        self.a1 = numpy.arange(0, 1*self.vecsize)
+        self.a2 = numpy.arange(1*self.vecsize, 2*self.vecsize)
+        self.a3 = numpy.arange(2*self.vecsize, 3*self.vecsize)
 
     def setUp(self):
 

@@ -56,22 +56,7 @@ def suite():
         #'tables.netcdf3.tests.test_netcdf3',
     ]
 
-    # Numeric is now deprecated
-    # Add test_Numeric only if Numeric is installed
-    if False:   # if common.numeric_imported:
-        import Numeric
-        print "Numeric (version %s) is present. Adding the Numeric test suite." % \
-              (Numeric.__version__)
-        if Numeric.__version__ < min_numeric_version:
-            print "*Warning*: Numeric version is lower than recommended: %s < %s" % \
-                  (Numeric.__version__, min_numeric_version)
-        test_modules.append("tables.tests.test_Numeric")
-    else:
-        pass
-        # Do not print this anymore
-        #print "Skipping Numeric test suite."
     #print '-=' * 38
-
 
     # The test for garbage must be run *in the last place*.
     # Else, it is not as useful.

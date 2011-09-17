@@ -741,10 +741,11 @@ class File(hdf5Extension.File, object):
             The name of the new array
         object : python object
             The array or scalar to be saved.  Accepted types are NumPy
-            arrays and scalars, Numeric arrays and scalars (deprecated),
-            as well as native Python sequences and scalars, provided
-            that values are regular (i.e. they are not like [[1,2],2])
-            and homogeneous (i.e. all the elements are of the same type).
+            arrays and scalars, as well as native Python sequences and
+            scalars, provided that values are regular (i.e. they are
+            not like ``[[1,2],2]``) and homogeneous (i.e. all the
+            elements are of the same type).
+
             Also, objects that have some of their dimensions equal to 0
             are not supported (use an EArray node (see
             :ref:`EArrayClassDescr`) if you want to store an array with
@@ -1289,11 +1290,10 @@ class File(hdf5Extension.File, object):
         attrvalue
             The value of the attribute to set. Any kind of Python
             object (like strings, ints, floats, lists, tuples, dicts,
-            small NumPy/Numeric objects...) can be stored as an
-            attribute. However, if necessary, cPickle
-            is automatically used so as to serialize objects that you
-            might want to save. See the AttributeSet
-            class (in :ref:`AttributeSetClassDescr`) for details.
+            small NumPy objects ...) can be stored as an attribute.
+            However, if necessary, cPickle is automatically used so as
+            to serialize objects that you might want to save.
+            See the :class:``AttributeSet` class for details.
 
         Notes
         -----

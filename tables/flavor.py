@@ -102,9 +102,6 @@ friendlier interfaces to flavor conversion.
 def check_flavor(flavor):
     """Raise a ``FlavorError`` if the `flavor` is not valid."""
 
-    if flavor == 'numeric':
-        _numeric_deprecation()
-
     if flavor not in all_flavors:
         available_flavs = ", ".join(flav for flav in all_flavors)
         raise FlavorError(
@@ -129,9 +126,6 @@ def array_of_flavor2(array, src_flavor, dst_flavor):
         raise FlavorError( "conversion from flavor ``%s`` to flavor ``%s`` "
                            "is unsupported or unavailable in this system"
                            % (src_flavor, dst_flavor) )
-
-    if 'numeric' in convkey:
-        _numeric_deprecation()
 
     convfunc = converter_map[convkey]
     return convfunc(array)
@@ -186,8 +180,6 @@ def flavor_of(array):
 
     for flavor in all_flavors:
         if identifier_map[flavor](array):
-            if flavor == 'numeric':
-                _numeric_deprecation()
             return flavor
     type_name = type(array).__name__
     supported_descs = "; ".join(description_map[fl] for fl in all_flavors)
@@ -232,18 +224,6 @@ import numpy
 all_flavors.append('numpy')  # this is the internal flavor
 
 all_flavors.append('python')  # this is always supported
-
-try:
-    import Numeric
-except ImportError:
-    def _numeric_deprecation():
-        pass
-    pass
-else:
-    all_flavors.append('numeric')
-    def _numeric_deprecation():
-        msg = 'Support for "Numeric" will be removed in future versions'
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
 def _register_aliases():
     """Register aliases of *available* flavors."""
@@ -348,14 +328,6 @@ _numpy_desc = "NumPy array, record or scalar"
 def _is_numpy(array):
     return isinstance(array, (numpy.ndarray, numpy.generic))
 
-_numeric_aliases = ['Numeric']
-_numeric_desc = "Numeric array"
-def _is_numeric(array):
-    ret = isinstance(array, Numeric.ArrayType)
-    if ret:
-        _numeric_deprecation()
-    return ret
-
 def _numpy_contiguous(convfunc):
     """Decorate `convfunc` to return a *contiguous* NumPy array."""
 
@@ -375,58 +347,8 @@ def _conv_numpy_to_numpy(array):
     return numpy.asarray(array)
 
 @_numpy_contiguous
-def _conv_numeric_to_numpy(array):
-    # no need of Numeric in this case
-    return numpy.asarray(array)  # use the array protocol
-
-@_numpy_contiguous
 def _conv_python_to_numpy(array):
     return numpy.array(array)
-
-if 'numeric' in all_flavors:
-    _numtype_from_nptype = {
-        numpy.bool_: Numeric.UInt8,
-        numpy.int8: Numeric.Int8,
-        numpy.int16: Numeric.Int16,
-        numpy.int32: Numeric.Int32,
-        numpy.uint8: Numeric.UInt8,
-        numpy.uint16: Numeric.UInt16,
-        numpy.uint32: Numeric.UInt32,
-        numpy.float32: Numeric.Float32,
-        numpy.float64: Numeric.Float64,
-        numpy.complex64: Numeric.Complex32,
-        numpy.complex128: Numeric.Complex64 }
-    if hasattr(Numeric, "Int64"):  # Only defined for 64-bit platforms
-        _numtype_from_nptype[numpy.int64] = Numeric.Int64
-
-def _conv_numpy_to_numeric(array):
-    _numeric_deprecation()
-    kind = array.dtype.kind
-    if kind == 'V':
-        raise FlavorError( "the ``numeric`` flavor does not support "
-                           "heterogeneous arrays" )
-
-    # It seems that the array protocol in Numeric does leak.  See
-    # http://comments.gmane.org/gmane.comp.python.numeric.general/12563
-    # for more info on this issue.
-    ##if kind != 'S':
-    ##    return Numeric.asarray(array)  # use the array protocol
-
-    shape = array.shape
-    if kind == 'S':
-        if array.itemsize > 1:
-            # Numeric does not support character arrays with elements
-            # with a size > 1.  Simulate with an additional dimension.
-            shape = shape + (array.itemsize,)
-        typecode = 'c'
-    else:
-        # See the above note about the Numeric leak.
-        typecode = _numtype_from_nptype[array.dtype.type]
-    # Convert to a contiguous buffer (``tostring()`` is very efficient).
-    arrstr = array.tostring()
-    array = Numeric.fromstring(arrstr, typecode)
-    array = Numeric.reshape(array, shape)
-    return array
 
 def _conv_numpy_to_python(array):
     if array.shape != ():

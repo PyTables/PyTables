@@ -584,7 +584,6 @@ if has_setuptools:
         'numexpr>=%s' % min_numexpr_version,
         ]
     setuptools_kwargs['extras_require'] = {
-        'Numeric': ['Numeric>=24.2'],  # for ``Numeric`` support
         'netCDF': ['ScientificPython'],  # for netCDF interchange
         }
 

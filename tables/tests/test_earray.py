@@ -9,14 +9,9 @@ import tempfile
 import numpy
 
 from tables import *
-from tables.flavor import flavor_to_flavor
-from tables.tests import common
-from tables.tests.common import typecode, allequal, numeric_imported
 from tables.utils import byteorders
-
-if numeric_imported:
-    import Numeric
-
+from tables.tests import common
+from tables.tests.common import allequal
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
@@ -83,8 +78,6 @@ class BasicTestCase(unittest.TestCase):
         else:
             object = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object.shape = self.rowshape
-        if self.flavor == "numeric":
-            object = Numeric.asarray(object)
 
         if common.verbose:
             if self.flavor == "numpy":
@@ -94,12 +87,8 @@ class BasicTestCase(unittest.TestCase):
         for i in range(self.nappends):
             if self.type == "string":
                 earray.append(object)
-            elif self.flavor == "numpy":
-                earray.append(object*i)
             else:
-                object = object * i
-                # For Numeric arrays, we still have to undo the type upgrade
-                earray.append(object.astype(typecode[earray.atom.type]))
+                earray.append(object*i)
 
     def tearDown(self):
         self.fileh.close()
@@ -151,8 +140,6 @@ class BasicTestCase(unittest.TestCase):
             object_ = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
-        if self.flavor == "numeric":
-            object_ = Numeric.asarray(object_)
 
         # Read all the array
         for row in earray:
@@ -162,8 +149,6 @@ class BasicTestCase(unittest.TestCase):
                     object__ = object_
                 else:
                     object__ = object_ * (int(earray.nrow) // self.chunksize)
-                    if self.flavor == "numeric":
-                        object__ = object__.astype(typecode[earray.atom.type])
             object = object__[chunk]
             # The next adds much more verbosity
             if common.verbose and 0:
@@ -225,9 +210,6 @@ class BasicTestCase(unittest.TestCase):
             object_ = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
-        if self.flavor == "numeric":
-            object_ = Numeric.asarray(object_)
-
 
         # Read all the array
         for row in earray.iterrows(start=self.start, stop=self.stop,
@@ -240,8 +222,6 @@ class BasicTestCase(unittest.TestCase):
                 object__ = object_
             else:
                 object__ = object_ * (int(earray.nrow) // self.chunksize)
-                if self.flavor == "numeric":
-                    object__ = object__.astype(typecode[earray.atom.type])
             object = object__[index]
             # The next adds much more verbosity
             if common.verbose and 0:
@@ -292,8 +272,6 @@ class BasicTestCase(unittest.TestCase):
             object_ = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
-        if self.flavor == "numeric":
-            object_ = Numeric.asarray(object_)
 
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
@@ -302,21 +280,15 @@ class BasicTestCase(unittest.TestCase):
         else:
             object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
 
-        if self.flavor == "numeric":
-            object__ = Numeric.asarray(object__)
-            object__ = Numeric.swapaxes(object__, 0, self.extdim)
-        else:
-            object__ = object__.swapaxes(0, self.extdim)
+        object__ = object__.swapaxes(0, self.extdim)
 
         for i in range(self.nappends):
             j = i * self.chunksize
             if self.type == "string":
                 object__[j:j+self.chunksize] = object_
             else:
-                if self.flavor == "numpy":
-                    object__[j:j+self.chunksize] = object_ * i
-                else:
-                    object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.atom.type])
+                object__[j:j+self.chunksize] = object_ * i
+
         stop = self.stop
 
         if self.nappends:
@@ -339,20 +311,14 @@ class BasicTestCase(unittest.TestCase):
             # Swap the axes again to have normal ordering
             if self.flavor == "numpy":
                 object = object.swapaxes(0, self.extdim)
-            elif self.flavor == "numeric":
-                object = Numeric.swapaxes(object, 0, self.extdim)
         else:
             object = numpy.empty(shape=self.shape, dtype=self.dtype)
-            if self.flavor == "numeric":
-                object = Numeric.asarray(object)
 
         # Read all the array
         try:
             row = earray.read(self.start, self.stop, self.step)
         except IndexError:
             row = numpy.empty(shape=self.shape, dtype=self.dtype)
-            if self.flavor == "numeric":
-                row = Numeric.asarray(row)
 
         if common.verbose:
             if hasattr(object, "shape"):
@@ -364,9 +330,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(allequal(row, object, self.flavor))
         if hasattr(row, "shape"):
             self.assertEqual(len(row.shape), len(self.shape))
-            if self.flavor == "numeric":
-                self.assertEqual(row.itemsize(), earray.atom.itemsize)
-            elif self.flavor in "numpy":
+            if self.flavor == "numpy":
                 self.assertEqual(row.itemsize, earray.atom.itemsize)
         else:
             # Scalar case
@@ -438,16 +402,11 @@ class BasicTestCase(unittest.TestCase):
         else:
             object = numpy.empty(shape=self.shape, dtype=self.dtype)
 
-        if self.flavor == "numeric":
-            # Convert the object to Numeric
-            object = Numeric.asarray(object)
-
         # Read all the array
         try:
             row = earray.__getitem__(self.slices)
         except IndexError:
-            if self.flavor == "numeric":
-                row = Numeric.asarray(row)
+            row = numpy.empty(shape=self.shape, dtype=self.dtype)
 
         if common.verbose:
             print "Object read:\n", repr(row)
@@ -540,8 +499,6 @@ class BasicTestCase(unittest.TestCase):
 
         if self.flavor == "numpy":
             object = numpy.asarray(object)
-        elif self.flavor == "numeric":
-            object = Numeric.asarray(object)
 
         if self.type == "string":
             if hasattr(self, "wslice"):
@@ -570,8 +527,6 @@ class BasicTestCase(unittest.TestCase):
         except IndexError:
             print "IndexError!"
             row = numpy.empty(shape=self.shape, dtype=self.dtype)
-            if self.flavor == "numeric":
-                row = Numeric.asarray(self.shape)
 
         if common.verbose:
             print "Object read:\n", repr(row)
@@ -954,52 +909,6 @@ class StringComprTestCase(BasicTestCase):
     start = -1
     stop = 100
     step = 20
-
-class Numeric1TestCase(BasicTestCase):
-    # Setting flavor to Numeric here gives some problems due,
-    # most probably, to test implementation, not library code
-    #flavor = "numeric"
-    type = "int32"
-    shape = (2, 0)
-    compress = 1
-    shuffle = 1
-    chunksize = 50
-    nappends = 20
-    start = -1
-    stop = 100
-    step = 20
-
-class Numeric2TestCase(BasicTestCase):
-    flavor = "numeric"
-    # type = Float32 gives some problems on tests. It is *not* a
-    # problem with Array.__setitem__(), just with test design
-    #type = 'float32'
-    type = 'float64'
-    dtype = 'float64'
-    shape = (0,)
-    compress = 1
-    shuffle = 1
-    chunksize = 2
-    nappends = 1
-    start = -1
-    stop = 100
-    step = 20
-
-class NumericComprTestCase(BasicTestCase):
-    flavor = "numeric"
-    type = 'float64'
-    dtype = 'float64'
-    compress = 1
-    shuffle = 1
-    shape = (0,)
-    compr = 1
-    chunksize = 2
-    nappends = 1
-    start = 51
-    stop = 100
-    step = 7
-
-# It remains a test of Numeric char types, but the code is getting too messy
 
 
 class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
@@ -1526,65 +1435,6 @@ class CopyTestCase(unittest.TestCase):
         os.remove(file)
 
     def test03a_copy(self):
-        """Checking EArray.copy() method (Numeric flavor)"""
-
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03a_copy..." % self.__class__.__name__
-
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        if numeric_imported:
-            flavor = "numeric"
-        else:
-            flavor = "numpy"
-
-        arr = Int16Atom()
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1")
-        array1.flavor = flavor
-        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
-
-        if self.close:
-            if common.verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "a")
-            array1 = fileh.root.array1
-
-        # Copy to another location
-        array2 = array1.copy('/', 'array2')
-
-        if self.close:
-            if common.verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
-
-        if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
-
-        # Assert other properties in array
-        self.assertEqual(array1.nrows, array2.nrows)
-        self.assertEqual(array1.shape, array2.shape)
-        self.assertEqual(array1.extdim, array2.extdim)
-        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
-        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
-        self.assertEqual(array1.atom.type, array2.atom.type)
-        self.assertEqual(array1.atom.itemsize, array2.atom.itemsize)
-        self.assertEqual(array1.title, array2.title)
-        self.assertEqual(str(array1.atom), str(array2.atom))
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
-    def test03b_copy(self):
         """Checking EArray.copy() method (python flavor)"""
 
         if common.verbose:
@@ -1640,7 +1490,7 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test03d_copy(self):
+    def test03b_copy(self):
         """Checking EArray.copy() method (python string flavor)"""
 
         if common.verbose:
@@ -1697,7 +1547,7 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test03e_copy(self):
+    def test03c_copy(self):
         """Checking EArray.copy() method (String flavor)"""
 
         if common.verbose:
@@ -2445,7 +2295,6 @@ class MDAtomReopen(MDAtomTestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    global numeric
     niter = 1
     #common.heavy = 1  # uncomment this only for testing purposes
 
@@ -2475,11 +2324,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StringTestCase))
         theSuite.addTest(unittest.makeSuite(String2TestCase))
         theSuite.addTest(unittest.makeSuite(StringComprTestCase))
-        # Numeric is now deprecated
-        #if numeric_imported:
-        #    theSuite.addTest(unittest.makeSuite(Numeric1TestCase))
-        #    theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumericComprTestCase))
         theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))

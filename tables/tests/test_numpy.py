@@ -379,7 +379,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 class Record(IsDescription):
     var1  = StringCol(itemsize=4, dflt="abcd", pos=0)
     var2  = StringCol(itemsize=1, dflt="a", pos=1)
-    var3  = BoolCol(dflt=1)  # Typecode == '1' in Numeric.
+    var3  = BoolCol(dflt=1)
     var4  = Int8Col(dflt=1)
     var5  = UInt8Col(dflt=1)
     var6  = Int16Col(dflt=1)

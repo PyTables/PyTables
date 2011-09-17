@@ -32,8 +32,7 @@ from tables.conditions import compile_condition
 from numexpr.necompiler import (
     getType as numexpr_getType, double, is_cpu_amd_intel)
 from numexpr.expressions import functions as numexpr_functions
-from tables.flavor import flavor_of, array_as_internal, internal_to_flavor, \
-        _numeric_deprecation
+from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
 from tables.leaf import Leaf
 from tables.description import (
@@ -1424,16 +1423,6 @@ class Table(tableExtension.Table, Leaf):
         return row._iter(start, stop, step, chunkmap=chunkmap)
 
 
-    def _checkFieldIfNumeric(self, field):
-        """Check that `field` has been selected with ``numeric`` flavor."""
-
-        if self.flavor == 'numeric' and field is None:
-            _numeric_deprecation()
-            raise ValueError(
-                "Numeric does not support heterogeneous datasets; "
-                "you must specify a field when using the ``numeric`` flavor" )
-
-
     def readWhere( self, condition, condvars=None, field=None,
                    start=None, stop=None, step=None ):
         """Read table data fulfilling the given *condition*.
@@ -1445,8 +1434,6 @@ class Table(tableExtension.Table, Leaf):
         The meaning of the other arguments is the same as in the
         :meth:`Table.where` method.
         """
-
-        self._checkFieldIfNumeric(field)
 
         coords = [ p.nrow for p in
                    self._where(condition, condvars, start, stop, step) ]
@@ -1611,7 +1598,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         order.
         """
 
-        self._checkFieldIfNumeric(field)
         index = self._check_sortby_CSI(sortby, checkCSI)
         coords = index[start:stop:step]
         return self.readCoordinates(coords, field)
@@ -1765,8 +1751,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         if field:
             self._checkColumn(field)
-        else:
-            self._checkFieldIfNumeric(field)
 
         (start, stop, step) = self._processRangeRead(start, stop, step)
 
@@ -1818,7 +1802,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         current flavor.
         """
 
-        self._checkFieldIfNumeric(field)
         result = self._readCoordinates(coords, field)
         return internal_to_flavor(result, self.flavor)
 
@@ -2187,12 +2170,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         modification exceed the length of the table, an IndexError is
         raised before changing data.
 
-        The column argument may be any object which can be converted to
-        a (record) array compliant with the structure of the column to
-        be modified (otherwise, a ValueError is raised).  This includes
-        NumPy (record) arrays, Numeric arrays if available (deprecated),
-        lists of scalars, tuples or array records, and a string or
-        Python buffer.
+        The *column* argument may be any object which can be converted
+        to a (record) array compliant with the structure of the column
+        to be modified (otherwise, a ValueError is raised).  This
+        includes NumPy (record) arrays, lists of scalars, tuples or
+        array records, and a string or Python buffer.
 
         """
 

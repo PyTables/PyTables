@@ -31,18 +31,9 @@ scratch if you have Cython installed, but this is not necessary, as the Cython
 compiled source is included in the source distribution.
 
 To compile PyTables you will need a recent version of Python, the HDF5 (C
-flavor) library from http://www.hdfgroup.org, and the NumPy (see
-:ref:`[NUMPY] <NUMPY>`) and Numexpr (see  :ref:`[NUMEXPR] <NUMEXPR>`)
+flavor) library from http://hdfgroup.org, and the NumPy (see
+:ref:`[NUMPY] <NUMPY>`) and Numexpr (see :ref:`[NUMEXPR] <NUMEXPR>`)
 packages.
-Although you won't need Numeric (see :ref:`[NUMERIC] <NUMERIC>`) in order to
-compile PyTables, it is supported; you only need a reasonably recent version
-of it (>= 24.2) if you plan on using them in your applications.
-If you already have Numeric installed, the test driver module will detect it
-and will run the tests for Numeric automatically.
-
-.. warning:: The use of Numeric in PyTables is now deprecated.
-
-    Support for these packages will be dropped in future versions.
 
 
 Prerequisites

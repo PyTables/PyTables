@@ -10,11 +10,8 @@ import numpy
 
 from tables import *
 from tables.tests import common
-from tables.tests.common import typecode, allequal, numeric_imported
+from tables.tests.common import allequal
 from tables.utils import byteorders
-
-if numeric_imported:
-    import Numeric
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
@@ -56,9 +53,6 @@ class BasicTestCase(unittest.TestCase):
         if self.flavor == "numpy":
             vlarray.append(numpy.array([3, 4, 5], dtype='int32'))
             vlarray.append(numpy.array([], dtype='int32'))     # Empty entry
-        elif self.flavor == "numeric":
-            vlarray.append(Numeric.array([3, 4, 5], typecode='i'))
-            vlarray.append(Numeric.array([], typecode='i'))     # Empty entry
         elif self.flavor == "python":
             vlarray.append((3, 4, 5))
             vlarray.append(())         # Empty entry
@@ -111,13 +105,6 @@ class BasicTestCase(unittest.TestCase):
                 allequal(row, numpy.array([1, 2], dtype='int32'), self.flavor))
             self.assertTrue(
                 allequal(row2, numpy.array([], dtype='int32'), self.flavor))
-        elif self.flavor == "numeric":
-            self.assertEqual(type(row), type(Numeric.array([1, 2])))
-            # The next two lines has been corrected by Ciro Catutto
-            # (2004-04-20)
-            self.assertTrue(allequal(row, (1, 2), self.flavor))
-            self.assertTrue(
-                allequal(row2, Numeric.array([], typecode='i'), self.flavor))
         elif self.flavor == "python":
             self.assertEqual(row, [1, 2])
             self.assertEqual(row2, [])
@@ -173,11 +160,6 @@ class BasicTestCase(unittest.TestCase):
             if self.flavor == "numpy":
                 for val in rows1:
                     rows1f.append(numpy.array(val, dtype='int32'))
-                for i in range(len(rows1f)):
-                    self.assertTrue(allequal(rows2[i], rows1f[i], self.flavor))
-            elif self.flavor == "numeric":
-                for val in rows1:
-                    rows1f.append(Numeric.array(val, typecode='i'))
                 for i in range(len(rows1f)):
                     self.assertTrue(allequal(rows2[i], rows1f[i], self.flavor))
             elif self.flavor == "python":
@@ -251,16 +233,6 @@ class BasicTestCase(unittest.TestCase):
             self.assertTrue(
                 allequal(row3, numpy.array([7, 8, 9, 10], dtype='int32'),
                          self.flavor))
-        elif self.flavor == "numeric":
-            self.assertEqual(type(row1), type(Numeric.array([1, 2])))
-            # The next two lines has been corrected by Ciro Catutto
-            # (2004-04-20)
-            self.assertTrue(allequal(row1, (1, 2), self.flavor))
-            self.assertTrue(
-                allequal(row2, Numeric.array([], typecode='i'), self.flavor))
-            self.assertTrue(
-                allequal(row3, Numeric.array([7, 8, 9, 10], typecode='i'),
-                         self.flavor))
         elif self.flavor == "python":
             self.assertEqual(row1, [1, 2])
             self.assertEqual(row2, [])
@@ -270,9 +242,6 @@ class BasicTestCase(unittest.TestCase):
 
 class BasicNumPyTestCase(BasicTestCase):
     flavor = "numpy"
-
-class BasicNumericTestCase(BasicTestCase):
-    flavor = "numeric"
 
 class BasicPythonTestCase(BasicTestCase):
     flavor = "python"
@@ -2139,12 +2108,8 @@ class FlavorTestCase(unittest.TestCase):
             arr1 = numpy.array([1, 1, 1], dtype="bool")
             arr2 = numpy.array([], dtype="bool")
             arr3 = numpy.array([1, 0], dtype="bool")
-        elif self.flavor == "numeric":
-            arr1 = Numeric.array([1, 1, 1], typecode="1")
-            arr2 = Numeric.array([], typecode="1")
-            arr3 = Numeric.array([1, 0], typecode="1")
 
-        if self.flavor in ['numpy', 'numeric']:
+        if self.flavor == "numpy":
             allequal(row[0], arr1, self.flavor)
             allequal(row[1], arr2, self.flavor)
             allequal(row[1], arr2, self.flavor)
@@ -2201,13 +2166,8 @@ class FlavorTestCase(unittest.TestCase):
                 arr1 = numpy.array([1, 2, 3], dtype=atype)
                 arr2 = numpy.array([], dtype=atype)
                 arr3 = numpy.array([100, 0], dtype=atype)
-            elif self.flavor == "numeric":
-                type_ = numpy.dtype(atype).base.name
-                arr1 = Numeric.array([1, 2, 3], typecode=typecode[type_])
-                arr2 = Numeric.array([], typecode=typecode[type_])
-                arr3 = Numeric.array([100, 0], typecode=typecode[type_])
 
-            if self.flavor in ["numpy", "numeric"]:
+            if self.flavor == "numpy":
                 allequal(row[0], arr1, self.flavor)
                 allequal(row[1], arr2, self.flavor)
                 allequal(row[2], arr3, self.flavor)
@@ -2225,10 +2185,8 @@ class FlavorTestCase(unittest.TestCase):
                   "Int16",
                   "UInt16",
                   "Int32",
-                  # Not checked because of Numeric <-> NumPy
-                  # conversion problems
-                  #"UInt32",
-                  #"Int64",
+                  "UInt32",
+                  "Int64",
                   # Not checked because some platforms does not support it
                   #"UInt64",
                   ]
@@ -2269,13 +2227,8 @@ class FlavorTestCase(unittest.TestCase):
                 arr1 = numpy.array([1, 2, 3], dtype=atype)
                 arr2 = numpy.array([], dtype=atype)
                 arr3 = numpy.array([100, 0], dtype=atype)
-            elif self.flavor == "numeric":
-                type_ = numpy.dtype(atype).base.name
-                arr1 = Numeric.array([1, 2, 3], typecode=typecode[type_])
-                arr2 = Numeric.array([], typecode=typecode[type_])
-                arr3 = Numeric.array([100, 0], typecode=typecode[type_])
 
-            if self.flavor in ["numpy", "numeric"]:
+            if self.flavor == "numpy":
                 allequal(row[0], arr1, self.flavor)
                 allequal(row[1], arr2, self.flavor)
                 allequal(row[2], arr3, self.flavor)
@@ -2332,13 +2285,8 @@ class FlavorTestCase(unittest.TestCase):
                 arr1 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
                 arr2 = numpy.array([], dtype=atype)
                 arr3 = numpy.array([-1.3e34, 1.e-32], dtype=atype)
-            elif self.flavor == "numeric":
-                type_ = numpy.dtype(atype).base.name
-                arr1 = Numeric.array([1.3, 2.2, 3.3], typecode[type_])
-                arr2 = Numeric.array([], typecode[type_])
-                arr3 = Numeric.array([-1.3e34, 1.e-32], typecode[type_])
 
-            if self.flavor in ["numpy", "numeric"]:
+            if self.flavor == "numpy":
                 allequal(row[0], arr1, self.flavor)
                 allequal(row[1], arr2, self.flavor)
                 allequal(row[2], arr3, self.flavor)
@@ -2350,9 +2298,6 @@ class FlavorTestCase(unittest.TestCase):
 
 class NumPyFlavorTestCase(FlavorTestCase):
     flavor = "numpy"
-
-class NumericFlavorTestCase(FlavorTestCase):
-    flavor = "numeric"
 
 class PythonFlavorTestCase(FlavorTestCase):
     flavor = "python"
@@ -3551,66 +3496,7 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    # Numeric is now deprecated
-    def _test03a_copy(self):
-        """Checking VLArray.copy() method ('numeric' flavor)"""
-
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03a_copy..." % self.__class__.__name__
-
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create an VLArray
-        if numeric_imported:
-            flavor = "numeric"
-        else:
-            flavor = "numpy"
-        arr = Int16Atom(shape=2)
-        array1 = fileh.createVLArray(fileh.root, 'array1', arr,
-                                     "title array1")
-        array1.flavor = flavor
-        array1.append([[2, 3]])
-        array1.append(())  # an empty row
-        array1.append([[3, 457], [2, 4]])
-
-        if self.close:
-            if common.verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "a")
-            array1 = fileh.root.array1
-
-        # Copy to another location
-        array2 = array1.copy('/', 'array2')
-
-        if self.close:
-            if common.verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
-
-        if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
-
-        # Assert other properties in array
-        self.assertEqual(array1.nrows, array2.nrows)
-        self.assertEqual(array1.shape, array2.shape)
-        self.assertEqual(array1.flavor, array2.flavor) # Very important here
-        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
-        self.assertEqual(repr(array1.atom), repr(array1.atom))
-        self.assertEqual(array1.title, array2.title)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
-    def test03b_copy(self):
+    def test03_copy(self):
         """Checking VLArray.copy() method ('python' flavor)"""
 
         if common.verbose:
@@ -4280,7 +4166,6 @@ class SizeOnDiskPropertyTestCase(unittest.TestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    global numeric
     niter = 1
 
     for n in range(niter):
@@ -4325,11 +4210,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PointSelectionTestCase))
         theSuite.addTest(unittest.makeSuite(SizeInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(SizeOnDiskPropertyTestCase))
-
-        # Numeric is now deprecated
-        #if numeric_imported:
-        #    theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
 
     return theSuite
 

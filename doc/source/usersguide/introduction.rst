@@ -103,9 +103,8 @@ grid-like fashion to provide these features:
   up for values in columns satisfying some criteria.
 
 - *Support for numerical arrays:*
-  NumPy (see :ref:`[NUMPY] <NUMPY>`) and Numeric
-  (see :ref:`[NUMERIC] <NUMERIC>`), arrays can be used as a useful complement
-  of tables to store homogeneous data.
+  NumPy (see :ref:`[NUMPY] <NUMPY>`) arrays can be used as a useful
+  complement of tables to store homogeneous data.
 
 - *Enlargeable arrays:* You can add new
   elements to existing arrays on disk in any dimension you want (but

@@ -5,10 +5,7 @@ import numpy
 
 from tables import *
 from tables.tests import common
-from tables.tests.common import allequal, numeric_imported
-
-if numeric_imported:
-    import Numeric
+from tables.tests.common import allequal
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
@@ -103,10 +100,6 @@ class VLArrayTestCase(common.PyTablesTestCase):
         # Check that we can read the contents without problems (nor warnings!)
         vlarray1 = fileh.root.vlarray1
         self.assertEqual(vlarray1.flavor, "numeric")
-        if numeric_imported:
-            self.assertTrue(
-                allequal(vlarray1[1], Numeric.array([5, 6, 7],  typecode='i'),
-                         "numeric"))
         vlarray2 = fileh.root.vlarray2
         self.assertEqual(vlarray2.flavor, "python")
         self.assertEqual(vlarray2[1], ['5', '6', '77'])

@@ -10,10 +10,7 @@ from tables import *
 
 from tables.tests import common
 from tables.utils import byteorders
-from tables.tests.common import allequal, numeric_imported
-
-if numeric_imported:
-    import Numeric
+from tables.tests.common import allequal
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
@@ -619,8 +616,6 @@ class GroupsArrayTestCase(unittest.TestCase):
         # maximum level of recursivity (deepest group level) achieved:
         # maxrank = 32 (for a effective maximum rank of 32)
         # This limit is due to HDF5 library limitations.
-        # There seems to exist a bug in Numeric when dealing with
-        # arrays with rank greater than 20.
         minrank = 1
         maxrank = 32
 
@@ -669,11 +664,6 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %c" % b.dtype
 
-            # ************** WARNING!!! *****************
-            # If we compare to arrays of dimensions bigger than 20
-            # we get a segmentation fault! It is most probably a bug
-            # located on the Numeric package
-            # ************** WARNING!!! *****************
             self.assertEqual(a.shape, b.shape)
             self.assertEqual(a.dtype, b.dtype)
             self.assertTrue(allequal(a, b))
@@ -785,53 +775,7 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    # Numeric is now deprecated
-    def _test03_copy(self):
-        """Checking Array.copy() method (Numeric flavor)"""
-
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_copy..." % self.__class__.__name__
-
-        # Create an instance of an HDF5 file
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create an Array (Numeric flavor)
-        if numeric_imported:
-            arr = Numeric.array([[456, 2], [3, 457]], typecode='s')
-        else:
-            # If Numeric not installed, use a numpy object
-            arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
-
-        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
-
-        # Copy to another Array
-        array2 = array1.copy('/', 'array2')
-
-        if self.close:
-            if common.verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
-
-        if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
-
-        # Assert other properties in array
-        self.assertEqual(array1.nrows, array2.nrows)
-        self.assertEqual(array1.flavor, array2.flavor)   # Very important here!
-        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
-        self.assertEqual(array1.title, array2.title)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
-    def test04_copy(self):
+    def test03_copy(self):
         """Checking Array.copy() method (checking title copying)"""
 
         if common.verbose:
@@ -868,7 +812,7 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test05_copy(self):
+    def test04_copy(self):
         """Checking Array.copy() method (user attributes copied)"""
 
         if common.verbose:
@@ -908,7 +852,7 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    def test05b_copy(self):
+    def test04b_copy(self):
         """Checking Array.copy() method (user attributes not copied)"""
 
         if common.verbose:

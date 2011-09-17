@@ -306,11 +306,6 @@ class FlavorError(ValueError):
     This exception is raised when an unsupported or unavailable flavor
     is given to a dataset, or when a conversion of data between two
     given flavors is not supported nor available.
-
-    A supported flavor may be unavailable if the package which
-    implements it is not installed locally, e.g. you may specify the
-    ``numeric`` flavor, which is supported by PyTables, but if Numeric
-    is not installed on your machine, you will get this error.
     """
 
     pass

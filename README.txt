@@ -86,10 +86,7 @@ optional.
 
 We've tested this PyTables version with HDF5 1.8.4/1.8.9, NumPy 1.4.1
 and Numexpr 1.4.1, and you *need* to use these versions, or higher, to
-make use of PyTables. Albeit you won't need Numeric Python in order to
-compile PyTables, it is supported; you only will need a reasonably
-recent version of it (>= 24.x). PyTables has been successfully tested
-against Numeric 24.2.
+make use of PyTables.
 
 Installation
 ------------

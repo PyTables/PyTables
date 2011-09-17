@@ -61,13 +61,6 @@ Bibliography
     plus a bunch of new others. In general, it is more efficient as well.
     `<http://numpy.scipy.org/>`_.
 
-.. _NUMERIC:
-
-:ref:`[NUMERIC] <NUMERIC>`
-    David Ascher, Paul F Dubois, Konrad Hinsen, Jim Hugunin, and Travis
-    Oliphant. Numerical Python. Package to speed-up arithmetic operations on
-    arrays of numbers. `<http://sourceforge.net/projects/numpy/>`_.
-
 .. _NUMEXPR:
 
 :ref:`[NUMEXPR] <NUMEXPR>`
