@@ -53,7 +53,6 @@ def suite():
         'tables.tests.test_index_backcompat',
         # Sub-packages
         'tables.nodes.tests.test_filenode',
-        #'tables.netcdf3.tests.test_netcdf3',
     ]
 
     # Numeric is now deprecated

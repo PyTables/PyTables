@@ -535,7 +535,6 @@ if has_setuptools:
         ]
     setuptools_kwargs['extras_require'] = {
         'Numeric': ['Numeric>=24.2'],  # for ``Numeric`` support
-        'netCDF': ['ScientificPython'],  # for netCDF interchange
         'numarray': ['numarray>=1.5.2'],  # for ``numarray`` support
         }
 
@@ -546,7 +545,6 @@ if has_setuptools:
         'console_scripts': [
             'ptdump = tables.scripts.ptdump:main',
             'ptrepack = tables.scripts.ptrepack:main',
-            'nctoh5 = tables.netcdf3.scripts.nctoh5:main [netCDF]',
             ],
         }
     # Test suites.
@@ -560,13 +558,13 @@ else:
     # There is no other chance, these values must be hardwired.
     setuptools_kwargs['packages'] = [
         'tables', 'tables.nodes', 'tables.scripts',
-        'tables.nra', 'tables.netcdf3', 'tables.netcdf3.scripts',
+        'tables.nra',
         'tables.misc',
         # Test suites.
         'tables.tests', 'tables.nodes.tests',
-        'tables.netcdf3.tests', 'tables.nra.tests']
+        'tables.nra.tests']
     setuptools_kwargs['scripts'] = [
-        'utils/ptdump', 'utils/ptrepack', 'utils/nctoh5']
+        'utils/ptdump', 'utils/ptrepack']
 # Copy additional data for packages that need it.
 setuptools_kwargs['package_data'] = {
     'tables.tests': ['*.h5'],

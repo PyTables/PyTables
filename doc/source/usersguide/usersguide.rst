@@ -85,7 +85,6 @@ Complementary modules
     :maxdepth: 1
 
     filenode
-    netcdf3
 
 
 ----------
