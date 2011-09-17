@@ -27,13 +27,12 @@ Misc variables:
 
 """
 
-import sys, warnings
+import sys
 
 import numpy
 
 from tables.utilsExtension import lrange
-from tables.atom import Atom, EnumAtom, split_type
-from tables.leaf import Leaf
+from tables.atom import Atom
 from tables.array import Array
 from tables.utils import correct_byteorder, SizeType
 

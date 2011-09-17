@@ -22,10 +22,10 @@ Functions:
 """
 
 import sys
+import warnings
 
 import numpy as np
 import tables as tb
-import numexpr as ne
 from numexpr.necompiler import (
     getContext, getExprNames, getType, NumExpr)
 from numexpr.expressions import functions as numexpr_functions
@@ -348,10 +348,8 @@ class Expr(object):
         # Compute the rowsize for the *leading* dimension
         shape_ = list(object_.shape)
         if shape_:
-            expectedrows = shape_[0]
             shape_[0] = 1
-        else:
-            expectedrows = 0
+
         rowsize = np.prod(shape_) * object_.dtype.itemsize
 
         # Compute the nrowsinbuf
@@ -466,7 +464,6 @@ value of dimensions that are orthogonal (and preferably close) to the
                     self.o_start, self.o_stop, self.o_step, o_shape[o_maindim])
                 o_shape[o_maindim] = min(o_shape[o_maindim],
                                          lrange(o_start, o_stop, o_step).length)
-                o_nrows = o_shape[o_maindim]
 
                 # Check that the shape of output is consistent with inputs
                 tr_oshape = list(o_shape)   # this implies a copy

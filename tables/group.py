@@ -37,15 +37,13 @@ from tables import hdf5Extension
 from tables import utilsExtension
 from tables.registry import classIdDict
 from tables.exceptions import (
-    NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning,
-    HDF5ExtError)
+    NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning)
 from tables.filters import Filters
 from tables.registry import getClassByName
 from tables.path import checkNameValidity, joinPath, isVisibleName
 from tables.node import Node, NotLoggedMixin
 from tables.leaf import Leaf
 from tables.unimplemented import UnImplemented, Unknown
-from tables.attributeset import AttributeSet
 
 from tables.link import Link, SoftLink
 try:

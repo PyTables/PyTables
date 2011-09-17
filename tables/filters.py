@@ -28,7 +28,7 @@ import warnings
 import numpy
 
 from tables import utilsExtension
-from tables.exceptions import FiltersWarning, ExperimentalFeatureWarning
+from tables.exceptions import FiltersWarning
 
 
 # Public variables

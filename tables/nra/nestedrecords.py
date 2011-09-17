@@ -122,7 +122,7 @@ def _checkNames(names):
 
     # Names elements must be strings or 2-tuples
     # (flattenNames will issue a TypeError in case this is not true)
-    colnames = nriterators.flattenNames(names)
+    nriterators.flattenNames(names)
 
     # The names used in the names list should not contain the '/' string
     for item in nriterators.getSubNames(names):
@@ -691,8 +691,8 @@ def convertToAPDescr(descr, byteorder):
                 # parse the formats into repeats and formats
                 try:
                     (_repeat, _dtype) = format_re.match(item[1].strip()).groups()
-                except TypeError, AttributeError:
-                    raise ValueError('format %s is not recognized' %  _fmt[i])
+                except (TypeError, AttributeError):
+                    raise ValueError('format %s is not recognized' % item[i])
                 _dtype = _dtype.strip()
                 # String type needs special treatment
                 if _dtype[0] in ('a', 'S'):

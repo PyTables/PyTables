@@ -48,9 +48,9 @@ from tables import parameters
 from tables.exceptions import \
      ClosedFileError, FileModeError, \
      NodeError, NoSuchNodeError, UndoRedoError, \
-     UndoRedoWarning, PerformanceWarning, Incompat16Warning
+     PerformanceWarning, Incompat16Warning
 from tables.registry import getClassByName
-from tables.path import joinPath, splitPath, isVisiblePath
+from tables.path import joinPath, splitPath
 from tables import undoredo
 from tables.description import IsDescription, UInt8Col, StringCol
 from tables.filters import Filters

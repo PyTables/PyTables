@@ -11,7 +11,6 @@
 """Utilities to be used mainly by the Index class."""
 
 import math
-import numpy
 
 
 # Hints for chunk/slice/block/superblock computations:

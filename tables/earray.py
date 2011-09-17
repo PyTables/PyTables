@@ -26,14 +26,10 @@ Misc variables:
 
 """
 
-import sys
-
 import numpy
 
 from tables.utilsExtension import lrange
-from tables.utils import convertToNPAtom, convertToNPAtom2, SizeType
-from tables.atom import Atom, EnumAtom, split_type
-from tables.leaf import Leaf
+from tables.utils import convertToNPAtom2, SizeType
 from tables.carray import CArray
 
 __version__ = "$Revision$"

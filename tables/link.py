@@ -36,8 +36,8 @@ from tables.attributeset import AttributeSet
 import tables.file
 
 try:
-    from tables.linkExtension import ExternalLink
-except ImportError:
+    tables.linkExtension.ExternalLink
+except AttributeError:
     are_extlinks_available = False
 else:
     are_extlinks_available = True

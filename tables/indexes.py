@@ -29,14 +29,7 @@ Misc variables:
 
 __version__ = "$Revision$"
 
-import types
-import warnings
-import sys
 from bisect import bisect_left, bisect_right
-from time import time
-import math
-
-import numpy
 
 from tables.node import NotLoggedMixin
 from tables.carray import CArray

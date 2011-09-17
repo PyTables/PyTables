@@ -19,7 +19,6 @@ Variables
 # Imports
 # =======
 import warnings
-import sys
 import copy
 
 import numpy
@@ -43,7 +42,7 @@ def same_position(oldmethod):
     """Decorate `oldmethod` to also compare the `_v_pos` attribute."""
     def newmethod(self, other):
         try:
-            other_pos = other._v_pos
+            other._v_pos
         except AttributeError:
             return False  # not a column definition
         return self._v_pos == other._v_pos and oldmethod(self, other)

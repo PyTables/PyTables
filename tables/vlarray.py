@@ -27,7 +27,6 @@ Misc variables:
 """
 
 import sys
-import warnings
 
 import numpy
 
@@ -37,8 +36,7 @@ from tables.utils import convertToNPAtom, convertToNPAtom2, idx2long, \
      correct_byteorder, SizeType, is_idx, lazyattr
 
 
-from tables.atom import (
-    ObjectAtom, VLStringAtom, VLUnicodeAtom, EnumAtom, Atom, split_type )
+from tables.atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
 from tables.flavor import internal_to_flavor
 from tables.leaf import Leaf, calc_chunksize
 

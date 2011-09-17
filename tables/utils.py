@@ -14,7 +14,7 @@
 
 import os, os.path, subprocess
 import sys
-from time import time, clock
+from time import time
 
 import numpy
 
@@ -51,7 +51,7 @@ def is_idx(index):
         if (hasattr(index, "shape") and index.shape != ()):
             return False
         try:
-            idx = index.__index__()
+            index.__index__()
             return True
         except TypeError:
             return False

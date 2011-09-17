@@ -117,7 +117,7 @@ __all__ = [
     # Functions:
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
     'copyFile', 'openFile', 'print_versions', 'test',
-    'split_type', 'restrict_flavors', 'lrange',
+    'split_type', 'restrict_flavors', 'lrange', 'setBloscMaxThreads',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
     # Types:
@@ -141,7 +141,7 @@ __all__ = [
     'EnumCol',
     # Node classes:
     'Node', 'Group', 'Leaf', 'Table', 'Array', 'CArray', 'EArray', 'VLArray',
-    'UnImplemented',
+    'UnImplemented', 'Unknown',
     # The File class:
     'File',
     # Expr class
