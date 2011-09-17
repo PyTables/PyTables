@@ -1,12 +1,11 @@
 """Plugin for HDF5 files created with using pytables (tables.netcdf3)"""
 
-__author__ = "Jeffrey Whitaker <jeffrey.s.whitaker@noaa.gov>"
-
 from __future__ import division
+
+__author__ = "Jeffrey Whitaker <jeffrey.s.whitaker@noaa.gov>"
 
 import os.path
 import re
-import types
 
 # Requires tables.netcdf3
 from tables.netcdf3 import NetCDFFile
@@ -56,7 +55,7 @@ class Handler(BaseHandler):
                 # Instantiate the grid.
                 grid = self._file.variables[name]
                 data = arrayterator(grid, nrecs=BUFFER)
-                g = dataset[name] = dtypes.GridType(data=data, 
+                g = dataset[name] = dtypes.GridType(data=data,
                                                     name=name,
                                                     dimensions=grid.dimensions,
                                                     shape=grid.shape,
@@ -164,7 +163,7 @@ class Handler(BaseHandler):
                             start  = [i.start for i in slice_]
                             stride = [i.step for i in slice_]
                             shape  = [(i.stop - i.start) for i in slice_]
-                            
+
                             data = arrayterator(array_, start=start, shape=shape, stride=stride, nrecs=BUFFER)
                             dataset[name] = dtypes.ArrayType(data=data,
                                                              name=name,
