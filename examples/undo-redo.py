@@ -95,16 +95,14 @@ def demo_manyops():
     fileh = setUp("undo-redo-manyops.h5")
 
     # Create an array
-    array2 = fileh.createArray(fileh.root, 'anarray3',
-                                    [3], "Array title 3")
+    fileh.createArray(fileh.root, 'anarray3', [3], "Array title 3")
     # Create a group
-    array2 = fileh.createGroup(fileh.root, 'agroup3',
-                                    "Group title 3")
+    fileh.createGroup(fileh.root, 'agroup3', "Group title 3")
     # /anarray => /agroup/agroup3/
     newNode = fileh.copyNode('/anarray3', '/agroup/agroup2')
     newNode = fileh.copyChildren('/agroup', '/agroup3', recursive=1)
     # rename anarray
-    array4 = fileh.renameNode('/anarray', 'anarray4')
+    fileh.renameNode('/anarray', 'anarray4')
     # Move anarray
     newNode = fileh.copyNode('/anarray3', '/agroup')
     # Remove anarray4

@@ -3,7 +3,6 @@
 """ Small example that shows how to work with extendeable arrays of
 different types, strings included. """
 
-import sys
 from numpy import *
 from tables import *
 
