@@ -7,8 +7,6 @@
 # 2005-03-09
 ###########################################################################
 
-import os
-import tempfile
 import Numeric
 from time import time
 import tables

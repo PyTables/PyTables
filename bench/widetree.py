@@ -1,14 +1,10 @@
 import hotshot, hotshot.stats
 
-import sys
-import warnings
 import unittest
 import os
 import tempfile
 
 from tables import *
-# Next imports are only necessary for this test suite
-from tables import Group, Leaf, Table, Array
 
 verbose = 0
 
