@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import os
+import shutil
+import tempfile
 import warnings
 import unittest
 
 import numpy
 
 from tables import *
+from tables.exceptions import FlavorWarning
 from tables.tests import common
 from tables.tests.common import allequal
 
@@ -149,6 +153,70 @@ class TimeTestCase(common.PyTablesTestCase):
         self.assertEqual(vlarray8.byteorder, "little")
 
 
+class OldFlavorsTestCase01(common.PyTablesTestCase):
+    close = False
+
+    # numeric
+    def test01_open(self):
+        """Checking opening of (X)Array (old 'numeric' flavor)"""
+
+        # Open the HDF5 with old numeric flavor
+        filename = self._testFilename("oldflavor_numeric.h5")
+        fileh = open_file(filename)
+
+        # Assert other properties in array
+        self.assertEqual(fileh.root.array1.flavor, 'numeric')
+        self.assertEqual(fileh.root.array2.flavor, 'python')
+        self.assertEqual(fileh.root.carray1.flavor, 'numeric')
+        self.assertEqual(fileh.root.carray2.flavor, 'python')
+        self.assertEqual(fileh.root.vlarray1.flavor, 'numeric')
+        self.assertEqual(fileh.root.vlarray2.flavor, 'python')
+
+        # Close the file
+        fileh.close()
+
+    def test02_copy(self):
+        """Checking (X)Array.copy() method ('numetic' flavor)"""
+
+        srcfile = self._testFilename("oldflavor_numeric.h5")
+        tmpfile = tempfile.mktemp(".h5")
+        shutil.copy(srcfile, tmpfile)
+
+        # Open the HDF5 with old numeric flavor
+        fileh = open_file(tmpfile, "r+")
+
+        # Copy to another location
+        self.failUnlessWarns(FlavorWarning,
+                             fileh.root.array1.copy, '/', 'array1copy')
+        fileh.root.array2.copy('/', 'array2copy')
+        fileh.root.carray1.copy('/', 'carray1copy')
+        fileh.root.carray2.copy('/', 'carray2copy')
+        fileh.root.vlarray1.copy('/', 'vlarray1copy')
+        fileh.root.vlarray2.copy('/', 'vlarray2copy')
+
+        if self.close:
+            fileh.close()
+            fileh = open_file(tmpfile)
+
+        else:
+            fileh.flush()
+
+        # Assert other properties in array
+        self.assertEqual(fileh.root.array1copy.flavor, 'numeric')
+        self.assertEqual(fileh.root.array2copy.flavor, 'python')
+        self.assertEqual(fileh.root.carray1copy.flavor, 'numeric')
+        self.assertEqual(fileh.root.carray2copy.flavor, 'python')
+        self.assertEqual(fileh.root.vlarray1copy.flavor, 'numeric')
+        self.assertEqual(fileh.root.vlarray2copy.flavor, 'python')
+
+        # Close the file
+        fileh.close()
+        os.remove(tmpfile)
+
+
+class OldFlavorsTestCase02(common.PyTablesTestCase):
+    close = True
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -159,6 +227,8 @@ def suite():
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(VLArrayTestCase))
         theSuite.addTest(unittest.makeSuite(TimeTestCase))
+        theSuite.addTest(unittest.makeSuite(OldFlavorsTestCase01))
+        theSuite.addTest(unittest.makeSuite(OldFlavorsTestCase02))
         if lzo_avail:
             theSuite.addTest(unittest.makeSuite(Table2_1LZO))
             theSuite.addTest(unittest.makeSuite(Tables_LZO1))

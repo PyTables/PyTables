@@ -25,6 +25,7 @@ import warnings
 from tables.file import open_file
 from tables.group import Group
 from tables.leaf import Filters
+from tables.flavor import internal_flavor
 from tables.exceptions import OldIndexWarning, NoSuchNodeError, FlavorWarning
 from tables._past import previous_api
 
@@ -32,6 +33,14 @@ from tables._past import previous_api
 verbose = False
 regoldindexes = True
 createsysattrs = True
+
+numpy_aliases = [
+    'numeric',
+    'Numeric',
+    'numarray',
+    'NumArray',
+    'CharArray',
+]
 
 
 def newdst_group(dstfileh, dstgroup, title, filters):
@@ -151,9 +160,13 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
                            "the --overwrite-nodes flag if desired.")
 
     # Upgrade flavors in dstNode, if required
-    if upgradeflavors and srcfileh.format_version.startswith("1"):
-        # Remove original flavor in case the source file has 1.x format
-        dstNode.del_attr('FLAVOR')
+    if upgradeflavors:
+        if srcfileh.format_version.startswith("1"):
+            # Remove original flavor in case the source file has 1.x format
+            dstNode.del_attr('FLAVOR')
+        elif srcfileh.format_version < "2.1":
+            if dstNode.get_attr('FLAVOR') in numpy_aliases:
+                dstNode.set_attr('FLAVOR', internal_flavor)
 
     # Recreate possible old indexes in destination node
     if srcNode._c_classid == "TABLE":
@@ -239,10 +252,14 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                            "fooling you.")
 
     # Upgrade flavors in dstNode, if required
-    if upgradeflavors and srcfileh.format_version.startswith("1"):
+    if upgradeflavors:
         for dstNode in dstGroup._f_walknodes("Leaf"):
-            # Remove original flavor in case the source file has 1.x format
-            dstNode.del_attr('FLAVOR')
+            if srcfileh.format_version.startswith("1"):
+                # Remove original flavor in case the source file has 1.x format
+                dstNode.del_attr('FLAVOR')
+            elif srcfileh.format_version < "2.1":
+                if dstNode.get_attr('FLAVOR') in numpy_aliases:
+                    dstNode.set_attr('FLAVOR', internal_flavor)
 
     # Convert the remaining tables with old indexes (if any)
     for table in srcGroup._f_walknodes("Table"):
