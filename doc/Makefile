@@ -142,4 +142,4 @@ dist: all
 	tar cvzf ../dist/pytablesmanual-$(VERSION)-html.tar.gz html
 
 distclean: clean
-	-rm -rf html usersguide-*.pdf
+	-rm -rf html usersguide-$(VERSION).pdf
