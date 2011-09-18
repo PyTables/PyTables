@@ -6,7 +6,6 @@ import numpy
 
 from numpy import *
 
-import tables
 from tables import *
 from tables.tests import common
 from tables.tests.common import allequal
@@ -229,7 +228,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             dsetname = 'array_' + typecode
             if common.verbose:
                 print "Creating dataset:", group._g_join(dsetname)
-            hdfarray = fileh.createArray(group, dsetname, a, "Large array")
+            fileh.createArray(group, dsetname, a, "Large array")
             # Create a new group
             group = fileh.createGroup(group, 'group' + str(i))
             # increment the range for next iteration
@@ -1153,7 +1152,7 @@ class AttributesTestCase(common.PyTablesTestCase):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
-        groups = self.fileh.createGroup(self.fileh.root, 'group')
+        self.fileh.createGroup(self.fileh.root, 'group')
 
     def tearDown(self):
         self.fileh.close()

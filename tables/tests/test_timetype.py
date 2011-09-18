@@ -624,7 +624,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
 
         # Check the written data.
         tbl = self.h5f.root.tbl
-        _ = tbl.cols.nested.t64[:]
+        dummy = tbl.cols.nested.t64[:]
+        self.assertTrue(dummy is not None)
         t64 = tbl.cols.nested.t64[:]
 
         # Generate the expected Time64 array.

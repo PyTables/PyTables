@@ -232,8 +232,8 @@ class createTestCase(unittest.TestCase):
         warnings.filterwarnings("error", category=PerformanceWarning)
         # Here, a PerformanceWarning should be raised!
         try:
-            table = self.fileh.createTable(self.root, 'table',
-                                           recordDict, "MetaRecord instance")
+            self.fileh.createTable(self.root, 'table',
+                                   recordDict, "MetaRecord instance")
         except PerformanceWarning:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -256,12 +256,13 @@ class createTestCase(unittest.TestCase):
         # Now, create a table with this record object
         # This way of creating node objects has been deprecated
         table = Table(recordDict, "MetaRecord instance")
+        self.assertTrue(table is not None)
 
         # Attach the table to object tree
         # Here, ValueError should be raised!
         try:
-            table = self.fileh.createTable(self.root, 'table',
-                                           recordDict, "MetaRecord instance")
+            self.fileh.createTable(self.root, 'table',
+                                   recordDict, "MetaRecord instance")
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()

@@ -489,6 +489,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         raColumn = raTable[nColumn]
         (raColumn[0], raColumn[-1]) = (raColumn[-1].copy(), raColumn[0].copy())
         newdtype = numpy.dtype([(nColumn, raTable.dtype.fields[nColumn][0])])
+        self.assertTrue(newdtype is not None)
 
         # Write the resulting column and re-read the whole table.
         tbl.modifyColumns(names=[nColumn], columns=raColumn)
@@ -586,6 +587,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.flush()
         coltoindex = tbl.cols._f_col(self._testCondCol)
         indexrows = coltoindex.createIndex()
+        self.assertTrue(indexrows is not None)
 
         if self.reopen:
             self._reopen()
@@ -801,7 +803,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "repr(tbl.cols)-->", repr(tbl.cols)
 
         self.assertEqual(str(tbl.cols), "/test.cols (Cols), 6 columns")
-        try: 
+        try:
             self.assertEqual(repr(tbl.cols),
 """/test.cols (Cols), 6 columns
   x (Column(0, 2), ('int32',(2,)))

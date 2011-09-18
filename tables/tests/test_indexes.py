@@ -47,7 +47,6 @@ class BasicTestCase(PyTablesTestCase):
         group = self.rootgroup
         # Create a table
         title = "This is the IndexArray title"
-        rowswritten = 0
         self.filters = Filters(complevel = self.compress,
                                complib = self.complib,
                                shuffle = self.shuffle,
@@ -366,6 +365,7 @@ class BasicTestCase(PyTablesTestCase):
 
         # re-create the index again
         indexrows = table.cols.var1.createIndex(_blocksizes=small_blocksizes)
+        self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -406,6 +406,7 @@ class BasicTestCase(PyTablesTestCase):
 
         # re-create the index again
         indexrows = table.cols.var1.createIndex(_blocksizes=small_blocksizes)
+        self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -607,6 +608,7 @@ class BasicTestCase(PyTablesTestCase):
         # Index all entries:
         for col in table.colinstances.itervalues():
             indexrows = col.createIndex(_blocksizes=small_blocksizes)
+            self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -653,6 +655,7 @@ class BasicTestCase(PyTablesTestCase):
         # Index all entries:
         for col in table.colinstances.itervalues():
             indexrows = col.createIndex(_blocksizes=small_blocksizes)
+            self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -769,7 +772,6 @@ class DeepTableIndexTestCase(unittest.TestCase):
         group = self.fileh.createGroup(self.fileh.root,"agroup")
         # Create a table
         title = "This is the IndexArray title"
-        rowswritten = 0
         table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
@@ -778,6 +780,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         table.flush()
         # Index some column
         indexrows = table.cols.var1.createIndex()
+        self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
@@ -795,7 +798,6 @@ class DeepTableIndexTestCase(unittest.TestCase):
         group = self.fileh.createGroup(self.fileh.root,"agroup")
         # Create a table
         title = "This is the IndexArray title"
-        rowswritten = 0
         table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
@@ -804,6 +806,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         table.flush()
         # Index some column
         indexrows = table.cols.var1.createIndex()
+        self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
         # Close and re-open this file
         self.fileh.close()
@@ -828,7 +831,6 @@ class DeepTableIndexTestCase(unittest.TestCase):
         group = self.fileh.createGroup(group,"agroup")
         # Create a table
         title = "This is the IndexArray title"
-        rowswritten = 0
         table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
@@ -837,6 +839,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         table.flush()
         # Index some column
         indexrows = table.cols.var1.createIndex()
+        self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
@@ -856,7 +859,6 @@ class DeepTableIndexTestCase(unittest.TestCase):
         group = self.fileh.createGroup(group,"agroup")
         # Create a table
         title = "This is the IndexArray title"
-        rowswritten = 0
         table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
@@ -865,6 +867,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         table.flush()
         # Index some column
         indexrows = table.cols.var1.createIndex()
+        self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
         # Close and re-open this file
         self.fileh.close()
@@ -889,7 +892,6 @@ class DeepTableIndexTestCase(unittest.TestCase):
             group = self.fileh.createGroup(group,"agroup")
         # Create a table
         title = "This is the IndexArray title"
-        rowswritten = 0
         table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
@@ -898,6 +900,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         table.flush()
         # Index some column
         indexrows = table.cols.var1.createIndex()
+        self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
@@ -931,7 +934,6 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "w")
         # Create a table
         title = "This is the IndexArray title"
-        rowswritten = 0
         root = self.fileh.root
         # Make the chunkshape smaller or equal than small_blocksizes[-1]
         chunkshape = (2,)
@@ -1103,7 +1105,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "original indexedrows:", indexedrows
                 print "unsavedindexedrows:", table._unsaved_indexedrows
                 print "original unsavedindexedrows:", unsavedindexedrows
-                index = table.cols.var1.index
+                #index = table.cols.var1.index
                 print "index dirty:", table.cols.var1.index.dirty
             else:
                 print "Table is not indexed"
@@ -1276,7 +1278,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
+            self.assertTrue(indexedrows is not None)
             unsavedindexedrows = table._unsaved_indexedrows
+            self.assertTrue(unsavedindexedrows is not None)
         # Now, modify a couple of rows:
         table.modifyColumns(1, columns=[["asa","asb"],[1.,2.]],
                             names=["var1", "var4"])
@@ -1320,7 +1324,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
+            self.assertTrue(indexedrows is not None)
             unsavedindexedrows = table._unsaved_indexedrows
+            self.assertTrue(unsavedindexedrows is not None)
         # Now, remove some rows to make columns dirty
         #table.removeRows(3,5)
         # Copy a Table to another location
@@ -1372,7 +1378,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
+            self.assertTrue(indexedrows is not None)
             unsavedindexedrows = table._unsaved_indexedrows
+            self.assertTrue(unsavedindexedrows is not None)
         # Now, remove some rows to make columns dirty
         #table.removeRows(3,5)
         # Copy a Table to another location
@@ -1406,7 +1414,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
+            self.assertTrue(indexedrows is not None)
             unsavedindexedrows = table._unsaved_indexedrows
+            self.assertTrue(unsavedindexedrows is not None)
         # Now, remove some rows to make columns dirty
         #table.removeRows(3,5)
         # Copy a Table to another location
@@ -1437,7 +1447,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
+            self.assertTrue(indexedrows is not None)
             unsavedindexedrows = table._unsaved_indexedrows
+            self.assertTrue(unsavedindexedrows is not None)
         # Now, modify an indexed column and an unindexed one
         # to make the "var1" dirty
         table.modifyColumns(1, columns=[["asa","asb"],[1.,2.]],

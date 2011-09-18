@@ -55,14 +55,13 @@ class CreateTestCase(unittest.TestCase):
 
         attrlength = 2048
         # Try to put a long string attribute on a group object
-        attr = self.fileh.setNodeAttr(self.root.agroup,
-                                      "attr1", "p" * attrlength)
+        self.fileh.setNodeAttr(self.root.agroup, "attr1", "p" * attrlength)
+
         # Now, try with a Table object
-        attr = self.fileh.setNodeAttr(self.root.atable,
-                                      "attr1", "a" * attrlength)
+        self.fileh.setNodeAttr(self.root.atable, "attr1", "a" * attrlength)
+
         # Finally, try with an Array object
-        attr = self.fileh.setNodeAttr(self.root.anarray,
-                                       "attr1", "n" * attrlength)
+        self.fileh.setNodeAttr(self.root.anarray, "attr1", "n" * attrlength)
 
         if self.close:
             if common.verbose:

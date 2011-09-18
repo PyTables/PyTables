@@ -59,7 +59,6 @@ class SelectValuesTestCase(unittest.TestCase):
         group = self.rootgroup
         # Create an table
         title = "This is the IndexArray title"
-        rowswritten = 0
         filters = Filters(complevel = self.compress,
                           complib = self.complib,
                           shuffle = self.shuffle,
@@ -182,6 +181,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Forth selection
         t1var1 = table1.cols.var1
+        self.assertTrue(t1var1 is not None)
         results1 = [p["var1"] for p in
                     table1.where('(il<t1var1)&(t1var1<sl)')]
         results2 = [p["var1"] for p in table2
@@ -206,7 +206,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
+        #il = str(self.il)
         sl = str(self.sl)
 
         # Do some selections and check the results
@@ -257,6 +257,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         t1var1 = table1.cols.var1
+        self.assertTrue(t1var1 is not None)
         results1 = [p["var1"] for p in table1.where('t1var1 >= sl')]
         results2 = [p["var1"] for p in table2
                     if p["var1"] >= sl]
@@ -282,6 +283,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
+        self.assertTrue(t1var2 is not None)
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
         results2 = [p["var2"] for p in table2
                     if p["var2"] == True]
@@ -305,6 +307,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
+        self.assertTrue(t1var2 is not None)
         results1 = [p["var2"] for p in table1.where('t1var2 == False')]
         results2 = [p["var2"] for p in table2
                     if p["var2"] == False]
@@ -332,6 +335,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1col = table1.cols.var3
+        self.assertTrue(t1col is not None)
+
         # First selection
         results1 = [p["var3"] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
         results2 = [p["var3"] for p in table2
@@ -403,11 +408,12 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = int(self.il)
+        #il = int(self.il)
         sl = int(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var3
+        self.assertTrue(t1col is not None)
 
         # First selection
         results1 = [p["var3"] for p in table1.where('t1col < sl')]
@@ -484,11 +490,12 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = long(self.il)
+        #il = long(self.il)
         sl = long(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var3
+        self.assertTrue(t1col is not None)
 
         # First selection
         results1 = [p["var3"] for p in table1.where('t1col < sl')]
@@ -565,11 +572,12 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = int(self.il)
+        #il = int(self.il)
         sl = long(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var3
+        self.assertTrue(t1col is not None)
 
         # First selection
         results1 = [p["var3"] for p in table1.where('t1col < sl')]
@@ -651,6 +659,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1col = table1.cols.var4
+        self.assertTrue(t1col is not None)
+
         # First selection
         results1 = [p["var4"] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
         results2 = [p["var4"] for p in table2
@@ -724,11 +734,12 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = float(self.il)
+        #il = float(self.il)
         sl = float(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var4
+        self.assertTrue(t1col is not None)
 
         # First selection
         results1 = [p["var4"] for p in table1.where('t1col < sl')]
@@ -903,7 +914,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = numpy.string_(self.il)
+        #il = numpy.string_(self.il)
         sl = numpy.string_(self.sl)
 
         # Do some selections and check the results
@@ -1031,6 +1042,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1var2 = table1.cols.var2
         false = numpy.bool_(False)
+        self.assertFalse(false)     # silence pyflakes
         condition = 't1var2==false'
         self.assert_(
             table1.willQueryUseIndexing(condition) == fzset([t1var2.pathname]))
@@ -1156,7 +1168,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = numpy.int32(self.il)
+        #il = numpy.int32(self.il)
         sl = numpy.uint16(self.sl)
 
         # Do some selections and check the results
@@ -1353,7 +1365,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = numpy.float32(self.il)
+        #il = numpy.float32(self.il)
         sl = numpy.float64(self.sl)
 
         # Do some selections and check the results
@@ -1458,6 +1470,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1col = table1.cols.var1
+        self.assertTrue(t1col is not None)
+
         # First selection
         condition = 't1col<=sl'
         self.assert_(not table1.willQueryUseIndexing(condition))
@@ -1561,6 +1575,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1col = table1.cols.var4
+        self.assertTrue(t1col is not None)
 
         # First selection
         condition = 't1col<sl'
@@ -1649,6 +1664,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1col = table1.cols.var1
+        self.assertTrue(t1col is not None)
 
         # First selection
         condition = 't1col>=sl'
@@ -1749,6 +1765,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t3col = table1.cols.var3
+        self.assertTrue(t3col is not None)
 
         # First selection
         condition = 't3col>=sl'
@@ -2688,6 +2705,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1col = table1.cols.var1
         t2col = table1.cols.var2
+        self.assertTrue(t2col is not None)
         condition = '(il<=t1col)&(t1col<=sl)&(t2col==True)'
         self.assert_(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
@@ -2786,6 +2804,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Repeat the selection with different limits
         il, sl = (str(self.il+1), str(self.sl-2))
         t2col = table1.cols.var2
+        self.assertTrue(t2col is not None)
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assert_(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
@@ -3200,13 +3219,12 @@ testlevels = ['Normal', 'Heavy']
 def iclassdata():
     for ckind in ckinds:
         for ctest in normal_tests + heavy_tests:
-            heavy = ctest in heavy_tests
             classname = '%sI%s%s' % (ckind[0], testlevels[heavy][0], ctest)
             # Uncomment the next one and comment the past one if one
             # don't want to include the methods (testing purposes only)
             ###cbasenames = ( '%sITableMixin' % ckind, "object")
             cbasenames = ( '%sITableMixin' % ckind, ctest)
-            classdict = dict(heavy=heavy)
+            classdict = dict(heavy=bool(ctest in heavy_tests))
             yield (classname, cbasenames, classdict)
 
 

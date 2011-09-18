@@ -209,6 +209,7 @@ class NestedRecordTests(common.PyTablesTestCase):
 
         flatarray = numarray.records.array(self.flat_buffer,
             self.flat_formats)
+        self.assertTrue(flatarray is not None)
         common.verbosePrint( """\nTesting the creation of a nested """
             """recarray: buffer + formats""")
         nra1 = nra.array(formats=self.formats, buffer=self.buffer)
@@ -223,7 +224,7 @@ class NestedRecordTests(common.PyTablesTestCase):
 
         self.assertEqual(common.areArraysEqual(nra1, nra2), False)
 
-        self.assert_(common.areArraysEqual(nra2, nra3))
+        self.assertTrue(common.areArraysEqual(nra2, nra3))
 
 
     def testNRAFromRA(self):
