@@ -6,8 +6,8 @@
 :Contact: pytables@googlemail.com
 
 
-Changes from 2.2.1 to 2.3rc1
-============================
+Changes from 2.2.1 to 2.3
+=========================
 
 Features coming from (now liberated) PyTables Pro
 -------------------------------------------------
