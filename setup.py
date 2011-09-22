@@ -498,7 +498,7 @@ def get_cython_extfiles(extnames):
             # For some reason, setup in setuptools does not compile
             # Cython files (!)  Do that manually...
             print "cythoning %s to %s" % (extpfile, extcfile)
-            retcode = subprocess.call(["python", "-m", "cython", extpfile])
+            retcode = subprocess.call([sys.executable, "-m", "cython", extpfile])
             if retcode > 0:
                 print "cython aborted compilation with retcode:", retcode
                 sys.exit()
