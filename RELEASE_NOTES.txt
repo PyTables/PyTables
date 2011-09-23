@@ -5,6 +5,11 @@
 :Author: PyTables maintainers
 :Contact: pytables@googlemail.com
 
+Changes from 2.3 to 2.3.1
+=========================
+
+XXX
+
 
 Changes from 2.2.1 to 2.3
 =========================
