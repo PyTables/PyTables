@@ -92,7 +92,10 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
     def _g_open(self):
         (self.shape, self.byteorder, objectID) = \
                      self._openUnImplemented()
-        self.nrows = SizeType(self.shape[0])
+        try:
+            self.nrows = SizeType(self.shape[0])
+        except IndexError:
+            self.nrows = SizeType(0)
         return objectID
 
 
