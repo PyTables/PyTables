@@ -112,7 +112,6 @@ _shadowName   = 'a%d'  # %d -> action number
 _shadowPath   = joinPath(_shadowParent, _shadowName)
 
 
-
 def _checkfilters(filters):
     if not (filters is None or
             isinstance(filters, Filters)):
@@ -683,13 +682,6 @@ class File(hdf5Extension.File, object):
                   structured array will be used as the description.  Also, in
                   case the array has actual data, it will be injected into the
                   newly created table.
-                * *A RecArray instance (deprecated)*: Object from the numarray
-                  package.  This does not give you the possibility to create a
-                  nested table.  Array data is injected into the new table.
-                * *A NestedRecArray instance (deprecated)*: If you want to have
-                  nested columns in your table and you are using numarray, you
-                  can use this object. Array data is injected into the new
-                  table.
 
         title : str
             A description for this node (it sets the TITLE HDF5 attribute
@@ -748,15 +740,15 @@ class File(hdf5Extension.File, object):
         name : str
             The name of the new array
         object : python object
-            The array or scalar to be saved.  Accepted types are NumPy arrays
-            and scalars, numarray arrays and string arrays (deprecated),
-            Numeric arrays and scalars (deprecated), as well as native Python
-            sequences and scalars, provided that values are regular (i.e. they
-            are not like [[1,2],2]) and homogeneous (i.e. all the elements are
-            of the same type).  Also, objects that have some of their
-            dimensions equal to 0 are not supported (use an EArray node (see
-            :ref:`EArrayClassDescr`) if you want to store an array with one of
-            its dimensions equal to 0).
+            The array or scalar to be saved.  Accepted types are NumPy
+            arrays and scalars, Numeric arrays and scalars (deprecated),
+            as well as native Python sequences and scalars, provided
+            that values are regular (i.e. they are not like [[1,2],2])
+            and homogeneous (i.e. all the elements are of the same type).
+            Also, objects that have some of their dimensions equal to 0
+            are not supported (use an EArray node (see
+            :ref:`EArrayClassDescr`) if you want to store an array with
+            one of its dimensions equal to 0).
         title : str
             A description for this node (it sets the TITLE HDF5 attribute on
             disk).
@@ -1297,7 +1289,7 @@ class File(hdf5Extension.File, object):
         attrvalue
             The value of the attribute to set. Any kind of Python
             object (like strings, ints, floats, lists, tuples, dicts,
-            small NumPy/Numeric/numarray objects...) can be stored as an
+            small NumPy/Numeric objects...) can be stored as an
             attribute. However, if necessary, cPickle
             is automatically used so as to serialize objects that you
             might want to save. See the AttributeSet
@@ -1729,11 +1721,7 @@ class File(hdf5Extension.File, object):
                 filters=filters)
 
             # Create an implicit mark
-            #self._actionlog.append([(_opToCode["MARK"], str(0), '')])
-            # Use '\x00' to represent a NULL string. This is a bug
-            # in numarray and should be reported.
-            # F. Alted 2005-09-21
-            self._actionlog.append([(_opToCode["MARK"], str(0), '\x00')])
+            self._actionlog.append([(_opToCode["MARK"], str(0), '')])
             self._nmarks += 1
             self._seqmarkers.append(0) # current action is 0
 

@@ -10,11 +10,8 @@ import numpy
 from tables import *
 from tables.flavor import flavor_to_flavor
 from tables.tests import common
-from tables.tests.common import (
-    typecode, allequal, numeric_imported, numarray_imported)
+from tables.tests.common import typecode, allequal, numeric_imported
 
-if numarray_imported:
-    import numarray
 if numeric_imported:
     import Numeric
 
@@ -68,15 +65,7 @@ class BasicTestCase(unittest.TestCase):
         # Fill it with data
         self.rowshape = list(carray.shape)
         self.objsize = self.length * numpy.prod(self.shape)
-        if self.flavor == "numarray":
-            if self.type == "string":
-                object = strings.array("a"*self.objsize, shape=self.shape,
-                                       itemsize=carray.atom.itemsize)
-            else:
-                type_ = numpy.sctypeNA[numpy.sctypeDict[carray.atom.type]]
-                object = numarray.arange(self.objsize, shape=self.shape,
-                                         type=type_)
-        elif self.flavor == "numpy":
+        if self.flavor == "numpy":
             if self.type == "string":
                 object = numpy.ndarray(buffer="a"*self.objsize,
                                        shape=self.shape,
@@ -133,15 +122,7 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.flavor == "numarray":
-            if self.type == "string":
-                object_ = strings.array("a"*self.objsize, shape=self.shape,
-                                        itemsize=carray.atom.itemsize)
-            else:
-                type_ = numpy.sctypeNA[numpy.sctypeDict[carray.atom.type]]
-                object_ = numarray.arange(self.objsize, shape=self.shape,
-                                          type=type_)
-        elif self.flavor == "numpy":
+        if self.flavor == "numpy":
             if self.type == "string":
                 object_ = numpy.ndarray(buffer="a"*self.objsize,
                                         shape=self.shape,
@@ -179,9 +160,7 @@ class BasicTestCase(unittest.TestCase):
         try:
             data = carray.read(self.start, stop, self.step)
         except IndexError:
-            if self.flavor == "numarray":
-                data = numarray.array(None, shape=self.shape, type=self.type)
-            elif self.flavor == "numpy":
+            if self.flavor == "numpy":
                 data = numpy.empty(shape=self.shape, dtype=self.type)
             else:
                 data = Numeric.zeros(self.shape, typecode[self.type])
@@ -234,10 +213,7 @@ class BasicTestCase(unittest.TestCase):
         # actually do a measure of its length
         object = object_.__getitem__(self.slices).copy()
 
-        if self.flavor == "numarray":
-            # Convert the object to Numarray
-            object = flavor_to_flavor(object, 'numpy', 'numarray')
-        elif self.flavor == "numeric":
+        if self.flavor == "numeric":
             # Convert the object to Numeric
             object = flavor_to_flavor(object, 'numpy', 'numeric')
 
@@ -246,9 +222,7 @@ class BasicTestCase(unittest.TestCase):
             data = carray.__getitem__(self.slices)
         except IndexError:
             print "IndexError!"
-            if self.flavor == "numarray":
-                data = numarray.array(None, shape=self.shape, type=self.type)
-            elif self.flavor == "numpy":
+            if self.flavor == "numpy":
                 data = numpy.empty(shape=self.shape, dtype=self.type)
             else:
                 data = Numeric.zeros(self.shape, typecode[self.type])
@@ -304,10 +278,7 @@ class BasicTestCase(unittest.TestCase):
         # actually do a measure of its length
         object = object_.__getitem__(self.slices).copy()
 
-        if self.flavor == "numarray":
-            # Convert the object to numarray
-            object = flavor_to_flavor(object, 'numpy', 'numarray')
-        elif self.flavor == "numeric":
+        if self.flavor == "numeric":
             # Convert the object to Numeric
             object = flavor_to_flavor(object, 'numpy', 'numeric')
 
@@ -334,9 +305,7 @@ class BasicTestCase(unittest.TestCase):
             data = carray.__getitem__(self.slices)
         except IndexError:
             print "IndexError!"
-            if self.flavor == "numarray":
-                data = numarray.array(None, shape=self.shape, type=self.type)
-            elif self.flavor == "numpy":
+            if self.flavor == "numpy":
                 data = numpy.empty(shape=self.shape, dtype=self.type)
             else:
                 data = Numeric.zeros(self.shape, typecode[self.type])
@@ -663,7 +632,6 @@ class StringComprTestCase(BasicTestCase):
     stop = 100
     step = 20
 
-
 class Int8TestCase(BasicTestCase):
     type = "int8"
     shape = (2,2)
@@ -745,95 +713,6 @@ class Complex128TestCase(BasicTestCase):
     step = 20
 
 class ComprTestCase(BasicTestCase):
-    type = "float64"
-    compress = 1
-    shuffle = 1
-    shape = (200,)
-    compr = 1
-    chunkshape = (21,)
-    start = 51
-    stop = 100
-    step = 7
-
-class NumarrayInt8TestCase(BasicTestCase):
-    flavor = "numarray"
-    type = "int8"
-    shape = (2, 2)
-    compress = 1
-    shuffle = 1
-    chunkshape = (50, 50)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumarrayInt16TestCase(BasicTestCase):
-    flavor = "numarray"
-    type = "int16"
-    shape = (2, 2)
-    compress = 1
-    shuffle = 1
-    chunkshape = (50, 50)
-    start = 1
-    stop = 100
-    step = 1
-
-class NumarrayInt32TestCase(BasicTestCase):
-    flavor = "numarray"
-    type = "int32"
-    shape = (2, 2)
-    compress = 1
-    shuffle = 1
-    chunkshape = (50, 50)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumarrayFloat32TestCase(BasicTestCase):
-    flavor = "numarray"
-    type = "float32"
-    shape = (200,)
-    compress = 1
-    shuffle = 1
-    chunkshape = (20,)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumarrayFloat64TestCase(BasicTestCase):
-    flavor = "numarray"
-    type = "float64"
-    shape = (200,)
-    compress = 1
-    shuffle = 1
-    chunkshape = (20,)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumarrayComplex64TestCase(BasicTestCase):
-    flavor = "numarray"
-    type = "complex64"
-    shape = (4,)
-    compress = 1
-    shuffle = 1
-    chunkshape = (2,)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumarrayComplex128TestCase(BasicTestCase):
-    flavor = "numarray"
-    type = "complex128"
-    shape = (20,)
-    compress = 1
-    shuffle = 1
-    chunkshape = (2,)
-    start = -1
-    stop = 100
-    step = 20
-
-class NumarrayComprTestCase(BasicTestCase):
-    flavor = "numarray"
     type = "float64"
     compress = 1
     shuffle = 1
@@ -1147,88 +1026,6 @@ class OffsetStrideTestCase(unittest.TestCase):
         self.assertTrue(allequal(data[0], numpy.array([0, 0, 0], dtype='int32')))
         self.assertTrue(allequal(data[1], numpy.array([3, 3, 3], dtype='int32')))
         self.assertTrue(allequal(data[2], numpy.array([1, 1, 1], dtype='int32')))
-
-
-class NumarrayOffsetStrideTestCase(unittest.TestCase):
-    mode  = "w"
-    compress = 0
-    complib = "zlib"  # Default compression library
-
-    def setUp(self):
-
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, self.mode)
-        self.rootgroup = self.fileh.root
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
-
-    #----------------------------------------
-
-    def test02a_int(self):
-        """Checking carray with offseted numarray ints appends"""
-
-        root = self.rootgroup
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02a_int..." % self.__class__.__name__
-
-        shape = (3, 3)
-        # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom',
-                                         Int32Atom(), shape,
-                                         "array of ints",
-                                         chunkshape=(1, 3))
-        a = numarray.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], type='Int32')
-        carray[0:2] = a[2:]  # Introduce an offset
-        a = numarray.array([(1, 1, 1), (-1, 0, 0)], type='Int32')
-        carray[2:3] = a[1:]  # Introduce an offset
-
-        # Read all the rows:
-        data = carray.read()
-        if common.verbose:
-            print "Object read:", data
-            print "Nrows in", carray._v_pathname, ":", carray.nrows
-            print "Third row in carray ==>", data[2]
-
-        self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([1, 1, 1], dtype='i4')))
-        self.assertTrue(allequal(data[1], numpy.array([0, 0, 0], dtype='i4')))
-        self.assertTrue(allequal(data[2], numpy.array([-1, 0, 0], dtype='i4')))
-
-    def test02b_int(self):
-        """Checking carray with strided numarray ints appends"""
-
-        root = self.rootgroup
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b_int..." % self.__class__.__name__
-
-        shape = (3, 3)
-        # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom',
-                                         Int32Atom(), shape,
-                                         "array of ints",
-                                         chunkshape=(1, 3))
-        a = numarray.array([(0, 0, 0), (1, 0, 3), (1, 2, 1), (3, 2, 3)], type='Int32')
-        carray[0:2] = a[::3]  # Create a strided object
-        a = numarray.array([(1, 0, 1), (-1, 0, 0)], type='Int32')
-        carray[2:3] = a[::2]  # Create a strided object
-
-        # Read all the rows:
-        data = carray.read()
-        if common.verbose:
-            print "Object read:", data
-            print "Nrows in", carray._v_pathname, ":", carray.nrows
-            print "Third row in carray ==>", data[2]
-
-        self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([0, 0, 0], dtype='i4')))
-        self.assertTrue(allequal(data[1], numpy.array([3, 2, 3], dtype='i4')))
-        self.assertTrue(allequal(data[2], numpy.array([1, 0, 1], dtype='i4')))
 
 
 class NumericOffsetStrideTestCase(unittest.TestCase):
@@ -2625,18 +2422,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Complex64TestCase))
         theSuite.addTest(unittest.makeSuite(Complex128TestCase))
         theSuite.addTest(unittest.makeSuite(ComprTestCase))
-
-        # numarray is now deprecated
-        #if numarray_imported:
-        #    theSuite.addTest(unittest.makeSuite(NumarrayInt8TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumarrayInt16TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumarrayInt32TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumarrayFloat32TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumarrayFloat64TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumarrayComplex64TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumarrayComplex128TestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumarrayComprTestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumarrayOffsetStrideTestCase))
 
         # Numeric is now deprecated
         #if numeric_imported:

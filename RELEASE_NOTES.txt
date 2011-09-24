@@ -14,7 +14,8 @@ API changes
 -----------
 
 - The deprecated :data:`is_pro` module constant has been removed
-
+- The nra module and support for the obsolete numarray module has been removed.
+  The *numarry* flavor is no more supported as well (closes :issue:`107`).
 
 
 Changes from 2.3.1 to 2.4

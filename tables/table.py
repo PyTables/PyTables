@@ -422,9 +422,8 @@ class Table(tableExtension.Table, Leaf):
     description
         An IsDescription subclass or a dictionary where the keys are the field
         names, and the values the type definitions. In addition, a pure NumPy
-        dtype is accepted.  And it can be also a recarray NumPy object,
-        RecArray numarray object or NestedRecArray. If None, the table metadata
-        is read from disk, else, it's taken from previous parameters.
+        dtype is accepted.  If None, the table metadata is read from disk,
+        else, it's taken from previous parameters.
     title
         Sets a TITLE attribute on the HDF5 table entity.
     filters : Filters
@@ -1847,8 +1846,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """Get a column from the table.
 
         If a column called name exists in the table, it is read and returned as
-        a NumPy object, or as a numarray object (depending on the flavor of the
-        table). If it does not exist, a KeyError is raised.
+        a NumPy object. If it does not exist, a KeyError is raised.
 
         Examples
         --------
@@ -2012,11 +2010,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
     def append(self, rows):
         """Append a sequence of rows to the end of the table.
 
-        The rows argument may be any object which can be converted to a record
-        array compliant with the table structure (otherwise, a ValueError is
-        raised).  This includes NumPy structured arrays, RecArray (depracated)
-        or NestedRecArray (deprecated) objects if numarray is available, lists
-        of tuples or array records, and a string or Python buffer.
+        The rows argument may be any object which can be converted to
+        a structured array compliant with the table structure
+        (otherwise, a ValueError is raised).  This includes NumPy
+        structured arrays, lists of tuples or array records, and a
+        string or Python buffer.
 
         Examples
         --------
@@ -2183,18 +2181,19 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                      column=None, colname=None):
         """Modify one single column in the row slice [start:stop:step].
 
-        The colname argument specifies the name of the column in the table to
-        be modified with the data given in column.  This method returns the
-        number of rows modified.  Should the modification exceed the length of
-        the table, an IndexError is raised before changing data.
+        The colname argument specifies the name of the column in the
+        table to be modified with the data given in column.  This
+        method returns the number of rows modified.  Should the
+        modification exceed the length of the table, an IndexError is
+        raised before changing data.
 
-        The column argument may be any object which can be converted to a
-        (record) array compliant with the structure of the column to be
-        modified (otherwise, a ValueError is raised).  This includes NumPy
-        (record) arrays, NumArray (deprecated), RecArray (deprecated) or
-        NestedRecArray (deprecated) objects if numarray is available, Numeric
-        arrays if available (deprecated), lists of scalars, tuples or array
-        records, and a string or Python buffer.
+        The column argument may be any object which can be converted to
+        a (record) array compliant with the structure of the column to
+        be modified (otherwise, a ValueError is raised).  This includes
+        NumPy (record) arrays, Numeric arrays if available (deprecated),
+        lists of scalars, tuples or array records, and a string or
+        Python buffer.
+
         """
 
         if not isinstance(colname, str):
@@ -2263,17 +2262,18 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                       columns=None, names=None):
         """Modify a series of columns in the row slice [start:stop:step].
 
-        The names argument specifies the names of the columns in the table to
-        be modified with the data given in columns.  This method returns the
-        number of rows modified.  Should the modification exceed the length of
-        the table, an IndexError is raised before changing data.
+        The names argument specifies the names of the columns in the
+        table to be modified with the data given in columns.  This
+        method returns the number of rows modified.  Should the
+        modification exceed the length of the table, an IndexError
+        is raised before changing data.
 
-        The columns argument may be any object which can be converted to a
-        structured array compliant with the structure of the columns to be
-        modified (otherwise, a ValueError is raised).  This includes NumPy
-        structured arrays, RecArray (deprecated) or NestedRecArray (deprecated)
-        objects if numarray is available, lists of tuples or array records, and
-        a string or Python buffer.
+        The columns argument may be any object which can be converted
+        to a structured array compliant with the structure of the
+        columns to be modified (otherwise, a ValueError is raised).
+        This includes NumPy structured arrays, lists of tuples or array
+        records, and a string or Python buffer.
+
         """
 
         if type(names) not in (list, tuple):

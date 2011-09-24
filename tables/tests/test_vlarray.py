@@ -10,12 +10,9 @@ import numpy
 
 from tables import *
 from tables.tests import common
-from tables.tests.common import (
-    typecode, allequal, numeric_imported, numarray_imported)
+from tables.tests.common import typecode, allequal, numeric_imported
 from tables.utils import byteorders
 
-if numarray_imported:
-    import numarray
 if numeric_imported:
     import Numeric
 
@@ -56,10 +53,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Fill it with 5 rows
         vlarray.append([1, 2])
-        if self.flavor == "numarray":
-            vlarray.append(numarray.array([3, 4, 5], type='Int32'))
-            vlarray.append(numarray.array([], type='Int32'))    # Empty entry
-        elif self.flavor == "numpy":
+        if self.flavor == "numpy":
             vlarray.append(numpy.array([3, 4, 5], dtype='int32'))
             vlarray.append(numpy.array([], dtype='int32'))     # Empty entry
         elif self.flavor == "numeric":
@@ -111,12 +105,7 @@ class BasicTestCase(unittest.TestCase):
 
         nrows = 5
         self.assertEqual(nrows, vlarray.nrows)
-        if self.flavor == "numarray":
-            self.assertTrue(
-                allequal(row, numarray.array([1, 2], type='Int32'), self.flavor))
-            self.assertTrue(
-                allequal(row2, numarray.array([], type='Int32'), self.flavor))
-        elif self.flavor == "numpy":
+        if self.flavor == "numpy":
             self.assertEqual(type(row), numpy.ndarray)
             self.assertTrue(
                 allequal(row, numpy.array([1, 2], dtype='int32'), self.flavor))
@@ -181,12 +170,7 @@ class BasicTestCase(unittest.TestCase):
                 print "Original rows ==>", rows1
                 print "Rows read in vlarray ==>", rows2
 
-            if self.flavor == "numarray":
-                for val in rows1:
-                    rows1f.append(numarray.array(val, type='Int32'))
-                for i in range(len(rows1f)):
-                    self.assertTrue(allequal(rows2[i], rows1f[i], self.flavor))
-            elif self.flavor == "numpy":
+            if self.flavor == "numpy":
                 for val in rows1:
                     rows1f.append(numpy.array(val, dtype='int32'))
                 for i in range(len(rows1f)):
@@ -258,16 +242,7 @@ class BasicTestCase(unittest.TestCase):
 
         nrows = 6
         self.assertEqual(nrows, vlarray.nrows)
-        if self.flavor == "numarray":
-            self.assertEqual(
-                allequal(row1,
-                         numarray.array([1, 2], type='Int32'), self.flavor))
-            self.assertEqual(
-                allequal(row2, numarray.array([], type='Int32'), self.flavor))
-            self.assertEqual(
-                allequal(row3, numarray.array([7, 8, 9, 10], type='Int32'),
-                         self.flavor))
-        elif self.flavor == "numpy":
+        if self.flavor == "numpy":
             self.assertEqual(type(row1), type(numpy.array([1, 2])))
             self.assertTrue(
                 allequal(row1, numpy.array([1, 2], dtype='int32'), self.flavor))
@@ -295,9 +270,6 @@ class BasicTestCase(unittest.TestCase):
 
 class BasicNumPyTestCase(BasicTestCase):
     flavor = "numpy"
-
-class BasicNumArrayTestCase(BasicTestCase):
-    flavor = "numarray"
 
 class BasicNumericTestCase(BasicTestCase):
     flavor = "numeric"
@@ -388,46 +360,6 @@ class TypesTestCase(unittest.TestCase):
         self.assertTrue(
             allequal(row[0], numpy.array(["1", "12", "123", "123", "123"])))
         self.assertTrue(allequal(row[1], numpy.array(["1", "123"])))
-        self.assertEqual(len(row[0]), 5)
-        self.assertEqual(len(row[1]), 2)
-
-    # This test doesn't compile without numarray installed
-    def _test01_1_StringAtom(self):
-        """Checking vlarray with NumPy string atoms ('numarray' flavor)"""
-
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_1_StringAtom..." % self.__class__.__name__
-
-        vlarray = self.fileh.createVLArray('/', 'stringAtom',
-                                           StringAtom(itemsize=3),
-                                           "Ragged array of strings")
-        vlarray.flavor = "numarray"
-        vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"],
-                                   dtype="S"))
-        vlarray.append(numpy.array(["1", "12345"], dtype="S"))
-
-        if self.reopen:
-            name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
-
-        # Read all the rows:
-        row = vlarray.read()
-        if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray:", row[0]
-            print "Should look like:", \
-                  strings.array(['1', '12', '123', '123', '123'], itemsize=3)
-
-        self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(
-            allequal(row[0], strings.array(["1", "12", "123", "123", "123"]),
-                                           flavor="numarray"))
-        self.assertTrue(
-            allequal(row[1], strings.array(["1", "123"]), flavor="numarray"))
         self.assertEqual(len(row[0]), 5)
         self.assertEqual(len(row[1]), 2)
 
@@ -2211,12 +2143,8 @@ class FlavorTestCase(unittest.TestCase):
             arr1 = Numeric.array([1, 1, 1], typecode="1")
             arr2 = Numeric.array([], typecode="1")
             arr3 = Numeric.array([1, 0], typecode="1")
-        elif self.flavor == "numarray":
-            arr1 = numarray.array([1, 1, 1], type='Bool')
-            arr2 = numarray.array([], type='Bool')
-            arr3 = numarray.array([1, 0], type='Bool')
 
-        if self.flavor in ['numpy', 'numarray', 'numeric']:
+        if self.flavor in ['numpy', 'numeric']:
             allequal(row[0], arr1, self.flavor)
             allequal(row[1], arr2, self.flavor)
             allequal(row[1], arr2, self.flavor)
@@ -2234,10 +2162,8 @@ class FlavorTestCase(unittest.TestCase):
                   "Int16",
                   "UInt16",
                   "Int32",
-                  # Not checked because of Numeric <-> numarray
-                  # conversion problems
-                  #"UInt32",
-                  #"Int64",
+                  "UInt32",
+                  "Int64",
                   # Not checked because some platforms does not support it
                   #"UInt64",
                   ]
@@ -2280,12 +2206,8 @@ class FlavorTestCase(unittest.TestCase):
                 arr1 = Numeric.array([1, 2, 3], typecode=typecode[type_])
                 arr2 = Numeric.array([], typecode=typecode[type_])
                 arr3 = Numeric.array([100, 0], typecode=typecode[type_])
-            elif self.flavor == "numarray":
-                arr1 = numarray.array([1, 2, 3], type=atype)
-                arr2 = numarray.array([], type=atype)
-                arr3 = numarray.array([100, 0], type=atype)
 
-            if self.flavor in ["numpy", "numarray", "numeric"]:
+            if self.flavor in ["numpy", "numeric"]:
                 allequal(row[0], arr1, self.flavor)
                 allequal(row[1], arr2, self.flavor)
                 allequal(row[2], arr3, self.flavor)
@@ -2352,12 +2274,8 @@ class FlavorTestCase(unittest.TestCase):
                 arr1 = Numeric.array([1, 2, 3], typecode=typecode[type_])
                 arr2 = Numeric.array([], typecode=typecode[type_])
                 arr3 = Numeric.array([100, 0], typecode=typecode[type_])
-            elif self.flavor == "numarray":
-                arr1 = numarray.array([1, 2, 3], type=atype)
-                arr2 = numarray.array([], type=atype)
-                arr3 = numarray.array([100, 0], type=atype)
 
-            if self.flavor in ["numpy", "numarray", "numeric"]:
+            if self.flavor in ["numpy", "numeric"]:
                 allequal(row[0], arr1, self.flavor)
                 allequal(row[1], arr2, self.flavor)
                 allequal(row[2], arr3, self.flavor)
@@ -2419,12 +2337,8 @@ class FlavorTestCase(unittest.TestCase):
                 arr1 = Numeric.array([1.3, 2.2, 3.3], typecode[type_])
                 arr2 = Numeric.array([], typecode[type_])
                 arr3 = Numeric.array([-1.3e34, 1.e-32], typecode[type_])
-            elif self.flavor == "numarray":
-                arr1 = numarray.array([1.3, 2.2, 3.3], type=atype)
-                arr2 = numarray.array([], type=atype)
-                arr3 = numarray.array([-1.3e34, 1.e-32], type=atype)
 
-            if self.flavor in ["numpy", "numarray", "numeric"]:
+            if self.flavor in ["numpy", "numeric"]:
                 allequal(row[0], arr1, self.flavor)
                 allequal(row[1], arr2, self.flavor)
                 allequal(row[2], arr3, self.flavor)
@@ -2436,9 +2350,6 @@ class FlavorTestCase(unittest.TestCase):
 
 class NumPyFlavorTestCase(FlavorTestCase):
     flavor = "numpy"
-
-class NumArrayFlavorTestCase(FlavorTestCase):
-    flavor = "numarray"
 
 class NumericFlavorTestCase(FlavorTestCase):
     flavor = "numeric"
@@ -3640,65 +3551,6 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
-    # numarray is now deprecated
-    def _test03_copy(self):
-        """Checking VLArray.copy() method ('numarray' flavor)"""
-
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_copy..." % self.__class__.__name__
-
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create an VLArray
-        if numarray_imported:
-            flavor = "numarray"
-        else:
-            flavor = "numpy"
-        arr = Int16Atom(shape=2)
-        array1 = fileh.createVLArray(fileh.root, 'array1', arr,
-                                     "title array1")
-        array1.flavor = flavor
-        array1.append([[2, 3]])
-        array1.append(())  # an empty row
-        array1.append([[3, 457], [2, 4]])
-
-        if self.close:
-            if common.verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "a")
-            array1 = fileh.root.array1
-
-        # Copy to another location
-        array2 = array1.copy('/', 'array2')
-
-        if self.close:
-            if common.verbose:
-                print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
-
-        if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
-
-        # Assert other properties in array
-        self.assertEqual(array1.nrows, array2.nrows)
-        self.assertEqual(array1.shape, array2.shape)
-        self.assertEqual(array1.flavor, array2.flavor) # Very important here
-        self.assertEqual(array1.atom.dtype, array2.atom.dtype)
-        self.assertEqual(repr(array1.atom), repr(array1.atom))
-        self.assertEqual(array1.title, array2.title)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     # Numeric is now deprecated
     def _test03a_copy(self):
         """Checking VLArray.copy() method ('numeric' flavor)"""
@@ -4478,10 +4330,6 @@ def suite():
         #if numeric_imported:
         #    theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
         #    theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
-        # numarray is now deprecated
-        #if numarray_imported:
-        #    theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
-        #    theSuite.addTest(unittest.makeSuite(NumArrayFlavorTestCase))
 
     return theSuite
 

@@ -204,9 +204,9 @@ class Leaf(Node):
         lambda self: self._flavor, _setflavor, _delflavor,
         """The type of data object read from this leaf.
 
-        It can be any of 'numpy', 'numarray', 'numeric' or 'python' (the set of
-        supported flavors depends on which packages you have installed on your
-        system).
+        It can be any of 'numpy', 'numeric' or 'python' (the set of
+        supported flavors depends on which packages you have installed
+        on your system).
 
         You can (and are encouraged to) use this property to get, set and
         delete the FLAVOR HDF5 attribute of the leaf. When the leaf has no such
@@ -214,9 +214,9 @@ class Leaf(Node):
 
         .. warning::
 
-            The 'numarray' and 'numeric' flavors are deprecated since
-            version 2.3. Support for these flavors will be removed in
-            future versions.
+            The 'numeric' flavor is deprecated since version 2.3.
+            Support for these flavors will be removed in future
+            versions.
         """)
 
     size_on_disk = property(lambda self: self._get_storage_size(), None, None,

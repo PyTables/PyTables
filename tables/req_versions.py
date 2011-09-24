@@ -23,4 +23,3 @@ min_hdf5_version = (1, 8, 4)  # necessary for allowing 1.8.10 > 1.8.5
 
 # Minimum recommended versions for optional packages
 min_numeric_version = "24.2"
-min_numarray_version = "1.5.2"

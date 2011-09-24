@@ -105,7 +105,7 @@ class BasicTestCase(unittest.TestCase):
             b = a               # We cannot use the indexing notation
         else:
             b = a[::2]
-            # Ensure that this numarray string is non-contiguous
+            # Ensure that this numpy string is non-contiguous
             if a.shape[0] > 2:
                 self.assertEqual(b.flags['CONTIGUOUS'], False)
         self.WriteRead(b)
@@ -379,7 +379,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 class Record(IsDescription):
     var1  = StringCol(itemsize=4, dflt="abcd", pos=0)
     var2  = StringCol(itemsize=1, dflt="a", pos=1)
-    var3  = BoolCol(dflt=1)  # Typecode == '1' in Numeric. 'B' in numarray
+    var3  = BoolCol(dflt=1)  # Typecode == '1' in Numeric.
     var4  = Int8Col(dflt=1)
     var5  = UInt8Col(dflt=1)
     var6  = Int16Col(dflt=1)

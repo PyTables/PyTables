@@ -2201,7 +2201,7 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_change(self):
         """Changing the flavor and reading data."""
         for flavor in all_flavors:
-            if flavor in ('numeric', 'numarray'):
+            if flavor == 'numeric':
                 continue
             self.array.flavor = flavor
             self.assertEqual(self.array.flavor, flavor)
@@ -2212,7 +2212,7 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_store(self):
         """Storing a changed flavor."""
         for flavor in all_flavors:
-            if flavor in ('numeric', 'numarray'):
+            if flavor == 'numeric':
                 continue
             self.array.flavor = flavor
             self.assertEqual(self.array.flavor, flavor)

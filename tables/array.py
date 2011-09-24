@@ -55,11 +55,11 @@ class Array(hdf5Extension.Array, Leaf):
     Parameters
     ----------
     object
-        The array or scalar to be saved.  Accepted types are NumPy arrays and
-        scalars, ``numarray`` arrays and string arrays, Numeric arrays and
-        scalars, as well as native Python sequences and scalars, provided that
-        values are regular (i.e. they are not like ``[[1,2],2]``) and
-        homogeneous (i.e. all the elements are of the same type).
+        The array or scalar to be saved.  Accepted types are NumPy
+        arrays and scalars, Numeric arrays and scalars, as well as
+        native Python sequences and scalars, provided that values are
+        regular (i.e. they are not like ``[[1,2],2]``) and homogeneous
+        (i.e. all the elements are of the same type).
     title
         A description for this node (it sets the ``TITLE`` HDF5 attribute on
         disk).
@@ -122,9 +122,9 @@ class Array(hdf5Extension.Array, Leaf):
         self._object = object
         """
         The object to be stored in the array.  It can be any of
-        ``numpy``, ``numarray``, ``numeric``, list, tuple, string,
-        integer of floating point types, provided that they are
-        regular (i.e. they are not like ``[[1, 2], 2]``).
+        ``numpy``, ``numeric``, list, tuple, string, integer of
+        floating point types, provided that they are regular (i.e. they
+        are not like ``[[1, 2], 2]``).
         """
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""

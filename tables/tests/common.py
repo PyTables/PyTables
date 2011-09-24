@@ -28,35 +28,24 @@ else:
 
 import numpy
 
-# numarray and Numeric has serious problems with Python2.5 and 64-bit
+# Numeric has serious problems with Python2.5 and 64-bit
 # platforms, so we won't even try to import them on this scenario
 plat64 = (numpy.int_(0).itemsize == 8)
 py25 = (sys.version_info[0] >= 2 and sys.version_info[1] >= 5)
-# Numeric and numarray are now deprecated
+# Numeric is now deprecated
 if False:   # if not (plat64 and py25):
-    try:
-        import numarray
-        import numarray.strings
-        import numarray.records
-        numarray_imported = True
-    except ImportError:
-        numarray_imported = False
     try:
         import Numeric
         numeric_imported = True
     except ImportError:
         numeric_imported = False
 else:
-    numarray_imported = False
     numeric_imported = False
 
-if plat64 and py25 and (numarray_imported or numeric_imported):
-    print "***Python2.5 in 64-bit platform detected: disabling numarray/Numeric tests***"
+if plat64 and py25 and numeric_imported:
+    print "***Python2.5 in 64-bit platform detected: disabling Numeric tests***"
 
 import tables
-if numarray_imported == True:
-    # Import nra module only if numarray is installed
-    from tables import nra
 
 verbose = False
 """Show detailed output of the testing process."""
@@ -143,11 +132,6 @@ def allequal(a,b, flavor="numpy"):
             a = numpy.asarray(a)
             b = numpy.asarray(b)
 
-    elif flavor == "numarray":
-        # Convert the parameters to numpy objects
-        a = numpy.asarray(a)
-        b = numpy.asarray(b)
-
     if ((not hasattr(a, "shape") or a.shape == ()) and
         (not hasattr(b, "shape") or b.shape == ())):
         return a == b
@@ -207,45 +191,6 @@ def areArraysEqual(arr1, arr2):
     if not ((hasattr(arr1, 'dtype') and arr1.dtype == arr2.dtype) or
             issubclass(t1, t2) or issubclass(t2, t1)):
         return False
-
-    if numarray_imported:
-        if isinstance(arr1, nra.NestedRecArray):
-            arr1 = arr1.asRecArray()
-        if isinstance(arr2, nra.NestedRecArray):
-            arr2 = arr2.asRecArray()
-        if isinstance(arr1, nra.NestedRecord):
-            row = arr1.row
-            arr1 = arr1.array[row:row+1]
-        if isinstance(arr2, nra.NestedRecord):
-            row = arr2.row
-            arr2 = arr2.array[row:row+1]
-
-    if numarray_imported and isinstance(arr1, numarray.records.RecArray):
-        arr1Names = arr1._names
-        arr2Names = arr2._names
-        if arr1Names != arr2Names:
-            return False
-        for fieldName in arr1Names:
-            if not areArraysEqual(arr1.field(fieldName),
-                                  arr2.field(fieldName)):
-                return False
-        return True
-
-    if numarray_imported and isinstance(arr1, numarray.NumArray):
-        if arr1.shape != arr2.shape:
-            return False
-        if arr1.type() != arr2.type():
-            return False
-        # The lines below are equivalent
-        #return numarray.alltrue(arr1.flat == arr2.flat)
-        return numarray.all(arr1 == arr2)
-
-    if numarray_imported and isinstance(arr1, numarray.strings.CharArray):
-        if arr1.shape != arr2.shape:
-            return False
-        if arr1._type != arr2._type:
-            return False
-        return numarray.all(arr1 == arr2)
 
     return numpy.all(arr1 == arr2)
 

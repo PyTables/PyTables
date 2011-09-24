@@ -102,9 +102,7 @@ friendlier interfaces to flavor conversion.
 def check_flavor(flavor):
     """Raise a ``FlavorError`` if the `flavor` is not valid."""
 
-    if flavor == 'numarray':
-        _numarray_deprecation()
-    elif flavor == 'numeric':
+    if flavor == 'numeric':
         _numeric_deprecation()
 
     if flavor not in all_flavors:
@@ -132,8 +130,6 @@ def array_of_flavor2(array, src_flavor, dst_flavor):
                            "is unsupported or unavailable in this system"
                            % (src_flavor, dst_flavor) )
 
-    if 'numarray' in convkey:
-        _numarray_deprecation()
     if 'numeric' in convkey:
         _numeric_deprecation()
 
@@ -192,8 +188,6 @@ def flavor_of(array):
         if identifier_map[flavor](array):
             if flavor == 'numeric':
                 _numeric_deprecation()
-            elif flavor == 'numarray':
-                _numarray_deprecation()
             return flavor
     type_name = type(array).__name__
     supported_descs = "; ".join(description_map[fl] for fl in all_flavors)
@@ -238,21 +232,6 @@ import numpy
 all_flavors.append('numpy')  # this is the internal flavor
 
 all_flavors.append('python')  # this is always supported
-
-try:
-    import numarray
-    import numarray.generic
-    import numarray.strings
-    import numarray.records
-except ImportError:
-    def _numarray_deprecation():
-        pass
-    pass
-else:
-    all_flavors.append('numarray')
-    def _numarray_deprecation():
-        msg = 'Support for "numarray" will be removed in future versions'
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
 try:
     import Numeric
@@ -369,15 +348,6 @@ _numpy_desc = "NumPy array, record or scalar"
 def _is_numpy(array):
     return isinstance(array, (numpy.ndarray, numpy.generic))
 
-_numarray_aliases = ['NumArray', 'CharArray']
-_numarray_desc = "numarray array or record"
-def _is_numarray(array):
-    na_array_or_record = (numarray.generic.NDArray, numarray.records.Record)
-    ret = isinstance(array, na_array_or_record)
-    if ret:
-        _numarray_deprecation()
-    return ret
-
 _numeric_aliases = ['Numeric']
 _numeric_desc = "Numeric array"
 def _is_numeric(array):
@@ -403,33 +373,6 @@ def _conv_numpy_to_numpy(array):
     # Passes contiguous arrays through and converts scalars into
     # scalar arrays.
     return numpy.asarray(array)
-
-@_numpy_contiguous
-def _conv_numarray_to_numpy(array):
-    _numarray_deprecation()
-    # Homogeneous arrays.
-    if isinstance(array, (numarray.NumArray, numarray.strings.CharArray)):
-        return numpy.asarray(array)  # use the array protocol
-
-    # Heterogeneous arrays and records.
-    record = None
-    if isinstance(array, numarray.records.Record):
-        # Get a RecArray from a record
-        record = array
-        row = record.row
-        array = record.array[row:row+1]
-    if isinstance(array, numarray.records.RecArray):
-        # Create a NestedRecArray array from the RecArray to easy the
-        # conversion. This is sub-optimal and should be replaced by a
-        # faster way to convert a plain RecArray into a numpy recarray.
-        # F. Alted 2006-06-19
-        array = nra.array(array)
-    nparray = numpy.ndarray( buffer=array._data, shape=array.shape,
-                             dtype=array.array_descr,
-                             offset=array._byteoffset )
-    if record:
-        return nparray[row]  # get the NumPy record
-    return nparray
 
 @_numpy_contiguous
 def _conv_numeric_to_numpy(array):
@@ -484,35 +427,6 @@ def _conv_numpy_to_numeric(array):
     array = Numeric.fromstring(arrstr, typecode)
     array = Numeric.reshape(array, shape)
     return array
-
-if 'numarray' in all_flavors:
-    from tables import nra
-
-def _conv_numpy_to_numarray(array):
-    _numarray_deprecation()
-    kind = array.dtype.kind
-    if kind == 'S':  # homogeneous string array
-        # We can't use the array protocol to do this conversion
-        if array.shape == ():
-            array = array.item()
-        return numarray.strings.array( buffer=array, shape=array.shape,
-                                       itemsize=array.itemsize, padc='\x00' )
-    if kind != 'V':  # homogeneous array
-        # NumPy scalars are mishandled by numarray, see #98.  This
-        # case may be removed when the bug in numarray is fixed.
-        if numpy.isscalar(array):
-            # A problem with the ``item()`` conversion is the lose of
-            # precise type information (see #125).
-            natype = numpy.sctypeNA[type(array)]
-            return numarray.array(array.item(), type=natype)
-        # This works for regular homogeneous arrays and even for rank-0 arrays
-        # Using asarray gives problems in some tests (I don't know exactly why)
-        ##return numarray.asarray(array)  # use the array protocol
-        return numarray.array(array)  # use the array protocol (with copy)
-
-    # For the remaining heterogeneous arrays and records, leave the
-    # task to ``nra``.
-    return nra.fromnumpy(array)
 
 def _conv_numpy_to_python(array):
     if array.shape != ():

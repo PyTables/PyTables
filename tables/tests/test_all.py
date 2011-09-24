@@ -70,25 +70,6 @@ def suite():
         pass
         # Do not print this anymore
         #print "Skipping Numeric test suite."
-
-    # numarray is now deprecated
-    # Add test_numarray only if numarray is installed
-    if False:   # if common.numarray_imported:
-        import numarray
-        print \
-"""numarray (version %s) is present. Adding the numarray test suite.""" % \
-              (numarray.__version__)
-        if numarray.__version__ < min_numarray_version:
-            print \
-"*Warning*: Numarray version is lower than recommended: %s < %s" % \
-                  (numarray.__version__, min_numarray_version)
-        test_modules.append("tables.tests.test_numarray")
-        test_modules.append("tables.nra.tests.test_nestedrecords")
-        test_modules.append("tables.nra.tests.test_nriterators")
-    else:
-        pass
-        # Do not print this anymore
-        #print "Skipping numarray test suite."
     #print '-=' * 38
 
 

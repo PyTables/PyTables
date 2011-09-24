@@ -938,8 +938,6 @@ def suite():
     theSuite.addTest(unittest.makeSuite(LineSeparatorTestCase))
     theSuite.addTest(unittest.makeSuite(AttrsTestCase))
     theSuite.addTest(unittest.makeSuite(ClosedH5FileTestCase))
-    if common.numarray_imported:
-        theSuite.addTest(unittest.makeSuite(Version1TestCase))
 
     return theSuite
 

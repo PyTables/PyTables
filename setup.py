@@ -586,7 +586,6 @@ if has_setuptools:
     setuptools_kwargs['extras_require'] = {
         'Numeric': ['Numeric>=24.2'],  # for ``Numeric`` support
         'netCDF': ['ScientificPython'],  # for netCDF interchange
-        'numarray': ['numarray>=1.5.2'],  # for ``numarray`` support
         }
 
     # Detect packages automatically.
