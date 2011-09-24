@@ -188,3 +188,6 @@ Bibliography
     `<http://sphinx.pocoo.org/>`_.
 
 .. |Kuepper| unicode:: K U+00FC pper .. Kuepper
+
+.. todo:: remove the above substitution. It is no more needed with sphinx
+          1.0.8
