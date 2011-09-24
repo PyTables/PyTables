@@ -501,7 +501,7 @@ NetCDFFile methods
     f as  short integers (of types) in the netCDF file. Since netCDF version 3
     does not provide automatic compression, packing as short
     integers is a commonly used way of saving disk space (see this
-    `page <http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml>`_
+    `page <http://www.esrl.noaa.gov/psd/data/gridded/conventions/cdc_netcdf_standard.shtml>`_
     for more details). The keys of these dictionaries are the
     variable names to pack, the values are the scale_factors and
     offsets to use in the packing. The data are packed so that the
@@ -612,7 +612,7 @@ The dictionaries scale_factor and
 add_offset are used to optionally pack the data as
 short integers in the netCDF file. Since netCDF version 3 does not
 provide automatic compression, packing as short integers is a commonly
-used way of saving disk space (see this `page <http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml>`_
+used way of saving disk space (see this `page <http://www.esrl.noaa.gov/psd/data/gridded/conventions/cdc_netcdf_standard.shtml>`_
 for more details). The keys of these dictionaries are the variable
 names to pack, the values are the scale_factors and offsets to use in
 the packing. The resulting netCDF file will have the
@@ -722,7 +722,7 @@ Differences between the Scientific.IO.NetCDF API and the tables.netcdf3 API
    numpy.around(scale*data)/scale, where
    scale = 2**bits, and bits is determined so that
    a precision of 0.1 is retained (in this case
-   bits=4). From http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml::
+   bits=4). From http://www.esrl.noaa.gov/psd/data/gridded/conventions/cdc_netcdf_standard.shtml::
 
        "least_significant_digit -- power of ten of the smallest
         decimal place in unpacked data that is a reliable value."

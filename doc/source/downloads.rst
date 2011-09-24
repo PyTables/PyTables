@@ -12,7 +12,7 @@ Windows binaries can be obtained from many different distributions, like
 `Python(x,y)`_, ActiveState_, or Enthought_.
 In addition, Christoph Gohlke normally does an excellent job by providing
 binaries for many interesting software on his
-`website <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_.
+`website <http://www.lfd.uci.edu/~gohlke/pythonlibs/>`_.
 
 You may be interested to easy_install the latest released stable version::
 

@@ -170,7 +170,7 @@ PyTables, so you don't need to install it separately.
        prerequisites.
 
 .. _`PyTables source repository`: https://github.com/PyTables/PyTables
-.. _GitHub: http://www.github.com
+.. _GitHub: https://www.github.com
 
 
 PyTables package installation

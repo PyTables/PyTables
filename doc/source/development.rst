@@ -4,7 +4,7 @@ PyTables Deveopment
 
 If you want to follow the development of PyTables and take part in it,
 you may have a look at the PyTables project pages on
-`GitHub <http://github.com>`_.
+`GitHub <https://github.com>`_.
 
 The source code for PyTables may be found at the `GitHub project site`_.
 You can get a copy of the latest version of the source code (under
@@ -19,7 +19,7 @@ Development version of the documentation is being built and published at
 http://readthedocs.org/docs/pytables/en/latest
 
 .. _`GitHub project site`: https://github.com/PyTables
-.. _`Users' Mailing List`: http://lists.sourceforge.net/lists/listinfo/pytables-users
+.. _`Users' Mailing List`: https://lists.sourceforge.net/lists/listinfo/pytables-users
 .. _`Developers' Mailing List`: https://groups.google.com/group/pytables-dev
 
 Other resources for developers:

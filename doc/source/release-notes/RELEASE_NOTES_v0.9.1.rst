@@ -20,7 +20,7 @@ Improvements:
   attributes. --quantize quantize data to improve compression using
   least_significant_digit netCDF variable attribute (not active by
   default).  See
-  http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml
+  http://www.esrl.noaa.gov/psd/data/gridded/conventions/cdc_netcdf_standard.shtml
   for further explanation of what this attribute means. Thanks to Jeff
   Whitaker for providing this.
 

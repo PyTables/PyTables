@@ -21,16 +21,15 @@ New features:
   means that it can index, in a relatively quick way, arbitrarily
   large table columns (for ex. indexing a column of 100 milion of rows
   takes just 100 seconds, i.e. at a rate of 1 Mrow/sec). See more
-  detailed info about that in
-  http://pytables.sourceforge.net/doc/SciPy04.pdf.
+  detailed info about that in http://www.pytables.org/docs/SciPy04.pdf.
 
 - In-kernel selections. This feature allow to make data selections on
   tables up to 5 times faster than standard selections (i.e. pre-0.9
   selections), without a need to create an index. As a hint of how
   fast these selections can be, they are up to 10 times faster than a
   traditional relational database. Again, see
-  http://pytables.sourceforge.net/doc/SciPy04.pdf for some experiments
-  on that matter.
+  http://www.pytables.org/docs/SciPy04.pdf for some experiments on that
+  matter.
 
 - Support of complex datatypes for all the data objects (i.e. Table,
   Array, EArray and VLArray). With that, the complete set of datatypes

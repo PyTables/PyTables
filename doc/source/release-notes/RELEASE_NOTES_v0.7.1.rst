@@ -31,5 +31,5 @@ Also, a stress test has been conducted in order to see if PyTables can
 *really* work not only with large data tables, but also with large
 object trees. In it, it has been generated and checked a file with
 more than 1 TB of size and more than 100 thousand tables on it!. See
-http://pytables.sourceforge.net/doc/stress-test.html for details.
+http://www.pytables.org/moin/StressTestsBck for details.
 

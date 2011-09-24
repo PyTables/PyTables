@@ -27,7 +27,7 @@ Bibliography
     objects(II). Article describing XML Objectify, a Python module that
     allows working with XML documents as Python objects.
     Some of the ideas presented here are used in PyTables.
-    `<http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html>`_.
+    `<http://www.ibm.com/developerworks/xml/library/xml-matters2/index.html>`_.
 
 .. _CYTHON:
 
@@ -42,14 +42,14 @@ Bibliography
     Glenn Davis, Russ Rew, Steve Emmerson, John Caron, and Harvey Davies.
     NetCDF. Network Common Data Form. An interface for array-oriented data
     access and a library that provides an implementation of the interface.
-    `<http://www.unidata.ucar.edu/packages/netcdf/>`_.
+    `<http://www.unidata.ucar.edu/software/netcdf/>`_.
 
 .. _NETCDF2:
 
 :ref:`[NETCDF2] <NETCDF2>`
     Russ Rew, Mike Folk, and et al. NetCDF-4. Network Common Data Form
     version 4. Merging the NetCDF and HDF5 Libraries.
-    `<http://www.unidata.ucar.edu/software/netcdf/netcdf-4/>`_.
+    `<http://www.unidata.ucar.edu/software/netcdf/index.html>`_.
 
 .. _NUMPY:
 
@@ -59,7 +59,7 @@ Bibliography
     date.
     It implements all the features that can be found in Numeric and numarray,
     plus a bunch of new others. In general, it is more efficient as well.
-    `<http://numeric.scipy.org/>`_.
+    `<http://numpy.scipy.org/>`_.
 
 .. _NUMERIC:
 
