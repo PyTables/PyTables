@@ -54,8 +54,8 @@ Acknowledgments
 Thanks to many users who provided feature improvements, patches, bug
 reports, support and suggestions.  See the ``THANKS`` file in the
 distribution package for a (incomplete) list of contributors.  Most
-specially, a lot of kudos go to the HDF5 and NumPy (and numarray!)
-makers.  Without them, PyTables simply would not exist.
+specially, a lot of kudos go to the HDF5 and NumPy makers.
+Without them, PyTables simply would not exist.
 
 
 Share your experience

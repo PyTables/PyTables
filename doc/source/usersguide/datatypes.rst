@@ -4,15 +4,14 @@ Supported data types in PyTables
 ================================
 
 All PyTables datasets can handle the complete set of data types supported
-by the NumPy (see :ref:`[NUMPY] <NUMPY>`), numarray
-(see :ref:`[NUMARRAY] <NUMARRAY>`) and Numeric
+by the NumPy (see :ref:`[NUMPY] <NUMPY>`) and Numeric
 (see :ref:`[NUMERIC] <NUMERIC>`) packages in Python.
 The data types for table fields can be set via instances of the Col class and
 its descendants (see :ref:`ColClassDescr`), while the data type of array
 elements can be set through the use of the Atom class and its descendants
 (see :ref:`AtomClassDescr`).
 
-.. warning:: The use of numarray and Numeric in PyTables is now deprecated.
+.. warning:: The use of Numeric in PyTables is now deprecated.
 
     Support for these packages will be removed in future versions.
 

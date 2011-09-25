@@ -382,8 +382,6 @@ The next attributes are optional for *leaves*:
 
     * *"numpy"*: Read data (structures arrays, arrays, records, scalars)
       will be returned as NumPy objects.
-    * *"numarray"*: Read data will be returned as
-      numarray objects (deprecated).
     * *"numeric"*: Read data will be returned as
       Numeric objects (deprecated).
     * *"python"*: Read data will be returned as Python lists, tuples, or

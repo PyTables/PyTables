@@ -1382,13 +1382,10 @@ work. You will get the following error.
 
     $ python tutorial2.py
     Traceback (most recent call last):
-      File "tutorial2.py", line 51, in ?
-        particle['pressure'] = array(i*arange(2*3), shape=(2,4))  # Incorrect
-      File ".../numarray/numarraycore.py", line 400, in array
-        a.setshape(shape)
-      File ".../numarray/generic.py", line 702, in setshape
-        raise ValueError("New shape is not consistent with the old shape")
-    ValueError: New shape is not consistent with the old shape
+      File "tutorial2.py", line 60, in <module>
+        particle['pressure'] = array(i*arange(2*3)).reshape((2,4))  # Incorrect
+    ValueError: total size of new array must be unchanged
+    Closing remaining open files: tutorial2.h5... done
 
 This error indicates that you are trying to assign an array
 with an incompatible shape to a table cell. Looking at the source,
@@ -2283,14 +2280,6 @@ datatype* (its dtype is a list of
 name-datatype tuples). We read one row for each four in the table,
 giving a result of three rows.
 
-.. note::
-
-    When using the numarray flavor (deprecated), you will get an instance of
-    the NestedRecArray class that lives in the tables.nra package.
-    NestedRecArray is actually a subclass of the RecArray object of the
-    numarray.records module. You can get more info about NestedRecArray object
-    in :ref:`NestedRecArrayClassDescr`.
-
 You can make use of the above object in many different ways.
 For example, you can use it to append new data to the existing table
 object::
@@ -2442,19 +2431,8 @@ subtable thereof)::
     recarray([],
           dtype=[('info3', [('x', '>f8'), ('y', '|u1')]), ('name', '|S10'),
                  ('value', '>f8')])
-    >>> from tables import nra
-    >>> nra.array(None, descr=table.description._v_nestedDescr)
-    array(
-    [],
-    descr=[('info2', [('info3', [('x', '()f8'), ('y', '()u1')]),
-           ('name', '()S10'), ('value', '()f8')]), ('info1', [('name', '()S10'),
-           ('value', '()f8')]), ('color', '()u4')],
-    shape=0)
 
-You can see we have created two equivalent arrays: one with
-NumPy (the first) and one with the nra package
-(the last). The later implements nested record arrays for
-numarray (see :class:`NestedRecArray`).
+You can see a simple example on how to create an array with NumPy.
 
 Finally, there is a special iterator of the
 Description class, called

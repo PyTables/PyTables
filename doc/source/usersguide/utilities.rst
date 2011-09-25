@@ -420,12 +420,12 @@ improvements.
 If you want other file formats to be converted to PyTables, have
 a look at the SciPy (see :ref:`[SCIPY1] <SCIPY1>`) project (subpackage io), and
 look for different methods to import them into
-NumPy/Numeric/numarray objects. Following the
+NumPy/Numeric objects. Following the
 SciPy documentation, you can read, among other
 formats, ASCII files (read_array), binary files in
 C or Fortran (fopen) and MATLAB
 (version 4, 5 or 6) files (loadmat). Once you have
-the content of your files as NumPy/Numeric/numarray
+the content of your files as NumPy/Numeric
 objects, you can save them as regular (E)Arrays in
 PyTables files. Remember, if you end with a nice converter, do not
 forget to contribute it back to the community. Thanks!

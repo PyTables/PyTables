@@ -31,7 +31,6 @@ Contents
     datatypes
     condition_syntax
     parameter_files
-    nested_rec_arrays
     utilities
     file_format
     bibliography

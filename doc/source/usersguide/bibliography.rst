@@ -68,15 +68,6 @@ Bibliography
     Oliphant. Numerical Python. Package to speed-up arithmetic operations on
     arrays of numbers. `<http://sourceforge.net/projects/numpy/>`_.
 
-.. _NUMARRAY:
-
-:ref:`[NUMARRAY] <NUMARRAY>`
-    Perry Greenfield, Todd Miller, Richard L White, J. C. Hsu, Paul Barrett,
-    Jochen |Kuepper|, and Peter J Verveer. Numarray. Reimplementation of
-    Numeric which adds the ability to efficiently manipulate large numeric
-    arrays in ways similar to Matlab and IDL. Among others, Numarray provides
-    the record array extension. `<http://stsdas.stsci.edu/numarray/>`_.
-
 .. _NUMEXPR:
 
 :ref:`[NUMEXPR] <NUMEXPR>`
