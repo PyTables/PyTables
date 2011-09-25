@@ -265,7 +265,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
     def test02_NestedRecArrayCompat(self):
-        """Creating a compatible ``NestedRecArray``."""
+        """Creating a compatible nested record array``."""
 
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
@@ -276,7 +276,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
     def test03_NRA(self):
-        """Creating a table from a NestedRecArray object."""
+        """Creating a table from a nested record array object."""
 
         tbl = self.h5file.createTable(
             '/', 'test', self._testAData, title=self._getMethodName())
@@ -289,7 +289,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Written and read values differ.")
 
     def test04_NRA2(self):
-        """Creating a table from a generated NestedRecArray object."""
+        """Creating a table from a generated nested record array object."""
 
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
@@ -548,7 +548,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Written and read values differ.")
 
     def test06_modifyRows(self):
-        "Checking modifying several rows at once (using nestedrecarray)"
+        "Checking modifying several rows at once (using nested rec array)"
 
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())

@@ -658,12 +658,12 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     def __setitem__(self, key, value):
         """Set a row, or set of rows, in the array.
 
-        It takes different actions depending on the type of the key parameter:
-        if it is an integer, the corresponding table row is set to value (a
-        record or sequence capable of being converted to the table
-        structure). If key is a slice, the row slice determined by it is set to
-        value (a record array or sequence capable of being converted to the
-        table structure).
+        It takes different actions depending on the type of the *key*
+        parameter: if it is an integer, the corresponding table row is
+        set to *value* (a record or sequence capable of being converted
+        to the table structure).  If *key* is a slice, the row slice
+        determined by it is set to *value* (a record array or sequence
+        of rows capable of being converted to the table structure).
 
         In addition, NumPy-style point selections are supported.  In
         particular, if key is a list of row coordinates, the set of rows

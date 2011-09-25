@@ -609,11 +609,11 @@ else:
     # There is no other chance, these values must be hardwired.
     setuptools_kwargs['packages'] = [
         'tables', 'tables.nodes', 'tables.scripts',
-        'tables.nra', 'tables.netcdf3', 'tables.netcdf3.scripts',
+        'tables.netcdf3', 'tables.netcdf3.scripts',
         'tables.misc',
         # Test suites.
         'tables.tests', 'tables.nodes.tests',
-        'tables.netcdf3.tests', 'tables.nra.tests']
+        'tables.netcdf3.tests']
     setuptools_kwargs['scripts'] = [
         'utils/ptdump', 'utils/ptrepack', 'utils/nctoh5']
 # Copy additional data for packages that need it.
