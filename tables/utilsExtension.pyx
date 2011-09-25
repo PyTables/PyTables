@@ -478,6 +478,11 @@ def whichClass(hid_t loc_id, char *name):
 
 
 def silenceHDF5Messages(silence=True):
+    """Silence (or re-enable) messages from the HDF5 C library.
+
+    The *silence* parameter can be used control the behaviour and reset
+    the standard HDF5 logging.
+    """
     cdef herr_t err
     if silence:
         err = H5Eset_auto(NULL, NULL)

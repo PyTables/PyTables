@@ -241,7 +241,7 @@ Global functions
     this because it can take a lot of time and resources from your
     computer).
 
-..function:: whichLibVersion(name)
+.. function:: whichLibVersion(name)
 
     Get version information about a C library.
 
@@ -255,6 +255,14 @@ Global functions
     hdf5, zlib,
     lzo and bzip2. If another
     name is given, a ValueError is raised.
+
+.. function:: silenceHDF5Messages(silence=True)
+
+   Silence (or re-enable) messages from the HDF5 C library.
+
+   The *silence* parameter can be used control the behaviour and reset the
+   standard HDF5 logging.
+
 
 .. _FileClassDescr:
 
@@ -2872,7 +2880,7 @@ The Description class
 
     This class represents descriptions of the structure of tables.
 
-    An instance of this class is automatically bound to Table (see 
+    An instance of this class is automatically bound to Table (see
     :ref:`TableClassDescr`) objects when they are created.  It provides a
     browseable representation of the structure of the table, made of
     non-nested (Col - see :ref:`ColClassDescr`) and nested (Description)
@@ -2946,7 +2954,7 @@ Description instance variables
 
     A nested list of pairs of (name, format) tuples for all the columns under
     this table or nested column. You can use this as the dtype and descr
-    arguments of NumPy array and NestedRecArray (see 
+    arguments of NumPy array and NestedRecArray (see
     :ref:`NestedRecArrayClassDescr`) factories, respectively.
 
 .. attribute:: Description._v_nestedFormats
@@ -3839,7 +3847,7 @@ The EArray class
 
     This class represents extendable, homogeneous datasets in an HDF5 file.
 
-    The main difference between an EArray and a CArray (see 
+    The main difference between an EArray and a CArray (see
     :ref:`CArrayClassDescr`), from which it inherits, is that the former can
     be enlarged along one of its dimensions, the *enlargeable dimension*.
     That means that the :attr:`Leaf.extdim` attribute (see
