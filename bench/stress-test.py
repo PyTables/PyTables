@@ -1,6 +1,6 @@
-import sys, time, gc
+import sys, time, gc  # , types
 import numpy
-from tables import Group
+from tables import Group  # , metaIsDescription
 from tables import *
 
 class Test(IsDescription):

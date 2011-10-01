@@ -1,5 +1,4 @@
 import sys, time, random, gc
-#from numarray import *
 from tables import *
 
 class Test(IsDescription):

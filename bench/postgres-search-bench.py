@@ -1,25 +1,23 @@
 import os, os.path
 from time import time
-import numarray
-from numarray import random_array
+import numpy
 import random
 
 DSN = "dbname=test port = 5435"
 
 # in order to always generate the same random sequence
 random.seed(19)
-random_array.seed(19, 20)
 
 def flatten(l):
     """Flattens list of tuples l."""
     return [x[0] for x in l]
 
 def fill_arrays(start, stop):
-    col_i = numarray.arange(start, stop, type=numarray.Int32)
+    col_i = numpy.arange(start, stop, type=numpy.Int32)
     if userandom:
-        col_j = random_array.uniform(0, nrows, shape=[stop-start])
+        col_j = numpy.random.uniform(0, nrows, size=[stop-start])
     else:
-        col_j = numarray.array(col_i, type=numarray.Float64)
+        col_j = numpy.array(col_i, type=numpy.Float64)
     return col_i, col_j
 
 # Generator for ensure pytables benchmark compatibility
