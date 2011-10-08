@@ -1048,7 +1048,7 @@ cdef class Array(Leaf):
     if hasattr(self, "extdim"):
       extdim = self.extdim
     else:
-      exdim = -1
+      extdim = -1
 
     # Do the physical read
     Py_BEGIN_ALLOW_THREADS

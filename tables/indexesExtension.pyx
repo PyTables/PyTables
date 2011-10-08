@@ -410,7 +410,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_int8 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_int8 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -458,7 +458,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_uint8 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_uint8 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -506,7 +506,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_int16 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_int16 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -554,7 +554,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_uint16 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_uint16 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -602,7 +602,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_int32 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_int32 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -650,7 +650,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_uint32 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_uint32 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -698,7 +698,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_int64 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_int64 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -746,7 +746,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_uint64 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_uint64 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -794,7 +794,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_float32 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_float32 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
@@ -843,7 +843,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_float64 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_float64 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0

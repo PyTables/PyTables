@@ -680,7 +680,7 @@ def enumToHDF5(object enumAtom, char *byteorder):
 
 
 def AtomToHDF5Type(atom, char *byteorder):
-  cdef hid_t   tid
+  cdef hid_t   tid = -1
   cdef hsize_t *dims
 
   # Create the base HDF5 type

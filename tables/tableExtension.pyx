@@ -623,8 +623,7 @@ cdef class Table(Leaf):
                             self.nrows, rowsize, nrow, nrecords,
                             self.nrowsinbuf) < 0):
       raise HDF5ExtError("Problems deleting records.")
-      # Return no removed records
-      return 0
+
     self.nrows = self.nrows - nrecords
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
       # Attach the NROWS attribute

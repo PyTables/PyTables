@@ -305,7 +305,7 @@ herr_t H5TBOread_elements( hid_t dataset_id,
 
  /* Define a selection of points in the dataset */
 
- if ( H5Sselect_elements(space_id, H5S_SELECT_SET, (size_t)nrecords, (const hsize_t **)coords) < 0 )
+ if ( H5Sselect_elements(space_id, H5S_SELECT_SET, (size_t)nrecords, (const hsize_t *)coords) < 0 )
   goto out;
 
  /* Create a memory dataspace handle */
@@ -487,7 +487,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, 
+ * Programmer: Francesc Alted,
  *
  * Date: October 25, 2005
  *
@@ -514,7 +514,7 @@ herr_t H5TBOwrite_elements( hid_t dataset_id,
 
  /* Define a selection of points in the dataset */
 
- if ( H5Sselect_elements(space_id, H5S_SELECT_SET, (size_t)nrecords, (const hsize_t **)coords) < 0 )
+ if ( H5Sselect_elements(space_id, H5S_SELECT_SET, (size_t)nrecords, (const hsize_t *)coords) < 0 )
   goto out;
 
  /* Create a memory dataspace handle */

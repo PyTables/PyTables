@@ -15,6 +15,9 @@
 
 import sys
 
+cdef extern from *:
+  ctypedef char const_char 'const char'
+
 # Standard C functions.
 cdef extern from "stdlib.h":
   ctypedef long size_t
