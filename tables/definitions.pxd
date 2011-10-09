@@ -17,22 +17,10 @@ import sys
 
 cdef extern from *:
   ctypedef char const_char 'const char'
+  #ctypedef long size_t
+  ctypedef long uintptr_t
 
 # Standard C functions.
-cdef extern from "stdlib.h":
-  ctypedef long size_t
-  ctypedef long uintptr_t
-  void *malloc(size_t size)
-  void free(void *ptr)
-
-cdef extern from "string.h":
-  char *strchr(char *s, int c)
-  char *strcpy(char *dest, char *src)
-  char *strncpy(char *dest, char *src, size_t n)
-  int strcmp(char *s1, char *s2)
-  char *strdup(char *s)
-  void *memcpy(void *dest, void *src, size_t n)
-
 cdef extern from "time.h":
   ctypedef int time_t
 

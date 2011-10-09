@@ -36,9 +36,9 @@ from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array
 
 
-# numpy functions & objects
+# Types, constants, functions, classes & other objects from everywhere
+from libc.string cimport memcpy
 from definitions cimport \
-     memcpy, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      import_array, ndarray, \
      npy_intp, \

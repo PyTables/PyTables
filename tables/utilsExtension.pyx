@@ -30,11 +30,12 @@ from tables.atom import Atom, EnumAtom
 
 from tables.utils import checkFileAccess
 
+from libc.stdlib cimport malloc, free
+from libc.string cimport strchr, strcpy, strncpy, strcmp, strdup
 from definitions cimport import_array, ndarray, \
-     malloc, free, strchr, strcpy, strncpy, strcmp, strdup, \
      PyString_AsString, PyString_FromString, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
-     size_t, hid_t, herr_t, hsize_t, hssize_t, htri_t, \
+     hid_t, herr_t, hsize_t, hssize_t, htri_t, \
      H5T_class_t, H5D_layout_t, H5T_sign_t, \
      H5Fopen, H5Fclose, H5Fis_hdf5, H5Gopen, H5Gclose, \
      H5Dopen, H5Dclose, H5Dget_type, \
@@ -483,7 +484,7 @@ def getNestedField(recarray, fieldname):
   with slah-separated components.
   """
   try:
-    if strchr(fieldname, 47) != NULL:   # ord('/') == 47
+    if strchr(<char *>fieldname, 47) != NULL:   # ord('/') == 47
       # It may be convenient to implement this way of descending nested
       # fields into the ``__getitem__()`` method of a subclass of
       # ``numpy.ndarray``.  -- ivb

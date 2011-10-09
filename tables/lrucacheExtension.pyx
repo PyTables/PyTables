@@ -27,12 +27,11 @@ Misc variables:
 import sys
 
 import numpy
-from definitions cimport \
-  memcpy, strcmp, \
-  import_array, ndarray
+from libc.string cimport memcpy, strcmp
+from definitions cimport import_array, ndarray
 
 from tables.parameters import \
-  DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
+     DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
 
 
 
@@ -123,7 +122,7 @@ cdef class NodeCache:
     nslot = -1  # -1 means not found
     # Start looking from the trailing values (most recently used)
     for i from self.nextslot > i >= 0:
-      if strcmp(path, self.paths[i]) == 0:
+      if strcmp(<char *>path, <char *>self.paths[i]) == 0:
         nslot = i
         break
     return nslot

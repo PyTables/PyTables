@@ -39,13 +39,14 @@ from utilsExtension cimport get_native_type
 
 # numpy functions & objects
 from hdf5Extension cimport Leaf
+from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy, strdup, strcmp
 from definitions cimport import_array, ndarray, \
-     malloc, free, memcpy, strdup, strcmp, \
      PyString_AsString, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      PyArray_GETITEM, PyArray_SETITEM, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, \
-     size_t, hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, H5T_class_t, \
+     hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, H5T_class_t, \
      H5Gunlink, H5Fflush, H5Dopen, H5Dclose, H5Dread, H5Dget_type,\
      H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pget_chunk, \
      H5Pclose, H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, \

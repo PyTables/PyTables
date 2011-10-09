@@ -57,14 +57,15 @@ from utilsExtension cimport malloc_dims, get_native_type
 
 
 # Types, constants, functions, classes & other objects from everywhere
+from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy, strdup
 from definitions cimport  \
-     memcpy, strdup, malloc, free, \
      Py_ssize_t, PyObject_AsReadBuffer, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
      Py_INCREF, Py_DECREF, \
      import_array, ndarray, dtype, \
-     time_t, size_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
+     time_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
      H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED, \
      H5G_UNKNOWN, H5G_GROUP, H5G_DATASET, H5G_LINK, H5G_TYPE, \
      H5T_class_t, H5T_sign_t, H5T_NATIVE_INT, \
@@ -567,7 +568,7 @@ cdef class Node:
 
 
   def _g_new(self, where, name, init):
-    self.name = strdup(name)
+    self.name = strdup(<char *>name)
     # """The name of this node in its parent group."""
     self.parent_id = where._v_objectID
     # """The identifier of the parent group."""
