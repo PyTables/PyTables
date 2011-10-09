@@ -14,17 +14,18 @@
 import sys
 
 # Definitions that are platform-independent
-from definitions cimport \
+from numpy cimport npy_intp, \
      NPY_BOOL, NPY_STRING, \
      NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64, \
      NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, \
-     NPY_FLOAT32, NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128, \
+     NPY_FLOAT32, NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128
+
+from definitions cimport \
      H5T_C_S1, \
      H5T_NO_CLASS, H5T_INTEGER, H5T_FLOAT, H5T_TIME, H5T_STRING, \
      H5T_BITFIELD, H5T_OPAQUE, H5T_COMPOUND, H5T_REFERENCE, \
      H5T_ENUM, H5T_VLEN, H5T_ARRAY, H5T_class_t, \
-     H5T_ORDER_LE, H5T_ORDER_BE, H5Tget_order, \
-     npy_intp
+     H5T_ORDER_LE, H5T_ORDER_BE, H5Tget_order
 
 from definitions cimport \
      H5T_ORDER_BE, \

@@ -28,7 +28,7 @@ import sys
 
 import numpy
 from libc.string cimport memcpy, strcmp
-from definitions cimport import_array, ndarray
+from numpy cimport import_array, ndarray
 
 from tables.parameters import \
      DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO

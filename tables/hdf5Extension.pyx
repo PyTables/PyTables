@@ -59,12 +59,12 @@ from utilsExtension cimport malloc_dims, get_native_type
 # Types, constants, functions, classes & other objects from everywhere
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup
+from numpy cimport import_array, ndarray, dtype
 from definitions cimport  \
      Py_ssize_t, PyObject_AsReadBuffer, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
      Py_INCREF, Py_DECREF, \
-     import_array, ndarray, dtype, \
      time_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
      H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED, \
      H5G_UNKNOWN, H5G_GROUP, H5G_DATASET, H5G_LINK, H5G_TYPE, \
@@ -426,10 +426,10 @@ cdef class AttributeSet:
         type_id = AtomToHDF5Type(baseatom, byteorder)
       # Get dimensionality info
       ndv = <ndarray>value
-      dims = npy_malloc_dims(ndv.nd, ndv.dimensions)
+      dims = npy_malloc_dims(ndv.ndim, ndv.shape)
       # Actually write the attribute
       ret = H5ATTRset_attribute(dset_id, name, type_id,
-                                ndv.nd, dims, ndv.data)
+                                ndv.ndim, dims, ndv.data)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
                            (name, self._v_node))
@@ -753,7 +753,7 @@ cdef class Leaf(Node):
     cdef hsize_t nrecords
 
     byteoffset = 0   # NumPy objects doesn't have an offset
-    if nparr.shape == ():
+    if (<object>nparr).shape == ():
       # 0-dim array does contain *one* element
       nrecords = 1
       bytestride = 8
@@ -822,7 +822,7 @@ cdef class Array(Leaf):
     cdef ndarray dims
 
     # Get the HDF5 type associated with this numpy type
-    shape = nparr.shape
+    shape = (<object>nparr).shape
     if _atom is None or _atom.shape == ():
       dtype = nparr.dtype.base
       atom = Atom.from_dtype(dtype)
@@ -1011,7 +1011,7 @@ cdef class Array(Leaf):
     cdef object shape
 
     # Allocate space for the dimension axis info
-    dims_arr = npy_malloc_dims(self.rank, nparr.dimensions)
+    dims_arr = npy_malloc_dims(self.rank, nparr.shape)
     # Get the pointer to the buffer data area
     rbuf = nparr.data
     # Convert some NumPy types to HDF5 before storing.

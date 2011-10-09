@@ -41,9 +41,9 @@ from utilsExtension cimport get_native_type
 from hdf5Extension cimport Leaf
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp
-from definitions cimport import_array, ndarray, \
+from numpy cimport import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM
+from definitions cimport \
      PyString_AsString, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
-     PyArray_GETITEM, PyArray_SETITEM, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, \
      hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, H5T_class_t, \
@@ -1366,7 +1366,7 @@ cdef class Row:
         # Try with __getitem__()
         return row[key]
 
-    if field.nd == 1:
+    if field.ndim == 1:
       # For an scalar it is not needed a copy (immutable object)
       return PyArray_GETITEM(field, field.data + offset * self._stride)
     else:
@@ -1431,7 +1431,7 @@ cdef class Row:
     try:
       # Optimization for scalar values. This can optimize the writes
       # between a 10% and 100%, depending on the number of columns modified
-      if field.nd == 1:
+      if field.ndim == 1:
         ret = PyArray_SETITEM(field, field.data + offset * self._stride, value)
         if ret < 0:
           raise TypeError

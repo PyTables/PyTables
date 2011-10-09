@@ -32,7 +32,12 @@ from tables.utils import checkFileAccess
 
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcpy, strncpy, strcmp, strdup
-from definitions cimport import_array, ndarray, \
+from numpy cimport \
+     import_array, ndarray, dtype, \
+     NPY_INT64, npy_int64, \
+     PyArray_DescrFromType
+
+from definitions cimport \
      PyString_AsString, PyString_FromString, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      hid_t, herr_t, hsize_t, hssize_t, htri_t, \
@@ -50,8 +55,8 @@ from definitions cimport import_array, ndarray, \
      H5ARRAYget_ndims, H5ARRAYget_info, \
      create_ieee_complex64, create_ieee_complex128, \
      get_order, set_order, is_complex, \
-     get_len_of_range, NPY_INT64, npy_int64, dtype, \
-     PyArray_DescrFromType, PyArray_Scalar, \
+     get_len_of_range, \
+     PyArray_Scalar, \
      register_blosc
 
 
