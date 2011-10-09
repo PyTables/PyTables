@@ -44,7 +44,6 @@ from libc.string cimport memcpy, strdup, strcmp
 from numpy cimport import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM
 from cpython cimport PyString_AsString
 from definitions cimport \
-     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, \
      hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, H5T_class_t, \
@@ -72,7 +71,7 @@ __version__ = "$Revision$"
 #-----------------------------------------------------------------
 
 # Optimized HDF5 API for PyTables
-cdef extern from "H5TB-opt.h":
+cdef extern from "H5TB-opt.h" nogil:
 
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
                           char *version, char *class_,
@@ -446,12 +445,11 @@ cdef class Table(Leaf):
 
     nrows = self.nrows
     # release GIL (allow other threads to use the Python interpreter)
-    Py_BEGIN_ALLOW_THREADS
-    # Append the records:
-    ret = H5TBOappend_records(self.dataset_id, self.type_id,
-                              nrecords, nrows, self.wbuf)
-    # acquire GIL (disallow other threads from using the Python interpreter)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        # Append the records:
+        ret = H5TBOappend_records(self.dataset_id, self.type_id,
+                                  nrecords, nrows, self.wbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems appending the records.")
 
@@ -493,10 +491,10 @@ cdef class Table(Leaf):
     # Convert some NumPy types to HDF5 before storing.
     self._convertTypes(recarr, nrecords, 0)
     # Update the records:
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5TBOwrite_records(self.dataset_id, self.type_id,
-                             start, nrecords, step, rbuf )
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5TBOwrite_records(self.dataset_id, self.type_id,
+                                 start, nrecords, step, rbuf )
+
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
 
@@ -519,10 +517,10 @@ cdef class Table(Leaf):
     self._convertTypes(recarr, nrecords, 0)
 
     # Update the records:
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5TBOwrite_elements(self.dataset_id, self.type_id,
-                              nrecords, rcoords, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5TBOwrite_elements(self.dataset_id, self.type_id,
+                                  nrecords, rcoords, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
 
@@ -542,10 +540,10 @@ cdef class Table(Leaf):
     rbuf = recarr.data
 
     # Read the records from disk
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5TBOread_records(self.dataset_id, self.type_id, start,
-                            nrecords, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5TBOread_records(self.dataset_id, self.type_id, start,
+                                nrecords, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading records.")
 
@@ -576,10 +574,10 @@ cdef class Table(Leaf):
       chunkcache.getitem_(nslot, rbuf, 0)
     else:
       # Chunk is not in cache. Read it and put it in the LRU cache.
-      Py_BEGIN_ALLOW_THREADS
-      ret = H5TBOread_records(self.dataset_id, self.type_id,
-                              start, nrecords, rbuf)
-      Py_END_ALLOW_THREADS
+      with nogil:
+          ret = H5TBOread_records(self.dataset_id, self.type_id,
+                                  start, nrecords, rbuf)
+
       if ret < 0:
         raise HDF5ExtError("Problems reading chunk records.")
       nslot = chunkcache.setitem_(nchunk, rbuf, 0)
@@ -598,10 +596,10 @@ cdef class Table(Leaf):
     # Get the pointer to the buffer coords area
     rbuf2 = coords.data
 
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5TBOread_elements(self.dataset_id, self.type_id,
-                             nrecords, rbuf2, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5TBOread_elements(self.dataset_id, self.type_id,
+                                 nrecords, rbuf2, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading records.")
 

@@ -27,7 +27,7 @@ __version__ = "$Revision$"
 
 # External declarations
 
-cdef extern from "H5Lpublic.h":
+cdef extern from "H5Lpublic.h" nogil:
 
   ctypedef enum H5L_type_t:
     H5L_TYPE_ERROR = (-1),       # Invalid link type id

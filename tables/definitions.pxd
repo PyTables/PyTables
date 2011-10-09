@@ -26,11 +26,6 @@ cdef extern from "time.h":
 
 # Some helper routines from the Python API
 cdef extern from "Python.h":
-
-  # To release global interpreter lock (GIL) for threading
-  void Py_BEGIN_ALLOW_THREADS()
-  void Py_END_ALLOW_THREADS()
-
   # Functions for objects
   int PyObject_AsReadBuffer(object obj, void **buffer, Py_ssize_t *buffer_len)
 
@@ -47,7 +42,7 @@ cdef extern from "numpy/arrayobject.h":
 
 
 # Structs and types from HDF5
-cdef extern from "hdf5.h":
+cdef extern from "hdf5.h" nogil:
 
   ctypedef int hid_t  # In H5Ipublic.h
   ctypedef int hbool_t
@@ -340,7 +335,7 @@ cdef extern from "hdf5.h":
 
 
 # Specific HDF5 functions for PyTables
-cdef extern from "H5ATTR.h":
+cdef extern from "H5ATTR.h" nogil:
   herr_t H5ATTRget_attribute(hid_t loc_id, char *attr_name,
                              hid_t type_id, void *data)
   herr_t H5ATTRget_attribute_string(hid_t loc_id, char *attr_name,
@@ -358,7 +353,7 @@ cdef extern from "H5ATTR.h":
 
 
 # Functions for operations with ARRAY
-cdef extern from "H5ARRAY.h":
+cdef extern from "H5ARRAY.h" nogil:
   herr_t H5ARRAYget_ndims(hid_t dataset_id, int *rank)
   herr_t H5ARRAYget_info(hid_t dataset_id, hid_t type_id, hsize_t *dims,
                          hsize_t *maxdims, H5T_class_t *super_class_id,
@@ -367,21 +362,21 @@ cdef extern from "H5ARRAY.h":
 
 # Some utilities
 cdef extern from "utils.h":
-  herr_t set_cache_size(hid_t file_id, size_t cache_size)
-  int get_objinfo(hid_t loc_id, char *name)
+  herr_t set_cache_size(hid_t file_id, size_t cache_size) nogil
+  int get_objinfo(hid_t loc_id, char *name) nogil
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   object H5UIget_info(hid_t loc_id, char *name, char *byteorder)
-  hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step)
-  hid_t  create_ieee_complex64(char *byteorder)
-  hid_t  create_ieee_complex128(char *byteorder)
-  herr_t set_order(hid_t type_id, char *byteorder)
-  herr_t get_order(hid_t type_id, char *byteorder)
-  int    is_complex(hid_t type_id)
-  herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size)
+  hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step) nogil
+  hid_t  create_ieee_complex64(char *byteorder) nogil
+  hid_t  create_ieee_complex128(char *byteorder) nogil
+  herr_t set_order(hid_t type_id, char *byteorder) nogil
+  herr_t get_order(hid_t type_id, char *byteorder) nogil
+  int    is_complex(hid_t type_id) nogil
+  herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size) nogil
 
 # Type conversion routines
-cdef extern from "typeconv.h":
+cdef extern from "typeconv.h" nogil:
   void conv_float64_timeval32(void *base,
                               unsigned long byteoffset,
                               unsigned long bytestride,
@@ -390,5 +385,5 @@ cdef extern from "typeconv.h":
                               int sense)
 
 # Blosc registration
-cdef extern from "blosc_filter.h":
+cdef extern from "blosc_filter.h" nogil:
   int register_blosc(char **version, char **date)

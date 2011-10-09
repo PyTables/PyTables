@@ -33,7 +33,6 @@
 
 #include "H5TB-opt.h"
 #include "tables.h"
-#include "utils.h"
 #include "H5Zlzo.h"                    /* Import FILTER_LZO */
 #include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
 #include "../blosc/blosc_filter.h"     /* Import FILTER_BLOSC */

@@ -67,7 +67,6 @@ from cpython cimport \
 
 from definitions cimport  \
      PyObject_AsReadBuffer, \
-     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      time_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
      H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED, \
      H5G_UNKNOWN, H5G_GROUP, H5G_DATASET, H5G_LINK, H5G_TYPE, \
@@ -109,7 +108,7 @@ __version__ = "$Revision$"
 #-------------------------------------------------------------------
 
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
-cdef extern from "H5ARRAY.h":
+cdef extern from "H5ARRAY.h" nogil:
 
   herr_t H5ARRAYmake(hid_t loc_id, char *dset_name, char *obversion,
                      int rank, hsize_t *dims, int extdim,
@@ -144,7 +143,7 @@ cdef extern from "H5ARRAY.h":
 
 
 # Functions for dealing with VLArray objects
-cdef extern from "H5VLARRAY.h":
+cdef extern from "H5VLARRAY.h" nogil:
 
   herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *obversion,
                         int rank, hsize_t *dims, hid_t type_id,
@@ -1023,10 +1022,10 @@ cdef class Array(Leaf):
 
     # Append the records
     extdim = self.extdim
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYappend_records(self.dataset_id, self.type_id, self.rank,
-                                self.dims, dims_arr, extdim, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYappend_records(self.dataset_id, self.type_id, self.rank,
+                                    self.dims, dims_arr, extdim, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems appending the elements")
 
@@ -1055,10 +1054,10 @@ cdef class Array(Leaf):
       extdim = -1
 
     # Do the physical read
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYread(self.dataset_id, self.type_id, start, nrows, step,
-                      extdim, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYread(self.dataset_id, self.type_id, start, nrows, step,
+                          extdim, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -1088,10 +1087,10 @@ cdef class Array(Leaf):
     rbuf = nparr.data
 
     # Do the physical read
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYreadSlice(self.dataset_id, self.type_id,
-                           start, stop, step, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYreadSlice(self.dataset_id, self.type_id,
+                               start, stop, step, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -1130,10 +1129,10 @@ cdef class Array(Leaf):
     rbuf = nparr.data
 
     # Do the actual read
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
-                  H5P_DEFAULT, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
+                      H5P_DEFAULT, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -1220,10 +1219,10 @@ cdef class Array(Leaf):
     rbuf = nparr.data
 
     # Do the actual read
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
-                  H5P_DEFAULT, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
+                      H5P_DEFAULT, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -1263,10 +1262,10 @@ cdef class Array(Leaf):
       self._convertTime64(nparr, 0)
 
     # Modify the elements:
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYwrite_records(self.dataset_id, self.type_id, self.rank,
-                               start, step, count, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYwrite_records(self.dataset_id, self.type_id, self.rank,
+                                   start, step, count, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Internal error modifying the elements (H5ARRAYwrite_records returned errorcode -%i)"%(-ret))
 
@@ -1300,10 +1299,10 @@ cdef class Array(Leaf):
       self._convertTime64(nparr, 0)
 
     # Do the actual write
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5Dwrite(self.dataset_id, self.type_id, mem_space_id, space_id,
-                   H5P_DEFAULT, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5Dwrite(self.dataset_id, self.type_id, mem_space_id, space_id,
+                       H5P_DEFAULT, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems writing the array data.")
 
@@ -1345,10 +1344,10 @@ cdef class Array(Leaf):
       self._convertTime64(nparr, 0)
 
     # Do the actual write
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5Dwrite(self.dataset_id, self.type_id, mem_space_id, space_id,
-                   H5P_DEFAULT, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5Dwrite(self.dataset_id, self.type_id, mem_space_id, space_id,
+                       H5P_DEFAULT, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems writing the array data.")
 
@@ -1477,10 +1476,10 @@ cdef class VLArray(Leaf):
       rbuf = NULL
 
     # Append the records:
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5VLARRAYappend_records(self.dataset_id, self.type_id,
-                                  nobjects, self.nrecords, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5VLARRAYappend_records(self.dataset_id, self.type_id,
+                                      nobjects, self.nrecords, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems appending the records.")
 
@@ -1499,10 +1498,10 @@ cdef class VLArray(Leaf):
         self._convertTime64(nparr, 0)
 
     # Append the records:
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5VLARRAYmodify_records(self.dataset_id, self.type_id,
-                                  nrow, nobjects, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5VLARRAYmodify_records(self.dataset_id, self.type_id,
+                                      nrow, nobjects, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems modifying the record.")
 
@@ -1526,19 +1525,20 @@ cdef class VLArray(Leaf):
         "Asking for a range of rows exceeding the available ones!.")
 
     # Now, read the chunk of rows
-    Py_BEGIN_ALLOW_THREADS
-    # Allocate the necessary memory for keeping the row handlers
-    rdata = <hvl_t *>malloc(<size_t>nrows*sizeof(hvl_t))
-    # Get the dataspace handle
-    space_id = H5Dget_space(self.dataset_id)
-    # Create a memory dataspace handle
-    mem_space_id = H5Screate_simple(1, &nrows, NULL)
-    # Select the data to be read
-    H5Sselect_hyperslab(space_id, H5S_SELECT_SET, &start, &step, &nrows, NULL)
-    # Do the actual read
-    ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
-                  H5P_DEFAULT, rdata)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        # Allocate the necessary memory for keeping the row handlers
+        rdata = <hvl_t *>malloc(<size_t>nrows*sizeof(hvl_t))
+        # Get the dataspace handle
+        space_id = H5Dget_space(self.dataset_id)
+        # Create a memory dataspace handle
+        mem_space_id = H5Screate_simple(1, &nrows, NULL)
+        # Select the data to be read
+        H5Sselect_hyperslab(space_id, H5S_SELECT_SET, &start, &step, &nrows,
+                            NULL)
+        # Do the actual read
+        ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
+                      H5P_DEFAULT, rdata)
+
     if ret < 0:
       raise HDF5ExtError(
         "VLArray._readArray: Problems reading the array data.")

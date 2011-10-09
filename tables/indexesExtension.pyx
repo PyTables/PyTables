@@ -48,7 +48,6 @@ from numpy cimport \
      npy_float32, npy_float64
 
 from definitions cimport \
-     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      hid_t, herr_t, hsize_t, \
      H5Dget_space, H5Screate_simple, H5Sclose
 
@@ -63,7 +62,7 @@ __version__ = "$Revision$"
 # External C functions
 
 # Functions for optimized operations with ARRAY for indexing purposes
-cdef extern from "H5ARRAY-opt.h":
+cdef extern from "H5ARRAY-opt.h" nogil:
   herr_t H5ARRAYOinit_readSlice(
     hid_t dataset_id, hid_t *mem_space_id, hsize_t count)
   herr_t H5ARRAYOread_readSlice(
@@ -81,7 +80,7 @@ cdef extern from "H5ARRAY-opt.h":
 
 
 # Functions for optimized operations for dealing with indexes
-cdef extern from "idx-opt.h":
+cdef extern from "idx-opt.h" nogil:
   int bisect_left_b(npy_int8 *a, long x, int hi, int offset)
   int bisect_left_ub(npy_uint8 *a, long x, int hi, int offset)
   int bisect_right_b(npy_int8 *a, long x, int hi, int offset)
@@ -237,10 +236,10 @@ cdef class IndexArray(Array):
     cdef herr_t ret
 
     # Do the physical read
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOread_readSlice(self.dataset_id, self.type_id,
-                                 irow, start, stop, idx.data)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYOread_readSlice(self.dataset_id, self.type_id,
+                                     irow, start, stop, idx.data)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the index indices.")
 
@@ -307,11 +306,11 @@ cdef class IndexArray(Array):
                                 hsize_t stop):
     """Read the sorted part of an index."""
 
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOread_readSortedSlice(
-      self.dataset_id, self.mem_space_id, self.type_id,
-      irow, start, stop, self.rbuflb)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYOread_readSortedSlice(
+          self.dataset_id, self.mem_space_id, self.type_id,
+          irow, start, stop, self.rbuflb)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -904,10 +903,10 @@ cdef class LastRowArray(Array):
   def _readIndexSlice(self, hsize_t start, hsize_t stop, ndarray idx):
     "Read the reverse index part of an LR index."
 
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
-                              start, stop, idx.data)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
+                                  start, stop, idx.data)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data in Last Row.")
     return
@@ -918,10 +917,10 @@ cdef class LastRowArray(Array):
     cdef void  *rbuflb
 
     rbuflb = sorted.rbuflb  # direct access to rbuflb: very fast.
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
-                              start, stop, rbuflb)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
+                                  start, stop, rbuflb)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data.")
     return sorted.bufferlb[:stop-start]

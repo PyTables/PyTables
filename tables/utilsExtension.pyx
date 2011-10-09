@@ -75,14 +75,14 @@ __version__ = "$Revision$"
 # PyTables helper routines.
 cdef extern from "utils.h":
 
-  int getLibrary(char *libname)
+  int getLibrary(char *libname) nogil
   object _getTablesVersion()
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
   object get_filter_names( hid_t loc_id, char *dset_name)
 
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout,
-                             hid_t *type_id, hid_t *dataset_id)
+                             hid_t *type_id, hid_t *dataset_id) nogil
 
   # To access to the slice.indices functionality for long long ints
   hssize_t getIndicesExt(object s, hsize_t length,
@@ -91,7 +91,7 @@ cdef extern from "utils.h":
 
 
 # Functions from Blosc
-cdef extern from "blosc.h":
+cdef extern from "blosc.h" nogil:
   int blosc_set_nthreads(int nthreads)
 
 
@@ -190,7 +190,7 @@ cdef hsize_t *malloc_dims(object pdims):
 # This is a re-implementation of a working H5Tget_native_type for nested
 # compound types.  I should report the flaw to THG as soon as possible.
 # F. Alted 2009-08-19
-cdef hid_t get_nested_native_type(hid_t type_id):
+cdef hid_t get_nested_native_type(hid_t type_id) nogil:
   """Get a native nested type of an HDF5 type.
 
   In addition, it also recursively remove possible padding on type_id, i.e. it
@@ -244,7 +244,7 @@ cdef hid_t get_nested_native_type(hid_t type_id):
 # not implement support for H5Tget_native_type with some types, like
 # H5T_BITFIELD and probably others.  When 1.8.x would be a requisite,
 # this can be simplified.
-cdef hid_t get_native_type(hid_t type_id):
+cdef hid_t get_native_type(hid_t type_id) nogil:
   """Get the native type of a HDF5 type."""
   cdef H5T_class_t class_id
   cdef hid_t native_type_id, super_type_id

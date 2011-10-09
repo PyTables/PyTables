@@ -28,7 +28,7 @@ __version__ = "$Revision: 4270 $"
 
 # External declarations
 
-cdef extern from "H5Gpublic.h":
+cdef extern from "H5Gpublic.h" nogil:
 
   cdef enum H5G_link_t:
     H5G_LINK_ERROR      = -1,
