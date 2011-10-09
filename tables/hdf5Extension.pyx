@@ -28,14 +28,12 @@ Misc variables:
     __version__
 """
 
-import sys
 import os
 import warnings
 import cPickle
 
 import numpy
 
-from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError, DataTypeWarning
 
 from tables.utils import \
@@ -43,14 +41,11 @@ from tables.utils import \
 
 from tables.atom import Atom
 
-from tables.description import descr_from_dtype, Description
+from tables.description import descr_from_dtype
 
-from tables.utilsExtension import \
-     enumToHDF5, enumFromHDF5, getTypeEnum, \
-     encode_filename, isHDF5File, isPyTablesFile, \
-     AtomToHDF5Type, AtomFromHDF5Type, loadEnum, \
-     HDF5ToNPExtType, HDF5ToNPNestedType, createNestedType, \
-     setBloscMaxThreads
+from tables.utilsExtension import encode_filename, setBloscMaxThreads, \
+     AtomToHDF5Type, AtomFromHDF5Type, \
+     HDF5ToNPExtType, createNestedType
 
 
 from utilsExtension cimport malloc_dims, get_native_type
@@ -58,44 +53,34 @@ from utilsExtension cimport malloc_dims, get_native_type
 
 # Types, constants, functions, classes & other objects from everywhere
 from libc.stdlib cimport malloc, free
-from libc.string cimport memcpy, strdup
-from numpy cimport import_array, ndarray, dtype
-from cpython cimport \
-     Py_INCREF, Py_DECREF, \
-     PyString_AsString, PyString_FromStringAndSize, \
-     PyDict_Contains, PyDict_GetItem
+from libc.string cimport strdup
+from numpy cimport import_array, ndarray
+from cpython cimport PyString_AsString, PyString_FromStringAndSize
+
 
 from definitions cimport  \
-     PyObject_AsReadBuffer, \
-     time_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
+     uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
      H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED, \
      H5G_UNKNOWN, H5G_GROUP, H5G_DATASET, H5G_LINK, H5G_TYPE, \
      H5T_class_t, H5T_sign_t, H5T_NATIVE_INT, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
      H5P_DEFAULT, H5P_FILE_ACCESS, \
-     H5T_SGN_NONE, H5T_SGN_2, H5T_DIR_DEFAULT, \
      H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB, \
-     H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
-     H5Fflush, H5Fget_vfd_handle, \
-     H5Gcreate, H5Gopen, H5Gclose, H5Gunlink, H5Gmove, H5Gmove2, \
+     H5Fcreate, H5Fopen, H5Fclose,  H5Fflush, H5Fget_vfd_handle, \
+     H5Gcreate, H5Gopen, H5Gclose, H5Gunlink, H5Gmove2, \
      H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, \
      H5Dget_space, H5Dvlen_reclaim, \
-     H5Tget_native_type, H5Tget_super, H5Tget_class, H5Tcopy, \
      H5Tclose, H5Tis_variable_str, H5Tget_sign, \
-     H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
-     H5Aread, H5Aclose, H5Pcreate, H5Pclose, \
-     H5Pset_cache, H5Pset_sieve_buf_size, H5Pset_fapl_log, \
-     H5Pset_fapl_core, \
+     H5Adelete, \
+     H5Pcreate,  H5Pset_cache, \
      H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab, \
-     H5Screate_simple, H5Sget_simple_extent_ndims, \
-     H5Sget_simple_extent_dims, H5Sclose, \
+     H5Screate_simple, H5Sclose, \
      H5ATTRset_attribute, H5ATTRset_attribute_string, \
      H5ATTRget_attribute, H5ATTRget_attribute_string, \
      H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims, \
      H5ARRAYget_ndims, H5ARRAYget_info, \
      set_cache_size, get_objinfo, Giterate, Aiterate, H5UIget_info, \
-     get_len_of_range, get_order, set_order, is_complex, \
-     conv_float64_timeval32, truncate_dset
+     get_len_of_range,  conv_float64_timeval32, truncate_dset
 
 
 # Include conversion tables
@@ -491,8 +476,8 @@ cdef class AttributeSet:
       H5Tclose(type_id)
       return retvalue
     elif (rank == 0 and class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
-      dtype = get_dtype_scalar(type_id, class_id, type_size)
-      if dtype is None:
+      dtype_ = get_dtype_scalar(type_id, class_id, type_size)
+      if dtype_ is None:
         warnings.warn("""\
 Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
                       % (attrname, self.name, class_id), DataTypeWarning)
@@ -505,7 +490,7 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
       # Get the NumPy dtype from the type_id
       try:
         stype_, shape_ = HDF5ToNPExtType(type_id, pure_numpy_types=True)
-        dtype = numpy.dtype(stype_, shape_)
+        dtype_ = numpy.dtype(stype_, shape_)
       except TypeError:
         # This class is not supported. Instead of raising a TypeError, issue a
         # warning explaining the problem. This will allow to continue browsing
@@ -531,7 +516,7 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
     native_type_id = get_native_type(type_id)
 
     # Get the container for data
-    ndvalue = numpy.empty(dtype=dtype, shape=shape)
+    ndvalue = numpy.empty(dtype=dtype_, shape=shape)
     # Get the pointer to the buffer data area
     rbuf = ndvalue.data
     # Actually read the attribute from disk
@@ -820,14 +805,14 @@ cdef class Array(Leaf):
     cdef herr_t ret
     cdef void *rbuf
     cdef char *complib, *version, *class_
-    cdef object dtype, atom, shape
+    cdef object dtype_, atom, shape
     cdef ndarray dims
 
     # Get the HDF5 type associated with this numpy type
     shape = (<object>nparr).shape
     if _atom is None or _atom.shape == ():
-      dtype = nparr.dtype.base
-      atom = Atom.from_dtype(dtype)
+      dtype_ = nparr.dtype.base
+      atom = Atom.from_dtype(dtype_)
     else:
       atom = _atom
       shape = shape[:-len(atom.shape)]
@@ -1431,7 +1416,7 @@ cdef class VLArray(Leaf):
     cdef int rank
     cdef herr_t ret
     cdef hsize_t nrecords, chunksize
-    cdef object shape, dtype, type_
+    cdef object shape, type_
 
     # Open the dataset
     self.dataset_id = H5Dopen(self.parent_id, self.name)

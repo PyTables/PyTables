@@ -24,12 +24,6 @@ Misc variables:
     __version__
 """
 
-import sys
-import os
-import warnings
-import pickle
-import cPickle
-
 import numpy
 
 from tables.exceptions import HDF5ExtError
@@ -37,7 +31,6 @@ from hdf5Extension cimport Array
 
 
 # Types, constants, functions, classes & other objects from everywhere
-from libc.string cimport memcpy
 from numpy cimport \
      import_array, ndarray, \
      npy_intp, \
@@ -47,11 +40,7 @@ from numpy cimport \
      npy_int64, npy_uint64, \
      npy_float32, npy_float64
 
-from definitions cimport \
-     hid_t, herr_t, hsize_t, \
-     H5Dget_space, H5Screate_simple, H5Sclose
-
-
+from definitions cimport hid_t, herr_t, hsize_t, H5Screate_simple, H5Sclose
 from lrucacheExtension cimport NumCache
 
 

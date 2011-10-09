@@ -24,11 +24,6 @@ cdef extern from *:
 cdef extern from "time.h":
   ctypedef int time_t
 
-# Some helper routines from the Python API
-cdef extern from "Python.h":
-  # Functions for objects
-  int PyObject_AsReadBuffer(object obj, void **buffer, Py_ssize_t *buffer_len)
-
 
 #-----------------------------------------------------------------------------
 

@@ -16,9 +16,7 @@ from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Node
 
 from libc.stdlib cimport malloc, free
-from definitions cimport \
-     hid_t, herr_t, hbool_t, time_t, H5G_obj_t, \
-     H5G_UNKNOWN, H5G_GROUP, H5G_DATASET, H5G_TYPE, H5G_LINK
+from definitions cimport hid_t, herr_t, hbool_t, time_t, H5G_obj_t, H5G_LINK
 
 
 __version__ = "$Revision: 4270 $"
