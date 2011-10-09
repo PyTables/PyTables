@@ -36,16 +36,16 @@ import numpy
 
 from tables.exceptions import HDF5ExtError, DataTypeWarning
 
-from tables.utils import \
-     checkFileAccess, byteorders, correct_byteorder, SizeType
+from tables.utils import (checkFileAccess, byteorders, correct_byteorder,
+  SizeType)
 
 from tables.atom import Atom
 
 from tables.description import descr_from_dtype
 
-from tables.utilsExtension import encode_filename, setBloscMaxThreads, \
-     AtomToHDF5Type, AtomFromHDF5Type, \
-     HDF5ToNPExtType, createNestedType
+from tables.utilsExtension import (encode_filename, setBloscMaxThreads,
+  AtomToHDF5Type, AtomFromHDF5Type,
+  HDF5ToNPExtType, createNestedType)
 
 
 from utilsExtension cimport malloc_dims, get_native_type
@@ -58,29 +58,28 @@ from numpy cimport import_array, ndarray
 from cpython cimport PyString_AsString, PyString_FromStringAndSize
 
 
-from definitions cimport  \
-     uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
-     H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED, \
-     H5G_UNKNOWN, H5G_GROUP, H5G_DATASET, H5G_LINK, H5G_TYPE, \
-     H5T_class_t, H5T_sign_t, H5T_NATIVE_INT, \
-     H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
-     H5P_DEFAULT, H5P_FILE_ACCESS, \
-     H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB, \
-     H5Fcreate, H5Fopen, H5Fclose,  H5Fflush, H5Fget_vfd_handle, \
-     H5Gcreate, H5Gopen, H5Gclose, H5Gunlink, H5Gmove2, \
-     H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, \
-     H5Dget_space, H5Dvlen_reclaim, \
-     H5Tclose, H5Tis_variable_str, H5Tget_sign, \
-     H5Adelete, \
-     H5Pcreate,  H5Pset_cache, \
-     H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab, \
-     H5Screate_simple, H5Sclose, \
-     H5ATTRset_attribute, H5ATTRset_attribute_string, \
-     H5ATTRget_attribute, H5ATTRget_attribute_string, \
-     H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims, \
-     H5ARRAYget_ndims, H5ARRAYget_info, \
-     set_cache_size, get_objinfo, Giterate, Aiterate, H5UIget_info, \
-     get_len_of_range,  conv_float64_timeval32, truncate_dset
+from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
+  H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED,
+  H5G_UNKNOWN, H5G_GROUP, H5G_DATASET, H5G_LINK, H5G_TYPE,
+  H5T_class_t, H5T_sign_t, H5T_NATIVE_INT,
+  H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
+  H5P_DEFAULT, H5P_FILE_ACCESS,
+  H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
+  H5Fcreate, H5Fopen, H5Fclose,  H5Fflush, H5Fget_vfd_handle,
+  H5Gcreate, H5Gopen, H5Gclose, H5Gunlink, H5Gmove2,
+  H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
+  H5Dget_space, H5Dvlen_reclaim,
+  H5Tclose, H5Tis_variable_str, H5Tget_sign,
+  H5Adelete,
+  H5Pcreate,  H5Pset_cache,
+  H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
+  H5Screate_simple, H5Sclose,
+  H5ATTRset_attribute, H5ATTRset_attribute_string,
+  H5ATTRget_attribute, H5ATTRget_attribute_string,
+  H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims,
+  H5ARRAYget_ndims, H5ARRAYget_info,
+  set_cache_size, get_objinfo, Giterate, Aiterate, H5UIget_info,
+  get_len_of_range,  conv_float64_timeval32, truncate_dset)
 
 
 # Include conversion tables
@@ -268,10 +267,9 @@ cdef class File:
     # that the file or directory exists and permissions are right.
     checkFileAccess(name, pymode)
 
-    assert pymode in ('r', 'r+', 'a', 'w'), \
-           "an invalid mode string ``%s`` " \
-           "passed the ``checkFileAccess()`` test; " \
-           "please report this to the authors" % pymode
+    assert pymode in ('r', 'r+', 'a', 'w'), ("an invalid mode string ``%s`` "
+           "passed the ``checkFileAccess()`` test; "
+           "please report this to the authors" % pymode)
 
     # Should a new file be created?
     exists = os.path.exists(name)
@@ -478,9 +476,9 @@ cdef class AttributeSet:
     elif (rank == 0 and class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
       dtype_ = get_dtype_scalar(type_id, class_id, type_size)
       if dtype_ is None:
-        warnings.warn("""\
-Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
-                      % (attrname, self.name, class_id), DataTypeWarning)
+        warnings.warn("Unsupported type for attribute '%s' in node '%s'. "
+                      "Offending HDF5 class: %d" % (attrname, self.name,
+                                                    class_id), DataTypeWarning)
         self._v_unimplemented.append(attrname)
         return None
       shape = ()
@@ -495,9 +493,9 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
         # This class is not supported. Instead of raising a TypeError, issue a
         # warning explaining the problem. This will allow to continue browsing
         # native HDF5 files, while informing the user about the problem.
-        warnings.warn("""\
-Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
-                      % (attrname, self.name, class_id), DataTypeWarning)
+        warnings.warn("Unsupported type for attribute '%s' in node '%s'. "
+                      "Offending HDF5 class: %d" % (attrname, self.name,
+                                                    class_id), DataTypeWarning)
         self._v_unimplemented.append(attrname)
         return None
 
@@ -522,8 +520,8 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
     # Actually read the attribute from disk
     ret = H5ATTRget_attribute(dset_id, attrname, native_type_id, rbuf)
     if ret < 0:
-      raise HDF5ExtError("Attribute %s exists in node %s, but can't get it."\
-                         % (attrname, self.name))
+      raise HDF5ExtError("Attribute %s exists in node %s, but can't get it." %
+                         (attrname, self.name))
     H5Tclose(native_type_id)
     H5Tclose(type_id)
 
@@ -544,8 +542,8 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
 
     ret = H5Adelete(dset_id, attrname)
     if ret < 0:
-      raise HDF5ExtError("Attribute '%s' exists in node '%s', but cannot be deleted." \
-                         % (attrname, self.name))
+      raise HDF5ExtError("Attribute '%s' exists in node '%s', but cannot be "
+                         "deleted." % (attrname, self.name))
 
 
 
@@ -644,7 +642,7 @@ cdef class Group(Node):
     retvalue = None  # Default value
     gchild_id = H5Gopen(self.group_id, group_name)
     if gchild_id < 0:
-      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (group_name, self._v_pathname))
     retvalue = get_attribute_string_or_none(gchild_id, attr_name)
     # Close child group
@@ -666,7 +664,7 @@ cdef class Group(Node):
     # Open the dataset
     leaf_id = H5Dopen(self.group_id, leaf_name)
     if leaf_id < 0:
-      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (leaf_name, self._v_pathname))
     retvalue = get_attribute_string_or_none(leaf_id, attr_name)
     # Close the dataset
@@ -931,7 +929,7 @@ cdef class Array(Leaf):
     # Open the dataset
     self.dataset_id = H5Dopen(self.parent_id, self.name)
     if self.dataset_id < 0:
-      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()
@@ -1421,7 +1419,7 @@ cdef class VLArray(Leaf):
     # Open the dataset
     self.dataset_id = H5Dopen(self.parent_id, self.name)
     if self.dataset_id < 0:
-      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()

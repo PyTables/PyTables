@@ -31,8 +31,8 @@ from time import time
 from tables.description import Col
 from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
-from tables.utilsExtension import \
-     getNestedField, AtomFromHDF5Type, createNestedType
+from tables.utilsExtension import (getNestedField, AtomFromHDF5Type,
+  createNestedType)
 from tables.utils import SizeType
 
 from utilsExtension cimport get_native_type
@@ -43,20 +43,19 @@ from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp
 from numpy cimport import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM
 from cpython cimport PyString_AsString
-from definitions cimport \
-     H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
-     H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, \
-     hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, H5T_class_t, \
-     H5Gunlink, H5Fflush, H5Dopen, H5Dclose, H5Dread, H5Dget_type,\
-     H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pget_chunk, \
-     H5Pclose, H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, \
-     H5Sclose, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose, \
-     H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, \
-     H5Tget_native_type, H5Tget_member_value, H5Tinsert, \
-     H5Tget_class, H5Tget_super, H5Tget_offset, \
-     H5ATTRset_attribute_string, H5ATTRset_attribute, \
-     get_len_of_range, get_order, set_order, is_complex, \
-     conv_float64_timeval32, truncate_dset
+from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
+  H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
+  H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL,
+  H5Fflush, H5Dget_create_plist, H5Gunlink,
+  H5D_layout_t, H5Dopen, H5Dclose, H5Dread, H5Dget_type, H5Dget_space,
+  H5Pget_layout, H5Pget_chunk, H5Pclose,
+  H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose,
+  H5T_class_t, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose,
+  H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, H5Tget_native_type,
+  H5Tget_member_value, H5Tinsert, H5Tget_class, H5Tget_super, H5Tget_offset,
+  H5ATTRset_attribute_string, H5ATTRset_attribute,
+  get_len_of_range, get_order, set_order, is_complex,
+  conv_float64_timeval32, truncate_dset)
 
 from lrucacheExtension cimport ObjectCache, NumCache
 
@@ -344,13 +343,13 @@ cdef class Table(Leaf):
     # Open the dataset
     self.dataset_id = H5Dopen(self.parent_id, self.name)
     if self.dataset_id < 0:
-      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
 
     # Get the datatype on disk
     self.disk_type_id = H5Dget_type(self.dataset_id)
     if H5Tget_class(self.disk_type_id) != H5T_COMPOUND:
-        raise ValueError("Node ``%s`` is not a Table object" % \
+        raise ValueError("Node ``%s`` is not a Table object" %
                          (self._v_parent._v_leaves[self.name]._v_pathname))
     # Get the number of rows
     space_id = H5Dget_space(self.dataset_id)
@@ -1457,9 +1456,10 @@ cdef class Row:
 
     # We need to do a cast for recognizing negative row numbers!
     if <signed long long>self._nrow < 0:
-      return "Warning: Row iterator has not been initialized for table:\n  %s\n %s" % \
-             (self.table, \
-    "You will normally want to use this method in iterator contexts.")
+      return ("Warning: Row iterator has not been initialized for table:\n"
+              "  %s\n"
+              " You will normally want to use this method in iterator "
+              "contexts." % self.table)
 
     # Always return a copy of the row so that new data that is written
     # in self.IObuf doesn't overwrite the original returned data.
@@ -1471,14 +1471,15 @@ cdef class Row:
 
     # We need to do a cast for recognizing negative row numbers!
     if <signed long long>self._nrow < 0:
-      return "Warning: Row iterator has not been initialized for table:\n  %s\n %s" % \
-             (self.table, \
-    "You will normally want to use this object in iterator contexts.")
+      return ("Warning: Row iterator has not been initialized for table:\n"
+              "  %s\n"
+              " You will normally want to use this object in iterator "
+              "contexts." % self.table)
 
     tablepathname = self.table._v_pathname
     classname = self.__class__.__name__
-    return "%s.row (%s), pointing to row #%d" % \
-           (tablepathname, classname, self._nrow)
+    return "%s.row (%s), pointing to row #%d" %  (tablepathname, classname,
+                                                  self._nrow)
 
 
   def __repr__(self):

@@ -30,8 +30,8 @@ import numpy
 from libc.string cimport memcpy, strcmp
 from numpy cimport import_array, ndarray
 
-from tables.parameters import \
-     DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
+from tables.parameters import (DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES,
+  LOWEST_HIT_RATIO)
 
 
 
@@ -262,8 +262,8 @@ cdef class BaseCache:
 
 
   def __repr__(self):
-    return "<%s(%s) (%d elements)>" % \
-           (self.name, str(self.__class__), self.nslots)
+    return "<%s(%s) (%d elements)>" % (self.name, str(self.__class__),
+                                       self.nslots)
 
 
 
@@ -282,8 +282,8 @@ cdef class ObjectNode:
 
 
   def __repr__(self):
-    return "<%s %s (slot #%s) => %s>" % \
-           (self.__class__, self.key, self.nslot, self.object)
+    return "<%s %s (slot #%s) => %s>" % (self.__class__, self.key, self.nslot,
+                                         self.object)
 
 
 ########################################################################
@@ -453,9 +453,8 @@ cdef class ObjectCache(BaseCache):
     return """<%s(%s)
   (%d maxslots, %d slots used, %.3f KB cachesize,
   hit ratio: %.3f, disabled? %s)>
-  """ % \
-           (self.name, str(self.__class__), self.nslots, self.nextslot,
-            self.cachesize / 1024., hitratio, self.iscachedisabled)
+  """ % (self.name, str(self.__class__), self.nslots, self.nextslot,
+         self.cachesize / 1024., hitratio, self.iscachedisabled)
 
 
 ###################################################################
@@ -627,9 +626,8 @@ cdef class NumCache(BaseCache):
     return """<%s(%s)
   (%d maxslots, %d slots used, %.3f KB cachesize,
   hit ratio: %.3f, disabled? %s)>
-  """ % \
-  (self.name, str(self.__class__), self.nslots, self.nextslot,
-   cachesize, hitratio, self.iscachedisabled)
+  """ % (self.name, str(self.__class__), self.nslots, self.nextslot,
+         cachesize, hitratio, self.iscachedisabled)
 
 
 

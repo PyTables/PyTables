@@ -33,32 +33,29 @@ from tables.utils import checkFileAccess
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcpy, strncpy, strcmp, strdup
 from cpython cimport PyString_AsString, PyString_FromString
-from numpy cimport \
-     import_array, ndarray, dtype, \
-     NPY_INT64, npy_int64, \
-     PyArray_DescrFromType
+from numpy cimport (import_array, ndarray, dtype,
+  NPY_INT64, npy_int64,
+  PyArray_DescrFromType)
 
-from definitions cimport \
-     H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
-     hid_t, herr_t, hsize_t, hssize_t, htri_t, \
-     H5T_class_t, H5D_layout_t, H5T_sign_t, \
-     H5Fopen, H5Fclose, H5Fis_hdf5, H5Gopen, H5Gclose, \
-     H5Dopen, H5Dclose, H5Dget_type, \
-     H5Tcreate, H5Tcopy, H5Tclose, \
-     H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, \
-     H5Tget_member_value, H5Tget_size, H5Tget_native_type, \
-     H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, \
-     H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tarray_create, \
-     H5Tget_array_ndims, H5Tget_array_dims, H5Tis_variable_str, \
-     H5Tset_size, H5Tset_precision, H5Tpack, \
-     H5ATTRget_attribute_string, H5ATTRfind_attribute, \
-     H5ARRAYget_ndims, H5ARRAYget_info, \
-     create_ieee_complex64, create_ieee_complex128, \
-     get_order, set_order, is_complex, \
-     get_len_of_range, \
-     PyArray_Scalar, \
-     register_blosc
-
+from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
+  H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
+  H5Fopen, H5Fclose, H5Fis_hdf5,
+  H5Gopen, H5Gclose,
+  H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
+  H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
+  H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
+  H5Tget_member_value, H5Tget_size, H5Tget_native_type,
+  H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset,
+  H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tarray_create,
+  H5Tget_array_ndims, H5Tget_array_dims, H5Tis_variable_str,
+  H5Tset_size, H5Tset_precision, H5Tpack,
+  H5ATTRget_attribute_string, H5ATTRfind_attribute,
+  H5ARRAYget_ndims, H5ARRAYget_info,
+  create_ieee_complex64, create_ieee_complex128,
+  get_order, set_order, is_complex,
+  get_len_of_range,
+  PyArray_Scalar,
+  register_blosc)
 
 
 # Include conversion tables & type
@@ -384,9 +381,8 @@ def whichLibVersion(char *name):
   elif strcmp(name, "blosc") == 0:
     return (blosc_version, blosc_version_string, blosc_version_date)
   else:
-    raise ValueError("""\
-asked version of unsupported library ``%s``; \
-supported library names are ``%s``""" % (name, libnames))
+    raise ValueError("asked version of unsupported library ``%s``; "
+                     "supported library names are ``%s``" % (name, libnames))
 
   # A supported library was specified, but no version is available.
   return None
@@ -605,8 +601,8 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
   atom = AtomFromHDF5Type(baseId)
   H5Tclose(baseId)
   if atom.kind not in ('int', 'uint'):
-    raise NotImplementedError("""\
-sorry, only integer concrete values are supported at this moment""")
+    raise NotImplementedError("sorry, only integer concrete values are "
+                              "supported at this moment")
 
   dtype = atom.dtype
   npvalue = numpy.array((0,), dtype=dtype)
