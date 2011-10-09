@@ -42,8 +42,9 @@ from hdf5Extension cimport Leaf
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp
 from numpy cimport import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM
+from cpython cimport PyString_AsString
 from definitions cimport \
-     PyString_AsString, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
+     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, \
      hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, H5T_class_t, \

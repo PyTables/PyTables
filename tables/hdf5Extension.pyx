@@ -60,11 +60,14 @@ from utilsExtension cimport malloc_dims, get_native_type
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup
 from numpy cimport import_array, ndarray, dtype
-from definitions cimport  \
-     Py_ssize_t, PyObject_AsReadBuffer, \
-     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
-     PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
+from cpython cimport \
      Py_INCREF, Py_DECREF, \
+     PyString_AsString, PyString_FromStringAndSize, \
+     PyDict_Contains, PyDict_GetItem
+
+from definitions cimport  \
+     PyObject_AsReadBuffer, \
+     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      time_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
      H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED, \
      H5G_UNKNOWN, H5G_GROUP, H5G_DATASET, H5G_LINK, H5G_TYPE, \

@@ -32,13 +32,13 @@ from tables.utils import checkFileAccess
 
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcpy, strncpy, strcmp, strdup
+from cpython cimport PyString_AsString, PyString_FromString
 from numpy cimport \
      import_array, ndarray, dtype, \
      NPY_INT64, npy_int64, \
      PyArray_DescrFromType
 
 from definitions cimport \
-     PyString_AsString, PyString_FromString, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      hid_t, herr_t, hsize_t, hssize_t, htri_t, \
      H5T_class_t, H5D_layout_t, H5T_sign_t, \
