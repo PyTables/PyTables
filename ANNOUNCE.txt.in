@@ -3,15 +3,20 @@
 ===========================
 
 
-#XXX some general blurb XXX#
+This is bugfix release. The upgrading is recommended for all that are
+running PyTables in production environments.
 
 
 What's new
 ==========
 
-#XXX version-specific blurb XXX#
+This release includes a small amount of changes.  It only fixes a couple of
+bugs that are considered serious even if they should not impact a large
+number of users:
 
-As always, a large amount of bugs have been addressed and squashed too.
+- :issue:`113` caused installation of PyTables 2.3 to fail on hosts with
+  multiple python versions installed.
+- :issue:`111` prevented to read scalar datasets of UnImplemented types.
 
 In case you want to know more in detail what has changed in this
 version, have a look at:
