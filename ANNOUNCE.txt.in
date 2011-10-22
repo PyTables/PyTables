@@ -3,14 +3,14 @@
 ===========================
 
 
-This is bugfix release. The upgrading is recommended for all that are
+This is a bugfix release. Upgrading is recommended for users that are
 running PyTables in production environments.
 
 
 What's new
 ==========
 
-This release includes a small amount of changes.  It only fixes a couple of
+This release includes a small number of changes.  It only fixes a couple of
 bugs that are considered serious even if they should not impact a large
 number of users:
 
