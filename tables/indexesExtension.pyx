@@ -166,7 +166,7 @@ def keysort(ndarray array1, ndarray array2):
     #array2[:] = array2[sidx]
     #return 0
   else:
-    raise ValueError, "This shouldn't happen!"
+    raise ValueError("This shouldn't happen!")
 
 
 # Classes

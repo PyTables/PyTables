@@ -72,7 +72,7 @@ cdef class NodeCache:
     the least-recently-used ones will be discarded."""
 
     if nslots < 0:
-      raise ValueError, "Negative number (%s) of slots!" % nslots
+      raise ValueError("Negative number (%s) of slots!" % nslots)
     self.nslots = nslots;  self.nextslot = 0
     self.nodes = [];  self.paths = []
 
@@ -165,7 +165,7 @@ cdef class BaseCache:
   def __init__(self, long nslots, object name):
 
     if nslots < 0:
-      raise ValueError, "Negative number (%s) of slots!" % nslots
+      raise ValueError("Negative number (%s) of slots!" % nslots)
     self.setcount = 0;  self.getcount = 0;  self.containscount = 0
     self.enablecyclecount = 0;  self.disablecyclecount = 0
     self.iscachedisabled = False  # Cache is enabled by default

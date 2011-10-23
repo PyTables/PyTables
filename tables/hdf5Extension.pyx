@@ -771,7 +771,7 @@ cdef class Leaf(Node):
     elif classname in ('Table', 'VLArray'):
       self.nrows = size
     else:
-      raise ValueError, "Unexpected classname:", classname
+      raise ValueError("Unexpected classname: %s" % classname)
 
 
   def _g_flush(self):
