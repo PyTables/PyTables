@@ -3,30 +3,32 @@
 # please use ``setup.py`` as described in the ``README.txt`` file.
 
 VERSION = $(shell cat VERSION)
-SRCDIRS = tables src doc
-
+SRCDIRS = src doc
+PYTHON = python
 GENERATED = ANNOUNCE.txt
 
 
-.PHONY:		dist clean distclean
+.PHONY:		all dist clean distclean
 
-dist:		$(GENERATED)
+all:		$(GENERATED)
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
-	python setup.py sdist
-	cp doc/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
-	tar -C doc -cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz html
+
+dist:		all
+	$(PYTHON) setup.py sdist
 	cd dist && md5sum tables-$(VERSION).tar.gz > pytables-$(VERSION).md5 && cd -
+	cp RELEASE_NOTES.txt dist/RELEASE_NOTES-$(VERSION).txt
+	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
 
 clean:
-	rm -rf MANIFEST build dist doc/build
+	rm -rf MANIFEST build dist
 	rm -f $(GENERATED) tables/*.so tables/numexpr/*.so
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
 
-distclean: clean
-	rm -rf doc/html
-	rm -f doc/usersguide-*.pdf
+distclean:	clean
+	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
 	rm -f tables/_comp_*.c tables/*Extension.c tables/linkExtension.pyx
+	#git clean -fdx
 
 %:		%.in VERSION
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"

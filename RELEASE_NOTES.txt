@@ -6,6 +6,17 @@
 :Contact: pytables@googlemail.com
 
 
+Changes from 2.3 to 2.3.1
+=========================
+
+- Fixed a bug that prevented to read scalar datasets of UnImplemented types
+  (closes :issue:`111`). Thanks to Kamil Kisiel.
+
+- Fixed a bug in `setup.py` that caused installation of PyTables 2.3 to fail
+  on hosts with multiple python versions installed (closes :issue:`113`).
+  Thanks to sbinet.
+
+
 Changes from 2.2.1 to 2.3
 =========================
 

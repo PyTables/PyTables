@@ -2,29 +2,21 @@
  Announcing PyTables @VERSION@
 ===========================
 
-We are happy to announce PyTables 2.3.
-This release comes after abour 10 months of development and after that
-Francesc Altet, the creator of PyTables, ceased activities with the project.
 
-Thank you Francesc.
+This is a bugfix release. Upgrading is recommended for users that are
+running PyTables in production environments.
 
 
 What's new
 ==========
 
-The main new features in 2.3 series are:
+This release includes a small number of changes.  It only fixes a couple of
+bugs that are considered serious even if they should not impact a large
+number of users:
 
-* PyTables now includes the codebase of PyTables Pro (now release under open
-  source license) gaining a lot of perfotmance improvements and some new
-  features like:
-  
-  - the new and powerful indexing engine: OPSI
-  - a fine-tuned LRU cache for both metadata (nodes) and regular data
-  
-* The entire documentation set has been converted to ReStructuredTest and
-  Sphinx
-
-As always, a large amount of bugs have been addressed and squashed too.
+- :issue:`113` caused installation of PyTables 2.3 to fail on hosts with
+  multiple python versions installed.
+- :issue:`111` prevented to read scalar datasets of UnImplemented types.
 
 In case you want to know more in detail what has changed in this
 version, have a look at:

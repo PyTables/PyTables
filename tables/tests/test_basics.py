@@ -1588,6 +1588,18 @@ class CheckFileTestCase(common.PyTablesTestCase):
         finally:
             h5file.close()
 
+    def test04c_UnImplementedScalar(self):
+        """Checking opening of HDF5 files containing scalar dataset of
+        UnImlemented type"""
+
+        h5file = openFile(self._testFilename("scalar.h5"))
+        try:
+            node = self.assertWarns(
+                UserWarning, h5file.getNode, '/variable length string')
+            self.assertTrue(isinstance(node, UnImplemented))
+        finally:
+            h5file.close()
+
     def test05_copyUnimplemented(self):
         """Checking that an UnImplemented object cannot be copied"""
 
