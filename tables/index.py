@@ -204,15 +204,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         "Accessor for the `Table` object of this index.")
 
     nblockssuperblock = property(
-        lambda self: self.superblocksize / self.blocksize, None, None,
+        lambda self: self.superblocksize // self.blocksize, None, None,
         "The number of blocks in a superblock.")
 
     nslicesblock = property(
-        lambda self: self.blocksize / self.slicesize, None, None,
+        lambda self: self.blocksize // self.slicesize, None, None,
         "The number of slices in a block.")
 
     nchunkslice = property(
-        lambda self: self.slicesize / self.chunksize, None, None,
+        lambda self: self.slicesize // self.chunksize, None, None,
         "The number of chunks in a slice.")
 
     def _g_nsuperblocks(self):
@@ -236,11 +236,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         "The total number of blocks in index.")
 
     nslices = property(
-        lambda self: self.nelements / self.slicesize, None, None,
+        lambda self: self.nelements // self.slicesize, None, None,
         "The number of complete slices in index.")
 
     nchunks = property(
-        lambda self: self.nelements / self.chunksize, None, None,
+        lambda self: self.nelements // self.chunksize, None, None,
         "The number of complete chunks in index.")
 
     shape = property(
@@ -609,7 +609,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             offset = lbucket-((nrow*(slicesize%lbucket))%lbucket)
             idx[0:offset] = 0
             for i in xrange(offset, slicesize, lbucket):
-                idx[i:i+lbucket] = (i+lbucket-1)/lbucket
+                idx[i:i+lbucket] = (i+lbucket-1)//lbucket
             if indsize == 2:
                 # Add a second offset in this case
                 # First normalize the number of rows
@@ -680,16 +680,17 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         larr, arr, idx = self.initial_append(xarr, nrows, reduction)
         # Save the sorted array
         sorted.append(arr.reshape(1, arr.size))
-        cs = self.chunksize/reduction;  ncs = self.nchunkslice
+        cs = self.chunksize//reduction
+        ncs = self.nchunkslice
         # Save ranges & bounds
         ranges.append([[arr[0], larr]])
         bounds.append([arr[cs::cs]])
         abounds.append(arr[0::cs])
         zbounds.append(arr[cs-1::cs])
         # Compute the medians
-        smedian = arr[cs/2::cs]
+        smedian = arr[cs//2::cs]
         mbounds.append(smedian)
-        mranges.append([smedian[ncs/2]])
+        mranges.append([smedian[ncs//2]])
         if profile: show_stats("Before deleting arr & smedian", tref)
         del arr, smedian   # delete references
         if profile: show_stats("After deleting arr & smedian", tref)
@@ -1076,7 +1077,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             print "Copying temporary data..."
         # tmp -> index
         reduction = self.reduction
-        cs = self.chunksize//reduction;  ncs = self.nchunkslice
+        cs = self.chunksize//reduction
+        ncs = self.nchunkslice
         tmp = self.tmp
         for i in xrange(self.nslices):
             # Copy sorted & indices slices
@@ -1089,9 +1091,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # Compute start, stop & median bounds and ranges
             self.abounds.append(sorted[0::cs])
             self.zbounds.append(sorted[cs-1::cs])
-            smedian = sorted[cs/2::cs]
+            smedian = sorted[cs//2::cs]
             self.mbounds.append(smedian)
-            self.mranges.append([smedian[ncs/2]])
+            self.mranges.append([smedian[ncs//2]])
             del sorted, smedian   # delete references
             # Now that sorted is gone, we can copy the indices
             indices = tmp.indices[i]
@@ -1141,11 +1143,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             ns = offset + i;
             if ns == self_nslices:
                 # The number of complete chunks in the last row
-                ncs2 = self.nelementsILR / cs
+                ncs2 = self.nelementsILR // cs
             # Get slices in new order
             for j in xrange(ncs2):
                 idx = neworder[i*ncs+j]
-                ins = idx / ncs;  inc = (idx - ins*ncs)*cs
+                ins = idx // ncs
+                inc = (idx - ins*ncs)*cs
                 ins += offset
                 nc = j * cs
                 if ins == self_nslices:
@@ -1190,7 +1193,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if ncb2 <= 1:
                 # if only zero or one chunks remains we are done
                 break
-            nslices = ncb2/ncs
+            nslices = ncb2//ncs
             bounds = boundsobj[nblock*ncb:nblock*ncb+ncb2]
             # Do this only if lastrow elements can cross block boundaries
             if (nblock == self.nblocks - 1 and  # last block
@@ -1274,9 +1277,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         tmp.abounds[nslice*ncs:(nslice+1)*ncs] = ssorted[0::cs]
         tmp.zbounds[nslice*ncs:(nslice+1)*ncs] = ssorted[cs-1::cs]
         # update median bounds
-        smedian = ssorted[cs/2::cs]
+        smedian = ssorted[cs//2::cs]
         tmp.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
-        tmp.mranges[nslice] = smedian[ncs/2]
+        tmp.mranges[nslice] = smedian[ncs//2]
 
 
     def reorder_slices(self, tmp):
@@ -1310,7 +1313,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             tmp_sorted = tmp.sorted; tmp_indices = tmp.indices
         cs = self.chunksize
         ss = self.slicesize
-        nsb = self.blocksize / self.slicesize
+        nsb = self.blocksize // self.slicesize
         nslices = self.nslices
         nblocks = self.nblocks
         nelementsLR = self.nelementsILR
@@ -1972,12 +1975,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 elif indsize == 2:
                     # The chunkmap size cannot be never larger than 'int_'
                     idx = idx.astype("int_")
-                    offset = long((nslice/nsb)*bucketsinblock)
+                    offset = long((nslice//nsb)*bucketsinblock)
                     idx += offset
                 elif indsize == 1:
                     # The chunkmap size cannot be never larger than 'int_'
                     idx = idx.astype("int_")
-                    offset = (nslice*ss)/lbucket
+                    offset = (nslice*ss)//lbucket
                     idx += offset
                 chunkmap[idx] = True
         # The case lbucket < nrowsinchunk should only happen in tests

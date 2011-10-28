@@ -318,7 +318,7 @@ class BasicTestCase(unittest.TestCase):
                 carray[self.wslice] = carray[self.wslice] * 2 + 3
             elif sum(object[self.slices].shape) != 0:
                 object = object * 2 + 3
-                if reduce(lambda x,y:x*y, object.shape) > 0:
+                if numpy.prod(object.shape) > 0:
                     carray[self.slices] = carray[self.slices] * 2 + 3
             # Cast again object to its original type
             object = numpy.array(object, dtype=carray.atom.dtype)

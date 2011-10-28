@@ -2,7 +2,7 @@ import unittest
 import os
 import tempfile
 import random
-import new
+import types
 
 import numpy
 
@@ -2284,7 +2284,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Append more rows in already created indexes
         count = 0
-        for i in xrange(0, self.nrows/2, self.nrep):
+        for i in xrange(0, self.nrows//2, self.nrep):
             for j in range(self.nrep):
                 if self.random:
                     k = random.randrange(self.nrows)
@@ -2818,7 +2818,7 @@ class SV1aTestCase(SelectValuesTestCase):
 
 class SV1bTestCase(SV1aTestCase):
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
-    chunkshape = blocksizes[2]/2**9
+    chunkshape = blocksizes[2]//2**9
     buffersize = chunkshape*5
 
 class SV2aTestCase(SelectValuesTestCase):
@@ -2833,7 +2833,7 @@ class SV2aTestCase(SelectValuesTestCase):
 
 class SV2bTestCase(SV2aTestCase):
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
-    chunkshape = blocksizes[2]/2**7
+    chunkshape = blocksizes[2]//2**7
     buffersize = chunkshape*20
 
 class SV3aTestCase(SelectValuesTestCase):
@@ -3213,7 +3213,7 @@ def iclassdata():
 # Create test classes.
 for (cname, cbasenames, cdict) in iclassdata():
     cbases = tuple(eval(cbase) for cbase in cbasenames)
-    class_ = new.classobj(cname, cbases, cdict)
+    class_ = types.ClassType(cname, cbases, cdict)
     exec '%s = class_' % cname
 
 

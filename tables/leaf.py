@@ -359,7 +359,7 @@ class Leaf(Node):
 
         # Compute the chunksize
         MB = 1024 * 1024
-        expectedsizeinMB = (expectedrows * rowsize) / MB
+        expectedsizeinMB = (expectedrows * rowsize) // MB
         chunksize = calc_chunksize(expectedsizeinMB)
 
         maindim = self.maindim
@@ -577,7 +577,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 raise IndexError(
                     "Coordinate indexing array has incompatible shape")
             elif len(key.shape) == 2:
-                if key.shape[0] <> len(self.shape):
+                if key.shape[0] != len(self.shape):
                     raise IndexError(
                         "Coordinate indexing array has incompatible shape")
                 coords = numpy.asarray(key, dtype="i8")

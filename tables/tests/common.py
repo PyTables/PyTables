@@ -17,6 +17,15 @@ import warnings
 import sys
 import time
 
+try:
+    # collections.Callable is new in python 2.6
+    from collections import Callable
+except ImportError:
+    is_callable = callable
+else:
+    def is_callable(x):
+        return isinstance(x, Callable)
+
 import numpy
 
 # numarray and Numeric has serious problems with Python2.5 and 64-bit
@@ -284,7 +293,7 @@ class MetaPyTablesTestCase(type):
     def __new__(class_, name, bases, dict_):
         newdict = {}
         for (aname, avalue) in dict_.iteritems():
-            if callable(avalue) and aname.startswith('test'):
+            if is_callable(avalue) and aname.startswith('test'):
                 avalue = pyTablesTest(avalue)
             newdict[aname] = avalue
         return type.__new__(class_, name, bases, newdict)
