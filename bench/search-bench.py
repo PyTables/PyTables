@@ -268,7 +268,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
                 results = [p.nrow for p in table
                            if float(rnd) <= p["var3"] < float(val)]
         else:
-            raise ValueError, "Value for atom '%s' not supported." % atom
+            raise ValueError("Value for atom '%s' not supported." % atom)
         rowselected += len(results)
         #print "selected values-->", results
         if i == 0:
@@ -466,7 +466,7 @@ if __name__=="__main__":
         elif option[0] == '-m':
             indexmode = option[1]
             if indexmode not in supported_imodes:
-                raise ValueError, "Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode)
+                raise ValueError("Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode))
         elif option[0] == '-n':
             nrows = int(float(option[1])*1000)
         elif option[0] == '-N':

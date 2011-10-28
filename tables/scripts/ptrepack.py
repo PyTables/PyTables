@@ -111,7 +111,10 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
                                                     title=title,
                                                     filters=filters)
                 else:
-                    raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired."
+                    raise RuntimeError("Please check that the node names are "
+                                       "not duplicated in destination, and "
+                                       "if so, add the --overwrite-nodes "
+                                       "flag if desired.")
     else:
         # The destination file does not exist or will be overwritten.
         dstfileh = openFile(dstfile, 'w', title=title, filters=filters,
@@ -135,7 +138,9 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
         # Close all the open files:
         srcfileh.close()
         dstfileh.close()
-        raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired."
+        raise RuntimeError("Please check that the node names are not "
+                           "duplicated in destination, and if so, add "
+                           "the --overwrite-nodes flag if desired.")
 
     # Upgrade flavors in dstNode, if required
     if upgradeflavors and srcfileh.format_version.startswith("1"):
@@ -185,7 +190,10 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                                                     title=title,
                                                     filters=filters)
                 else:
-                    raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired."
+                    raise RuntimeError("Please check that the node names are "
+                                       "not duplicated in destination, and "
+                                       "if so, add the --overwrite-nodes "
+                                       "flag if desired.")
     else:
         # The destination file does not exist or will be overwritten.
         dstfileh = openFile(dstfile, 'w', title=title, filters=filters,
@@ -214,7 +222,11 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
         # Close all the open files:
         srcfileh.close()
         dstfileh.close()
-        raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired. In particular, pay attention that rootUEP is not fooling you."
+        raise RuntimeError("Please check that the node names are not "
+                           "duplicated in destination, and if so, add the "
+                           "--overwrite-nodes flag if desired. In "
+                           "particular, pay attention that rootUEP is not "
+                           "fooling you.")
 
     # Upgrade flavors in dstNode, if required
     if upgradeflavors and srcfileh.format_version.startswith("1"):
