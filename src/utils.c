@@ -180,7 +180,6 @@ PyObject *get_filter_names( hid_t loc_id,
  int      i, j;
  int      nf;             /* number of filters */
  unsigned filt_flags;     /* filter flags */
- H5Z_filter_t filt_id;       /* filter identification number */
  size_t   cd_nelmts;      /* filter client number of values */
  unsigned cd_values[20];  /* filter client data values */
  char     f_name[256];    /* filter name */
@@ -203,17 +202,17 @@ PyObject *get_filter_names( hid_t loc_id,
        cd_nelmts = 20;
 #if H5_USE_16_API || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7)
        /* 1.6.x */
-       filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
-			       cd_values, sizeof(f_name), f_name);
+       H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
+                     cd_values, sizeof(f_name), f_name);
 #else
        /* 1.7.x */
-       filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
-			       cd_values, sizeof(f_name), f_name, NULL);
+       H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
+                     cd_values, sizeof(f_name), f_name, NULL);
 #endif /* if H5_VERSION < "1.7" */
 
        filter_values = PyTuple_New(cd_nelmts);
        for (j=0;j<(long)cd_nelmts;j++) {
-	 PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
+         PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
        }
        PyMapping_SetItemString (filters, f_name, filter_values);
      }
@@ -264,15 +263,18 @@ int get_objinfo(hid_t loc_id, const char *name) {
 herr_t gitercb(hid_t loc_id, const char *name, void *data) {
   PyObject   **out_info=(PyObject **)data;
   PyObject   *strname;
-  herr_t     ret;            /* Generic return value         */
+  /* herr_t     ret; */           /* Generic return value         */
   H5G_stat_t statbuf;
   int        namedtypes = 0;
 
     /*
      * Get type of the object and check it.
      */
+    H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
+    /*
     ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
-/*     CHECK(ret, FAIL, "H5Gget_objinfo"); */
+    CHECK(ret, FAIL, "H5Gget_objinfo");
+    */
 
     strname = PyString_FromString(name);
     if (statbuf.type == H5G_GROUP) {
@@ -304,7 +306,7 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
 **
 ****************************************************************/
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
-  int i=0, ret;
+  int i=0;
   PyObject  *t, *tgroup, *tleave, *tlink, *tunknown;
   PyObject *info[4];
 
@@ -314,7 +316,7 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
   info[3] = tunknown = PyList_New(0);
 
   /* Iterate over all the childs behind loc_id (parent_id+loc_id) */
-  ret = H5Giterate(parent_id, name, &i, gitercb, info);
+  H5Giterate(parent_id, name, &i, gitercb, info);
 
   /* Create the tuple with the list of Groups and Datasets */
   t = PyTuple_New(4);
@@ -349,11 +351,10 @@ static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
 ****************************************************************/
 PyObject *Aiterate(hid_t loc_id) {
   unsigned int i = 0;
-  int ret;
   PyObject *attrlist;                  /* List where the attrnames are put */
 
   attrlist = PyList_New(0);
-  ret = H5Aiterate(loc_id, &i, (H5A_operator_t)aitercb, (void *)attrlist);
+  H5Aiterate(loc_id, &i, (H5A_operator_t)aitercb, (void *)attrlist);
 
   return attrlist;
 }
@@ -679,10 +680,12 @@ static H5T_order_t get_complex_order(hid_t type_id) {
 /* Return the byteorder of a HDF5 data type */
 /* This is actually an extension of H5Tget_order to handle complex types */
 herr_t get_order(hid_t type_id, char *byteorder) {
-  hid_t class_id;
   H5T_order_t h5byteorder;
+  /*
+  hid_t class_id;
 
   class_id = H5Tget_class(type_id);
+  */
 
   if (is_complex(type_id)) {
     h5byteorder = get_complex_order(type_id);
