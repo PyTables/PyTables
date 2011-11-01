@@ -9,6 +9,8 @@
 Changes from 2.3.1 to XXX
 =========================
 
+- Added a new function, `silenceHDF5Messages`, for suppressing HDF5 messages.
+  Closes :issue:`87`.
 - Use new style syntax for exception raising. Closes :issue:`93`.
 - Fixed most of the warnings related to py3k compatibility (see :issue:`92`).
 - Fixed pyflakes warnings (closes :issue:`102`).

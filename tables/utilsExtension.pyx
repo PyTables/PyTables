@@ -51,8 +51,10 @@ from definitions cimport import_array, ndarray, \
      get_order, set_order, is_complex, \
      get_len_of_range, NPY_INT64, npy_int64, dtype, \
      PyArray_DescrFromType, PyArray_Scalar, \
-     register_blosc
+     register_blosc, \
+     H5Eset_auto, H5Eprint
 
+from libc.stdio cimport stderr
 
 
 # Include conversion tables & type
@@ -473,6 +475,21 @@ def whichClass(hid_t loc_id, char *name):
 
   # Fallback
   return classId
+
+
+def silenceHDF5Messages(silence=True):
+    """Silence (or re-enable) messages from the HDF5 C library.
+
+    The *silence* parameter can be used control the behaviour and reset
+    the standard HDF5 logging.
+    """
+    cdef herr_t err
+    if silence:
+        err = H5Eset_auto(NULL, NULL)
+    else:
+        err = H5Eset_auto(<herr_t (*)(void*)>H5Eprint, stderr)
+    if err < 0:
+        raise HDF5ExtError("unable to configure HDF5 internal error handling")
 
 
 def getNestedField(recarray, fieldname):

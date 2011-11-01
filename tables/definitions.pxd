@@ -33,6 +33,8 @@ cdef extern from "string.h":
 cdef extern from "time.h":
   ctypedef int time_t
 
+from libc.stdio cimport FILE
+
 
 # Some helper routines from the Python API
 cdef extern from "Python.h":
@@ -453,6 +455,10 @@ cdef extern from "hdf5.h":
   int H5Pget_chunk(hid_t plist, int max_ndims, hsize_t *dims)
   herr_t H5Pset_fapl_core(hid_t fapl_id, size_t increment,
                           hbool_t backing_store)
+
+  # Error Handling Interface
+  herr_t H5Eset_auto(herr_t(*func)(void*), void *client_data)
+  herr_t H5Eprint(FILE *stream)
 
 
 # Specific HDF5 functions for PyTables

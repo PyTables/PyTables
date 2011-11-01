@@ -256,6 +256,14 @@ Global functions
     lzo and bzip2. If another
     name is given, a ValueError is raised.
 
+.. function:: silenceHDF5Messages(silence=True)
+
+   Silence (or re-enable) messages from the HDF5 C library.
+
+   The *silence* parameter can be used control the behaviour and reset the
+   standard HDF5 logging.
+
+
 .. _FileClassDescr:
 
 The File Class
