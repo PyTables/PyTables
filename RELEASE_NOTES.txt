@@ -6,6 +6,12 @@
 :Contact: pytables@googlemail.com
 
 
+Changes from 2.3.1 to XXX
+=========================
+
+@TBW
+
+
 Changes from 2.3 to 2.3.1
 =========================
 
