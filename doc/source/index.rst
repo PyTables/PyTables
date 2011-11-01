@@ -1,6 +1,7 @@
 ===================================
 Welcome to PyTable's documentation!
 ===================================
+
 PyTables is a package for managing hierarchical datasets and designed
 to efficiently and easily cope with extremely large amounts of data.
 You can download PyTables and use it for free. You can access documentation,
@@ -24,10 +25,6 @@ more developers, testers, and users.  If you are interested in being
 involved with this project, please contact us via `github`_ or the
 mailing list.
 
-The source code for PyTables may be found at the `GitHub project site`_.
-Or you may simply branch from the master branch using git::
-
-    git clone git@github.com:PyTables/PyTables.git
 
 --------
 Contents
@@ -36,8 +33,13 @@ Contents
 .. toctree::
     :maxdepth: 1
 
+    downloads
     usersguide/index
+    release_notes
+    project_pointers
+    development
     dev_team
+
 
 =============
 Helpful Links
@@ -48,7 +50,4 @@ Helpful Links
 * :ref:`search`
 
 
-.. _GitHub project site: https://github.com/PyTables
-
 .. _github: https://github.com/PyTables/PyTables
-
