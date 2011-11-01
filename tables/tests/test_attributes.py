@@ -1228,7 +1228,9 @@ class TypesTestCase(unittest.TestCase):
         if common.verbose:
             if sys.platform != 'win32':
                 # It seems that Windows cannot print this
-                print "pq -->", self.array.attrs.pq
+                print "pq -->", repr(self.array.attrs.pq)
+                # XXX: try to use repr instead
+                #print "pq -->", repr(self.array.attrs.pq)
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 
@@ -1288,7 +1290,7 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
             if common.verbose:
-                print "pq -->", `self.array.attrs.pq`
+                print "pq -->", repr(self.array.attrs.pq)
 
         assert_array_equal(self.array.attrs.pq,
                            numpy.array([u''], dtype="U1"))

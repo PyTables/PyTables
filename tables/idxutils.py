@@ -132,7 +132,7 @@ def ccs_ultralight(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0,1,2):
-        slicesize /= 2
+        slicesize //= 2
         slicesize += optlevel*slicesize
     elif optlevel in (3,4,5):
         slicesize *= optlevel-1
@@ -147,7 +147,7 @@ def ccs_light(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0,1,2):
-        slicesize /= 2
+        slicesize //= 2
     elif optlevel in (3,4,5):
         pass
     elif optlevel in (6,7,8):
@@ -163,15 +163,16 @@ def ccs_medium(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0,1,2):
-        slicesize /= 2
+        slicesize //= 2
     elif optlevel in (3,4,5):
         pass
     elif optlevel in (6,7,8):
-        chunksize /= 2
+        chunksize //= 2
     elif optlevel == 9:
         # Reducing the chunksize and enlarging the slicesize is the
         # best way to reduce the entropy with the current algorithm.
-        chunksize /= 2; slicesize *= 2
+        chunksize //= 2
+        slicesize *= 2
     return chunksize, slicesize
 
 
@@ -179,15 +180,16 @@ def ccs_full(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0,1,2):
-        slicesize /= 2
+        slicesize //= 2
     elif optlevel in (3,4,5):
         pass
     elif optlevel in (6,7,8):
-        chunksize /= 2
+        chunksize //= 2
     elif optlevel == 9:
         # Reducing the chunksize and enlarging the slicesize is the
         # best way to reduce the entropy with the current algorithm.
-        chunksize /= 2; slicesize *= 2
+        chunksize //= 2
+        slicesize *= 2
     return chunksize, slicesize
 
 

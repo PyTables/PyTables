@@ -10,7 +10,7 @@ Test module for queries on datasets
 """
 
 import re
-import new
+import types
 import unittest
 
 import numpy
@@ -105,7 +105,7 @@ def nested_description(classname, pos, shape=()):
     classdict = {}
     append_columns(classdict, shape=shape)
     classdict['_v_pos'] = pos
-    return new.classobj(classname, (tables.IsDescription,), classdict)
+    return types.ClassType(classname, (tables.IsDescription,), classdict)
 
 def table_description(classname, nclassname, shape=()):
     """
@@ -134,7 +134,7 @@ def table_description(classname, nclassname, shape=()):
     classdict['c_idxextra'] = idxextracol
     colpos += 1
 
-    return new.classobj(classname, (tables.IsDescription,), classdict)
+    return types.ClassType(classname, (tables.IsDescription,), classdict)
 
 TableDescription = table_description(
     'TableDescription', 'NestedDescription' )
@@ -181,15 +181,15 @@ def fill_table(table, shape, nrows):
             colname = 'c_%s' % type_
             ncolname = 'c_nested/%s' % colname
             if type_ == 'bool':
-                coldata = data > (row_period / 2)
+                coldata = data > (row_period // 2)
             elif type_ == 'string':
                 sdata = [str_format % x for x in range(value, value + size)]
                 coldata = numpy.array(sdata, dtype=sctype).reshape(shape)
             else:
                 coldata = numpy.asarray(data, dtype=sctype)
             row[ncolname] = row[colname] = coldata
-            row['c_extra'] = data - (row_period / 2)
-            row['c_idxextra'] = data - (row_period / 2)
+            row['c_extra'] = data - (row_period // 2)
+            row['c_idxextra'] = data - (row_period // 2)
         row.append()
         value += 1
         if value == row_period:
@@ -278,9 +278,9 @@ operators = [
 """Comparison operators to check with different types."""
 heavy_operators = frozenset(['~', '<=', '>=', '>', ('>', '>=')])
 """Comparison operators to be tested only in heavy mode."""
-left_bound = row_period / 4
+left_bound = row_period // 4
 """Operand of left side operator in comparisons with operator pairs."""
-right_bound = row_period * 3 / 4
+right_bound = row_period * 3 // 4
 """Operand of right side operator in comparisons with operator pairs."""
 extra_conditions = [
     '',                     # uses one index
@@ -432,7 +432,7 @@ for type_ in type_info:  # for type_ in ['string']:
             #tmethod.__doc__ += numfmt % testn
             tmethod.__doc__ += testfmt % testn
             ptmethod = common.pyTablesTest(tmethod)
-            imethod = new.instancemethod(ptmethod, None, TableDataTestCase)
+            imethod = types.MethodType(ptmethod, None, TableDataTestCase)
             setattr(TableDataTestCase, tmethod.__name__, imethod)
             testn += 1
 
@@ -526,7 +526,7 @@ def iclassdata():
 for cdatafunc in [niclassdata, iclassdata]:
     for (cname, cbasenames, cdict) in cdatafunc():
         cbases = tuple(eval(cbase) for cbase in cbasenames)
-        class_ = new.classobj(cname, cbases, cdict)
+        class_ = types.ClassType(cname, cbases, cdict)
         exec '%s = class_' % cname
 
 

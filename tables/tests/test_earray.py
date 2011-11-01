@@ -154,7 +154,7 @@ class BasicTestCase(unittest.TestCase):
                 if self.type == "string":
                     object__ = object_
                 else:
-                    object__ = object_ * (int(earray.nrow) / self.chunksize)
+                    object__ = object_ * (int(earray.nrow) // self.chunksize)
                     if self.flavor == "numeric":
                         object__ = object__.astype(typecode[earray.atom.type])
             object = object__[chunk]
@@ -235,7 +235,7 @@ class BasicTestCase(unittest.TestCase):
             if self.type == "string":
                 object__ = object_
             else:
-                object__ = object_ * (int(earray.nrow) / self.chunksize)
+                object__ = object_ * (int(earray.nrow) // self.chunksize)
                 if self.flavor == "numeric":
                     object__ = object__.astype(typecode[earray.atom.type])
             object = object__[index]
@@ -602,7 +602,7 @@ class BasicTestCase(unittest.TestCase):
                 earray[self.wslice] = earray[self.wslice] * 2 + 3
             elif sum(object[self.slices].shape) != 0:
                 object = object * 2 + 3
-                if reduce(lambda x,y:x*y, object.shape) > 0:
+                if numpy.prod(object.shape) > 0:
                     earray[self.slices] = earray[self.slices] * 2 + 3
         # Read all the array
         row = earray.__getitem__(self.slices)

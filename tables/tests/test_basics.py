@@ -1535,7 +1535,11 @@ class CheckFileTestCase(common.PyTablesTestCase):
         version = isPyTablesFile(file)
         # When file is not a PyTables format, always returns 0 or
         # negative value
-        self.assertTrue(version <= 0)
+        if common.verbose:
+            print
+            print "\nPyTables format version number ==> %s" % \
+              version
+        self.assertTrue(version is None)
 
         # Then, delete the file
         os.remove(file)
@@ -2298,7 +2302,8 @@ class BloscSubprocess(common.PyTablesTestCase):
         # Create a relatively large table with Blosc level 9 (large blocks)
         fn = tempfile.mktemp(prefix="multiproc-blosc9-", suffix=".h5")
         size = int(3e5)
-        sa = numpy.fromiter(((i, i**2, i/3) for i in xrange(size)), 'i4,i8,f8')
+        sa = numpy.fromiter(((i, i**2, i//3)
+                                        for i in xrange(size)), 'i4,i8,f8')
         fp = openFile(fn, 'w')
         fp.createTable(fp.root, 'table', sa,
                        filters=Filters(complevel=9, complib="blosc"),

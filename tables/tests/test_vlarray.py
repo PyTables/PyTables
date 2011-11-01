@@ -1298,8 +1298,8 @@ class TypesTestCase(unittest.TestCase):
         if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", `row[0]`
-            print "Second row in vlarray ==>", `row[1]`
+            print "First row in vlarray ==>", repr(row[0])
+            print "Second row in vlarray ==>", repr(row[1])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertEqual(row[0], "as4")
@@ -1528,8 +1528,8 @@ class TypesTestCase(unittest.TestCase):
         if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", `row[0]`
-            print "Second row in vlarray ==>", `row[1]`
+            print "First row in vlarray ==>", repr(row[0])
+            print "Second row in vlarray ==>", repr(row[1])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertEqual(row[0], u"as\xe4")
@@ -2676,13 +2676,13 @@ class ReadRangeTestCase(unittest.TestCase):
         self.assertTrue(len(row[2]), 5)
         for x in range(0,10,2):
             self.assertTrue(
-                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
+                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
             self.assertTrue(
-                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
+                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
             self.assertTrue(
-                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
+                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test04np_startstopstep(self):
         "Checking reads with a start, stop & step values (numpy indices)"
@@ -2710,13 +2710,13 @@ class ReadRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[2]), 5)
         for x in range(0,10,2):
             self.assertTrue(
-                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
+                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
             self.assertTrue(
-                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
+                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
             self.assertTrue(
-                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
+                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test04b_slices(self):
         "Checking reads with start, stop & step values in slices"
@@ -2744,13 +2744,13 @@ class ReadRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[2]), 5)
         for x in range(0,10,2):
             self.assertTrue(
-                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
+                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
             self.assertTrue(
-                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
+                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
             self.assertTrue(
-                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
+                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test04bnp_slices(self):
         "Checking reads with start, stop & step values in slices (numpy indices)"
@@ -2778,13 +2778,13 @@ class ReadRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[2]), 5)
         for x in range(0,10,2):
             self.assertTrue(
-                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
+                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
             self.assertTrue(
-                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
+                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
             self.assertTrue(
-                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
+                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test05_out_of_range(self):
         "Checking out of range reads"
@@ -3055,13 +3055,13 @@ class GetItemRangeTestCase(unittest.TestCase):
         self.assertTrue(len(row[2]), 5)
         for x in range(0,10,2):
             self.assertTrue(
-                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
+                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
             self.assertTrue(
-                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
+                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
             self.assertTrue(
-                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
+                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test04bnp_slices(self):
         "Checking reads with start, stop & step values (numpy indices)"
@@ -3089,13 +3089,13 @@ class GetItemRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[2]), 5)
         for x in range(0,10,2):
             self.assertTrue(
-                allequal(row[0][x/2], numpy.arange(x, dtype='int32')))
+                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
         for x in range(5,15,3):
             self.assertTrue(
-                allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32')))
+                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
         for x in range(0,100,20):
             self.assertTrue(
-                allequal(row[2][x/20], numpy.arange(x, dtype='int32')))
+                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test05_out_of_range(self):
         "Checking out of range reads"
@@ -4280,7 +4280,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         vlarr = self.vlarr
         for key in self.working_keyset:
             if common.verbose:
-                print "Selection to test:", `key`
+                print "Selection to test:", repr(key)
             a = nparr[key].tolist()
             b = vlarr[key]
             # if common.verbose:

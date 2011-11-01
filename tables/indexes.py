@@ -110,8 +110,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
             # The shape and chunkshape needs to be fixed here
             if name == "sorted":
                 reduction = parentNode.reduction
-                shape = (0, parentNode.slicesize/reduction)
-                chunkshape = (1, parentNode.chunksize/reduction)
+                shape = (0, parentNode.slicesize//reduction)
+                chunkshape = (1, parentNode.chunksize//reduction)
             else:
                 shape = (0, parentNode.slicesize)
                 chunkshape = (1, parentNode.chunksize)
