@@ -489,7 +489,7 @@ def silenceHDF5Messages(silence=True):
     if silence:
         err = H5Eset_auto(NULL, NULL)
     else:
-        err = H5Eset_auto(<herr_t (*)(void*)>H5Eprint, stderr)
+        err = H5Eset_auto(<herr_t (*)(void*) nogil>H5Eprint, stderr)
     if err < 0:
         raise HDF5ExtError("unable to configure HDF5 internal error handling")
 
