@@ -326,7 +326,7 @@ infinityF = math.ldexp(1.0, 128)
 # elif sys.byteorder == "big":
 #     testNaN = struct.unpack("d", '\x7f\xf0\x00\x00\x00\x00\x00\x01')[0]
 # else:
-#     raise ValueError, "Byteorder '%s' not supported!" % sys.byteorder
+#     raise ValueError("Byteorder '%s' not supported!" % sys.byteorder)
 # This one seems better
 testNaN = infinity - infinity
 

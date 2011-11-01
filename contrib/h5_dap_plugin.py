@@ -97,7 +97,7 @@ class Handler(BaseHandler):
                 name = c['name']
 
                 #if name not in self._file.variables and name not in self._file.dimensions:
-                #    raise ConstraintExpressionError, 'Variable %s not in dataset.' % name
+                #    raise ConstraintExpressionError('Variable %s not in dataset.' % name)
 
                 # Check if var is grid or array.
                 if name not in self._file.dimensions and '.' not in name:
