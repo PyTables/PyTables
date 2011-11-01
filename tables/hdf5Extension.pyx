@@ -273,7 +273,7 @@ cdef class File:
 
     # Should a new file be created?
     exists = os.path.exists(name)
-    self._v_new = new = not (
+    self._v_new = not (
       pymode in ('r', 'r+') or (pymode == 'a' and exists))
 
     access_plist = H5Pcreate(H5P_FILE_ACCESS)
@@ -854,14 +854,12 @@ cdef class Array(Leaf):
     cdef herr_t ret
     cdef void *rbuf
     cdef char *complib, *version, *class_
-    cdef int itemsize
     cdef ndarray dflts
     cdef void *fill_data
     cdef ndarray extdim
     cdef object atom
 
     atom = self.atom
-    itemsize = atom.itemsize
     self.disk_type_id = AtomToHDF5Type(atom, self.byteorder)
 
     self.rank = len(self.shape)

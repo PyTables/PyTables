@@ -107,9 +107,11 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   /* max_len_buffer will keep the likely output buffer size
      after processing the first chunk */
   static unsigned int max_len_buffer = 0;
-  int complevel = 1;
+  /* int complevel = 1; */
+#if (defined CHECKSUM || defined DEBUG)
   int object_version = 10;    	/* Default version 1.0 */
   int object_type = Table;      /* Default object type */
+#endif
 #ifdef CHECKSUM
   lzo_uint32 checksum;
 #endif
@@ -117,17 +119,21 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   /* Check arguments */
   /* For Table versions < 20, there were no parameters */
   if (cd_nelmts==1 ) {
-    complevel = cd_values[0];	/* This do nothing right now */
+    /* complevel = cd_values[0]; */ /* This do nothing right now */
   }
   else if (cd_nelmts==2 ) {
-    complevel = cd_values[0];	/* This do nothing right now */
+    /* complevel = cd_values[0]; */ /* This do nothing right now */
+#if (defined CHECKSUM || defined DEBUG)
     object_version = cd_values[1]; /* The table VERSION attribute */
+#endif
   }
   else if (cd_nelmts==3 ) {
-    complevel = cd_values[0];	/* This do nothing right now */
+    /* complevel = cd_values[0]; */ /* This do nothing right now */
+#if (defined CHECKSUM || defined DEBUG)
     object_version = cd_values[1]; /* The table VERSION attribute */
-    object_type = cd_values[2]; /* A tag for identifying the object 
+    object_type = cd_values[2]; /* A tag for identifying the object
 				   (see tables.h) */
+#endif
   }
 
 #ifdef DEBUG
@@ -172,7 +178,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
       printf("max_len_buffer -->%d\n", max_len_buffer);
 #endif /* DEBUG */
 
-      /* The assembler version is a 10% slower than the C version with 
+      /* The assembler version is a 10% slower than the C version with
 	 gcc 3.2.2 and gcc 3.3.3 */
 /*       status = lzo1x_decompress_asm_safe(*buf, (lzo_uint)nbytes, outbuf, */
 /* 				     &out_len, NULL); */
@@ -211,7 +217,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 #endif
       /* Compute the checksum */
       checksum=lzo_adler32(lzo_adler32(0,NULL,0), outbuf, out_len);
-  
+
       /* Compare */
       if (memcmp(&checksum, (unsigned char*)(*buf)+nbytes, 4)) {
 	ret_value = 0; /*fail*/

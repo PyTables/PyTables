@@ -807,8 +807,8 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
   """
   cdef H5T_sign_t  sign
   cdef hid_t       super_type_id, native_type_id
-  cdef H5T_class_t class_id, super_class_id
-  cdef size_t      itemsize, super_itemsize
+  cdef H5T_class_t class_id
+  cdef size_t      itemsize
   cdef object      stype, shape, shape2
   cdef hsize_t     *dims
 
@@ -874,10 +874,6 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
   elif class_id == H5T_ARRAY:
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
-    # Get the class
-    super_class_id = H5Tget_class(super_type_id)
-    # Get the itemsize
-    super_itemsize = H5Tget_size(super_type_id)
     # Find the super member format
     stype, shape2 = HDF5ToNPExtType(super_type_id, pure_numpy_types)
     # Get shape
@@ -927,7 +923,6 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
 def createNestedType(object desc, char *byteorder):
   """Create a nested type based on a description and return an HDF5 type."""
   cdef hid_t   tid, tid2
-  cdef herr_t  ret
   cdef size_t  offset
 
   tid = H5Tcreate(H5T_COMPOUND, desc._v_itemsize)
@@ -941,7 +936,7 @@ def createNestedType(object desc, char *byteorder):
       tid2 = createNestedType(obj, byteorder)
     else:
       tid2 = AtomToHDF5Type(obj, byteorder)
-    ret = H5Tinsert(tid, k, offset, tid2)
+    H5Tinsert(tid, k, offset, tid2)
     offset = offset + desc._v_dtype[k].itemsize
     # Release resources
     H5Tclose(tid2)

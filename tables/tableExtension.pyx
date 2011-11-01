@@ -246,7 +246,6 @@ cdef class Table(Leaf):
     cdef H5T_class_t class_id
     cdef char    byteorder2[11]  # "irrelevant" fits easily here
     cdef char    *sys_byteorder
-    cdef herr_t  ret
     cdef object  desc, colobj, colpath2, typeclassname, typeclass
     cdef object  byteorder
 
@@ -293,7 +292,7 @@ cdef class Table(Leaf):
             field_byteorders.append("big")
         elif colobj.kind in ['int', 'uint', 'float', 'complex', 'enum']:
           # Keep track of the byteorder for this column
-          ret = get_order(member_type_id, byteorder2)
+          get_order(member_type_id, byteorder2)
           if str(byteorder2) in ["little", "big"]:
             field_byteorders.append(byteorder2)
 
