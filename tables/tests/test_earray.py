@@ -116,7 +116,6 @@ class BasicTestCase(unittest.TestCase):
     def test01_iterEArray(self):
         """Checking enlargeable array iterator"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_iterEArray..." % self.__class__.__name__
@@ -193,7 +192,6 @@ class BasicTestCase(unittest.TestCase):
     def test02_sssEArray(self):
         """Checking enlargeable array iterator with (start, stop, step)"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_sssEArray..." % self.__class__.__name__
@@ -258,7 +256,6 @@ class BasicTestCase(unittest.TestCase):
     def test03_readEArray(self):
         """Checking read() of enlargeable arrays"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_readEArray..." % self.__class__.__name__
@@ -385,7 +382,6 @@ class BasicTestCase(unittest.TestCase):
     def test04_getitemEArray(self):
         """Checking enlargeable array __getitem__ special method"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_getitemEArray..." % self.__class__.__name__
@@ -446,7 +442,6 @@ class BasicTestCase(unittest.TestCase):
             else:
                 object__[j:j+self.chunksize] = object_ * i
 
-        stop = self.stop
         if self.nappends:
             # Swap the axes again to have normal ordering
             if self.flavor == "numpy":
@@ -493,7 +488,6 @@ class BasicTestCase(unittest.TestCase):
     def test05_setitemEArray(self):
         """Checking enlargeable array __setitem__ special method"""
 
-        rootgroup = self.rootgroup
         if self.__class__.__name__ == "Ellipsis6EArrayTestCase":
             # We have a problem with test design here, but I think
             # it is not worth the effort to solve it
@@ -562,7 +556,6 @@ class BasicTestCase(unittest.TestCase):
                 #earray[j:j+self.chunksize] = object_ * i
                 #earray[self.slices] = 1
 
-        stop = self.stop
         if self.nappends:
             # Swap the axes again to have normal ordering
             if self.flavor == "numpy":

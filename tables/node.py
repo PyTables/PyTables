@@ -697,7 +697,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             newpath = newparent
         else:
             raise TypeError( "new parent is not a node nor a path: %r"
-                             % (dstParent,) )
+                             % (newparent,) )
 
         # Validity checks on arguments.
         # Is it in the same file?
@@ -857,12 +857,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_checkGroup(dstParent)  # Is it a group?
 
         # Copying to another file with undo enabled?
-        dolog = True
         if dstFile is not srcFile and srcFile.isUndoEnabled():
             warnings.warn( "copying across databases can not be undone "
                            "nor redone from this database",
                            UndoRedoWarning )
-            dolog = False
 
         # Copying over an existing node?
         self._g_maybeRemove(dstParent, dstName, overwrite)

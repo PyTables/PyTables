@@ -2,7 +2,6 @@
 
 import numpy as NP
 from tables import *
-import random
 
 # This class is accessible only for the examples
 class Small(IsDescription):
@@ -55,13 +54,10 @@ def createFile(filename, totalrows, filters, recsize):
             table = fileh.createTable(group, 'tuple'+str(j), Big, title,
                                       None,
                                       totalrows)
-            arr = NP.array(NP.arange(32), dtype=NP.float64)
-            arr2 = NP.array(NP.arange(32), dtype=NP.float64)
         elif recsize == "medium":
             table = fileh.createTable(group, 'tuple'+str(j), Medium, title,
                                       None,
                                       totalrows)
-            arr = NP.array(NP.arange(2), dtype=NP.float64)
         elif recsize == "small":
             table = fileh.createTable(group, 'tuple'+str(j), Small, title,
                                       None,
@@ -239,7 +235,6 @@ def readField(filename, field, rng, verbose):
     if field == "all":
         field = None
     for groupobj in fileh.walkGroups(fileh.root):
-        row = 0
         for table in fileh.listNodes(groupobj, 'Table'):
             rowsize = table.rowsize
             #table.nrowsinbuf = 3 # For testing purposes

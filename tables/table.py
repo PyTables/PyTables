@@ -51,7 +51,7 @@ from numexpr.necompiler import (
     getType as numexpr_getType, double, is_cpu_amd_intel)
 from numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor, \
-        _numeric_deprecation, _numarray_deprecation
+        _numeric_deprecation
 from tables.utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
 from tables.leaf import Leaf
 from tables.description import (
@@ -68,7 +68,6 @@ from tables.index import (
 profile = False
 #profile = True  # Uncomment for profiling
 if profile:
-    from time import time
     from tables.utils import show_stats
 
 __version__ = "$Revision$"
@@ -290,7 +289,6 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
                          blocksizes, verbose):
     name = self.name
     table = self.table
-    tableName = table._v_name
     dtype = self.dtype
     descr = self.descr
     index = self.index
@@ -359,7 +357,7 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
     table._setColumnIndexing(self.pathname, True)
 
     # Feed the index with values
-    slicesize = index.slicesize
+
     # Add rows to the index if necessary
     if table.nrows > 0:
         indexedrows = table._addRowsToIndex(
@@ -1730,7 +1728,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             else:
                 # The column hangs directly from the top
                 dtypeField = self.coldtypes[field]
-                typeField = self.coltypes[field]
 
         # Return a rank-0 array if start > stop
         if start >= stop:
@@ -2483,7 +2480,6 @@ The 'names' parameter must be a list of strings.""")
         except NoSuchNodeError:
             pass
         else:
-            oldiname = itgroup._v_name
             newigroup = self._v_parent
             newiname = _indexNameOf(self)
             itgroup._g_move(newigroup, newiname)
@@ -3212,7 +3208,7 @@ class Column(object):
         descr -- The parent description object
 
         """
-        self._tableFile = tableFile = table._v_file
+        self._tableFile = table._v_file
         self._tablePath = table._v_pathname
         self.name = name
         self.pathname = descr._v_colObjects[name]._v_pathname

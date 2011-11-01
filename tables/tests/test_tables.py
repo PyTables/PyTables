@@ -455,7 +455,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01b_readTable(self):
         """Checking table read and cuts (multidimensional columns case)"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_readTable..." % self.__class__.__name__
@@ -509,7 +508,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01c_readTable(self):
         """Checking nested iterators (reading)"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01c_readTable..." % self.__class__.__name__
@@ -532,7 +530,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01d_readTable(self):
         """Checking nested iterators (reading, mixed conditions)"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01d_readTable..." % self.__class__.__name__
@@ -554,7 +551,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01e_readTable(self):
         """Checking nested iterators (reading, both conditions)"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01e_readTable..." % self.__class__.__name__
@@ -577,7 +573,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01f_readTable(self):
         """Checking nested iterators (reading, break in the loop)"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01f_readTable..." % self.__class__.__name__
@@ -602,7 +597,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01g_readTable(self):
         """Checking iterator with an evanescent table."""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01g_readTable..." % self.__class__.__name__
@@ -995,7 +989,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test03_endianess(self):
         """Checking if table is endianess aware"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_endianess..." % self.__class__.__name__
@@ -1203,7 +1196,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test05_filtersTable(self):
         """Checking tablefilters"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_filtersTable..." % self.__class__.__name__
@@ -1768,7 +1760,7 @@ class getColRangeTestCase(BasicRangeTestCase):
 
         try:
             #column = table.read(field='non-existent-column')
-            column = table.col('non-existent-column')
+            table.col('non-existent-column')
         except KeyError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -3570,7 +3562,7 @@ class RecArrayIO(unittest.TestCase):
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
 
         # Modify just one existing column
-        columns = records.fromarrays(array([[4]]), formats="i4")
+        #columns = records.fromarrays(array([[4]]), formats="i4")
         #table.modifyColumns(start=1, columns=columns, names=["col1"])
         table.modifyColumns(start=1, columns=[[4]], names=["col1"])
         # Create the modified recarray
@@ -4709,7 +4701,6 @@ class LengthTestCase(unittest.TestCase):
         self.populateFile()
 
     def populateFile(self):
-        group = self.rootgroup
         # Create a table
         table = self.fileh.createTable(self.fileh.root, 'table',
                                        self.record, title = "__length__ test")
@@ -5272,7 +5263,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             key = where((data >= value1) & (data < value2))
             if common.verbose:
                 print "Selection to test:", key
-            a = recarr[key]
+            recarr[key]
             fkey = array(key,"f4")
             self.assertRaises(TypeError, table.__getitem__, fkey)
 

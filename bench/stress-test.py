@@ -1,6 +1,6 @@
-import sys, time, random, gc, types
-import numarray
-from tables import Group, metaIsDescription
+import sys, time, gc
+import numpy
+from tables import Group
 from tables import *
 
 class Test(IsDescription):
@@ -24,21 +24,17 @@ def createFileArr(filename, ngroups, ntables, nrows):
 
     for k in range(ngroups):
         # Create the group
-        group = fileh.createGroup("/", 'group%04d'% k, "Group %d" % k)
+        fileh.createGroup("/", 'group%04d'% k, "Group %d" % k)
 
     fileh.close()
 
     # Now, create the arrays
-    rowswritten = 0
-    arr = numarray.arange(nrows)
+    arr = numpy.arange(nrows)
     for k in range(ngroups):
         fileh = openFile(filename, mode="a", rootUEP='group%04d'% k)
-        # Get the group
-        group = fileh.root
         for j in range(ntables):
             # Create the array
-            group = fileh.createArray("/", 'array%04d'% j,
-                                      arr, "Array %d" % j)
+            fileh.createArray("/", 'array%04d'% j, arr, "Array %d" % j)
         fileh.close()
 
     return (ngroups*ntables*nrows, 4)
@@ -58,7 +54,6 @@ def readFileArr(filename, ngroups, recsize, verbose):
                 print "Array ==>", arrai
                 print "Rows in", arrai._v_pathname, ":", arrai.shape
 
-            nrow = 0
             arr = arrai.read()
 
             rowsread += len(arr)
@@ -232,7 +227,6 @@ def dump_refs(preheat=10, iter1=10, iter2=10, *testargs):
     rc3 = sys.gettotalrefcount()
 
     print >>sys.stderr, "Inc refs in function testMethod --> %5d" % (rc3-rc2)
-    ok = 1
 
 def dump_garbage():
     """

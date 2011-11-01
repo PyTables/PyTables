@@ -80,7 +80,6 @@ class BasicTestCase(unittest.TestCase):
     def test01_read(self):
         """Checking vlarray read"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_read..." % self.__class__.__name__
@@ -144,7 +143,6 @@ class BasicTestCase(unittest.TestCase):
     def test02a_getitem(self):
         """Checking vlarray __getitem__ (slices)"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02a_getitem..." % self.__class__.__name__
@@ -194,7 +192,6 @@ class BasicTestCase(unittest.TestCase):
     def test02b_getitem(self):
         """Checking vlarray __getitem__ (scalars)"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_getitem..." % self.__class__.__name__
@@ -227,7 +224,6 @@ class BasicTestCase(unittest.TestCase):
     def test03_append(self):
         """Checking vlarray append"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_append..." % self.__class__.__name__
@@ -1134,7 +1130,6 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             self.assertEqual(vlarray.byteorder, byteorder)
-            byteorder2 = byteorders[row[0].dtype.byteorder]
             self.assertTrue(byteorders[row[0].dtype.byteorder], sys.byteorder)
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(allequal(row[0], numpy.array([4.3,2.2,4.3],
@@ -4261,7 +4256,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         arr1 = numpy.array([5, 6], dtype="i4")
         arr2 = numpy.array([5, 6, 7], dtype="i4")
         arr3 = numpy.array([5, 6, 9, 8], dtype="i4")
-        self.nparr = nparr = numpy.array([arr1, arr2, arr3], dtype="object")
+        self.nparr = numpy.array([arr1, arr2, arr3], dtype="object")
         # Create the VLArray
         self.vlarr = vlarr = fileh.createVLArray(
             fileh.root, 'vlarray', Int32Atom())
@@ -4291,7 +4286,6 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 
     def test01b_read(self):
         """Test for point-selections (not working selections, read)."""
-        nparr = self.nparr
         vlarr = self.vlarr
         for key in self.not_working_keyset:
             if common.verbose:

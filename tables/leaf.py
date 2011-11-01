@@ -27,19 +27,16 @@ Misc variables:
 
 """
 
-import sys
 import warnings
 import math
 
 import numpy
 
-import tables
 from tables.flavor import ( check_flavor, internal_flavor,
                             alias_map as flavor_alias_map )
-from tables import hdf5Extension
 from tables.node import Node
 from tables.filters import Filters
-from tables.utils import byteorders, idx2long, lazyattr, SizeType
+from tables.utils import byteorders, lazyattr, SizeType
 from tables.utilsExtension import whichLibVersion
 from tables.exceptions import PerformanceWarning
 from tables import utilsExtension

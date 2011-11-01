@@ -104,7 +104,6 @@ class BasicTestCase(unittest.TestCase):
     def test01_readCArray(self):
         """Checking read() of chunked layout arrays"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_readCArray..." % self.__class__.__name__
@@ -192,7 +191,6 @@ class BasicTestCase(unittest.TestCase):
     def test02_getitemCArray(self):
         """Checking chunked layout array __getitem__ special method"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_getitemCArray..." % self.__class__.__name__
@@ -220,7 +218,6 @@ class BasicTestCase(unittest.TestCase):
             object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
             object_.shape = self.shape
 
-        stop = self.stop
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
         object = object_.__getitem__(self.slices).copy()
@@ -261,7 +258,6 @@ class BasicTestCase(unittest.TestCase):
     def test03_setitemCArray(self):
         """Checking chunked layout array __setitem__ special method"""
 
-        rootgroup = self.rootgroup
         if self.__class__.__name__ == "Ellipsis6CArrayTestCase":
             # see test_earray.py BasicTestCase.test03_setitemEArray
             return
@@ -292,7 +288,6 @@ class BasicTestCase(unittest.TestCase):
             object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
             object_.shape = self.shape
 
-        stop = self.stop
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
         object = object_.__getitem__(self.slices).copy()

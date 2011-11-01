@@ -49,7 +49,8 @@ def read_group(file, nchildren, niter):
         fileh = tables.openFile(file, mode = "r")
         for child in range(nchildren):
             node = fileh.getNode(fileh.root, 'group' + str(child))
-            flavor = node._v_attrs.CLASS
+            assert node is not None
+            #flavor = node._v_attrs.CLASS
 #         for child in fileh.walkNodes():
 #             pass
         show_mem("After reading metadata. Iter %s" % i)
@@ -73,8 +74,9 @@ def read_array(file, nchildren, niter):
         fileh = tables.openFile(file, mode = "r")
         for child in range(nchildren):
             node = fileh.getNode(fileh.root, 'array' + str(child))
-            flavor = node._v_attrs.FLAVOR
+            #flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
+            assert data is not None
         show_mem("After reading data. Iter %s" % i)
 #         for child in range(nchildren):
 #             node = fileh.getNode(fileh.root, 'array' + str(child))
@@ -103,8 +105,9 @@ def read_carray(file, nchildren, niter):
         fileh = tables.openFile(file, mode = "r")
         for child in range(nchildren):
             node = fileh.getNode(fileh.root, 'array' + str(child))
-            flavor = node._v_attrs.FLAVOR
+            #flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
+            assert data is not None
             #print "data-->", data
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
@@ -128,8 +131,9 @@ def read_earray(file, nchildren, niter):
         fileh = tables.openFile(file, mode = "r")
         for child in range(nchildren):
             node = fileh.getNode(fileh.root, 'array' + str(child))
-            flavor = node._v_attrs.FLAVOR
+            #flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
+            assert data is not None
             #print "data-->", data
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
@@ -152,8 +156,9 @@ def read_vlarray(file, nchildren, niter):
         fileh = tables.openFile(file, mode = "r")
         for child in range(nchildren):
             node = fileh.getNode(fileh.root, 'array' + str(child))
-            flavor = node._v_attrs.FLAVOR
+            #flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
+            assert data is not None
             #print "data-->", data
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
@@ -182,8 +187,9 @@ def read_table(file, nchildren, niter):
         fileh = tables.openFile(file, mode = "r")
         for child in range(nchildren):
             node = fileh.getNode(fileh.root, 'table' + str(child))
-            klass = node._v_attrs.CLASS
+            #klass = node._v_attrs.CLASS
             data = node[:]  # Read data
+            assert data is not None
             #print "data-->", data
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
@@ -220,6 +226,7 @@ def read_xtable(file, nchildren, niter):
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
+        del node
 
 
 if __name__ == '__main__':

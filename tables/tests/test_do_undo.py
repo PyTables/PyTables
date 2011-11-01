@@ -4,7 +4,6 @@ import os
 import tempfile
 import warnings
 
-import tables
 from tables import *
 from tables.node import NotLoggedMixin
 from tables.path import joinPath
@@ -35,27 +34,25 @@ class BasicTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, mode = "w", title="File title")
         fileh = self.fileh
         root = fileh.root
+
         # Create an array
-        fileh.createArray(root, 'array', [1,2],
-                          title = "Title example")
+        fileh.createArray(root, 'array', [1,2], title = "Title example")
 
         # Create another array object
-        array = fileh.createArray(root, 'anarray',
-                                  [1], "Array title")
+        fileh.createArray(root, 'anarray', [1], "Array title")
+
         # Create a group object
-        group = fileh.createGroup(root, 'agroup',
-                                  "Group title")
+        group = fileh.createGroup(root, 'agroup', "Group title")
+
         # Create a couple of objects there
-        array1 = fileh.createArray(group, 'anarray1',
-                                   [2], "Array title 1")
-        array2 = fileh.createArray(group, 'anarray2',
-                                   [2], "Array title 2")
+        fileh.createArray(group, 'anarray1', [2], "Array title 1")
+        fileh.createArray(group, 'anarray2', [2], "Array title 2")
+
         # Create a lonely group in first level
-        group2 = fileh.createGroup(root, 'agroup2',
-                                  "Group title 2")
+        fileh.createGroup(root, 'agroup2', "Group title 2")
+
         # Create a new group in the second level
-        group3 = fileh.createGroup(group, 'agroup3',
-                                   "Group title 3")
+        fileh.createGroup(group, 'agroup3', "Group title 3")
 
 
     def tearDown(self):
@@ -821,9 +818,10 @@ class BasicTestCase(unittest.TestCase):
             print "Running %s.test12_keepMark..." % self.__class__.__name__
 
         self.fileh.enableUndo()
-        arr1 = self.fileh.createArray('/', 'newarray1', [1])
+        self.fileh.createArray('/', 'newarray1', [1])
 
         mid = self.fileh.mark()
+        self.assertTrue(mid is not None)
         self._doReopen()
         self.fileh.undo()
         # We should have moved to the initial mark.
@@ -839,7 +837,7 @@ class BasicTestCase(unittest.TestCase):
             print "Running %s.test13_severalEnableDisable..." % self.__class__.__name__
 
         self.fileh.enableUndo()
-        arr1 = self.fileh.createArray('/', 'newarray1', [1])
+        self.fileh.createArray('/', 'newarray1', [1])
         self.fileh.undo()
         self._doReopen()
         # We should have moved to 'mid' mark, not the initial mark.
@@ -849,27 +847,33 @@ class BasicTestCase(unittest.TestCase):
         # Close this do/undo session
         self.fileh.disableUndo()
         # Do something
-        arr2 = self.fileh.createArray('/', 'newarray2', [1])
+        self.fileh.createArray('/', 'newarray2', [1])
+
         # Enable again do/undo
         self.fileh.enableUndo()
-        arr3 = self.fileh.createArray('/', 'newarray3', [1])
+        self.fileh.createArray('/', 'newarray3', [1])
         mid = self.fileh.mark()
-        arr4 = self.fileh.createArray('/', 'newarray4', [1])
+        self.fileh.createArray('/', 'newarray4', [1])
         self.fileh.undo()
+
         # We should have moved to 'mid' mark, not the initial mark.
         self.assertEqual(self.fileh.getCurrentMark(), mid)
+
         # So /newarray2 and /newarray3 should still be there.
         self.assertTrue('/newarray1' not in self.fileh)
         self.assertTrue('/newarray2' in self.fileh)
         self.assertTrue('/newarray3' in self.fileh)
         self.assertTrue('/newarray4' not in self.fileh)
+
         # Close this do/undo session
         self._doReopen()
         self.fileh.disableUndo()
+
         # Enable again do/undo
         self.fileh.enableUndo()
-        arr3 = self.fileh.createArray('/', 'newarray1', [1])
-        arr4 = self.fileh.createArray('/', 'newarray4', [1])
+        self.fileh.createArray('/', 'newarray1', [1])
+        self.fileh.createArray('/', 'newarray4', [1])
+
         # So /newarray2 and /newarray3 should still be there.
         self.assertTrue('/newarray1' in self.fileh)
         self.assertTrue('/newarray2' in self.fileh)
@@ -901,27 +905,25 @@ class createArrayTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, mode = "w", title="File title")
         fileh = self.fileh
         root = fileh.root
+
         # Create an array
-        fileh.createArray(root, 'array', [1,2],
-                          title = "Title example")
+        fileh.createArray(root, 'array', [1,2], title = "Title example")
 
         # Create another array object
-        array = fileh.createArray(root, 'anarray',
-                                  [1], "Array title")
+        fileh.createArray(root, 'anarray', [1], "Array title")
+
         # Create a group object
-        group = fileh.createGroup(root, 'agroup',
-                                  "Group title")
+        group = fileh.createGroup(root, 'agroup', "Group title")
+
         # Create a couple of objects there
-        array1 = fileh.createArray(group, 'anarray1',
-                                   [2], "Array title 1")
-        array2 = fileh.createArray(group, 'anarray2',
-                                   [2], "Array title 2")
+        fileh.createArray(group, 'anarray1', [2], "Array title 1")
+        fileh.createArray(group, 'anarray2', [2], "Array title 2")
+
         # Create a lonely group in first level
-        group2 = fileh.createGroup(root, 'agroup2',
-                                   "Group title 2")
+        fileh.createGroup(root, 'agroup2', "Group title 2")
+
         # Create a new group in the second level
-        group3 = fileh.createGroup(group, 'agroup3',
-                                   "Group title 3")
+        fileh.createGroup(group, 'agroup3', "Group title 3")
 
 
     def tearDown(self):
@@ -1059,27 +1061,25 @@ class createGroupTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, mode = "w", title="File title")
         fileh = self.fileh
         root = fileh.root
+
         # Create an array
-        fileh.createArray(root, 'array', [1,2],
-                          title = "Title example")
+        fileh.createArray(root, 'array', [1,2], title = "Title example")
 
         # Create another array object
-        array = fileh.createArray(root, 'anarray',
-                                  [1], "Array title")
+        fileh.createArray(root, 'anarray', [1], "Array title")
+
         # Create a group object
-        group = fileh.createGroup(root, 'agroup',
-                                  "Group title")
+        group = fileh.createGroup(root, 'agroup', "Group title")
+
         # Create a couple of objects there
-        array1 = fileh.createArray(group, 'anarray1',
-                                   [2], "Array title 1")
-        array2 = fileh.createArray(group, 'anarray2',
-                                   [2], "Array title 2")
+        fileh.createArray(group, 'anarray1', [2], "Array title 1")
+        fileh.createArray(group, 'anarray2', [2], "Array title 2")
+
         # Create a lonely group in first level
-        group2 = fileh.createGroup(root, 'agroup2',
-                                   "Group title 2")
+        fileh.createGroup(root, 'agroup2', "Group title 2")
+
         # Create a new group in the second level
-        group3 = fileh.createGroup(group, 'agroup3',
-                                   "Group title 3")
+        fileh.createGroup(group, 'agroup3', "Group title 3")
 
 
     def tearDown(self):
@@ -1249,29 +1249,28 @@ class renameNodeTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, mode = "w", title="File title")
         fileh = self.fileh
         root = fileh.root
+
         # Create an array
-        fileh.createArray(root, 'array', [1,2],
-                          title = "Title example")
+        fileh.createArray(root, 'array', [1,2], title = "Title example")
 
         # Create another array object
-        array = fileh.createArray(root, 'anarray',
-                                  [1], "Array title")
+        fileh.createArray(root, 'anarray', [1], "Array title")
+
         # Create a group object
-        group = fileh.createGroup(root, 'agroup',
-                                  "Group title")
+        group = fileh.createGroup(root, 'agroup', "Group title")
+
         # Create a couple of objects there
-        array1 = fileh.createArray(group, 'anarray1',
-                                   [2], "Array title 1")
-        array2 = fileh.createArray(group, 'anarray2',
-                                   [2], "Array title 2")
+        fileh.createArray(group, 'anarray1', [2], "Array title 1")
+        fileh.createArray(group, 'anarray2', [2], "Array title 2")
+
         # Create a lonely group in first level
-        group2 = fileh.createGroup(root, 'agroup2',
-                                   "Group title 2")
+        fileh.createGroup(root, 'agroup2', "Group title 2")
+
         # Create a new group in the second level
-        group3 = fileh.createGroup(group, 'agroup3',
-                                   "Group title 3")
+        fileh.createGroup(group, 'agroup3', "Group title 3")
+
         # Create a table in root
-        table = populateTable(self.fileh.root, 'table')
+        populateTable(self.fileh.root, 'table')
 
     def tearDown(self):
         # Remove the temporary file
@@ -1442,29 +1441,28 @@ class moveNodeTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, mode = "w", title="File title")
         fileh = self.fileh
         root = fileh.root
+
         # Create an array
-        fileh.createArray(root, 'array', [1,2],
-                          title = "Title example")
+        fileh.createArray(root, 'array', [1,2], title = "Title example")
 
         # Create another array object
-        array = fileh.createArray(root, 'anarray',
-                                  [1], "Array title")
+        fileh.createArray(root, 'anarray', [1], "Array title")
+
         # Create a group object
-        group = fileh.createGroup(root, 'agroup',
-                                  "Group title")
+        group = fileh.createGroup(root, 'agroup', "Group title")
+
         # Create a couple of objects there
-        array1 = fileh.createArray(group, 'anarray1',
-                                   [2], "Array title 1")
-        array2 = fileh.createArray(group, 'anarray2',
-                                   [2], "Array title 2")
+        fileh.createArray(group, 'anarray1', [2], "Array title 1")
+        fileh.createArray(group, 'anarray2', [2], "Array title 2")
+
         # Create a lonely group in first level
-        group2 = fileh.createGroup(root, 'agroup2',
-                                   "Group title 2")
+        fileh.createGroup(root, 'agroup2', "Group title 2")
+
         # Create a new group in the second level
-        group3 = fileh.createGroup(group, 'agroup3',
-                                   "Group title 3")
+        fileh.createGroup(group, 'agroup3', "Group title 3")
+
         # Create a table in root
-        table = populateTable(self.fileh.root, 'table')
+        populateTable(self.fileh.root, 'table')
 
     def tearDown(self):
         # Remove the temporary file
@@ -1640,29 +1638,28 @@ class removeNodeTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, mode = "w", title="File title")
         fileh = self.fileh
         root = fileh.root
+
         # Create an array
-        fileh.createArray(root, 'array', [1,2],
-                          title = "Title example")
+        fileh.createArray(root, 'array', [1,2], title = "Title example")
 
         # Create another array object
-        array = fileh.createArray(root, 'anarray',
-                                  [1], "Array title")
+        fileh.createArray(root, 'anarray', [1], "Array title")
+
         # Create a group object
-        group = fileh.createGroup(root, 'agroup',
-                                  "Group title")
+        group = fileh.createGroup(root, 'agroup', "Group title")
+
         # Create a couple of objects there
-        array1 = fileh.createArray(group, 'anarray1',
-                                   [2], "Array title 1")
-        array2 = fileh.createArray(group, 'anarray2',
-                                   [2], "Array title 2")
+        fileh.createArray(group, 'anarray1', [2], "Array title 1")
+        fileh.createArray(group, 'anarray2', [2], "Array title 2")
+
         # Create a lonely group in first level
-        group2 = fileh.createGroup(root, 'agroup2',
-                                   "Group title 2")
+        fileh.createGroup(root, 'agroup2', "Group title 2")
+
         # Create a new group in the second level
-        group3 = fileh.createGroup(group, 'agroup3',
-                                   "Group title 3")
+        fileh.createGroup(group, 'agroup3', "Group title 3")
+
         # Create a table in root
-        table = populateTable(self.fileh.root, 'table')
+        populateTable(self.fileh.root, 'table')
 
 
     def tearDown(self):
@@ -1816,29 +1813,28 @@ class copyNodeTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, mode = "w", title="File title")
         fileh = self.fileh
         root = fileh.root
+
         # Create an array
-        fileh.createArray(root, 'array', [1,2],
-                          title = "Title example")
+        fileh.createArray(root, 'array', [1,2], title = "Title example")
 
         # Create another array object
-        array = fileh.createArray(root, 'anarray',
-                                  [1], "Array title")
+        fileh.createArray(root, 'anarray', [1], "Array title")
+
         # Create a group object
-        group = fileh.createGroup(root, 'agroup',
-                                  "Group title")
+        group = fileh.createGroup(root, 'agroup', "Group title")
+
         # Create a couple of objects there
-        array1 = fileh.createArray(group, 'anarray1',
-                                   [2], "Array title 1")
-        array2 = fileh.createArray(group, 'anarray2',
-                                   [2], "Array title 2")
+        fileh.createArray(group, 'anarray1', [2], "Array title 1")
+        fileh.createArray(group, 'anarray2', [2], "Array title 2")
+
         # Create a lonely group in first level
-        group2 = fileh.createGroup(root, 'agroup2',
-                                   "Group title 2")
+        fileh.createGroup(root, 'agroup2', "Group title 2")
+
         # Create a new group in the second level
-        group3 = fileh.createGroup(group, 'agroup3',
-                                   "Group title 3")
+        fileh.createGroup(group, 'agroup3', "Group title 3")
+
         # Create a table in root
-        table = populateTable(self.fileh.root, 'table')
+        populateTable(self.fileh.root, 'table')
 
 
     def tearDown(self):
@@ -2020,26 +2016,23 @@ class ComplexTestCase(unittest.TestCase):
         fileh = self.fileh
         root = fileh.root
         # Create an array
-        fileh.createArray(root, 'array', [1,2],
-                          title = "Title example")
+        fileh.createArray(root, 'array', [1,2], title = "Title example")
 
         # Create another array object
-        array = fileh.createArray(root, 'anarray',
-                                  [1], "Array title")
+        fileh.createArray(root, 'anarray', [1], "Array title")
+
         # Create a group object
-        group = fileh.createGroup(root, 'agroup',
-                                  "Group title")
+        group = fileh.createGroup(root, 'agroup', "Group title")
+
         # Create a couple of objects there
-        array1 = fileh.createArray(group, 'anarray1',
-                                   [2], "Array title 1")
-        array2 = fileh.createArray(group, 'anarray2',
-                                   [2], "Array title 2")
+        fileh.createArray(group, 'anarray1', [2], "Array title 1")
+        fileh.createArray(group, 'anarray2', [2], "Array title 2")
+
         # Create a lonely group in first level
-        group2 = fileh.createGroup(root, 'agroup2',
-                                   "Group title 2")
+        fileh.createGroup(root, 'agroup2', "Group title 2")
+
         # Create a new group in the second level
-        group3 = fileh.createGroup(group, 'agroup3',
-                                   "Group title 3")
+        fileh.createGroup(group, 'agroup3', "Group title 3")
 
 
     def tearDown(self):
@@ -2063,13 +2056,12 @@ class ComplexTestCase(unittest.TestCase):
         self.fileh.createArray(self.fileh.root, 'anarray3',
                                [1], "Array title 3")
         # Create a group
-        array2 = self.fileh.createGroup(self.fileh.root, 'agroup3',
-                                        "Group title 3")
+        self.fileh.createGroup(self.fileh.root, 'agroup3', "Group title 3")
         # /anarray => /agroup/agroup3/
         newNode = self.fileh.copyNode('/anarray3', '/agroup/agroup3')
         newNode = self.fileh.copyChildren('/agroup', '/agroup3', recursive=1)
         # rename anarray
-        array4 = self.fileh.renameNode('/anarray', 'anarray4')
+        self.fileh.renameNode('/anarray', 'anarray4')
         # Move anarray
         newNode = self.fileh.copyNode('/anarray3', '/agroup')
         # Remove anarray4
@@ -2111,13 +2103,13 @@ class ComplexTestCase(unittest.TestCase):
         # remove the array again
         self.fileh.removeNode('/anarray')
         # Create an array
-        array2 = self.fileh.createArray(self.fileh.root, 'anarray',
-                                        [3], "Array title 3")
+        self.fileh.createArray(self.fileh.root, 'anarray',
+                               [3], "Array title 3")
         # remove the array again
         self.fileh.removeNode('/anarray')
         # Create an array
-        array2 = self.fileh.createArray(self.fileh.root, 'anarray',
-                                        [4], "Array title 4")
+        self.fileh.createArray(self.fileh.root, 'anarray',
+                               [4], "Array title 4")
         # Undo the actions
         self.fileh.undo()
         # Check that /anarray is in the correct state before redoing
@@ -2437,7 +2429,7 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super(CreateParentsTestCase, self).setUp()
         g1 = self.h5file.createGroup('/', 'g1')
-        g2 = self.h5file.createGroup(g1, 'g2')
+        self.h5file.createGroup(g1, 'g2')
 
     def existing(self, paths):
         """Return a set of the existing paths in `paths`."""

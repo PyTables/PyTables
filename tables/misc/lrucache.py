@@ -35,7 +35,6 @@ discarded. [1]_
 """
 
 from __future__ import generators
-import time
 import sys
 from heapq import heappush, heappop, heapify
 

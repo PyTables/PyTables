@@ -244,7 +244,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01_readTable(self):
         """Checking table read and cuts"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_readTable..." % self.__class__.__name__
@@ -281,7 +280,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01b_readTable(self):
         """Checking table read and cuts (multidimensional columns case)"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_readTable..." % self.__class__.__name__
@@ -337,7 +335,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01c_readTable(self):
         """Checking shape of multidimensional columns"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01c_readTable..." % self.__class__.__name__
@@ -416,7 +413,6 @@ class BasicTestCase(common.PyTablesTestCase):
     def test03_endianess(self):
         """Checking if table is endianess aware"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_endianess..." % self.__class__.__name__
@@ -597,7 +593,6 @@ class BasicRangeTestCase(unittest.TestCase):
 
     def check_range(self):
 
-        rootgroup = self.rootgroup
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
         table = self.fileh.getNode("/table0")
@@ -921,7 +916,7 @@ class getColRangeTestCase(BasicRangeTestCase):
         table = self.fileh.getNode("/table0")
 
         try:
-            column = table.read(field='non-existent-column')
+            table.read(field='non-existent-column')
         except KeyError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()

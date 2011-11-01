@@ -1,4 +1,3 @@
-import sys
 from numpy import *
 from tables import *
 

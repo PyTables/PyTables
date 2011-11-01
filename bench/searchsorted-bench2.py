@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
-import copy
-
 import time
-import numarray as NA
 from tables import *
-import random
 
 class Small(IsDescription):
     var1 = StringCol(itemsize=4)
@@ -151,7 +147,6 @@ def searchFile(filename, atom, verbose, item):
     rowsread = 0
     uncomprBytes = 0
     table = fileh.root.table
-    rowsize = table.rowsize
     if atom == "int":
         idxcol = table.cols.var2.index
     elif atom == "float":
@@ -192,8 +187,6 @@ if __name__=="__main__":
         psyco_imported = 1
     except:
         psyco_imported = 0
-
-    import time
 
     usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize ] [-a
     atom] [-c level] [-l complib] [-S] [-F] [-i item] [-n nrows] [-x]

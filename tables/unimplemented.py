@@ -25,13 +25,10 @@ Misc variables:
 
 import warnings
 
-import numpy
-
 from tables import hdf5Extension
-from tables.utils import SizeType, lazyattr
+from tables.utils import SizeType
 from tables.node import Node
 from tables.leaf import Leaf
-from tables.attributeset import AttributeSet
 
 
 __version__ = "$Revision$"

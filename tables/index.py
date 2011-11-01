@@ -43,10 +43,8 @@ from tables.idxutils import (
     nextafter, infType )
 
 from tables import indexesExtension
-from tables import utilsExtension
-from tables.attributeset import AttributeSet
 from tables.node import NotLoggedMixin
-from tables.atom import IntAtom, UIntAtom, Atom
+from tables.atom import UIntAtom, Atom
 from tables.earray import EArray
 from tables.carray import CArray
 from tables.leaf import Filters
@@ -577,7 +575,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         arr = xarr.pop()
         indsize = self.indsize
         slicesize = self.slicesize
-        blocksize = self.blocksize
         nelementsILR = self.nelementsILR
         if profile: show_stats("Before creating idx", tref)
         if indsize == 8:
@@ -1178,7 +1175,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         tmp_sorted = tmp.sorted2;  tmp_indices = tmp.indices2
         sortedLR = tmp.sortedLR;  indicesLR = tmp.indicesLR
         cs = self.chunksize
-        ss = self.slicesize
         ncs = self.nchunkslice
         nsb = self.nslicesblock
         ncb = ncs * nsb
@@ -1464,7 +1460,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         assert limits[0] < item <= limits[1]
         cs = self.chunksize
         ss = self.slicesize;  nelementsLR = self.nelementsILR
-        bstart = start / cs;  cstart = start % cs
+        bstart = start / cs
 
         # Find the chunk
         if nslice < self.nslices:
@@ -1951,7 +1947,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         if profile: tref = time()
         if profile: show_stats("Entering get_chunkmap", tref)
-        ss = self.slicesize;  bs = self.blocksize
+        ss = self.slicesize
         nsb = self.nslicesblock;  nslices = self.nslices
         lbucket = self.lbucket;  indsize = self.indsize
         bucketsinblock = float(self.blocksize)/lbucket

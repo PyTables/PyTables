@@ -130,7 +130,6 @@ def readFile(filename, recsize):
 
 # Add code to test here
 if __name__=="__main__":
-    import sys
     import getopt
     import time
 

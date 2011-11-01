@@ -93,6 +93,7 @@ Version: 20051110
 """
 __version__ = '20051110'
 
+import math
 import warnings
 warnings.warn('The tables.netcdf3 is not actively maintained anymore. '
               'This module is deprecated and will be removed in the future '
@@ -471,7 +472,6 @@ class NetCDFFile:
             self.createDimension(dimname,size)
             if size == None:
                 hasunlimdim = True
-                unlimdim = dimname
         # create variables.
         for varname,ncvar in ncfile.variables.iteritems():
             if hasattr(ncvar,'least_significant_digit'):
@@ -713,7 +713,7 @@ class NetCDFVariable:
             raise IOError('file is read only')
         # if data is not an array, try to make it so.
         try:
-            datashp = data.shape
+            data.shape
         except:
             data = numpy.array(data, _rev_typecode_dict[self.typecode()])
         # check to make sure there is an unlimited dimension.
@@ -721,8 +721,7 @@ class NetCDFVariable:
         extdim = self._NetCDF_varobj.extdim
         if extdim < 0:
             raise IndexError('variable has no unlimited dimension')
-        # name of unlimited dimension.
-        extdim_name = self.dimensions[extdim]
+
         # special case that data array is same
         # shape as EArray, minus the enlargeable dimension.
         # if so, add an extra singleton dimension.

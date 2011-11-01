@@ -217,7 +217,6 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     # Open the benchmark database
     bf = openFile(bfile,"a")
     #default values for the case that columns are not indexed
-    rowselected = 0
     t2 = 0.
     tcpu2 = 0.
     # Some previous computations for the case of random values
@@ -267,7 +266,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         searchmodelist = ["int", "float"]
     else:
         searchmodelist = ["string", "int", "float"]
-        
+
     # Execute queries
     for atom in searchmodelist:
         time2 = 0
@@ -342,16 +341,12 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     return
 
 if __name__=="__main__":
-    import sys
-    import os.path
     import getopt
     try:
         import psyco
         psyco_imported = 1
     except:
         psyco_imported = 0
-
-    import time
 
     usage = """usage: %s [-v] [-p] [-R] [-h] [-t] [-r] [-w] [-n nrows] [-b file] [-k riter] [-m indexmode] [-N range] datafile
             -v verbose

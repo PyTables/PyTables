@@ -2,7 +2,7 @@
 
 from __future__ import generators
 
-import tables,cPickle,copy,time
+import tables,cPickle,time
 #################################################################################
 
 def is_scalar(item):
@@ -35,7 +35,7 @@ def make_col(row_type,row_name,row_item,str_len):
             int:tables.Col("Int32", 1),
             float:tables.Col("Float32", 4), #Col("Int16", 1)
             }
-        row_type[row_name]=type_matrix[type(row_item)]    
+        row_type[row_name]=type_matrix[type(row_item)]
 def make_row(data):
     row_type={}
     scalar_type=is_scalar(data)
@@ -128,7 +128,7 @@ def save2(hdf_file,data):
     stack = [ (root_path, data,cache) ]
     table_num=0
     count=0
-    
+
     while stack:
         (group_obj_path,data,cache)=stack.pop()
         #data='wilma':{'mother':[22,23,24]}}
@@ -153,7 +153,7 @@ def save2(hdf_file,data):
     add_cache(fileh,cache_root)
     fileh.close()
 
-    
+
 ########################
 class Hdf_dict(dict):
     def __init__(self,hdf_file,hdf_dict={},stack=[]):
@@ -165,7 +165,6 @@ class Hdf_dict(dict):
             self.hdf_dict=self.get_cache()
         self.cur_dict=self.hdf_dict
     def get_cache(self):
-        b1=time.time()
         fileh=tables.openFile(self.hdf_file,rootUEP='pytables_cache_v0')
         table=fileh.root.cache0
         total=[]
@@ -222,7 +221,6 @@ class Hdf_dict(dict):
                         except:
                             cur_column=[]
                             total_columns=[]
-                            colnames=table.colnames
                             col_num=0
                             cur_row=0
                             num_rows=0
@@ -274,11 +272,11 @@ class Hdf_dict(dict):
             del self[k]
             return k, v
         except StopIteration:
-            raise KeyError("Hdf Dict is empty")       
+            raise KeyError("Hdf Dict is empty")
     def __setitem__(self, key, value):
         raise NotImplementedError
     def __delitem__(self, key):
-        raise NotImplementedError                
+        raise NotImplementedError
     def __hash__(self):
         raise TypeError("Hdf dict bjects are unhashable")
 
@@ -320,4 +318,4 @@ if __name__=='__main__':
         write_small('test.hdf')
         print 'reading'
         read_small('test.hdf')
-    
+

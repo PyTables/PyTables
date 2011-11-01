@@ -7,7 +7,6 @@ from numarray import strings
 from numarray import records
 from numarray import *
 
-import tables
 from tables import *
 from tables import nra
 from tables.tests import common
@@ -230,7 +229,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             dsetname = 'array_' + type_
             if common.verbose:
                 print "Creating dataset:", group._g_join(dsetname)
-            hdfarray = fileh.createArray(group, dsetname, a, "Large array")
+            fileh.createArray(group, dsetname, a, "Large array")
             # Create a new group
             group = fileh.createGroup(group, 'group' + str(i))
             # increment the range for next iteration

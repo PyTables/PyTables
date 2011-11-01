@@ -602,6 +602,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         # External variables do not override implicit columns.
         def where_with_locals():
             c_int32 = self.table.cols.c_bool  # this wouldn't cause an error
+            self.assertTrue(c_int32 is not None)
             self.table.where('c_int32')
         self.assertRaises(TypeError, where_with_locals)
 
@@ -639,6 +640,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         # Second scope: local variables.
         def where_whith_locals():
             col = self.table.cols.c_int32
+            self.assertTrue(col is not None)
             self.table.where('col')
         self.assertRaises(TypeError, where_whith_locals)
 

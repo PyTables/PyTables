@@ -2002,7 +2002,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             key = numpy.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
                 print "Selection to test:", key
-            a = nparr[key]
+            #a = nparr[key]
             fkey = numpy.array(key,"f4")
             self.assertRaises(IndexError, tbarr.__getitem__, fkey)
 
@@ -2054,7 +2054,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             key = numpy.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
                 print "Selection to test:", key
-            s = nparr[key]
+            #s = nparr[key]
             nparr[key] = 2   # force a broadcast
             tbarr[key] = 2   # force a broadcast
             a = nparr[:]
@@ -2163,12 +2163,12 @@ class FancySelectionTestCase(common.PyTablesTestCase):
 
     def test01b_read(self):
         """Test for fancy-selections (not working selections, read)."""
-        nparr = self.nparr
+        #nparr = self.nparr
         tbarr = self.tbarr
         for key in self.not_working_keyset:
             if common.verbose:
                 print "Selection to test:", key
-            a = nparr[key]
+            #a = nparr[key]
             self.assertRaises(IndexError, tbarr.__getitem__, key)
 
     def test01c_read(self):
@@ -2217,7 +2217,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         for key in self.working_keyset:
             if common.verbose:
                 print "Selection to test:", key
-            s = nparr[key]
+            #s = nparr[key]
             nparr[key] = 2   # broadcast value
             tbarr[key] = 2   # broadcast value
             a = nparr[:]

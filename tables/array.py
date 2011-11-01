@@ -27,7 +27,7 @@ Misc variables:
 
 """
 
-import types, warnings, sys
+import types
 
 import numpy
 
@@ -36,7 +36,6 @@ from tables.utilsExtension import lrange
 from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, convertToNPAtom2, SizeType, lazyattr
-from tables.atom import split_type
 from tables.leaf import Leaf
 
 
@@ -264,8 +263,6 @@ class Array(hdf5Extension.Array, Leaf):
             raise
 
         # Compute the optimal buffer size
-        chunkshape = self._calc_chunkshape(
-            self.nrows, self.rowsize, self.atom.size)
         self.nrowsinbuf = self._calc_nrowsinbuf()
         # Arrays don't have chunkshapes (so, set it to None)
         self._v_chunkshape = None
@@ -278,13 +275,6 @@ class Array(hdf5Extension.Array, Leaf):
 
         (oid, self.atom, self.shape, self._v_chunkshape) = self._openArray()
 
-        # Compute the optimal buffer size
-        if not self._v_chunkshape:  # non-chunked case
-            # Compute a sensible chunkshape
-            chunkshape = self._calc_chunkshape(
-                self.nrows, self.rowsize, self.atom.size)
-        else:
-            chunkshape = self._v_chunkshape
         self.nrowsinbuf = self._calc_nrowsinbuf()
 
         return oid

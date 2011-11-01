@@ -465,7 +465,6 @@ def main():
     # Check whether the specified source node is a group or a leaf
     h5srcfile = openFile(srcfile, 'r')
     srcnodeobject = h5srcfile.getNode(srcnode)
-    objectclass = srcnodeobject.__class__.__name__
     # Close the file again
     h5srcfile.close()
 

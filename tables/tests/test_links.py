@@ -14,7 +14,6 @@ import unittest
 import tempfile
 import shutil
 
-import numpy
 import tables as t
 from tables.tests import common
 
@@ -30,15 +29,18 @@ else:
 class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def _createFile(self):
-        arr1 = self.h5file.createArray('/', 'arr1', [1,2])
+        self.h5file.createArray('/', 'arr1', [1,2])
         group1 = self.h5file.createGroup('/', 'group1')
         arr2 = self.h5file.createArray(group1, 'arr2', [1,2,3])
         lgroup1 = self.h5file.createHardLink(
             '/', 'lgroup1', '/group1')
+        self.assertTrue(lgroup1 is not None)
         larr1 = self.h5file.createHardLink(
             group1, 'larr1', '/arr1')
+        self.assertTrue(larr1 is not None)
         larr2 = self.h5file.createHardLink(
             '/', 'larr2', arr2)
+        self.assertTrue(larr2 is not None)
 
 
     def test00_create(self):
@@ -113,15 +115,18 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def _createFile(self):
-        arr1 = self.h5file.createArray('/', 'arr1', [1,2])
+        self.h5file.createArray('/', 'arr1', [1,2])
         group1 = self.h5file.createGroup('/', 'group1')
         arr2 = self.h5file.createArray(group1, 'arr2', [1,2,3])
         lgroup1 = self.h5file.createSoftLink(
             '/', 'lgroup1', '/group1')
+        self.assertTrue(lgroup1 is not None)
         larr1 = self.h5file.createSoftLink(
             group1, 'larr1', '/arr1')
+        self.assertTrue(larr1 is not None)
         larr2 = self.h5file.createSoftLink(
             '/', 'larr2', arr2)
+        self.assertTrue(larr2 is not None)
 
 
     def test00_create(self):
@@ -242,7 +247,7 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self._createFile()
         # Create new group
-        group3 = self.h5file.createGroup('/group1', 'group3')
+        self.h5file.createGroup('/group1', 'group3')
         # ... and relative link
         lgroup3 = self.h5file.createSoftLink(
             '/group1', 'lgroup3', 'group3')
@@ -258,7 +263,7 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self._createFile()
         # Create new group
-        group3 = self.h5file.createGroup('/group1', 'group3')
+        self.h5file.createGroup('/group1', 'group3')
         # ... and relative link
         lgroup3 = self.h5file.createSoftLink(
             '/group1', 'lgroup3', './group3')
@@ -320,8 +325,8 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._createFile()
         fname = tempfile.mktemp(".h5")
         h5f = t.openFile(fname, "a")
-        arr1_ = h5f.createArray('/', 'arr1', [1,2])
-        group1_ = h5f.createGroup('/', 'group1')
+        h5f.createArray('/', 'arr1', [1,2])
+        h5f.createGroup('/', 'group1')
         lgroup1 = self.h5file.root.lgroup1
         lgroup1_ = lgroup1.copy(h5f.root, 'lgroup1')
         self.assertTrue('/lgroup1' in self.h5file)
@@ -345,25 +350,29 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
     def _createFile(self):
-        arr1 = self.h5file.createArray('/', 'arr1', [1,2])
+        self.h5file.createArray('/', 'arr1', [1,2])
         group1 = self.h5file.createGroup('/', 'group1')
-        arr2 = self.h5file.createArray(group1, 'arr2', [1,2,3])
+        self.h5file.createArray(group1, 'arr2', [1,2,3])
         # The external file
         self.extfname = tempfile.mktemp(".h5")
         self.exth5file = t.openFile(self.extfname, "w")
         extarr1 = self.exth5file.createArray('/', 'arr1', [1,2])
+        self.assertTrue(extarr1 is not None)
         extgroup1 = self.exth5file.createGroup('/', 'group1')
         extarr2 = self.exth5file.createArray(extgroup1, 'arr2', [1,2,3])
         # Create external links
         lgroup1 = self.h5file.createExternalLink(
             '/', 'lgroup1', '%s:/group1'%self.extfname,
             warn16incompat=False)
+        self.assertTrue(lgroup1 is not None)
         larr1 = self.h5file.createExternalLink(
             group1, 'larr1', '%s:/arr1'%self.extfname,
             warn16incompat=False)
+        self.assertTrue(larr1 is not None)
         larr2 = self.h5file.createExternalLink(
             '/', 'larr2', extarr2,
             warn16incompat=False)
+        self.assertTrue(larr2 is not None)
         # Re-open the external file in 'r'ead-only mode
         self.exth5file.close()
         self.exth5file = t.openFile(self.extfname, "r")
@@ -492,8 +501,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self._createFile()
         # Create a new soft link
-        lgroup3 = self.h5file.createSoftLink(
-            '/group1', 'lgroup3', './group3')
+        self.h5file.createSoftLink('/group1', 'lgroup3', './group3')
         links = [node._v_pathname for node in
                  self.h5file.walkNodes('/', classname="Link")]
         if common.verbose:
@@ -528,6 +536,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(link.extfile is None)
         # Dereference a external node (and hence, 'mount' a file)
         enode = link()
+        self.assertTrue(enode is not None)
         self.assertTrue(link.extfile is not None)
         # Umount the link
         link.umount()
@@ -538,8 +547,8 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._createFile()
         fname = tempfile.mktemp(".h5")
         h5f = t.openFile(fname, "a")
-        arr1_ = h5f.createArray('/', 'arr1', [1,2])
-        group1_ = h5f.createGroup('/', 'group1')
+        h5f.createArray('/', 'arr1', [1,2])
+        h5f.createGroup('/', 'group1')
         lgroup1 = self.h5file.root.lgroup1
         lgroup1_ = lgroup1.copy(h5f.root, 'lgroup1')
         self.assertTrue('/lgroup1' in self.h5file)
