@@ -1,9 +1,9 @@
 #include "H5ATTR.h"
 #include "tables.h"
-#include "utils.h"
-#include "H5Zlzo.h"  		       /* Import FILTER_LZO */
-#include "H5Zbzip2.h"  		       /* Import FILTER_BZIP2 */
-#include "../blosc/blosc_filter.h"     /* Import FILTER_BLOSC */
+#include "utils.h"                  /* get_order */
+#include "H5Zlzo.h"                 /* Import FILTER_LZO */
+#include "H5Zbzip2.h"               /* Import FILTER_BZIP2 */
+#include "../blosc/blosc_filter.h"  /* Import FILTER_BLOSC */
 #include <string.h>
 #include <stdlib.h>
 

@@ -1,5 +1,4 @@
-cdef extern from "stdlib.h":
-  void free(void *)
+from libc.stdlib cimport free
 
 cdef extern from "H5Zlzo.h":
   int register_lzo(char **, char **)

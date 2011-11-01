@@ -14,6 +14,7 @@ Changes from 2.3.1 to XXX
 - Use new style syntax for exception raising. Closes :issue:`93`.
 - Fixed most of the warnings related to py3k compatibility (see :issue:`92`).
 - Fixed pyflakes warnings (closes :issue:`102`).
+- Cython extensions updated to use new constructs (closes `issue:`100`)
 
 
 Changes from 2.3 to 2.3.1

@@ -30,31 +30,34 @@ from tables.atom import Atom, EnumAtom
 
 from tables.utils import checkFileAccess
 
-from definitions cimport import_array, ndarray, \
-     malloc, free, strchr, strcpy, strncpy, strcmp, strdup, \
-     PyString_AsString, PyString_FromString, \
-     H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
-     size_t, hid_t, herr_t, hsize_t, hssize_t, htri_t, \
-     H5T_class_t, H5D_layout_t, H5T_sign_t, \
-     H5Fopen, H5Fclose, H5Fis_hdf5, H5Gopen, H5Gclose, \
-     H5Dopen, H5Dclose, H5Dget_type, \
-     H5Tcreate, H5Tcopy, H5Tclose, \
-     H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, \
-     H5Tget_member_value, H5Tget_size, H5Tget_native_type, \
-     H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, \
-     H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tarray_create, \
-     H5Tget_array_ndims, H5Tget_array_dims, H5Tis_variable_str, \
-     H5Tset_size, H5Tset_precision, H5Tpack, \
-     H5ATTRget_attribute_string, H5ATTRfind_attribute, \
-     H5ARRAYget_ndims, H5ARRAYget_info, \
-     create_ieee_complex64, create_ieee_complex128, \
-     get_order, set_order, is_complex, \
-     get_len_of_range, NPY_INT64, npy_int64, dtype, \
-     PyArray_DescrFromType, PyArray_Scalar, \
-     register_blosc, \
-     H5Eset_auto, H5Eprint
-
 from libc.stdio cimport stderr
+from libc.stdlib cimport malloc, free
+from libc.string cimport strchr, strcpy, strncpy, strcmp, strdup
+from cpython cimport PyString_AsString, PyString_FromString
+from numpy cimport (import_array, ndarray, dtype,
+  NPY_INT64, npy_int64,
+  PyArray_DescrFromType)
+
+from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
+  H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
+  H5Fopen, H5Fclose, H5Fis_hdf5,
+  H5Gopen, H5Gclose,
+  H5Eset_auto, H5Eprint,
+  H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
+  H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
+  H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
+  H5Tget_member_value, H5Tget_size, H5Tget_native_type,
+  H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset,
+  H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tarray_create,
+  H5Tget_array_ndims, H5Tget_array_dims, H5Tis_variable_str,
+  H5Tset_size, H5Tset_precision, H5Tpack,
+  H5ATTRget_attribute_string, H5ATTRfind_attribute,
+  H5ARRAYget_ndims, H5ARRAYget_info,
+  create_ieee_complex64, create_ieee_complex128,
+  get_order, set_order, is_complex,
+  get_len_of_range,
+  PyArray_Scalar,
+  register_blosc)
 
 
 # Include conversion tables & type
@@ -71,14 +74,14 @@ __version__ = "$Revision$"
 # PyTables helper routines.
 cdef extern from "utils.h":
 
-  int getLibrary(char *libname)
+  int getLibrary(char *libname) nogil
   object _getTablesVersion()
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
   object get_filter_names( hid_t loc_id, char *dset_name)
 
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout,
-                             hid_t *type_id, hid_t *dataset_id)
+                             hid_t *type_id, hid_t *dataset_id) nogil
 
   # To access to the slice.indices functionality for long long ints
   hssize_t getIndicesExt(object s, hsize_t length,
@@ -87,7 +90,7 @@ cdef extern from "utils.h":
 
 
 # Functions from Blosc
-cdef extern from "blosc.h":
+cdef extern from "blosc.h" nogil:
   int blosc_set_nthreads(int nthreads)
 
 
@@ -186,7 +189,7 @@ cdef hsize_t *malloc_dims(object pdims):
 # This is a re-implementation of a working H5Tget_native_type for nested
 # compound types.  I should report the flaw to THG as soon as possible.
 # F. Alted 2009-08-19
-cdef hid_t get_nested_native_type(hid_t type_id):
+cdef hid_t get_nested_native_type(hid_t type_id) nogil:
   """Get a native nested type of an HDF5 type.
 
   In addition, it also recursively remove possible padding on type_id, i.e. it
@@ -240,7 +243,7 @@ cdef hid_t get_nested_native_type(hid_t type_id):
 # not implement support for H5Tget_native_type with some types, like
 # H5T_BITFIELD and probably others.  When 1.8.x would be a requisite,
 # this can be simplified.
-cdef hid_t get_native_type(hid_t type_id):
+cdef hid_t get_native_type(hid_t type_id) nogil:
   """Get the native type of a HDF5 type."""
   cdef H5T_class_t class_id
   cdef hid_t native_type_id, super_type_id
@@ -380,9 +383,8 @@ def whichLibVersion(char *name):
   elif strcmp(name, "blosc") == 0:
     return (blosc_version, blosc_version_string, blosc_version_date)
   else:
-    raise ValueError("""\
-asked version of unsupported library ``%s``; \
-supported library names are ``%s``""" % (name, libnames))
+    raise ValueError("asked version of unsupported library ``%s``; "
+                     "supported library names are ``%s``" % (name, libnames))
 
   # A supported library was specified, but no version is available.
   return None
@@ -500,7 +502,7 @@ def getNestedField(recarray, fieldname):
   with slah-separated components.
   """
   try:
-    if strchr(fieldname, 47) != NULL:   # ord('/') == 47
+    if strchr(<char *>fieldname, 47) != NULL:   # ord('/') == 47
       # It may be convenient to implement this way of descending nested
       # fields into the ``__getitem__()`` method of a subclass of
       # ``numpy.ndarray``.  -- ivb
@@ -616,8 +618,8 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
   atom = AtomFromHDF5Type(baseId)
   H5Tclose(baseId)
   if atom.kind not in ('int', 'uint'):
-    raise NotImplementedError("""\
-sorry, only integer concrete values are supported at this moment""")
+    raise NotImplementedError("sorry, only integer concrete values are "
+                              "supported at this moment")
 
   dtype = atom.dtype
   npvalue = numpy.array((0,), dtype=dtype)
@@ -697,7 +699,7 @@ def enumToHDF5(object enumAtom, char *byteorder):
 
 
 def AtomToHDF5Type(atom, char *byteorder):
-  cdef hid_t   tid
+  cdef hid_t   tid = -1
   cdef hsize_t *dims
 
   # Create the base HDF5 type

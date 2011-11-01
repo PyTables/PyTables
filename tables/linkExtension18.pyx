@@ -15,10 +15,9 @@ from tables.exceptions import HDF5ExtError
 
 from hdf5Extension cimport Node
 
-from definitions cimport \
-     H5P_DEFAULT, \
-     size_t, hid_t, herr_t, hbool_t, int64_t, H5T_cset_t, haddr_t, \
-     malloc, free
+from libc.stdlib cimport malloc, free
+from definitions cimport (H5P_DEFAULT,
+  const_char, hid_t, herr_t, hbool_t, int64_t, H5T_cset_t, haddr_t)
 
 
 __version__ = "$Revision$"
@@ -28,7 +27,7 @@ __version__ = "$Revision$"
 
 # External declarations
 
-cdef extern from "H5Lpublic.h":
+cdef extern from "H5Lpublic.h" nogil:
 
   ctypedef enum H5L_type_t:
     H5L_TYPE_ERROR = (-1),       # Invalid link type id
@@ -72,7 +71,7 @@ cdef extern from "H5Lpublic.h":
 
   herr_t H5Lunpack_elink_val(
     char *ext_linkval, size_t link_size, unsigned *flags,
-    char **filename, char **obj_path)
+    const_char **filename, const_char **obj_path)
 
   herr_t H5Lcopy(
     hid_t src_loc_id, char *src_name, hid_t dest_loc_id, char *dest_name,
@@ -215,7 +214,9 @@ cdef class ExternalLink(Link):
     if ret < 0:
       raise HDF5ExtError("failed to get target value")
 
-    ret = H5Lunpack_elink_val(linkval, val_size, &flags, &filename, &obj_path)
+    ret = H5Lunpack_elink_val(linkval, val_size, &flags,
+                              <const_char **>&filename,
+                              <const_char **>&obj_path)
     if ret < 0:
       raise HDF5ExtError("failed to unpack external link value")
 

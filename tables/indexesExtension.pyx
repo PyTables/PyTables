@@ -24,33 +24,22 @@ Misc variables:
     __version__
 """
 
-import sys
-import os
-import warnings
-import pickle
-import cPickle
-
 import numpy
 
 from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array
 
 
-# numpy functions & objects
-from definitions cimport \
-     memcpy, \
-     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
-     import_array, ndarray, \
-     npy_intp, \
-     npy_int8, npy_uint8, \
-     npy_int16, npy_uint16, \
-     npy_int32, npy_uint32, \
-     npy_int64, npy_uint64, \
-     npy_float32, npy_float64, \
-     hid_t, herr_t, hsize_t, \
-     H5Dget_space, H5Screate_simple, H5Sclose
+# Types, constants, functions, classes & other objects from everywhere
+from numpy cimport (import_array, ndarray,
+  npy_intp,
+  npy_int8, npy_uint8,
+  npy_int16, npy_uint16,
+  npy_int32, npy_uint32,
+  npy_int64, npy_uint64,
+  npy_float32, npy_float64)
 
-
+from definitions cimport hid_t, herr_t, hsize_t, H5Screate_simple, H5Sclose
 from lrucacheExtension cimport NumCache
 
 
@@ -61,7 +50,7 @@ __version__ = "$Revision$"
 # External C functions
 
 # Functions for optimized operations with ARRAY for indexing purposes
-cdef extern from "H5ARRAY-opt.h":
+cdef extern from "H5ARRAY-opt.h" nogil:
   herr_t H5ARRAYOinit_readSlice(
     hid_t dataset_id, hid_t *mem_space_id, hsize_t count)
   herr_t H5ARRAYOread_readSlice(
@@ -79,7 +68,7 @@ cdef extern from "H5ARRAY-opt.h":
 
 
 # Functions for optimized operations for dealing with indexes
-cdef extern from "idx-opt.h":
+cdef extern from "idx-opt.h" nogil:
   int bisect_left_b(npy_int8 *a, long x, int hi, int offset)
   int bisect_left_ub(npy_uint8 *a, long x, int hi, int offset)
   int bisect_right_b(npy_int8 *a, long x, int hi, int offset)
@@ -177,7 +166,7 @@ def keysort(ndarray array1, ndarray array2):
     #array2[:] = array2[sidx]
     #return 0
   else:
-    raise ValueError, "This shouldn't happen!"
+    raise ValueError("This shouldn't happen!")
 
 
 # Classes
@@ -235,10 +224,10 @@ cdef class IndexArray(Array):
     cdef herr_t ret
 
     # Do the physical read
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOread_readSlice(self.dataset_id, self.type_id,
-                                 irow, start, stop, idx.data)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYOread_readSlice(self.dataset_id, self.type_id,
+                                     irow, start, stop, idx.data)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the index indices.")
 
@@ -305,11 +294,11 @@ cdef class IndexArray(Array):
                                 hsize_t stop):
     """Read the sorted part of an index."""
 
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOread_readSortedSlice(
-      self.dataset_id, self.mem_space_id, self.type_id,
-      irow, start, stop, self.rbuflb)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYOread_readSortedSlice(
+          self.dataset_id, self.mem_space_id, self.type_id,
+          irow, start, stop, self.rbuflb)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -410,7 +399,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_int8 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_int8 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -458,7 +447,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_uint8 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_uint8 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -506,7 +495,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_int16 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_int16 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -554,7 +543,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_uint16 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_uint16 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -602,7 +591,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_int32 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_int32 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -650,7 +639,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_uint32 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_uint32 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -698,7 +687,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_int64 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_int64 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -746,7 +735,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_uint64 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_uint64 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
@@ -794,7 +783,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_float32 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_float32 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
@@ -843,7 +832,7 @@ cdef class IndexArray(Array):
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef npy_float64 *rbufrv, *rbufbc, *rbuflb
+    cdef npy_float64 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
 
     cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
@@ -902,10 +891,10 @@ cdef class LastRowArray(Array):
   def _readIndexSlice(self, hsize_t start, hsize_t stop, ndarray idx):
     "Read the reverse index part of an LR index."
 
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
-                              start, stop, idx.data)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
+                                  start, stop, idx.data)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data in Last Row.")
     return
@@ -916,10 +905,10 @@ cdef class LastRowArray(Array):
     cdef void  *rbuflb
 
     rbuflb = sorted.rbuflb  # direct access to rbuflb: very fast.
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
-                              start, stop, rbuflb)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
+                                  start, stop, rbuflb)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data.")
     return sorted.bufferlb[:stop-start]
