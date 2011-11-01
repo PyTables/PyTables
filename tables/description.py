@@ -459,11 +459,11 @@ class Description(object):
             newdict[k] = object    # To allow natural naming
             if not (isinstance(object, Col) or
                     isinstance(object, Description)):
-                raise TypeError, \
-"""Passing an incorrect value to a table column. Expected a Col (or
-  subclass) instance and got: "%s". Please make use of the Col(), or
-  descendant, constructor to properly initialize columns.
-""" % object
+                raise TypeError('Passing an incorrect value to a table column.'
+                                ' Expected a Col (or subclass) instance and '
+                                'got: "%s". Please make use of the Col(), or '
+                                'descendant, constructor to properly '
+                                'initialize columns.' % object)
             object._v_pos = pos  # Set the position of this object
             object._v_parent = self  # The parent description
             pos += 1

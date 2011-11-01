@@ -67,7 +67,7 @@ def createFile(filename, totalrows, filters, recsize):
                                       None,
                                       totalrows)
         else:
-            raise RuntimeError, "This should never happen"
+            raise RuntimeError("This should never happen")
 
         table.attrs.test = 2
         rowsize = table.rowsize

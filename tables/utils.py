@@ -71,7 +71,7 @@ def idx2long(index):
     try:
         return long(index)
     except:
-        raise TypeError, "not an integer type."
+        raise TypeError("not an integer type.")
 
 
 # This is used in VLArray and EArray to produce NumPy object compliant

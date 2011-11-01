@@ -242,8 +242,8 @@ class Array(hdf5Extension.Array, Leaf):
 
         # Raise an error in case of unsupported object
         if nparr.dtype.kind in ['V', 'U', 'O']:  # in void, unicode, object
-            raise TypeError, \
-"Array objects cannot currently deal with void, unicode or object arrays"
+            raise TypeError("Array objects cannot currently deal with void, "
+                            "unicode or object arrays")
 
         # Decrease the number of references to the object
         self._object = None
@@ -431,12 +431,12 @@ class Array(hdf5Extension.Array, Leaf):
                     stepl[dim] = 1
                     dim += 1
             elif dim >= maxlen:
-                raise IndexError, "Too many indices for object '%s'" % \
-                      self._v_pathname
+                raise IndexError("Too many indices for object '%s'" %
+                                 self._v_pathname)
             elif is_idx(key):
                 # Protection for index out of range
                 if key >= self.shape[dim]:
-                    raise IndexError, "Index out of range"
+                    raise IndexError("Index out of range")
                 if key < 0:
                     # To support negative values (Fixes bug #968149)
                     key += self.shape[dim]
@@ -447,8 +447,7 @@ class Array(hdf5Extension.Array, Leaf):
                 start, stop, step = self._processRange(
                     key.start, key.stop, key.step, dim=dim )
             else:
-                raise TypeError, "Non-valid index or slice: %s" % \
-                      key
+                raise TypeError("Non-valid index or slice: %s" % key)
             if not ellipsis:
                 startl[dim] = start
                 stopl[dim] = stop
@@ -764,10 +763,10 @@ class Array(hdf5Extension.Array, Leaf):
             try:
                 narr[...] = nparr
             except Exception, exc:  #XXX
-                raise ValueError, \
-"""value parameter '%s' cannot be converted into an array object
-compliant with %s: '%r' The error was: <%s>""" % \
-            (nparr, self.__class__.__name__, self, exc)
+                raise ValueError("value parameter '%s' cannot be converted "
+                                 "into an array object compliant with %s: "
+                                 "'%r' The error was: <%s>" % (nparr,
+                                        self.__class__.__name__, self, exc))
             return narr
         return nparr
 

@@ -337,9 +337,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         # Check for zero dims in atom shape (not allowed in VLArrays)
         zerodims = numpy.sum(numpy.array(atom.shape) == 0)
         if zerodims > 0:
-            raise ValueError, \
-"""When creating VLArrays, none of the dimensions of the Atom instance can
-be zero."""
+            raise ValueError("When creating VLArrays, none of the dimensions "
+                             "of the Atom instance can be zero.")
 
         if not hasattr(atom, 'size'):  # it is a pseudo-atom
             self._atomicdtype = atom.base.dtype
@@ -435,9 +434,9 @@ be zero."""
             # Case where shape = (N,) and shape_atom = 1 or (1,)
             nobjects = shape[0]
         else:
-            raise ValueError, \
-"""The object '%s' is composed of elements with shape '%s', which is not compatible with the atom shape ('%s').""" % \
-(nparr, shape, atom_shape)
+            raise ValueError("The object '%s' is composed of elements with "
+                             "shape '%s', which is not compatible with the "
+                             "atom shape ('%s')." % (nparr, shape, atom_shape))
         return nobjects
 
 
@@ -609,7 +608,7 @@ be zero."""
         if is_idx(key):
             # Index out of range protection
             if key >= self.nrows:
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             if key < 0:
                 # To support negative values
                 key += self.nrows
@@ -632,7 +631,7 @@ be zero."""
 
         for nrow, value in zip(coords, values):
             if nrow >= self.nrows:
-                raise IndexError, "First index out of range"
+                raise IndexError("First index out of range")
             if nrow < 0:
                 # To support negative values
                 nrow += self.nrows
@@ -652,15 +651,16 @@ be zero."""
             nparr = self._readArray(nrow, nrow+1, 1)[0]
             nobjects = len(nparr)
             if len(value) > nobjects:
-                raise ValueError, \
-    "Length of value (%s) is larger than number of elements in row (%s)" % \
-    (len(value), nobjects)
+                raise ValueError("Length of value (%s) is larger than number "
+                                 "of elements in row (%s)" % (len(value), 
+                                                              nobjects))
             try:
                 nparr[:] = value
             except Exception, exc:  #XXX
-                raise ValueError, \
-    "Value parameter:\n'%r'\ncannot be converted into an array object compliant vlarray[%s] row: \n'%r'\nThe error was: <%s>" % \
-    (value, nrow, nparr[:], exc)
+                raise ValueError("Value parameter:\n'%r'\n"
+                        "cannot be converted into an array object compliant "
+                        "vlarray[%s] row: \n'%r'\nThe error was: <%s>" %
+                                                (value, nrow, nparr[:], exc))
 
             if nparr.size > 0:
                 self._modify(nrow, nparr, nobjects)

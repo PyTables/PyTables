@@ -287,7 +287,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
                 #cursor.execute(SQL3 % (float(rnd), float(rnd+3)))
                 cursor.execute(SQL3 % (float(rnd), float(rnd+dselect)))
             else:
-                raise ValueError, "atom must take a value in ['string','int','float']"
+                raise ValueError("atom must take a value in ['string','int','float']")
             if i == 0:
                 t1 = time.time() - time1
                 tcpu1 = time.clock() - cpu1
@@ -415,7 +415,7 @@ if __name__=="__main__":
         elif option[0] == '-m':
             indexmode = option[1]
             if indexmode not in supported_imodes:
-                raise ValueError, "Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode)
+                raise ValueError("Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode))
         elif option[0] == '-n':
             nrows = int(float(option[1])*1000)
         elif option[0] == '-d':

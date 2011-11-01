@@ -147,7 +147,9 @@ _shadowPath   = joinPath(_shadowParent, _shadowName)
 def _checkfilters(filters):
     if not (filters is None or
             isinstance(filters, Filters)):
-        raise TypeError, "filter parameter has to be None or a Filter instance and the passed type is: '%s'" % type(filters)
+        raise TypeError("filter parameter has to be None or a Filter "
+                        "instance and the passed type is: '%s'" %
+                                                                type(filters))
 
 
 def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
@@ -1652,7 +1654,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         # when calling enableUndo for the second time.
 
         if self.isUndoEnabled():
-            raise UndoRedoError, "Undo/Redo feature is already enabled!"
+            raise UndoRedoError("Undo/Redo feature is already enabled!")
 
         self._markers = {}
         self._seqmarkers = []
@@ -1731,7 +1733,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         self._checkOpen()
 
         if not self.isUndoEnabled():
-            raise UndoRedoError, "Undo/Redo feature is already disabled!"
+            raise UndoRedoError("Undo/Redo feature is already disabled!")
 
         # The file is going to be changed.
         self._checkWritable()
@@ -1774,11 +1776,11 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
             name = ''
         else:
             if not isinstance(name, str):
-                raise TypeError, \
-"Only strings are allowed as mark names. You passed object: '%s'" % name
+                raise TypeError("Only strings are allowed as mark names. "
+                                "You passed object: '%s'" % name)
             if name in self._markers:
-                raise UndoRedoError, \
-"Name '%s' is already used as a marker name. Try another one." % name
+                raise UndoRedoError("Name '%s' is already used as a marker "
+                                    "name. Try another one." % name)
 
             # The file is going to be changed.
             self._checkWritable()
@@ -1830,9 +1832,8 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
             self._seqmarkers = self._seqmarkers[:self._nmarks]
 
         if action not in _opToCode:  #INTERNAL
-            raise UndoRedoError, \
-                  "Action ``%s`` not in ``_opToCode`` dictionary: %r" %  \
-                  (action, _opToCode)
+            raise UndoRedoError("Action ``%s`` not in ``_opToCode`` "
+                                "dictionary: %r" %  (action, _opToCode))
 
         arg1 = ""; arg2 = ""
         if len(args) <= 1:
@@ -1841,13 +1842,12 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
             arg1 = args[0]
             arg2 = args[1]
         else:  #INTERNAL
-            raise UndoRedoError, \
-                  "Too many parameters for action log: %r", args
+            raise UndoRedoError("Too many parameters for action log: "
+                                "%r").with_traceback(args)
         if (len(arg1) > maxUndo
             or len(arg2) > maxUndo):  #INTERNAL
-            raise UndoRedoError, \
-                  "Parameter arg1 or arg2 is too long: (%r, %r)" %  \
-                  (arg1, arg2)
+            raise UndoRedoError("Parameter arg1 or arg2 is too long: "
+                                "(%r, %r)" % (arg1, arg2))
         #print "Logging-->", (action, arg1, arg2)
         self._actionlog.append([(_opToCode[action], arg1, arg2)])
         self._curaction += 1
@@ -1862,12 +1862,13 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
             if mark not in self._markers:
                 lmarkers = self._markers.keys()
                 lmarkers.sort()
-                raise UndoRedoError, \
-                      "The mark that you have specified has not been found in the internal marker list: %r" % lmarkers
+                raise UndoRedoError("The mark that you have specified has not "
+                                    "been found in the internal marker list: "
+                                    "%r" % lmarkers)
             markid = self._markers[mark]
         else:
-            raise TypeError, \
-                  "Parameter mark can only be an integer or a string, and you passed a type <%s>" % type(mark)
+            raise TypeError("Parameter mark can only be an integer or a "
+                            "string, and you passed a type <%s>" % type(mark))
         #print "markid, self._nmarks:", markid, self._nmarks
         return markid
 

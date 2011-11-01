@@ -239,7 +239,7 @@ class Hdf_dict(dict):
                             total_columns.append(cur_column)
                             return total_columns
         else:
-            raise KeyError, k
+            raise KeyError(k)
     def iterkeys(self):
         for key in self.keys():
             yield key
@@ -274,13 +274,13 @@ class Hdf_dict(dict):
             del self[k]
             return k, v
         except StopIteration:
-            raise KeyError, "Hdf Dict is empty"       
+            raise KeyError("Hdf Dict is empty")       
     def __setitem__(self, key, value):
         raise NotImplementedError
     def __delitem__(self, key):
         raise NotImplementedError                
     def __hash__(self):
-        raise TypeError, "Hdf dict bjects are unhashable"
+        raise TypeError("Hdf dict bjects are unhashable")
 
 if __name__=='__main__':
 

@@ -297,9 +297,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # If attribute does not exist, raise AttributeError
         if not name in self._v_attrnames:
-            raise AttributeError, \
-                  "Attribute '%s' does not exist in node: '%s'" % \
-                  (name, self._v__nodePath)
+            raise AttributeError("Attribute '%s' does not exist in node: "
+                                 "'%s'" % (name, self._v__nodePath))
 
         # Read the attribute from disk. This is an optimization to read
         # quickly system attributes that are _string_ values, but it

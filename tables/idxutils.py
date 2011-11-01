@@ -358,7 +358,7 @@ def infType(dtype, itemsize, sign=+1):
     try:
         return infinityMap[dtype.name][sign >= 0]
     except KeyError:
-        raise TypeError, "Type %s is not supported" % dtype.name
+        raise TypeError("Type %s is not supported" % dtype.name)
 
 
 # This check does not work for Python 2.2.x or 2.3.x (!)

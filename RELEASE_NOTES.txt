@@ -9,7 +9,7 @@
 Changes from 2.3.1 to XXX
 =========================
 
-@TBW
+- Use new style syntax for exception raising. Closes :issue:`93`.
 
 
 Changes from 2.3 to 2.3.1
