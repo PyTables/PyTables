@@ -709,8 +709,8 @@ class File(hdf5Extension.File, object):
             A NumPy dtype
                 A completely general structured NumPy dtype.
 
-            A NumPy (record) array
-                The dtype of this record array will be used as the
+            A NumPy (structured) array
+                The dtype of this structured array will be used as the
                 description.  Also, in case the array has actual data,
                 it will be injected into the newly created table.
 

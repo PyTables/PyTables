@@ -16,7 +16,7 @@ from tables.description import descr_from_dtype
 unittest.TestCase.tearDown = common.cleanup
 
 # It is important that columns are ordered according to their names
-# to ease the comparison with record arrays.
+# to ease the comparison with structured arrays.
 
 # Test Record class
 class Record(IsDescription):

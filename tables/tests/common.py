@@ -187,9 +187,9 @@ def areArraysEqual(arr1, arr2):
     """
     Are both `arr1` and `arr2` equal arrays?
 
-    Arguments can be regular NumPy arrays, chararray arrays or record
-    arrays (including nested record arrays).  They are checked for type
-    and value equality.
+    Arguments can be regular NumPy arrays, chararray arrays or
+    structured arrays (including structured record arrays).
+    They are checked for type and value equality.
     """
 
     t1 = type(arr1)

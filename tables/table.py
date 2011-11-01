@@ -678,7 +678,7 @@ class Table(tableExtension.Table, Leaf):
         self.extdim = 0   # Tables only have one dimension currently
         """The index of the enlargeable dimension (always 0 for tables)."""
         self._v_recarray = None
-        """A record array to be stored in the table."""
+        """A structured array to be stored in the table."""
         self._rabyteorder = None
         """The computed byteorder of the self._v_recarray."""
         if expectedrows is None:
@@ -788,7 +788,7 @@ class Table(tableExtension.Table, Leaf):
 
         # No description yet?
         if new and self.description is None:
-            # Try record array description objects.
+            # Try structured array description objects.
             try:
                 self._descflavor = flavor = flavor_of(description)
             except TypeError:  # probably not an array
@@ -811,7 +811,7 @@ class Table(tableExtension.Table, Leaf):
             raise TypeError(
                 "the ``description`` argument is not of a supported type: "
                 "``IsDescription`` subclass, ``Description`` instance, "
-                "dictionary, or record array" )
+                "dictionary, or structured array" )
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
@@ -1636,9 +1636,9 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         If `field` is supplied only the named column will be selected.
         If the column is not nested, an *array* of the current flavor
-        will be returned; if it is, a *record array* will be used
+        will be returned; if it is, a *structured array* will be used
         instead.  If no `field` is specified, all the columns will be
-        returned in a record array of the current flavor.
+        returned in a structured array of the current flavor.
 
         The meaning of the `start`, `stop` and `step` arguments is the
         same as in `Table.read()`.  However, in this case a negative
@@ -1778,9 +1778,9 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         If `field` is supplied only the named column will be selected.
         If the column is not nested, an *array* of the current flavor
-        will be returned; if it is, a *record array* will be used
+        will be returned; if it is, a *structured array* will be used
         instead.  If no `field` is specified, all the columns will be
-        returned in a record array of the current flavor.
+        returned in a structured array of the current flavor.
 
         Columns under a nested column can be specified in the `field`
         parameter by using a slash character (``/``) as a separator
@@ -1839,8 +1839,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         sequence (`coords`) of row indexes to select the wanted columns,
         instead of a column range.
 
-        The selected rows are returned in an array or record array of
-        the current flavor.
+        The selected rows are returned in an array or structured array
+        of the current flavor.
         """
         self._checkFieldIfNumeric(field)
         result = self._readCoordinates(coords, field)
@@ -1897,7 +1897,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         If `key` argument is an integer, the corresponding table row is
         returned as a record of the current flavor.  If `key` is a
         slice, the range of rows determined by it is returned as a
-        record array of the current flavor.
+        structured array of the current flavor.
 
         In addition, NumPy-style point selections are supported.  In
         particular, if `key` is a list of row coordinates, the set of
@@ -2032,11 +2032,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         Append a sequence of `rows` to the end of the table.
 
         The `rows` argument may be any object which can be converted to
-        a record array compliant with the table structure (otherwise, a
-        `ValueError` is raised).  This includes NumPy record arrays,
-        ``RecArray`` or ``NestedRecArray`` objects if ``numarray`` is
-        available, lists of tuples or array records, and a string or
-        Python buffer.
+        a structured array compliant with the table structure
+        (otherwise, a `ValueError` is raised).  This includes NumPy
+        structured arrays, ``RecArray`` or ``NestedRecArray`` objects
+        if ``numarray`` is available, lists of tuples or array records,
+        and a string or Python buffer.
 
         Example of use::
 
@@ -2288,11 +2288,11 @@ table format '%s'. The error was: <%s>
         is raised before changing data.
 
         The `columns` argument may be any object which can be converted
-        to a record array compliant with the structure of the columns to
-        be modified (otherwise, a `ValueError` is raised).  This
-        includes NumPy record arrays, ``RecArray`` or ``NestedRecArray``
-        objects if ``numarray`` is available, lists of tuples or array
-        records, and a string or Python buffer.
+        to a structured array compliant with the structure of the
+        columns to be modified (otherwise, a `ValueError` is raised).
+        This includes NumPy structured arrays, ``RecArray`` or
+        ``NestedRecArray`` objects if ``numarray`` is available, lists
+        of tuples or array records, and a string or Python buffer.
         """
 
         if type(names) not in (list, tuple):
@@ -2938,7 +2938,7 @@ class Cols(object):
         If `key` argument is an integer, the corresponding nested type
         row is returned as a record of the current flavor.  If `key` is
         a slice, the range of rows determined by it is returned as a
-        record array of the current flavor.
+        structured array of the current flavor.
 
         Example of use::
 

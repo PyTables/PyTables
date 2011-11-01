@@ -272,7 +272,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         self.assertTrue(common.areArraysEqual(nrarr, self._testAData),
-                        "Can not create a compatible record array.")
+                        "Can not create a compatible structured array.")
 
 
     def test03_NRA(self):

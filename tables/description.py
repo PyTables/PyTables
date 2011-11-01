@@ -728,7 +728,7 @@ def descr_from_dtype(dtype_):
         if byteorder in '><=':
             if fbyteorder not in ['|', byteorder]:
                 raise NotImplementedError(
-                    "record arrays with mixed byteorders "
+                    "structured arrays with mixed byteorders "
                     "are not supported yet, sorry" )
             fbyteorder = byteorder
         # Non-nested column
@@ -740,7 +740,7 @@ def descr_from_dtype(dtype_):
             col._v_pos = pos
         else:
             raise NotImplementedError(
-                "record arrays with columns with type description ``%s`` "
+                "structured arrays with columns with type description ``%s`` "
                 "are not supported yet, sorry" % dtype )
         fields[name] = col
 

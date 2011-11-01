@@ -696,21 +696,22 @@ File methods - hierarchy manipulation
         can be any of the following:
 
         * *A user-defined class*: This should inherit from the IsDescription
-          class (see :ref:`IsDescriptionClassDescr`) where table fields are specified.
-        * *A dictionary*: For example, when you do not know beforehand which structure
-          your table will have).
-        * *A Description instance*: You can use the description attribute of another
-          table to create a new one with the same structure.
+          class (see :ref:`IsDescriptionClassDescr`) where table fields are
+          specified.
+        * *A dictionary*: For example, when you do not know beforehand which
+          structure your table will have).
+        * *A Description instance*: You can use the description attribute of
+          another table to create a new one with the same structure.
         * *A NumPy dtype*: A completely general structured NumPy dtype.
-        * *A NumPy (record) array instance*: The dtype of this record array will be used
-          as the description.  Also, in case the array has actual data, it will be injected
-          into the newly created table.
-        * *A RecArray instance (deprecated)*: Object from the numarray package.  This does
-          not give you the possibility to create a nested table.  Array data is injected into
-          the new table.
-        * *A NestedRecArray instance (deprecated)*: If you want to have nested columns in
-          your table and you are using numarray, you can use this object. Array data is
-          injected into the new table.
+        * *A NumPy (structured) array instance*: The dtype of this structured
+          array will be used as the description.  Also, in case the array has
+          actual data, it will be injected into the newly created table.
+        * *A RecArray instance (deprecated)*: Object from the numarray
+          package.  This does not give you the possibility to create a nested
+          table.  Array data is injected into the new table.
+        * *A NestedRecArray instance (deprecated)*: If you want to have
+          nested columns in your table and you are using numarray, you can use
+          this object. Array data is injected into the new table.
     title : str
         A description for this node (it sets the TITLE HDF5 attribute on disk).
     filters : Filters
@@ -2358,16 +2359,14 @@ Table methods - reading
     *all the rows* in the table are
     selected.
 
-    If field is supplied only the named
-    column will be selected.  If the column is not nested, an
-    *array* of the current flavor will be returned;
-    if it is, a *record array* will be used
-    instead.  I no field is specified, all the
-    columns will be returned in a record array of the current flavor.
+    If field is supplied only the named column will be selected.
+    If the column is not nested, an *array* of the current flavor will be
+    returned; if it is, a *structured array* will be used instead.
+    If no field is specified, all the columns will be returned in a
+    structured array of the current flavor.
 
-    Columns under a nested column can be specified in the
-    field parameter by using a slash character
-    (/) as a separator (e.g. 'position/x').
+    Columns under a nested column can be specified in the field parameter by
+    using a slash character (/) as a separator (e.g. 'position/x').
 
 
 .. method:: Table.readCoordinates(coords, field=None)
@@ -2379,8 +2378,8 @@ Table methods - reading
     (coords) of row indexes to select the wanted
     columns, instead of a column range.
 
-    The selected rows are returned in an array or record array
-    of the current flavor.
+    The selected rows are returned in an array or structured array of the
+    current flavor.
 
 
 .. method:: Table.readSorted(sortby, checkCSI=False, field=None, start=None, stop=None, step=None)
@@ -2393,30 +2392,25 @@ Table methods - reading
     the checkCSI argument in order to explicitly
     check for the existence of a CSI index.
 
-    If field is supplied only the named
-    column will be selected.  If the column is not nested, an
-    *array* of the current flavor will be returned;
-    if it is, a *record array* will be used
-    instead.  If no field is specified, all the
-    columns will be returned in a record array of the current
-    flavor.
+    If field is supplied only the named column will be selected.
+    If the column is not nested, an *array* of the current flavor will be
+    returned; if it is, a *structured array* will be used instead.
+    If no field is specified, all the columns will be returned in a
+    structured array of the current flavor.
 
-    The meaning of the start,
-    stop and step arguments is
-    the same as in :meth:`Table.read`.  However, in this case a negative value
-    of step is supported, meaning that the results
-    will be returned in reverse sorted order.
+    The meaning of the start, stop and step arguments is the same as in
+    :meth:`Table.read`.  However, in this case a negative value of step is
+    supported, meaning that the results will be returned in reverse sorted
+    order.
 
 
 .. method:: Table.__getitem__(key)
 
     Get a row or a range of rows from the table.
 
-    If key argument is an integer, the
-    corresponding table row is returned as a record of the current
-    flavor. If key is a slice, the range of rows
-    determined by it is returned as a record array of the current
-    flavor.
+    If key argument is an integer, the corresponding table row is returned as
+    a record of the current flavor. If key is a slice, the range of rows
+    determined by it is returned as a structured array of the current flavor.
 
     In addition, NumPy-style point selections are supported.  In
     particular, if key is a list of row
@@ -2473,12 +2467,11 @@ Table methods - writing
 
     Append a sequence of rows to the end of the table.
 
-    The rows argument may be any object which
-    can be converted to a record array compliant with the table
-    structure (otherwise, a ValueError is raised).
-    This includes NumPy record arrays, RecArray
-    (depracated) or NestedRecArray (deprecated)
-    objects if numarray is available, lists of
+    The rows argument may be any object which can be converted to a record
+    array compliant with the table structure (otherwise, a ValueError is
+    raised).
+    This includes NumPy structured arrays, RecArray (depracated) or
+    NestedRecArray (deprecated) objects if numarray is available, lists of
     tuples or array records, and a string or Python buffer.
 
     Example of use::
@@ -2535,15 +2528,12 @@ Table methods - writing
     rows modified.  Should the modification exceed the length of the
     table, an IndexError is raised before changing data.
 
-    The columns argument may be any object
-    which can be converted to a record array compliant with the
-    structure of the columns to be modified (otherwise, a
-    ValueError is raised).  This includes NumPy
-    record arrays, RecArray (deprecated) or
-    NestedRecArray (deprecated) objects if
-    numarray is available, lists of tuples or array
-    records, and a string or Python buffer.
-
+    The columns argument may be any object which can be converted to a
+    structured array compliant with the structure of the columns to be
+    modified (otherwise, a ValueError is raised).  This includes NumPy
+    structured arrays, RecArray (deprecated) or NestedRecArray (deprecated)
+    objects if numarray is available, lists of tuples or array records, and
+    a string or Python buffer.
 
 
 .. method:: Table.modifyCoordinates(coords, rows)
@@ -3269,11 +3259,10 @@ Cols methods
 
     Get a row or a range of rows from a table or nested column.
 
-    If key argument is an integer, the
-    corresponding nested type row is returned as a record of the
-    current flavor. If key is a slice, the range
-    of rows determined by it is returned as a record array of the
-    current flavor.
+    If key argument is an integer, the corresponding nested type row is
+    returned as a record of the current flavor. If key is a slice, the range
+    of rows determined by it is returned as a structured array of the current
+    flavor.
 
     Example of use::
 

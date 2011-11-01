@@ -21,7 +21,7 @@ Functions:
 `compile_condition`
     Compile a condition and extract usable index conditions.
 `call_on_recarr`
-    Evaluate a function over a record array.
+    Evaluate a function over a structured array.
 """
 
 import re

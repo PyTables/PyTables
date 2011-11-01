@@ -2446,9 +2446,8 @@ Description object, because the levels are
 *also* Description objects
 themselves.
 
-There is a special attribute, called
-_v_nestedDescr, that can be useful to create
-nested record arrays that imitate the structure of the table (or a
+There is a special attribute, called _v_nestedDescr, that can be useful to
+create nested structured arrays that imitate the structure of the table (or a
 subtable thereof)::
 
     >>> import numpy
