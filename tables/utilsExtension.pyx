@@ -140,7 +140,7 @@ if sys.platform == "win32":
     lzo_version = None
 
   # Initialize & register bzip2
-  if getLibrary("bzip2") == 0:
+  if getLibrary("bzip2") == 0 or getLibrary("libbz2") == 0:
     import tables._comp_bzip2
     bzip2_version = tables._comp_bzip2.register_()
   else:
