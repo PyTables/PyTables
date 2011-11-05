@@ -2331,7 +2331,6 @@ class BloscSubprocess(common.PyTablesTestCase):
         os.remove(fn)
 
 
-
 class HDF5ErrorHandling(common.PyTablesTestCase):
     def test_silence_messages(self):
         code = """
@@ -2384,6 +2383,17 @@ except tables.HDF5ExtError, e:
         finally:
             os.remove(fn)
 
+
+class TestIsDescription(common.PyTablesTestCase):
+    def test_inheritance(self):
+        # Regression test for gh-65
+        class TestDescParent(IsDescription):
+            c = Int32Col()
+
+        class TestDesc(testDescParent):
+            pass
+
+        self.assertTrue('c' in testDesc.columns)
 
 
 #----------------------------------------------------------------------
