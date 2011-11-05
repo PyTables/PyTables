@@ -647,8 +647,10 @@ class metaIsDescription(type):
         """ Return a new class with a "columns" attribute filled
         """
 
-        newdict = {"columns":{},
-                   }
+        newdict = {"columns":{},}
+        for b in bases:
+            if "columns" in b.__dict__:
+                newdict["columns"].update(b.__dict__["columns"])
         for k in classdict.keys():
             #if not (k.startswith('__') or k.startswith('_v_')):
             # We let pass _v_ variables to configure class behaviour
@@ -841,6 +843,13 @@ if __name__=="__main__":
             print "leaf -->", object._v_name, object.dtype
 
 
+    class testDescParent(IsDescription):
+        c = Int32Col()
+
+    class testDesc(testDescParent):
+        pass
+
+    assert 'c' in testDesc.columns
 
 ## Local Variables:
 ## mode: python
