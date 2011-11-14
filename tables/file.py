@@ -66,13 +66,8 @@ from tables.table import Table
 from tables import linkExtension
 from utils import detectNumberOfCores
 
-try:
-    from tables import lrucacheExtension
-except ImportError:
-    from tables.misc import lrucache
-    _LRUCache = lrucache.LRUCache
-else:
-    _LRUCache = lrucacheExtension.NodeCache
+from tables import lrucacheExtension
+_LRUCache = lrucacheExtension.NodeCache
 
 from tables.link import SoftLink
 try:
