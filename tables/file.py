@@ -65,9 +65,8 @@ from tables.vlarray import VLArray
 from tables.table import Table
 from tables import linkExtension
 from utils import detectNumberOfCores
-
 from tables import lrucacheExtension
-_LRUCache = lrucacheExtension.NodeCache
+
 
 from tables.link import SoftLink
 try:
@@ -292,7 +291,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 
 
-class _DeadNodes(_LRUCache):
+class _DeadNodes(lrucacheExtension.NodeCache):
     pass
 
 # A dumb class that doesn't keep nothing at all
