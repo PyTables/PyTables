@@ -74,10 +74,10 @@ Let's say we want more meta-information. Just add the
     $ ptdump -v vlarray1.h5
     / (RootGroup) ''
     /vlarray1 (VLArray(3,), shuffle, zlib(1)) 'ragged array of ints'
-    atom = Int32Atom(shape=(), dflt=0)
+      atom = Int32Atom(shape=(), dflt=0)
       byteorder = 'little'
       nrows = 3
-      flavor = 'numeric'
+      flavor = 'numpy'
     /vlarray2 (VLArray(3,), shuffle, zlib(1)) 'ragged array of strings'
       atom = StringAtom(itemsize=2, shape=(), dflt='')
       byteorder = 'irrelevant'
@@ -96,7 +96,7 @@ must add the -a flag:
 
     $ ptdump -va vlarray1.h5
     / (RootGroup) ''
-      /._v_attrs (AttributeSet), 5 attributes:
+      /._v_attrs (AttributeSet), 4 attributes:
        [CLASS := 'GROUP',
         PYTABLES_FORMAT_VERSION := '2.0',
         TITLE := '',
@@ -105,12 +105,11 @@ must add the -a flag:
       atom = Int32Atom(shape=(), dflt=0)
       byteorder = 'little'
       nrows = 3
-      flavor = 'numeric'
-    /vlarray1._v_attrs (AttributeSet), 4 attributes:
+      flavor = 'numpy'
+      /vlarray1._v_attrs (AttributeSet), 3 attributes:
        [CLASS := 'VLARRAY',
-        FLAVOR := 'numeric',
         TITLE := 'ragged array of ints',
-        VERSION := '1.2']
+        VERSION := '1.3']
     /vlarray2 (VLArray(3,), shuffle, zlib(1)) 'ragged array of strings'
       atom = StringAtom(itemsize=2, shape=(), dflt='')
       byteorder = 'irrelevant'
@@ -120,7 +119,7 @@ must add the -a flag:
        [CLASS := 'VLARRAY',
         FLAVOR := 'python',
         TITLE := 'ragged array of strings',
-        VERSION := '1.2']
+        VERSION := '1.3']
 
 
 Let's have a look at the real data:
@@ -169,15 +168,13 @@ Finally, you can mix several information at once:
       atom = Int32Atom(shape=(), dflt=0)
       byteorder = 'little'
       nrows = 3
-      flavor = 'numeric'
-      /vlarray1._v_attrs (AttributeSet), 4 attributes:
+      flavor = 'numpy'
+      /vlarray1._v_attrs (AttributeSet), 3 attributes:
        [CLASS := 'VLARRAY',
-        FLAVOR := 'numeric',
         TITLE := 'ragged array of ints',
-        VERSION := '1.2']
+        VERSION := '1.3']
       Data dump:
     [2] [5 6 9 8]
-
 
 
 .. _ptrepackDescr:
