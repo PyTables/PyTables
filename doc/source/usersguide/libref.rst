@@ -37,8 +37,6 @@ Global variables
 
 .. autodata:: hdf5Version
 
-.. autodata:: is_pro
-
 
 Global functions
 ~~~~~~~~~~~~~~~~

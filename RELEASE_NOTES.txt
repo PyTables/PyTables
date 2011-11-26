@@ -10,7 +10,11 @@
 Changes from 2.4 to X.Y.Z (in development)
 ==========================================
 
-@TBW
+API changes
+-----------
+
+- The deprecated :data:`is_pro` module constant has been removed
+
 
 
 Changes from 2.3.1 to 2.4
