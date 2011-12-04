@@ -48,13 +48,12 @@
  *-------------------------------------------------------------------------
  */
 
-
 herr_t H5ATTRset_attribute( hid_t obj_id,
-			    const char *attr_name,
-			    hid_t type_id,
-			    size_t rank,
-			    hsize_t *dims,
-			    const char *attr_data )
+                            const char *attr_name,
+                            hid_t type_id,
+                            size_t rank,
+                            hsize_t *dims,
+                            const char *attr_data )
 {
  hid_t      space_id;
  hid_t      attr_id;
@@ -113,8 +112,8 @@ out:
  */
 
 herr_t H5ATTRset_attribute_string( hid_t obj_id,
-				   const char *attr_name,
-				   const char *attr_data )
+                                   const char *attr_name,
+                                   const char *attr_data )
 {
  hid_t      attr_type;
  hid_t      attr_size;
@@ -164,7 +163,7 @@ herr_t H5ATTRset_attribute_string( hid_t obj_id,
  if ( H5Tclose(attr_type) < 0 )
   goto out;
 
-  return 0;
+ return 0;
 
 out:
  return -1;
@@ -189,11 +188,10 @@ out:
  *-------------------------------------------------------------------------
  */
 
-
 herr_t H5ATTRget_attribute( hid_t obj_id,
-			    const char *attr_name,
-			    hid_t type_id,
-			    void *data )
+                            const char *attr_name,
+                            hid_t type_id,
+                            void *data )
 {
 
  /* identifiers */
@@ -235,8 +233,8 @@ out:
  */
 
 herr_t H5ATTRget_attribute_string( hid_t obj_id,
-				   const char *attr_name,
-				   char **data)
+                                   const char *attr_name,
+                                   char **data)
 {
  /* identifiers */
  hid_t      attr_id;
@@ -277,7 +275,6 @@ out:
  H5Aclose( attr_id );
  if (*data) free(*data);
  return -1;
-
 }
 
 
@@ -305,8 +302,8 @@ out:
  */
 
 static herr_t find_attr( hid_t loc_id,
-			 const char *name,
-			 void *op_data)
+                         const char *name,
+                         void *op_data)
 {
 
  /* Define a default zero value for return. This will cause the
@@ -327,7 +324,6 @@ static herr_t find_attr( hid_t loc_id,
 
  if( strcmp( name, attr_name ) == 0 )
   ret = 1;
-
 
  return ret;
 }
@@ -359,9 +355,8 @@ static herr_t find_attr( hid_t loc_id,
  */
 
 herr_t H5ATTRfind_attribute( hid_t loc_id,
-			     const char* attr_name )
+                             const char* attr_name )
 {
-
  unsigned int attr_num;
  herr_t       ret;
 
@@ -388,11 +383,11 @@ herr_t H5ATTRfind_attribute( hid_t loc_id,
  */
 
 herr_t H5ATTRget_type_ndims( hid_t obj_id,
-			     const char *attr_name,
-			     hid_t *type_id,
-			     H5T_class_t *class_id,
-			     size_t *type_size,
-			     int *rank )
+                             const char *attr_name,
+                             hid_t *type_id,
+                             H5T_class_t *class_id,
+                             size_t *type_size,
+                             int *rank )
 {
  hid_t       attr_id;
  hid_t       space_id;
@@ -434,7 +429,6 @@ out:
  H5Tclose( *type_id );
  H5Aclose( attr_id );
  return -1;
-
 }
 
 
@@ -453,8 +447,8 @@ out:
  */
 
 herr_t H5ATTRget_dims( hid_t obj_id,
-		       const char *attr_name,
-		       hsize_t *dims)
+                       const char *attr_name,
+                       hsize_t *dims)
 {
  hid_t       attr_id;
  hid_t       space_id;
@@ -486,9 +480,4 @@ herr_t H5ATTRget_dims( hid_t obj_id,
 out:
  H5Aclose( attr_id );
  return -1;
-
 }
-
-
-
-
