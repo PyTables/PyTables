@@ -240,6 +240,7 @@ herr_t H5ATTRget_attribute_string( hid_t obj_id,
  hid_t      attr_id;
  hid_t      attr_type;
  size_t     type_size;
+ htri_t     is_vlstr = 0;
 
  *data = NULL;
  if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
@@ -248,21 +249,27 @@ herr_t H5ATTRget_attribute_string( hid_t obj_id,
  if ( (attr_type = H5Aget_type( attr_id )) < 0 )
   goto out;
 
- /* Get the size */
- if ( (type_size = H5Tget_size( attr_type )) < 0 )
+ is_vlstr = H5Tis_variable_str( attr_type );
+ if ( is_vlstr == 0 )
+ {
+  /* Get the size */
+  if ( (type_size = H5Tget_size( attr_type )) < 0 )
+   goto out;
+
+  /* Malloc space enough for the string, plus 1 for the trailing '\0' */
+  *data = (char *)malloc(type_size+1);
+
+  if ( H5Aread( attr_id, attr_type, *data ) < 0 )
+   goto out;
+
+  /* Set the last character to \0 in case we are dealing with space
+     padded strings */
+  (*data)[type_size] = '\0';
+ }
+ else if ( H5Aread( attr_id, attr_type, data ) < 0 )
   goto out;
 
- /* Malloc space enough for the string, plus 1 for the trailing '\0' */
- *data = (char *)malloc(type_size+1);
-
- if ( H5Aread( attr_id, attr_type, *data ) < 0 )
-  goto out;
-
- /* Set the last character to \0 in case we are dealing with space
-    padded strings */
- (*data)[type_size] = '\0';
-
- if ( H5Tclose( attr_type )  < 0 )
+ if ( H5Tclose( attr_type ) < 0 )
   goto out;
 
  if ( H5Aclose( attr_id ) < 0 )
@@ -273,7 +280,8 @@ herr_t H5ATTRget_attribute_string( hid_t obj_id,
 out:
  H5Tclose( attr_type );
  H5Aclose( attr_id );
- if (*data) free(*data);
+ if ( (is_vlstr == 0) && (*data != NULL) )
+  free(*data);
  return -1;
 }
 

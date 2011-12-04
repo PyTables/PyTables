@@ -1551,6 +1551,27 @@ class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "Great! '0' and '0.' values can be safely retrieved."
 
 
+class VlenStrAttrTestCase(PyTablesTestCase):
+
+    def test01_vlen_str_scalar(self):
+        """Checking file with variable length string attributes."""
+
+        filename = self._testFilename('vlstr_attr.h5')
+        fileh = openFile(filename)
+        attr = "vlen_str_scalar"
+        self.assertEqual(fileh.getNodeAttr("/", attr), attr)
+        fileh.close()
+
+    #def test02_vlen_str_array(self):
+    #    """Checking file with variable length string attributes (1d)."""
+    #
+    #    filename = self._testFilename('vlstr_attr.h5')
+    #    fileh = openFile(filename)
+    #    attr = "vlen_string_array"
+    #    for idx, item in enumerate(fileh.getNodeAttr(attr)):
+    #        self.assertEqual("/", item, "%s_%d" % (attr, idx))
+    #    fileh.close()
+
 
 class UnsupportedAttrTypeTestCase(PyTablesTestCase):
 
@@ -1558,6 +1579,14 @@ class UnsupportedAttrTypeTestCase(PyTablesTestCase):
         """Checking file with unsupported type."""
 
         filename = self._testFilename('attr-u16.h5')
+        fileh = openFile(filename)
+        self.failUnlessWarns(DataTypeWarning, repr, fileh)
+        fileh.close()
+
+    def test01_unsupportedType(self):
+        """Checking file with variable length string attributes."""
+
+        filename = self._testFilename('vlstr_attr.h5')
         fileh = openFile(filename)
         self.failUnlessWarns(DataTypeWarning, repr, fileh)
         fileh.close()
@@ -1602,6 +1631,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
         theSuite.addTest(unittest.makeSuite(SegFaultPythonTestCase))
+        theSuite.addTest(unittest.makeSuite(VlenStrAttrTestCase))
         theSuite.addTest(unittest.makeSuite(UnsupportedAttrTypeTestCase))
         theSuite.addTest(unittest.makeSuite(SpecificAttrsTestCase))
 
