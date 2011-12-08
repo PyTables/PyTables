@@ -1562,15 +1562,30 @@ class VlenStrAttrTestCase(PyTablesTestCase):
         self.assertEqual(fileh.getNodeAttr("/", attr), attr)
         fileh.close()
 
-    #def test02_vlen_str_array(self):
-    #    """Checking file with variable length string attributes (1d)."""
-    #
-    #    filename = self._testFilename('vlstr_attr.h5')
-    #    fileh = openFile(filename)
-    #    attr = "vlen_string_array"
-    #    for idx, item in enumerate(fileh.getNodeAttr(attr)):
-    #        self.assertEqual("/", item, "%s_%d" % (attr, idx))
-    #    fileh.close()
+    def test02_vlen_str_array(self):
+        """Checking file with variable length string attributes (1d)."""
+
+        filename = self._testFilename('vlstr_attr.h5')
+        fileh = openFile(filename)
+        attr = "vlen_str_array"
+        v = fileh.getNodeAttr('/', attr)
+        self.assertEqual(v.ndim, 1)
+        for idx, item in enumerate(v):
+            self.assertEqual(item, "%s_%d" % (attr, idx))
+        fileh.close()
+
+    def test03_vlen_str_matrix(self):
+        """Checking file with variable length string attributes (2d)."""
+
+        filename = self._testFilename('vlstr_attr.h5')
+        fileh = openFile(filename)
+        attr = "vlen_str_matrix"
+        m = fileh.getNodeAttr('/', attr)
+        self.assertEqual(m.ndim, 2)
+        for row, rowdata in enumerate(m):
+            for col, item in enumerate(rowdata):
+                self.assertEqual(item, "%s_%d%d" % (attr, row, col))
+        fileh.close()
 
 
 class UnsupportedAttrTypeTestCase(PyTablesTestCase):
@@ -1579,14 +1594,6 @@ class UnsupportedAttrTypeTestCase(PyTablesTestCase):
         """Checking file with unsupported type."""
 
         filename = self._testFilename('attr-u16.h5')
-        fileh = openFile(filename)
-        self.failUnlessWarns(DataTypeWarning, repr, fileh)
-        fileh.close()
-
-    def test01_unsupportedType(self):
-        """Checking file with variable length string attributes."""
-
-        filename = self._testFilename('vlstr_attr.h5')
         fileh = openFile(filename)
         self.failUnlessWarns(DataTypeWarning, repr, fileh)
         fileh.close()

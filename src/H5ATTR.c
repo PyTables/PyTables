@@ -287,6 +287,88 @@ out:
 
 
 /*-------------------------------------------------------------------------
+ * Function: H5ATTRget_attribute_vlen_string_array
+ *
+ * Purpose: Reads a variable length string attribute named attr_name.
+ *
+ * Return: Success: number of elements of the array, Failure: -1
+ *
+ * Programmer: Antonio Valentino <antonio.valentino@tiscali.it>
+ *
+ * Date: November 27, 2011
+ *
+ * Comments: only rank 1 attributes of 8bit strings are supported
+ *
+ * Modifications:
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int H5ATTRget_attribute_vlen_string_array( hid_t obj_id,
+                                           const char *attr_name,
+                                           char ***data)
+{
+ /* identifiers */
+ hid_t attr_id = -1, attr_type = -1, space_id = -1;
+ hsize_t nelements, *dims = NULL;
+ int ndims = 0, i;
+
+ *data = NULL;
+ if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
+  return -1;
+
+ if ( (attr_type = H5Aget_type( attr_id )) < 0 )
+  goto out;
+
+ if ( (space_id = H5Aget_space( attr_id )) < 0 )
+  goto out;
+
+ if ( (ndims = H5Sget_simple_extent_ndims( space_id )) < 1 )
+  goto out;
+
+ if ( (dims = (hsize_t *)malloc(ndims * sizeof(hsize_t))) == NULL )
+  goto out;
+
+ if ( H5Sget_simple_extent_dims( space_id, dims, NULL ) < 0 )
+  goto out;
+
+ nelements = 1;
+ for ( i = 0; i < ndims; ++i )
+  nelements *= dims[i];
+
+ free( dims );
+ dims = NULL;
+
+ if ((*data = (char **)malloc( nelements * sizeof(char*))) == NULL )
+  goto out;
+
+ if ( H5Aread( attr_id, attr_type, *data ) < 0 )
+  goto out;
+
+ if ( H5Tclose( attr_type ) < 0 )
+  goto out;
+
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
+
+ if ( H5Aclose( attr_id ) < 0 )
+  return -1;
+
+ return nelements;
+
+out:
+ if ( *data != NULL )
+  free( *data );
+ if ( dims != NULL )
+  free( dims );
+ H5Tclose( attr_type );
+ H5Sclose( space_id );
+ H5Aclose( attr_id );
+ return -1;
+}
+
+
+/*-------------------------------------------------------------------------
  *
  * Helper functions
  *

@@ -50,6 +50,10 @@ herr_t H5ATTRget_attribute_string( hid_t obj_id,
                                    const char *attr_name,
                                    char **data );
 
+int H5ATTRget_attribute_vlen_string_array( hid_t obj_id,
+                                           const char *attr_name,
+                                           char ***data );
+
 
 /*-------------------------------------------------------------------------
  *
