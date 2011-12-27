@@ -5,6 +5,12 @@ import tempfile
 import warnings
 import subprocess
 
+try:
+    import multiprocessing as mp
+    multiprocessing_imported = True
+except ImportError:
+    multiprocessing_imported = False
+
 import numpy
 
 import tables
@@ -2300,8 +2306,6 @@ def _worker(fn, qout = None):
 
 class BloscSubprocess(common.PyTablesTestCase):
     def test_multiprocess(self):
-        import multiprocessing as mp
-
         # Create a relatively large table with Blosc level 9 (large blocks)
         fn = tempfile.mktemp(prefix="multiproc-blosc9-", suffix=".h5")
         size = int(3e5)
@@ -2411,7 +2415,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBigEndian))
-        theSuite.addTest(unittest.makeSuite(BloscSubprocess))
+        if multiprocessing_imported:
+            theSuite.addTest(unittest.makeSuite(BloscSubprocess))
         theSuite.addTest(unittest.makeSuite(HDF5ErrorHandling))
 
     return theSuite
