@@ -675,7 +675,7 @@ Sharing data in tables.netcdf3 files over the Internet with OPeNDAP
 -------------------------------------------------------------------
 tables.netcdf3 datasets can be shared over
 the Internet with the OPeNDAP protocol (http://opendap.org), via the python
-OPeNDAP module (http://opendap.oceanografia.org).
+OPeNDAP module.
 A plugin for the python opendap server is included with the pytables
 distribution (contrib/h5_dap_plugin.py). Simply
 copy that file into the plugins directory of the
