@@ -50,15 +50,21 @@ Prerequisites
 
 First, make sure that you have
 
-* Python >= 2.4 (Python 3.x is not supported currently),
-* HDF5 >= 1.6.10,
-* NumPy >= 1.4.1,
-* Numexpr >= 1.4.1 and
-* Cython >= 0.13
+* Python_ >= 2.4 (Python 3.x is not supported currently),
+* HDF5_ >= 1.6.10,
+* NumPy_ >= 1.4.1,
+* Numexpr_ >= 1.4.1 and
+* Cython_ >= 0.13
 
-installed (for testing purposes, we are using HDF5 1.6.10/1.8.5, NumPy 1.5 and
-Numexpr 1.4.1 currently). If you don't, fetch and install them before
+installed (for testing purposes, we are using HDF5_ 1.6.10/1.8.5, NumPy_ 1.5
+and Numexpr_ 1.4.1 currently). If you don't, fetch and install them before
 proceeding.
+
+.. _Python: http://www.python.org
+.. _HDF5: http://hdfgroup.org/HDF5
+.. _NumPy: http://numpy.scipy.org
+.. _Numexpr: http://code.google.com/p/numexpr
+.. _Cython: http://cython.org
 
 .. note:: Users of Python 2.4.x also need to install ctypes_
 
