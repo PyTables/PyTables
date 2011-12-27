@@ -28,13 +28,23 @@ Other resources for developers:
 * :ref:`library_reference`
 * `Git Repository browser <https://github.com/PyTables/PyTables>`_
 * `Issue tracker <https://github.com/PyTables/PyTables/issues>`_
-* `Deveopers wiki <https://github.com/PyTables/PyTables/wiki>`_
+* `Developers wiki <https://github.com/PyTables/PyTables/wiki>`_
 * `Users' Mailing List`_
 * `Developers' Mailing List`_
-* `Continuous Integration <http://hudson.openmicroscopy.org.uk/job/PyTables>`_
+* Continuous Integration:
+
+  - `master <http://hudson.openmicroscopy.org.uk/job/PyTables>`_ branch at
+    OME_
+  - `develop <https://jenkins.shiningpanda.com/pytables/>`_ branch at
+    `Shining Panda`_
+
 * Development version of the
   `HTML documentation <http://readthedocs.org/docs/pytables/en/latest>`_
 * `Old trac site <http://www.pytables.org/trac-bck>`_
+
+.. _OME: http://www.openmicroscopy.org
+.. _`Shining Panda`: https://www.shiningpanda.com
+
 
 .. toctree::
     :maxdepth: 1
