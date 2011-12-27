@@ -60,11 +60,14 @@ installed (for testing purposes, we are using HDF5 1.6.10/1.8.5, NumPy 1.5 and
 Numexpr 1.4.1 currently). If you don't, fetch and install them before
 proceeding.
 
+.. note:: Users of Python 2.4.x also nee to install ctypes_
+
 .. note:: Currently PyTables does not use setuptools_ so do not expect that
           the setup.py script automatically install all packages PyTables
           depends on.
 
 .. _setuptools: http://pypi.python.org/pypi/setuptools
+.. _ctypes: http://pypi.python.org/pypi/ctypes
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
 instructions on how to install precompiled binaries if you are not willing to
