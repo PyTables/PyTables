@@ -674,7 +674,7 @@ if __name__=="__main__":
     expr.setOutput(out)
     d = expr.eval()
 
-    print "returned-->", `d`
+    print "returned-->", repr(d)
     #print `d[:]`
 
     f.close()
