@@ -229,6 +229,11 @@ class Col(atom.Atom):
             __eq__ = same_position(atombase.__eq__)
             _is_equal_to_atom = same_position(atombase._is_equal_to_atom)
 
+            # XXX: API incompatible change for PyTables 3 line
+            # Overriding __eq__ blocks inheritance of __hash__ in 3.x
+            #def __hash__(self):
+            #    return hash((self._v_pos, self.atombase))
+
             if prefix == 'Enum':
                 _is_equal_to_enumatom = same_position(
                     atombase._is_equal_to_enumatom )

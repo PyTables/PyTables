@@ -310,6 +310,12 @@ class Filters(object):
                 return False
         return True
 
+    # XXX: API incompatible change for PyTables 3 line
+    # Overriding __eq__ blocks inheritance of __hash__ in 3.x
+    #def __hash__(self):
+    #    return hash((self.__class__, self.complevel, self.complib,
+    #                 self.shuffle, self.fletcher32))
+
     def copy(self, **override):
         """
         Get a copy of the filters, possibly overriding some arguments.

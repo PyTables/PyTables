@@ -539,6 +539,12 @@ class Atom(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    # XXX: API incompatible change for PyTables 3 line
+    # Overriding __eq__ blocks inheritance of __hash__ in 3.x
+    #def __hash__(self):
+    #    return hash((self.__class__, self.type, self.shape, self.itemsize,
+    #                 self.dflt))
+
     # Public methods
     # ~~~~~~~~~~~~~~
     def copy(self, **override):
@@ -948,6 +954,11 @@ class EnumAtom(Atom):
 
     __eq__ = _cmp_dispatcher('_is_equal_to_enumatom')
 
+    # XXX: API incompatible change for PyTables 3 line
+    # Overriding __eq__ blocks inheritance of __hash__ in 3.x
+    #def __hash__(self):
+    #    return hash((self.__class__, self.enum, self.shape, self.dflt,
+    #                 self.base))
 
 # Pseudo-atom classes
 # ===================
