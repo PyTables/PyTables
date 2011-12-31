@@ -3864,7 +3864,7 @@ class CopyTestCase(unittest.TestCase):
         """Assert that column instance maps of both tables are equal."""
         cinst1, cinst2 = table1.colinstances, table2.colinstances
         self.assertEqual(len(cinst1), len(cinst2))
-        for (cpathname, col1) in cinst1.items():
+        for (cpathname, col1) in cinst1.iteritems():
             self.assertTrue(cpathname in cinst2)
             col2 = cinst2[cpathname]
             self.assertTrue(type(col1) is type(col2))

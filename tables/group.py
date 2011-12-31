@@ -1110,7 +1110,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         rep = [ '%r (%s)' %  \
                 (childname, child.__class__.__name__)
-                for (childname, child) in self._v_children.items() ]
+                for (childname, child) in self._v_children.iteritems() ]
         childlist = '[%s]' % (', '.join(rep))
 
         return "%s\n  children := %s" % \

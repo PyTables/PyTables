@@ -297,7 +297,7 @@ def dumpLoggedInstances(classes, file=sys.stdout):
             obj = ref()
             if obj is not None:
                 file.write('    %s:\n' % obj)
-                for key, value in obj.__dict__.items():
+                for key, value in obj.__dict__.iteritems():
                     file.write('        %20s : %s\n' % (key, value))
 
 

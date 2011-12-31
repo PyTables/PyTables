@@ -384,7 +384,7 @@ class _ColIndexes(dict):
     def __repr__(self):
         """ Gives a detailed Description column representation.
         """
-        rep = [ '  \"%s\": %s' % (k, self[k]) for k in self.keys()]
+        rep = [ '  \"%s\": %s' % (k, self[k]) for k in self.iterkeys()]
         return '{\n  %s}' % (',\n  '.join(rep))
 
 
@@ -1252,7 +1252,7 @@ class Table(tableExtension.Table, Leaf):
         colnames, varnames = [], []
         # Column paths and types for each of the previous variable.
         colpaths, vartypes = [], []
-        for (var, val) in condvars.items():
+        for (var, val) in condvars.iteritems():
             if hasattr(val, 'pathname'):  # column
                 colnames.append(var)
                 colpaths.append(val.pathname)

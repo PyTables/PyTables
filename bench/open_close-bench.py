@@ -176,7 +176,7 @@ if __name__ == '__main__':
             verbose = 1
         elif option[0] == '-p':
             profile = 1
-        elif option[0] in option2func.keys():
+        elif option[0] in option2func:
             func.append(option2func[option[0]])
         elif option[0] == '-E':
             all_checks = 1

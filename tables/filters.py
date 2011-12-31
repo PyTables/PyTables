@@ -130,7 +130,7 @@ class Filters(object):
 
         kwargs = dict( complevel=0, shuffle=False, fletcher32=False,  # all off
                        _new=False )
-        for (name, values) in filtersDict.items():
+        for (name, values) in filtersDict.iteritems():
             if name == 'deflate':
                 name = 'zlib'
             if name in all_complibs:
@@ -305,7 +305,7 @@ class Filters(object):
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
-        for attr in self.__dict__.keys():
+        for attr in self.__dict__:
             if getattr(self, attr) != getattr(other, attr):
                 return False
         return True

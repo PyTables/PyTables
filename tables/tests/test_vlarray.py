@@ -723,7 +723,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03a_IntAtom..." % self.__class__.__name__
 
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1,2,3], dtype=atype)
@@ -817,7 +817,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03c_IntAtom..." % self.__class__.__name__
 
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1,2,3], dtype=atype)
@@ -873,7 +873,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test03d_IntAtom..." % self.__class__.__name__
 
         byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(ttypes[atype]),
                                                byteorder=byteorder)
@@ -964,7 +964,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04a_FloatAtom..." % self.__class__.__name__
 
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
@@ -1047,7 +1047,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04c_FloatAtom..." % self.__class__.__name__
 
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
@@ -1097,7 +1097,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04d_FloatAtom..." % self.__class__.__name__
 
         byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(ttypes[atype]),
                                                byteorder = byteorder)

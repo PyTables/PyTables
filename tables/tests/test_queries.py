@@ -309,7 +309,7 @@ def create_test_method(type_, op, extracond):
     condvars = { 'bound': right_bound,
                  'lbound': left_bound,
                  'rbound': right_bound }
-    for (bname, bvalue) in condvars.items():
+    for (bname, bvalue) in condvars.iteritems():
         if type_ == 'string':
             bvalue = str_format % bvalue
         bvalue = nxtype_from_type[type_](bvalue)

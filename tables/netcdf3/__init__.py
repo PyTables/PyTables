@@ -213,7 +213,7 @@ class NetCDFFile:
                 if not isinstance(var,tables.CArray) and not isinstance(var,tables.EArray):
                     print 'object',var,'is not a EArray or CArray, skipping ..'
                     continue
-                if var.atom.type not in _typecode_dict.keys():
+                if var.atom.type not in _typecode_dict:
                     print 'object',var.name,'is not a supported datatype (',var.atom.type,'), skipping ..'
                     continue
                 if var.attrs.__dict__.has_key('dimensions'):
@@ -586,7 +586,7 @@ class NetCDFVariable:
     """
 
     def __init__(self, varname, NetCDFFile, datatype, dimensions, least_significant_digit=None,expectedsize=1000,filters=None):
-        if datatype not in _netcdftype_dict.keys():
+        if datatype not in _netcdftype_dict:
             raise ValueError('datatype must be one of %s' %
                                                 netcdftype_dict.keys())
         self._NetCDF_parent = NetCDFFile

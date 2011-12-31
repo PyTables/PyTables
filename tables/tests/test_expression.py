@@ -28,7 +28,7 @@ class Record(tb.IsDescription):
 # Helper functions
 def get_sliced_vars(npvars, start, stop, step):
     npvars_ = {}
-    for name, var in npvars.items():
+    for name, var in npvars.iteritems():
         if hasattr(var, "__len__"):
             npvars_[name] = var[start:stop:step]
         else:
@@ -39,7 +39,7 @@ def get_sliced_vars2(npvars, start, stop, step, shape, maindim):
     npvars_ = {}
     slices = [slice(None) for dim in shape]
     slices[maindim] = slice(start, stop, step)
-    for name, var in npvars.items():
+    for name, var in npvars.iteritems():
         npvars_[name] = var.__getitem__(tuple(slices))
     return npvars_
 

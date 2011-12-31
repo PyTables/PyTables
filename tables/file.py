@@ -322,11 +322,8 @@ class _NodeDict(tables.misc.proxydict.ProxyDict):
         raise NotImplementedError
 
 
-    def __len__(self):
-        nnodes = 0
-        for nodePath in self.iterkeys():
-            nnodes += 1
-        return nnodes
+    #def __len__(self):
+    #    return len(list(self.iterkeys()))
 
 
 class File(hdf5Extension.File, object):

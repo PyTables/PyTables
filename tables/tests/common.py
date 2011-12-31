@@ -110,7 +110,7 @@ def verbosePrint(string, nonl=False):
 def cleanup(klass):
     #klass.__dict__.clear()     # This is too hard. Don't do that
 #    print "Class attributes deleted"
-    for key in klass.__dict__.keys():
+    for key in klass.__dict__:
         if not klass.__dict__[key].__class__.__name__ in ('instancemethod'):
             klass.__dict__[key] = None
 

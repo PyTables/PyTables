@@ -258,12 +258,12 @@ def _generate_col_classes():
     """Generate all column classes."""
     # Abstract classes are not in the class map.
     cprefixes = ['Int', 'UInt', 'Float', 'Time']
-    for (kind, kdata) in atom.atom_map.items():
+    for (kind, kdata) in atom.atom_map.iteritems():
         if hasattr(kdata, 'kind'):  # atom class: non-fixed item size
             atomclass = kdata
             cprefixes.append(atomclass.prefix())
         else:  # dictionary: fixed item size
-            for atomclass in kdata.values():
+            for atomclass in kdata.itervalues():
                 cprefixes.append(atomclass.prefix())
 
     # Bottom-level complex classes are not in the type map, of course.
@@ -403,7 +403,7 @@ class Description(object):
         cols_no_pos = []  # just column names
 
         # Check for special variables and convert column descriptions
-        for (name, descr) in classdict.items():
+        for (name, descr) in classdict.iteritems():
             if name.startswith('_v_'):
                 if name in newdict:
                     #print "Warning!"
@@ -656,7 +656,7 @@ class metaIsDescription(type):
         for b in bases:
             if "columns" in b.__dict__:
                 newdict["columns"].update(b.__dict__["columns"])
-        for k in classdict.keys():
+        for k in classdict:
             #if not (k.startswith('__') or k.startswith('_v_')):
             # We let pass _v_ variables to configure class behaviour
             if not (k.startswith('__')):
@@ -728,7 +728,7 @@ def descr_from_dtype(dtype_):
 
     fields = {}
     fbyteorder = '|'
-    for (name, (dtype, pos)) in dtype_.fields.items():
+    for (name, (dtype, pos)) in dtype_.fields.iteritems():
         kind = dtype.base.kind
         byteorder = dtype.base.byteorder
         if byteorder in '><=':

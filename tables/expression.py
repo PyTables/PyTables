@@ -139,7 +139,7 @@ class Expr(object):
         self.names, _ = getExprNames(expr, context)
 
         # Raise a ValueError in case we have unsupported objects
-        for name, var in vars_.items():
+        for name, var in vars_.iteritems():
             if type(var) in (int, long, float, str):
                 continue
             if not isinstance(var, (tb.Leaf, tb.Column)):
@@ -155,7 +155,7 @@ class Expr(object):
         # PyTables objects, as the reads always return contiguous and
         # aligned objects, or at least I think so).
         copy_args = []
-        for name, var in vars_.items():
+        for name, var in vars_.iteritems():
             if type(var) == np.ndarray:
                 # See numexpr.necompiler.evaluate for a rational
                 # of the code below
