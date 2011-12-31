@@ -2867,9 +2867,9 @@ class GetItemRangeTestCase(unittest.TestCase):
         self.assertTrue(
             allequal(row[0], numpy.arange(0, dtype='int32')))
         self.assertTrue(
-            allequal(row[numpy.array(1)], numpy.arange(10, dtype='int32')))
+            allequal(row[1], numpy.arange(10, dtype='int32')))
         self.assertTrue(
-            allequal(row[numpy.array([2])], numpy.arange(99, dtype='int32')))
+            allequal(row[2], numpy.arange(99, dtype='int32')))
 
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
