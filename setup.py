@@ -742,7 +742,7 @@ makes of it a fast, yet extremely easy to use tool for
 interactively save and retrieve large amounts of data.
 
 """,
-      classifiers = filter(None, classifiers.split("\n")),
+      classifiers = [c for c in classifiers.split("\n") if c],
       author = 'Francesc Alted, Ivan Vilata, et al.',
       author_email = 'pytables@pytables.org',
       maintainer = 'Francesc Alted',
