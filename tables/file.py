@@ -64,7 +64,7 @@ from tables.earray import EArray
 from tables.vlarray import VLArray
 from tables.table import Table
 from tables import linkExtension
-from utils import detectNumberOfCores
+from tables.utils import detectNumberOfCores
 from tables import lrucacheExtension
 
 
