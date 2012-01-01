@@ -261,7 +261,7 @@ if __name__ == '__main__':
         plegend = filename[:filename.index('.out')]
         plegend = plegend.replace('-', ' ')
         #plegend = plegend.replace('zlib1', '')
-        if filename.find('PyTables') <> -1:
+        if filename.find('PyTables') != -1:
             xval, yval = get_values(filename)
             print "Values for %s --> %s, %s" % (filename, xval, yval)
             if xval != []:

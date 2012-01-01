@@ -98,7 +98,7 @@ def main():
             sys.exit(0)
 
     # if we pass a number of files different from 2, abort
-    if len(pargs) <> 2:
+    if len(pargs) != 2:
         print "You need to pass both source and destination!."
         sys.stderr.write(usage)
         sys.exit(0)

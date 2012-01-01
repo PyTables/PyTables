@@ -2,7 +2,7 @@ import tables
 import sys
 import time
 
-if len(sys.argv) <> 3:
+if len(sys.argv) != 3:
     print "usage: %s source_file dest_file", sys.argv[0]
 filesrc = sys.argv[1]
 filedest = sys.argv[2]
