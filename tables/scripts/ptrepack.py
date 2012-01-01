@@ -511,8 +511,8 @@ def main():
             print "User attrs copied"
         else:
             print "User attrs not copied"
-        print "KBytes copied:", round(nbytescopied/1024.,3)
+        print "KBytes copied:", round(nbytescopied/1024., 3)
         print "Time copying: %s s (real) %s s (cpu)  %s%%" % \
               (tcopy, cpucopy, tpercent)
-        print "Copied nodes/sec: ", round((nnodes) / float(tcopy),1)
+        print "Copied nodes/sec: ", round((nnodes) / float(tcopy), 1)
         print "Copied KB/s :", int(nbytescopied / (tcopy * 1024))

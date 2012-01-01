@@ -132,7 +132,7 @@ class createTestCase(unittest.TestCase):
         # Close the opened file to destroy the object tree
         self.fileh.close()
         # Open the file again to re-create the objects
-        self.fileh = openFile(self.file,"r")
+        self.fileh = openFile(self.file, "r")
 
         # Now, test that self.title exists and is correct in all the nodes
         self.assertEqual(self.fileh.root.agroup._v_title, "Group title")
@@ -1407,7 +1407,7 @@ class setBloscMaxThreads(common.TempFileMixin, common.PyTablesTestCase):
             print "Should be:", self.h5file.params['MAX_THREADS']
         self.assertEqual(nthreads_old, self.h5file.params['MAX_THREADS'])
         self.h5file.createCArray('/', 'some_array',
-                                 atom=tables.Int32Atom(), shape=(3,3),
+                                 atom=tables.Int32Atom(), shape=(3, 3),
                                  filters = self.filters)
         nthreads_old = tables.setBloscMaxThreads(1)
         if common.verbose:
@@ -1419,7 +1419,7 @@ class setBloscMaxThreads(common.TempFileMixin, common.PyTablesTestCase):
         """Checking setBloscMaxThreads() (re-open)"""
         nthreads_old = tables.setBloscMaxThreads(4)
         self.h5file.createCArray('/', 'some_array',
-                                 atom=tables.Int32Atom(), shape=(3,3),
+                                 atom=tables.Int32Atom(), shape=(3, 3),
                                  filters = self.filters)
         self._reopen()
         nthreads_old = tables.setBloscMaxThreads(4)

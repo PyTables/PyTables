@@ -24,9 +24,9 @@ class BasicBenchmark(object):
         self.niter = niter
 
         # Initialize the arrays
-        self.a1 = Numeric.arange(0,1*self.vecsize)
-        self.a2 = Numeric.arange(1*self.vecsize,2*self.vecsize)
-        self.a3 = Numeric.arange(2*self.vecsize,3*self.vecsize)
+        self.a1 = Numeric.arange(0, 1*self.vecsize)
+        self.a2 = Numeric.arange(1*self.vecsize, 2*self.vecsize)
+        self.a3 = Numeric.arange(2*self.vecsize, 3*self.vecsize)
 
     def setUp(self):
 
@@ -134,7 +134,7 @@ class BasicBenchmark(object):
     def runall(self):
 
         if testname == "all":
-            tests = [self.createNode,self.copyChildren,self.setAttr]
+            tests = [self.createNode, self.copyChildren, self.setAttr]
         elif testname == "createNode":
             tests = [self.createNode]
         elif testname == "copyChildren":
@@ -186,7 +186,7 @@ if __name__ == '__main__':
             profile = 1
         elif option[0] == '-t':
             testname = option[1]
-            if testname not in ['createNode','copyChildren','setAttr','all']:
+            if testname not in ['createNode', 'copyChildren', 'setAttr', 'all']:
                 sys.stderr.write(usage)
                 sys.exit(0)
         elif option[0] == '-s':

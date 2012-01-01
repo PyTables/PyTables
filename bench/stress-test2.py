@@ -113,7 +113,7 @@ def dump_garbage():
     for x in gc.garbage:
         s = str(x)
         #if len(s) > 80: s = s[:77] + "..."
-        print type(x),"\n   ", s
+        print type(x), "\n   ", s
 
 if __name__=="__main__":
     import getopt

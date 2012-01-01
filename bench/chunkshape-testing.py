@@ -32,7 +32,7 @@ c1 = f.createCArray(f1.root, 'cfield1',
                     "scalar int32 carray", tables.Filters(complevel=0))
 
 t1=time()
-c1[:] = numpy.empty(shape=(L,1,1), dtype="int32")
+c1[:] = numpy.empty(shape=(L, 1, 1), dtype="int32")
 print "carray1 populate time:", time()-t1
 f1.close()
 
@@ -43,7 +43,7 @@ c2 = f.createCArray(f2.root, 'cfield2',
                     "scalar int32 carray", tables.Filters(complevel))
 
 t1=time()
-c2[:] = numpy.empty(shape=(L,1,1), dtype="int32")
+c2[:] = numpy.empty(shape=(L, 1, 1), dtype="int32")
 print "carray2 populate time:", time()-t1
 f2.close()
 

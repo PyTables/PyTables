@@ -8,7 +8,7 @@ checks = ['open_close', 'only_open',
           'open_group', 'open_leaf',
           'total']
 width = 0.15       # the width of the bars: can also be len(x) sequence
-colors = ['r','m','g','y','b']
+colors = ['r', 'm', 'g', 'y', 'b']
 ind = arange(len(checks))    # the x locations for the groups
 
 def get_values(filename):

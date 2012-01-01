@@ -36,7 +36,7 @@ class BasicTestCase(unittest.TestCase):
         root = fileh.root
 
         # Create an array
-        fileh.createArray(root, 'array', [1,2], title = "Title example")
+        fileh.createArray(root, 'array', [1, 2], title = "Title example")
 
         # Create another array object
         fileh.createArray(root, 'anarray', [1], "Array title")
@@ -71,7 +71,7 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        self.fileh.createArray('/', 'otherarray', [3, 4], "Another array")
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
@@ -85,7 +85,7 @@ class BasicTestCase(unittest.TestCase):
             print "Object tree after redo:", self.fileh
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/otherarray" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray.read(), [3, 4])
         self.assertEqual(self.fileh.root.otherarray.title, "Another array")
         self.assertEqual(self.fileh._curaction, 1)
         self.assertEqual(self.fileh._curmark, 0)
@@ -100,8 +100,8 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray', [3, 4], "Another array")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Now undo the past operations
         self._doReopen()
         self.fileh.undo()
@@ -114,8 +114,8 @@ class BasicTestCase(unittest.TestCase):
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/otherarray" in self.fileh)
         self.assertTrue("/otherarray2" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray.read(), [3,4])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray.read(), [3, 4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.fileh.root.otherarray.title, "Another array")
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
         self.assertEqual(self.fileh._curaction, 2)
@@ -131,11 +131,11 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        self.fileh.createArray('/', 'otherarray', [3, 4], "Another array")
         # Put a mark
         self._doReopen()
         self.fileh.mark()
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         self.assertEqual(self.fileh._curaction, 3)
         self.assertEqual(self.fileh._curmark, 1)
         # Unwind just one mark
@@ -161,8 +161,8 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.redo()
         self.assertTrue("/otherarray" in self.fileh)
         self.assertTrue("/otherarray2" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray.read(), [3,4])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray.read(), [3, 4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.fileh.root.otherarray.title, "Another array")
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
         self.assertEqual(self.fileh._curaction, 3)
@@ -178,17 +178,17 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Put a mark
         self.fileh.mark()
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
-        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
         # Put a mark
         self._doReopen()
         self.fileh.mark()
-        self.fileh.createArray('/', 'otherarray5', [7,8], "Another array 5")
-        self.fileh.createArray('/', 'otherarray6', [8,9], "Another array 6")
+        self.fileh.createArray('/', 'otherarray5', [7, 8], "Another array 5")
+        self.fileh.createArray('/', 'otherarray6', [8, 9], "Another array 6")
         # Unwind just one mark
         self.fileh.undo()
         self.assertTrue("/otherarray1" in self.fileh)
@@ -238,12 +238,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue("/otherarray4" in self.fileh)
         self.assertTrue("/otherarray5" in self.fileh)
         self.assertTrue("/otherarray6" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
-        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
-        self.assertEqual(self.fileh.root.otherarray4.read(), [6,7])
-        self.assertEqual(self.fileh.root.otherarray5.read(), [7,8])
-        self.assertEqual(self.fileh.root.otherarray6.read(), [8,9])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3, 4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4, 5])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5, 6])
+        self.assertEqual(self.fileh.root.otherarray4.read(), [6, 7])
+        self.assertEqual(self.fileh.root.otherarray5.read(), [7, 8])
+        self.assertEqual(self.fileh.root.otherarray6.read(), [8, 9])
         self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
         self.assertEqual(self.fileh.root.otherarray3.title, "Another array 3")
@@ -261,13 +261,13 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Put a mark
         self.fileh.mark()
         self._doReopen()
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
-        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
         # Unwind the previous mark
         self.fileh.undo()
         self.assertTrue("/otherarray1" in self.fileh)
@@ -279,8 +279,8 @@ class BasicTestCase(unittest.TestCase):
             print "All nodes:", self.fileh.walkNodes()
         self.fileh.mark()
         self._doReopen()
-        self.fileh.createArray('/', 'otherarray5', [7,8], "Another array 5")
-        self.fileh.createArray('/', 'otherarray6', [8,9], "Another array 6")
+        self.fileh.createArray('/', 'otherarray5', [7, 8], "Another array 5")
+        self.fileh.createArray('/', 'otherarray6', [8, 9], "Another array 6")
         self.assertTrue("/otherarray1" in self.fileh)
         self.assertTrue("/otherarray2" in self.fileh)
         self.assertTrue("/otherarray3" not in self.fileh)
@@ -312,10 +312,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue("/otherarray4" not in self.fileh)
         self.assertTrue("/otherarray5" in self.fileh)
         self.assertTrue("/otherarray6" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
-        self.assertEqual(self.fileh.root.otherarray5.read(), [7,8])
-        self.assertEqual(self.fileh.root.otherarray6.read(), [8,9])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3, 4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4, 5])
+        self.assertEqual(self.fileh.root.otherarray5.read(), [7, 8])
+        self.assertEqual(self.fileh.root.otherarray6.read(), [8, 9])
         self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
         self.assertEqual(self.fileh.root.otherarray5.title, "Another array 5")
@@ -331,23 +331,23 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
         # Put a mark
         self.fileh.mark()
         self._doReopen()
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Now undo the past operation
         self.fileh.undo()
         # Do the destructive operation
         self._doReopen()
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
         # Check objects
         self.assertTrue("/otherarray1" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3, 4])
         self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
         self.assertTrue("/otherarray2" not in self.fileh)
         self.assertTrue("/otherarray3" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5, 6])
         self.assertEqual(self.fileh.root.otherarray3.title, "Another array 3")
 
     def test05b_destructive(self):
@@ -360,29 +360,29 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
         # Put a mark
         self._doReopen()
         self.fileh.mark()
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Now undo the past operation
         self.fileh.undo()
         # Do the destructive operation
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
         # Put a mark
         self._doReopen()
         self.fileh.mark()
-        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        self.fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
         self.assertTrue("/otherarray4" in self.fileh)
         # Now undo the past operation
         self.fileh.undo()
         # Check objects
         self.assertTrue("/otherarray1" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3, 4])
         self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
         self.assertTrue("/otherarray2" not in self.fileh)
         self.assertTrue("/otherarray3" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5, 6])
         self.assertEqual(self.fileh.root.otherarray3.title, "Another array 3")
         self.assertTrue("/otherarray4" not in self.fileh)
 
@@ -396,19 +396,19 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
         # Put a mark
         self.fileh.mark()
         self._doReopen()
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Now undo the past operation
         self.fileh.undo()
         # Do the destructive operation
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
         # Put a mark
         self.fileh.mark()
         self._doReopen()
-        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        self.fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
         self.assertTrue("/otherarray4" in self.fileh)
         # Now unwind twice
         self.fileh.undo()
@@ -430,18 +430,18 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
         # Put a mark
         self._doReopen()
         self.fileh.mark()
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Now undo the past operation
         self.fileh.undo()
         # Do the destructive operation
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
         # Put a mark
         self.fileh.mark()
-        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        self.fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
         self.assertTrue("/otherarray4" in self.fileh)
         # Now, go to the first mark
         self._doReopen()
@@ -462,15 +462,15 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
         # Put a mark
         self.fileh.mark()
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Now undo the past operation
         self.fileh.undo()
         self._doReopen()
         # Do the destructive operation
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
         # Now, unwind the actions
         self.fileh.undo(0)
         self._doReopen()
@@ -510,9 +510,9 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        self.fileh.createArray('/', 'otherarray', [3, 4], "Another array")
         self.fileh.mark()
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Now undo the past operations
         self._doReopen()
         self.fileh.undo(0)
@@ -529,9 +529,9 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        self.fileh.createArray('/', 'otherarray', [3, 4], "Another array")
         self.fileh.mark()
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Now undo the past operations
         self.fileh.undo(0)
         # Redo all the operations
@@ -540,8 +540,8 @@ class BasicTestCase(unittest.TestCase):
         # Check that objects has come back to life in a sane state
         self.assertTrue("/otherarray" in self.fileh)
         self.assertTrue("/otherarray2" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray.read(), [3,4])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray.read(), [3, 4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.fileh.root.otherarray.title, "Another array")
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
 
@@ -556,13 +556,13 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
         self.fileh.mark("first")
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         self.fileh.mark("second")
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
         self.fileh.mark("third")
-        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        self.fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
         # Now go to mark "first"
         self.fileh.undo("first")
         self._doReopen()
@@ -590,10 +590,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue("/otherarray3" in self.fileh)
         self.assertTrue("/otherarray4" in self.fileh)
         # Check that objects has come back to life in a sane state
-        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
-        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
-        self.assertEqual(self.fileh.root.otherarray4.read(), [6,7])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3, 4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4, 5])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5, 6])
+        self.assertEqual(self.fileh.root.otherarray4.read(), [6, 7])
 
     def test08_initialmark(self):
         """Checking initial mark"""
@@ -606,10 +606,10 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.enableUndo()
         initmid = self.fileh.getCurrentMark()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray', [3,4], "Another array")
+        self.fileh.createArray('/', 'otherarray', [3, 4], "Another array")
         self.fileh.mark()
         self._doReopen()
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         # Now undo the past operations
         self.fileh.undo(initmid)
         self.assertTrue("/otherarray" not in self.fileh)
@@ -620,8 +620,8 @@ class BasicTestCase(unittest.TestCase):
         # Check that objects has come back to life in a sane state
         self.assertTrue("/otherarray" in self.fileh)
         self.assertTrue("/otherarray2" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray.read(), [3,4])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
+        self.assertEqual(self.fileh.root.otherarray.read(), [3, 4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.fileh.root.otherarray.title, "Another array")
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
 
@@ -636,14 +636,14 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
         self.fileh.mark("first")
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         self.fileh.mark("second")
         self._doReopen()
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
         self.fileh.mark("third")
-        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        self.fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
         # Now go to mark "first"
         self.fileh.undo("first")
         # Try to undo up to mark "third"
@@ -685,15 +685,15 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
         self._doReopen()
         self.fileh.mark("first")
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         self.fileh.mark("second")
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
         self._doReopen()
         self.fileh.mark("third")
-        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        self.fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
         # Now go to mark "first"
         self.fileh.goto("first")
         self.assertTrue("/otherarray1" in self.fileh)
@@ -721,10 +721,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue("/otherarray4" in self.fileh)
         # Check that objects has come back to life in a sane state
         self.assertTrue("/otherarray2" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
-        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
-        self.assertEqual(self.fileh.root.otherarray4.read(), [6,7])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3, 4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4, 5])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5, 6])
+        self.assertEqual(self.fileh.root.otherarray4.read(), [6, 7])
 
     def test10_gotoint(self):
         """Checking mark sequential ids (goto)"""
@@ -736,14 +736,14 @@ class BasicTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
+        self.fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
         self.fileh.mark("first")
-        self.fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+        self.fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
         self.fileh.mark("second")
         self._doReopen()
-        self.fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
+        self.fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
         self.fileh.mark("third")
-        self.fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+        self.fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
         # Now go to mark "first"
         self.fileh.goto(1)
         self._doReopen()
@@ -779,10 +779,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue("/otherarray4" in self.fileh)
         # Check that objects has come back to life in a sane state
         self.assertTrue("/otherarray2" in self.fileh)
-        self.assertEqual(self.fileh.root.otherarray1.read(), [3,4])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [4,5])
-        self.assertEqual(self.fileh.root.otherarray3.read(), [5,6])
-        self.assertEqual(self.fileh.root.otherarray4.read(), [6,7])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [3, 4])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [4, 5])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [5, 6])
+        self.assertEqual(self.fileh.root.otherarray4.read(), [6, 7])
 
     def test11_contiguous(self):
         "Creating contiguous marks"
@@ -907,7 +907,7 @@ class createArrayTestCase(unittest.TestCase):
         root = fileh.root
 
         # Create an array
-        fileh.createArray(root, 'array', [1,2], title = "Title example")
+        fileh.createArray(root, 'array', [1, 2], title = "Title example")
 
         # Create another array object
         fileh.createArray(root, 'anarray', [1], "Array title")
@@ -943,7 +943,7 @@ class createArrayTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [1,2], "Another array 1")
+        self.fileh.createArray('/', 'otherarray1', [1, 2], "Another array 1")
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
@@ -953,7 +953,7 @@ class createArrayTestCase(unittest.TestCase):
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/otherarray1" in self.fileh)
         self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
-        self.assertEqual(self.fileh.root.otherarray1.read(), [1,2])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [1, 2])
 
 
     def test01(self):
@@ -966,8 +966,8 @@ class createArrayTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [1,2], "Another array 1")
-        self.fileh.createArray('/', 'otherarray2', [2,3], "Another array 2")
+        self.fileh.createArray('/', 'otherarray1', [1, 2], "Another array 1")
+        self.fileh.createArray('/', 'otherarray2', [2, 3], "Another array 2")
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
@@ -980,8 +980,8 @@ class createArrayTestCase(unittest.TestCase):
         self.assertTrue("/otherarray2" in self.fileh)
         self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
-        self.assertEqual(self.fileh.root.otherarray1.read(), [1,2])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [2,3])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [1, 2])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [2, 3])
 
 
     def test02(self):
@@ -994,9 +994,9 @@ class createArrayTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [1,2], "Another array 1")
-        self.fileh.createArray('/', 'otherarray2', [2,3], "Another array 2")
-        self.fileh.createArray('/', 'otherarray3', [3,4], "Another array 3")
+        self.fileh.createArray('/', 'otherarray1', [1, 2], "Another array 1")
+        self.fileh.createArray('/', 'otherarray2', [2, 3], "Another array 2")
+        self.fileh.createArray('/', 'otherarray3', [3, 4], "Another array 3")
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
@@ -1012,9 +1012,9 @@ class createArrayTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
         self.assertEqual(self.fileh.root.otherarray3.title, "Another array 3")
-        self.assertEqual(self.fileh.root.otherarray1.read(), [1,2])
-        self.assertEqual(self.fileh.root.otherarray2.read(), [2,3])
-        self.assertEqual(self.fileh.root.otherarray3.read(), [3,4])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [1, 2])
+        self.assertEqual(self.fileh.root.otherarray2.read(), [2, 3])
+        self.assertEqual(self.fileh.root.otherarray3.read(), [3, 4])
 
     def test03(self):
         """Checking three actions in different depth levels"""
@@ -1026,9 +1026,9 @@ class createArrayTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # Create a new array
-        self.fileh.createArray('/', 'otherarray1', [1,2], "Another array 1")
-        self.fileh.createArray('/agroup', 'otherarray2', [2,3], "Another array 2")
-        self.fileh.createArray('/agroup/agroup3', 'otherarray3', [3,4], "Another array 3")
+        self.fileh.createArray('/', 'otherarray1', [1, 2], "Another array 1")
+        self.fileh.createArray('/agroup', 'otherarray2', [2, 3], "Another array 2")
+        self.fileh.createArray('/agroup/agroup3', 'otherarray3', [3, 4], "Another array 3")
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
@@ -1046,10 +1046,10 @@ class createArrayTestCase(unittest.TestCase):
                          "Another array 2")
         self.assertEqual(self.fileh.root.agroup.agroup3.otherarray3.title,
                          "Another array 3")
-        self.assertEqual(self.fileh.root.otherarray1.read(), [1,2])
-        self.assertEqual(self.fileh.root.agroup.otherarray2.read(), [2,3])
+        self.assertEqual(self.fileh.root.otherarray1.read(), [1, 2])
+        self.assertEqual(self.fileh.root.agroup.otherarray2.read(), [2, 3])
         self.assertEqual(self.fileh.root.agroup.agroup3.otherarray3.read(),
-                         [3,4])
+                         [3, 4])
 
 
 class createGroupTestCase(unittest.TestCase):
@@ -1063,7 +1063,7 @@ class createGroupTestCase(unittest.TestCase):
         root = fileh.root
 
         # Create an array
-        fileh.createArray(root, 'array', [1,2], title = "Title example")
+        fileh.createArray(root, 'array', [1, 2], title = "Title example")
 
         # Create another array object
         fileh.createArray(root, 'anarray', [1], "Array title")
@@ -1251,7 +1251,7 @@ class renameNodeTestCase(unittest.TestCase):
         root = fileh.root
 
         # Create an array
-        fileh.createArray(root, 'array', [1,2], title = "Title example")
+        fileh.createArray(root, 'array', [1, 2], title = "Title example")
 
         # Create another array object
         fileh.createArray(root, 'anarray', [1], "Array title")
@@ -1443,7 +1443,7 @@ class moveNodeTestCase(unittest.TestCase):
         root = fileh.root
 
         # Create an array
-        fileh.createArray(root, 'array', [1,2], title = "Title example")
+        fileh.createArray(root, 'array', [1, 2], title = "Title example")
 
         # Create another array object
         fileh.createArray(root, 'anarray', [1], "Array title")
@@ -1640,7 +1640,7 @@ class removeNodeTestCase(unittest.TestCase):
         root = fileh.root
 
         # Create an array
-        fileh.createArray(root, 'array', [1,2], title = "Title example")
+        fileh.createArray(root, 'array', [1, 2], title = "Title example")
 
         # Create another array object
         fileh.createArray(root, 'anarray', [1], "Array title")
@@ -1815,7 +1815,7 @@ class copyNodeTestCase(unittest.TestCase):
         root = fileh.root
 
         # Create an array
-        fileh.createArray(root, 'array', [1,2], title = "Title example")
+        fileh.createArray(root, 'array', [1, 2], title = "Title example")
 
         # Create another array object
         fileh.createArray(root, 'anarray', [1], "Array title")
@@ -2016,7 +2016,7 @@ class ComplexTestCase(unittest.TestCase):
         fileh = self.fileh
         root = fileh.root
         # Create an array
-        fileh.createArray(root, 'array', [1,2], title = "Title example")
+        fileh.createArray(root, 'array', [1, 2], title = "Title example")
 
         # Create another array object
         fileh.createArray(root, 'anarray', [1], "Array title")
@@ -2234,7 +2234,7 @@ class AttributesTestCase(unittest.TestCase):
             self.file, mode = "w", title = "Attribute operations")
 
         # Create an array.
-        array = self.fileh.createArray('/', 'array', [1,2])
+        array = self.fileh.createArray('/', 'array', [1, 2])
 
         # Set some attributes on it.
         attrs = array.attrs

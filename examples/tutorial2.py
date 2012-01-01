@@ -13,8 +13,8 @@ class Particle(IsDescription):
     name        = StringCol(itemsize=16)  # 16-character string
     lati        = Int32Col()              # integer
     longi       = Int32Col()              # integer
-    pressure    = Float32Col(shape=(2,3)) # array of floats (single-precision)
-    temperature = Float64Col(shape=(2,3)) # array of doubles (double-precision)
+    pressure    = Float32Col(shape=(2, 3)) # array of floats (single-precision)
+    temperature = Float64Col(shape=(2, 3)) # array of doubles (double-precision)
 
 # Native NumPy dtype instances are also accepted
 Event = dtype([
@@ -57,7 +57,7 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         particle['lati'] = i
         particle['longi'] = 10 - i
         ########### Detectable errors start here. Play with them!
-        particle['pressure'] = array(i*arange(2*3)).reshape((2,4))  # Incorrect
+        particle['pressure'] = array(i*arange(2*3)).reshape((2, 4))  # Incorrect
         #particle['pressure'] = array(i*arange(2*3)).reshape((2,3))  # Correct
         ########### End of errors
         particle['temperature'] = (i**2)     # Broadcasting

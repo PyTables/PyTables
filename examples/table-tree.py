@@ -14,14 +14,14 @@ class Particle(IsDescription):
 Particle2 = {
     # You can also use any of the atom factories, i.e. the one which
     # accepts a PyTables type.
-    "ADCcount"    : Col.from_type("int16"),    # signed short integer
-    "TDCcount"    : Col.from_type("uint8"),    # unsigned byte
-    "grid_i"      : Col.from_type("int32"),    # integer
-    "grid_j"      : Col.from_type("int32"),    # integer
-    "idnumber"    : Col.from_type("int64"),    # signed long long
-    "name"        : Col.from_kind("string", 16),  # 16-character String
-    "pressure"    : Col.from_type("float32", (2,)), # float  (single-precision)
-    "temperature" : Col.from_type("float64"),  # double (double-precision)
+    "ADCcount": Col.from_type("int16"),    # signed short integer
+    "TDCcount": Col.from_type("uint8"),    # unsigned byte
+    "grid_i": Col.from_type("int32"),    # integer
+    "grid_j": Col.from_type("int32"),    # integer
+    "idnumber": Col.from_type("int64"),    # signed long long
+    "name": Col.from_kind("string", 16),  # 16-character String
+    "pressure": Col.from_type("float32", (2,)), # float  (single-precision)
+    "temperature": Col.from_type("float64"),  # double (double-precision)
 }
 
 # The name of our HDF5 filename
@@ -255,7 +255,7 @@ table.flavor = oldflavor
 
 # Several range selections
 print "Extended slice in selection: [0:7:6]"
-print table.read(0,7,6)
+print table.read(0, 7, 6)
 print "Single record in selection: [1]"
 print table.read(1)
 print "Last record in selection: [-1]"

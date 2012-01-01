@@ -162,7 +162,7 @@ def _table__getautoIndex(self):
         return self._autoIndex
 
 _table__autoIndex = property(
-    _table__getautoIndex , _table__setautoIndex, None,
+    _table__getautoIndex, _table__setautoIndex, None,
     """
     Automatically keep column indexes up to date?
 

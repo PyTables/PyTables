@@ -21,9 +21,9 @@ unittest.TestCase.tearDown = common.cleanup
 # Test Record class
 class Record(IsDescription):
     var0 = StringCol(itemsize=4, dflt="", shape=2)  # 4-character string array
-    var1 = StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2))
-    var1_= IntCol(dflt=((1,1),), shape=2)           # integer array
-    var2 = IntCol(dflt=((1,1),(1,1)), shape=(2,2))  # integer array
+    var1 = StringCol(itemsize=4, dflt=["abcd", "efgh"], shape=(2, 2))
+    var1_= IntCol(dflt=((1, 1),), shape=2)           # integer array
+    var2 = IntCol(dflt=((1, 1), (1, 1)), shape=(2, 2))  # integer array
     var3 = Int16Col(dflt=2)                         # short integer
     var4 = FloatCol(dflt=3.1)                       # double (double-precision)
     var5 = Float32Col(dflt=4.2)                     # float  (single-precision)
@@ -33,11 +33,11 @@ class Record(IsDescription):
 #  Dictionary definition
 RecordDescriptionDict = {
     'var0': StringCol(itemsize=4, dflt="", shape=2), # 4-character string array
-    'var1': StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2)),
+    'var1': StringCol(itemsize=4, dflt=["abcd", "efgh"], shape=(2, 2)),
 #     'var0': StringCol(itemsize=4, shape=2),       # 4-character String
 #     'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
-    'var1_':IntCol(shape=2),                      # integer array
-    'var2': IntCol(shape=(2,2)),                  # integer array
+    'var1_': IntCol(shape=2),                      # integer array
+    'var2': IntCol(shape=(2, 2)),                  # integer array
     'var3': Int16Col(),                           # short integer
     'var4': FloatCol(),                           # double (double-precision)
     'var5': Float32Col(),                         # float  (single-precision)
@@ -48,9 +48,9 @@ RecordDescriptionDict = {
 # Record class with numpy dtypes (mixed shapes is checked here)
 class RecordDT(IsDescription):
     var0 = Col.from_dtype(numpy.dtype("2S4"), dflt="")  # shape in dtype
-    var1 = Col.from_dtype(numpy.dtype(("S4", (2, 2))), dflt=["abcd","efgh"]) # shape is a mix
-    var1_= Col.from_dtype(numpy.dtype("2i4"), dflt=((1,1),))  # shape in dtype
-    var2 = Col.from_sctype("i4", shape=(2, 2), dflt=((1,1),(1,1)))  # shape is a mix
+    var1 = Col.from_dtype(numpy.dtype(("S4", (2, 2))), dflt=["abcd", "efgh"]) # shape is a mix
+    var1_= Col.from_dtype(numpy.dtype("2i4"), dflt=((1, 1),))  # shape in dtype
+    var2 = Col.from_sctype("i4", shape=(2, 2), dflt=((1, 1), (1, 1)))  # shape is a mix
     var3 = Col.from_dtype(numpy.dtype("i2"), dflt=2)
     var4 = Col.from_dtype(numpy.dtype("2f8"), dflt=3.1)
     var5 = Col.from_dtype(numpy.dtype("f4"), dflt=4.2)
@@ -93,7 +93,7 @@ class BasicTestCase(common.PyTablesTestCase):
             tmplist.append(var1)
             var1_ = (i, 1)
             tmplist.append(var1_)
-            var2 = ((i, 1), (1,1))           # *-*
+            var2 = ((i, 1), (1, 1))           # *-*
             tmplist.append(var2)
             var3 = i % self.maxshort
             tmplist.append(var3)
@@ -144,7 +144,7 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var1'] = '%04d' % (self.expectedrows - i)
                     row['var7'] = row['var1'][0][0][-1]
                     row['var1_'] = (i, 1)
-                    row['var2'] = ((i, 1), (1,1))  # *-*
+                    row['var2'] = ((i, 1), (1, 1))  # *-*
                     row['var3'] = i % self.maxshort
                     if isinstance(row['var4'], numpy.ndarray):
                         row['var4'] = [float(i), float(i*i)]
@@ -372,7 +372,7 @@ class BasicTestCase(common.PyTablesTestCase):
             row['var1'] = '%04d' % (self.appendrows - i)
             row['var7'] = row['var1'][0][0][-1]
             row['var1_'] = (i, 1)
-            row['var2'] = ((i, 1), (1,1))   # *-*
+            row['var2'] = ((i, 1), (1, 1))   # *-*
             row['var3'] = i % self.maxshort
             if isinstance(row['var4'], numpy.ndarray):
                 row['var4'] = [float(i), float(i*i)]
@@ -931,7 +931,7 @@ class getColRangeTestCase(BasicRangeTestCase):
 class Rec(IsDescription):
     col1 = IntCol(pos=1, shape=(2,))
     col2 = StringCol(itemsize=3, pos=2, shape=(3,))
-    col3 = FloatCol(pos=3, shape=(3,2))
+    col3 = FloatCol(pos=3, shape=(3, 2))
 
 class RecArrayIO(unittest.TestCase):
 
@@ -941,13 +941,13 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        intlist1 = [[456,23]*3]*2
-        intlist2 = array([[2,2]*3]*2, dtype=int)
+        intlist1 = [[456, 23]*3]*2
+        intlist2 = array([[2, 2]*3]*2, dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
-        floatlist1 = [[1.2,2.3]*3]*4
-        floatlist2 = array([[4.5,2.4]*3]*4)
-        b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
+        floatlist1 = [[1.2, 2.3]*3]*4
+        floatlist2 = array([[4.5, 2.4]*3]*4)
+        b = [[intlist1, arrlist1, floatlist1], [intlist2, arrlist2, floatlist2]]
         r=numpy.rec.array(b, formats='(2,6)i4,(3,2)a3,(4,6)f8',
                           names='col1,col2,col3')
 
@@ -968,13 +968,13 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        intlist1 = [[456,23]*3]*2
-        intlist2 = array([[2,2]*3]*2, dtype=int)
+        intlist1 = [[456, 23]*3]*2
+        intlist2 = array([[2, 2]*3]*2, dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
-        floatlist1 = [[1.2,2.3]*3]*4
-        floatlist2 = array([[4.5,2.4]*3]*4)
-        b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
+        floatlist1 = [[1.2, 2.3]*3]*4
+        floatlist2 = array([[4.5, 2.4]*3]*4)
+        b = [[intlist1, arrlist1, floatlist1], [intlist2, arrlist2, floatlist2]]
         r=numpy.rec.array(b, formats='(2,6)i4,(3,2)a3,(4,6)f8',
                           names='col1,col2,col3')
 
@@ -996,13 +996,13 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        intlist1 = [[[23,24,35]*6]*6]
-        intlist2 = array([[[2,3,4]*6]*6], dtype=int)
+        intlist1 = [[[23, 24, 35]*6]*6]
+        intlist2 = array([[[2, 3, 4]*6]*6], dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
-        floatlist1 = [[1.2,2.3]*3]*4
-        floatlist2 = array([[4.5,2.4]*3]*4)
-        b=[[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
+        floatlist1 = [[1.2, 2.3]*3]*4
+        floatlist2 = array([[4.5, 2.4]*3]*4)
+        b=[[intlist1, arrlist1, floatlist1], [intlist2, arrlist2, floatlist2]]
         r=numpy.rec.array(b*300,  formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
                           names='col1,col2,col3')
 
@@ -1024,13 +1024,13 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        intlist1 = [[[23,24,35]*6]*6]
-        intlist2 = array([[[2,3,4]*6]*6], dtype=int)
+        intlist1 = [[[23, 24, 35]*6]*6]
+        intlist2 = array([[[2, 3, 4]*6]*6], dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
-        floatlist1 = [[1.2,2.3]*3]*4
-        floatlist2 = array([[4.5,2.4]*3]*4)
-        b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
+        floatlist1 = [[1.2, 2.3]*3]*4
+        floatlist2 = array([[4.5, 2.4]*3]*4)
+        b = [[intlist1, arrlist1, floatlist1], [intlist2, arrlist2, floatlist2]]
         r=numpy.rec.array(b*300, formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
                           names='col1,col2,col3', shape=300)
 
@@ -1064,16 +1064,16 @@ class RecArrayIO(unittest.TestCase):
         # Append new rows
         s0, s1, s2, s3 = ['dbe']*3, ['ded']*3, ['db1']*3, ['de1']*3
         f0, f1, f2, f3 = [[1.2]*2]*3, [[1.3]*2]*3, [[1.4]*2]*3, [[1.5]*2]*3
-        r=records.array([[[456, 457], s0, f0], [[2,3], s1, f1]],
+        r=records.array([[[456, 457], s0, f0], [[2, 3], s1, f1]],
                         formats="(2,)i4,(3,)a3,(3,2)f8")
         table.append(r)
         table.append([[[457, 458], s2, f2], [[5, 6], s3, f3]])
 
         # Modify just one existing column
-        table.cols.col1[1:] = [[[2,3],[3,4],[4,5]]]
+        table.cols.col1[1:] = [[[2, 3], [3, 4], [4, 5]]]
         # Create the modified recarray
-        r1=records.array([[[456, 457], s0, f0], [[2,3], s1, f1],
-                          [[3,4], s2, f2], [[4,5], s3, f3]],
+        r1=records.array([[[456, 457], s0, f0], [[2, 3], s1, f1],
+                          [[3, 4], s2, f2], [[4, 5], s3, f3]],
                          formats="(2,)i4,(3,)a3,(3,2)f8",
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1103,17 +1103,17 @@ class RecArrayIO(unittest.TestCase):
         # Append new rows
         s0, s1, s2, s3 = ['dbe']*3, ['ded']*3, ['db1']*3, ['de1']*3
         f0, f1, f2, f3 = [[1.2]*2]*3, [[1.3]*2]*3, [[1.4]*2]*3, [[1.5]*2]*3
-        r=records.array([[[456, 457], s0, f0], [[2,3], s1, f1]],
+        r=records.array([[[456, 457], s0, f0], [[2, 3], s1, f1]],
                         formats="(2,)i4,(3,)a3,(3,2)f8")
         table.append(r)
         table.append([[[457, 458], s2, f2], [[5, 6], s3, f3]])
 
         # Modify just one existing column
-        columns = records.fromarrays(array([[[2,3],[3,4],[4,5]]]), formats="i4")
+        columns = records.fromarrays(array([[[2, 3], [3, 4], [4, 5]]]), formats="i4")
         table.modifyColumns(start=1, columns=columns, names=["col1"])
         # Create the modified recarray
-        r1=records.array([[[456, 457], s0, f0], [[2,3], s1, f1],
-                          [[3,4], s2, f2], [[4,5], s3, f3]],
+        r1=records.array([[[456, 457], s0, f0], [[2, 3], s1, f1],
+                          [[3, 4], s2, f2], [[4, 5], s3, f3]],
                          formats="(2,)i4,(3,)a3,(3,2)f8",
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1143,17 +1143,17 @@ class RecArrayIO(unittest.TestCase):
         # Append new rows
         s0, s1, s2, s3 = ['dbe']*3, ['ded']*3, ['db1']*3, ['de1']*3
         f0, f1, f2, f3 = [[1.2]*2]*3, [[1.3]*2]*3, [[1.4]*2]*3, [[1.5]*2]*3
-        r=records.array([[[456, 457], s0, f0], [[2,3], s1, f1]],
+        r=records.array([[[456, 457], s0, f0], [[2, 3], s1, f1]],
                         formats="(2,)i4,(3,)a3,(3,2)f8")
         table.append(r)
         table.append([[[457, 458], s2, f2], [[5, 6], s3, f3]])
 
         # Modify just one existing column
-        columns = records.fromarrays(array([[[2,3],[3,4],[4,5]]]), formats="i4")
+        columns = records.fromarrays(array([[[2, 3], [3, 4], [4, 5]]]), formats="i4")
         table.modifyColumn(start=1, column=columns, colname="col1")
         # Create the modified recarray
-        r1=records.array([[[456, 457], s0, f0], [[2,3], s1, f1],
-                          [[3,4], s2, f2], [[4,5], s3, f3]],
+        r1=records.array([[[456, 457], s0, f0], [[2, 3], s1, f1],
+                          [[3, 4], s2, f2], [[4, 5], s3, f3]],
                          formats="(2,)i4,(3,)a3,(3,2)f8",
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1186,7 +1186,7 @@ class DefaultValues(unittest.TestCase):
         # Fill the table with nrows records
         for i in xrange(nrows):
             if i == 3 or i == 4:
-                table.row['var2'] = ((2,2),(2,2))  #*-*
+                table.row['var2'] = ((2, 2), (2, 2))  #*-*
             # This injects the row values.
             table.row.append()
 
@@ -1197,9 +1197,9 @@ class DefaultValues(unittest.TestCase):
         # Create a recarray with the same default values
         buffer = [[
             ["\x00"]*2,  # just "" does not initialize the buffer properly
-            [["abcd","efgh"]]*2,
-            (1,1),
-            ((1,1),(1,1)),
+            [["abcd", "efgh"]]*2,
+            (1, 1),
+            ((1, 1), (1, 1)),
             2, 3.1, 4.2, 5, "e"]]
         r = numpy.rec.array(
             buffer*nrows,
@@ -1208,8 +1208,8 @@ class DefaultValues(unittest.TestCase):
                      'var6', 'var7'])  #*-*
 
         # Assign the value exceptions
-        r["var2"][3] = ((2,2), (2,2))  #*-*
-        r["var2"][4] = ((2,2), (2,2))  #*-*
+        r["var2"][3] = ((2, 2), (2, 2))  #*-*
+        r["var2"][4] = ((2, 2), (2, 2))  #*-*
 
         # Read the table in another recarray
         r2 = table.read()
@@ -1232,9 +1232,9 @@ class DefaultValues(unittest.TestCase):
 class RecordT(IsDescription):
     var0 = IntCol(dflt=1, shape=()) # native int
     var1 = IntCol(dflt=[1], shape=(1,)) # 1-D int (one element)
-    var2_s = IntCol(dflt=[1,1], shape=2) # 1-D int (two elements)
-    var2 = IntCol(dflt=[1,1], shape=(2,)) # 1-D int (two elements)
-    var3 = IntCol(dflt=[[0,0],[1,1]], shape=(2,2)) # 2-D int
+    var2_s = IntCol(dflt=[1, 1], shape=2) # 1-D int (two elements)
+    var2 = IntCol(dflt=[1, 1], shape=(2,)) # 1-D int (two elements)
+    var3 = IntCol(dflt=[[0, 0], [1, 1]], shape=(2, 2)) # 2-D int
 
 class ShapeTestCase(unittest.TestCase):
 
@@ -1302,11 +1302,11 @@ class ShapeTestCase(unittest.TestCase):
 
         if common.verbose:
             print "The values look like:", table.cols.var2[:]
-            print "They should look like:", [[1,1]]
+            print "They should look like:", [[1, 1]]
 
         # The real check
-        self.assertEqual(table.cols.var2[:].tolist(), [[1,1]])
-        self.assertEqual(table.cols.var2_s[:].tolist(), [[1,1]])
+        self.assertEqual(table.cols.var2[:].tolist(), [[1, 1]])
+        self.assertEqual(table.cols.var2_s[:].tolist(), [[1, 1]])
 
     def test03(self):
         "Checking bidimensional shapes"
@@ -1318,10 +1318,10 @@ class ShapeTestCase(unittest.TestCase):
 
         if common.verbose:
             print "The values look like:", table.cols.var3[:]
-            print "They should look like:", [[[0,0],[1,1]]]
+            print "They should look like:", [[[0, 0], [1, 1]]]
 
         # The real check
-        self.assertEqual(table.cols.var3[:].tolist(), [[[0,0],[1,1]]])
+        self.assertEqual(table.cols.var3[:].tolist(), [[[0, 0], [1, 1]]])
 
 
 class ShapeTestCase1(ShapeTestCase):
@@ -1353,15 +1353,15 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing row
-        table[2] = (456,'db2',1.2)
+        table[2] = (456, 'db2', 1.2)
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
-                          [456,'db2',1.2],[5,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
+                          [456, 'db2', 1.2], [5, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1384,15 +1384,15 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing row
-        table[2] = (456,'db2',1.2)
+        table[2] = (456, 'db2', 1.2)
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
-                          [456,'db2',1.2],[5,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
+                          [456, 'db2', 1.2], [5, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1415,17 +1415,17 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify two existing rows
-        rows = records.array([[457,'db1',1.2]],
+        rows = records.array([[457, 'db1', 1.2]],
                              formats=formats)
         table[1:3:2] = rows
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
-                          [457,'db1',1.2],[5,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [457, 'db1', 1.2],
+                          [457, 'db1', 1.2], [5, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1448,18 +1448,18 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify two existing rows
-        rows = records.array([[457,'db1',1.2],[5,'de1',1.3]],
+        rows = records.array([[457, 'db1', 1.2], [5, 'de1', 1.3]],
                              formats=formats)
         #table.modifyRows(start=1, rows=rows)
         table[1:3] = rows
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
-                          [5,'de1',1.3],[5,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [457, 'db1', 1.2],
+                          [5, 'de1', 1.3], [5, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1482,18 +1482,18 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify two existing rows
-        rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
+        rows = records.array([[457, 'db1', 1.2], [6, 'de2', 1.3]],
                              formats=formats)
         #table[1:4:2] = rows
         table[1::2] = rows
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
-                          [457,'db1',1.2],[6,'de2',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [457, 'db1', 1.2],
+                          [457, 'db1', 1.2], [6, 'de2', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1516,15 +1516,15 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing column
         table.cols.col1[1] = -1
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[-1,'ded',1.3],
-                          [457,'db1',1.2],[5,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [-1, 'ded', 1.3],
+                          [457, 'db1', 1.2], [5, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1547,15 +1547,15 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing column
-        table.cols.col1[1:4] = [(2,2),(3,3),(4,4)]
+        table.cols.col1[1:4] = [(2, 2), (3, 3), (4, 4)]
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
-                          [3,'db1',1.2],[4,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
+                          [3, 'db1', 1.2], [4, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1578,9 +1578,9 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing column
         try:
@@ -1604,14 +1604,14 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[1,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [1, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
         # Modify just one existing column
-        table.cols.col1[1:4:2] = [(2,2),(3,3)]
+        table.cols.col1[1:4:2] = [(2, 2), (3, 3)]
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
-                          [457,'db1',1.2],[3,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
+                          [457, 'db1', 1.2], [3, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1634,15 +1634,15 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing column
-        table.cols.col1[1:4:3] = [(2,2)]
+        table.cols.col1[1:4:3] = [(2, 2)]
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
-                          [457,'db1',1.2],[5,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
+                          [457, 'db1', 1.2], [5, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1665,18 +1665,18 @@ class setItem(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Try to modify beyond the extend
         # This will silently exclude the non-fitting rows
-        rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
+        rows = records.array([[457, 'db1', 1.2], [6, 'de2', 1.3]],
                              formats=formats)
         table[1::2] = rows
         # How it should look like
-        r1 = records.array([[456,'dbe',1.2],[457,'db1',1.2],
-                            [457,'db1',1.2],[6,'de2',1.3]],
+        r1 = records.array([[456, 'dbe', 1.2], [457, 'db1', 1.2],
+                            [457, 'db1', 1.2], [6, 'de2', 1.3]],
                            formats=formats)
 
         # Read the modified table
@@ -1730,17 +1730,17 @@ class updateRow(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing row
         for row in table.iterrows(2):
-            (row['col1'], row['col2'], row['col3']) = [456,'db2',1.2]
+            (row['col1'], row['col2'], row['col3']) = [456, 'db2', 1.2]
             row.update()
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
-                          [456,'db2',1.2],[5,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
+                          [456, 'db2', 1.2], [5, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1764,20 +1764,20 @@ class updateRow(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify two existing rows
         for row in table.iterrows(1, 3, 2):
             if row.nrow == 1:
-                (row['col1'], row['col2'], row['col3']) = [457,'db1',1.2]
+                (row['col1'], row['col2'], row['col3']) = [457, 'db1', 1.2]
             elif row.nrow == 3:
-                (row['col1'], row['col2'], row['col3']) = [6,'de2',1.3]
+                (row['col1'], row['col2'], row['col3']) = [6, 'de2', 1.3]
             row.update()
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
-                          [457,'db1',1.2],[5,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [457, 'db1', 1.2],
+                          [457, 'db1', 1.2], [5, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1800,20 +1800,20 @@ class updateRow(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify two existing rows
         for row in table.iterrows(1, 3):
             if row.nrow == 1:
-                (row['col1'], row['col2'], row['col3']) = [457,'db1',1.2]
+                (row['col1'], row['col2'], row['col3']) = [457, 'db1', 1.2]
             elif row.nrow == 2:
-                (row['col1'], row['col2'], row['col3']) = [5,'de1',1.3]
+                (row['col1'], row['col2'], row['col3']) = [5, 'de1', 1.3]
             row.update()
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
-                          [5,'de1',1.3],[5,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [457, 'db1', 1.2],
+                          [5, 'de1', 1.3], [5, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1836,20 +1836,20 @@ class updateRow(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify two existing rows
         for row in table.iterrows(1, stop=4, step=2):
             if row.nrow == 1:
-                (row['col1'], row['col2'], row['col3']) = [457,'db1',1.2]
+                (row['col1'], row['col2'], row['col3']) = [457, 'db1', 1.2]
             elif row.nrow == 3:
-                (row['col1'], row['col2'], row['col3']) = [6,'de2',1.3]
+                (row['col1'], row['col2'], row['col3']) = [6, 'de2', 1.3]
             row.update()
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
-                          [457,'db1',1.2],[6,'de2',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [457, 'db1', 1.2],
+                          [457, 'db1', 1.2], [6, 'de2', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1872,17 +1872,17 @@ class updateRow(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing column
         for row in table.iterrows(1):
             row['col1'] = -1
             row.update()
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[-1,'ded',1.3],
-                          [457,'db1',1.2],[5,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [-1, 'ded', 1.3],
+                          [457, 'db1', 1.2], [5, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1905,17 +1905,17 @@ class updateRow(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing column
-        for row in table.iterrows(1,4):
+        for row in table.iterrows(1, 4):
             row['col1'] = row.nrow+1
             row.update()
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
-                          [3,'db1',1.2],[4,'de1',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
+                          [3, 'db1', 1.2], [4, 'de1', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table
@@ -1938,9 +1938,9 @@ class updateRow(common.PyTablesTestCase):
         formats = table.description._v_nestedFormats
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[1,'ded',1.3]], formats=formats)
+        r=records.array([[456, 'dbe', 1.2], [1, 'ded', 1.3]], formats=formats)
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
         # Modify just rows with col1 < 456
         for row in table.iterrows():
             if row['col1'][0] < 456:
@@ -1948,8 +1948,8 @@ class updateRow(common.PyTablesTestCase):
                 row['col2'] = 'ada'
                 row.update()
         # Create the modified recarray
-        r1=records.array([[456,'dbe',1.2],[2,'ada',1.3],
-                          [457,'db1',1.2],[2,'ada',1.3]],
+        r1=records.array([[456, 'dbe', 1.2], [2, 'ada', 1.3],
+                          [457, 'db1', 1.2], [2, 'ada', 1.3]],
                          formats=formats,
                          names = "col1,col2,col3")
         # Read the modified table

@@ -26,7 +26,7 @@ hdfarray.attrs.int = 12
 hdfarray.attrs.float = 12.32
 
 # A generic object
-hdfarray.attrs.object = {"a":32.1, "b":1, "c":[1,2]}
+hdfarray.attrs.object = {"a":32.1, "b":1, "c":[1, 2]}
 
 # Close the file
 fileh.close()

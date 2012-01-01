@@ -563,7 +563,7 @@ class Array(hdf5Extension.Array, Leaf):
             if start+count > length:
                 raise IndexError(
                     "Selection out of bounds (%d; axis has %d)" % \
-                    (start+count,length))
+                    (start+count, length))
 
             return start, count, step
 

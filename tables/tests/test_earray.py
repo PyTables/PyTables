@@ -29,7 +29,7 @@ class BasicTestCase(unittest.TestCase):
     flavor = "numpy"
     type = 'int32'
     dtype = 'int32'
-    shape = (2,0)
+    shape = (2, 0)
     start = 0
     stop = 10
     step = 1
@@ -99,7 +99,7 @@ class BasicTestCase(unittest.TestCase):
         for i in range(self.nappends):
             if self.type == "string":
                 earray.append(object)
-            elif self.flavor in ["numarray","numpy"]:
+            elif self.flavor in ["numarray", "numpy"]:
                 earray.append(object*i)
             else:
                 object = object * i
@@ -683,7 +683,7 @@ class SlicesEArrayTestCase(BasicTestCase):
     shape = (2, 0)
     chunksize = 5
     nappends = 2
-    slices = (slice(1,2,1), slice(1,3,1))
+    slices = (slice(1, 2, 1), slice(1, 3, 1))
 
 class Slices2EArrayTestCase(BasicTestCase):
     compress = 1
@@ -692,7 +692,7 @@ class Slices2EArrayTestCase(BasicTestCase):
     shape = (2, 0, 4)
     chunksize = 5
     nappends = 20
-    slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2))
+    slices = (slice(1, 2, 1), slice(None, None, None), slice(1, 4, 2))
 
 class EllipsisEArrayTestCase(BasicTestCase):
     type = 'int32'
@@ -700,14 +700,14 @@ class EllipsisEArrayTestCase(BasicTestCase):
     chunksize = 5
     nappends = 2
     #slices = (slice(1,2,1), Ellipsis)
-    slices = (Ellipsis, slice(1,2,1))
+    slices = (Ellipsis, slice(1, 2, 1))
 
 class Ellipsis2EArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 0, 4)
     chunksize = 5
     nappends = 20
-    slices = (slice(1,2,1), Ellipsis, slice(1,4,2))
+    slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 class Slices3EArrayTestCase(BasicTestCase):
     compress = 1      # To show the chunks id DEBUG is on
@@ -716,14 +716,14 @@ class Slices3EArrayTestCase(BasicTestCase):
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
-    slices = (slice(1, 2, 1), slice(0, None, None), slice(1,4,2))  # Don't work
+    slices = (slice(1, 2, 1), slice(0, None, None), slice(1, 4, 2))  # Don't work
     #slices = (slice(None, None, None), slice(0, None, None), slice(1,4,1)) # W
     #slices = (slice(None, None, None), slice(None, None, None), slice(1,4,2)) # N
     #slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2)) # N
     # Disable the failing test temporarily with a working test case
-    slices = (slice(1,2,1), slice(1, 4, None), slice(1,4,2)) # Y
+    slices = (slice(1, 2, 1), slice(1, 4, None), slice(1, 4, 2)) # Y
     #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,1)) # Y
-    slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2)) # N
+    slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2)) # N
     #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), slice(0,100,1)) # N
 
 class Slices4EArrayTestCase(BasicTestCase):
@@ -731,31 +731,31 @@ class Slices4EArrayTestCase(BasicTestCase):
     shape = (2, 3, 4, 0, 5, 6)
     chunksize = 5
     nappends = 20
-    slices = (slice(1, 2, 1), slice(0, None, None), slice(1,4,2),
-              slice(0,4,2), slice(3,5,2), slice(2,7,1))
+    slices = (slice(1, 2, 1), slice(0, None, None), slice(1, 4, 2),
+              slice(0, 4, 2), slice(3, 5, 2), slice(2, 7, 1))
 
 class Ellipsis3EArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
-    slices = (Ellipsis, slice(0, 4, None), slice(1,4,2))
-    slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), Ellipsis)
+    slices = (Ellipsis, slice(0, 4, None), slice(1, 4, 2))
+    slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2), Ellipsis)
 
 class Ellipsis4EArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
-    slices = (Ellipsis, slice(0, 4, None), slice(1,4,2))
-    slices = (slice(1,2,1), Ellipsis, slice(1,4,2))
+    slices = (Ellipsis, slice(0, 4, None), slice(1, 4, 2))
+    slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 class Ellipsis5EArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
-    slices = (slice(1,2,1), slice(0, 4, None), Ellipsis)
+    slices = (slice(1, 2, 1), slice(0, 4, None), Ellipsis)
 
 class Ellipsis6EArrayTestCase(BasicTestCase):
     type = 'int32'
@@ -765,14 +765,14 @@ class Ellipsis6EArrayTestCase(BasicTestCase):
     # The next slices gives problems with setting values (test05)
     # This is a problem on the test design, not the Array.__setitem__
     # code, though.
-    slices = (slice(1,2,1), slice(0, 4, None), 2, Ellipsis)
+    slices = (slice(1, 2, 1), slice(0, 4, None), 2, Ellipsis)
 
 class Ellipsis7EArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 2
-    slices = (slice(1,2,1), slice(0, 4, None), slice(2,3), Ellipsis)
+    slices = (slice(1, 2, 1), slice(0, 4, None), slice(2, 3), Ellipsis)
 
 class MD3WriteTestCase(BasicTestCase):
     type = 'int32'
@@ -953,7 +953,7 @@ class AllFiltersTestCase(BasicTestCase):
 class FloatTypeTestCase(BasicTestCase):
     type = 'float64'
     dtype = 'float64'
-    shape = (2,0)
+    shape = (2, 0)
     chunksize = 5
     nappends = 10
     start = 3
@@ -963,7 +963,7 @@ class FloatTypeTestCase(BasicTestCase):
 class ComplexTypeTestCase(BasicTestCase):
     type = 'complex128'
     dtype = 'complex128'
-    shape = (2,0)
+    shape = (2, 0)
     chunksize = 5
     nappends = 10
     start = 3
@@ -980,7 +980,7 @@ class StringTestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 20
-    slices = (slice(0,1),slice(1,2))
+    slices = (slice(0, 1), slice(1, 2))
 
 class String2TestCase(BasicTestCase):
     type = "string"
@@ -1011,7 +1011,7 @@ class _Numarray1TestCase(BasicTestCase):
     # most probably to test implementation, not library code
     flavor = "numarray"
     type = "int32"
-    shape = (2,0)
+    shape = (2, 0)
     compress = 1
     shuffle = 1
     chunksize = 50
@@ -1061,7 +1061,7 @@ class StringNumarrayTestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 20
-    slices = (slice(0,1),slice(1,2))
+    slices = (slice(0, 1), slice(1, 2))
 
 class String2NumarrayTestCase(BasicTestCase):
     flavor = "numarray"
@@ -1079,7 +1079,7 @@ class StringComprNumarrayTestCase(BasicTestCase):
     flavor = "numarray"
     type = "string"
     length = 20
-    shape = (20,0,10)
+    shape = (20, 0, 10)
     #shape = (20,0,10,20)
     compr = 1
     #shuffle = 1  # this shouldn't do nothing on chars
@@ -1094,7 +1094,7 @@ class Numeric1TestCase(BasicTestCase):
     # most probably, to test implementation, not library code
     #flavor = "numeric"
     type = "int32"
-    shape = (2,0)
+    shape = (2, 0)
     compress = 1
     shuffle = 1
     chunksize = 50
@@ -1163,12 +1163,12 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Running %s.test01a_StringAtom..." % self.__class__.__name__
 
         earray = self.fileh.createEArray(root, 'strings',
-                                         StringAtom(itemsize=3), (0,2,2),
+                                         StringAtom(itemsize=3), (0, 2, 2),
                                          "Array of strings")
-        a=numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
-        earray.append(a[:,1:])
-        a=numpy.array([[["s", "a"],["ab", "f"],["s", "abc"],["abc", "f"]]])
-        earray.append(a[:,2:])
+        a=numpy.array([[["a", "b"], ["123", "45"], ["45", "123"]]], dtype="S3")
+        earray.append(a[:, 1:])
+        a=numpy.array([[["s", "a"], ["ab", "f"], ["s", "abc"], ["abc", "f"]]])
+        earray.append(a[:, 2:])
 
         # Read all the rows:
         row = earray.read()
@@ -1178,8 +1178,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Second row in earray ==>", row[1].tolist()
 
         self.assertEqual(earray.nrows, 2)
-        self.assertEqual(row[0].tolist(), [["123", "45"],["45", "123"]])
-        self.assertEqual(row[1].tolist(), [["s", "abc"],["abc", "f"]])
+        self.assertEqual(row[0].tolist(), [["123", "45"], ["45", "123"]])
+        self.assertEqual(row[1].tolist(), [["s", "abc"], ["abc", "f"]])
         self.assertEqual(len(row[0]), 2)
         self.assertEqual(len(row[1]), 2)
 
@@ -1192,12 +1192,12 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Running %s.test01b_StringAtom..." % self.__class__.__name__
 
         earray = self.fileh.createEArray(root, 'strings',
-                                         StringAtom(itemsize=3), (0,2,2),
+                                         StringAtom(itemsize=3), (0, 2, 2),
                                          "Array of strings")
-        a=numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
-        earray.append(a[:,::2])
-        a=numpy.array([[["s", "a"],["ab", "f"],["s", "abc"],["abc", "f"]]])
-        earray.append(a[:,::2])
+        a=numpy.array([[["a", "b"], ["123", "45"], ["45", "123"]]], dtype="S3")
+        earray.append(a[:, ::2])
+        a=numpy.array([[["s", "a"], ["ab", "f"], ["s", "abc"], ["abc", "f"]]])
+        earray.append(a[:, ::2])
 
         # Read all the rows:
         row = earray.read()
@@ -1207,8 +1207,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Second row in earray ==>", row[1].tolist()
 
         self.assertEqual(earray.nrows, 2)
-        self.assertEqual(row[0].tolist(), [["a","b"],["45", "123"]])
-        self.assertEqual(row[1].tolist(), [["s", "a"],["s", "abc"]])
+        self.assertEqual(row[0].tolist(), [["a", "b"], ["45", "123"]])
+        self.assertEqual(row[1].tolist(), [["s", "a"], ["s", "abc"]])
         self.assertEqual(len(row[0]), 2)
         self.assertEqual(len(row[1]), 2)
 
@@ -1222,11 +1222,11 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         Int32Atom(), (0,3),
+                                         Int32Atom(), (0, 3),
                                          "array of ints")
-        a=numpy.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], dtype='int32')
+        a=numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], dtype='int32')
         earray.append(a[2:])  # Create an offset
-        a=numpy.array([(1,1,1), (-1,0,0)], dtype='int32')
+        a=numpy.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
         earray.append(a[1:])  # Create an offset
 
         # Read all the rows:
@@ -1237,9 +1237,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Third row in vlarray ==>", row[2]
 
         self.assertEqual(earray.nrows, 3)
-        self.assertTrue(allequal(row[0], numpy.array([1,1,1], dtype='int32')))
-        self.assertTrue(allequal(row[1], numpy.array([0,0,0], dtype='int32')))
-        self.assertTrue(allequal(row[2], numpy.array([-1,0,0], dtype='int32')))
+        self.assertTrue(allequal(row[0], numpy.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(allequal(row[1], numpy.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(allequal(row[2], numpy.array([-1, 0, 0], dtype='int32')))
 
     def test02b_int(self):
         """Checking earray with strided NumPy ints appends"""
@@ -1250,11 +1250,11 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Running %s.test02b_int..." % self.__class__.__name__
 
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         Int32Atom(), (0,3),
+                                         Int32Atom(), (0, 3),
                                          "array of ints")
-        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='int32')
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype='int32')
         earray.append(a[::3])  # Create an offset
-        a = numpy.array([(1,1,1), (-1,0,0)], dtype='int32')
+        a = numpy.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
         earray.append(a[::2])  # Create an offset
 
         # Read all the rows:
@@ -1265,9 +1265,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Third row in vlarray ==>", row[2]
 
         self.assertEqual(earray.nrows, 3)
-        self.assertTrue(allequal(row[0], numpy.array([0,0,0], dtype='int32')))
-        self.assertTrue(allequal(row[1], numpy.array([3,3,3], dtype='int32')))
-        self.assertTrue(allequal(row[2], numpy.array([1,1,1], dtype='int32')))
+        self.assertTrue(allequal(row[0], numpy.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(allequal(row[1], numpy.array([3, 3, 3], dtype='int32')))
+        self.assertTrue(allequal(row[2], numpy.array([1, 1, 1], dtype='int32')))
 
 
     def test03a_int(self):
@@ -1279,10 +1279,10 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Running %s.test03a_int..." % self.__class__.__name__
 
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         Int32Atom(), (0,3),
+                                         Int32Atom(), (0, 3),
                                          "array of ints")
         # Add a native ordered array
-        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Int32')
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype='Int32')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1311,10 +1311,10 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Running %s.test03b_float..." % self.__class__.__name__
 
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         Float64Atom(), (0,3),
+                                         Float64Atom(), (0, 3),
                                          "array of floats")
         # Add a native ordered array
-        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Float64')
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype='Float64')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1344,11 +1344,11 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         Int32Atom(), (0,3),
+                                         Int32Atom(), (0, 3),
                                          "array of ints",
                                          byteorder=byteorder)
         # Add a native ordered array
-        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Int32')
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype='Int32')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1378,14 +1378,14 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         Int32Atom(), (0,3),
+                                         Int32Atom(), (0, 3),
                                          "array of ints",
                                          byteorder=byteorder)
         self.fileh.close()
         self.fileh = openFile(self.file, "a")
         earray = self.fileh.getNode("/EAtom")
         # Add a native ordered array
-        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Int32')
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype='Int32')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1415,11 +1415,11 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         Float64Atom(), (0,3),
+                                         Float64Atom(), (0, 3),
                                          "array of floats",
                                          byteorder=byteorder)
         # Add a native ordered array
-        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Float64')
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype='Float64')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1449,14 +1449,14 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         Float64Atom(), (0,3),
+                                         Float64Atom(), (0, 3),
                                          "array of floats",
                                          byteorder=byteorder)
         self.fileh.close()
         self.fileh = openFile(self.file, "a")
         earray = self.fileh.getNode("/EAtom")
         # Add a native ordered array
-        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Float64')
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype='Float64')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1493,7 +1493,7 @@ class CopyTestCase(unittest.TestCase):
         arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
         if self.close:
             if common.verbose:
@@ -1553,7 +1553,7 @@ class CopyTestCase(unittest.TestCase):
         arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
         if self.close:
             if common.verbose:
@@ -1620,7 +1620,7 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         array1.flavor = flavor
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
         if self.close:
             if common.verbose:
@@ -1679,7 +1679,7 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         array1.flavor = flavor
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
         if self.close:
             if common.verbose:
@@ -1733,7 +1733,7 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         array1.flavor = "python"
-        array1.append(((456, 2),(3, 457)))
+        array1.append(((456, 2), (3, 457)))
 
         if self.close:
             if common.verbose:
@@ -1789,7 +1789,7 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         array1.flavor = "python"
-        array1.append([["456", "2"],["3", "457"]])
+        array1.append([["456", "2"], ["3", "457"]])
 
         if self.close:
             if common.verbose:
@@ -1846,7 +1846,7 @@ class CopyTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         array1.flavor = "numpy"
-        array1.append(numpy.array([["456", "2"],["3", "457"]], dtype="S4"))
+        array1.append(numpy.array([["456", "2"], ["3", "457"]], dtype="S4"))
 
         if self.close:
             if common.verbose:
@@ -1902,7 +1902,7 @@ class CopyTestCase(unittest.TestCase):
         atom = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
                                     "title array1")
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1949,7 +1949,7 @@ class CopyTestCase(unittest.TestCase):
         atom = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
                                     "title array1")
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1999,7 +1999,7 @@ class CopyTestCase(unittest.TestCase):
         atom = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
                                     "title array1")
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -2060,7 +2060,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
                                     "title array1")
         r = numpy.arange(200, dtype='int32')
-        r.shape=(100,2)
+        r.shape=(100, 2)
         array1.append(r)
 
         # Select a different buffer size:
@@ -2107,7 +2107,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
                                     "title array1")
         r = numpy.arange(200, dtype='int32')
-        r.shape=(100,2)
+        r.shape=(100, 2)
         array1.append(r)
 
         # Select a different buffer size:
@@ -2224,7 +2224,7 @@ class TruncateTestCase(unittest.TestCase):
         array1 = self.fileh.createEArray(
             self.fileh.root, 'array1', arr, (0, 2), "title array1")
         # Add a couple of rows
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
     def tearDown(self):
         # Close the file
@@ -2254,7 +2254,7 @@ class TruncateTestCase(unittest.TestCase):
             print "array1-->", array1.read()
 
         self.assertTrue(allequal(
-            array1[:], numpy.array([], dtype='Int16').reshape(0,2)))
+            array1[:], numpy.array([], dtype='Int16').reshape(0, 2)))
 
     def test01_truncate(self):
         """Checking EArray.truncate() method (truncating to 1 rows)"""
@@ -2294,7 +2294,7 @@ class TruncateTestCase(unittest.TestCase):
             print "array1-->", array1.read()
 
         self.assertTrue(allequal(array1.read(),
-                                 numpy.array([[456, 2],[3, 457]],
+                                 numpy.array([[456, 2], [3, 457]],
                                  dtype='Int16')))
 
     def test03_truncate(self):
@@ -2316,10 +2316,10 @@ class TruncateTestCase(unittest.TestCase):
 
         self.assertEqual(array1.nrows, 4)
         # Check the original values
-        self.assertTrue(allequal(array1[:2], numpy.array([[456, 2],[3, 457]],
+        self.assertTrue(allequal(array1[:2], numpy.array([[456, 2], [3, 457]],
                                                    dtype='Int16')))
         # Check that the added rows have the default values
-        self.assertTrue(allequal(array1[2:], numpy.array([[3, 3],[3, 3]],
+        self.assertTrue(allequal(array1[2:], numpy.array([[3, 3], [3, 3]],
                                                 dtype='Int16')))
 
 
@@ -2427,7 +2427,7 @@ class ZeroSizedTestCase(unittest.TestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "a")
         # Create an EArray
-        ea = self.fileh.createEArray('/', 'test', Int32Atom(), (3,0))
+        ea = self.fileh.createEArray('/', 'test', Int32Atom(), (3, 0))
         # Append a single row
         ea.append([[1], [2], [3]])
 
@@ -2443,7 +2443,7 @@ class ZeroSizedTestCase(unittest.TestCase):
 
         fileh = self.fileh
         ea = fileh.root.test
-        np = numpy.empty(shape=(3,0), dtype='int32')
+        np = numpy.empty(shape=(3, 0), dtype='int32')
         ea.append(np)
         self.assertEqual(ea.nrows, 1, "The number of rows should be 1.")
 
@@ -2452,7 +2452,7 @@ class ZeroSizedTestCase(unittest.TestCase):
 
         fileh = self.fileh
         ea = fileh.root.test
-        np = numpy.empty(shape=(3,0,3), dtype='int32')
+        np = numpy.empty(shape=(3, 0, 3), dtype='int32')
         self.assertRaises(ValueError, ea.append, np)
 
 
@@ -2462,21 +2462,21 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01a_append(self):
         "Append a row to a (unidimensional) EArray with a MD atom."
         # Create an EArray
-        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,2)), (0,))
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2, 2)), (0,))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
         # Append one row
-        ea.append([[[1,3],[4,5]]])
+        ea.append([[[1, 3], [4, 5]]])
         self.assertEqual(ea.nrows, 1)
         if common.verbose:
             print "First row-->", ea[0]
-        self.assertTrue(allequal(ea[0], numpy.array([[1,3],[4,5]], 'i4')))
+        self.assertTrue(allequal(ea[0], numpy.array([[1, 3], [4, 5]], 'i4')))
 
     def test01b_append(self):
         "Append several rows to a (unidimensional) EArray with a MD atom."
         # Create an EArray
-        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,2)), (0,))
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2, 2)), (0,))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
@@ -2485,49 +2485,49 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[2]
-        self.assertTrue(allequal(ea[2], numpy.array([[3,3],[3,3]], 'i4')))
+        self.assertTrue(allequal(ea[2], numpy.array([[3, 3], [3, 3]], 'i4')))
 
     def test02a_append(self):
         "Append a row to a (multidimensional) EArray with a MD atom."
         # Create an EArray
-        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,)), (0,3))
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,)), (0, 3))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
         # Append one row
-        ea.append([[[1,3],[4,5],[7,9]]])
+        ea.append([[[1, 3], [4, 5], [7, 9]]])
         self.assertEqual(ea.nrows, 1)
         if common.verbose:
             print "First row-->", ea[0]
-        self.assertTrue(allequal(ea[0], numpy.array([[1,3],[4,5],[7,9]], 'i4')))
+        self.assertTrue(allequal(ea[0], numpy.array([[1, 3], [4, 5], [7, 9]], 'i4')))
 
     def test02b_append(self):
         "Append several rows to a (multidimensional) EArray with a MD atom."
         # Create an EArray
-        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,)), (0,3))
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,)), (0, 3))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
         # Append three rows
-        ea.append([[[1,-3],[4,-5],[-7,9]],
-                   [[-1,3],[-4,5],[7,-8]],
-                   [[-2,3],[-5,5],[7,-9]]])
+        ea.append([[[1, -3], [4, -5], [-7, 9]],
+                   [[-1, 3], [-4, 5], [7, -8]],
+                   [[-2, 3], [-5, 5], [7, -9]]])
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[2]
         self.assertTrue(allequal(ea[2],
-                                 numpy.array([[-2,3],[-5,5],[7,-9]], 'i4')))
+                                 numpy.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
 
     def test03a_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom."
         # Create an EArray
-        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,4)), (0,2,3))
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2, 4)), (0, 2, 3))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
         # Append three rows
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2,3,2,4))
+        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2, 3, 2, 4))
         ea.append([a*1, a*2, a*3])
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
@@ -2537,38 +2537,38 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03b_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom (II)."
         # Create an EArray
-        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,4)), (2,0,3))
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2, 4)), (2, 0, 3))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
         # Append three rows
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2,1,3,2,4))
+        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2, 1, 3, 2, 4))
         ea.append(a*1)
         ea.append(a*2)
         ea.append(a*3)
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
-            print "Third row-->", ea[:,2,...]
-        self.assertTrue(allequal(ea[:,2,...], a.reshape((2,3,2,4))*3))
+            print "Third row-->", ea[:, 2, ...]
+        self.assertTrue(allequal(ea[:, 2, ...], a.reshape((2, 3, 2, 4))*3))
 
     def test03c_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom (III)."
         # Create an EArray
-        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,4)), (2,3,0))
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2, 4)), (2, 3, 0))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
         # Append three rows
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2,3,1,2,4))
+        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2, 3, 1, 2, 4))
         ea.append(a*1)
         ea.append(a*2)
         ea.append(a*3)
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
-            print "Third row-->", ea[:,:,2,...]
-        self.assertTrue(allequal(ea[:,:,2,...], a.reshape((2,3,2,4))*3))
+            print "Third row-->", ea[:,:, 2, ...]
+        self.assertTrue(allequal(ea[:,:, 2, ...], a.reshape((2, 3, 2, 4))*3))
 
 
 class MDAtomNoReopen(MDAtomTestCase):

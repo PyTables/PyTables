@@ -62,7 +62,7 @@ table2.cols.hot[:] = [ row["temperature"] > 11**2 for row in table ]
 table.remove()
 
 # Move table2 to table
-table2.move('/newgroup','table')
+table2.move('/newgroup', 'table')
 
 # Print the new table
 print "Contents of the table with column added:", fileh.root.newgroup.table[:]

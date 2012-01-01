@@ -62,7 +62,7 @@ class Handler(BaseHandler):
                                                     type=typecode_to_dap[grid.typecode()],
                                                     attributes=get_attributes(grid))
                 # Build maps.
-                for mapname,shape in zip(g.dimensions, g.shape):
+                for mapname, shape in zip(g.dimensions, g.shape):
                     if mapname in self._file.variables:
                         map_ = self._file.variables[mapname]
                         data = arrayterator(map_, nrecs=BUFFER)
@@ -116,7 +116,7 @@ class Handler(BaseHandler):
                                                         attributes=get_attributes(grid))
                     # Build maps.
                     dimmap = zip(g.dimensions, start, shape, stride)
-                    for mapname,start_,shape_,stride_ in dimmap:
+                    for mapname, start_, shape_, stride_ in dimmap:
                         if mapname in self._file.variables:
                             map_ = self._file.variables[mapname]
                             data = arrayterator(map_, start=[start_], shape=[shape_], stride=[stride_], nrecs=BUFFER)

@@ -239,8 +239,8 @@ def _matchFormats(seq1, seq2):
         dtype2 = dtype2.strip()
         if dtype1 in revfmt: dtype1 = revfmt[dtype1]
         if dtype2 in revfmt: dtype2 = revfmt[dtype2]
-        if repeat1 in ['','1']: dtype1 = '1'+dtype1
-        if repeat2 in ['','1']: dtype2 = '1'+dtype2
+        if repeat1 in ['', '1']: dtype1 = '1'+dtype1
+        if repeat2 in ['', '1']: dtype2 = '1'+dtype2
         if dtype1 != dtype2:
             raise ValueError("""buffer formats don't match those """
                 """provided by the format specification""")
@@ -707,7 +707,7 @@ def convertToAPDescr(descr, byteorder):
                         raise ValueError("Fatal error: format %s not "
                                          "recognized." % (_dtype))
                 # Return the column
-                if _repeat in ['','1','()']:
+                if _repeat in ['', '1', '()']:
                     # scalar case
                     yield (item[0], _dtype)
                 else:

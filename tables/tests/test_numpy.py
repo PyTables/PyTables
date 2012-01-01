@@ -81,7 +81,7 @@ class BasicTestCase(unittest.TestCase):
         else:
             self.assertEqual(a.dtype.base.name, type_)
 
-        self.assertTrue(allequal(a,b, "numpy"))
+        self.assertTrue(allequal(a, b, "numpy"))
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
@@ -90,14 +90,14 @@ class BasicTestCase(unittest.TestCase):
     def test00_char(self):
         "Data integrity during recovery (character objects)"
 
-        a = array(self.tupleChar,'S'+str(len(self.tupleChar)))
+        a = array(self.tupleChar, 'S'+str(len(self.tupleChar)))
         self.WriteRead(a)
         return
 
     def test01_char_nc(self):
         "Data integrity during recovery (non-contiguous character objects)"
 
-        a = array(self.tupleChar,'S'+str(len(self.tupleChar)))
+        a = array(self.tupleChar, 'S'+str(len(self.tupleChar)))
         if a.shape == ():
             b = a               # We cannot use the indexing notation
         else:
@@ -177,7 +177,7 @@ class Basic2DTestCase(BasicTestCase):
     title = "Rank-2 case 1"
     #tupleInt = reshape(array(arange((4)**2)), (4,)*2)
     tupleInt = ones((4,)*2)
-    tupleChar = [["aaa","ddddd"],["d","ss"],["s","tt"]]
+    tupleChar = [["aaa", "ddddd"], ["d", "ss"], ["s", "tt"]]
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
@@ -243,14 +243,14 @@ class GroupsArrayTestCase(unittest.TestCase):
         group = fileh.root
 
         # Get the metadata on the previosly saved arrays
-        for i in range(1,len(typecodes)):
+        for i in range(1, len(typecodes)):
             # Create an array for later comparison
             a = ones((2,) * i, typecodes[i - 1])
             # Get the dset object hanging from group
             dset = getattr(group, 'array_' + typecodes[i-1])
             # Get the actual array
             b = dset.read()
-            if not allequal(a,b, "numpy") and common.verbose:
+            if not allequal(a, b, "numpy") and common.verbose:
                 print "Array a original. Shape: ==>", a.shape
                 print "Array a original. Data: ==>", a
                 print "Info from dataset:", dset._v_pathname
@@ -272,7 +272,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                     # to all practical effects
                     self.assertTrue(b.dtype.char == "L" or b.dtype.char == "I")
                 else:
-                    self.assertTrue(allequal(a,b, "numpy"))
+                    self.assertTrue(allequal(a, b, "numpy"))
             elif dtype('l').itemsize == 8:
                 if (a.dtype.char == "q" or a.dtype.char == "l"):
                     # Special expection. We have no way to distinguish between
@@ -285,7 +285,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                     # consider them the same to all practical effects
                     self.assertTrue(b.dtype.char == "L" or b.dtype.char == "Q")
                 else:
-                    self.assertTrue(allequal(a,b, "numpy"))
+                    self.assertTrue(allequal(a, b, "numpy"))
 
             # Iterate over the next group
             group = getattr(group, 'group' + str(i))
@@ -458,7 +458,7 @@ class TableReadTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         table.flavor = "numpy"
-        coords = (1,2,3)
+        coords = (1, 2, 3)
         self.nrows = len(coords)
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname)
@@ -485,7 +485,7 @@ class TableReadTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         table.flavor = "numpy"
-        coords = (1,2,3)
+        coords = (1, 2, 3)
         self.nrows = len(coords)
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname)
@@ -505,7 +505,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Getting table rows specifyied as NumPy scalar integers."""
 
         table = self.fileh.root.table
-        coords = numpy.array([1,2,3], dtype='int8')
+        coords = numpy.array([1, 2, 3], dtype='int8')
         for colname in table.colnames:
             numcol = [ table[coord][colname] for coord in coords ]
             typecol = table.coltypes[colname]
@@ -528,12 +528,12 @@ class TableReadTestCase(common.PyTablesTestCase):
         self.fileh = openFile(self.file, "a")
         table = self.fileh.root.table
         table.flavor = "numpy"
-        coords = numpy.array([1,2,3], dtype='int8')
+        coords = numpy.array([1, 2, 3], dtype='int8')
         # Modify row 1
         # From PyTables 2.0 on, assignments to records can be done
         # only as tuples (see http://projects.scipy.org/scipy/numpy/ticket/315)
         #table[coords[0]] = ["aasa","x"]+[232]*12
-        table[coords[0]] = tuple(["aasa","x"]+[232]*12)
+        table[coords[0]] = tuple(["aasa", "x"]+[232]*12)
         #record = list(table[coords[0]])
         record = table.read(coords[0])
         if common.verbose:
@@ -559,7 +559,7 @@ class TestTDescr(IsDescription):
     """A description that has several nested columns."""
 
     x = Int32Col(dflt=0, shape=2, pos=0) #0
-    y = FloatCol(dflt=1, shape=(2,2))
+    y = FloatCol(dflt=1, shape=(2, 2))
     z = UInt8Col(dflt=1)
     z3 = EnumCol({'r':4, 'g':2, 'b':1}, 'r', 'int32', shape=2)
     color = StringCol(itemsize=4, dflt="ab", pos=2)
@@ -616,7 +616,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # A flat column
         col = table.cols.x[:3]
         self.assertTrue(isinstance(col, ndarray))
-        npcol = zeros((3,2), dtype="int32")
+        npcol = zeros((3, 2), dtype="int32")
         self.assertTrue(allequal(col, npcol, "numpy"))
         # A nested column
         col = table.cols.Info[:3]
@@ -655,7 +655,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # A flat column
         col = table.cols.x[:9:3]
         self.assertTrue(isinstance(col, ndarray))
-        npcol = zeros((3,2), dtype="int32")
+        npcol = zeros((3, 2), dtype="int32")
         self.assertTrue(allequal(col, npcol, "numpy"))
         # A nested column
         col = table.cols.Info[:9:3]
@@ -816,8 +816,8 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         """Checking modifying several columns at once."""
 
         table = self.fileh.root.table
-        xcol = ones((3,2), 'int32')
-        ycol = zeros((3,2,2), 'float64')
+        xcol = ones((3, 2), 'int32')
+        ycol = zeros((3, 2, 2), 'float64')
         zcol = zeros((3,), 'uint8')
         table.modifyColumns(3, 6, 1, [xcol, ycol, zcol], ['x', 'y', 'z'])
         if self.close:
@@ -952,7 +952,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
-        ycol = zeros((3,2,2), 'float64')-1
+        ycol = zeros((3, 2, 2), 'float64')-1
         data = table.cols.y[3:6]
         if common.verbose:
             print "Type of read:", type(data)
@@ -982,7 +982,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         # Check that some column has been actually modified
-        ycol = zeros((3,2,2), 'float64')-1
+        ycol = zeros((3, 2, 2), 'float64')-1
         data = table.cols.y[3:6]
         if common.verbose:
             print "Type of read:", type(data)
@@ -1012,7 +1012,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         # Check that some column has been actually modified
-        ycol = zeros((2,2), 'float64')-1
+        ycol = zeros((2, 2), 'float64')-1
         data = table.cols.y[6]
         if common.verbose:
             print "Type of read:", type(data)
@@ -1042,7 +1042,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         # Check that some column has been actually modified
-        ycol = zeros((2,2), 'float64')-1
+        ycol = zeros((2, 2), 'float64')-1
         data = table.cols.y[6]
         if common.verbose:
             print "Type of read:", type(data)
@@ -1163,7 +1163,7 @@ class AttributesTestCase(common.PyTablesTestCase):
         """Checking the creation of a numpy attribute."""
         group = self.fileh.root.group
         g_attrs = group._v_attrs
-        g_attrs.numpy1 = zeros((1,1), dtype='int16')
+        g_attrs.numpy1 = zeros((1, 1), dtype='int16')
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1171,7 +1171,7 @@ class AttributesTestCase(common.PyTablesTestCase):
             g_attrs = group._v_attrs
         # Check that we can retrieve a numpy object
         data = g_attrs.numpy1
-        npcomp = zeros((1,1), dtype='int16')
+        npcomp = zeros((1, 1), dtype='int16')
         # Check that both NumPy objects are equal
         self.assertTrue(isinstance(data, ndarray))
         # Check the type
@@ -1186,17 +1186,17 @@ class AttributesTestCase(common.PyTablesTestCase):
 
         group = self.fileh.root.group
         g_attrs = group._v_attrs
-        g_attrs.numpy1 = zeros((1,2), dtype='int16')
+        g_attrs.numpy1 = zeros((1, 2), dtype='int16')
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
             group = self.fileh.root.group
             g_attrs = group._v_attrs
         # Update this attribute
-        g_attrs.numpy1 = ones((1,2), dtype='int16')
+        g_attrs.numpy1 = ones((1, 2), dtype='int16')
         # Check that we can retrieve a numpy object
         data = g_attrs.numpy1
-        npcomp = ones((1,2), dtype='int16')
+        npcomp = ones((1, 2), dtype='int16')
         # Check that both NumPy objects are equal
         self.assertTrue(isinstance(data, ndarray))
         # Check the type

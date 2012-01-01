@@ -156,7 +156,7 @@ if __name__ == '__main__':
     func = []
 
     # Checking options
-    options = ['-O','-o','-B','-b','-A','-a','-g','-l']
+    options = ['-O', '-o', '-B', '-b', '-A', '-a', '-g', '-l']
 
     # Dict to map options to checking functions
     option2func = {

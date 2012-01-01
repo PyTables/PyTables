@@ -404,7 +404,7 @@ if __name__=="__main__":
             prof = Profile()
             prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose, inkernel)')
             kcg = lsprofcalltree.KCacheGrind(prof)
-            ofile = open('indexed_search.kcg','w')
+            ofile = open('indexed_search.kcg', 'w')
             kcg.output(ofile)
             ofile.close()
         elif doprofile:

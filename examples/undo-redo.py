@@ -8,7 +8,7 @@ def setUp(filename):
     # Create some nodes in there
     fileh.createGroup("/", "agroup", "Group 1")
     fileh.createGroup("/agroup", "agroup2", "Group 2")
-    fileh.createArray("/", "anarray", [1,2], "Array 1")
+    fileh.createArray("/", "anarray", [1, 2], "Array 1")
     # Enable undo/redo.
     fileh.enableUndo()
     return fileh
@@ -26,16 +26,16 @@ def demo_6times3marks():
     fileh = setUp("undo-redo-6times3marks.h5")
 
     # Create a new array
-    fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
-    fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+    fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
+    fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
     # Put a mark
     fileh.mark()
-    fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
-    fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+    fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
+    fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
     # Put a mark
     fileh.mark()
-    fileh.createArray('/', 'otherarray5', [7,8], "Another array 5")
-    fileh.createArray('/', 'otherarray6', [8,9], "Another array 6")
+    fileh.createArray('/', 'otherarray5', [7, 8], "Another array 5")
+    fileh.createArray('/', 'otherarray6', [8, 9], "Another array 6")
     # Unwind just one mark
     fileh.undo()
     assert "/otherarray1" in fileh

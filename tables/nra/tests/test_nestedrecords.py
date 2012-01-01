@@ -59,17 +59,17 @@ class NestedRecordTests(common.PyTablesTestCase):
 
         # Formats description of the nested/flat table structure
         self.formats = ['Int64',
-            [['S9', '()a9'],['()Float32', 'f4', 'f4']]]
+            [['S9', '()a9'], ['()Float32', 'f4', 'f4']]]
 
         self.flat_formats = ['Int64', 'a9', 'a9', 'Float32', 'f4', 'f4']
 
         # descr description of the nested/flat table structure
         self.descr = [('position', 'Int64'),
-            ('info', [('name', [('first','S9'), ('second','()a9')]),
-            ('coord', [('x','()Float32'), ('y', 'f4'), ('z', 'f4')])])]
+            ('info', [('name', [('first', 'S9'), ('second', '()a9')]),
+            ('coord', [('x', '()Float32'), ('y', 'f4'), ('z', 'f4')])])]
 
-        self.flat_descr = [('position', 'Int64'), ('first','S9'),
-            ('second','()a9'), ('x','()Float32'), ('y', 'f4'), ('z', 'f4')]
+        self.flat_descr = [('position', 'Int64'), ('first', 'S9'),
+            ('second', '()a9'), ('x', '()Float32'), ('y', 'f4'), ('z', 'f4')]
 
 
     def testArrayStructure(self):
@@ -121,7 +121,7 @@ class NestedRecordTests(common.PyTablesTestCase):
             formats)
         # Formats must be a list of strings or sequences
         formats = [25,
-            [['a5', 'a5'],['Float32', 'f4', 'f4']]]
+            [['a5', 'a5'], ['Float32', 'f4', 'f4']]]
         self.assertRaises(TypeError, nra.nestedrecords._checkFormats,
             formats)
         # If formats is OK checkFormats returns None
@@ -165,13 +165,13 @@ class NestedRecordTests(common.PyTablesTestCase):
         # names in descr must be strings
         # formats must be strings or list of 2-tuples
         descr = [(25, 'Int64'),
-            ('info', [('name', [('first','a5'), ('second','a5')]),
-                   ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
+            ('info', [('name', [('first', 'a5'), ('second', 'a5')]),
+                   ('coord', [('x', 'Float32'), ('y', 'f4'), ('z', 'f4')])])]
         self.assertRaises(TypeError, nra.nestedrecords._checkDescr, descr)
 
         descr = [('25', 'position', 'Int64'),
-            ('info', [('name', [('first','a5'), ('second','a5')]),
-                   ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
+            ('info', [('name', [('first', 'a5'), ('second', 'a5')]),
+                   ('coord', [('x', 'Float32'), ('y', 'f4'), ('z', 'f4')])])]
         self.assertRaises(TypeError, nra.nestedrecords._checkDescr, descr)
 
         # If descr is OK checkDescr returns None
@@ -185,8 +185,8 @@ class NestedRecordTests(common.PyTablesTestCase):
         common.verbosePrint( """\nTesting the field names syntax in a """
             """sample descr list""")
         descr = [('position', 'Int64'),
-            ('info', [('name', [('first','a5'), ('second','a5')]),
-               ('coord', [('x/equis','Float32'), ('y', 'f4'), ('z', 'f4')])])]
+            ('info', [('name', [('first', 'a5'), ('second', 'a5')]),
+               ('coord', [('x/equis', 'Float32'), ('y', 'f4'), ('z', 'f4')])])]
         self.assertRaises(ValueError, nra.nestedrecords._checkFieldsInDescr,
             descr)
 
@@ -260,23 +260,23 @@ class NestedRecordTests(common.PyTablesTestCase):
 
         nra0 = nra.array(buffer=self.buffer, descr=self.descr)
         my_Descr = [('ID', 'Int64'),
-            ('data', [('name', [('first','a9'), ('second','a9')]),
-            ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
+            ('data', [('name', [('first', 'a9'), ('second', 'a9')]),
+            ('coord', [('x', 'Float32'), ('y', 'f4'), ('z', 'f4')])])]
         nra1 = nra.array(buffer=self.buffer, descr=my_Descr)
         nra2 = nra.array(buffer=nra0, descr=my_Descr)
         self.assert_(common.areArraysEqual(nra2, nra1))
 
         # Bad number of fields
         badDescr = [
-            ('data', [('name', [('first','a9'), ('second','a9')]),
-            ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
+            ('data', [('name', [('first', 'a9'), ('second', 'a9')]),
+            ('coord', [('x', 'Float32'), ('y', 'f4'), ('z', 'f4')])])]
         self.assertRaises(ValueError, nra.array, buffer=nra0,
             descr=badDescr)
 
         # Bad format in the first field
         badDescr = [('ID', 'b1'),
-            ('data', [('name', [('first','a9'), ('second','a9')]),
-            ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
+            ('data', [('name', [('first', 'a9'), ('second', 'a9')]),
+            ('coord', [('x', 'Float32'), ('y', 'f4'), ('z', 'f4')])])]
         self.assertRaises(ValueError, nra.array, buffer=nra0,
             descr=badDescr)
 
@@ -300,9 +300,9 @@ class NestedRecordTests(common.PyTablesTestCase):
         self.assert_(common.areArraysEqual(nra0, nra2))
 
         # arrayList argument is a list of NestedRecArrays
-        nra0 = nra.array(buffer=[[1,4],[2,4]], formats=['f8','f4'])
+        nra0 = nra.array(buffer=[[1, 4], [2, 4]], formats=['f8', 'f4'])
         self.assertRaises(TypeError, nra.fromarrays,
-            [nra0, nra0.field('c2')], formats=[['f8','f4'],'f4'])
+            [nra0, nra0.field('c2')], formats=[['f8', 'f4'], 'f4'])
 
 
     def testGetSlice(self):
@@ -436,8 +436,8 @@ class NestedRecordTests(common.PyTablesTestCase):
             [('Maria', 'Luisa'), (0, 2.0, 10)],
             [('C3Peanut', 'Tofu'), (10, 30, 20)]
         ]
-        my_descr = [('name', [('first','a9'), ('second','a9')]),
-            ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])]
+        my_descr = [('name', [('first', 'a9'), ('second', 'a9')]),
+            ('coord', [('x', 'Float32'), ('y', 'f4'), ('z', 'f4')])]
         model = nra.array(buffer, descr=my_descr)
         modelFirst = model.field('name/first')
 

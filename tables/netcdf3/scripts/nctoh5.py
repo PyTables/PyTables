@@ -23,7 +23,7 @@ def nctoh5(ncfilename, h5filename, filters, verbose, overwritefile):
     else:
         h5file = tables.netcdf3.NetCDFFile(h5filename, mode = "a")
     # convert to netCDF
-    nobjects, nbytes = h5file.nctoh5(ncfilename,filters=filters)
+    nobjects, nbytes = h5file.nctoh5(ncfilename, filters=filters)
     # ncdump-like output
     if verbose:
         print 'contents of hdf5 file:'
@@ -142,8 +142,8 @@ def main():
     tpercent = int(round(cpucopy/tcopy, 2)*100)
     if verbose:
         print "Number of variables copied:", nobjects
-        print "KBytes copied:", round(nbytes/1024.,3)
+        print "KBytes copied:", round(nbytes/1024., 3)
         print "Time copying: %s s (real) %s s (cpu)  %s%%" % \
               (tcopy, cpucopy, tpercent)
-        print "Copied variable/sec: ", round(nobjects / float(tcopy),1)
+        print "Copied variable/sec: ", round(nobjects / float(tcopy), 1)
         print "Copied KB/s :", int(nbytes / (tcopy * 1024))

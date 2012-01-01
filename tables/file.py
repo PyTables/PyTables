@@ -510,7 +510,7 @@ class File(hdf5Extension.File, object):
         path = os.path.expandvars(path)
 
         # Get all the parameters in parameter file(s)
-        params = dict([(k, v) for k,v in parameters.__dict__.iteritems()
+        params = dict([(k, v) for k, v in parameters.__dict__.iteritems()
                        if k.isupper() and not k.startswith('_')])
         # Update them with possible keyword arguments
         params.update(kwargs)

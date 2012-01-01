@@ -5,17 +5,17 @@ class Particle(IsDescription):
     lati        = ComplexCol(itemsize=16, pos=2)
     longi       = ComplexCol(itemsize=8, pos=3)
     vector      = ComplexCol(itemsize=8, shape=(2,), pos=4)
-    matrix2D    = ComplexCol(itemsize=16, shape=(2,2), pos=5)
+    matrix2D    = ComplexCol(itemsize=16, shape=(2, 2), pos=5)
 
 # Open a file in "w"rite mode
 fileh = openFile("table3.h5", mode = "w")
 table = fileh.createTable(fileh.root, 'table', Particle, "A table")
 # Append several rows in only one call
-table.append([("Particle:     10", 10j, 0, (10*9+1j,1), [[10**2j,11*3]]*2),
-              ("Particle:     11", 11j, -1, (11*10+2j,2), [[11**2j,10*3]]*2),
-              ("Particle:     12", 12j, -2, (12*11+3j,3), [[12**2j,9*3]]*2),
-              ("Particle:     13", 13j, -3, (13*11+4j,4), [[13**2j,8*3]]*2),
-              ("Particle:     14", 14j, -4, (14*11+5j,5), [[14**2j,7*3]]*2)])
+table.append([("Particle:     10", 10j, 0, (10*9+1j, 1), [[10**2j, 11*3]]*2),
+              ("Particle:     11", 11j, -1, (11*10+2j, 2), [[11**2j, 10*3]]*2),
+              ("Particle:     12", 12j, -2, (12*11+3j, 3), [[12**2j, 9*3]]*2),
+              ("Particle:     13", 13j, -3, (13*11+4j, 4), [[13**2j, 8*3]]*2),
+              ("Particle:     14", 14j, -4, (14*11+5j, 5), [[14**2j, 7*3]]*2)])
 
 print "str(Cols)-->", table.cols
 print "repr(Cols)-->", repr(table.cols)

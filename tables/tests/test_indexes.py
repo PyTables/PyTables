@@ -116,7 +116,7 @@ class BasicTestCase(PyTablesTestCase):
         self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
         # Modify a couple of columns
-        for i,row in enumerate(table.where("(var3>1) & (var3<5)")):
+        for i, row in enumerate(table.where("(var3>1) & (var3<5)")):
             row['var1'] = str(i)
             row['var3'] = i
             row.update()
@@ -203,7 +203,7 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print "Selected values:", results
         self.assertEqual(len(results), min(10, table.nrows) - 2)
-        self.assertEqual(results, range(2,min(10, table.nrows)))
+        self.assertEqual(results, range(2, min(10, table.nrows)))
 
     def test04_readIndex(self):
         """Checking reading an Index (float flavor)"""
@@ -769,7 +769,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
-        group = self.fileh.createGroup(self.fileh.root,"agroup")
+        group = self.fileh.createGroup(self.fileh.root, "agroup")
         # Create a table
         title = "This is the IndexArray title"
         table = self.fileh.createTable(group, 'table', TDescr, title,
@@ -795,7 +795,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
-        group = self.fileh.createGroup(self.fileh.root,"agroup")
+        group = self.fileh.createGroup(self.fileh.root, "agroup")
         # Create a table
         title = "This is the IndexArray title"
         table = self.fileh.createTable(group, 'table', TDescr, title,
@@ -826,9 +826,9 @@ class DeepTableIndexTestCase(unittest.TestCase):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
-        group = self.fileh.createGroup(self.fileh.root,"agroup")
-        group = self.fileh.createGroup(group,"agroup")
-        group = self.fileh.createGroup(group,"agroup")
+        group = self.fileh.createGroup(self.fileh.root, "agroup")
+        group = self.fileh.createGroup(group, "agroup")
+        group = self.fileh.createGroup(group, "agroup")
         # Create a table
         title = "This is the IndexArray title"
         table = self.fileh.createTable(group, 'table', TDescr, title,
@@ -854,9 +854,9 @@ class DeepTableIndexTestCase(unittest.TestCase):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
-        group = self.fileh.createGroup(self.fileh.root,"agroup")
-        group = self.fileh.createGroup(group,"agroup")
-        group = self.fileh.createGroup(group,"agroup")
+        group = self.fileh.createGroup(self.fileh.root, "agroup")
+        group = self.fileh.createGroup(group, "agroup")
+        group = self.fileh.createGroup(group, "agroup")
         # Create a table
         title = "This is the IndexArray title"
         table = self.fileh.createTable(group, 'table', TDescr, title,
@@ -889,7 +889,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "w")
         group = self.fileh.root
         for i in range(100):
-            group = self.fileh.createGroup(group,"agroup")
+            group = self.fileh.createGroup(group, "agroup")
         # Create a table
         title = "This is the IndexArray title"
         table = self.fileh.createTable(group, 'table', TDescr, title,
@@ -1069,7 +1069,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.assertTrue(index is None)
         else:
             indexedrows = index.nelements
-            self.assertEqual(table._indexedrows , index.nelements)
+            self.assertEqual(table._indexedrows, index.nelements)
             self.assertEqual(table._unsaved_indexedrows,
                              self.nrows - indexedrows)
 
@@ -1093,7 +1093,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, remove some rows:
-        table.removeRows(2,4)
+        table.removeRows(2, 4)
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1131,7 +1131,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Force a sync in indexes
         table.flushRowsToIndex()
         # Now, remove some rows:
-        table.removeRows(3,5)
+        table.removeRows(3, 5)
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1166,7 +1166,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, modify just one row:
-        table.modifyRows(3, None, 1, [["asa",0,3,3.1]])
+        table.modifyRows(3, None, 1, [["asa", 0, 3, 3.1]])
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1248,9 +1248,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Do a query that uses indexes
         res = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
         # Now, append three rows
-        table.append([("asa",True,1,3.1)])
-        table.append([("asb",True,2,3.1)])
-        table.append([("asc",True,3,3.1)])
+        table.append([("asa", True, 1, 3.1)])
+        table.append([("asb", True, 2, 3.1)])
+        table.append([("asc", True, 3, 3.1)])
         table.flush()
         if self.reopen:
             self.fileh.close()
@@ -1282,7 +1282,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             unsavedindexedrows = table._unsaved_indexedrows
             self.assertTrue(unsavedindexedrows is not None)
         # Now, modify a couple of rows:
-        table.modifyColumns(1, columns=[["asa","asb"],[1.,2.]],
+        table.modifyColumns(1, columns=[["asa", "asb"], [1., 2.]],
                             names=["var1", "var4"])
         if self.reopen:
             self.fileh.close()
@@ -1452,7 +1452,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.assertTrue(unsavedindexedrows is not None)
         # Now, modify an indexed column and an unindexed one
         # to make the "var1" dirty
-        table.modifyColumns(1, columns=[["asa","asb"],[1.,2.]],
+        table.modifyColumns(1, columns=[["asa", "asb"], [1., 2.]],
                             names=["var1", "var4"])
         # Copy a Table to another location
         table2 = table.copy("/", 'table2', propindexes=True)

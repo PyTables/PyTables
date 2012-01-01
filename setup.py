@@ -581,7 +581,7 @@ def find_name(base='tables'):
     append "-pyX.Y" to the base name'''
     name = base
     if '--name-with-python-version' in sys.argv:
-        name += '-py%i.%i'%(sys.version_info[0],sys.version_info[1])
+        name += '-py%i.%i'%(sys.version_info[0], sys.version_info[1])
         sys.argv.remove('--name-with-python-version')
     return name
 

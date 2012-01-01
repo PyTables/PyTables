@@ -1475,7 +1475,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # First selection
         condition = 't1col<=sl'
         self.assert_(not table1.willQueryUseIndexing(condition))
-        results1 = [p['var1'] for p in table1.where(condition,start=2,stop=10)]
+        results1 = [p['var1'] for p in table1.where(condition, start=2, stop=10)]
         results2 = [p["var1"] for p in table2.iterrows(2, 10)
                     if p["var1"] <= sl]
         if verbose:
@@ -1492,7 +1492,7 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assert_(not table1.willQueryUseIndexing(condition))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
-        results2 = [p["var1"] for p in table2.iterrows(2,30,2)
+        results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
                     if il<p["var1"]<sl]
         if verbose:
             print "Limits:", il, sl
@@ -1598,7 +1598,7 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assert_(not table1.willQueryUseIndexing(condition))
         results1 = [p['var4'] for p in
                     table1.where(condition, start=2, stop=-1, step=2)]
-        results2 = [p["var4"] for p in table2.iterrows(2,-1,2)
+        results2 = [p["var4"] for p in table2.iterrows(2, -1, 2)
                     if il < p["var4"] <= sl]
         if verbose:
             print "Limit:", sl
@@ -1890,7 +1890,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(2,30,1)
+        results2 = [p["var1"] for p in table2.iterrows(2, 30, 1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1910,7 +1910,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
-        results2 = [p["var1"] for p in table2.iterrows(2,30,2)
+        results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2006,7 +2006,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t3col.pathname]))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
-        results2 = [p["var3"] for p in table2.iterrows(2,30,2)
+        results2 = [p["var3"] for p in table2.iterrows(2, 30, 2)
                     if il<=p["var3"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2428,7 +2428,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(2,30,1)
+        results2 = [p["var1"] for p in table2.iterrows(2, 30, 1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2448,7 +2448,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
-        results2 = [p["var1"] for p in table2.iterrows(2,30,2)
+        results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2483,7 +2483,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(2,30,1)
+        results2 = [p["var1"] for p in table2.iterrows(2, 30, 1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2503,7 +2503,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
-        results2 = [p["var1"] for p in table2.iterrows(2,30,2)
+        results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2538,7 +2538,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=1, step=2)]
-        results2 = [p["var1"] for p in table2.iterrows(0,1,2)
+        results2 = [p["var1"] for p in table2.iterrows(0, 1, 2)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2558,7 +2558,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=5, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0,5,1)
+        results2 = [p["var1"] for p in table2.iterrows(0, 5, 1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2593,7 +2593,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=1, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0,1,1)
+        results2 = [p["var1"] for p in table2.iterrows(0, 1, 1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2613,7 +2613,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=1, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0,1,1)
+        results2 = [p["var1"] for p in table2.iterrows(0, 1, 1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2648,7 +2648,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0,10,1)
+        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2670,7 +2670,7 @@ class SelectValuesTestCase(unittest.TestCase):
                                                              t2col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0,10,1)
+        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
                     if il<=p["var1"]<=sl and p["var2"]==True]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2711,7 +2711,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0,10,1)
+        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
                     if il<=p["var1"]<=sl and p["var2"]==True]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2731,7 +2731,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0,10,1)
+        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2752,7 +2752,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0,10,1)
+        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
                     if il<=p["var1"]<=sl and p["var2"]==constant]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2787,7 +2787,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0,10,1)
+        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -2810,7 +2810,7 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0,10,1)
+        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -3126,7 +3126,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.getWhereList('id1 == %s' % value)
-            self.assertTrue(len(idx) > 0 ,
+            self.assertTrue(len(idx) > 0,
                             "idx--> %s %s %s %s" % (idx, i, nrow, value))
             self.assertTrue(nrow in idx,
                             "nrow not found: %s != %s, %s" % (idx, nrow, value))
@@ -3148,7 +3148,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.getWhereList('id1 == %s' % value)
-            self.assertTrue(len(idx) > 0 ,
+            self.assertTrue(len(idx) > 0,
                             "idx--> %s %s %s %s" % (idx, i, nrow, value))
             self.assertTrue(nrow in idx,
                             "nrow not found: %s != %s, %s" % (idx, nrow, value))
@@ -3170,7 +3170,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.getWhereList('id1 == %s' % value)
-            self.assertTrue(len(idx) > 0 ,
+            self.assertTrue(len(idx) > 0,
                             "idx--> %s %s %s %s" % (idx, i, nrow, value))
             self.assertTrue(nrow in idx,
                             "nrow not found: %s != %s, %s" % (idx, nrow, value))

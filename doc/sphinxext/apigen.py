@@ -163,7 +163,7 @@ class ApiDocWriter(object):
         filename = self._uri2path(uri)
         if filename is None:
             # nothing that we could handle here.
-            return ([],[])
+            return ([], [])
         f = open(filename, 'rt')
         functions, classes = self._parse_lines(f)
         f.close()
@@ -206,12 +206,12 @@ class ApiDocWriter(object):
         # get the names of all classes and functions
         functions, classes = self._parse_module(uri)
         if not len(functions) and not len(classes):
-            print 'WARNING: Empty -',uri  # dbg
+            print 'WARNING: Empty -', uri  # dbg
             return ''
 
         # Make a shorter version of the uri that omits the package name for
         # titles 
-        uri_short = re.sub(r'^%s\.' % self.package_name,'',uri)
+        uri_short = re.sub(r'^%s\.' % self.package_name, '', uri)
         
         ad = '.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n'
 
@@ -352,7 +352,7 @@ class ApiDocWriter(object):
                     modules.append(module_uri)
         return sorted(modules)
     
-    def write_modules_api(self, modules,outdir):
+    def write_modules_api(self, modules, outdir):
         # write the list
         written_modules = []
         for m in modules:
@@ -389,7 +389,7 @@ class ApiDocWriter(object):
             os.mkdir(outdir)
         # compose list of modules
         modules = self.discover_modules()
-        self.write_modules_api(modules,outdir)
+        self.write_modules_api(modules, outdir)
         
     def write_index(self, outdir, froot='gen', relative_to=None):
         """Make a reST API index file from written files
@@ -418,10 +418,10 @@ class ApiDocWriter(object):
             relpath = outdir.replace(relative_to + os.path.sep, '')
         else:
             relpath = outdir
-        idx = open(path,'wt')
+        idx = open(path, 'wt')
         w = idx.write
         w('.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n')
         w('.. toctree::\n\n')
         for f in self.written_modules:
-            w('   %s\n' % os.path.join(relpath,f))
+            w('   %s\n' % os.path.join(relpath, f))
         idx.close()

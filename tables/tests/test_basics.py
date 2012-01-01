@@ -32,7 +32,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
                          NODE_CACHE_SLOTS=self.nodeCacheSlots)
         root = fileh.root
         # Create an array
-        fileh.createArray(root, 'array', [1,2],
+        fileh.createArray(root, 'array', [1, 2],
                           title = "Array example")
         fileh.createTable(root, 'table', {'var1':IntCol()}, "Table example")
         root._v_attrs.testattr = 41
@@ -48,11 +48,11 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Create a some objects there
         array1 = fileh.createArray(group, 'anarray1',
-                                   [1,2,3,4,5,6,7], "Array title 1")
+                                   [1, 2, 3, 4, 5, 6, 7], "Array title 1")
         array1.attrs.testattr = 42
         fileh.createArray(group, 'anarray2', [2], "Array title 2")
         fileh.createTable(group, 'atable1', {'var1':IntCol()}, "Table title 1")
-        ra = numpy.rec.array([(1,11,'a')],formats='u1,f4,a1')
+        ra = numpy.rec.array([(1, 11, 'a')], formats='u1,f4,a1')
         fileh.createTable(group, 'atable2', ra, "Table title 2")
 
         # Create a lonely group in first level
@@ -65,7 +65,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.createGroup(group3, 'agroup4', "Group title 4")
 
         # Create an array in the root with the same name as one in 'agroup'
-        fileh.createArray(root, 'anarray1', [1,2],
+        fileh.createArray(root, 'anarray1', [1, 2],
                           title = "Array example")
 
         fileh.close()
@@ -82,7 +82,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(
             file, mode = "w", NODE_CACHE_SLOTS=self.nodeCacheSlots)
-        fileh.createArray(fileh.root, 'array', [1,2], title = "Array example")
+        fileh.createArray(fileh.root, 'array', [1, 2], title = "Array example")
         # Get the CLASS attribute of the arr object
         class_ = fileh.root.array.attrs.CLASS
 
@@ -110,7 +110,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Append a new array to the existing file
         fileh = openFile(
             self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
-        fileh.createArray(fileh.root, 'array2', [3,4],
+        fileh.createArray(fileh.root, 'array2', [3, 4],
                           title = "Title example 2")
         fileh.close()
 
@@ -129,7 +129,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Append a new array to the existing file
         fileh = openFile(
             self.file, mode = "a", NODE_CACHE_SLOTS=self.nodeCacheSlots)
-        fileh.createArray(fileh.root, 'array2', [3,4],
+        fileh.createArray(fileh.root, 'array2', [3, 4],
                           title = "Title example 2")
         fileh.close()
 
@@ -151,7 +151,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # so, the existing file should be deleted!
         fileh = openFile(
             self.file, mode = "w", NODE_CACHE_SLOTS=self.nodeCacheSlots)
-        fileh.createArray(fileh.root, 'array2', [3,4],
+        fileh.createArray(fileh.root, 'array2', [3, 4],
                           title = "Title example 2")
         fileh.close()
 
@@ -1459,7 +1459,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # Create a PyTables file (and by so, an HDF5 file)
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
-        fileh.createArray(fileh.root, 'array', [1,2], title = "Title example")
+        fileh.createArray(fileh.root, 'array', [1, 2], title = "Title example")
 
         # For this method to run, it needs a closed file
         fileh.close()
@@ -1514,7 +1514,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # Create a PyTables file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
-        fileh.createArray(fileh.root, 'array', [1,2], title = "Title example")
+        fileh.createArray(fileh.root, 'array', [1, 2], title = "Title example")
 
         # For this method to run, it needs a closed file
         fileh.close()
@@ -1575,7 +1575,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         ui = fileh.getNode(columns, "pressure", classname="Array")
         self.assertEqual(ui._v_name, "pressure")
         if common.verbose:
-            print "Array object with type H5T_ARRAY -->",repr(ui)
+            print "Array object with type H5T_ARRAY -->", repr(ui)
             print "Array contents -->", ui[:]
 
         # A Table
@@ -1622,7 +1622,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
             UserWarning, fileh.getNode, '/CompoundChunked')
         self.assertEqual(ui._v_name, 'CompoundChunked')
         if common.verbose:
-            print "UnImplement object -->",repr(ui)
+            print "UnImplement object -->", repr(ui)
 
         # Check that it cannot be copied to another file
         file2 = tempfile.mktemp(".h5")
@@ -1666,7 +1666,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         ui = fileh.getNode(fileh.root.columns, "pressure")
         self.assertEqual(ui._v_name, "pressure")
         if common.verbose:
-            print "UnImplement object -->",repr(ui)
+            print "UnImplement object -->", repr(ui)
 
         # Check that it cannot be copied to another file
         file2 = tempfile.mktemp(".h5")
@@ -2027,7 +2027,7 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Test getting a node that does not start with a slash ('/')."""
 
         # Create an array in the root
-        self.h5file.createArray('/', 'array', [1,2], title = "Title example")
+        self.h5file.createArray('/', 'array', [1, 2], title = "Title example")
 
         # Get the array without specifying a leading slash
         self.assertRaises(NameError, self.h5file.getNode, "array")
@@ -2099,7 +2099,7 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test23_reopenFile(self):
         """Testing reopening a file and closing it several times."""
 
-        self.h5file.createArray('/', 'test', [1,2,3])
+        self.h5file.createArray('/', 'test', [1, 2, 3])
         self.h5file.close()
 
         file1 = openFile(self.h5fname, "r")
@@ -2224,7 +2224,7 @@ class UnicodeFilename(common.PyTablesTestCase):
         self.h5fname = tempfile.mktemp(prefix=self.unicode_prefix,
                                        suffix=".h5")
         self.h5file = tables.openFile(self.h5fname, "w")
-        self.test = self.h5file.createArray('/', 'test', [1,2])
+        self.test = self.h5file.createArray('/', 'test', [1, 2])
         # So as to check the reading
         self.h5file.close()
         self.h5file = tables.openFile(self.h5fname, "r")
@@ -2240,8 +2240,8 @@ class UnicodeFilename(common.PyTablesTestCase):
         if common.verbose:
             print "Filename:", self.h5fname
             print "Array:", test[:]
-            print "Should look like:", [1,2]
-        self.assertEqual(test[:], [1,2], "Values does not match.")
+            print "Should look like:", [1, 2]
+        self.assertEqual(test[:], [1, 2], "Values does not match.")
 
     def test02(self):
         """Checking isHDF5File with a Unicode filename."""

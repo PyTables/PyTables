@@ -59,7 +59,7 @@ class BasicTestCase(unittest.TestCase):
         b = self.root.somearray.read()
 
         # Compare them. They should be equal.
-        if common.verbose and not allequal(a,b):
+        if common.verbose and not allequal(a, b):
             print "Write and read arrays differ!"
             #print "Array written:", a
             print "Array written shape:", a.shape
@@ -89,7 +89,7 @@ class BasicTestCase(unittest.TestCase):
                 if self.endiancheck:
                     self.assertNotEqual(bbo, abo)
 
-        self.assertTrue(allequal(a,b))
+        self.assertTrue(allequal(a, b))
 
         self.fileh.close()
 
@@ -303,7 +303,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         c = a.newbyteorder(byteorder)
 
         # Compare them. They should be equal.
-        if not allequal(c,b) and common.verbose:
+        if not allequal(c, b) and common.verbose:
             print "Write and read arrays differ!"
             print "Array written:", a
             print "Array written shape:", a.shape
@@ -323,7 +323,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
             self.assertEqual(byteorders[b.dtype.byteorder], sys.byteorder)
             self.assertEqual(self.root.somearray.byteorder, byteorder)
 
-        self.assertTrue(allequal(c,b))
+        self.assertTrue(allequal(c, b))
 
         return
 
@@ -352,7 +352,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test03_byte_offset(self):
         "Checking an offsetted byte array"
 
-        r = numpy.arange(100, dtype=numpy.int8); r.shape = (10,10)
+        r = numpy.arange(100, dtype=numpy.int8); r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -360,7 +360,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test04_short_offset(self):
         "Checking an offsetted unsigned short int precision array"
 
-        r = numpy.arange(100, dtype=numpy.uint32); r.shape = (10,10)
+        r = numpy.arange(100, dtype=numpy.uint32); r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -368,7 +368,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test05_int_offset(self):
         "Checking an offsetted integer array"
 
-        r = numpy.arange(100, dtype=numpy.int32); r.shape = (10,10)
+        r = numpy.arange(100, dtype=numpy.int32); r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -376,7 +376,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test06_longlongint_offset(self):
         "Checking an offsetted long long integer array"
 
-        r = numpy.arange(100, dtype=numpy.int64); r.shape = (10,10)
+        r = numpy.arange(100, dtype=numpy.int64); r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -384,7 +384,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test07_float_offset(self):
         "Checking an offsetted single precision array"
 
-        r = numpy.arange(100, dtype=numpy.float32); r.shape = (10,10)
+        r = numpy.arange(100, dtype=numpy.float32); r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -392,7 +392,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test08_double_offset(self):
         "Checking an offsetted double precision array"
 
-        r = numpy.arange(100, dtype=numpy.float64); r.shape = (10,10)
+        r = numpy.arange(100, dtype=numpy.float64); r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -426,7 +426,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
         # Save an array with the reversed byteorder on it
-        a = numpy.arange(25, dtype=numpy.int32).reshape(5,5)
+        a = numpy.arange(25, dtype=numpy.int32).reshape(5, 5)
         a = a.byteswap()
         a = a.newbyteorder()
         array = fileh.createArray(fileh.root, 'array', a, "byteorder (int)")
@@ -447,7 +447,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
             print "byteorder of subarray-->", b.dtype.byteorder
             print "subarray-->", b
             print "retrieved array-->", c
-        self.assertTrue(allequal(a,c))
+        self.assertTrue(allequal(a, c))
         # Close the file
         fileh.close()
         # Then, delete the file
@@ -460,7 +460,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
         # Save an array with the reversed byteorder on it
-        a = numpy.arange(25, dtype=numpy.float64).reshape(5,5)
+        a = numpy.arange(25, dtype=numpy.float64).reshape(5, 5)
         a = a.byteswap()
         a = a.newbyteorder()
         array = fileh.createArray(fileh.root, 'array', a, "byteorder (float)")
@@ -481,7 +481,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
             print "byteorder of subarray-->", b.dtype.byteorder
             print "subarray-->", b
             print "retrieved array-->", c
-        self.assertTrue(allequal(a,c))
+        self.assertTrue(allequal(a, c))
         # Close the file
         fileh.close()
         # Then, delete the file
@@ -529,7 +529,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         # The typecodes below does expose an ambiguity that is reported in:
         # http://projects.scipy.org/scipy/numpy/ticket/283 and
         # http://projects.scipy.org/scipy/numpy/ticket/290
-        typecodes = ['b','B','h','H','i','I','l','L','q','f','d','F','D']
+        typecodes = ['b', 'B', 'h', 'H', 'i', 'I', 'l', 'L', 'q', 'f', 'd', 'F', 'D']
 
         for i, typecode in enumerate(typecodes):
             a = numpy.ones((3,), typecode)
@@ -563,7 +563,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print ". Type ==> %s" % b.dtype
             self.assertEqual(a.shape, b.shape)
             self.assertEqual(a.dtype, b.dtype)
-            self.assertTrue(allequal(a,b))
+            self.assertTrue(allequal(a, b))
 
             # Iterate over the next group
             group = getattr(group, 'group' + str(i))
@@ -626,7 +626,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             b = group.array.read()
             if common.verbose:
                 print "%3d," % (rank),
-            if common.verbose and not allequal(a,b):
+            if common.verbose and not allequal(a, b):
                 print "Info from dataset:", dset._v_pathname
                 print "  Shape: ==>", dset.shape,
                 print "  typecode ==> %c" % dset.typecode
@@ -640,7 +640,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             # ************** WARNING!!! *****************
             self.assertEqual(a.shape, b.shape)
             self.assertEqual(a.dtype, b.dtype)
-            self.assertTrue(allequal(a,b))
+            self.assertTrue(allequal(a, b))
 
             #print fileh
             # Iterate over the next group
@@ -668,7 +668,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an Array
-        arr=numpy.array([[456, 2],[3, 457]], dtype='int16')
+        arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
 
         # Copy to another Array
@@ -714,7 +714,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an Array
-        arr=numpy.array([[456, 2],[3, 457]], dtype='int16')
+        arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
 
         # Copy to another Array
@@ -763,10 +763,10 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an Array (Numeric flavor)
         if numeric_imported:
-            arr = Numeric.array([[456, 2],[3, 457]], typecode='s')
+            arr = Numeric.array([[456, 2], [3, 457]], typecode='s')
         else:
             # If Numeric not installed, use a numpy object
-            arr = numpy.array([[456, 2],[3, 457]], dtype='int16')
+            arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
 
@@ -807,7 +807,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an Array
-        arr=numpy.array([[456, 2],[3, 457]], dtype='int16')
+        arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -844,7 +844,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an Array
-        arr=numpy.array([[456, 2],[3, 457]], dtype='int16')
+        arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -884,7 +884,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an Array
-        arr=numpy.array([[456, 2],[3, 457]], dtype='int16')
+        arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
         array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -932,7 +932,7 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a numpy
-        r = numpy.arange(200, dtype='int32'); r.shape = (100,2)
+        r = numpy.arange(200, dtype='int32'); r.shape = (100, 2)
         # Save it in a array:
         array1 = fileh.createArray(fileh.root, 'array1', r, "title array1")
 
@@ -973,7 +973,7 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a numpy
-        r = numpy.arange(200, dtype='int32'); r.shape = (100,2)
+        r = numpy.arange(200, dtype='int32'); r.shape = (100, 2)
         # Save it in a array:
         array1 = fileh.createArray(fileh.root, 'array1', r, "title array1")
 
@@ -1339,9 +1339,9 @@ class GetItemTestCase(unittest.TestCase):
 class GI1NATestCase(GetItemTestCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
-    numericalListME = numpy.array([3,2,1,0,4,5,6])
+    numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
     charList = numpy.array(["3"])
-    charListME = numpy.array(["321","221","121","021","421","521","621"])
+    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"])
 
 class GI1NAOpenTestCase(GI1NATestCase):
     close = 0
@@ -1352,20 +1352,20 @@ class GI1NACloseTestCase(GI1NATestCase):
 class GI2NATestCase(GetItemTestCase):
     # A more complex example
     title = "Rank-1,2 case 2"
-    numericalList = numpy.array([3,4])
-    numericalListME = numpy.array([[3,2,1,0,4,5,6],
-                                      [2,1,0,4,5,6,7],
-                                      [4,3,2,1,0,4,5],
-                                      [3,2,1,0,4,5,6],
-                                      [3,2,1,0,4,5,6]])
+    numericalList = numpy.array([3, 4])
+    numericalListME = numpy.array([[3, 2, 1, 0, 4, 5, 6],
+                                      [2, 1, 0, 4, 5, 6, 7],
+                                      [4, 3, 2, 1, 0, 4, 5],
+                                      [3, 2, 1, 0, 4, 5, 6],
+                                      [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a","b"])
-    charListME = numpy.array([["321","221","121","021","421","521","621"],
-                              ["21","21","11","02","42","21","61"],
-                              ["31","21","12","21","41","51","621"],
-                              ["321","221","121","021","421","521","621"],
-                              ["3241","2321","13216","0621","4421","5421","a621"],
-                              ["a321","s221","d121","g021","b421","5vvv21","6zxzxs21"]])
+    charList = numpy.array(["a", "b"])
+    charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
+                              ["21", "21", "11", "02", "42", "21", "61"],
+                              ["31", "21", "12", "21", "41", "51", "621"],
+                              ["321", "221", "121", "021", "421", "521", "621"],
+                              ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
+                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]])
 
 
 class GI2NAOpenTestCase(GI2NATestCase):
@@ -1482,7 +1482,7 @@ class SetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
-        s = slice(1,3,None)
+        s = slice(1, 3, None)
         rng = numpy.arange(a[s].size)*2+3; rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
@@ -1514,7 +1514,7 @@ class SetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
-        s = slice(1,4,2)
+        s = slice(1, 4, 2)
         a[s] = "xXx"
         arr[s] = "xXx"
 
@@ -1545,7 +1545,7 @@ class SetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
-        s = slice(1,4,2)
+        s = slice(1, 4, 2)
         rng = numpy.arange(a[s].size)*2+3; rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
@@ -1642,7 +1642,7 @@ class SetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
-        s = slice(-4,-1,None)
+        s = slice(-4, -1, None)
         a[s] = "xXx"
         arr[s] = "xXx"
 
@@ -1673,7 +1673,7 @@ class SetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
-        s = slice(-3,-1,None)
+        s = slice(-3, -1, None)
         rng = numpy.arange(a[s].size)*2+3; rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
@@ -1728,9 +1728,9 @@ class SetItemTestCase(unittest.TestCase):
 class SI1NATestCase(SetItemTestCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
-    numericalListME = numpy.array([3,2,1,0,4,5,6])
+    numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
     charList = numpy.array(["3"])
-    charListME = numpy.array(["321","221","121","021","421","521","621"])
+    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"])
 
 class SI1NAOpenTestCase(SI1NATestCase):
     close = 0
@@ -1741,20 +1741,20 @@ class SI1NACloseTestCase(SI1NATestCase):
 class SI2NATestCase(SetItemTestCase):
     # A more complex example
     title = "Rank-1,2 case 2"
-    numericalList = numpy.array([3,4])
-    numericalListME = numpy.array([[3,2,1,0,4,5,6],
-                                      [2,1,0,4,5,6,7],
-                                      [4,3,2,1,0,4,5],
-                                      [3,2,1,0,4,5,6],
-                                      [3,2,1,0,4,5,6]])
+    numericalList = numpy.array([3, 4])
+    numericalListME = numpy.array([[3, 2, 1, 0, 4, 5, 6],
+                                      [2, 1, 0, 4, 5, 6, 7],
+                                      [4, 3, 2, 1, 0, 4, 5],
+                                      [3, 2, 1, 0, 4, 5, 6],
+                                      [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a","b"])
-    charListME = numpy.array([["321","221","121","021","421","521","621"],
-                              ["21","21","11","02","42","21","61"],
-                              ["31","21","12","21","41","51","621"],
-                              ["321","221","121","021","421","521","621"],
-                              ["3241","2321","13216","0621","4421","5421","a621"],
-                              ["a321","s221","d121","g021","b421","5vvv21","6zxzxs21"]])
+    charList = numpy.array(["a", "b"])
+    charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
+                              ["21", "21", "11", "02", "42", "21", "61"],
+                              ["31", "21", "12", "21", "41", "51", "621"],
+                              ["321", "221", "121", "021", "421", "521", "621"],
+                              ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
+                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]])
 
 class SI2NAOpenTestCase(SI2NATestCase):
     close = 0
@@ -1883,9 +1883,9 @@ class GeneratorTestCase(unittest.TestCase):
 class GE1NATestCase(GeneratorTestCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
-    numericalListME = numpy.array([3,2,1,0,4,5,6])
+    numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
     charList = numpy.array(["3"])
-    charListME = numpy.array(["321","221","121","021","421","521","621"])
+    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"])
 
 class GE1NAOpenTestCase(GE1NATestCase):
     close = 0
@@ -1896,20 +1896,20 @@ class GE1NACloseTestCase(GE1NATestCase):
 class GE2NATestCase(GeneratorTestCase):
     # A more complex example
     title = "Rank-1,2 case 2"
-    numericalList = numpy.array([3,4])
-    numericalListME = numpy.array([[3,2,1,0,4,5,6],
-                                      [2,1,0,4,5,6,7],
-                                      [4,3,2,1,0,4,5],
-                                      [3,2,1,0,4,5,6],
-                                      [3,2,1,0,4,5,6]])
+    numericalList = numpy.array([3, 4])
+    numericalListME = numpy.array([[3, 2, 1, 0, 4, 5, 6],
+                                      [2, 1, 0, 4, 5, 6, 7],
+                                      [4, 3, 2, 1, 0, 4, 5],
+                                      [3, 2, 1, 0, 4, 5, 6],
+                                      [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a","b"])
-    charListME = numpy.array([["321","221","121","021","421","521","621"],
-                              ["21","21","11","02","42","21","61"],
-                              ["31","21","12","21","41","51","621"],
-                              ["321","221","121","021","421","521","621"],
-                              ["3241","2321","13216","0621","4421","5421","a621"],
-                              ["a321","s221","d121","g021","b421","5vvv21","6zxzxs21"]])
+    charList = numpy.array(["a", "b"])
+    charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
+                              ["21", "21", "11", "02", "42", "21", "61"],
+                              ["31", "21", "12", "21", "41", "51", "621"],
+                              ["321", "221", "121", "021", "421", "521", "621"],
+                              ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
+                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]])
 
 
 class GE2NAOpenTestCase(GE2NATestCase):
@@ -2003,7 +2003,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             if common.verbose:
                 print "Selection to test:", key
             #a = nparr[key]
-            fkey = numpy.array(key,"f4")
+            fkey = numpy.array(key, "f4")
             self.assertRaises(IndexError, tbarr.__getitem__, fkey)
 
     def test02a_write(self):
@@ -2087,16 +2087,16 @@ class FancySelectionTestCase(common.PyTablesTestCase):
 
         # The next are valid selections for both NumPy and PyTables
         self.working_keyset = [
-            ([1, 3], slice(1,N-1), 2),
+            ([1, 3], slice(1, N-1), 2),
             ([M-1, 1, 3, 2], slice(None), 2),  # unordered lists supported
-            (slice(M),[N-1, 1, 0], slice(None)),
-            (slice(1,M,3), slice(1,N), [O-1, 1, 0]),
+            (slice(M), [N-1, 1, 0], slice(None)),
+            (slice(1, M, 3), slice(1, N), [O-1, 1, 0]),
             (M-1, [2, 1], 1),
-            (1,2,1),              # regular selection
+            (1, 2, 1),              # regular selection
             ([1, 2], -2, -1),     # negative indices
             ([1, -2], 2, -1),     # more negative indices
             ([1, -2], 2, Ellipsis),     # one ellipsis
-            (Ellipsis, [1,2]),    # one ellipsis
+            (Ellipsis, [1, 2]),    # one ellipsis
             (numpy.array([1, -2], 'i4'), 2, -1),  # array 32-bit instead of list
             (numpy.array([-1, 2], 'i8'), 2, -1),  # array 64-bit instead of list
             ]
@@ -2111,22 +2111,22 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         # The next should raise an IndexError
         self.not_working_keyset = [
             numpy.array([False, True], dtype="b1"), # boolean arrays
-            ([1,2,1], 2, 1),    # repeated values
-            ([1,2], 2, [1,2]),  # several lists
+            ([1, 2, 1], 2, 1),    # repeated values
+            ([1, 2], 2, [1, 2]),  # several lists
             ([], 2, 1),         # empty selections
-            (Ellipsis, [1,2], Ellipsis),  # several ellipsis
+            (Ellipsis, [1, 2], Ellipsis),  # several ellipsis
             ([False, True]),    # boolean values with incompatible shape
             ]
 
         # The next should raise an IndexError in both NumPy and PyTables
         self.not_working_oob = [
-            ([1,2], 2, 1000),         # out-of-bounds selections
-            ([1,2], 2000, 1),         # out-of-bounds selections
+            ([1, 2], 2, 1000),         # out-of-bounds selections
+            ([1, 2], 2000, 1),         # out-of-bounds selections
             ]
 
         # The next should raise a IndexError in both NumPy and PyTables
         self.not_working_too_many = [
-            ([1,2], 2, 1, 1),
+            ([1, 2], 2, 1, 1),
             ]
 
         # Create an instance of an HDF5 file
@@ -2134,7 +2134,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         self.fileh = fileh = openFile(self.file, "w")
         # Create a sample array
         nparr = numpy.empty(self.shape, dtype=numpy.int32)
-        data = numpy.arange(N*O, dtype=numpy.int32).reshape(N,O)
+        data = numpy.arange(N*O, dtype=numpy.int32).reshape(N, O)
         for i in xrange(M):
             nparr[i] = data*i
         self.nparr = nparr

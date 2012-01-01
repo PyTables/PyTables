@@ -17,7 +17,7 @@ a = array(4, int16)
 hdfarray = fileh.createArray(root, 'array_s', a, "Scalar signed short array")
 
 # Create a 3-d array of floats
-a = arange(120, dtype=float64).reshape(20,3,2)
+a = arange(120, dtype=float64).reshape(20, 3, 2)
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'array_f', a, "3-D float array")
 
@@ -30,7 +30,7 @@ fileh = openFile("array1.h5", mode = "r")
 root = fileh.root
 
 a = root.array_1.read()
-print "Signed byte array -->",repr(a), a.shape
+print "Signed byte array -->", repr(a), a.shape
 
 print "Testing iterator (works even over scalar arrays):",
 arr = root.array_s
@@ -42,8 +42,8 @@ for x in arr:
 # for i in range(root.array_1.nrows):
 #     print "array_1["+str(i)+"]", "-->", root.array_1[i]
 
-print "array_f[:,2:3,2::2]", repr(root.array_f[:,2:3,2::2])
-print "array_f[1,2:]", repr(root.array_f[1,2:])
+print "array_f[:,2:3,2::2]", repr(root.array_f[:, 2:3, 2::2])
+print "array_f[1,2:]", repr(root.array_f[1, 2:])
 print "array_f[1]", repr(root.array_f[1])
 
 # Close the file

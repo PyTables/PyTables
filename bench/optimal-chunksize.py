@@ -25,12 +25,12 @@ def quantize(data, least_significant_digit):
     For example, if least_significant_digit=1, bits will be 4."""
 
     precision = 10.**-least_significant_digit
-    exp = math.log(precision,10)
+    exp = math.log(precision, 10)
     if exp < 0:
         exp = int(math.floor(exp))
     else:
         exp = int(math.ceil(exp))
-    bits = math.ceil(math.log(10.**-exp,2))
+    bits = math.ceil(math.log(10.**-exp, 2))
     scale = 2.**bits
     return numpy.around(scale*data)/scale
 
@@ -88,7 +88,7 @@ def bench(chunkshape, filters):
     t1 = time()
     for i in i_index:
         for j in j_index:
-            t = e[i,j]
+            t = e[i, j]
     print "\tRandom read time:", round(time()-t1, 3)
 
     f.close()

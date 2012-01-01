@@ -524,8 +524,8 @@ class DeepTreeTestCase(unittest.TestCase):
             if common.verbose:
                 print "%3d," % (depth),
             # Create a couple of arrays here
-            fileh.createArray(group, 'array', [1,1], "depth: %d" % depth)
-            fileh.createArray(group, 'array2', [1,1], "depth: %d" % depth)
+            fileh.createArray(group, 'array', [1, 1], "depth: %d" % depth)
+            fileh.createArray(group, 'array2', [1, 1], "depth: %d" % depth)
             # And also a group
             fileh.createGroup(group, 'group2_' + str(depth))
             # Finally, iterate over a new group

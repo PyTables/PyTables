@@ -652,7 +652,7 @@ class metaIsDescription(type):
         """ Return a new class with a "columns" attribute filled
         """
 
-        newdict = {"columns":{},}
+        newdict = {"columns": {},}
         for b in bases:
             if "columns" in b.__dict__:
                 newdict["columns"].update(b.__dict__["columns"])
@@ -765,7 +765,7 @@ if __name__=="__main__":
     class Test(IsDescription):
         """A description that has several columns"""
         x = Col.from_type("int32", 2, 0, pos=0)
-        y = Col.from_kind('float', dflt=1, shape=(2,3))
+        y = Col.from_kind('float', dflt=1, shape=(2, 3))
         z = UInt8Col(dflt=1)
         color = StringCol(2, dflt=" ")
         #color = UInt32Col(2)
@@ -774,17 +774,17 @@ if __name__=="__main__":
             _v_pos = 1
             name = UInt32Col()
             value = Float64Col(pos=0)
-            y2 = Col.from_kind('float', dflt=1, shape=(2,3), pos=1)
+            y2 = Col.from_kind('float', dflt=1, shape=(2, 3), pos=1)
             z2 = UInt8Col(dflt=1)
             class info2(IsDescription):
-                y3 = Col.from_kind('float', dflt=1, shape=(2,3))
+                y3 = Col.from_kind('float', dflt=1, shape=(2, 3))
                 z3 = UInt8Col(dflt=1)
                 name = UInt32Col()
                 value = Float64Col()
                 class info3(IsDescription):
                     name = UInt32Col()
                     value = Float64Col()
-                    y4 = Col.from_kind('float', dflt=1, shape=(2,3))
+                    y4 = Col.from_kind('float', dflt=1, shape=(2, 3))
                     z4 = UInt8Col(dflt=1)
 
 #     class Info(IsDescription):

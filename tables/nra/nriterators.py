@@ -152,7 +152,7 @@ def getDescr(names, formats):
             else:
                 l = []
                 for (a, b) in getDescr(name[1], fmt):
-                    l.append((a,b))
+                    l.append((a, b))
                 yield (name[0], l)
             (name, fmt) = next(i)
     except StopIteration:

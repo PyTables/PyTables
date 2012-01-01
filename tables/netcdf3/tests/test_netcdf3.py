@@ -17,10 +17,10 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
         self.file = tempfile.mktemp(".h5")
         file = NetCDF.NetCDFFile(self.file, mode = "w", history="created today")
         # create some dimensions.
-        file.createDimension('t',None)
-        file.createDimension('lat',3)
-        file.createDimension('lon',7)
-        file.createDimension('nchar',2)
+        file.createDimension('t', None)
+        file.createDimension('lat', 3)
+        file.createDimension('lon', 7)
+        file.createDimension('nchar', 2)
         # create some variables.
         # foo has an unlimited dimension
         foo = file.createVariable('foo', 'f', ('t', 'lat', 'lon'))
@@ -29,12 +29,12 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
         # coordinate variables.
         times = file.createVariable('time', 's', ('t',))
         lats = file.createVariable('lat', '1', ('lat',))
-        lons = file.createVariable('lon', 'c', ('nchar','lon'))
+        lons = file.createVariable('lon', 'c', ('nchar', 'lon'))
         # add some data.
-        self.latdata = numpy.arange(100,400,100, dtype='int8')
+        self.latdata = numpy.arange(100, 400, 100, dtype='int8')
         lats[:] = self.latdata
-        self.londata = [['a','b','c','d','e','f','g'],
-                        ['a','b','c','d','e','f','g']]
+        self.londata = [['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+                        ['a', 'b', 'c', 'd', 'e', 'f', 'g']]
         lons[:] = self.londata
         for i in numpy.arange(bar.shape[0]):
             for j in numpy.arange(bar.shape[1]):
@@ -43,7 +43,7 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
         # append data along unlimited dimension.
         nmax = 4
         for n in range(nmax):
-            foo.append(n*numpy.ones(bar.shape,'f'))
+            foo.append(n*numpy.ones(bar.shape, 'f'))
             if n != nmax-1: # don't fill in last time
                 times.append(10*(n+1))
         file.sync() # fill in timedata with _FillValue
@@ -51,7 +51,7 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
         self.foodata = foo[:]
         # some file attributes
         file.title = 'unit test'
-        file.magicNumbers= [42.,3.145,-1.]
+        file.magicNumbers= [42., 3.145, -1.]
         # some variable attributes
         bar.units = 'Ergs'
         bar.missing_value = -999
@@ -113,7 +113,7 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
     def test_appendata(self):
         """test appending data to an existing file"""
 
-        f = NetCDF.NetCDFFile(self.file,'a')
+        f = NetCDF.NetCDFFile(self.file, 'a')
         timedata = f.variables['time']
         timedata[3] = 40.
         timedata.append(50.)
@@ -127,7 +127,7 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
         assert timedata[:].tolist() == self.timedata.tolist()
         # make sure that foo now contains _FillValue at the end of unlim dim
         foodata = f.variables['foo']
-        assert foodata[-1,-1,-1] > 9.9+36
+        assert foodata[-1, -1, -1] > 9.9+36
         f.close()
 
     def test_varttrs(self):
@@ -164,7 +164,7 @@ class NetCDFFileTestCase2(NetCDFFileTestCase):
         f.h5tonc(self.filenc)
         f.close()
         # convert back to HDF5
-        f = NetCDF.NetCDFFile(self.fileh5,'w')
+        f = NetCDF.NetCDFFile(self.fileh5, 'w')
         nobjects, nbytes = f.nctoh5(self.filenc)
         # check to see that correct number of objects and bytes converted.
         assert (nobjects, nbytes) == (5, 529)

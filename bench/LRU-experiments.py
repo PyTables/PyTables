@@ -41,32 +41,32 @@ def create_junk():
     fileh.close()
 
 def modify_junk_LRU():
-    fileh = openFile(filename,'a')
+    fileh = openFile(filename, 'a')
     group = fileh.root.newgroup
     for j in range(5):
         print "iter -->", j
         for tt in fileh.walkNodes(group):
-            if isinstance(tt,Table):
+            if isinstance(tt, Table):
                 pass
 #                 for row in tt:
 #                     pass
     fileh.close()
 
 def modify_junk_LRU2():
-    fileh = openFile(filename,'a')
+    fileh = openFile(filename, 'a')
     group = fileh.root.newgroup
     for j in range(20):
         t1 = time()
         for i in range(100):
 #              print "table-->", tt._v_name
-            tt = getattr(group,"table"+str(i))
+            tt = getattr(group, "table"+str(i))
 #             for row in tt:
 #                 pass
-        print "iter and time -->", j+1, round(time()-t1,3)
+        print "iter and time -->", j+1, round(time()-t1, 3)
     fileh.close()
 
 def modify_junk_LRU3():
-    fileh = openFile(filename,'a')
+    fileh = openFile(filename, 'a')
     group = fileh.root.newgroup
     for j in range(3):
         t1 = time()
@@ -74,7 +74,7 @@ def modify_junk_LRU3():
             title = tt.attrs.TITLE
             for row in tt:
                 pass
-        print "iter and time -->", j+1, round(time()-t1,3)
+        print "iter and time -->", j+1, round(time()-t1, 3)
     fileh.close()
 
 if 1:

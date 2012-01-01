@@ -734,7 +734,7 @@ class IndexedTableUsage2(IndexedTableUsage):
         '(c_int32 > 0) & (c_int32 < 5) & ((c_bool == True) | (c_extra > 0))',
         '(c_int32 > 0) & (c_int32 < 5) & ((c_extra > 0) | (c_bool == True))',
         ]
-    idx_expr = [ ( 'c_int32', ('gt','lt'), (0,5) ) ]
+    idx_expr = [ ( 'c_int32', ('gt', 'lt'), (0, 5) ) ]
     str_expr = 'e0'
 
 class IndexedTableUsage3(IndexedTableUsage):
@@ -765,7 +765,7 @@ class IndexedTableUsage5(IndexedTableUsage):
         '(c_int32 >= 1) & (c_int32 < 2) & (c_bool == True)'+
         ' & (c_extra > 0)',
         ]
-    idx_expr = [ ( 'c_int32', ('ge','lt'), (1,2) ),
+    idx_expr = [ ( 'c_int32', ('ge', 'lt'), (1, 2) ),
                  ( 'c_bool', ('eq',), (True,) ),
                  ]
     str_expr = '(e0 & e1)'
@@ -776,7 +776,7 @@ class IndexedTableUsage6(IndexedTableUsage):
         '(c_int32 >= 1) & (c_int32 < 2) & (c_int32 > 0) & (c_int32 < 5)'+
         ' & (c_extra > 0)',
         ]
-    idx_expr = [ ( 'c_int32', ('ge','lt'), (1,2) ),
+    idx_expr = [ ( 'c_int32', ('ge', 'lt'), (1, 2) ),
                  ( 'c_int32', ('gt',), (0,) ),
                  ( 'c_int32', ('lt',), (5,) ),
                  ]
@@ -789,8 +789,8 @@ class IndexedTableUsage7(IndexedTableUsage):
         '((c_int32 >= 1) & (c_int32 < 2)) & ((c_int32 > 0) & (c_int32 < 5))'+
         ' & (c_extra > 0)',
         ]
-    idx_expr = [ ( 'c_int32', ('ge','lt'), (1,2) ),
-                 ( 'c_int32', ('gt','lt'), (0,5) ),
+    idx_expr = [ ( 'c_int32', ('ge', 'lt'), (1, 2) ),
+                 ( 'c_int32', ('gt', 'lt'), (0, 5) ),
                  ]
     str_expr = '(e0 & e1)'
 
@@ -798,7 +798,7 @@ class IndexedTableUsage8(IndexedTableUsage):
     conditions = [
         '(c_extra > 0) & ((c_int32 > 0) & (c_int32 < 5))',
         ]
-    idx_expr = [ ( 'c_int32', ('gt','lt'), (0,5) ),
+    idx_expr = [ ( 'c_int32', ('gt', 'lt'), (0, 5) ),
                  ]
     str_expr = 'e0'
 

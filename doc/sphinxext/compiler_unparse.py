@@ -243,7 +243,7 @@ class UnparseCompilerAst:
         self._fill("from ")
         self._write(t.modname)
         self._write(" import ")
-        for i, (name,asname) in enumerate(t.names):
+        for i, (name, asname) in enumerate(t.names):
             if i != 0:
                 self._write(", ")
             self._write(name)
@@ -288,7 +288,7 @@ class UnparseCompilerAst:
     def _If(self, t):
         self._fill()
         
-        for i, (compare,code) in enumerate(t.tests):
+        for i, (compare, code) in enumerate(t.tests):
             if i == 0:
                 self._write("if ")
             else:
@@ -323,7 +323,7 @@ class UnparseCompilerAst:
         """
         self._fill("import ")
         
-        for i, (name,asname) in enumerate(t.names):
+        for i, (name, asname) in enumerate(t.names):
             if i != 0:
                 self._write(", ")
             self._write(name)
@@ -339,7 +339,7 @@ class UnparseCompilerAst:
         
     def _List(self, t):
         self._write("[")
-        for  i,node in enumerate(t.nodes):
+        for  i, node in enumerate(t.nodes):
             self._dispatch(node)
             if i < len(t.nodes)-1:
                 self._write(", ")

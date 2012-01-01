@@ -44,7 +44,7 @@ def correct_byteorder(ptype, byteorder):
 def is_idx(index):
     """Checks if an object can work as an index or not."""
 
-    if type(index) in (int,long):
+    if type(index) in (int, long):
         return True
     elif hasattr(index, "__index__"):  # Only works on Python 2.5 (PEP 357)
         # Exclude the array([idx]) as working as an index.  Fixes #303.

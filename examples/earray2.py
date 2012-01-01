@@ -25,18 +25,18 @@ hdfarray.append(array(['c', 'b', 'c', 'd']))
 
 # Create an atom
 a = UInt16Atom()
-hdfarray = fileh.createEArray(root, 'array_e', a, (2,0,3),
+hdfarray = fileh.createEArray(root, 'array_e', a, (2, 0, 3),
                               "Unsigned short array")
 
 # Create an enlargeable array
 a = UInt8Atom()
-hdfarray = fileh.createEArray(root, 'array_b', a, (2,0,3),
+hdfarray = fileh.createEArray(root, 'array_b', a, (2, 0, 3),
                               "Unsigned byte array", Filters(complevel = 1))
 
 # Append an array to this table
-hdfarray.append(array([[1,2,3],[3,2,1]], dtype=uint8).reshape(2,1,3))
-hdfarray.append(array([[1,2,3],[3,2,1],[2,4,6],[6,4,2]],
-                      dtype=uint8).reshape(2,2,3)*2)
+hdfarray.append(array([[1, 2, 3], [3, 2, 1]], dtype=uint8).reshape(2, 1, 3))
+hdfarray.append(array([[1, 2, 3], [3, 2, 1], [2, 4, 6], [6, 4, 2]],
+                      dtype=uint8).reshape(2, 2, 3)*2)
 # The next should give a type error:
 #hdfarray.append(array([[1,0,1],[0,0,1]], dtype=Bool).reshape(2,1,3))
 
@@ -49,17 +49,17 @@ fileh = openFile(filename, mode = "r")
 root = fileh.root
 
 a = root.array_c.read()
-print "Character array -->",repr(a), a.shape
+print "Character array -->", repr(a), a.shape
 a = root.array_e.read()
-print "Empty array (yes, this is suported) -->",repr(a), a.shape
+print "Empty array (yes, this is suported) -->", repr(a), a.shape
 a = root.array_b.read(step=2)
-print "Int8 array, even rows (step = 2) -->",repr(a), a.shape
+print "Int8 array, even rows (step = 2) -->", repr(a), a.shape
 
 print "Testing iterator:",
 #for x in root.array_b.iterrows(step=2):
 for x in root.array_b:
     print "nrow-->", root.array_b.nrow
-    print "Element-->",x
+    print "Element-->", x
 
 print "Testing getitem:"
 for i in range(root.array_b.shape[0]):
@@ -67,7 +67,7 @@ for i in range(root.array_b.shape[0]):
 # The nrows counts the growing dimension, which is different from the
 # first index
 for i in range(root.array_b.nrows):
-    print "array_b[:,"+str(i)+",:]", "-->", root.array_b[:,i,:]
+    print "array_b[:,"+str(i)+",:]", "-->", root.array_b[:, i,:]
 print "array_c[1:2]", repr(root.array_c[1:2])
 print "array_c[1:3]", repr(root.array_c[1:3])
 print "array_b[:]", root.array_b[:]

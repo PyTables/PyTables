@@ -167,12 +167,12 @@ CREATE INDEX ivar3 ON small(var3);
         rowseci = nrows/t2
         print "Index time:", t2, ", IKRows/s:", round((nrows/10.**3)/t2, 3),
         size2 = os.stat(dbfile)[6] - size1
-        print ", Final size with index:", round(size2/(1024.*1024),3), "MB"
+        print ", Final size with index:", round(size2/(1024.*1024), 3), "MB"
 
     conn.close()
 
     # Collect benchmark data
-    bf = openFile(bfile,"a")
+    bf = openFile(bfile, "a")
     recsize = "sqlite_small"
     if indexmode == "indexed":
         table = bf.getNode("/"+recsize+"/create_indexed")
@@ -215,7 +215,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     """
 
     # Open the benchmark database
-    bf = openFile(bfile,"a")
+    bf = openFile(bfile, "a")
     #default values for the case that columns are not indexed
     t2 = 0.
     tcpu2 = 0.
@@ -310,7 +310,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
             tcpu2 = cpu2/(riter-correction)
 
         print "*** Query results for atom = %s, nrows = %s, indexmode = %s ***" % (atom, nrows, indexmode)
-        print "Query time:", round(t1,5), ", cached time:", round(t2, 5)
+        print "Query time:", round(t1, 5), ", cached time:", round(t2, 5)
         print "MRows/s:", round((nrows/10.**6)/t1, 3),
         if t2 > 0:
             print ", cached MRows/s:", round((nrows/10.**6)/t2, 3)
@@ -383,7 +383,7 @@ if __name__=="__main__":
     usepsyco = 0
     nrows = 1000
     bfile = "sqlite-bench.h5"
-    supported_imodes = ["indexed","standard"]
+    supported_imodes = ["indexed", "standard"]
     indexmode = "indexed"
     riter = 2
 

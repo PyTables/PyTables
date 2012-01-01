@@ -203,7 +203,7 @@ tutprint(table.attrs._f_list("user"))
 tutprint(table.attrs._f_list("sys"))
 
 # Rename an attribute
-table.attrs._f_rename("temp_scale","tempScale")
+table.attrs._f_rename("temp_scale", "tempScale")
 tutprint(table.attrs._f_list())
 
 # Try to rename a system attribute:
@@ -298,7 +298,7 @@ for r in table:
            r['TDCcount'])
 
 # Delete some rows on the Table (yes, rows can be removed!)
-tutrepr(table.removeRows(5,10))
+tutrepr(table.removeRows(5, 10))
 
 # Close the file
 h5file.close()

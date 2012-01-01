@@ -130,12 +130,12 @@ def calcChunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
 def ccs_ultralight(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
 
-    if optlevel in (0,1,2):
+    if optlevel in (0, 1, 2):
         slicesize //= 2
         slicesize += optlevel*slicesize
-    elif optlevel in (3,4,5):
+    elif optlevel in (3, 4, 5):
         slicesize *= optlevel-1
-    elif optlevel in (6,7,8):
+    elif optlevel in (6, 7, 8):
         slicesize *= optlevel-1
     elif optlevel == 9:
         slicesize *= optlevel-1
@@ -145,11 +145,11 @@ def ccs_ultralight(optlevel, chunksize, slicesize):
 def ccs_light(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
 
-    if optlevel in (0,1,2):
+    if optlevel in (0, 1, 2):
         slicesize //= 2
-    elif optlevel in (3,4,5):
+    elif optlevel in (3, 4, 5):
         pass
-    elif optlevel in (6,7,8):
+    elif optlevel in (6, 7, 8):
         chunksize /= 2
     elif optlevel == 9:
         # Reducing the chunksize and enlarging the slicesize is the
@@ -161,11 +161,11 @@ def ccs_light(optlevel, chunksize, slicesize):
 def ccs_medium(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
 
-    if optlevel in (0,1,2):
+    if optlevel in (0, 1, 2):
         slicesize //= 2
-    elif optlevel in (3,4,5):
+    elif optlevel in (3, 4, 5):
         pass
-    elif optlevel in (6,7,8):
+    elif optlevel in (6, 7, 8):
         chunksize //= 2
     elif optlevel == 9:
         # Reducing the chunksize and enlarging the slicesize is the
@@ -178,11 +178,11 @@ def ccs_medium(optlevel, chunksize, slicesize):
 def ccs_full(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
 
-    if optlevel in (0,1,2):
+    if optlevel in (0, 1, 2):
         slicesize //= 2
-    elif optlevel in (3,4,5):
+    elif optlevel in (3, 4, 5):
         pass
-    elif optlevel in (6,7,8):
+    elif optlevel in (6, 7, 8):
         chunksize //= 2
     elif optlevel == 9:
         # Reducing the chunksize and enlarging the slicesize is the
@@ -273,10 +273,10 @@ def col_full(nblocks, optlevel):
 def get_reduction_level(indsize, optlevel, slicesize, chunksize):
     """Compute the reduction level based on indsize and optlevel."""
     rlevels = [
-        [8,8,8,8,4,4,4,2,2,1],  # 8-bit indices (ultralight)
-        [4,4,4,4,2,2,2,1,1,1],  # 16-bit indices (light)
-        [2,2,2,2,1,1,1,1,1,1],  # 32-bit indices (medium)
-        [1,1,1,1,1,1,1,1,1,1],  # 64-bit indices (full)
+        [8, 8, 8, 8, 4, 4, 4, 2, 2, 1],  # 8-bit indices (ultralight)
+        [4, 4, 4, 4, 2, 2, 2, 1, 1, 1],  # 16-bit indices (light)
+        [2, 2, 2, 2, 1, 1, 1, 1, 1, 1],  # 32-bit indices (medium)
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 64-bit indices (full)
         ]
     isizes = {1:0, 2:1, 4:2, 8:3}
     rlevel = rlevels[isizes[indsize]][optlevel]
@@ -499,12 +499,12 @@ def IntTypeNextAfter(x, direction, itemsize):
         if isinstance(x, int):
             return x-1
         else:
-            return int(PyNextAfter(x,x-1))
+            return int(PyNextAfter(x, x-1))
     else:
         if isinstance(x, int):
             return x+1
         else:
-            return int(PyNextAfter(x,x+1))+1
+            return int(PyNextAfter(x, x+1))+1
 
 
 def BoolTypeNextAfter(x, direction, itemsize):
@@ -535,14 +535,14 @@ def nextafter(x, direction, dtype, itemsize):
         return IntTypeNextAfter(x, direction, itemsize)
     elif dtype.name == "float32":
         if direction < 0:
-            return PyNextAfterF(x,x-1)
+            return PyNextAfterF(x, x-1)
         else:
-            return PyNextAfterF(x,x+1)
+            return PyNextAfterF(x, x+1)
     elif dtype.name == "float64":
         if direction < 0:
-            return PyNextAfter(x,x-1)
+            return PyNextAfter(x, x-1)
         else:
-            return PyNextAfter(x,x+1)
+            return PyNextAfter(x, x+1)
 
     raise TypeError("data type ``%s`` is not supported" % dtype)
 

@@ -220,7 +220,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if nelements % self.blocksize > 0:
             nblocks += 1
         return nblocks
-    nsuperblocks = property(_g_nsuperblocks , None, None,
+    nsuperblocks = property(_g_nsuperblocks, None, None,
         "The total number of superblocks in index.")
 
     def _g_nblocks(self):
@@ -230,7 +230,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if nelements % self.blocksize > 0:
             nblocks += 1
         return nblocks
-    nblocks = property(_g_nblocks , None, None,
+    nblocks = property(_g_nblocks, None, None,
         "The total number of blocks in index.")
 
     nslices = property(
@@ -514,7 +514,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                    "Number of chunk in table", filters, self.byteorder)
 
         # Create the cache for range values  (1st order cache)
-        CacheArray(self, 'ranges', atom, (0,2), "Range Values", filters,
+        CacheArray(self, 'ranges', atom, (0, 2), "Range Values", filters,
                    self.expectedrows//self.slicesize,
                    byteorder=self.byteorder)
         # median ranges
@@ -794,7 +794,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                         # Swap slices only in the case that we have
                         # several blocks
                         if self.swap('slices', 'median'): break
-                        if self.swap('chunks','median'): break
+                        if self.swap('chunks', 'median'): break
                     if self.swap('chunks', 'start'): break
                     if self.swap('chunks', 'stop'): break
             else:
@@ -850,7 +850,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # Find the overlapping elements for slice i
             sover = numpy.array([], dtype=self.dtype)
             iover = numpy.array([], dtype='u%d'%self.indsize)
-            prev_end = ranges[i,1]
+            prev_end = ranges[i, 1]
             for j in xrange(i+1, nslices):
                 stj = starts[j]
                 if ((j < self.nslices and stj == ss) or
@@ -860,12 +860,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 if j < self.nslices:
                     assert stj < ss, \
                            "Two slices cannot overlap completely at this stage!"
-                    next_beg = sorted[j,stj]
+                    next_beg = sorted[j, stj]
                 else:
                     assert stj < nelementsLR, \
                            "Two slices cannot overlap completely at this stage!"
                     next_beg = sortedLR[stj]
-                next_end = ranges[j,1]
+                next_end = ranges[j, 1]
                 if prev_end > next_end:
                     # Complete overlapping case
                     if j < self.nslices:
@@ -880,8 +880,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 elif prev_end > next_beg:
                     idx = self.search_item_lt(tmp, prev_end, j, ranges[j], stj)
                     if j < self.nslices:
-                        sover = numpy.concatenate((sover, sorted[j,stj:idx]))
-                        iover = numpy.concatenate((iover, indices[j,stj:idx]))
+                        sover = numpy.concatenate((sover, sorted[j, stj:idx]))
+                        iover = numpy.concatenate((iover, indices[j, stj:idx]))
                     else:
                         sover = numpy.concatenate((sover, sortedLR[stj:idx]))
                         iover = numpy.concatenate((iover, indicesLR[stj:idx]))
@@ -984,7 +984,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.dirty = True
         # Build the name of the temporary file
         fd, self.tmpfilename = tempfile.mkstemp(
-            ".tmp", "pytables-" , self.tmp_dir)
+            ".tmp", "pytables-", self.tmp_dir)
         # Close the file descriptor so as to avoid leaks
         os.close(fd)
         # Create the proper PyTables file
@@ -997,9 +997,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         shape = (0, ss)
         atom = Atom.from_dtype(self.dtype)
         EArray(tmp, 'sorted', atom, shape,
-               "Temporary sorted", filters, chunkshape=(1,cs))
+               "Temporary sorted", filters, chunkshape=(1, cs))
         EArray(tmp, 'indices', UIntAtom(itemsize=self.indsize), shape,
-               "Temporary indices", filters, chunkshape=(1,cs))
+               "Temporary indices", filters, chunkshape=(1, cs))
         # temporary bounds
         nbounds_inslice = (ss - 1) // cs
         shape = (0, nbounds_inslice)
@@ -1014,7 +1014,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                filters, chunkshape=(cs,))
         # temporary ranges
         EArray(tmp, 'ranges', atom, (0, 2),
-               "Temporary range values", filters, chunkshape=(cs,2))
+               "Temporary range values", filters, chunkshape=(cs, 2))
         EArray(tmp, 'mranges', atom, (0,),
                "Median ranges", filters, chunkshape=(cs,))
         # temporary last row (sorted)
@@ -1045,9 +1045,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         atom = Atom.from_dtype(self.dtype)
         tmp = self.tmp
         CArray(tmp, 'sorted2', atom, shape,
-               "Temporary sorted 2", filters, chunkshape=(1,cs))
+               "Temporary sorted 2", filters, chunkshape=(1, cs))
         CArray(tmp, 'indices2', UIntAtom(itemsize=self.indsize), shape,
-               "Temporary indices 2", filters, chunkshape=(1,cs))
+               "Temporary indices 2", filters, chunkshape=(1, cs))
         # temporary bounds
         nbounds_inslice = (ss - 1) // cs
         shape = (self.nslices, nbounds_inslice)
@@ -1062,7 +1062,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                filters, chunkshape=(cs,))
         # temporary ranges
         CArray(tmp, 'ranges2', atom, (self.nslices, 2),
-               "Temporary range values 2", filters, chunkshape=(cs,2))
+               "Temporary range values 2", filters, chunkshape=(cs, 2))
         CArray(tmp, 'mranges2', atom, (self.nslices,),
                "Median ranges 2", filters, chunkshape=(cs,))
 
@@ -1151,7 +1151,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 if ins == self_nslices:
                     tmp[nc:nc+cs] = lastrow[inc:inc+cs]
                 else:
-                    tmp[nc:nc+cs] = src_disk[ins,inc:inc+cs]
+                    tmp[nc:nc+cs] = src_disk[ins, inc:inc+cs]
             if ns == self_nslices:
                 # The number of complete chunks in the last row
                 lastrow[:ncs2*cs] = tmp[:ncs2*cs]
@@ -1267,7 +1267,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         ncs = self.nchunkslice
         tmp = self.tmp
         # update first & second cache bounds (ranges & bounds)
-        tmp.ranges[nslice] = ssorted[[0,-1]]
+        tmp.ranges[nslice] = ssorted[[0, -1]]
         tmp.bounds[nslice] = ssorted[cs::cs]
         # update start & stop bounds
         tmp.abounds[nslice*ncs:(nslice+1)*ncs] = ssorted[0::cs]
@@ -1474,7 +1474,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Find the element in chunk
         pos = nchunk*cs
         if nslice < self.nslices:
-            pos += bisect_left(where.sorted[nslice,pos:pos+cs], item)
+            pos += bisect_left(where.sorted[nslice, pos:pos+cs], item)
             assert pos <= ss
         else:
             end = pos + cs
@@ -1514,7 +1514,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         overlaps = multiplicity.copy()
         starts = multiplicity.copy()
         for i in xrange(nslices):
-            prev_end = ranges[i,1]
+            prev_end = ranges[i, 1]
             for j in xrange(i+1, nslices):
                 stj = starts[j]
                 assert stj <= ss
@@ -1522,10 +1522,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     # This slice has already been counted
                     continue
                 if j < self.nslices:
-                    next_beg = sorted[j,stj]
+                    next_beg = sorted[j, stj]
                 else:
                     next_beg = sortedLR[stj]
-                next_end = ranges[j,1]
+                next_end = ranges[j, 1]
                 if prev_end > next_end:
                     # Complete overlapping case
                     multiplicity[j-i] += 1
@@ -1545,11 +1545,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     if self.type != "string":
                         # Convert ranges into floats in order to allow
                         # doing operations with them without overflows
-                        soverlap += float(ranges[i,1]) - float(ranges[j,0])
+                        soverlap += float(ranges[i, 1]) - float(ranges[j, 0])
 
         # Return the overlap as the ratio between overlaps and entire range
         if self.type != "string":
-            erange = float(ranges[-1,1]) - float(ranges[0,0])
+            erange = float(ranges[-1, 1]) - float(ranges[0, 0])
             # Check that there is an effective range of values
             # Beware, erange can be negative in situations where
             # the values are suffering overflow. This can happen
@@ -1599,17 +1599,17 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         multiplicity = numpy.zeros(shape=nslices, dtype="int_")
         for i in xrange(nslices):
             for j in xrange(i+1, nslices):
-                if ranges[i,1] > ranges[j,0]:
+                if ranges[i, 1] > ranges[j, 0]:
                     noverlaps += 1
                     multiplicity[j-i] += 1
                     if self.type != "string":
                         # Convert ranges into floats in order to allow
                         # doing operations with them without overflows
-                        soverlap += float(ranges[i,1]) - float(ranges[j,0])
+                        soverlap += float(ranges[i, 1]) - float(ranges[j, 0])
 
         # Return the overlap as the ratio between overlaps and entire range
         if self.type != "string":
-            erange = float(ranges[-1,1]) - float(ranges[0,0])
+            erange = float(ranges[-1, 1]) - float(ranges[0, 0])
             # Check that there is an effective range of values
             # Beware, erange can be negative in situations where
             # the values are suffering overflow. This can happen

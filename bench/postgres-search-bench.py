@@ -184,7 +184,7 @@ if __name__=="__main__":
     createindex = 0
     doquery = 0
     sqlite_version = "3"
-    rng = [0,10]
+    rng = [0, 10]
     nrows = 1
 
     # Get the options

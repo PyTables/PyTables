@@ -161,7 +161,7 @@ def searchFile(filename, atom, verbose, item):
 
     (positions, niter) = idxcol.search(item)
     if verbose:
-        print "Positions for item",item,"==>",positions
+        print "Positions for item", item, "==>", positions
         print "Total iterations in search:", niter
 
     rowsread += table.nrows
@@ -321,7 +321,7 @@ if __name__=="__main__":
         tMrows = rowsr/(1000*1000.)
         sKrows = rowsel/1000.
         print "Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows"
-        print "Rows selected:", rowsel, "Ksel:", round(sKrows,3), "Krows"
+        print "Rows selected:", rowsel, "Ksel:", round(sKrows, 3), "Krows"
         print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)
         print "Read Mrows/sec: ", round(tMrows / float(treadrows), 3)

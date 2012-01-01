@@ -97,7 +97,7 @@ print "List of user attributes in /detector/table:", table.attrs._f_list("sys")
 print
 # Rename an attribute
 print "renaming 'temp_scale' attribute to 'tempScale'"
-table.attrs._f_rename("temp_scale","tempScale")
+table.attrs._f_rename("temp_scale", "tempScale")
 print table.attrs._f_list()
 
 # Try to rename a system attribute:
@@ -210,9 +210,9 @@ table.cols.energy[0] = 2
 print "After modifying first row of energy-->", table[0]
 
 # Column slices
-table.cols.TDCcount[2:5] = [2,3,4]
+table.cols.TDCcount[2:5] = [2, 3, 4]
 print "After modifying slice [2:5] of ADCcount-->", table[0:5]
-table.cols.energy[1:9:3] = [2,3,4]
+table.cols.energy[1:9:3] = [2, 3, 4]
 print "After modifying slice [1:9:3] of energy-->", table[0:9]
 
 # Modifying complete Rows
@@ -237,7 +237,7 @@ pressureObject[0] = 2
 print "First modif-->", pressureObject[:]
 pressureObject[1:3] = [2.1, 3.5]
 print "Second modif-->", pressureObject[:]
-pressureObject[::2] = [1,2]
+pressureObject[::2] = [1, 2]
 print "Third modif-->", pressureObject[:]
 
 print "name array"
@@ -254,7 +254,7 @@ print
 print   '-**-**-**-**- remove records from a table -**-**-**-**-**-'
 
 # Delete some rows on the Table (yes, rows can be removed!)
-table.removeRows(5,10)
+table.removeRows(5, 10)
 
 # Print some table columns, for comparison with array data
 print "Some columns in final table:"

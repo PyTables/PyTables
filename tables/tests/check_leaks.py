@@ -63,7 +63,7 @@ def write_array(file, nchildren, niter):
         fileh = tables.openFile(file, mode = "w")
         for child in range(nchildren):
             fileh.createArray(fileh.root, 'array' + str(child),
-                              [1,1], "child: %d" % child)
+                              [1, 1], "child: %d" % child)
         show_mem("After creating. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -120,7 +120,7 @@ def write_earray(file, nchildren, niter):
             ea = fileh.createEArray(fileh.root, 'array' + str(child),
                                     tables.IntAtom(), shape=(0,),
                                     title="child: %d" % child)
-            ea.append([1,2,3])
+            ea.append([1, 2, 3])
         show_mem("After creating. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -145,7 +145,7 @@ def write_vlarray(file, nchildren, niter):
         for child in range(nchildren):
             vl = fileh.createVLArray(fileh.root, 'array' + str(child),
                                      tables.IntAtom(), "child: %d" % child)
-            vl.append([1,2,3])
+            vl.append([1, 2, 3])
         show_mem("After creating. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -176,7 +176,7 @@ def write_table(file, nchildren, niter):
         for child in range(nchildren):
             t = fileh.createTable(fileh.root, 'table' + str(child),
                                   Record, "child: %d" % child)
-            t.append([[1,"2",3.]])
+            t.append([[1, "2", 3.]])
         show_mem("After creating. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -208,7 +208,7 @@ def write_xtable(file, nchildren, niter):
         for child in range(nchildren):
             t = fileh.createTable(fileh.root, 'table' + str(child),
                                   Record, "child: %d" % child)
-            t.append([[1,"2",3.]])
+            t.append([[1, "2", 3.]])
             t.cols.var1.createIndex()
         show_mem("After creating. Iter %s" % i)
         fileh.close()

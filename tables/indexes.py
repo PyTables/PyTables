@@ -129,7 +129,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         ranges = self._v_parent.rvcache
         boundscache = self.boundscache
         # First, look at the beginning of the slice
-        begin = ranges[nrow,0]
+        begin = ranges[nrow, 0]
         # Look for items at the beginning of sorted slices
         if item1 <= begin:
             result1 = 0
@@ -138,7 +138,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         if result1 >=0 and result2 >= 0:
             return (result1, result2)
         # Then, look for items at the end of the sorted slice
-        end = ranges[nrow,1]
+        end = ranges[nrow, 1]
         if result1 < 0:
             if item1 > end:
                 result1 = hi

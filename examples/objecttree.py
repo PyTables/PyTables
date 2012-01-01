@@ -20,7 +20,7 @@ array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
 table1 = fileh.createTable(group1, "table1", Particle)
 table2 = fileh.createTable("/group2", "table2", Particle)
 # Create the last table in group2
-array2 = fileh.createArray("/group1", "array2", [1,2,3,4])
+array2 = fileh.createArray("/group1", "array2", [1, 2, 3, 4])
 
 # Now, fill the tables:
 for table in (table1, table2):
