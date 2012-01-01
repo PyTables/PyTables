@@ -275,7 +275,7 @@ def string_to_classes(s):
 
 def fetchLoggedInstances(classes="*"):
     classnames = string_to_classes(classes)
-    return map(lambda cn: (cn, len(tracked_classes[cn])), classnames)
+    return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
 def countLoggedInstances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):

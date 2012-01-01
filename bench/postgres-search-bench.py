@@ -12,7 +12,7 @@ random_array.seed(19, 20)
 
 def flatten(l):
     """Flattens list of tuples l."""
-    return map(lambda x: x[0], l)
+    return [x[0] for x in l]
 
 def fill_arrays(start, stop):
     col_i = numarray.arange(start, stop, type=numarray.Int32)
