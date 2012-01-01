@@ -13,8 +13,8 @@ def read(file):
     fileh = openFile(file, "r")
 
     print "table (short)-->", fileh.root.table
-    print "table (long)-->", `fileh.root.table`
-    print "table (contents)-->", `fileh.root.table[:]`
+    print "table (long)-->", repr(fileh.root.table)
+    print "table (contents)-->", repr(fileh.root.table[:])
 
     fileh.close()
 

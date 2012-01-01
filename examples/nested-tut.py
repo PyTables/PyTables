@@ -127,7 +127,7 @@ for coldescr in table.description._f_walk():
 print
 print "**** info2 sub-structure description:\n", table.description.info2
 print
-print "**** table representation (long form):\n", `table`
+print "**** table representation (long form):\n", repr(table)
 
 # Remember to always close the file
 fileh.close()
