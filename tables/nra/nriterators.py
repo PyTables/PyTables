@@ -37,7 +37,7 @@ def flattenDescr(descr, check=False):
         return
 
     try:
-        item = i.next()
+        item = next(i)
         while item:
             if isinstance(item, tuple) and len(item) == 2 and \
             (isinstance(item[1], str) or isinstance(item[1], list)) and \
@@ -54,7 +54,7 @@ def flattenDescr(descr, check=False):
             else:
                 if check:
                     yield None
-            item = i.next()
+            item = next(i)
     except StopIteration:
         pass
 
@@ -71,7 +71,7 @@ def flattenFormats(formats, check=False):
         return
 
     try:
-        item = i.next()
+        item = next(i)
         while item:
             if isinstance(item, str):
                 yield normalize_format(item)
@@ -81,7 +81,7 @@ def flattenFormats(formats, check=False):
             else:
                 if check:
                     yield None
-            item = i.next()
+            item = next(i)
     except StopIteration:
         pass
 
@@ -100,7 +100,7 @@ def flattenNames(names, check=False):
         return
 
     try:
-        item = i.next()
+        item = next(i)
         while item:
             if isinstance(item, str):
                 yield item
@@ -114,7 +114,7 @@ def flattenNames(names, check=False):
             else:
                 if check:
                     yield None
-            item = i.next()
+            item = next(i)
     except StopIteration:
         pass
 
@@ -145,7 +145,7 @@ def getDescr(names, formats):
         return
 
     try:
-        (name, fmt) = i.next()
+        (name, fmt) = next(i)
         while (name, fmt):
             if isinstance(name, str) and isinstance(fmt, str):
                 yield (name, fmt)
@@ -154,7 +154,7 @@ def getDescr(names, formats):
                 for (a, b) in getDescr(name[1], fmt):
                     l.append((a,b))
                 yield (name[0], l)
-            (name, fmt) = i.next()
+            (name, fmt) = next(i)
     except StopIteration:
         pass
 
@@ -171,7 +171,7 @@ def makeNamesFromFormats(formats):
 
     try:
         c = 0
-        item = i.next()
+        item = next(i)
         while item:
             c = c +1
             name = 'c%s' % c
@@ -182,7 +182,7 @@ def makeNamesFromFormats(formats):
                 for a in makeNamesFromFormats(item):
                     l.append(a)
                 yield (name, l)
-            item = i.next()
+            item = next(i)
     except StopIteration:
         pass
 
@@ -198,7 +198,7 @@ def getNamesFromDescr(descr):
         return
 
     try:
-        item = i.next()
+        item = next(i)
         while item:
             if isinstance(item[1], str):
                 yield item[0]
@@ -208,7 +208,7 @@ def getNamesFromDescr(descr):
                     l.append(j)
                 r = (item[0], l)
                 yield r
-            item = i.next()
+            item = next(i)
     except StopIteration:
         pass
 
@@ -224,7 +224,7 @@ def getFormatsFromDescr(descr):
         return
 
     try:
-        item = i.next()
+        item = next(i)
         while item:
             item1 = item[1]
             if isinstance(item1, str):
@@ -234,7 +234,7 @@ def getFormatsFromDescr(descr):
                 for j in getFormatsFromDescr(item1):
                     l.append(j)
                 yield l
-            item = i.next()
+            item = next(i)
     except StopIteration:
         pass
 
@@ -252,7 +252,7 @@ def getFieldDescr(fieldName, descr):
 
     try:
         sw = ''
-        item = i.next()
+        item = next(i)
         while item:
             if fieldName == item[0]:
                 yield item
@@ -261,13 +261,13 @@ def getFieldDescr(fieldName, descr):
                 if fieldName.startswith('%s/' %item[0]):
                     sw = item[0]
                 else:
-                    item = i.next()
+                    item = next(i)
                     continue
                 [trash, newField] = fieldName.split(sw + '/')
                 for c in getFieldDescr(newField, item[1]):
                     sw = '%s/%s' % (sw, c[0])
                     yield (sw, c[1])
-            item = i.next()
+            item = next(i)
     except StopIteration:
         pass
 
@@ -289,7 +289,7 @@ def getSubNames(names):
         return
 
     try:
-        item = i.next()
+        item = next(i)
         while item:
             if isinstance(item, str):
                 yield item
@@ -298,7 +298,7 @@ def getSubNames(names):
                 yield item[0]
                 for c in getSubNames(item[1]):
                     yield c
-            item = i.next()
+            item = next(i)
     except StopIteration:
         pass
 
@@ -371,7 +371,7 @@ def zipBufferDescr(row, structure):
         return
 
     try:
-        (value, descr) = i.next()
+        (value, descr) = next(i)
         while (value, descr):
             fmt = descr[1]
             if isinstance(fmt, str):
@@ -379,7 +379,7 @@ def zipBufferDescr(row, structure):
             else:
                 for (a, b) in zipBufferDescr(value, descr[1]):
                     yield (a, b)
-            (value, descr) = i.next()
+            (value, descr) = next(i)
     except StopIteration:
         pass
 

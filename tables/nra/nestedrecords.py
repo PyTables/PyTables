@@ -683,7 +683,7 @@ def convertToAPDescr(descr, byteorder):
         return
 
     try:
-        item = i.next()
+        item = next(i)
         while item:
             if isinstance(item[1], str):
                 # parse the formats into repeats and formats
@@ -717,7 +717,7 @@ def convertToAPDescr(descr, byteorder):
                 for j in convertToAPDescr(item[1], byteorder):
                     l.append(j)
                 yield (item[0], l)
-            item = i.next()
+            item = next(i)
     except StopIteration:
         pass
 
@@ -733,7 +733,7 @@ def convertFromAPDescr(array_descr):
         return
 
     try:
-        item = i.next()
+        item = next(i)
         while item:
             if isinstance(item[1], str):
                 _dtype = item[1].strip()
@@ -767,7 +767,7 @@ def convertFromAPDescr(array_descr):
                 for j in convertFromAPDescr(item[1]):
                     l.append(j)
                 yield (item[0], l)
-            item = i.next()
+            item = next(i)
     except StopIteration:
         pass
 

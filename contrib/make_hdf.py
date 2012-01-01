@@ -268,7 +268,7 @@ class Hdf_dict(dict):
             self.__setitem__(k, v)
     def popitem(self):
         try:
-            k, v = self.iteritems().next()
+            k, v = next(self.iteritems())
             del self[k]
             return k, v
         except StopIteration:

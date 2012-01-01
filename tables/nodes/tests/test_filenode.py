@@ -531,10 +531,10 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.fnode.seek(0)
 
-        line = self.fnode.next()
+        line = next(self.fnode)
         self.assertEqual(line, linesep)
 
-        line = self.fnode.next()
+        line = next(self.fnode)
         self.assertEqual(line, 'short line' + linesep)
 
 
