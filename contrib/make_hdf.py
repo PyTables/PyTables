@@ -301,7 +301,7 @@ if __name__=='__main__':
             print i
 
         print a.keys()
-        print 'has fred',a.has_key('fred')
+        print 'has fred',bool('fred' in a)
         print 'length a',len(a)
         print 'get',a.get('fred'),a.get('not here')
         print 'wilma keys',a['wilma'].keys()

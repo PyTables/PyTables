@@ -262,7 +262,7 @@ import weakref
 def logInstanceCreation(instance, name=None):
     if name is None:
         name = instance.__class__.__name__
-        if not tracked_classes.has_key(name):
+        if name not in tracked_classes:
             tracked_classes[name] = []
         tracked_classes[name].append(weakref.ref(instance))
 
@@ -390,7 +390,7 @@ def detectNumberOfCores():
         else: # OSX:
             return int(os.popen2("sysctl -n hw.ncpu")[1].read())
     # Windows:
-    if os.environ.has_key("NUMBER_OF_PROCESSORS"):
+    if "NUMBER_OF_PROCESSORS" in os.environ:
         ncpus = int(os.environ["NUMBER_OF_PROCESSORS"]);
         if ncpus > 0:
             return ncpus

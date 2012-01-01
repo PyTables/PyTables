@@ -216,14 +216,14 @@ class NetCDFFile:
                 if var.atom.type not in _typecode_dict:
                     print 'object',var.name,'is not a supported datatype (',var.atom.type,'), skipping ..'
                     continue
-                if var.attrs.__dict__.has_key('dimensions'):
+                if 'dimensions' in var.attrs.__dict__:
                     n = 0
                     for dim in var.attrs.__dict__['dimensions']:
                         if var.extdim >= 0 and n == var.extdim:
                             val=None
                         else:
                             val=int(var.shape[n])
-                        if not self.dimensions.has_key(dim):
+                        if dim not in self.dimensions:
                             self.dimensions[dim] = val
                         else:
                             # raise an exception of a dimension of that
@@ -384,7 +384,7 @@ class NetCDFFile:
         elif name.startswith('_NetCDF_') or name in ['dimensions','variables']:
             return self.__dict__[name]
         else:
-            if self.__dict__.has_key(name):
+            if name in self.__dict__:
                 return self.__dict__[name]
             else:
                 return self._NetCDF_h5file.root._v_attrs.__dict__[name]
@@ -423,7 +423,7 @@ class NetCDFFile:
                                      'be most significant (slowest changing, '
                                      'or first) one in order to convert to a '
                                      'true netCDF file')
-            if packshort and scale_factor.has_key(varname) and add_offset.has_key(varname):
+            if packshort and varname in scale_factor and varname in add_offset:
                 print 'packing %s as short integers ...'%(varname)
                 datatype = 's'
                 packvar = True
@@ -675,7 +675,7 @@ class NetCDFVariable:
         elif name.startswith('_NetCDF_'):
             return self.__dict__[name]
         else:
-            if self._NetCDF_varobj.__dict__.has_key(name):
+            if name in self._NetCDF_varobj.__dict__:
                 return self._NetCDF_varobj.__dict__[name]
             else:
                 return self._NetCDF_varobj.attrs.__dict__[name]
