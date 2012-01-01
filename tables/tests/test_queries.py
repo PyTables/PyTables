@@ -326,7 +326,7 @@ def create_test_method(type_, op, extracond):
         cond = '~(%s)' % colname
     elif op == '<':  # binary variable-constant
         cond = '%s %s %s' % (colname, op, repr(condvars['bound']))
-    elif type(op) is tuple: # double binary variable-constant
+    elif isinstance(op, tuple): # double binary variable-constant
         cond = ( '(lbound %s %s) & (%s %s rbound)'
                  % (op[0], colname, colname, op[1]) )
     else:  # binary variable-variable

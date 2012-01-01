@@ -132,7 +132,7 @@ def getDescr(names, formats):
     if not names:
         names = [item for item in makeNamesFromFormats(formats)]
 
-    if type(formats) == str and type(names) == str:
+    if isinstance(formats, str) and isinstance(names, str):
         yield (names, formats)
         raise StopIteration
 

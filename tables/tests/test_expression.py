@@ -245,7 +245,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print "Checking output container:", type(r1)
             expr.setOutput(r1)
             r1 = expr.eval()
-            if type(r1) != type(self.rnda):
+            if not isinstance(r1, type(self.rnda)):
                 r1 = r1[:]
             r2 = eval(self.expr, self.npvars)
             if common.verbose:

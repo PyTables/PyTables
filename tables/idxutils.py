@@ -496,12 +496,12 @@ def IntTypeNextAfter(x, direction, itemsize):
 
     # x is guaranteed to be either an int or a float
     if direction < 0:
-        if type(x) is int:
+        if isinstance(x, int):
             return x-1
         else:
             return int(PyNextAfter(x,x-1))
     else:
-        if type(x) is int:
+        if isinstance(x, int):
             return x+1
         else:
             return int(PyNextAfter(x,x+1))+1

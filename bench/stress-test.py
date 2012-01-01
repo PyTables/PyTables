@@ -190,11 +190,10 @@ class TrackRefs:
                 type2count[t] = 1
                 type2all[t] = all
 
-        ct = [(type2count[t] - self.type2count.get(t, 0),
+        ct = sorted([(type2count[t] - self.type2count.get(t, 0),
                type2all[t] - self.type2all.get(t, 0),
                t)
-              for t in type2count.iterkeys()]
-        ct.sort()
+              for t in type2count.iterkeys()])
         ct.reverse()
         for delta1, delta2, t in ct:
             if delta1 or delta2:

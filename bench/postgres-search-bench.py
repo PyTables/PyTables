@@ -141,8 +141,7 @@ def query_db(filename, rng):
     if verbose:
         print "query time:", round(qtime, 5)
         print "Mrows/s:", round((nrows/1000.)/qtime, 5)
-        results = flatten(results)
-        results.sort()
+        results = sorted(flatten(results))
         print results
     close_db(con, cur)
 

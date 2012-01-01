@@ -401,7 +401,7 @@ def _conv_numarray_to_numpy(array):
         record = array
         row = record.row
         array = record.array[row:row+1]
-    if type(array) is numarray.records.RecArray:
+    if isinstance(array, numarray.records.RecArray):
         # Create a NestedRecArray array from the RecArray to easy the
         # conversion. This is sub-optimal and should be replaced by a
         # faster way to convert a plain RecArray into a numpy recarray.

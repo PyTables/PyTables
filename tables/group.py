@@ -723,26 +723,22 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         if not classname:
             # Returns all the children alphanumerically sorted
-            names = self._v_children.keys()
-            names.sort()
+            names = sorted(self._v_children.iterkeys())
             for name in names:
                 yield self._v_children[name]
         elif classname == 'Group':
             # Returns all the groups alphanumerically sorted
-            names = self._v_groups.keys()
-            names.sort()
+            names = sorted(self._v_groups.iterkeys())
             for name in names:
                 yield self._v_groups[name]
         elif classname == 'Leaf':
             # Returns all the leaves alphanumerically sorted
-            names = self._v_leaves.keys()
-            names.sort()
+            names = sorted(self._v_leaves.iterkeys())
             for name in names:
                 yield self._v_leaves[name]
         elif classname == 'Link':
             # Returns all the links alphanumerically sorted
-            names = self._v_links.keys()
-            names.sort()
+            names = sorted(self._v_links.iterkeys())
             for name in names:
                 yield self._v_links[name]
         elif classname == 'IndexArray':
@@ -752,8 +748,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             class_ = getClassByName(classname)
 
             children = self._v_children
-            childNames = children.keys()
-            childNames.sort()
+            childNames = sorted(children.iterkeys())
 
             for childName in childNames:
                 childNode = children[childName]
@@ -777,10 +772,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # Iterate over the descendants
         while stack:
             objgroup=stack.pop()
-            groupnames = objgroup._v_groups.keys()
+            groupnames = sorted(objgroup._v_groups.iterkeys())
             # Sort the groups before delivering. This uses the groups names
             # for groups in tree (in order to sort() can classify them).
-            groupnames.sort()
             for groupname in groupnames:
                 stack.append(objgroup._v_groups[groupname])
                 yield objgroup._v_groups[groupname]

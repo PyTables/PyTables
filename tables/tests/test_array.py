@@ -101,7 +101,7 @@ class BasicTestCase(unittest.TestCase):
     def test00_char(self):
         "Data integrity during recovery (character objects)"
 
-        if type(self.tupleChar) != numpy.ndarray:
+        if not isinstance(self.tupleChar, numpy.ndarray):
             a = numpy.array(self.tupleChar, dtype="S")
         else:
             a = self.tupleChar
@@ -122,7 +122,7 @@ class BasicTestCase(unittest.TestCase):
         fileh = openFile(file, mode = "r")
         # Read the saved array
         b = fileh.root.somearray.read()
-        if type(a) == str:
+        if isinstance(a, str):
             self.assertEqual(type(b), str)
             self.assertEqual(a, b)
         else:
@@ -137,7 +137,7 @@ class BasicTestCase(unittest.TestCase):
     def test01_char_nc(self):
         "Data integrity during recovery (non-contiguous character objects)"
 
-        if type(self.tupleChar) != numpy.ndarray:
+        if not isinstance(self.tupleChar, numpy.ndarray):
             a = numpy.array(self.tupleChar, dtype="S")
         else:
             a = self.tupleChar

@@ -33,7 +33,7 @@ class BasicTestCase(unittest.TestCase):
     def WriteRead(self, testArray):
         if common.verbose:
             print '\n', '-=' * 30
-            if type(testArray) == NumArray:
+            if isinstance(testArray, NumArray):
                 type_ = testArray.type()
             else:
                 type_ = "String"
@@ -64,7 +64,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Compare them. They should be equal.
         #if not allequal(a,b, "numarray") and common.verbose:
-        if common.verbose and type(a) == NumArray:
+        if common.verbose and isinstance(a, NumArray):
             print "Array written:", a
             print "Array written shape:", a.shape
             print "Array written itemsize:", a.itemsize
@@ -79,7 +79,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(type(a), type(b))
         self.assertEqual(a.shape, b.shape)
         self.assertEqual(a.shape, self.root.somearray.shape)
-        if type(a) == strings.CharArray:
+        if isinstance(a, strings.CharArray):
             self.assertEqual(type_, "string")
         else:
             self.assertEqual(a.type(), b.type())

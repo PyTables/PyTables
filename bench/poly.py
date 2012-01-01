@@ -39,7 +39,7 @@ def print_filesize(filename, clib=None, clevel=0):
     """Print some statistics about file sizes."""
 
     #os.system("sync")    # make sure that all data has been flushed to disk
-    if type(filename) is list:
+    if isinstance(filename, list):
         filesize_bytes = 0
         for fname in filename:
             filesize_bytes += os.stat(fname)[6]

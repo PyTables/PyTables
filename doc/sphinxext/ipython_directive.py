@@ -127,7 +127,7 @@ def block_parser(part):
     N = len(lines)
     i = 0
     decorator = None
-    while 1:
+    while True:
 
         if i==N:
             # nothing left to parse -- the last line

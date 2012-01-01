@@ -212,7 +212,7 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
 
     def add_expr(expr, idxexprs, strexpr):
         """Add a single expression to the list."""
-        if type(expr) == list:
+        if isinstance(expr, list):
             # expr is a single expression
             idxexprs.append(expr[0])
             lenexprs = len(idxexprs)
@@ -316,7 +316,7 @@ class CompiledCondition(object):
             idxlims = expr[2]  # the limits are in third place
             limit_values = []
             for idxlim in idxlims:
-                if type(idxlim) is tuple:  # variable
+                if isinstance(idxlim, tuple):  # variable
                     idxlim = condvars[idxlim[0]]  # look up value
                     idxlim = idxlim.tolist()  # convert back to Python
                 limit_values.append(idxlim)
@@ -371,7 +371,7 @@ def compile_condition(condition, typemap, indexedcols, copycols):
                          % condition )
     idxexprs = _get_idx_expr(expr, indexedcols)
     # Post-process the answer
-    if type(idxexprs) == list:
+    if isinstance(idxexprs, list):
         # Simple expression
         strexpr = ['e0']
     else:

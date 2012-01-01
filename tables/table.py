@@ -786,7 +786,7 @@ class Table(tableExtension.Table, Leaf):
         # No description yet?
         if new and self.description is None:
             # Try NumPy dtype instances
-            if type(description) is numpy.dtype:
+            if isinstance(description, numpy.dtype):
                 self.description, self._rabyteorder = \
                                   descr_from_dtype(description)
 
@@ -1444,7 +1444,7 @@ class Table(tableExtension.Table, Leaf):
         if compiled.index_expressions:
             chunkmap = _table__whereIndexed(
                 self, compiled, condition, condvars, start, stop, step)
-            if type(chunkmap) != numpy.ndarray:
+            if not isinstance(chunkmap, numpy.ndarray):
                 # If it is not a NumPy array it should be an iterator
                 # Reset conditions
                 self._useIndex = False
@@ -1816,7 +1816,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # Do the real read
         if ncoords > 0:
             # Turn coords into an array of coordinate indexes, if necessary
-            if not (type(coords) is numpy.ndarray and
+            if not (isinstance(coords, numpy.ndarray) and
                     coords.dtype.type is _npSizeType and
                     coords.flags.contiguous and
                     coords.flags.aligned):
@@ -3276,7 +3276,7 @@ class Column(object):
         # Generalized key support not there yet, but at least allow
         # for a tuple with one single element (the main dimension).
         # (key,) --> key
-        if type(key) == tuple and len(key) == 1:
+        if isinstance(key, tuple) and len(key) == 1:
             key = key[0]
 
         if is_idx(key):
@@ -3327,7 +3327,7 @@ class Column(object):
         # Generalized key support not there yet, but at least allow
         # for a tuple with one single element (the main dimension).
         # (key,) --> key
-        if type(key) == tuple and len(key) == 1:
+        if isinstance(key, tuple) and len(key) == 1:
             key = key[0]
 
         if is_idx(key):
@@ -3411,7 +3411,7 @@ class Column(object):
                 raise ValueError("Temporary directory '%s' does not exist" %
                                                                     tmp_dir)
         if (_blocksizes is not None and
-            (type(_blocksizes) is not tuple or len(_blocksizes) != 4)):
+            (not isinstance(_blocksizes, tuple) or len(_blocksizes) != 4)):
             raise ValueError("_blocksizes must be a tuple with exactly 4 "
                              "elements")
         idxrows = _column__createIndex(self, optlevel, kind, filters,

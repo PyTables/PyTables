@@ -927,7 +927,7 @@ class EnumAtom(Atom):
             enum = Enum(enum)
         self.enum = enum
 
-        if type(base) is str:
+        if isinstance(base, str):
             base = Atom.from_type(base)
         self._checkBase(base)
         self.base = base

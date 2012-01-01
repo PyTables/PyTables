@@ -949,7 +949,7 @@ class File(hdf5Extension.File, object):
         The returned node is a `SoftLink` instance.  See the `SoftLink`
         class for more information on soft links.
         """
-        if type(target) is not str:
+        if not isinstance(target, str):
             if hasattr(target, '_v_pathname'):   # quacks like a Node
                 target = target._v_pathname
             else:
@@ -995,7 +995,7 @@ class File(hdf5Extension.File, object):
 external links are only supported when PyTables is compiled against HDF5 1.8.x series and they, and their parent groups, are unreadable with HDF5 1.6.x series.  You can set `warn16incompat` argument to false to disable this warning.""",
                           Incompat16Warning)
 
-        if type(target) is not str:
+        if not isinstance(target, str):
             if hasattr(target, '_v_pathname'):   # quacks like a Node
                 target = target._v_file.filename+':'+target._v_pathname
             else:
@@ -1851,8 +1851,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
             markid = mark
         elif isinstance(mark, str):
             if mark not in self._markers:
-                lmarkers = self._markers.keys()
-                lmarkers.sort()
+                lmarkers = sorted(self._markers.iterkeys())
                 raise UndoRedoError("The mark that you have specified has not "
                                     "been found in the internal marker list: "
                                     "%r" % lmarkers)

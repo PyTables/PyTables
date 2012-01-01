@@ -547,7 +547,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         if type(key) in (list, tuple):
-            if type(key) is tuple and len(key) > len(self.shape):
+            if isinstance(key, tuple) and len(key) > len(self.shape):
                 raise IndexError("Invalid index or slice: %r" % (key,))
             # Try to convert key to a numpy array.  If not possible,
             # a TypeError will be issued (to be catched later on).

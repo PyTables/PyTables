@@ -156,7 +156,7 @@ class Expr(object):
         # aligned objects, or at least I think so).
         copy_args = []
         for name, var in vars_.iteritems():
-            if type(var) == np.ndarray:
+            if isinstance(var, np.ndarray):
                 # See numexpr.necompiler.evaluate for a rational
                 # of the code below
                 if not var.flags.aligned:

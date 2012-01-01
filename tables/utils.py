@@ -268,8 +268,7 @@ def logInstanceCreation(instance, name=None):
 
 def string_to_classes(s):
     if s == '*':
-        c = tracked_classes.keys()
-        c.sort()
+        c = sorted(tracked_classes.iterkeys())
         return c
     else:
         return s.split()

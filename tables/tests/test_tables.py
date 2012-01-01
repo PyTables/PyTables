@@ -3867,7 +3867,7 @@ class CopyTestCase(unittest.TestCase):
         for (cpathname, col1) in cinst1.iteritems():
             self.assertTrue(cpathname in cinst2)
             col2 = cinst2[cpathname]
-            self.assertTrue(type(col1) is type(col2))
+            self.assertTrue(isinstance(col1, type(col2)))
             if isinstance(col1, Column):
                 self.assertEqual(col1.name, col2.name)
                 self.assertEqual(col1.pathname, col2.pathname)

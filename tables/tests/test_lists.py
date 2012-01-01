@@ -441,7 +441,7 @@ class GeneratorTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if type(a[0]) == tuple:
+        if isinstance(a[0], tuple):
             ga = [list(i) for i in a]
         else:
             ga = [i for i in a]
@@ -490,7 +490,7 @@ class GeneratorTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if type(a[0]) == tuple:
+        if isinstance(a[0], tuple):
             ga = [list(i) for i in a]
         else:
             ga = [i for i in a]
