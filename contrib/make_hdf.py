@@ -70,7 +70,7 @@ def make_row(data):
                 elif the_type:
                     make_col(row_type,'col_'+str(count),col[0],0)
                 else:
-                    raise 'too many nested levels of lists'
+                    raise ValueError('too many nested levels of lists')
                 count+=1
     return row_type
 def add_table(fileh,group_obj,data,table_name):
@@ -97,7 +97,7 @@ def add_table(fileh,group_obj,data,table_name):
                         row['col_'+str(count)]=the_row
                         row.append()
                     else:
-                        raise 'too many levels of lists'
+                        raise ValueError('too many levels of lists')
                 count+=1
     table1.flush()
 
