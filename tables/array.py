@@ -27,8 +27,6 @@ Misc variables:
 
 """
 
-import types
-
 import numpy
 
 from tables import hdf5Extension

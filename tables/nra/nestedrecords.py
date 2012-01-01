@@ -21,7 +21,6 @@ in numarray instead of NumPy.
 """
 
 import sys
-import types
 import re
 
 import numarray
