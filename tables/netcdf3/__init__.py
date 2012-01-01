@@ -588,7 +588,7 @@ class NetCDFVariable:
     def __init__(self, varname, NetCDFFile, datatype, dimensions, least_significant_digit=None,expectedsize=1000,filters=None):
         if datatype not in _netcdftype_dict:
             raise ValueError('datatype must be one of %s' %
-                                                netcdftype_dict.keys())
+                                                _netcdftype_dict.keys())
         self._NetCDF_parent = NetCDFFile
         _NetCDF_FillValue = _fillvalue_dict[datatype]
         vardimsizes = []
