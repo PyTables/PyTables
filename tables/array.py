@@ -413,7 +413,7 @@ class Array(hdf5Extension.Array, Leaf):
         # but this is a bit weird way to pass parameters anyway
         for key in keys:
             ellipsis = 0  # Sentinel
-            if isinstance(key, types.EllipsisType):
+            if isinstance(key, type(Ellipsis)):
                 ellipsis = 1
                 for diml in xrange(dim, len(self.shape) - (nkeys - dim) + 1):
                     startl[dim] = 0

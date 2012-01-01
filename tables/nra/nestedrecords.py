@@ -508,8 +508,8 @@ def array(buffer=None, formats=None, shape=0, names=None,
     flatNames = [item for item in nriterators.flattenNames(names)]
 
     # Check the buffer structure (order matters!)
-    if (isinstance(buffer, types.ListType) or
-        isinstance(buffer, types.TupleType)):
+    if (isinstance(buffer, list) or
+        isinstance(buffer, tuple)):
         if (isinstance(buffer[0], numarray.NumArray) or
             isinstance(buffer[0], numarray.strings.CharArray)):
             return fromarrays(buffer, formats=formats,
