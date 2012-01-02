@@ -76,7 +76,7 @@ class Stream32(object):
     def read(self, n=None):
         self.n = n
         try:
-            str = next(self.read_it)
+            str = self.read_it.next()
         except StopIteration:
             str = ""
         return str

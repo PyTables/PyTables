@@ -50,7 +50,7 @@ class StreamChar(object):
     def read(self, n=None):
         self.nbytes = n
         try:
-            str = next(self.read_it)
+            str = self.read_it.next()
         except StopIteration:
             str = ""
         return str
