@@ -484,6 +484,9 @@ def silenceHDF5Messages(silence=True):
 
     The *silence* parameter can be used control the behaviour and reset
     the standard HDF5 logging.
+
+    .. versionadded:: 2.4
+
     """
     cdef herr_t err
     if silence:

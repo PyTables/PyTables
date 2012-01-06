@@ -263,6 +263,8 @@ Global functions
    The *silence* parameter can be used control the behaviour and reset the
    standard HDF5 logging.
 
+   .. versionadded:: 2.4
+
 
 .. _FileClassDescr:
 
