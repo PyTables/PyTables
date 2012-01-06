@@ -62,6 +62,7 @@ cdef extern from "hdf5.h" nogil:
   int H5P_FILE_CREATE, H5P_FILE_ACCESS
   int H5FD_LOG_LOC_WRITE, H5FD_LOG_ALL
   int H5I_INVALID_HID
+  int H5E_DEFAULT
 
   # The difference between a single file and a set of mounted files
   cdef enum H5F_scope_t:
@@ -219,7 +220,37 @@ cdef extern from "hdf5.h" nogil:
     H5T_CSET_RESERVED_14 = 14
     H5T_CSET_RESERVED_15 = 15
 
-  ctypedef herr_t (*H5E_auto_t)(void *data)
+  # Error stack traversal direction
+  cdef enum H5E_direction_t:
+    H5E_WALK_UPWARD     = 0,    # begin deep, end at API function
+    H5E_WALK_DOWNWARD   = 1     # begin at API function, end deep
+
+  ctypedef hid_t   H5E_major_t
+  ctypedef hid_t   H5E_minor_t
+
+  ctypedef struct H5E_error_t:
+    H5E_major_t maj_num         # major error number
+    H5E_minor_t min_num         # minor error number
+    const_char  *func_name      # function in which error occurred
+    const_char  *file_name      # file in which error occurred
+    unsigned    line            # line in file where error occurs
+    const_char  *desc           # optional supplied description
+
+  ctypedef herr_t (*H5E_walk_t)(int n, H5E_error_t *err, void *data)
+  ctypedef herr_t (*H5E_auto_t)(void *client_data)
+
+  # 1.8 API
+  #ctypedef struct H5E_error_t
+  #  hid_t       cls_id      # class ID
+  #  hid_t       maj_num     # major error ID
+  #  hid_t       min_num     # minor error number
+  #  unsigned    line        # line in file where error occurs
+  #  const_char  *func_name  # function in which error occurred
+  #  const_char  *file_name  # file in which error occurred
+  #  const_char  *desc       # optional supplied description
+  #
+  #ctypedef herr_t (*H5E_walk_t)(unsigned n, const H5E_error_t *err, void *data)
+  #ctypedef herr_t (*H5E_auto_t)(hid_t estack, void *client_data)
 
 
   #------------------------------------------------------------------
@@ -336,7 +367,19 @@ cdef extern from "hdf5.h" nogil:
   # Error Handling Interface
   herr_t H5Eset_auto(H5E_auto_t func, void *data)
   herr_t H5Eprint(FILE *stream)
-
+  #const_char * H5Eget_major(H5E_major_t n)
+  #char * H5Eget_minor(H5E_minor_t n)
+  herr_t H5Ewalk(H5E_direction_t dir, H5E_walk_t func, void *client_data)
+  # 1.8 API
+  #hid_t H5Eget_current_stack(void)
+  #herr_t H5Eclose_stack(hid_t estack_id)
+  #ssize_t H5Eget_num(hid_t estack_id)
+  #ssize_t H5Eget_msg(hid_t mesg_id, H5E_type_t* mesg_type, char* mesg,
+  #                   size_t size)
+  #herr_t H5Eclose_msg(hid_t mesg_id)
+  #ssize_t H5Eget_class_name(hid_t class_id, char* name, size_t size)
+  #herr_t H5Ewalk(hid_t estack_id, H5E_direction_t dir, H5E_walk_t func,
+  #               void *client_data)
 
 # Specific HDF5 functions for PyTables
 cdef extern from "H5ATTR.h" nogil:
