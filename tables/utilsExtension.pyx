@@ -42,7 +42,7 @@ from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5Fopen, H5Fclose, H5Fis_hdf5,
   H5Gopen, H5Gclose,
-  H5Eset_auto, H5Eprint,
+  H5E_auto_t, H5Eset_auto, H5Eprint,
   H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
   H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
@@ -489,7 +489,7 @@ def silenceHDF5Messages(silence=True):
     if silence:
         err = H5Eset_auto(NULL, NULL)
     else:
-        err = H5Eset_auto(<herr_t (*)(void*) nogil>H5Eprint, stderr)
+        err = H5Eset_auto(<H5E_auto_t>H5Eprint, stderr)
     if err < 0:
         raise HDF5ExtError("unable to configure HDF5 internal error handling")
 

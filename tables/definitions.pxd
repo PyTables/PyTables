@@ -65,62 +65,62 @@ cdef extern from "hdf5.h" nogil:
 
   # The difference between a single file and a set of mounted files
   cdef enum H5F_scope_t:
-    H5F_SCOPE_LOCAL     = 0,    # specified file handle only
-    H5F_SCOPE_GLOBAL    = 1,    # entire virtual file
+    H5F_SCOPE_LOCAL     = 0     # specified file handle only
+    H5F_SCOPE_GLOBAL    = 1     # entire virtual file
     H5F_SCOPE_DOWN      = 2     # for internal use only
 
   cdef enum H5G_obj_t:
-    H5G_UNKNOWN = -1,           # Unknown object type
-    H5G_GROUP,                  # Object is a group
-    H5G_DATASET,                # Object is a dataset
-    H5G_TYPE,                   # Object is a named data type
-    H5G_LINK,                   # Object is a symbolic link
-    ##H5G_UDLINK,                 # Object is a user-defined link  # 1.8.x
+    H5G_UNKNOWN = -1            # Unknown object type
+    H5G_GROUP                   # Object is a group
+    H5G_DATASET                 # Object is a dataset
+    H5G_TYPE                    # Object is a named data type
+    H5G_LINK                    # Object is a symbolic link
+    #H5G_UDLINK                  # Object is a user-defined link  # 1.8.x
 
   # Values for fill value status
   cdef enum H5D_fill_value_t:
-    H5D_FILL_VALUE_ERROR        = -1,
-    H5D_FILL_VALUE_UNDEFINED    = 0,
-    H5D_FILL_VALUE_DEFAULT      = 1,
+    H5D_FILL_VALUE_ERROR        = -1
+    H5D_FILL_VALUE_UNDEFINED    = 0
+    H5D_FILL_VALUE_DEFAULT      = 1
     H5D_FILL_VALUE_USER_DEFINED = 2
 
   # HDF5 layouts
   cdef enum H5D_layout_t:
-    H5D_LAYOUT_ERROR    = -1,
-    H5D_COMPACT         = 0,    # raw data is very small
-    H5D_CONTIGUOUS      = 1,    # the default
-    H5D_CHUNKED         = 2,    # slow and fancy
+    H5D_LAYOUT_ERROR    = -1
+    H5D_COMPACT         = 0     # raw data is very small
+    H5D_CONTIGUOUS      = 1     # the default
+    H5D_CHUNKED         = 2     # slow and fancy
     H5D_NLAYOUTS        = 3     # this one must be last!
 
   # Byte orders
   cdef enum H5T_order_t:
-    H5T_ORDER_ERROR      = -1,  # error
-    H5T_ORDER_LE         = 0,   # little endian
-    H5T_ORDER_BE         = 1,   # bit endian
-    H5T_ORDER_VAX        = 2,   # VAX mixed endian
+    H5T_ORDER_ERROR      = -1   # error
+    H5T_ORDER_LE         = 0    # little endian
+    H5T_ORDER_BE         = 1    # bit endian
+    H5T_ORDER_VAX        = 2    # VAX mixed endian
     H5T_ORDER_NONE       = 3    # no particular order (strings, bits,..)
 
   # HDF5 signed enums
   cdef enum H5T_sign_t:
-    H5T_SGN_ERROR        = -1,  # error
-    H5T_SGN_NONE         = 0,   # this is an unsigned type
-    H5T_SGN_2            = 1,   # two's complement
+    H5T_SGN_ERROR        = -1   # error
+    H5T_SGN_NONE         = 0    # this is an unsigned type
+    H5T_SGN_2            = 1    # two's complement
     H5T_NSGN             = 2    # this must be last!
 
   # HDF5 type classes
   cdef enum H5T_class_t:
-    H5T_NO_CLASS         = -1,  # error
-    H5T_INTEGER          = 0,   # integer types
-    H5T_FLOAT            = 1,   # floating-point types
-    H5T_TIME             = 2,   # date and time types
-    H5T_STRING           = 3,   # character string types
-    H5T_BITFIELD         = 4,   # bit field types
-    H5T_OPAQUE           = 5,   # opaque types
-    H5T_COMPOUND         = 6,   # compound types
-    H5T_REFERENCE        = 7,   # reference types
-    H5T_ENUM             = 8,   # enumeration types
-    H5T_VLEN             = 9,   # variable-length types
-    H5T_ARRAY            = 10,  # array types
+    H5T_NO_CLASS         = -1   # error
+    H5T_INTEGER          = 0    # integer types
+    H5T_FLOAT            = 1    # floating-point types
+    H5T_TIME             = 2    # date and time types
+    H5T_STRING           = 3    # character string types
+    H5T_BITFIELD         = 4    # bit field types
+    H5T_OPAQUE           = 5    # opaque types
+    H5T_COMPOUND         = 6    # compound types
+    H5T_REFERENCE        = 7    # reference types
+    H5T_ENUM             = 8    # enumeration types
+    H5T_VLEN             = 9    # variable-length types
+    H5T_ARRAY            = 10   # array types
     H5T_NCLASSES                # this must be last
 
   # Native types
@@ -182,42 +182,44 @@ cdef extern from "hdf5.h" nogil:
 
   # The order to retrieve atomic native datatype
   cdef enum H5T_direction_t:
-    H5T_DIR_DEFAULT     = 0,    #default direction is inscendent
-    H5T_DIR_ASCEND      = 1,    #in inscendent order
-    H5T_DIR_DESCEND     = 2     #in descendent order
+    H5T_DIR_DEFAULT     = 0     # default direction is inscendent
+    H5T_DIR_ASCEND      = 1     # in inscendent order
+    H5T_DIR_DESCEND     = 2     # in descendent order
 
   # Codes for defining selections
   cdef enum H5S_seloper_t:
-    H5S_SELECT_NOOP      = -1,
-    H5S_SELECT_SET       = 0,
-    H5S_SELECT_OR,
-    H5S_SELECT_AND,
-    H5S_SELECT_XOR,
-    H5S_SELECT_NOTB,
-    H5S_SELECT_NOTA,
-    H5S_SELECT_APPEND,
-    H5S_SELECT_PREPEND,
+    H5S_SELECT_NOOP      = -1
+    H5S_SELECT_SET       = 0
+    H5S_SELECT_OR
+    H5S_SELECT_AND
+    H5S_SELECT_XOR
+    H5S_SELECT_NOTB
+    H5S_SELECT_NOTA
+    H5S_SELECT_APPEND
+    H5S_SELECT_PREPEND
     H5S_SELECT_INVALID    # Must be the last one
 
   # Character set to use for text strings
   cdef enum H5T_cset_t:
-    H5T_CSET_ERROR       = -1,  # error
-    H5T_CSET_ASCII       = 0,   # US ASCII
-    H5T_CSET_UTF8        = 1,   # UTF-8 Unicode encoding
-    H5T_CSET_RESERVED_2  = 2,
-    H5T_CSET_RESERVED_3  = 3,
-    H5T_CSET_RESERVED_4  = 4,
-    H5T_CSET_RESERVED_5  = 5,
-    H5T_CSET_RESERVED_6  = 6,
-    H5T_CSET_RESERVED_7  = 7,
-    H5T_CSET_RESERVED_8  = 8,
-    H5T_CSET_RESERVED_9  = 9,
-    H5T_CSET_RESERVED_10 = 10,
-    H5T_CSET_RESERVED_11 = 11,
-    H5T_CSET_RESERVED_12 = 12,
-    H5T_CSET_RESERVED_13 = 13,
-    H5T_CSET_RESERVED_14 = 14,
+    H5T_CSET_ERROR       = -1   # error
+    H5T_CSET_ASCII       = 0    # US ASCII
+    H5T_CSET_UTF8        = 1    # UTF-8 Unicode encoding
+    H5T_CSET_RESERVED_2  = 2
+    H5T_CSET_RESERVED_3  = 3
+    H5T_CSET_RESERVED_4  = 4
+    H5T_CSET_RESERVED_5  = 5
+    H5T_CSET_RESERVED_6  = 6
+    H5T_CSET_RESERVED_7  = 7
+    H5T_CSET_RESERVED_8  = 8
+    H5T_CSET_RESERVED_9  = 9
+    H5T_CSET_RESERVED_10 = 10
+    H5T_CSET_RESERVED_11 = 11
+    H5T_CSET_RESERVED_12 = 12
+    H5T_CSET_RESERVED_13 = 13
+    H5T_CSET_RESERVED_14 = 14
     H5T_CSET_RESERVED_15 = 15
+
+  ctypedef herr_t (*H5E_auto_t)(void *data)
 
 
   #------------------------------------------------------------------
@@ -247,6 +249,7 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Gmove(hid_t loc_id, char *src, char *dst)
   herr_t H5Gmove2(hid_t src_loc_id, char *src_name,
                   hid_t dst_loc_id, char *dst_name )
+
   # For dealing with datasets
   hid_t  H5Dopen(hid_t file_id, char *name)
   herr_t H5Dclose(hid_t dset_id)
@@ -331,7 +334,7 @@ cdef extern from "hdf5.h" nogil:
                           hbool_t backing_store)
 
   # Error Handling Interface
-  herr_t H5Eset_auto(herr_t(*func)(void*), void *client_data)
+  herr_t H5Eset_auto(H5E_auto_t func, void *data)
   herr_t H5Eprint(FILE *stream)
 
 
