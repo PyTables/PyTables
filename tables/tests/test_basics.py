@@ -23,6 +23,45 @@ from tables.parameters import NODE_CACHE_SLOTS
 unittest.TestCase.tearDown = common.cleanup
 
 
+class OpenFileFailureTestCase(common.PyTablesTestCase):
+    def setUp(self):
+        import tables.file
+
+        self.N = len(tables.file._open_files)
+        self.open_files = tables.file._open_files
+
+    def test01_openFile(self):
+        """Checking opening of a non existing file"""
+
+        filename = tempfile.mktemp(".h5")
+        try:
+            fileh = openFile(filename)
+            fileh.close()
+        except IOError:
+            self.assertEqual(self.N, len(self.open_files))
+        else:
+            self.fail("IOError exception not raised")
+
+    def test02_openFile(self):
+        """Checking opening of an existing non HDF5 file"""
+
+        # create a dummy file
+        filename = tempfile.mktemp(".h5")
+        file(filename, 'wb').close()
+
+        # Try to open the dummy file
+        try:
+            try:
+                fileh = tables.openFile(filename)
+                fileh.close()
+            except HDF5ExtError:
+                self.assertEqual(self.N, len(self.open_files))
+            else:
+                self.fail("HDF5ExtError exception not raised")
+        finally:
+            os.remove(filename)
+
+
 class OpenFileTestCase(common.PyTablesTestCase):
 
     def setUp(self):

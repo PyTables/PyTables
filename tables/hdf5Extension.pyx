@@ -71,7 +71,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Dget_space, H5Dvlen_reclaim,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
-  H5Pcreate,  H5Pset_cache,
+  H5Pcreate,  H5Pset_cache, H5Pclose,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
@@ -306,6 +306,10 @@ cdef class File:
       self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
                                H5P_DEFAULT, access_plist)
 
+    if self.file_id < 0:
+        H5Pclose(access_plist)
+        raise HDF5ExtError("Unable to open/create file '%s'" % name)
+
     # Set the cache size (only for HDF5 1.8.x)
     set_cache_size(self.file_id, params['METADATA_CACHE_SIZE'])
 
@@ -352,7 +356,7 @@ cdef class File:
   # the memory booked by this extension types
   def __dealloc__(self):
     cdef int ret
-    if self.file_id:
+    if self.file_id > 0:
       # Close the HDF5 file because user didn't do that!
       ret = H5Fclose(self.file_id)
       if ret < 0:
