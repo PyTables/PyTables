@@ -42,7 +42,8 @@ from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5Fopen, H5Fclose, H5Fis_hdf5,
   H5Gopen, H5Gclose,
-  H5E_auto_t, H5Eset_auto, H5Eprint,
+  H5E_auto_t, H5Eset_auto, H5Eprint, H5Eget_major, H5Eget_minor,
+  H5E_error_t, H5E_walk_t, H5Ewalk, H5E_WALK_DOWNWARD,
   H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
   H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
@@ -169,6 +170,66 @@ else:  # Unix systems
 
 # End of initialization code
 #---------------------------------------------------------------------
+
+# Error handling helpers
+cdef herr_t e_walk_cb(int n, H5E_error_t *err, void *data) with gil:
+    cdef object bt = <object>data   # list
+    cdef bytes maj_str, min_str
+
+    if err == NULL:
+        return -1
+
+    # XXX: H5Eget_major and H5Eget_minor are deprecated
+    maj_str = <char*>H5Eget_major(err.maj_num)
+    min_str = H5Eget_minor(err.min_num)
+    msg = "%s (%s: %s)" % (bytes(<char*>err.desc).decode('utf-8'),
+                           maj_str.decode('utf-8'),
+                           maj_str.decode('utf-8'))
+
+    # XXX: extract class info (see H5E_walk1_cb in H5Eint.c)
+
+    bt.append((
+        bytes(<char*>err.file_name).decode('utf-8'),
+        err.line,
+        bytes(<char*>err.func_name).decode('utf-8'),
+        msg,
+    ))
+
+    return 0
+
+
+def _dump_h5_backtrace():
+    cdef object bt = []
+
+    if H5Ewalk(H5E_WALK_DOWNWARD, e_walk_cb, <void*>bt) < 0:
+        return None
+
+    return bt
+
+
+# Initialization of the _dump_h5_backtrace method of HDF5ExtError.
+# The unusual machinery is needed in order to avoid cirdular dependencies
+# between modules.
+HDF5ExtError._dump_h5_backtrace = _dump_h5_backtrace
+
+
+def silenceHDF5Messages(silence=True):
+    """Silence (or re-enable) messages from the HDF5 C library.
+
+    The *silence* parameter can be used control the behaviour and reset
+    the standard HDF5 logging.
+
+    .. versionadded:: 2.4
+
+    """
+    cdef herr_t err
+    if silence:
+        err = H5Eset_auto(NULL, NULL)
+    else:
+        err = H5Eset_auto(<H5E_auto_t>H5Eprint, stderr)
+    if err < 0:
+        raise HDF5ExtError("unable to configure HDF5 internal error handling")
+
 
 # Helper functions
 
@@ -477,24 +538,6 @@ def whichClass(hid_t loc_id, char *name):
 
   # Fallback
   return classId
-
-
-def silenceHDF5Messages(silence=True):
-    """Silence (or re-enable) messages from the HDF5 C library.
-
-    The *silence* parameter can be used control the behaviour and reset
-    the standard HDF5 logging.
-
-    .. versionadded:: 2.4
-
-    """
-    cdef herr_t err
-    if silence:
-        err = H5Eset_auto(NULL, NULL)
-    else:
-        err = H5Eset_auto(<H5E_auto_t>H5Eprint, stderr)
-    if err < 0:
-        raise HDF5ExtError("unable to configure HDF5 internal error handling")
 
 
 def getNestedField(recarray, fieldname):

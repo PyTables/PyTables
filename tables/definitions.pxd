@@ -222,7 +222,7 @@ cdef extern from "hdf5.h" nogil:
 
   # Error stack traversal direction
   cdef enum H5E_direction_t:
-    H5E_WALK_UPWARD     = 0,    # begin deep, end at API function
+    H5E_WALK_UPWARD     = 0     # begin deep, end at API function
     H5E_WALK_DOWNWARD   = 1     # begin at API function, end deep
 
   ctypedef hid_t   H5E_major_t
@@ -237,7 +237,7 @@ cdef extern from "hdf5.h" nogil:
     const_char  *desc           # optional supplied description
 
   ctypedef herr_t (*H5E_walk_t)(int n, H5E_error_t *err, void *data)
-  ctypedef herr_t (*H5E_auto_t)(void *client_data)
+  ctypedef herr_t (*H5E_auto_t)(void *data)
 
   # 1.8 API
   #ctypedef struct H5E_error_t
@@ -365,11 +365,13 @@ cdef extern from "hdf5.h" nogil:
                           hbool_t backing_store)
 
   # Error Handling Interface
+  #herr_t H5Eget_auto(H5E_auto_t *func, void** data)
   herr_t H5Eset_auto(H5E_auto_t func, void *data)
   herr_t H5Eprint(FILE *stream)
-  #const_char * H5Eget_major(H5E_major_t n)
-  #char * H5Eget_minor(H5E_minor_t n)
-  herr_t H5Ewalk(H5E_direction_t dir, H5E_walk_t func, void *client_data)
+  const_char * H5Eget_major(H5E_major_t n) # deprecated
+  char * H5Eget_minor(H5E_minor_t n)       # deprecated
+  herr_t H5Ewalk(H5E_direction_t dir, H5E_walk_t func, void *data)
+
   # 1.8 API
   #hid_t H5Eget_current_stack(void)
   #herr_t H5Eclose_stack(hid_t estack_id)
@@ -379,7 +381,7 @@ cdef extern from "hdf5.h" nogil:
   #herr_t H5Eclose_msg(hid_t mesg_id)
   #ssize_t H5Eget_class_name(hid_t class_id, char* name, size_t size)
   #herr_t H5Ewalk(hid_t estack_id, H5E_direction_t dir, H5E_walk_t func,
-  #               void *client_data)
+  #               void *data)
 
 # Specific HDF5 functions for PyTables
 cdef extern from "H5ATTR.h" nogil:

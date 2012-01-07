@@ -56,19 +56,119 @@ __version__ = '$Revision$'
 """Repository version of this file."""
 
 
+import traceback
+
 
 class HDF5ExtError(RuntimeError):
-    """
-    A low level HDF5 operation failed.
+    """A low level HDF5 operation failed.
 
-    This exception is raised by ``hdf5Extension`` (the low level
-    PyTables component used for accessing HDF5 files).  It usually
-    signals that something is not going well in the HDF5 library or even
-    at the Input/Output level, and uses to be accompanied by an
-    extensive HDF5 back trace on standard error.
-    """
-    pass
+    This exception is raised the low level PyTables components used for
+    accessing HDF5 files.  It usually signals that something is not
+    going well in the HDF5 library or even at the Input/Output level.
 
+    Errors in the HDF5 C library may be accompanied by an extensive
+    HDF5 back trace on standard error (see also
+    :func:`tables.silenceHDF5Messages`).
+
+    .. attribute:: h5backtrace
+        Contains the HDF5 back trace as a (possibly empty) list of
+        tuples.  Each touple has the following format::
+
+            (filename, line number, function name, text)
+
+        Depending on the value of the *h5bt* parameter passed to the
+        initializer the h5backtrace attribute can be set to None.
+        This means that the HDF5 backtrace has been simply ignored
+        (not retrieved from the HDF5 C library error stack) or that
+        there has been an error (silently ignored) during the HDF5 back
+        trace retireval.
+
+        .. versionadded:: 2.4
+        .. seealso:: :func:`traceback.format_list`
+
+    .. versionchanged:: 2.4
+
+    """
+
+    # NOTE: in order to avoid circular dependencies between modules the
+    #       _dump_h5_backtrace method is set ad initialization time in
+    #       the utilsExtenion.
+    _dump_h5_backtrace = None
+
+    #: Default policy for HDF5 backtrace handling:
+    #: * if set to False the HDF5 back trace is ignored and the
+    #:   :attr:`HDF5ExtError.h5backtrace` attribure is set to None
+    #: * if set to True the back trace is retrieved from the HDF5
+    #:   library and stored in the :attr:`HDF5ExtError.h5backtrace`
+    #:   attribure as a list of tuples
+    #: * if set to "VERBOSE" (default) the HDF5 back trace is
+    #:   stored in the :attr:`HDF5ExtError.h5backtrace` attribute
+    #:   and also included in the string representation of the
+    #:   exception
+    DEFAULT_H5_BACKTRACE_POLICY = 'VERBOSE'
+
+    def __init__(self, *args, **kargs):
+        """Initializer prameters:
+
+        :param message:
+            error message
+        :param h5bt:
+            This parameter (keyword only) controlls the HDF5 back trace
+            handling:
+
+            * if set to False the HDF5 back trace is ignored and the
+              :attr:`HDF5ExtError.h5backtrace` attribure is set to None
+            * if set to True the back trace is retrieved from the HDF5
+              library and stored in the :attr:`HDF5ExtError.h5backtrace`
+              attribure as a list of tuples
+            * if set to "VERBOSE" (default) the HDF5 back trace is
+              stored in the :attr:`HDF5ExtError.h5backtrace` attribute
+              and also included in the string representation of the
+              exception
+
+        Keyword arguments differet from 'h5bt' are ignored.
+
+        """
+        super(HDF5ExtError, self).__init__(*args)
+
+        self._h5bt_policy = kargs.get('h5bt', self.DEFAULT_H5_BACKTRACE_POLICY)
+
+        if self._h5bt_policy and self._dump_h5_backtrace is not None:
+            self.h5backtrace = self._dump_h5_backtrace()
+            # XXX: check _dump_h5_backtrace failures
+        else:
+            self.h5backtrace = None
+
+    def __str__(self):
+        verbose = bool(self._h5bt_policy in ('VERBOSE', 'verbose'))
+
+        if verbose and self.h5backtrace:
+            bt = "\n".join([
+                "HDF5 error back trace\n",
+                self.format_h5_backtrace(),
+                "End of HDF5 error back trace"
+            ])
+
+            if len(self.args) == 1 and isinstance(self.args[0], basestring):
+                msg = super(HDF5ExtError, self).__str__()
+                msg = "%s\n\n%s" % (bt, msg)
+            elif self.h5backtrace[-1][-1]:
+                msg = "%s\n\n%s" % (bt, self.h5backtrace[-1][-1])
+            else:
+                msg = bt
+        else:
+            msg = super(HDF5ExtError, self).__str__()
+
+        return msg
+
+    def format_h5_backtrace(self, backtrace=None):
+        if backtrace is None:
+            backtrace = self.h5backtrace
+
+        if backtrace is None:
+            return 'No HDF5 back trace available'
+        else:
+            return ''.join(traceback.format_list(backtrace))
 
 
 # The following exceptions are concretions of the ``ValueError`` exceptions
@@ -105,7 +205,6 @@ class FileModeError(ValueError):
     pass
 
 
-
 class NodeError(AttributeError, LookupError):
     """
     Invalid hierarchy manipulation operation requested.
@@ -135,7 +234,6 @@ class NoSuchNodeError(NodeError):
     pass
 
 
-
 class UndoRedoError(Exception):
     """
     Problems with doing/redoing actions with Undo/Redo feature.
@@ -154,7 +252,6 @@ class UndoRedoWarning(Warning):
     This warning is only shown when the Undo/Redo mechanism is enabled.
     """
     pass
-
 
 
 class NaturalNameWarning(Warning):
@@ -178,7 +275,6 @@ class PerformanceWarning(Warning):
     the node tree grow too much).
     """
     pass
-
 
 
 class FlavorError(ValueError):
@@ -232,6 +328,7 @@ class OldIndexWarning(Warning):
     """
     pass
 
+
 class DataTypeWarning(Warning):
     """
     Unsupported data type.
@@ -240,6 +337,7 @@ class DataTypeWarning(Warning):
     (normally in a file created with other tool than PyTables).
     """
     pass
+
 
 class Incompat16Warning(Warning):
     """
