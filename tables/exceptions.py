@@ -56,6 +56,8 @@ __version__ = '$Revision$'
 """Repository version of this file."""
 
 
+import os
+import warnings
 import traceback
 
 
@@ -105,7 +107,38 @@ class HDF5ExtError(RuntimeError):
     #:   stored in the :attr:`HDF5ExtError.h5backtrace` attribute
     #:   and also included in the string representation of the
     #:   exception
-    DEFAULT_H5_BACKTRACE_POLICY = 'VERBOSE'
+    #:
+    #: This parameter can be set using the
+    #: :envvar:`PT_DEFAULT_H5_BACKTRACE_POLICY` environment variable.
+    #: Allowed values are "IGNORE" (or "FALSE"), "SAVE" (or "TRUE") and
+    #: "VERBOSE" to set the policy to False, True and "VERBOSE"
+    #: respectively.  The special value "DEFAULT" can be used to reset
+    #: the policy to the default value
+    DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
+
+    @classmethod
+    def set_policy_from_env(cls):
+        envmap = {
+            "IGNORE": False,
+            "FALSE": False,
+            "SAVE": True,
+            "TRUE": True,
+            "VERBOSE": "VERBOSE",
+            "DEFAULT": "VERBOSE",
+        }
+        oldvalue = cls.DEFAULT_H5_BACKTRACE_POLICY
+        envvalue = os.environ.get("PT_DEFAULT_H5_BACKTRACE_POLICY", "DEFAULT")
+        try:
+            newvalue = envmap[envvalue.upper()]
+        except KeyError:
+            warnings.warn("Invalid value for the environment variable "
+                          "'PT_DEFAULT_H5_BACKTRACE_POLICY'.  The default "
+                          "policy for HDF5 back trace management in PyTables "
+                          "will be: '%s'" % oldvalue)
+        else:
+            cls.DEFAULT_H5_BACKTRACE_POLICY = newvalue
+
+        return oldvalue
 
     def __init__(self, *args, **kargs):
         """Initializer prameters:
@@ -169,6 +202,10 @@ class HDF5ExtError(RuntimeError):
             return 'No HDF5 back trace available'
         else:
             return ''.join(traceback.format_list(backtrace))
+
+
+# Initialize the policy for HDF5 back trace handling
+HDF5ExtError.set_policy_from_env()
 
 
 # The following exceptions are concretions of the ``ValueError`` exceptions
