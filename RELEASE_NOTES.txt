@@ -9,8 +9,14 @@
 Changes from 2.3.1 to XXX
 =========================
 
-- Added a new function, :func:`tables.silenceHDF5Messages`, for suppressing
-  HDF5 messages.  Closes :issue:`87`.
+- Improved HDF5 error logging management:
+
+  * added a new function, :func:`tables.silenceHDF5Messages`, for suppressing
+    (and re-enabling) HDF5 messages.  By default HDF5 error logging is now
+    suppressed. Closes :issue:`87`
+  * now all HDF5 error messages and trace-backs are trapped and attached to
+    the :exc:`HDF5ExtError` exception instances. Closes :issue:`120`
+
 - Blosc updated to v. 1.1.3
 - Improved support for bzip2 on Windows (:issue:`116`).  Thanks to cgohlke.
 - Use new style syntax for exception raising. Closes :issue:`93`.
