@@ -2375,6 +2375,13 @@ class BloscSubprocess(common.PyTablesTestCase):
 
 
 class HDF5ErrorHandling(common.PyTablesTestCase):
+
+    def setUp(self):
+        self._old_policy = tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY
+
+    def tearDown(self):
+        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = self._old_policy
+
     def test_silence_messages(self):
         code = """
 import tables
@@ -2425,6 +2432,48 @@ except tables.HDF5ExtError, e:
             self.assertTrue("HDF5-DIAG" in stderr)
         finally:
             os.remove(fn)
+
+    def _raise_exterror(self):
+        filename = tempfile.mktemp(".h5")
+        file(filename, 'wb').close()
+
+        try:
+            f = tables.openFile(filename)
+            f.close()
+        finally:
+            os.remove(filename)
+
+    def test_h5_backtrace_quiet(self):
+        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = True
+
+        try:
+            self._raise_exterror()
+        except tables.HDF5ExtError, e:
+            self.assertFalse(e.h5backtrace is None)
+        else:
+            self.fail("HDF5ExtError exception not raised")
+
+    def test_h5_backtrace_verbose(self):
+        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
+
+        try:
+            self._raise_exterror()
+        except tables.HDF5ExtError, e:
+            self.assertFalse(e.h5backtrace is None)
+            msg = str(e)
+            self.assertTrue(e.h5backtrace[-1][-1] in msg)
+        else:
+            self.fail("HDF5ExtError exception not raised")
+
+    def test_h5_backtrace_ignore(self):
+        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = False
+
+        try:
+            self._raise_exterror()
+        except tables.HDF5ExtError, e:
+            self.assertTrue(e.h5backtrace is None)
+        else:
+            self.fail("HDF5ExtError exception not raised")
 
 
 class TestIsDescription(common.PyTablesTestCase):
