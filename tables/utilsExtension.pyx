@@ -736,9 +736,10 @@ def enumToHDF5(object enumAtom, char *byteorder):
     name = PyString_AsString(npNames[i])
     rbuf = <void *>(<char *>rbuffer + bytestride * i)
     if H5Tenum_insert(enumId, name, rbuf) < 0:
+      e = HDF5ExtError("failed to insert value into HDF5 enumerated type")
       if H5Tclose(enumId) < 0:
         raise HDF5ExtError("failed to close HDF5 enumerated type")
-      raise HDF5ExtError("failed to insert value into HDF5 enumerated type")
+      raise e
 
   # Return the new, open HDF5 enumerated type.
   return enumId

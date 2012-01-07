@@ -1176,7 +1176,8 @@ cdef class Row:
       raise IOError("Attempt to write over a file opened in read-only mode")
 
     if not self.chunked:
-      raise HDF5ExtError("You cannot append rows to a non-chunked table.")
+      raise HDF5ExtError("You cannot append rows to a non-chunked table.",
+                         h5tb=False)
 
     if self._riterator:
       raise NotImplementedError("You cannot append rows when in middle of a table iterator. If what you want is to update records, use Row.update() instead.")

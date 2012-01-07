@@ -307,8 +307,9 @@ cdef class File:
                                H5P_DEFAULT, access_plist)
 
     if self.file_id < 0:
+        e = HDF5ExtError("Unable to open/create file '%s'" % name)
         H5Pclose(access_plist)
-        raise HDF5ExtError("Unable to open/create file '%s'" % name)
+        raise e
 
     # Set the cache size (only for HDF5 1.8.x)
     set_cache_size(self.file_id, params['METADATA_CACHE_SIZE'])
@@ -335,7 +336,7 @@ cdef class File:
     err = H5Fget_vfd_handle(self.file_id, H5P_DEFAULT, &file_handle)
     if err < 0:
       raise HDF5ExtError(
-        "Problems getting file descriptor for file ``%s``", self.name)
+        "Problems getting file descriptor for file ``%s``" % self.name)
     # Convert the 'void *file_handle' into an 'int *descriptor'
     descriptor = <uintptr_t *>file_handle
     return descriptor[0]
@@ -1507,7 +1508,8 @@ cdef class VLArray(Leaf):
     nrows = get_len_of_range(start, stop, step)
     if start + nrows > self.nrows:
       raise HDF5ExtError(
-        "Asking for a range of rows exceeding the available ones!.")
+        "Asking for a range of rows exceeding the available ones!.",
+        h5bt=False)
 
     # Now, read the chunk of rows
     with nogil:

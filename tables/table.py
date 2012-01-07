@@ -2063,8 +2063,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         self._v_file._checkWritable()
 
         if not self._chunked:
-            raise HDF5ExtError("""\
-You cannot append rows to a non-chunked table.""")
+            raise HDF5ExtError(
+                "You cannot append rows to a non-chunked table.", h5bt=False)
 
         # Try to convert the object into a recarray compliant with table
         try:
