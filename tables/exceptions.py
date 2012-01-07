@@ -74,16 +74,16 @@ class HDF5ExtError(RuntimeError):
 
     .. attribute:: h5backtrace
         Contains the HDF5 back trace as a (possibly empty) list of
-        tuples.  Each touple has the following format::
+        tuples.  Each tuple has the following format::
 
             (filename, line number, function name, text)
 
         Depending on the value of the *h5bt* parameter passed to the
         initializer the h5backtrace attribute can be set to None.
-        This means that the HDF5 backtrace has been simply ignored
+        This means that the HDF5 back trace has been simply ignored
         (not retrieved from the HDF5 C library error stack) or that
         there has been an error (silently ignored) during the HDF5 back
-        trace retireval.
+        trace retrieval.
 
         .. versionadded:: 2.4
         .. seealso:: :func:`traceback.format_list`
@@ -98,11 +98,12 @@ class HDF5ExtError(RuntimeError):
     _dump_h5_backtrace = None
 
     #: Default policy for HDF5 backtrace handling:
+    #:
     #: * if set to False the HDF5 back trace is ignored and the
-    #:   :attr:`HDF5ExtError.h5backtrace` attribure is set to None
+    #:   :attr:`HDF5ExtError.h5backtrace` attribute is set to None
     #: * if set to True the back trace is retrieved from the HDF5
     #:   library and stored in the :attr:`HDF5ExtError.h5backtrace`
-    #:   attribure as a list of tuples
+    #:   attribute as a list of tuples
     #: * if set to "VERBOSE" (default) the HDF5 back trace is
     #:   stored in the :attr:`HDF5ExtError.h5backtrace` attribute
     #:   and also included in the string representation of the
@@ -141,25 +142,27 @@ class HDF5ExtError(RuntimeError):
         return oldvalue
 
     def __init__(self, *args, **kargs):
-        """Initializer prameters:
+        """Initializer parameters:
 
         :param message:
             error message
         :param h5bt:
-            This parameter (keyword only) controlls the HDF5 back trace
+            This parameter (keyword only) controls the HDF5 back trace
             handling:
 
             * if set to False the HDF5 back trace is ignored and the
-              :attr:`HDF5ExtError.h5backtrace` attribure is set to None
+              :attr:`HDF5ExtError.h5backtrace` attribute is set to None
             * if set to True the back trace is retrieved from the HDF5
               library and stored in the :attr:`HDF5ExtError.h5backtrace`
-              attribure as a list of tuples
+              attribute as a list of tuples
             * if set to "VERBOSE" (default) the HDF5 back trace is
               stored in the :attr:`HDF5ExtError.h5backtrace` attribute
               and also included in the string representation of the
               exception
+            * if not set (or set to None) the default policy is used
+              (see :attr:`HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY`)
 
-        Keyword arguments differet from 'h5bt' are ignored.
+        Keyword arguments different from 'h5bt' are ignored.
 
         """
         super(HDF5ExtError, self).__init__(*args)
@@ -173,6 +176,14 @@ class HDF5ExtError(RuntimeError):
             self.h5backtrace = None
 
     def __str__(self):
+        """Returns a sting representation of the exception.
+
+        The actual result depends on policy set in the initializer
+        :meth:`HDF5ExtError.__init__`.
+
+        .. versionadded:: 2.4
+
+        """
         verbose = bool(self._h5bt_policy in ('VERBOSE', 'verbose'))
 
         if verbose and self.h5backtrace:
@@ -195,6 +206,14 @@ class HDF5ExtError(RuntimeError):
         return msg
 
     def format_h5_backtrace(self, backtrace=None):
+        """Convert the HDF5 trace back into string
+
+        Convert the HDF5 trace back represented as a list of tuples
+        (see :attr:`HDF5ExtError.h5backtrace`) into string.
+
+        .. versionadded:: 2.4
+
+        """
         if backtrace is None:
             backtrace = self.h5backtrace
 
