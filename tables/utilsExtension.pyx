@@ -197,7 +197,6 @@ cdef herr_t e_walk_cb(int n, H5E_error_t *err, void *data) with gil:
 
     return 0
 
-
 def _dump_h5_backtrace():
     cdef object bt = []
 
@@ -206,12 +205,10 @@ def _dump_h5_backtrace():
 
     return bt
 
-
 # Initialization of the _dump_h5_backtrace method of HDF5ExtError.
 # The unusual machinery is needed in order to avoid cirdular dependencies
 # between modules.
 HDF5ExtError._dump_h5_backtrace = _dump_h5_backtrace
-
 
 def silenceHDF5Messages(silence=True):
     """Silence (or re-enable) messages from the HDF5 C library.
@@ -229,6 +226,9 @@ def silenceHDF5Messages(silence=True):
         err = H5Eset_auto(<H5E_auto_t>H5Eprint, stderr)
     if err < 0:
         raise HDF5ExtError("unable to configure HDF5 internal error handling")
+
+# Disable automatic HDF5 error logging
+silenceHDF5Messages()
 
 
 # Helper functions
