@@ -2482,10 +2482,10 @@ class TestIsDescription(common.PyTablesTestCase):
         class TestDescParent(IsDescription):
             c = Int32Col()
 
-        class TestDesc(testDescParent):
+        class TestDesc(TestDescParent):
             pass
 
-        self.assertTrue('c' in testDesc.columns)
+        self.assertTrue('c' in TestDesc.columns)
 
 
 #----------------------------------------------------------------------
@@ -2506,6 +2506,7 @@ def suite():
         if multiprocessing_imported:
             theSuite.addTest(unittest.makeSuite(BloscSubprocess))
         theSuite.addTest(unittest.makeSuite(HDF5ErrorHandling))
+        theSuite.addTest(unittest.makeSuite(TestIsDescription))
 
     return theSuite
 
