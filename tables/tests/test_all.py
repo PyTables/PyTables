@@ -175,6 +175,8 @@ def test(verbose=False, heavy=False):
     If `heavy` is set, the test suite will be run in *heavy* mode (you
     should be careful with this because it can take a lot of time and
     resources from your computer).
+
+    Return 0 (os.EX_OK) if all tests pass, 1 in case of failure
     """
     print_versions()
     print_heavy(heavy)
@@ -183,7 +185,11 @@ def test(verbose=False, heavy=False):
     oldverbose, common.verbose = common.verbose, verbose
     oldheavy, common.heavy = common.heavy, heavy
     try:
-        unittest.TextTestRunner().run(suite())
+        result = unittest.TextTestRunner().run(suite())
+        if result.wasSuccessful():
+            return 0
+        else:
+            return 1
     finally:
         common.verbose = oldverbose
         common.heavy = oldheavy  # there are pretty young heavies, too ;)
