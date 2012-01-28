@@ -9,6 +9,7 @@ from os.path import exists, expanduser
 import re
 import warnings
 import subprocess
+import platform
 
 # Using ``setuptools`` enables lots of goodies, such as building eggs.
 if 'FORCE_SETUPTOOLS' in os.environ:
@@ -127,8 +128,14 @@ if os.name == 'posix':
     add_from_flags("LDFLAGS", "-L", default_library_dirs)
     default_library_dirs.extend(
         os.path.join(_tree, _arch)
-        for _tree in ('/', '/usr', '/usr/local')
-        for _arch in ('lib64', 'lib') )
+            for _tree in ('/', '/usr', '/usr/local')
+                for _arch in ('lib64', 'lib')
+    )
+    machine = platform.machine()
+    default_library_dirs.extend(
+        os.path.join(_tree, "lib", "%s-linux-gnu" % machine)
+            for _tree in ('/', '/usr', '/usr/local')
+    )
     default_runtime_dirs = default_library_dirs
 
 elif os.name == 'nt':
