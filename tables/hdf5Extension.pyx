@@ -1320,7 +1320,7 @@ cdef class Array(Leaf):
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()
     # Get the atom for this type
-    atom = AtomFromHDF5Type(self.disk_type_id)
+    atom = AtomFromHDF5Type(self.type_id)
 
     # Get the rank for this array object
     if H5ARRAYget_ndims(self.dataset_id, &self.rank) < 0:
@@ -1837,7 +1837,7 @@ cdef class VLArray(Leaf):
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()
     # Get the atom for this type
-    atom = AtomFromHDF5Type(self.disk_type_id)
+    atom = AtomFromHDF5Type(self.type_id)
 
     # Get info on dimensions & types (of base class)
     H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
