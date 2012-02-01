@@ -285,13 +285,12 @@ cdef class Table(Leaf):
 
       # Get the member type
       member_type_id = H5Tget_member_type(type_id, i)
-      # Get the member size
-      itemsize = H5Tget_size(member_type_id)
       # Get the HDF5 class
       class_id = H5Tget_class(member_type_id)
       if class_id == H5T_COMPOUND and not is_complex(member_type_id):
         colpath2 = joinPath(colpath, colname)
         # Create the native data in-memory (without gaps!)
+        itemsize = H5Tget_size(member_type_id)
         native_member_type_id = H5Tcreate(H5T_COMPOUND, itemsize)
         desc[colname], itemsize = self.getNestedType(
           member_type_id, native_member_type_id, colpath2, field_byteorders)
@@ -300,8 +299,9 @@ cdef class Table(Leaf):
         # Get the member format and the corresponding Col object
         try:
           native_member_type_id = get_native_type(member_type_id)
-          atom = AtomFromHDF5Type(member_type_id)
+          atom = AtomFromHDF5Type(native_member_type_id)
           colobj = Col.from_atom(atom, pos=i)
+          itemsize = H5Tget_size(native_member_type_id)
         except TypeError, te:
           # Re-raise TypeError again with more info
           raise TypeError(
