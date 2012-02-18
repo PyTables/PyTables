@@ -2345,6 +2345,18 @@ def _worker(fn, qout = None):
 
 class BloscSubprocess(common.PyTablesTestCase):
     def test_multiprocess(self):
+        #From: Yaroslav Halchenko <debian@onerussian.com>
+        #Subject: Skip the unittest on kFreeBSD and Hurd -- locking seems to
+        #         be N/A
+        #
+        #  on kfreebsd /dev/shm is N/A
+        #  on Hurd -- inter-process semaphore locking is N/A
+        import platform
+
+        if platform.system().lower() in ('gnu', 'gnu/kfreebsd'):
+            raise common.SkipTest("multiprocessing module is not supported "
+                                  "on Hurd/kFreeBSD")
+
         # Create a relatively large table with Blosc level 9 (large blocks)
         fn = tempfile.mktemp(prefix="multiproc-blosc9-", suffix=".h5")
         size = int(3e5)
