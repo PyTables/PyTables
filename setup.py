@@ -21,6 +21,7 @@ else:
 from distutils.core     import Extension
 from distutils.dep_util import newer
 from distutils.util     import convert_path
+from distutils.ccompiler import new_compiler
 
 # The minimum required versions
 # (keep these in sync with tables.req_versions and user's guide and README)
@@ -241,12 +242,14 @@ class PosixPackage(Package):
 
     _component_dirs = ['include', 'lib']
 
-    def __init__(self, name, tag, header_name, library_name):
+    def __init__(self, name, tag, header_name, library_name,
+                 target_function=None):
         self.name = name
         self.tag = tag
         self.header_name = header_name
         self.library_name = library_name
         self.runtime_name = library_name
+        self.target_function = target_function
 
 class WindowsPackage(Package):
     _library_prefixes = ['']
@@ -257,12 +260,14 @@ class WindowsPackage(Package):
     # lookup in '.' seems necessary for LZO2
     _component_dirs = ['include', 'lib', 'dll', '.']
 
-    def __init__(self, name, tag, header_name, library_name, runtime_name):
+    def __init__(self, name, tag, header_name, library_name, runtime_name,
+                 target_function=None):
         self.name = name
         self.tag = tag
         self.header_name = header_name
         self.library_name = library_name
         self.runtime_name = runtime_name
+        self.target_function = target_function
 
     def find_runtime_path(self, locations=default_runtime_dirs):
         # An explicit path can not be provided for runtime libraries.
@@ -319,10 +324,14 @@ elif os.name == 'nt':
     if '--debug' in sys.argv:
         _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
 
-hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
-lzo2_package = _Package("LZO 2", 'LZO2', _cp('lzo/lzo1x'), *_platdep['LZO2'])
-lzo1_package = _Package("LZO 1", 'LZO', 'lzo1x', *_platdep['LZO'])
-bzip2_package = _Package("bzip2", 'BZ2', 'bzlib', *_platdep['BZ2'])
+hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'],
+                        target_function='H5close')
+lzo2_package = _Package("LZO 2", 'LZO2', _cp('lzo/lzo1x'), *_platdep['LZO2'],
+                        target_function='lzo_version_date')
+lzo1_package = _Package("LZO 1", 'LZO', 'lzo1x', *_platdep['LZO'],
+                        target_function='lzo_version_date')
+bzip2_package = _Package("bzip2", 'BZ2', 'bzlib', *_platdep['BZ2'],
+                         target_function='BZ2_bzlibVersion')
 
 
 #-----------------------------------------------------------------
@@ -383,6 +392,7 @@ CFLAGS.append("-DH5_USE_16_API")
 
 # Try to locate the compulsory and optional libraries.
 lzo2_enabled = False
+c = new_compiler()
 for (package, location) in [
     (hdf5_package, HDF5_DIR),
     (lzo2_package, LZO_DIR),
@@ -396,6 +406,11 @@ for (package, location) in [
         continue  # do not use LZO 1 if LZO 2 is available
 
     (hdrdir, libdir, rundir) = package.find_directories(location)
+
+    # check if the library is in the standard compiler paths
+    if not libdir:
+        libdir = c.has_function(package.target_function,
+                                libraries=(package.library_name,))
 
     if not (hdrdir and libdir):
         if package.tag in ['HDF5']:  # these are compulsory!
@@ -411,8 +426,12 @@ for (package, location) in [
                 "disabling support for it."  % package.name)
         continue  # look for the next library
 
-    print ( "* Found %s headers at ``%s``, library at ``%s``."
-            % (package.name, hdrdir, libdir) )
+    if libdir in ("", True):
+        print ( "* Found %s headers at ``%s``, the library is located in the "
+                "standard system search dirs." % (package.name, hdrdir) )
+    else:
+        print ( "* Found %s headers at ``%s``, library at ``%s``."
+                % (package.name, hdrdir, libdir) )
 
     if package.tag in ['HDF5']:
         hdf5_header = os.path.join(hdrdir, "H5public.h")
@@ -423,7 +442,7 @@ for (package, location) in [
 
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
-    if libdir not in default_library_dirs:
+    if libdir not in default_library_dirs and libdir not in ("", True):
         # save library directory if needed
         if os.name == "nt":
             # Important to quote the libdir for Windows (Vista) systems
