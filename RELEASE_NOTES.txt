@@ -19,7 +19,6 @@ Changes from 2.3.1 to XXX
 
 - Blosc updated to v. 1.1.3
 - Improved support for bzip2 on Windows (:issue:`116`).  Thanks to cgohlke.
-- Improved multi-arch support in GNU/Linux platforms (closes :issue:`124`)
 - Use new style syntax for exception raising. Closes :issue:`93`.
 - Fixed most of the warnings related to py3k compatibility (see :issue:`92`).
 - Fixed pyflakes warnings (closes :issue:`102`).
