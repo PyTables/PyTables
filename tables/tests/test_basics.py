@@ -2500,6 +2500,53 @@ class TestIsDescription(common.PyTablesTestCase):
         self.assertTrue('c' in TestDesc.columns)
 
 
+class TestAtomCopy(common.PyTablesTestCase):
+    def test_atom_copy01(self):
+        shape = (10, 10)
+        a = Float64Atom(shape=shape)
+        aa = a.copy()
+        self.assertEqual(aa.shape, shape)
+
+    def test_atom_copy02(self):
+        dflt = 2.0
+        a = Float64Atom(dflt=dflt)
+        aa = a.copy()
+        self.assertEqual(aa.dflt, dflt)
+
+    def test_atom_copy_override(self):
+        shape = (10, 10)
+        dflt = 2.0
+        a = Float64Atom(shape=shape, dflt=dflt)
+        aa = a.copy(dflt=-dflt)
+        self.assertEqual(aa.shape, shape)
+        self.assertNotEqual(aa.dflt, dflt)
+        self.assertEqual(aa.dflt, -dflt)
+
+
+class TestColCopy(common.PyTablesTestCase):
+    def test_col_copy01(self):
+        shape = (10, 10)
+        c = Float64Col(shape=shape)
+        cc = c.copy()
+        self.assertEqual(cc.shape, shape)
+
+    def test_col_copy02(self):
+        dflt = 2.0
+        c = Float64Col(dflt=dflt)
+        cc = c.copy()
+        self.assertEqual(cc.dflt, dflt)
+
+    def test_col_copy_override(self):
+        shape = (10, 10)
+        dflt = 2.0
+        pos = 3
+        c = Float64Col(shape=shape, dflt=dflt, pos=pos)
+        cc = c.copy(pos=2)
+        self.assertEqual(cc.shape, shape)
+        self.assertEqual(cc.dflt, dflt)
+        self.assertNotEqual(cc._v_pos, pos)
+        self.assertEqual(cc._v_pos, 2)
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -2519,6 +2566,8 @@ def suite():
             theSuite.addTest(unittest.makeSuite(BloscSubprocess))
         theSuite.addTest(unittest.makeSuite(HDF5ErrorHandling))
         theSuite.addTest(unittest.makeSuite(TestIsDescription))
+        theSuite.addTest(unittest.makeSuite(TestAtomCopy))
+        theSuite.addTest(unittest.makeSuite(TestColCopy))
 
     return theSuite
 

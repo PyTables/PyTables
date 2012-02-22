@@ -27,6 +27,7 @@ Changes from 2.3.1 to XXX
 - Reduced the number of build warnings (closes `issue:`101`)
 - Fixed broken inheritance in :class:`tables.IsDescription` classes
   (thanks to Andrea Bedini).  Closes :issue:`65`.
+- Fixed table descriptions copy method (closes :issue:`131`)
 - Removed the old lrucache module. It is no more needed after the merge with
   PyTables Pro (closes :issue:`118`)
 

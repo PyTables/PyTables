@@ -254,6 +254,14 @@ class Col(atom.Atom):
         classname = self.__class__.__name__
         return '%s(%s, pos=%s)' % (classname, atomargs, self._v_pos)
 
+    # Private methods
+    # ~~~~~~~~~~~~~~~
+    def _get_init_args(self):
+        """Get a dictionary of instance constructor arguments."""
+        kwargs = dict((arg, getattr(self, arg)) for arg in ('shape', 'dflt'))
+        kwargs['pos'] = getattr(self, '_v_pos', None)
+        return kwargs
+
 def _generate_col_classes():
     """Generate all column classes."""
     # Abstract classes are not in the class map.
