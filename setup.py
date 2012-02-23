@@ -324,14 +324,14 @@ elif os.name == 'nt':
     if '--debug' in sys.argv:
         _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
 
-hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'],
-                        target_function='H5close')
-lzo2_package = _Package("LZO 2", 'LZO2', _cp('lzo/lzo1x'), *_platdep['LZO2'],
-                        target_function='lzo_version_date')
-lzo1_package = _Package("LZO 1", 'LZO', 'lzo1x', *_platdep['LZO'],
-                        target_function='lzo_version_date')
-bzip2_package = _Package("bzip2", 'BZ2', 'bzlib', *_platdep['BZ2'],
-                         target_function='BZ2_bzlibVersion')
+hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
+hdf5_package.target_function = 'H5close'
+lzo2_package = _Package("LZO 2", 'LZO2', _cp('lzo/lzo1x'), *_platdep['LZO2'])
+lzo2_package.target_function = 'lzo_version_date'
+lzo1_package = _Package("LZO 1", 'LZO', 'lzo1x', *_platdep['LZO'])
+lzo1_package.target_function = 'lzo_version_date'
+bzip2_package = _Package("bzip2", 'BZ2', 'bzlib', *_platdep['BZ2'])
+bzip2_package.target_function = 'BZ2_bzlibVersion'
 
 
 #-----------------------------------------------------------------
@@ -408,7 +408,7 @@ for (package, location) in [
     (hdrdir, libdir, rundir) = package.find_directories(location)
 
     # check if the library is in the standard compiler paths
-    if not libdir:
+    if not libdir and package.target_function:
         libdir = c.has_function(package.target_function,
                                 libraries=(package.library_name,))
 
