@@ -191,56 +191,71 @@ you can proceed with the PyTables package itself.
 #. Run this command from the main PyTables distribution directory, including
    any extra command line arguments as discussed above::
 
-      python setup.py build_ext --inplace
+      $ python setup.py build_ext --inplace
 
 #. To run the test suite, execute any of these commands.
 
    **Unix**
       In the sh shell and its variants::
 
-          PYTHONPATH=.:$PYTHONPATH  python tables/tests/test_all.py
+        $ env PYTHONPATH=. python tables/tests/test_all.py
 
       or, if you prefer::
 
-          PYTHONPATH=.:$PYTHONPATH  python -c "import tables; tables.test()"
+        $ env PYTHONPATH=. python -c "import tables; tables.test()"
+
+      .. note:: the syntax used above overrides original contents of the
+                :envvar:`PYTHONPATH` environment variable.
+                If this is not the desired behaviour and the user just wants
+                to add some path before existing ones, then the safest syntax
+                to use is the following::
+
+                  $ env PYTHONPATH=.${PYTHONPATH:+:$PYTHONPATH} python tables/tests/test_all.py
+
+                Please refer to your :program:`sh` documentation for details.
 
    **Windows**
 
       Open the command prompt (cmd.exe or command.com) and type::
 
-          set PYTHONPATH=.;%PYTHONPATH%
-          python tables\\tests\\test_all.py
+        > set PYTHONPATH=.;%PYTHONPATH%
+        > python tables\\tests\\test_all.py
 
       or::
 
-          set PYTHONPATH=.;%PYTHONPATH%
-          python -c "import tables; tables.test()"
+        > set PYTHONPATH=.;%PYTHONPATH%
+        > python -c "import tables; tables.test()"
 
    Both commands do the same thing, but the latter still works on an already
-   installed PyTables (so, there is no need to set the PYTHONPATH variable for
-   this case).  However, before installation, the former is recommended
-   because it is more flexible, as you can see below.
+   installed PyTables (so, there is no need to set the :envvar:`PYTHONPATH`
+   variable for this case).
+   However, before installation, the former is recommended because it is
+   more flexible, as you can see below.
    If you would like to see verbose output from the tests simply add the
    :option:`-v` flag and/or the word verbose to the first of the command lines
    above. You can also run only the tests in a particular test module.
    For example, to execute just the test_types test suite, you only have to
    specify it::
 
-      python tables/tests/test_types.py -v  # change to backslashes for win
+      # change to backslashes for win
+      $ python tables/tests/test_types.py -v
 
    You have other options to pass to the :file:`test_all.py` driver::
 
-      python tables/tests/test_all.py --heavy  # change to backslashes for win
+      # change to backslashes for win
+      $ python tables/tests/test_all.py --heavy
 
    The command above runs every test in the test unit. Beware, it can take a
    lot of time, CPU and memory resources to complete::
 
-      python tables/tests/test_all.py --print-versions  # change to backslashes for win
+      # change to backslashes for win
+      $ python tables/tests/test_all.py --print-versions
 
    The command above shows the versions for all the packages that PyTables
    relies on. Please be sure to include this when reporting bugs::
 
-      python tables/tests/test_all.py --show-memory  # only under Linux 2.6.x
+      # only under Linux 2.6.x
+      $ python tables/tests/test_all.py --show-memory
 
    The command above prints out the evolution of the memory consumption after
    each test module completion. It's useful for locating memory leaks in
@@ -248,7 +263,7 @@ you can proceed with the PyTables package itself.
    And last, but not least, in case a test fails, please run the failing test
    module again and enable the verbose output::
 
-      python tables/tests/test_<module>.py -v verbose
+      $ python tables/tests/test_<module>.py -v verbose
 
    and, very important, obtain your PyTables version information by using the
    :option:`--print-versions` flag (see above) and send back both outputs to
@@ -273,13 +288,13 @@ you can proceed with the PyTables package itself.
    sufficient permissions to write to the directories where the PyTables files
    will be installed)::
 
-      python setup.py install
+      $ python setup.py install
 
    Of course, you will need super-user privileges if you want to install
    PyTables on a system-protected area. You can select, though, a different
    place to install the package using the :option:`--prefix` flag::
 
-      python setup.py install --prefix="/home/myuser/mystuff"
+      $ python setup.py install --prefix="/home/myuser/mystuff"
 
    Have in mind, however, that if you use the :option:`--prefix` flag to
    install in a non-standard place, you should properly setup your
@@ -288,7 +303,7 @@ you can proceed with the PyTables package itself.
    You have more installation options available in the Distutils package.
    Issue a::
 
-      python setup.py install --help
+      $ python setup.py install --help
 
    for more information on that subject.
 
