@@ -31,6 +31,8 @@ Changes from 2.3.1 to XXX
 - Fixed table descriptions copy method (closes :issue:`131`)
 - Removed the old lrucache module. It is no more needed after the merge with
   PyTables Pro (closes :issue:`118`)
+- Fixed a segfault on platforms that do not support unaligned memory access
+  (closes: :issue:`134`).  Thanks to Julian Taylor.
 
 
 Changes from 2.3 to 2.3.1
