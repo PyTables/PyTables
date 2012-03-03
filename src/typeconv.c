@@ -66,25 +66,27 @@ void conv_float64_timeval32(void *base,
 
   for (record = 0;  record < nrecords;  record++) {
     for (element = 0;  element < nelements;  element++) {
+      /* Perform an explicit copy of data to avoid errors related to
+         unaligned memory access on platforms like AMR, etc.
+         Patch submitted by Julian Taylor */
+      double fb;
+      memcpy(&fb, fieldbase, sizeof(*fieldbase));
       if (sense == 0) {
         /* Convert from float64 to timeval32. */
-        tv.i64 = (((PY_LONG_LONG)(*fieldbase) << 32)
-               | (lround((*fieldbase - (int)(*fieldbase)) * 1e+6)
-               & 0x0ffffffff));
-        *fieldbase = tv.f64;
+        tv.i64 = (((PY_LONG_LONG)(fb) << 32)
+                  | (lround((fb - (int)(fb)) * 1e+6) & 0x0ffffffff));
+        fb = tv.f64;
       } else {
         /* Convert from timeval32 to float64. */
-        tv.f64 = *fieldbase;
+        tv.f64 = fb;
         /* the next computation is 64 bit-platforms aware */
-        *fieldbase = 1e-6 * (int)tv.i64 + (tv.i64 >> 32);
+        fb = 1e-6 * (int)tv.i64 + (tv.i64 >> 32);
       }
+      memcpy(fieldbase, &fb, sizeof(*fieldbase));
       fieldbase++;
     }
 
     fieldbase = (double *)((unsigned char *)(fieldbase) + gapsize);
-
-    /* XXX: Need to check if this works on platforms which require
-       64-bit data to be aligned.  ivb(2005-01-07) */
   }
 
   assert(fieldbase == (base + byteoffset + bytestride * nrecords));
