@@ -159,7 +159,7 @@ def _table__getautoIndex(self):
 
 _table__autoIndex = property(
     _table__getautoIndex , _table__setautoIndex, None,
-    """
+    """\
     Automatically keep column indexes up to date?
 
     Setting this value states whether existing indexes should be
@@ -174,7 +174,8 @@ _table__autoIndex = property(
 
     This value is persistent.
 
-    """ )
+    """
+)
 
 
 def restorecache(self):

@@ -267,7 +267,7 @@ file::
     class Particle(IsDescription):
         identity = StringCol(itemsize=22, dflt=" ", pos=0)  # character String
         idnumber = Int16Col(dflt=1, pos = 1)  # short integer
-        speed    = Float32Col(dflt=1, pos = 1)  # single-precision
+        speed    = Float32Col(dflt=1, pos = 2)  # single-precision
 
     # Open a file in "w"rite mode
     fileh = openFile("objecttree.h5", mode = "w")
