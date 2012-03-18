@@ -93,7 +93,7 @@ class HDF5ExtError(RuntimeError):
     """
 
     # NOTE: in order to avoid circular dependencies between modules the
-    #       _dump_h5_backtrace method is set ad initialization time in
+    #       _dump_h5_backtrace method is set at initialization time in
     #       the utilsExtenion.
     _dump_h5_backtrace = None
 
