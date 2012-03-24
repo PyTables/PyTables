@@ -267,6 +267,36 @@ int bisect_right_ull(npy_uint64 *a, npy_uint64 x, int hi, int offset) {
   return lo;
 }
 
+/*  Optimised version for left/float16 */
+int bisect_left_e(npy_float16 *a, npy_float64 x, int hi, int offset) {
+  int lo = 0;
+  int mid;
+
+  if (x <= a[offset]) return 0;
+  if (a[hi-1+offset] < x) return hi;
+  while (lo < hi) {
+    mid = lo + (hi-lo)/2;
+    if (a[mid+offset] < x) lo = mid+1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/*   Optimised version for right/float16 */
+int bisect_right_e(npy_float16 *a, npy_float64 x, int hi, int offset) {
+  int lo = 0;
+  int mid;
+
+  if (x < a[offset]) return 0;
+  if (a[hi-1+offset] <= x) return hi;
+  while (lo < hi) {
+    mid = lo + (hi-lo)/2;
+    if (x < a[mid+offset]) hi = mid;
+    else lo = mid+1;
+  }
+  return lo;
+}
+
 /*  Optimised version for left/float32 */
 int bisect_left_f(npy_float32 *a, npy_float64 x, int hi, int offset) {
   int lo = 0;
@@ -351,35 +381,35 @@ sSWAP(char *s1, char *s2, size_t len)
 }
 
 /* The iSWAP macro is safe because it will always work on aligned ints */
-#define iSWAP(a,b) {						\
-    switch(ts) {						\
-    case 8:							\
-      *(npy_int64 *)iSWAP_temp = *(npy_int64 *)(b);		\
-      *(npy_int64 *)(b) = *(npy_int64 *)(a);			\
-      *(npy_int64 *)(a) = *(npy_int64 *)iSWAP_temp;		\
-      break;							\
-    case 4:							\
-      *(npy_int32 *)iSWAP_temp = *(npy_int32 *)(b);		\
-      *(npy_int32 *)(b) = *(npy_int32 *)(a);			\
-      *(npy_int32 *)(a) = *(npy_int32 *)iSWAP_temp;		\
-      break;							\
-    case 1:							\
-      *(npy_int8 *)iSWAP_temp = *(npy_int8 *)(b);		\
-      *(npy_int8 *)(b) = *(npy_int8 *)(a);			\
-      *(npy_int8 *)(a) = *(npy_int8 *)iSWAP_temp;		\
-      break;							\
-    case 2:							\
-      *(npy_int16 *)iSWAP_temp = *(npy_int16 *)(b);		\
-      *(npy_int16 *)(b) = *(npy_int16 *)(a);			\
-      *(npy_int16 *)(a) = *(npy_int16 *)iSWAP_temp;		\
-      break;							\
-    default:							\
-      for (i=0; i<ts; i++) {					\
-	((char *)iSWAP_temp)[i] = ((char *)(b))[i];		\
-	((char *)(b))[i] = ((char *)(a))[i];			\
-	((char *)(a))[i] = ((char *)(iSWAP_temp))[i];		\
-      }								\
-    }								\
+#define iSWAP(a,b) {                                               \
+    switch(ts) {                                                   \
+    case 8:                                                        \
+      *(npy_int64 *)iSWAP_temp = *(npy_int64 *)(b);                \
+      *(npy_int64 *)(b) = *(npy_int64 *)(a);                       \
+      *(npy_int64 *)(a) = *(npy_int64 *)iSWAP_temp;                \
+      break;                                                       \
+    case 4:                                                        \
+      *(npy_int32 *)iSWAP_temp = *(npy_int32 *)(b);                \
+      *(npy_int32 *)(b) = *(npy_int32 *)(a);                       \
+      *(npy_int32 *)(a) = *(npy_int32 *)iSWAP_temp;                \
+      break;                                                       \
+    case 1:                                                        \
+      *(npy_int8 *)iSWAP_temp = *(npy_int8 *)(b);                  \
+      *(npy_int8 *)(b) = *(npy_int8 *)(a);                         \
+      *(npy_int8 *)(a) = *(npy_int8 *)iSWAP_temp;                  \
+      break;                                                       \
+    case 2:                                                        \
+      *(npy_int16 *)iSWAP_temp = *(npy_int16 *)(b);                \
+      *(npy_int16 *)(b) = *(npy_int16 *)(a);                       \
+      *(npy_int16 *)(a) = *(npy_int16 *)iSWAP_temp;                \
+      break;                                                       \
+    default:                                                       \
+      for (i=0; i<ts; i++) {                                       \
+        ((char *)iSWAP_temp)[i] = ((char *)(b))[i];                \
+        ((char *)(b))[i] = ((char *)(a))[i];                       \
+        ((char *)(a))[i] = ((char *)(iSWAP_temp))[i];              \
+      }                                                            \
+    }                                                              \
   }
 
 
@@ -448,29 +478,29 @@ int keysort_f64(npy_float64 *start1, char *start2, npy_intp num, int ts)
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-	do { ++pi; ipi += ts; } while (*pi < vp);
-	do { --pj; ipj -= ts; } while (vp < *pj);
-	if (pi >= pj)  break;
-	SWAP(*pi, *pj); iSWAP(ipi, ipj);
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
       SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + 1; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - 1; ipr = ipi - ts;
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - 1; *isptr++ = ipi - ts;
-	pl = pi + 1; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
       }
     }
     /* insertion sort */
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && vp < *pt;) {
-	*pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
     }
@@ -516,29 +546,97 @@ int keysort_f32(npy_float32 *start1, char *start2, npy_intp num, int ts)
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-	do { ++pi; ipi += ts; } while (*pi < vp);
-	do { --pj; ipj -= ts; } while (vp < *pj);
-	if (pi >= pj)  break;
-	SWAP(*pi, *pj); iSWAP(ipi, ipj);
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
       SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + 1; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - 1; ipr = ipi - ts;
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - 1; *isptr++ = ipi - ts;
-	pl = pi + 1; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
       }
     }
     /* insertion sort */
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && vp < *pt;) {
-	*pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+      }
+      *pj = vp; opt_memcpy(ipj, ivp, ts);
+    }
+    if (sptr == stack) break;
+    pr = *(--sptr); ipr = *(--isptr);
+    pl = *(--sptr); ipl = *(--isptr);
+  }
+
+  free(ivp);
+  free(iSWAP_temp);
+
+  return 0;
+}
+
+
+int keysort_f16(npy_float16 *start1, char *start2, npy_intp num, int ts)
+{
+  npy_float16 *pl = start1;
+  char *ipl = start2;
+  npy_float16 *pr = start1 + num - 1;
+  char *ipr = start2 + (num - 1) * ts;
+  npy_float16 vp;
+  char *ivp;
+  npy_float16 SWAP_temp;
+  char *iSWAP_temp;
+  npy_float16 *stack[PYA_QS_STACK], **sptr = stack;
+  char *istack[PYA_QS_STACK], **isptr = istack;
+  npy_float16 *pm, *pi, *pj, *pt;
+  char *ipm, *ipi, *ipj, *ipt;
+  npy_intp i;
+
+  ivp = malloc(ts);
+  iSWAP_temp = malloc(ts);
+  for(;;) {
+    while ((pr - pl) > SMALL_QUICKSORT) {
+      /* quicksort partition */
+      pm = pl + ((pr - pl) >> 1); ipm = ipl + (((ipr - ipl)/ts) >> 1)*ts;
+      if (*pm < *pl) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
+      if (*pr < *pm) { SWAP(*pr, *pm); iSWAP(ipr, ipm); }
+      if (*pm < *pl) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
+      vp = *pm;
+      pi = pl; ipi = ipl;
+      pj = pr - 1; ipj = ipr - ts;
+      SWAP(*pm, *pj); iSWAP(ipm, ipj);
+      for(;;) {
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
+      }
+      SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
+      /* push largest partition on stack */
+      if (pi - pl < pr - pi) {
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
+      }else{
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
+      }
+    }
+    /* insertion sort */
+    for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
+      vp = *pi; opt_memcpy(ivp, ipi, ts);
+      for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
     }
@@ -584,29 +682,29 @@ int keysort_i64(npy_int64 *start1, char *start2, npy_intp num, int ts)
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-	do { ++pi; ipi += ts; } while (*pi < vp);
-	do { --pj; ipj -= ts; } while (vp < *pj);
-	if (pi >= pj)  break;
-	SWAP(*pi, *pj); iSWAP(ipi, ipj);
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
       SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + 1; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - 1; ipr = ipi - ts;
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - 1; *isptr++ = ipi - ts;
-	pl = pi + 1; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
       }
     }
     /* insertion sort */
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && vp < *pt;) {
-	*pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
     }
@@ -652,29 +750,29 @@ int keysort_u64(npy_uint64 *start1, char *start2, npy_intp num, int ts)
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-	do { ++pi; ipi += ts; } while (*pi < vp);
-	do { --pj; ipj -= ts; } while (vp < *pj);
-	if (pi >= pj)  break;
-	SWAP(*pi, *pj); iSWAP(ipi, ipj);
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
       SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + 1; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - 1; ipr = ipi - ts;
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - 1; *isptr++ = ipi - ts;
-	pl = pi + 1; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
       }
     }
     /* insertion sort */
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && vp < *pt;) {
-	*pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
     }
@@ -720,29 +818,29 @@ int keysort_i32(npy_int32 *start1, char *start2, npy_intp num, int ts)
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-	do { ++pi; ipi += ts; } while (*pi < vp);
-	do { --pj; ipj -= ts; } while (vp < *pj);
-	if (pi >= pj)  break;
-	SWAP(*pi, *pj); iSWAP(ipi, ipj);
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
       SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + 1; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - 1; ipr = ipi - ts;
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - 1; *isptr++ = ipi - ts;
-	pl = pi + 1; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
       }
     }
     /* insertion sort */
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && vp < *pt;) {
-	*pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
     }
@@ -788,29 +886,29 @@ int keysort_u32(npy_uint32 *start1, char *start2, npy_intp num, int ts)
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-	do { ++pi; ipi += ts; } while (*pi < vp);
-	do { --pj; ipj -= ts; } while (vp < *pj);
-	if (pi >= pj)  break;
-	SWAP(*pi, *pj); iSWAP(ipi, ipj);
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
       SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + 1; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - 1; ipr = ipi - ts;
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - 1; *isptr++ = ipi - ts;
-	pl = pi + 1; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
       }
     }
     /* insertion sort */
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && vp < *pt;) {
-	*pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
     }
@@ -856,29 +954,29 @@ int keysort_i16(npy_int16 *start1, char *start2, npy_intp num, int ts)
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-	do { ++pi; ipi += ts; } while (*pi < vp);
-	do { --pj; ipj -= ts; } while (vp < *pj);
-	if (pi >= pj)  break;
-	SWAP(*pi, *pj); iSWAP(ipi, ipj);
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
       SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + 1; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - 1; ipr = ipi - ts;
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - 1; *isptr++ = ipi - ts;
-	pl = pi + 1; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
       }
     }
     /* insertion sort */
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && vp < *pt;) {
-	*pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
     }
@@ -924,29 +1022,29 @@ int keysort_u16(npy_uint16 *start1, char *start2, npy_intp num, int ts)
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-	do { ++pi; ipi += ts; } while (*pi < vp);
-	do { --pj; ipj -= ts; } while (vp < *pj);
-	if (pi >= pj)  break;
-	SWAP(*pi, *pj); iSWAP(ipi, ipj);
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
       SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + 1; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - 1; ipr = ipi - ts;
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - 1; *isptr++ = ipi - ts;
-	pl = pi + 1; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
       }
     }
     /* insertion sort */
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && vp < *pt;) {
-	*pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
     }
@@ -992,29 +1090,29 @@ int keysort_i8(npy_int8 *start1, char *start2, npy_intp num, int ts)
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-	do { ++pi; ipi += ts; } while (*pi < vp);
-	do { --pj; ipj -= ts; } while (vp < *pj);
-	if (pi >= pj)  break;
-	SWAP(*pi, *pj); iSWAP(ipi, ipj);
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
       SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + 1; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - 1; ipr = ipi - ts;
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - 1; *isptr++ = ipi - ts;
-	pl = pi + 1; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
       }
     }
     /* insertion sort */
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && vp < *pt;) {
-	*pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
     }
@@ -1060,29 +1158,29 @@ int keysort_u8(npy_uint8 *start1, char *start2, npy_intp num, int ts)
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-	do { ++pi; ipi += ts; } while (*pi < vp);
-	do { --pj; ipj -= ts; } while (vp < *pj);
-	if (pi >= pj)  break;
-	SWAP(*pi, *pj); iSWAP(ipi, ipj);
+        do { ++pi; ipi += ts; } while (*pi < vp);
+        do { --pj; ipj -= ts; } while (vp < *pj);
+        if (pi >= pj)  break;
+        SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
       SWAP(*pi, *(pr-1)); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + 1; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - 1; ipr = ipi - ts;
+        *sptr++ = pi + 1; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - 1; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - 1; *isptr++ = ipi - ts;
-	pl = pi + 1; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - 1; *isptr++ = ipi - ts;
+        pl = pi + 1; ipl = ipi + ts;
       }
     }
     /* insertion sort */
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && vp < *pt;) {
-	*pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
+          pj > pl && vp < *pt;) {
+        *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
     }
@@ -1127,30 +1225,30 @@ int keysort_S(char *start1, int ss, char *start2, npy_intp num, int ts)
       pj = pr - ss; ipj = ipr - ts;
       sSWAP(pm, pj, ss); iSWAP(ipm, ipj);
       for(;;) {
-	do { pi += ss; ipi += ts; } while (opt_strncmp(pi, vp, ss) < 0);
-	do { pj -= ss; ipj -= ts; } while (opt_strncmp(vp, pj, ss) < 0);
-	if (pi >= pj)  break;
-	sSWAP(pi, pj, ss); iSWAP(ipi, ipj);
+        do { pi += ss; ipi += ts; } while (opt_strncmp(pi, vp, ss) < 0);
+        do { pj -= ss; ipj -= ts; } while (opt_strncmp(vp, pj, ss) < 0);
+        if (pi >= pj)  break;
+        sSWAP(pi, pj, ss); iSWAP(ipi, ipj);
       }
       sSWAP(pi, pr-ss, ss); iSWAP(ipi, ipr-ts);
       /* push largest partition on stack */
       if (pi - pl < pr - pi) {
-	*sptr++ = pi + ss; *isptr++ = ipi + ts;
-	*sptr++ = pr; *isptr++ = ipr;
-	pr = pi - ss; ipr = ipi - ts;
+        *sptr++ = pi + ss; *isptr++ = ipi + ts;
+        *sptr++ = pr; *isptr++ = ipr;
+        pr = pi - ss; ipr = ipi - ts;
       }else{
-	*sptr++ = pl; *isptr++ = ipl;
-	*sptr++ = pi - ss; *isptr++ = ipi - ts;
-	pl = pi + ss; ipl = ipi + ts;
+        *sptr++ = pl; *isptr++ = ipl;
+        *sptr++ = pi - ss; *isptr++ = ipi - ts;
+        pl = pi + ss; ipl = ipi + ts;
       }
     }
     /* insertion sort */
-    for(pi = pl + ss, ipi = ipl + ts; pi <= pr;	pi += ss, ipi += ts) {
+    for(pi = pl + ss, ipi = ipl + ts; pi <= pr;        pi += ss, ipi += ts) {
       opt_memcpy(vp, pi, ss); opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - ss, ipj = ipi, ipt = ipi - ts; \
-	  pj > pl && opt_strncmp(vp, pt, ss) < 0;) {
-	opt_memcpy(pj, pt, ss); opt_memcpy(ipj, ipt, ts);
-	pj -= ss; pt -= ss; ipj -= ts; ipt -= ts;
+          pj > pl && opt_strncmp(vp, pt, ss) < 0;) {
+        opt_memcpy(pj, pt, ss); opt_memcpy(ipj, ipt, ts);
+        pj -= ss; pt -= ss; ipj -= ts; ipt -= ts;
       }
       opt_memcpy(pj, vp, ss); opt_memcpy(ipj, ivp, ts);
     }

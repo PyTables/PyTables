@@ -315,8 +315,10 @@ cdef extern from "hdf5.h" nogil:
   H5T_order_t H5Tget_order(hid_t type_id)
   size_t H5Tget_size(hid_t type_id)
   herr_t H5Tset_size(hid_t type_id, size_t size)
+  size_t H5Tget_precision(hid_t dtype_id)
   herr_t H5Tset_precision(hid_t type_id, size_t prec)
   hid_t  H5Tcreate(H5T_class_t type, size_t size)
+  hid_t  H5Tvlen_create(hid_t base_type_id)
   hid_t  H5Tcopy(hid_t type_id)
   herr_t H5Tclose(hid_t type_id)
 
@@ -417,6 +419,7 @@ cdef extern from "utils.h":
   object Aiterate(hid_t loc_id)
   object H5UIget_info(hid_t loc_id, char *name, char *byteorder)
   hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step) nogil
+  hid_t  create_ieee_float16(char *byteorder) nogil
   hid_t  create_ieee_complex64(char *byteorder) nogil
   hid_t  create_ieee_complex128(char *byteorder) nogil
   herr_t set_order(hid_t type_id, char *byteorder) nogil

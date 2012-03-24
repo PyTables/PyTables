@@ -43,17 +43,27 @@ small_blocksizes = (300, 60, 20, 5)
 # ----------------
 type_info = {
     'bool': (numpy.bool_, bool),
-    'int8': (numpy.int8, int), 'uint8': (numpy.uint8, int),
-    'int16': (numpy.int16, int), 'uint16': (numpy.uint16, int),
-    'int32': (numpy.int32, int), 'uint32': (numpy.uint32, long),
-    'int64': (numpy.int64, long), 'uint64': (numpy.uint64, long),
-    'float32': (numpy.float32, float), 'float64': (numpy.float32, float),
+    'int8': (numpy.int8, int),
+    'uint8': (numpy.uint8, int),
+    'int16': (numpy.int16, int),
+    'uint16': (numpy.uint16, int),
+    'int32': (numpy.int32, int),
+    'uint32': (numpy.uint32, long),
+    'int64': (numpy.int64, long),
+    'uint64': (numpy.uint64, long),
+    'float32': (numpy.float32, float),
+    'float64': (numpy.float64, float),
     'complex64': (numpy.complex64, complex),
     'complex128': (numpy.complex128, complex),
-    'time32': (numpy.int32, int), 'time64': (numpy.float64, float),
+    'time32': (numpy.int32, int),
+    'time64': (numpy.float64, float),
     'enum': (numpy.uint8, int),  # just for these tests
-    'string': ('S%s' % _strlen, str) }  # just for these tests
+    'string': ('S%s' % _strlen, str),  # just for these tests
+}
 """NumPy and Numexpr type for each PyTables type that will be tested."""
+
+if hasattr(numpy, 'float16'):
+    type_info['float16'] = (numpy.float16, float)
 
 sctype_from_type = dict( (type_, info[0])
                          for (type_, info) in type_info.iteritems() )

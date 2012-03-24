@@ -154,9 +154,12 @@ class BasicTestCase(unittest.TestCase):
     def test02_types(self):
         "Data integrity during recovery (numerical types)"
 
-        # uint64 seems to be unsupported on 64-bit machines!
-        typecodes = ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32',
-                     'int64', 'float32', 'float64', 'complex64', 'complex128']
+        typecodes = ['int8', 'int16', 'int32', 'int64',
+                     'uint8', 'uint16', 'uint32', 'uint64',
+                     'float32', 'float64',
+                     'complex64', 'complex128']
+        if hasattr(numpy, 'float16'):
+            typecodes.append('float16')
 
         for typecode in typecodes:
             a = numpy.array(self.tupleInt, typecode)
@@ -167,9 +170,12 @@ class BasicTestCase(unittest.TestCase):
     def test03_types_nc(self):
         "Data integrity during recovery (non-contiguous numerical types)"
 
-        # uint64 seems to be unsupported on 64-bit machines!
-        typecodes = ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32',
-                     'int64', 'float32', 'float64', 'complex64', 'complex128']
+        typecodes = ['int8', 'int16', 'int32', 'int64',
+                     'uint8', 'uint16', 'uint32', 'uint64',
+                     'float32', 'float64',
+                     'complex64', 'complex128',]
+        if hasattr(numpy, 'float16'):
+            typecodes.append('float16')
 
         for typecode in typecodes:
             a = numpy.array(self.tupleInt, typecode)
@@ -523,13 +529,12 @@ class GroupsArrayTestCase(unittest.TestCase):
         group = fileh.root
 
         # Set the type codes to test
-        # uint64 seems to be unsupported on 64-bit machines!
-#         typecodes = ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32',
-#                      'int64', 'float32', 'float64', 'complex64', 'complex128']
         # The typecodes below does expose an ambiguity that is reported in:
         # http://projects.scipy.org/scipy/numpy/ticket/283 and
         # http://projects.scipy.org/scipy/numpy/ticket/290
         typecodes = ['b', 'B', 'h', 'H', 'i', 'I', 'l', 'L', 'q', 'f', 'd', 'F', 'D']
+        if hasattr(numpy, 'float16'):
+            typecodes.append('e')
 
         for i, typecode in enumerate(typecodes):
             a = numpy.ones((3,), typecode)

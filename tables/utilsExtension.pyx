@@ -48,13 +48,13 @@ from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
   H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
   H5Tget_member_value, H5Tget_size, H5Tget_native_type,
-  H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset,
-  H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tarray_create,
-  H5Tget_array_ndims, H5Tget_array_dims, H5Tis_variable_str,
-  H5Tset_size, H5Tset_precision, H5Tpack,
+  H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, H5Tget_precision,
+  H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tvlen_create,
+  H5Tarray_create, H5Tget_array_ndims, H5Tget_array_dims,
+  H5Tis_variable_str, H5Tset_size, H5Tset_precision, H5Tpack,
   H5ATTRget_attribute_string, H5ATTRfind_attribute,
   H5ARRAYget_ndims, H5ARRAYget_info,
-  create_ieee_complex64, create_ieee_complex128,
+  create_ieee_float16, create_ieee_complex64, create_ieee_complex128,
   get_order, set_order, is_complex,
   get_len_of_range,
   PyArray_Scalar,
@@ -66,6 +66,8 @@ include "convtypetables.pxi"
 
 __version__ = "$Revision$"
 
+from numpy import typeDict
+cdef int have_float16 = ("float16" in typeDict)
 
 #----------------------------------------------------------------------
 
@@ -246,6 +248,21 @@ cdef hsize_t *malloc_dims(object pdims):
       dims[i] = pdims[i]
   return dims
 
+cdef hid_t get_native_float_type(hid_t type_id) nogil:
+  """Get a native type of an HDF5 float type.
+
+  This functionn also handles half precision (float16) data type."""
+  cdef hid_t  native_type_id
+  cdef size_t precision
+
+  precision = H5Tget_precision(type_id)
+
+  if precision == 16 and have_float16:
+    native_type_id = create_ieee_float16(NULL)
+  else:
+    native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
+
+  return native_type_id
 
 # This is a re-implementation of a working H5Tget_native_type for nested
 # compound types.  I should report the flaw to THG as soon as possible.
@@ -282,7 +299,10 @@ cdef hid_t get_nested_native_type(hid_t type_id) nogil:
     if class_id == H5T_COMPOUND:
       native_tid = get_nested_native_type(member_type_id)
     else:
-      native_tid = H5Tget_native_type(member_type_id, H5T_DIR_DEFAULT)
+      if class_id == H5T_FLOAT:
+        native_tid = get_native_float_type(member_type_id)
+      else:
+        native_tid = H5Tget_native_type(member_type_id, H5T_DIR_DEFAULT)
     H5Tinsert(tid, colname, offset, native_tid)
     itemsize = H5Tget_size(native_tid)
     offset = offset + itemsize
@@ -306,9 +326,10 @@ cdef hid_t get_nested_native_type(hid_t type_id) nogil:
 # this can be simplified.
 cdef hid_t get_native_type(hid_t type_id) nogil:
   """Get the native type of a HDF5 type."""
-  cdef H5T_class_t class_id
-  cdef hid_t native_type_id, super_type_id
-  cdef char *sys_byteorder
+  cdef H5T_class_t class_id, super_class_id
+  cdef hid_t native_type_id, super_type_id, native_super_type_id
+  cdef int rank
+  cdef hsize_t *dims
 
   class_id = H5Tget_class(type_id)
   if class_id == H5T_COMPOUND:
@@ -326,10 +347,32 @@ cdef hid_t get_native_type(hid_t type_id) nogil:
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
     # Get the class
-    class_id = H5Tget_class(super_type_id)
+    super_class_id = H5Tget_class(super_type_id)
+    if super_class_id == H5T_FLOAT:
+        # replicate the logic of H5Tget_native_type for H5T_ARRAY and
+        # H5T_VLEN taking into account extended floating point types
+        # XXX: HDF5 error check
+        native_super_type_id = get_native_float_type(super_type_id)
+        H5Tclose(super_type_id)
+        if class_id == H5T_ARRAY:
+            rank = H5Tget_array_ndims(type_id)
+            dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+            H5Tget_array_dims(type_id, dims, NULL)
+            native_type_id = H5Tarray_create(native_super_type_id, rank, dims,
+                                             NULL)
+            free(dims)
+            H5Tclose(native_super_type_id)
+            return native_type_id
+        elif class_id == H5T_VLEN:
+            native_type_id = H5Tvlen_create(native_super_type_id)
+            H5Tclose(native_super_type_id)
+            return native_type_id
+    class_id = super_class_id
     H5Tclose(super_type_id)
 
-  if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_ENUM):
+  if class_id == H5T_FLOAT:
+    native_type_id = get_native_float_type(type_id)
+  elif class_id in (H5T_INTEGER, H5T_ENUM):
     native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
   else:
     # Fixing the byteorder for other types shouldn't be needed.
@@ -755,6 +798,8 @@ def AtomToHDF5Type(atom, char *byteorder):
     # Fix the byteorder
     if atom.kind != 'time':
       set_order(tid, byteorder)
+  elif atom.type == 'float16':
+    tid = create_ieee_float16(byteorder)
   elif atom.kind in PTSpecialKinds:
     # Special cases (the byteorder doesn't need to be fixed afterwards)
     if atom.type == 'complex64':

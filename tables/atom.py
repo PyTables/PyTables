@@ -674,7 +674,11 @@ def _generate_integral_classes():
 
 def _generate_floating_classes():
     """Generate all floating classes."""
-    for itemsize in [4, 8]:
+    itemsizes = [4, 8]
+    # numpy >= 1.6
+    if hasattr(numpy, 'float16'):
+        itemsizes.insert(0, 2)
+    for itemsize in itemsizes:
         newclass = _create_numeric_class(FloatAtom, itemsize)
         yield newclass
 

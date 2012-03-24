@@ -149,6 +149,10 @@ __all__ = [
     'Expr',
     ]
 
+if 'Float16Atom' in locals():
+    # float16 is new in numpy 1.6.0
+    __all__.extend(('Float16Atom', 'Float16Col'))
+
 if hdf5Version < "1.8.0":
     import warnings
     warnings.warn("Support for HDF5 v1.6.x will be removed in future releases",

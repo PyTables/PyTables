@@ -651,6 +651,98 @@ class StringComprTestCase(BasicTestCase):
     stop = 100
     step = 20
 
+
+class Int8TestCase(BasicTestCase):
+    type = "int8"
+    shape = (2,2)
+    compress = 1
+    shuffle = 1
+    chunkshape = (50,50)
+    start = -1
+    stop = 100
+    step = 20
+
+class Int16TestCase(BasicTestCase):
+    type = "int16"
+    shape = (2,2)
+    compress = 1
+    shuffle = 1
+    chunkshape = (50,50)
+    start = 1
+    stop = 100
+    step = 1
+
+class Int32TestCase(BasicTestCase):
+    type = "int32"
+    shape = (2,2)
+    compress = 1
+    shuffle = 1
+    chunkshape = (50,50)
+    start = -1
+    stop = 100
+    step = 20
+
+class Float16TestCase(BasicTestCase):
+    type = "float16"
+    shape = (200,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (20,)
+    start = -1
+    stop = 100
+    step = 20
+
+class Float32TestCase(BasicTestCase):
+    type = "float32"
+    shape = (200,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (20,)
+    start = -1
+    stop = 100
+    step = 20
+
+class Float64TestCase(BasicTestCase):
+    type = "float64"
+    shape = (200,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (20,)
+    start = -1
+    stop = 100
+    step = 20
+
+class Complex64TestCase(BasicTestCase):
+    type = "complex64"
+    shape = (4,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (2,)
+    start = -1
+    stop = 100
+    step = 20
+
+class Complex128TestCase(BasicTestCase):
+    type = "complex128"
+    shape = (20,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (2,)
+    start = -1
+    stop = 100
+    step = 20
+
+class ComprTestCase(BasicTestCase):
+    type = "float64"
+    compress = 1
+    shuffle = 1
+    shape = (200,)
+    compr = 1
+    chunkshape = (21,)
+    start = 51
+    stop = 100
+    step = 7
+
 class NumarrayInt8TestCase(BasicTestCase):
     flavor = "numarray"
     type = "int8"
@@ -2443,6 +2535,16 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StringTestCase))
         theSuite.addTest(unittest.makeSuite(String2TestCase))
         theSuite.addTest(unittest.makeSuite(StringComprTestCase))
+        theSuite.addTest(unittest.makeSuite(Int8TestCase))
+        theSuite.addTest(unittest.makeSuite(Int16TestCase))
+        theSuite.addTest(unittest.makeSuite(Int32TestCase))
+        if hasattr(numpy, 'float16'):
+            theSuite.addTest(unittest.makeSuite(Float16TestCase))
+        theSuite.addTest(unittest.makeSuite(Float32TestCase))
+        theSuite.addTest(unittest.makeSuite(Float64TestCase))
+        theSuite.addTest(unittest.makeSuite(Complex64TestCase))
+        theSuite.addTest(unittest.makeSuite(Complex128TestCase))
+        theSuite.addTest(unittest.makeSuite(ComprTestCase))
 
         # numarray is now deprecated
         #if numarray_imported:

@@ -2,8 +2,8 @@
 #include "utils.h"
 /* #include <string.h> */
 #include "version.h"
-#include "H5Zlzo.h"  		       /* Import FILTER_LZO */
-#include "H5Zbzip2.h"  		       /* Import FILTER_BZIP2 */
+#include "H5Zlzo.h"                /* Import FILTER_LZO */
+#include "H5Zbzip2.h"              /* Import FILTER_BZIP2 */
 
 
 /* ---------------------------------------------------------------- */
@@ -103,7 +103,7 @@ PyObject *getHDF5VersionInfo(void) {
   /* A string number */
   if (strcmp(H5_VERS_SUBRELEASE, "")) {
     snprintf(strver, 16, "%d.%d.%d-%s", majnum, minnum, relnum,
-	     H5_VERS_SUBRELEASE);
+             H5_VERS_SUBRELEASE);
   }
   else {
     snprintf(strver, 16, "%d.%d.%d", majnum, minnum, relnum);
@@ -172,7 +172,7 @@ PyObject *createNamesList(char *buffer[], int nelements)
  */
 
 PyObject *get_filter_names( hid_t loc_id,
-			    const char *dset_name)
+                            const char *dset_name)
 {
  hid_t    dset;
  hid_t    dcpl;           /* dataset creation property list */
@@ -221,7 +221,7 @@ PyObject *get_filter_names( hid_t loc_id,
  else {
    /* http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52309 */
    Py_INCREF(Py_None);
-   filters = Py_None;  	/* Not chunked, so return None */
+   filters = Py_None;   /* Not chunked, so return None */
  }
 
  H5Pclose(dcpl);
@@ -232,7 +232,7 @@ return filters;
 out:
  H5Dclose(dset);
  Py_INCREF(Py_None);
- return Py_None;  	/* Not chunked, so return None */
+ return Py_None;        /* Not chunked, so return None */
 
 }
 
@@ -366,10 +366,10 @@ PyObject *Aiterate(hid_t loc_id) {
 **
 ****************************************************************/
 H5T_class_t getHDF5ClassID(hid_t loc_id,
-			   const char *name,
-			   H5D_layout_t *layout,
-			   hid_t *type_id,
-			   hid_t *dataset_id) {
+                           const char *name,
+                           H5D_layout_t *layout,
+                           hid_t *type_id,
+                           hid_t *dataset_id) {
    H5T_class_t  class_id;
    hid_t        plist;
 
@@ -398,8 +398,8 @@ H5T_class_t getHDF5ClassID(hid_t loc_id,
 */
 
 PyObject *H5UIget_info( hid_t loc_id,
-			const char *dset_name,
-			char *byteorder)
+                        const char *dset_name,
+                        char *byteorder)
 {
   hid_t       dataset_id;
   int         rank;
@@ -521,7 +521,7 @@ hsize_t _PyEval_SliceIndex_modif(PyObject *v, hssize_t *pi)
       x = PyLong_AsLongLong(v);
     } else {
       PyErr_SetString(PyExc_TypeError,
-		      "PyTables slice indices must be integers");
+                      "PyTables slice indices must be integers");
       return 0;
     }
     /* Truncate -- very long indices are truncated anyway */
@@ -542,8 +542,8 @@ hsize_t _PyEval_SliceIndex_modif(PyObject *v, hssize_t *pi)
 /* F. Alted 2005-05-08 */
 
 hsize_t getIndicesExt(PyObject *s, hsize_t length,
-		      hssize_t *start, hssize_t *stop, hssize_t *step,
-		      hsize_t *slicelength)
+                      hssize_t *start, hssize_t *stop, hssize_t *step,
+                      hsize_t *slicelength)
 {
         /* this is harder to get right than you might think */
 
@@ -630,10 +630,10 @@ int is_complex(hid_t type_id) {
       colname1 = H5Tget_member_name(type_id, 0);
       colname2 = H5Tget_member_name(type_id, 1);
       if ((strcmp(colname1, "r") == 0) && (strcmp(colname2, "i") == 0)) {
-	class1 = H5Tget_member_class(type_id, 0);
-	class2 = H5Tget_member_class(type_id, 1);
-	if (class1 == H5T_FLOAT && class2 == H5T_FLOAT)
-	  result = 1;
+        class1 = H5Tget_member_class(type_id, 0);
+        class2 = H5Tget_member_class(type_id, 1);
+        if (class1 == H5T_FLOAT && class2 == H5T_FLOAT)
+          result = 1;
       }
       free(colname1);
       free(colname2);
@@ -739,13 +739,43 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
 }
 
 
+/* Create a HDF5 atomic datatype that represents half precision floatting
+   point numbers defined by numpy as float16. */
+hid_t create_ieee_float16(const char *byteorder) {
+  hid_t float_id;
+
+  if (byteorder == NULL)
+    float_id = H5Tcopy(H5T_NATIVE_FLOAT);
+  else if (strcmp(byteorder, "little") == 0)
+    float_id = H5Tcopy(H5T_IEEE_F32LE);
+  else
+    float_id = H5Tcopy(H5T_IEEE_F32BE);
+
+  if (float_id < 0)
+    return float_id;
+
+  if (H5Tset_fields(float_id, 15, 10, 5, 0, 10) < 0)
+    return -1;
+
+  if (H5Tset_size(float_id, 2) < 0)
+    return -1;
+
+  if (H5Tset_ebias(float_id, 15) < 0)
+    return -1;
+
+  return float_id;
+}
+
+
 /* Create a HDF5 compound datatype that represents complex numbers
    defined by numpy as complex64. */
 hid_t create_ieee_complex64(const char *byteorder) {
   hid_t float_id, complex_id;
 
   complex_id = H5Tcreate(H5T_COMPOUND, sizeof(npy_complex64));
-  if (strcmp(byteorder, "little") == 0)
+  if (byteorder == NULL)
+    float_id = H5Tcopy(H5T_NATIVE_FLOAT);
+  else if (strcmp(byteorder, "little") == 0)
     float_id = H5Tcopy(H5T_IEEE_F32LE);
   else
     float_id = H5Tcopy(H5T_IEEE_F32BE);
@@ -761,7 +791,9 @@ hid_t create_ieee_complex128(const char *byteorder) {
   hid_t float_id, complex_id;
 
   complex_id = H5Tcreate(H5T_COMPOUND, sizeof(npy_complex128));
-  if (strcmp(byteorder, "little") == 0)
+  if (byteorder == NULL)
+    float_id = H5Tcopy(H5T_NATIVE_DOUBLE);
+  else if (strcmp(byteorder, "little") == 0)
     float_id = H5Tcopy(H5T_IEEE_F64LE);
   else
     float_id = H5Tcopy(H5T_IEEE_F64BE);
@@ -836,7 +868,7 @@ herr_t truncate_dset( hid_t dataset_id,
  if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
    goto out;
 
- if (rank) {  			/* multidimensional case */
+ if (rank) {    /* multidimensional case */
    /* Book some memory for the selections */
    dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
 
@@ -852,7 +884,7 @@ herr_t truncate_dset( hid_t dataset_id,
    /* Release resources */
    free(dims);
  }
- else {     			/* scalar case (should never enter here) */
+ else {         /* scalar case (should never enter here) */
      printf("A scalar Array cannot be truncated!.\n");
      goto out;
  }
@@ -866,7 +898,4 @@ herr_t truncate_dset( hid_t dataset_id,
 out:
  if (dims) free(dims);
  return -1;
-
 }
-
-

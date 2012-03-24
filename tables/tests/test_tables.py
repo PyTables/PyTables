@@ -28,20 +28,25 @@ class Record(IsDescription):
     var8 = BoolCol(dflt=True, pos=7)               # boolean
     var9 = ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8) # Complex single precision
     var10 = ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9) # Complex double precision
+    if 'float16' in typeDict:
+        var11 = Float16Col(dflt=6.4, pos=12)        # float  (half-precision)
 
 #  Dictionary definition
 RecordDescriptionDict = {
     'var1': StringCol(itemsize=4, dflt="abcd", pos=0), # 4-character String
     'var2': IntCol(dflt=1, pos=1),              # integer
     'var3': Int16Col(dflt=2, pos=2),            # short integer
-    'var4': FloatCol(dflt=3.1, pos=3),          # double (double-precision)
+    'var4': Float64Col(dflt=3.1, pos=3),        # double (double-precision)
     'var5': Float32Col(dflt=4.2, pos=4),        # float  (single-precision)
     'var6': UInt16Col(dflt=5, pos=5),           # unsigned short integer
     'var7': StringCol(itemsize=1, dflt="e", pos=6), # 1-character String
     'var8': BoolCol(dflt=True, pos=7),          # boolean
     'var9': ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8), # Complex single precision
     'var10': ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9), # Complex double precision
-    }
+}
+
+if 'float16' in typeDict:
+    RecordDescriptionDict['var11'] = Float16Col(dflt=6.4, pos=12)    # float  (half-precision)
 
 
 # Old fashion of defining tables (for testing backward compatibility)
@@ -56,6 +61,8 @@ class OldRecord(IsDescription):
     var8 = Col.from_type("bool", shape=(), dflt=1, pos=7)
     var9 = ComplexCol(itemsize=8, shape=(), dflt=(0.+1.j), pos=8)
     var10 = ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos = 9)
+    if 'float16' in typeDict:
+       var11 = Col.from_type("float16", (), 6.4, pos=12)
 
 
 class BasicTestCase(common.PyTablesTestCase):
@@ -118,6 +125,11 @@ class BasicTestCase(common.PyTablesTestCase):
                 tmplist.append([float(i)+0j, 1+float(i)*1j])
             else:
                 tmplist.append(1+float(i)*1j)
+            if 'float16' in typeDict:
+                if isinstance(row['var11'], ndarray):
+                    tmplist.append(array((float(i),)*4))
+                else:
+                    tmplist.append(float(i))
             buflist.append(tmplist)
 
         self.record = records.array(buflist, dtype=record.dtype,
@@ -175,9 +187,15 @@ class BasicTestCase(common.PyTablesTestCase):
                         row['var5'] = array((float(i),)*4)
                     else:
                         row['var5'] = float(i)
+                    if 'float16' in typeDict:
+                        if isinstance(row['var11'], ndarray):
+                            row['var11'] = array((float(i),)*4)
+                        else:
+                            row['var11'] = float(i)
+
                     # var6 will be like var3 but byteswaped
-                    row['var6'] = ((row['var3']>>8) & 0xff) + \
-                                  ((row['var3']<<8) & 0xff00)
+                    row['var6'] = (((row['var3']>>8) & 0xff) +
+                                   ((row['var3']<<8) & 0xff00))
                     #print("Saving -->", row)
                     row.append()
 
@@ -654,6 +672,11 @@ class BasicTestCase(common.PyTablesTestCase):
                 row['var5'] = array((float(i),)*4)
             else:
                 row['var5'] = float(i)
+            if 'float16' in typeDict:
+                if isinstance(row['var11'], ndarray):
+                    row['var11'] = array((float(i),)*4)
+                else:
+                    row['var11'] = float(i)
             row.append()
 
         # Flush the buffer for this table and read it
@@ -726,6 +749,11 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var5'] = array((float(i),)*4)
                 else:
                     row['var5'] = float(i)
+                if 'float16' in typeDict:
+                    if isinstance(row['var11'], ndarray):
+                        row['var11'] = array((float(i),)*4)
+                    else:
+                        row['var11'] = float(i)
                 row.append()
             table.flush()
 
@@ -800,6 +828,11 @@ class BasicTestCase(common.PyTablesTestCase):
                 row['var5'] = array((float(i),)*4)
             else:
                 row['var5'] = float(i)
+            if 'float16' in typeDict:
+                if isinstance(row['var11'], ndarray):
+                    row['var11'] = array((float(i),)*4)
+                else:
+                    row['var11'] = float(i)
             row.append()
             # the next call can mislead the counters
             result = [ row2['var2'] for row2 in table ]
@@ -1171,6 +1204,11 @@ class BasicTestCase(common.PyTablesTestCase):
                 row['var5'] = array((float(i),)*4)
             else:
                 row['var5'] = float(i)
+            if 'float16' in typeDict:
+                if isinstance(row['var11'], ndarray):
+                    row['var11'] = array((float(i),)*4)
+                else:
+                    row['var11'] = float(i)
             row.append()
         # Flush the buffer for this table
         table.flush()
@@ -1240,33 +1278,55 @@ class DictWriteTestCase(BasicTestCase):
 # Pure NumPy dtype
 class NumPyDTWriteTestCase(BasicTestCase):
     title = "NumPyDTWriteTestCase"
-    record = dtype("a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16")
-    record.names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
+    if 'float16' in typeDict:
+        record = dtype("a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16,f2")
+        record.names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11'.split(',')
+    else:
+        record = dtype("a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16")
+        record.names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
-    record=records.array(
-        None, shape=0,
-        formats="a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16",
-        names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
+    if 'float16' in typeDict:
+        record=records.array(
+            None, shape=0,
+            formats="a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16,f2",
+            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11')
+    else:
+        record=records.array(
+            None, shape=0,
+            formats="a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16",
+            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(
-        None, shape=1,
-        formats="a4,i4,i2,f8,f4,i2,a1,b1,2c8,c16",
-        names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
+    if 'float16' in typeDict:
+        recordtemplate=records.array(
+            None, shape=1,
+            formats="a4,i4,i2,f8,f4,i2,a1,b1,2c8,c16,f2",
+            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11')
+    else:
+        recordtemplate=records.array(
+            None, shape=1,
+            formats="a4,i4,i2,f8,f4,i2,a1,b1,2c8,c16",
+            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
 
 class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(
-        None, shape=1,
-        formats="a4,i4,i2,2f8,4f4,i2,a1,2b1,c8,c16",
-        names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
+    if 'float16' in typeDict:
+        recordtemplate=records.array(
+            None, shape=1,
+            formats="a4,i4,i2,2f8,4f4,i2,a1,2b1,c8,c16,f2",
+            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11')
+    else:
+        recordtemplate=records.array(
+            None, shape=1,
+            formats="a4,i4,i2,2f8,4f4,i2,a1,2b1,c8,c16",
+            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
 
 class CompressBloscTablesTestCase(BasicTestCase):
     title = "CompressBloscTables"
@@ -4600,8 +4660,12 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]]*nrows,
-                          formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16')
+        if 'float16' in typeDict:
+            r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j, 6.4]]*nrows,
+                            formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16,f2')
+        else:
+            r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]]*nrows,
+                            formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16')
 
         # Assign the value exceptions
         r["f1"][3] = 2
@@ -4652,8 +4716,12 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]]*nrows,
-                          formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16')
+        if 'float16' in typeDict:
+            r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j, 6.4]]*nrows,
+                            formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16,f2')
+        else:
+            r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]]*nrows,
+                            formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16')
 
         # Assign the value exceptions
         r["f1"][3] = 2

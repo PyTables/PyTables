@@ -923,7 +923,10 @@ class TypesTestCase(unittest.TestCase):
 
         ttypes = ["Float32",
                   "Float64",
-                  ]
+        ]
+        if hasattr(numpy, "float16"):
+            ttypes.append("float16")
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_FloatAtom..." % self.__class__.__name__
@@ -957,9 +960,13 @@ class TypesTestCase(unittest.TestCase):
     def test04a_FloatAtom(self):
         """Checking vlarray with float atoms (byteorder swapped)"""
 
-        ttypes = {"Float32": numpy.float32,
-                  "Float64": numpy.float64,
-                  }
+        ttypes = {
+            "Float32": numpy.float32,
+            "Float64": numpy.float64,
+        }
+        if hasattr(numpy, "float16"):
+            ttypes["float16"] = numpy.float16
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04a_FloatAtom..." % self.__class__.__name__
@@ -999,9 +1006,13 @@ class TypesTestCase(unittest.TestCase):
     def test04b_FloatAtom(self):
         """Checking updating vlarray with floating point atoms"""
 
-        ttypes = ["Float32",
-                  "Float64",
-                  ]
+        ttypes = [
+            "Float32",
+            "Float64",
+        ]
+        if hasattr(numpy, "float16"):
+            ttypes.append("float16")
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_FloatAtom..." % self.__class__.__name__
@@ -1040,9 +1051,13 @@ class TypesTestCase(unittest.TestCase):
     def test04c_FloatAtom(self):
         """Checking updating vlarray with float atoms (byteorder swapped)"""
 
-        ttypes = {"Float32": numpy.float32,
-                  "Float64": numpy.float64,
-                  }
+        ttypes = {
+            "Float32": numpy.float32,
+            "Float64": numpy.float64,
+        }
+        if hasattr(numpy, "float16"):
+            ttypes["float16"] = numpy.float16
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04c_FloatAtom..." % self.__class__.__name__
@@ -1089,9 +1104,13 @@ class TypesTestCase(unittest.TestCase):
     def test04d_FloatAtom(self):
         """Checking updating vlarray with float atoms (another byteorder)"""
 
-        ttypes = {"Float32": numpy.float32,
-                  "Float64": numpy.float64,
-                  }
+        ttypes = {
+            "Float32": numpy.float32,
+            "Float64": numpy.float64,
+        }
+        if hasattr(numpy, "float16"):
+            ttypes["float16"] = numpy.float16
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04d_FloatAtom..." % self.__class__.__name__
@@ -1142,9 +1161,10 @@ class TypesTestCase(unittest.TestCase):
     def test04_ComplexAtom(self):
         """Checking vlarray with numerical complex atoms"""
 
-        ttypes = ["Complex32",
-                  "Complex64",
-                  ]
+        ttypes = [
+            "Complex32",
+            "Complex64",
+        ]
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_ComplexAtom..." % self.__class__.__name__
@@ -1181,9 +1201,10 @@ class TypesTestCase(unittest.TestCase):
     def test04b_ComplexAtom(self):
         """Checking modifying vlarray with numerical complex atoms"""
 
-        ttypes = ["Complex32",
-                  "Complex64",
-                  ]
+        ttypes = [
+            "Complex32",
+            "Complex64",
+        ]
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
@@ -1831,11 +1852,15 @@ class MDTypesTestCase(unittest.TestCase):
     def test04_FloatAtom(self):
         """Checking vlarray with MD floating point atoms"""
 
-        ttypes = ["Float32",
-                  "Float64",
-                  "Complex32",
-                  "Complex64",
-                  ]
+        ttypes = [
+            "Float32",
+            "Float64",
+            "Complex32",
+            "Complex64",
+        ]
+        if hasattr(numpy, "float16"):
+            ttypes.append("float16")
+
         root = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
@@ -2335,11 +2360,15 @@ class FlavorTestCase(unittest.TestCase):
         """Checking vlarray with different flavors (floating point versions)"""
 
 
-        ttypes = ["Float32",
-                  "Float64",
-                  "Complex32",
-                  "Complex64",
-                  ]
+        ttypes = [
+            "Float32",
+            "Float64",
+            "Complex32",
+            "Complex64",
+        ]
+        if hasattr(numpy, "float16"):
+            ttypes.append("float16")
+
         root = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
