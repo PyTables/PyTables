@@ -222,7 +222,33 @@ MAX_THREADS = None
 (mainly in Blosc and Numexpr currently).  If `None`, it is automatically
 set to the number of cores in your machine. In general, it is a good
 idea to set this to the number of cores in your machine or, when your
-machine has many of them (e.g. > 4), perhaps one less than this."""
+machine has many of them (e.g. > 4), perhaps one less than this.
+
+.. note::
+    currently MAX_THREADS is only used as a fall-back if
+    :data:`tables.parameters.MAX_NUMEXPR_THREADS` or
+    :data:`tables.parameters.MAX_BLOSC_THREADS` are not set.
+
+.. deprecated:: 2.4
+
+    Use :data:`tables.parameters.MAX_NUMEXPR_THREADS` or
+    :data:`tables.parameters.MAX_BLOSC_THREADS` instead.
+
+"""
+
+MAX_NUMEXPR_THREADS = None
+"""The maximum number of threads that PyTables should use internally in
+Numexpr.  If `None`, it is automatically set to the number of cores in
+your machine. In general, it is a good idea to set this to the number of
+cores in your machine or, when your machine has many of them (e.g. > 4),
+perhaps one less than this."""
+
+MAX_BLOSC_THREADS = None
+"""The maximum number of threads that PyTables should use internally in
+Blosc.  If `None`, it is automatically set to the number of cores in
+your machine. In general, it is a good idea to set this to the number of
+cores in your machine or, when your machine has many of them (e.g. > 4),
+perhaps one less than this."""
 
 
 ## Local Variables:

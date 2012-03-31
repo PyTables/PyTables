@@ -315,7 +315,7 @@ cdef class File:
     set_cache_size(self.file_id, params['METADATA_CACHE_SIZE'])
 
     # Set the maximum number of threads for Blosc
-    setBloscMaxThreads(params['MAX_THREADS'])
+    setBloscMaxThreads(params['MAX_BLOSC_THREADS'])
 
 
   # Accessor definitions

@@ -35,8 +35,15 @@ Changes from 2.3.1 to XXX
   PyTables Pro (closes :issue:`118`)
 - Fixed a segfault on platforms that do not support unaligned memory access
   (closes: :issue:`134`).  Thanks to Julian Taylor.
+- The :data:`tables.parameters.MAX_THREADS` is now deprecated.  The maximum
+  number of threads for Blosc_ and Numexpr_ is now handled using the
+  :data:`tables.parameters.MAX_BLOSC_THREADS` and
+  :data:`tables.parameters.MAX_NUMEXPR_THREADS` parameters respectively.
+  Closes :issue:`142`.
 
 .. _numpy: http://numpy.scipy.org
+.. _Blosc: https://github.com/FrancescAlted/blosc
+.. _Numexpr: http://code.google.com/p/numexpr
 
 
 Changes from 2.3 to 2.3.1
@@ -60,8 +67,9 @@ Features coming from (now liberated) PyTables Pro
   perform fast queries on arbitrarily large tables. Moreover, it offers a wide
   range of optimization levels for its indexes so that the user can choose the
   best one that suits her needs (more or less size, more or less performance).
-  Indexation code also takes advantage of the vectorization capabilities of the
-  NumPy and Numexpr packages to ensure really short indexing and search times.
+  Indexation code also takes advantage of the vectorization capabilities of
+  the NumPy and Numexpr packages to ensure really short indexing and search
+  times.
 
 - A fine-tuned LRU cache for both metadata (nodes) and regular data that lets
   you achieve maximum speed for intensive object tree browsing during data

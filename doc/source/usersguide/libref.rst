@@ -183,11 +183,10 @@ Global functions
 
     Set the maximum number of threads that Blosc can use.
 
-    This actually overrides the :data:`parameters.MAX_THREADS`
-    setting in :file:`tables/parameters.py`, so the new
-    value will be effective until this function is called again or a
-    new file with a different :data:`parameters.MAX_THREADS` value
-    is specified.
+    This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
+    setting in :mod:`tables.parameters`, so the new value will be effective
+    until this function is called again or a new file with a different
+    :data:`tables.parameters.MAX_BLOSC_THREADS` value is specified.
 
     Returns the previous setting for maximum threads.
 

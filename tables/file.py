@@ -515,10 +515,22 @@ class File(hdf5Extension.File, object):
         # Update them with possible keyword arguments
         params.update(kwargs)
 
-        # If MAX_THREADS is not set yet, set it to the number of cores
+        # If MAX_*_THREADS is not set yet, set it to the number of cores
         # on this machine.
-        if params['MAX_THREADS'] is None:
-            params['MAX_THREADS'] = detectNumberOfCores()
+
+        # XXX: drop this lines when the MAX_THREADS will be rempved
+        if params['MAX_NUMEXPR_THREADS'] is None:
+            params['MAX_NUMEXPR_THREADS'] = params['MAX_THREADS']
+
+        if params['MAX_NUMEXPR_THREADS'] is None:
+            params['MAX_NUMEXPR_THREADS'] = detectNumberOfCores()
+
+        # XXX: drop this lines when the MAX_THREADS will be rempved
+        if params['MAX_BLOSC_THREADS'] is None:
+            params['MAX_BLOSC_THREADS'] = params['MAX_THREADS']
+
+        if params['MAX_BLOSC_THREADS'] is None:
+            params['MAX_BLOSC_THREADS'] = detectNumberOfCores()
 
         self.params = params
 
@@ -575,7 +587,7 @@ class File(hdf5Extension.File, object):
             self.enableUndo()
 
         # Set the maximum number of threads for Numexpr
-        numexpr.set_vml_num_threads(params['MAX_THREADS'])
+        numexpr.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
 
 
     def __getRootGroup(self, rootUEP, title, filters):

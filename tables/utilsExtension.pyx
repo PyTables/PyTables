@@ -125,10 +125,11 @@ blosc_version_string, blosc_version_date = blosc_version
 def setBloscMaxThreads(nthreads):
   """Set the maximum number of threads that Blosc can use.
 
-  This actually overrides the `MAX_THREADS` setting in
-  ``tables/parameters.py``, so the new value will be effective until this
-  function is called again or a new file with a different `MAX_THREADS` value
-  is specified.
+  This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
+  setting in :mod:`tables.parameters`, so the new value will be
+  effective until this function is called again or a new file with
+  a different :data:`tables.parameters.MAX_BLOSC_THREADS` value is
+  specified.
 
   Returns the previous setting for maximum threads.
   """

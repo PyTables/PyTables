@@ -1404,8 +1404,8 @@ class setBloscMaxThreads(common.TempFileMixin, common.PyTablesTestCase):
         nthreads_old = tables.setBloscMaxThreads(4)
         if common.verbose:
             print "Previous max threads:", nthreads_old
-            print "Should be:", self.h5file.params['MAX_THREADS']
-        self.assertEqual(nthreads_old, self.h5file.params['MAX_THREADS'])
+            print "Should be:", self.h5file.params['MAX_BLOSC_THREADS']
+        self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
         self.h5file.createCArray('/', 'some_array',
                                  atom=tables.Int32Atom(), shape=(3, 3),
                                  filters = self.filters)
@@ -1425,8 +1425,8 @@ class setBloscMaxThreads(common.TempFileMixin, common.PyTablesTestCase):
         nthreads_old = tables.setBloscMaxThreads(4)
         if common.verbose:
             print "Previous max threads:", nthreads_old
-            print "Should be:", self.h5file.params['MAX_THREADS']
-        self.assertEqual(nthreads_old, self.h5file.params['MAX_THREADS'])
+            print "Should be:", self.h5file.params['MAX_BLOSC_THREADS']
+        self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
 
 
 
