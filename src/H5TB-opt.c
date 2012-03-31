@@ -73,19 +73,19 @@
 
 
 herr_t H5TBOmake_table( const char *table_title,
-			hid_t loc_id,
-			const char *dset_name,
-			char *version,
-			const char *class_,
-			hid_t type_id,
-			hsize_t nrecords,
-			hsize_t chunk_size,
-			void  *fill_data,
-			int compress,
-			char *complib,
-			int shuffle,
-			int fletcher32,
-			const void *data )
+                        hid_t loc_id,
+                        const char *dset_name,
+                        char *version,
+                        const char *class_,
+                        hid_t type_id,
+                        hsize_t nrecords,
+                        hsize_t chunk_size,
+                        void  *fill_data,
+                        int compress,
+                        char *complib,
+                        int shuffle,
+                        int fletcher32,
+                        const void *data )
 {
 
  hid_t   dataset_id;
@@ -225,10 +225,10 @@ out:
  */
 
 herr_t H5TBOread_records( hid_t dataset_id,
-			  hid_t mem_type_id,
-			  hsize_t start,
-			  hsize_t nrecords,
-			  void *data )
+                          hid_t mem_type_id,
+                          hsize_t start,
+                          hsize_t nrecords,
+                          void *data )
 {
 
  hid_t    space_id;
@@ -288,10 +288,10 @@ out:
  */
 
 herr_t H5TBOread_elements( hid_t dataset_id,
-			   hid_t mem_type_id,
-			   hsize_t nrecords,
-			   void *coords,
-			   void *data )
+                           hid_t mem_type_id,
+                           hsize_t nrecords,
+                           void *coords,
+                           void *data )
 {
 
  hid_t    space_id;
@@ -352,12 +352,12 @@ out:
  */
 
 herr_t H5TBOappend_records( hid_t dataset_id,
-			    hid_t mem_type_id,
-			    hsize_t nrecords,
-			    hsize_t nrecords_orig,
-			    const void *data )
+                            hid_t mem_type_id,
+                            hsize_t nrecords,
+                            hsize_t nrecords_orig,
+                            const void *data )
 {
- hid_t    space_id = -1; 	/* Shut up the compiler */
+ hid_t    space_id = -1;        /* Shut up the compiler */
  hsize_t  count[1];
  hsize_t  offset[1];
  hid_t    mem_space_id = -1;    /* Shut up the compiler */
@@ -424,11 +424,11 @@ out:
  */
 
 herr_t H5TBOwrite_records( hid_t dataset_id,
-			   hid_t mem_type_id,
-			   hsize_t start,
-			   hsize_t nrecords,
-			   hsize_t step,
-			   const void *data )
+                           hid_t mem_type_id,
+                           hsize_t start,
+                           hsize_t nrecords,
+                           hsize_t step,
+                           const void *data )
 {
 
  hsize_t  count[1];
@@ -497,10 +497,10 @@ out:
  */
 
 herr_t H5TBOwrite_elements( hid_t dataset_id,
-			    hid_t mem_type_id,
-			    hsize_t nrecords,
-			    const void *coords,
-			    const void *data )
+                            hid_t mem_type_id,
+                            hsize_t nrecords,
+                            const void *coords,
+                            const void *data )
 {
 
  hsize_t  count[1];
@@ -561,12 +561,12 @@ out:
  */
 
 herr_t H5TBOdelete_records( hid_t   dataset_id,
-			    hid_t   mem_type_id,
-			    hsize_t ntotal_records,
-			    size_t  src_size,
-			    hsize_t start,
-			    hsize_t nrecords,
-			    hsize_t maxtuples)
+                            hid_t   mem_type_id,
+                            hsize_t ntotal_records,
+                            size_t  src_size,
+                            hsize_t start,
+                            hsize_t nrecords,
+                            hsize_t maxtuples)
 {
 
  hsize_t  nrowsread;
@@ -612,7 +612,7 @@ herr_t H5TBOdelete_records( hid_t   dataset_id,
 
      /* Read the records after the deleted one(s) */
      if ( H5TBOread_records(dataset_id, mem_type_id, read_start,
-			    read_nbuf, tmp_buf ) < 0 )
+                            read_nbuf, tmp_buf ) < 0 )
        return -1;
 
 /*-------------------------------------------------------------------------

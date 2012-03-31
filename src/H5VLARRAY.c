@@ -30,18 +30,18 @@
  */
 
 herr_t H5VLARRAYmake( hid_t loc_id,
-		      const char *dset_name,
-		      const char *obversion,
-		      const int rank,
-		      const hsize_t *dims,
-		      hid_t type_id,
-		      hsize_t chunk_size,
-		      void  *fill_data,
-		      int   compress,
-		      char  *complib,
-		      int   shuffle,
-		      int   fletcher32,
-		      const void *data)
+                      const char *dset_name,
+                      const char *obversion,
+                      const int rank,
+                      const hsize_t *dims,
+                      hid_t type_id,
+                      hsize_t chunk_size,
+                      void  *fill_data,
+                      int   compress,
+                      char  *complib,
+                      int   shuffle,
+                      int   fletcher32,
+                      const void *data)
 {
 
  hvl_t   vldata;
@@ -64,7 +64,7 @@ herr_t H5VLARRAYmake( hid_t loc_id,
  /* Fill the vldata estructure with the data to write */
  /* This is currectly not used */
  vldata.p = (void *)data;
- vldata.len = 1;		/* Only one array type to save */
+ vldata.len = 1;        /* Only one array type to save */
 
  /* Create a VL datatype */
  if (rank == 0) {
@@ -183,17 +183,17 @@ out:
 
 
 herr_t H5VLARRAYappend_records( hid_t dataset_id,
-				hid_t type_id,
-				int nobjects,
-				hsize_t nrecords,
-				const void *data )
+                                hid_t type_id,
+                                int nobjects,
+                                hsize_t nrecords,
+                                const void *data )
 {
 
  hid_t    space_id;
  hid_t    mem_space_id;
  hsize_t  start[1];
  hsize_t  dataset_dims[1];
- hsize_t  dims_new[1] = {1};	/* Only a record on each append */
+ hsize_t  dims_new[1] = {1};    /* Only a record on each append */
  hvl_t    wdata;   /* Information to write */
 
 
@@ -260,16 +260,16 @@ out:
  */
 
 herr_t H5VLARRAYmodify_records( hid_t dataset_id,
-				hid_t type_id,
-				hsize_t nrow,
-				int nobjects,
-				const void *data )
+                                hid_t type_id,
+                                hsize_t nrow,
+                                int nobjects,
+                                const void *data )
 {
 
  hid_t    space_id;
  hid_t    mem_space_id;
  hsize_t  start[1];
- hsize_t  dims_new[1] = {1};	/* Only a record on each update */
+ hsize_t  dims_new[1] = {1};    /* Only a record on each update */
  hvl_t    wdata;   /* Information to write */
 
  /* Initialize VL data to write */
@@ -322,9 +322,9 @@ out:
  */
 
 herr_t H5VLARRAYget_info( hid_t   dataset_id,
-			  hid_t   type_id,
-			  hsize_t *nrecords,
-			  char    *base_byteorder )
+                          hid_t   type_id,
+                          hsize_t *nrecords,
+                          char    *base_byteorder )
 {
 
   hid_t       space_id;

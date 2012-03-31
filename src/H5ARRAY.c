@@ -2,8 +2,8 @@
 
 #include "tables.h"
 #include "utils.h"
-#include "H5Zlzo.h"  		       /* Import FILTER_LZO */
-#include "H5Zbzip2.h"  		       /* Import FILTER_BZIP2 */
+#include "H5Zlzo.h"                    /* Import FILTER_LZO */
+#include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
 #include "../blosc/blosc_filter.h"     /* Import FILTER_BLOSC */
 
 #include <string.h>
@@ -32,19 +32,19 @@
  */
 
 herr_t H5ARRAYmake( hid_t loc_id,
-		    const char *dset_name,
-		    const char *obversion,
-		    const int rank,
-		    const hsize_t *dims,
-		    int   extdim,
-		    hid_t type_id,
-		    hsize_t *dims_chunk,
-		    void  *fill_data,
-		    int   compress,
-		    char  *complib,
-		    int   shuffle,
-		    int   fletcher32,
-		    const void *data)
+                    const char *dset_name,
+                    const char *obversion,
+                    const int rank,
+                    const hsize_t *dims,
+                    int   extdim,
+                    hid_t type_id,
+                    hsize_t *dims_chunk,
+                    void  *fill_data,
+                    int   compress,
+                    char  *complib,
+                    int   shuffle,
+                    int   fletcher32,
+                    const void *data)
 {
 
  hid_t   dataset_id, space_id;
@@ -85,8 +85,8 @@ herr_t H5ARRAYmake( hid_t loc_id,
 
    /* Set the fill value using a struct as the data type. */
    if (fill_data) {
-       if ( H5Pset_fill_value( plist_id, type_id, fill_data ) < 0 )
-	 return -1;
+     if ( H5Pset_fill_value( plist_id, type_id, fill_data ) < 0 )
+       return -1;
    }
    else {
      if ( H5Pset_fill_time(plist_id, H5D_FILL_TIME_ALLOC) < 0 )
@@ -119,24 +119,24 @@ herr_t H5ARRAYmake( hid_t loc_id,
      /* The default compressor in HDF5 (zlib) */
      if (strcmp(complib, "zlib") == 0) {
        if ( H5Pset_deflate( plist_id, compress) < 0 )
-	 return -1;
+         return -1;
      }
      /* The Blosc compressor does accept parameters */
      else if (strcmp(complib, "blosc") == 0) {
        cd_values[4] = compress;
        cd_values[5] = shuffle;
        if ( H5Pset_filter( plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
-	 return -1;
+         return -1;
      }
      /* The LZO compressor does accept parameters */
      else if (strcmp(complib, "lzo") == 0) {
        if ( H5Pset_filter( plist_id, FILTER_LZO, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0 )
-	 return -1;
+         return -1;
      }
      /* The bzip2 compress does accept parameters */
      else if (strcmp(complib, "bzip2") == 0) {
        if ( H5Pset_filter( plist_id, FILTER_BZIP2, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0 )
-	 return -1;
+         return -1;
      }
      else {
        /* Compression library not supported */
@@ -147,13 +147,13 @@ herr_t H5ARRAYmake( hid_t loc_id,
 
    /* Create the (chunked) dataset */
    if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id,
-			       space_id, plist_id )) < 0 )
+                               space_id, plist_id )) < 0 )
      goto out;
  }
- else {  			/* Not chunked case */
+ else {         /* Not chunked case */
    /* Create the dataset. */
    if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id,
-			       space_id, H5P_DEFAULT )) < 0 )
+                               space_id, H5P_DEFAULT )) < 0 )
      goto out;
  }
 
@@ -214,17 +214,17 @@ out:
 
 
 herr_t H5ARRAYappend_records( hid_t dataset_id,
-			      hid_t type_id,
-			      const int rank,
-			      hsize_t *dims_orig,
-			      hsize_t *dims_new,
-			      int extdim,
-			      const void *data )
+                              hid_t type_id,
+                              const int rank,
+                              hsize_t *dims_orig,
+                              hsize_t *dims_new,
+                              int extdim,
+                              const void *data )
 {
 
  hid_t    space_id;
  hid_t    mem_space_id;
- hsize_t  *dims = NULL;  	/* Shut up the compiler */
+ hsize_t  *dims = NULL;         /* Shut up the compiler */
  hsize_t  *start = NULL;        /* Shut up the compiler */
  int      i;
 
@@ -304,12 +304,12 @@ out:
 
 
 herr_t H5ARRAYwrite_records( hid_t dataset_id,
-			     hid_t type_id,
-			     const int rank,
-			     hsize_t *start,
-			     hsize_t *step,
-			     hsize_t *count,
-			     const void *data )
+                             hid_t type_id,
+                             const int rank,
+                             hsize_t *start,
+                             hsize_t *step,
+                             hsize_t *count,
+                             const void *data )
 {
 
  hid_t    space_id;
@@ -325,7 +325,7 @@ herr_t H5ARRAYwrite_records( hid_t dataset_id,
 
  /* Define a hyperslab in the dataset */
  if ( rank != 0 && H5Sselect_hyperslab( space_id, H5S_SELECT_SET, start,
-					step, count, NULL) < 0 )
+                                        step, count, NULL) < 0 )
   return -5;
 
  if ( H5Dwrite( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
@@ -358,12 +358,12 @@ herr_t H5ARRAYwrite_records( hid_t dataset_id,
  */
 
 herr_t H5ARRAYread( hid_t dataset_id,
-		    hid_t type_id,
-		    hsize_t start,
-		    hsize_t nrows,
-		    hsize_t step,
-		    int extdim,
-		    void *data )
+                    hid_t type_id,
+                    hsize_t start,
+                    hsize_t nrows,
+                    hsize_t step,
+                    int extdim,
+                    void *data )
 {
 
  hid_t    space_id;
@@ -391,7 +391,7 @@ herr_t H5ARRAYread( hid_t dataset_id,
  if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
    goto out;
 
- if (rank) {  			/* Array case */
+ if (rank) {                    /* Array case */
 
    /* Book some memory for the selections */
    dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
@@ -439,7 +439,7 @@ herr_t H5ARRAYread( hid_t dataset_id,
    if ( H5Sclose( mem_space_id ) < 0 )
      goto out;
  }
- else {  			/* Scalar case */
+ else {                 /* Scalar case */
 
    /* Read all the dataset */
    if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
@@ -477,11 +477,11 @@ out:
  */
 
 herr_t H5ARRAYreadSlice( hid_t dataset_id,
-			 hid_t type_id,
-			 hsize_t *start,
-			 hsize_t *stop,
-			 hsize_t *step,
-			 void *data )
+                         hid_t type_id,
+                         hsize_t *start,
+                         hsize_t *stop,
+                         hsize_t *step,
+                         void *data )
 {
 
  hid_t    space_id;
@@ -501,7 +501,7 @@ herr_t H5ARRAYreadSlice( hid_t dataset_id,
  if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
    goto out;
 
- if (rank) {  			/* Array case */
+ if (rank) {                    /* Array case */
 
    /* Book some memory for the selections */
    dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
@@ -521,7 +521,7 @@ herr_t H5ARRAYreadSlice( hid_t dataset_id,
 
    /* Define a hyperslab in the dataset of the size of the records */
    if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride,
-			     count, NULL) < 0 )
+                             count, NULL) < 0 )
      goto out;
 
    /* Create a memory dataspace handle */
@@ -530,18 +530,18 @@ herr_t H5ARRAYreadSlice( hid_t dataset_id,
 
    /* Read */
    if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT,
-		 data ) < 0 )
+                 data ) < 0 )
      goto out;
 
    /* Release resources */
    free(dims);
    free(count);
- 
+
    /* Terminate access to the memory dataspace */
    if ( H5Sclose( mem_space_id ) < 0 )
      goto out;
  }
- else {  			/* Scalar case */
+ else {                     /* Scalar case */
 
    /* Read all the dataset */
    if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
@@ -581,12 +581,12 @@ out:
  */
 
 herr_t H5ARRAYreadIndex( hid_t   dataset_id,
-			 hid_t   type_id,
-			 int     notequal,
-			 hsize_t *start,
-			 hsize_t *stop,
-			 hsize_t *step,
-			 void    *data )
+                         hid_t   type_id,
+                         int     notequal,
+                         hsize_t *start,
+                         hsize_t *stop,
+                         hsize_t *step,
+                         void    *data )
 {
 
  hid_t    mem_space_id;
@@ -608,7 +608,7 @@ herr_t H5ARRAYreadIndex( hid_t   dataset_id,
  if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
    goto out;
 
- if (rank) {  			/* Array case */
+ if (rank) {                    /* Array case */
 
    /* Book some memory for the selections */
    dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
@@ -630,7 +630,7 @@ herr_t H5ARRAYreadIndex( hid_t   dataset_id,
 
    /* Define a hyperslab in the dataset of the size of the records */
    if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride,
-			     count, NULL) < 0 )
+                             count, NULL) < 0 )
      goto out;
 
    /* If we want the complementary, do a NOTA against all the row */
@@ -639,7 +639,7 @@ herr_t H5ARRAYreadIndex( hid_t   dataset_id,
      offset2[1] = 0; count2[1] = dims[1]; /* All the row */
      count[0] = 1; count[1] = dims[1] - count[1]; /* For memory dataspace */
      if ( H5Sselect_hyperslab( space_id, H5S_SELECT_NOTA, offset2, stride,
-			       count2, NULL) < 0 )
+                               count2, NULL) < 0 )
        goto out;
    }
 
@@ -661,7 +661,7 @@ herr_t H5ARRAYreadIndex( hid_t   dataset_id,
    if ( H5Sclose( mem_space_id ) < 0 )
      goto out;
  }
- else {  			/* Scalar case */
+ else {                         /* Scalar case */
 
    /* Read all the dataset */
    if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
@@ -702,7 +702,7 @@ out:
  */
 
 herr_t H5ARRAYget_ndims( hid_t dataset_id,
-			 int *rank )
+                         int *rank )
 {
   hid_t       space_id;
 
@@ -731,11 +731,11 @@ out:
 /* Modified version of H5LTget_dataset_info. */
 
 herr_t H5ARRAYget_info( hid_t dataset_id,
-			hid_t type_id,
-			hsize_t *dims,
-			hsize_t *maxdims,
-			H5T_class_t *class_id,
-			char *byteorder)
+                        hid_t type_id,
+                        hsize_t *dims,
+                        hsize_t *maxdims,
+                        H5T_class_t *class_id,
+                        char *byteorder)
 {
   hid_t       space_id;
 
@@ -791,8 +791,8 @@ out:
  */
 
 herr_t H5ARRAYget_chunkshape( hid_t dataset_id,
-			      int rank,
-			      hsize_t *dims_chunk)
+                              int rank,
+                              hsize_t *dims_chunk)
 {
   hid_t        plist_id;
   H5D_layout_t layout;

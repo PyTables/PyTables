@@ -414,7 +414,7 @@ PyObject *H5UIget_info( hid_t loc_id,
   /* Open the dataset. */
   if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 ) {
     Py_INCREF(Py_None);
-    return Py_None;  	/* Not chunked, so return None */
+    return Py_None;     /* Not chunked, so return None */
   }
 
   /* Get an identifier for the datatype. */
@@ -481,7 +481,7 @@ out:
  H5Tclose( type_id );
  H5Dclose( dataset_id );
  Py_INCREF(Py_None);
- return Py_None;  	/* Not chunked, so return None */
+ return Py_None;    /* Not chunked, so return None */
 
 }
 
