@@ -5837,7 +5837,7 @@ The Expr class - a general-purpose expression evaluator
     (like "3*a+4*b") that operate on arbitrary large
     arrays while optimizing the resources required to perform them
     (basically main memory and CPU cache memory).  It is similar to the
-    Numexpr package (see ), but in addition
+    Numexpr package (see :ref:`[NUMEXPR] <NUMEXPR>`), but in addition
     to NumPy objects, it also accepts disk-based homogeneous arrays, like
     the Array, CArray, EArray and Column PyTables objects.
 
