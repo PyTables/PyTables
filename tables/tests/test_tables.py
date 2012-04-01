@@ -1348,6 +1348,57 @@ class BigTablesTestCase(BasicTestCase):
     expectedrows = 10000
     appendrows = 100
 
+
+class CompressionRatioProperty(unittest.TestCase):
+
+    def setUp(self):
+        # set chunkshape so it divides evenly into array_size, to avoid
+        # partially filled chunks
+        self.chunkshape = (1000, )
+        self.dtype = format_parser(['i4'] * 10, [], []).dtype
+        # approximate size (in bytes) of non-data portion of hdf5 file
+        self.hdf_overhead = 6000
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+
+    def tearDown(self):
+        self.fileh.close()
+        # Then, delete the file
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def create_table(self, complevel):
+        filters = Filters(complevel=complevel, complib='blosc')
+        self.fileh.createTable('/', 'sometable', self.dtype, filters=filters,
+                               chunkshape=self.chunkshape)
+        self.table = self.fileh.getNode('/', 'sometable')
+
+    def test_zero_length(self):
+        complevel = 0
+        self.create_table(complevel)
+        self.assertEqual(self.table.compression_ratio, 0)
+        self.assertIsInstance(self.table.compression_ratio, float)
+
+    def test_no_compression(self):
+        complevel = 0
+        self.create_table(complevel)
+        self.table.append([tuple(range(10))] * self.chunkshape[0] * 10)
+        self.assertEqual(self.table.compression_ratio, 1)
+        self.assertIsInstance(self.table.compression_ratio, float)
+
+    def test_with_compression(self):
+        complevel = 1
+        self.create_table(complevel)
+        self.table.append([tuple(range(10))] * self.chunkshape[0] * 10)
+        file_size = os.stat(self.file).st_size
+        implied_file_size = self.table.compression_ratio * self.table.nrows * \
+                            self.table.rowsize
+        self.assertAlmostEqual(implied_file_size, file_size,
+                               delta=self.hdf_overhead)
+        self.assertLess(self.table.compression_ratio, 1)
+        self.assertIsInstance(self.table.compression_ratio, float)
+
+
 class BasicRangeTestCase(unittest.TestCase):
     #file  = "test.h5"
     mode  = "w"
@@ -5503,6 +5554,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Fletcher32TablesTestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressionRatioProperty))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))

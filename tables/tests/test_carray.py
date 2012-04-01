@@ -849,7 +849,6 @@ class CompressionRatioProperty(unittest.TestCase):
 
     def tearDown(self):
         self.fileh.close()
-
         # Then, delete the file
         os.remove(self.file)
         common.cleanup(self)
