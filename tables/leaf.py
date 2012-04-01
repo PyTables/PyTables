@@ -207,10 +207,6 @@ class Leaf(Node):
         lambda self: self._v_objectID, None, None,
         "A node identifier (may change from run to run)." )
 
-    def compression_ratio(self):
-        data_size = self.nrows * self.rowsize
-        disk_size = self._get_storage_size()
-        return float(disk_size) / float(data_size)
 
     # Lazy read-only attributes
     # `````````````````````````
@@ -259,6 +255,21 @@ class Leaf(Node):
         leaf has no such attribute, the default flavor is used.
         """ )
 
+    def _get_compression_ratio(self):
+        data_size = self.nrows * self.rowsize
+        disk_size = self._get_storage_size()
+        try:
+            return float(disk_size) / float(data_size)
+        except ZeroDivisionError:
+            return 0.0
+
+    compression_ratio = property(_get_compression_ratio, None, None,
+        """
+        Return the compression ratio of the data on disk.
+
+        It is calculated as (size on disk) / (uncompressed size), so a number
+        less than one means the data is compressed.
+        """ )
 
     # Special methods
     # ~~~~~~~~~~~~~~~
