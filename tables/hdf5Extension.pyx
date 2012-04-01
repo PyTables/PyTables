@@ -104,9 +104,6 @@ __version__ = "$Revision$"
 
 #-------------------------------------------------------------------
 
-#cdef extern from "hdf5.h":
-#
-#    hsize_t H5Dget_storage_size(hid_t dataset_id)
 
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
 cdef extern from "H5ARRAY.h":
