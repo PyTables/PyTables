@@ -76,7 +76,7 @@ from definitions cimport  \
      H5Fflush, H5Fget_vfd_handle, \
      H5Gcreate, H5Gopen, H5Gclose, H5Gunlink, H5Gmove, H5Gmove2, \
      H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, \
-     H5Dget_space, H5Dvlen_reclaim, \
+     H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, \
      H5Tget_native_type, H5Tget_super, H5Tget_class, H5Tcopy, \
      H5Tclose, H5Tis_variable_str, H5Tget_sign, \
      H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
@@ -103,6 +103,10 @@ __version__ = "$Revision$"
 
 
 #-------------------------------------------------------------------
+
+#cdef extern from "hdf5.h":
+#
+#    hsize_t H5Dget_storage_size(hid_t dataset_id)
 
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
 cdef extern from "H5ARRAY.h":
@@ -715,6 +719,9 @@ cdef class Group(Node):
 
 cdef class Leaf(Node):
   # Instance variables declared in .pxd
+
+  def _get_storage_size(self):
+      return H5Dget_storage_size(self.dataset_id)
 
   def _g_new(self, where, name, init):
     if init:

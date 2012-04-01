@@ -207,6 +207,11 @@ class Leaf(Node):
         lambda self: self._v_objectID, None, None,
         "A node identifier (may change from run to run)." )
 
+    def compression_ratio(self):
+        data_size = self.nrows * self.rowsize
+        disk_size = self._get_storage_size()
+        return float(disk_size) / float(data_size)
+
     # Lazy read-only attributes
     # `````````````````````````
     @lazyattr

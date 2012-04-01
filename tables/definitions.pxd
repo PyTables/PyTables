@@ -383,6 +383,7 @@ cdef extern from "hdf5.h":
   herr_t H5Dvlen_reclaim(hid_t type_id, hid_t space_id, hid_t plist_id,
                          void *buf)
   hid_t H5Dget_create_plist(hid_t dataset_id)
+  hsize_t H5Dget_storage_size(hid_t dataset_id)
 
   # Functions for dealing with dataspaces
   hid_t H5Screate_simple(int rank, hsize_t dims[], hsize_t maxdims[])
