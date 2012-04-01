@@ -259,7 +259,6 @@ class Basic32DTestCase(BasicTestCase):
 class CompressionRatioProperty(unittest.TestCase):
 
     def setUp(self):
-        # Create an instance of HDF5 file
         self.array_size = (10, 10)
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, mode = "w")
@@ -280,10 +279,8 @@ class CompressionRatioProperty(unittest.TestCase):
 
     def test_random_data(self):
         self.array[:] = numpy.random.randint(0, 1e6, size=self.array_size)
-        print self.array[:]
         self.assertEqual(self.array.compression_ratio, 1)
         self.assertIsInstance(self.array.compression_ratio, float)
-
 
 
 class UnalignedAndComplexTestCase(unittest.TestCase):

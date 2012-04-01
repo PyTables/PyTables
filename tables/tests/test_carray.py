@@ -834,6 +834,72 @@ class NumericComprTestCase(BasicTestCase):
     stop = 100
     step = 7
 
+
+class CompressionRatioProperty(unittest.TestCase):
+
+    def setUp(self):
+        self.array_size = (10000, 10)
+        # set chunkshape so it divides evenly into array_size, to avoid
+        # partially filled chunks
+        self.chunkshape = (1000, 10)
+        # approximate size (in bytes) of non-data portion of hdf5 file
+        self.hdf_overhead = 6000
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+
+    def tearDown(self):
+        self.fileh.close()
+
+        # Then, delete the file
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def create_array(self, complevel):
+        filters = Filters(complevel=complevel, complib='blosc')
+        self.fileh.createCArray('/', 'somearray', Int16Atom(), self.array_size,
+                                filters=filters, chunkshape=self.chunkshape)
+        self.array = self.fileh.getNode('/', 'somearray')
+
+    def test_no_data(self):
+        complevel = 0
+        self.create_array(complevel)
+        self.assertEqual(self.array.compression_ratio, 0)
+        self.assertIsInstance(self.array.compression_ratio, float)
+
+    def test_data_no_compression(self):
+        complevel = 0
+        self.create_array(complevel)
+        self.array[:] = numpy.ones(self.array_size, 'i4')
+        self.assertEqual(self.array.compression_ratio, 1)
+        self.assertIsInstance(self.array.compression_ratio, float)
+
+    def test_highly_compressible_data(self):
+        complevel = 1
+        self.create_array(complevel)
+        self.array[:] = numpy.ones(self.array_size, 'i4')
+        self.fileh.flush()
+        file_size = os.stat(self.file).st_size
+        implied_file_size = self.array.compression_ratio * self.array.nrows * \
+                            self.array.rowsize
+        self.assertAlmostEqual(implied_file_size, file_size,
+                               delta=self.hdf_overhead)
+        self.assertLess(self.array.compression_ratio, 1)
+        self.assertIsInstance(self.array.compression_ratio, float)
+
+    def test_random_data(self):
+        complevel = 1
+        self.create_array(complevel)
+        self.array[:] = numpy.random.randint(0, 1e6, self.array_size)
+        self.fileh.flush()
+        file_size = os.stat(self.file).st_size
+        implied_file_size = self.array.compression_ratio * self.array.nrows * \
+                            self.array.rowsize
+        self.assertAlmostEqual(implied_file_size, file_size,
+                               delta=self.hdf_overhead)
+        self.assertAlmostEqual(self.array.compression_ratio, 1)
+        self.assertIsInstance(self.array.compression_ratio, float)
+
+
 # It remains a test of Numeric char types, but the code is getting too messy
 
 class OffsetStrideTestCase(unittest.TestCase):
@@ -2471,6 +2537,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressionRatioProperty))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
