@@ -193,6 +193,25 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         lambda self: (self.nrows,), None, None,
         "The shape of the stored array.")
 
+    def _get_compression_ratio(self):
+        data_size = 0
+        for i in xrange(self.nrows):
+            row = self._readArray(i, i+1, 1)[0]
+            data_size += len(row) * row.itemsize
+        disk_size = self._get_storage_size()
+        try:
+            return float(disk_size) / float(data_size)
+        except ZeroDivisionError:
+            return 0.0
+
+    compression_ratio = property(_get_compression_ratio, None, None,
+        """
+        Return the compression ratio of the data on disk.
+
+        It is calculated as (size on disk) / (uncompressed size), so a number
+        less than one means the data is compressed.
+        """ )
+
 
     # Other methods
     # ~~~~~~~~~~~~~
