@@ -146,14 +146,14 @@ herr_t H5ARRAYmake( hid_t loc_id,
    }
 
    /* Create the (chunked) dataset */
-   if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id,
-                               space_id, plist_id )) < 0 )
+   if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id, space_id,
+                               H5P_DEFAULT, plist_id, H5P_DEFAULT )) < 0 )
      goto out;
  }
  else {         /* Not chunked case */
    /* Create the dataset. */
-   if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id,
-                               space_id, H5P_DEFAULT )) < 0 )
+   if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id, space_id,
+                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT )) < 0 )
      goto out;
  }
 
@@ -239,7 +239,7 @@ herr_t H5ARRAYappend_records( hid_t dataset_id,
  start[extdim] = (hsize_t )dims_orig[extdim];
 
  /* Extend the dataset */
- if ( H5Dextend ( dataset_id, dims ) < 0 )
+ if ( H5Dset_extent( dataset_id, dims ) < 0 )
   goto out;
 
  /* Create a simple memory data space */

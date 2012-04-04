@@ -667,7 +667,7 @@ cdef class Group(Node):
     cdef object retvalue
 
     # Open the dataset
-    leaf_id = H5Dopen(self.group_id, leaf_name)
+    leaf_id = H5Dopen(self.group_id, leaf_name, H5P_DEFAULT)
     if leaf_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (leaf_name, self._v_pathname))
@@ -930,7 +930,7 @@ cdef class Array(Leaf):
     cdef void *fill_data
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name)
+    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
     if self.dataset_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
@@ -1420,7 +1420,7 @@ cdef class VLArray(Leaf):
     cdef object shape, type_
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name)
+    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
     if self.dataset_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
@@ -1587,7 +1587,7 @@ cdef class UnImplemented(Leaf):
     # Get info on dimensions
     shape = H5UIget_info(self.parent_id, self.name, byteorder)
     shape = tuple(map(SizeType, shape))
-    self.dataset_id = H5Dopen(self.parent_id, self.name)
+    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
     return (shape, byteorder, self.dataset_id)
 
 

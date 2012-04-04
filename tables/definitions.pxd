@@ -266,7 +266,7 @@ cdef extern from "hdf5.h" nogil:
                   hid_t dst_loc_id, char *dst_name )
 
   # For dealing with datasets
-  hid_t  H5Dopen(hid_t file_id, char *name)
+  hid_t  H5Dopen(hid_t file_id, char *name, hid_t dapl_id)
   herr_t H5Dclose(hid_t dset_id)
   herr_t H5Dread(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
                  hid_t file_space_id, hid_t plist_id, void *buf)

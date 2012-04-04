@@ -133,7 +133,8 @@ herr_t H5VLARRAYmake( hid_t loc_id,
  }
 
  /* Create the dataset. */
- if ((dataset_id = H5Dcreate(loc_id, dset_name, datatype, space_id, plist_id )) < 0 )
+ if ((dataset_id = H5Dcreate(loc_id, dset_name, datatype, space_id,
+                             H5P_DEFAULT, plist_id, H5P_DEFAULT )) < 0 )
    goto out;
 
  /* Write the dataset only if there is data to write */
@@ -205,7 +206,7 @@ herr_t H5VLARRAYappend_records( hid_t dataset_id,
  dataset_dims[0] = nrecords + 1;
 
  /* Extend the dataset */
- if ( H5Dextend ( dataset_id, dataset_dims ) < 0 )
+ if ( H5Dset_extent( dataset_id, dataset_dims ) < 0 )
   goto out;
 
  /* Create a simple memory data space */

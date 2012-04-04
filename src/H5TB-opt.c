@@ -169,7 +169,8 @@ herr_t H5TBOmake_table( const char *table_title,
  }
 
  /* Create the dataset. */
- if ( (dataset_id = H5Dcreate( loc_id, dset_name, type_id, space_id, plist_id )) < 0 )
+ if ( (dataset_id = H5Dcreate( loc_id, dset_name, type_id, space_id,
+                               H5P_DEFAULT, plist_id, H5P_DEFAULT )) < 0 )
   goto out;
 
  /* Only write if there is something to write */
@@ -367,7 +368,7 @@ herr_t H5TBOappend_records( hid_t dataset_id,
  /* Extend the dataset */
  dims[0] = nrecords_orig;
  dims[0] += nrecords;
- if ( H5Dextend (dataset_id, dims) < 0 )
+ if ( H5Dset_extent(dataset_id, dims) < 0 )
   goto out;
 
  /* Create a simple memory data space */

@@ -393,8 +393,8 @@ CFLAGS.append("-Isrc")
 CFLAGS.extend([
     "-DH5Acreate_vers=2",
     "-DH5Aiterate_vers=2",
-    #"-DH5Dcreate_vers=2",
-    #"-DH5Dopen_vers=2",
+    "-DH5Dcreate_vers=2",
+    "-DH5Dopen_vers=2",
     "-DH5Eclear_vers=2",
     "-DH5Eprint_vers=2",
     "-DH5Epush_vers=2",

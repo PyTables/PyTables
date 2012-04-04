@@ -94,7 +94,8 @@ main(int argc, char **argv)
     // Get the nested type
     type_id = createNestedType();
     // Create the dataset
-    dataset_id = H5Dcreate(file_id, dset_name, type_id, space_id, plist_id);
+    dataset_id = H5Dcreate(file_id, dset_name, type_id, space_id,
+                           H5P_DEFAULT, plist_id, H5P_DEFAULT);
     // Free resources
     H5Sclose(space_id);
     H5Pclose(plist_id);

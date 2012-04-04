@@ -340,7 +340,7 @@ cdef class Table(Leaf):
     cdef H5D_layout_t layout
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name)
+    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
     if self.dataset_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))

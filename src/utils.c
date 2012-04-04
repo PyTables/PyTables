@@ -187,7 +187,7 @@ PyObject *get_filter_names( hid_t loc_id,
  PyObject *filter_values;
 
  /* Open the dataset. */
- if ( (dset = H5Dopen( loc_id, dset_name )) < 0 ) {
+ if ( (dset = H5Dopen( loc_id, dset_name, H5P_DEFAULT )) < 0 ) {
    goto out;
  }
 
@@ -368,7 +368,7 @@ H5T_class_t getHDF5ClassID(hid_t loc_id,
    hid_t        plist;
 
    /* Open the dataset. */
-   if ( (*dataset_id = H5Dopen( loc_id, name )) < 0 )
+   if ( (*dataset_id = H5Dopen( loc_id, name, H5P_DEFAULT )) < 0 )
      return -1;
 
    /* Get an identifier for the datatype. */
@@ -406,7 +406,7 @@ PyObject *H5UIget_info( hid_t loc_id,
   int         i;
 
   /* Open the dataset. */
-  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 ) {
+  if ( (dataset_id = H5Dopen( loc_id, dset_name, H5P_DEFAULT )) < 0 ) {
     Py_INCREF(Py_None);
     return Py_None;     /* Not chunked, so return None */
   }
