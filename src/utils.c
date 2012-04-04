@@ -333,7 +333,8 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
 **  aitercb(): Custom attribute iteration callback routine.
 **
 ****************************************************************/
-static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
+static herr_t aitercb( hid_t loc_id, const char *name,
+                       const H5A_info_t *ainfo, void *op_data) {
   PyObject *strname;
 
   strname = PyString_FromString(name);
@@ -350,11 +351,12 @@ static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
 **
 ****************************************************************/
 PyObject *Aiterate(hid_t loc_id) {
-  unsigned int i = 0;
+  hsize_t i = 0;
   PyObject *attrlist;                  /* List where the attrnames are put */
 
   attrlist = PyList_New(0);
-  H5Aiterate(loc_id, &i, (H5A_operator_t)aitercb, (void *)attrlist);
+  H5Aiterate(loc_id, H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, &i,
+             (H5A_operator_t)aitercb, (void *)attrlist);
 
   return attrlist;
 }
