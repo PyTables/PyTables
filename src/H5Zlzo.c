@@ -42,23 +42,6 @@ int register_lzo(char **version, char **date) {
 
 #ifdef HAVE_LZO_LIB
 
-/* The conditional below is somewhat messy, but it is necessary because
-  the THG team has decided to fix an API inconsistency in the definition
-  of the H5Z_class_t structure in version 1.8.3 */
-#if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7) || \
-    (H5_USE_16_API && (H5_VERS_MAJOR > 1 || \
-      (H5_VERS_MAJOR == 1 && (H5_VERS_MINOR > 8 || \
-        (H5_VERS_MINOR == 8 && H5_VERS_RELEASE >= 3)))))
-   /* 1.6.x */
-  H5Z_class_t filter_class = {
-    (H5Z_filter_t)(FILTER_LZO),    /* filter_id */
-    "lzo",                         /* comment */
-    NULL,                          /* can_apply_func */
-    NULL,                          /* set_local_func */
-    (H5Z_func_t)(lzo_deflate)      /* filter_func */
-  };
-#else
-   /* 1.8.x where x < 3 */
   H5Z_class_t filter_class = {
     H5Z_CLASS_T_VERS,             /* H5Z_class_t version */
     (H5Z_filter_t)(FILTER_LZO),   /* filter_id */
@@ -68,7 +51,6 @@ int register_lzo(char **version, char **date) {
     NULL,                         /* set_local_func */
     (H5Z_func_t)(lzo_deflate)     /* filter_func */
   };
-#endif
 
   /* Init the LZO library */
   if (lzo_init()!=LZO_E_OK) {

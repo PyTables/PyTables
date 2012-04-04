@@ -23,10 +23,10 @@
 /* The conditional below is necessary because the THG team has decided
   to fix an API inconsistency in the definition of the H5Z_class_t
   structure in version 1.8.3 */
-#if H5_VERS_MAJOR == 1 && H5_VERS_MINOR == 8 && (H5_VERS_RELEASE < 3 || !H5_USE_16_API)
+#if H5_VERS_MAJOR == 1 && H5_VERS_MINOR == 8 && (H5_VERS_RELEASE >= 3 || !H5_USE_16_API)
 /* 1.8.x where x >= 3 */
 #define H5Z_16API 0
-#define PUSH_ERR(func, minor, str) H5Epush1(__FILE__, func, __LINE__, H5E_PLINE, minor, str)
+#define PUSH_ERR(func, minor, str) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str)
 #define GET_FILTER(a,b,c,d,e,f,g) H5Pget_filter_by_id2(a,b,c,d,e,f,g,NULL)
 
 #else

@@ -42,8 +42,8 @@ from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5Fopen, H5Fclose, H5Fis_hdf5,
   H5Gopen, H5Gclose,
-  H5E_auto_t, H5Eset_auto, H5Eprint, H5Eget_major, H5Eget_minor,
-  H5E_error_t, H5E_walk_t, H5Ewalk, H5E_WALK_DOWNWARD,
+  H5E_auto_t, H5Eset_auto, H5Eprint,
+  H5E_error_t, H5E_walk_t, H5Ewalk, H5E_WALK_DOWNWARD, H5E_DEFAULT,
   H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
   H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
@@ -175,19 +175,18 @@ else:  # Unix systems
 #---------------------------------------------------------------------
 
 # Error handling helpers
-cdef herr_t e_walk_cb(int n, H5E_error_t *err, void *data) with gil:
+# XXX: silence warning about incompatible pointer types
+#ctypedef H5E_error_t* const_H5E_error_t_ptr "const H5E_error_t*"
+cdef herr_t e_walk_cb(unsigned n, H5E_error_t *err, void *data) with gil:
     cdef object bt = <object>data   # list
-    cdef bytes maj_str, min_str
 
     if err == NULL:
         return -1
 
-    # XXX: H5Eget_major and H5Eget_minor are deprecated
-    maj_str = <char*>H5Eget_major(err.maj_num)
-    min_str = H5Eget_minor(err.min_num)
-    msg = "%s (%s: %s)" % (bytes(<char*>err.desc).decode('utf-8'),
-                           maj_str.decode('utf-8'),
-                           maj_str.decode('utf-8'))
+    msg = "%s (MAJOR: %d, MINOR: %d)" % (
+                    bytes(<char*>err.desc).decode('utf-8'),
+                    err.maj_num,
+                    err.maj_num)
 
     # XXX: extract class info (see H5E_walk1_cb in H5Eint.c)
 
@@ -203,7 +202,7 @@ cdef herr_t e_walk_cb(int n, H5E_error_t *err, void *data) with gil:
 def _dump_h5_backtrace():
     cdef object bt = []
 
-    if H5Ewalk(H5E_WALK_DOWNWARD, e_walk_cb, <void*>bt) < 0:
+    if H5Ewalk(H5E_DEFAULT, H5E_WALK_DOWNWARD, e_walk_cb, <void*>bt) < 0:
         return None
 
     return bt
@@ -224,9 +223,9 @@ def silenceHDF5Messages(silence=True):
     """
     cdef herr_t err
     if silence:
-        err = H5Eset_auto(NULL, NULL)
+        err = H5Eset_auto(H5E_DEFAULT, NULL, NULL)
     else:
-        err = H5Eset_auto(<H5E_auto_t>H5Eprint, stderr)
+        err = H5Eset_auto(H5E_DEFAULT, <H5E_auto_t>H5Eprint, stderr)
     if err < 0:
         raise HDF5ExtError("unable to configure HDF5 internal error handling")
 

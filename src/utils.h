@@ -39,9 +39,9 @@
     if (ret == val) {                                                         \
         printf("*** UNEXPECTED RETURN from %s is %ld at line %4d "            \
                "in %s\n", where, (long)ret, (int)__LINE__, __FILE__);         \
-        H5Eprint (stdout);                                                    \
+        H5Eprint(H5E_DEFAULT, stdout);                                                    \
     }                                                                         \
-    H5Eclear();                                                               \
+    H5Eclear(H5E_DEFAULT);                                                               \
 } while(0)
 
 int getLibrary(char *libname);

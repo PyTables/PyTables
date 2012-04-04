@@ -225,33 +225,17 @@ cdef extern from "hdf5.h" nogil:
     H5E_WALK_UPWARD     = 0     # begin deep, end at API function
     H5E_WALK_DOWNWARD   = 1     # begin at API function, end deep
 
-  ctypedef hid_t   H5E_major_t
-  ctypedef hid_t   H5E_minor_t
-
   ctypedef struct H5E_error_t:
-    H5E_major_t maj_num         # major error number
-    H5E_minor_t min_num         # minor error number
-    const_char  *func_name      # function in which error occurred
-    const_char  *file_name      # file in which error occurred
-    unsigned    line            # line in file where error occurs
-    const_char  *desc           # optional supplied description
+    hid_t       cls_id      # class ID
+    hid_t       maj_num     # major error ID
+    hid_t       min_num     # minor error number
+    unsigned    line        # line in file where error occurs
+    const_char  *func_name  # function in which error occurred
+    const_char  *file_name  # file in which error occurred
+    const_char  *desc       # optional supplied description
 
-  ctypedef herr_t (*H5E_walk_t)(int n, H5E_error_t *err, void *data)
-  ctypedef herr_t (*H5E_auto_t)(void *data)
-
-  # 1.8 API
-  #ctypedef struct H5E_error_t
-  #  hid_t       cls_id      # class ID
-  #  hid_t       maj_num     # major error ID
-  #  hid_t       min_num     # minor error number
-  #  unsigned    line        # line in file where error occurs
-  #  const_char  *func_name  # function in which error occurred
-  #  const_char  *file_name  # file in which error occurred
-  #  const_char  *desc       # optional supplied description
-  #
-  #ctypedef herr_t (*H5E_walk_t)(unsigned n, const H5E_error_t *err, void *data)
-  #ctypedef herr_t (*H5E_auto_t)(hid_t estack, void *client_data)
-
+  ctypedef herr_t (*H5E_walk_t)(unsigned n, H5E_error_t *err, void *data)
+  ctypedef herr_t (*H5E_auto_t)(hid_t estack, void *data)
 
   #------------------------------------------------------------------
 
@@ -367,14 +351,11 @@ cdef extern from "hdf5.h" nogil:
                           hbool_t backing_store)
 
   # Error Handling Interface
-  #herr_t H5Eget_auto(H5E_auto_t *func, void** data)
-  herr_t H5Eset_auto(H5E_auto_t func, void *data)
-  herr_t H5Eprint(FILE *stream)
-  const_char * H5Eget_major(H5E_major_t n) # deprecated
-  char * H5Eget_minor(H5E_minor_t n)       # deprecated
-  herr_t H5Ewalk(H5E_direction_t dir, H5E_walk_t func, void *data)
-
-  # 1.8 API
+  #herr_t H5Eget_auto(hid_t estack_id, H5E_auto_t *func, void** data)
+  herr_t H5Eset_auto(hid_t estack_id, H5E_auto_t func, void *data)
+  herr_t H5Eprint(hid_t estack_id, FILE *stream)
+  herr_t H5Ewalk(hid_t estack_id, H5E_direction_t dir, H5E_walk_t func,
+                 void *data)
   #hid_t H5Eget_current_stack(void)
   #herr_t H5Eclose_stack(hid_t estack_id)
   #ssize_t H5Eget_num(hid_t estack_id)
@@ -382,8 +363,6 @@ cdef extern from "hdf5.h" nogil:
   #                   size_t size)
   #herr_t H5Eclose_msg(hid_t mesg_id)
   #ssize_t H5Eget_class_name(hid_t class_id, char* name, size_t size)
-  #herr_t H5Ewalk(hid_t estack_id, H5E_direction_t dir, H5E_walk_t func,
-  #               void *data)
 
 # Specific HDF5 functions for PyTables
 cdef extern from "H5ATTR.h" nogil:

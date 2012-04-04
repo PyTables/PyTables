@@ -22,23 +22,6 @@ int register_bzip2(char **version, char **date)
 #ifdef HAVE_BZ2_LIB
   char *libver, *versionp, *datep, *sep;
 
-/* The conditional below is somewhat messy, but it is necessary because
-  the THG team has decided to fix an API inconsistency in the definition
-  of the H5Z_class_t structure in version 1.8.3 */
-#if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7) || \
-    (H5_USE_16_API && (H5_VERS_MAJOR > 1 || \
-      (H5_VERS_MAJOR == 1 && (H5_VERS_MINOR > 8 || \
-        (H5_VERS_MINOR == 8 && H5_VERS_RELEASE >= 3)))))
-   /* 1.6.x */
-  H5Z_class_t filter_class = {
-    (H5Z_filter_t)(FILTER_BZIP2),  /* filter_id */
-    "bzip2",                       /* comment */
-    NULL,                          /* can_apply_func */
-    NULL,                          /* set_local_func */
-    (H5Z_func_t)(bzip2_deflate)    /* filter_func */
-  };
-#else
-   /* 1.8.x where x < 3 */
   H5Z_class_t filter_class = {
     H5Z_CLASS_T_VERS,             /* H5Z_class_t version */
     (H5Z_filter_t)(FILTER_BZIP2), /* filter_id */
@@ -47,8 +30,7 @@ int register_bzip2(char **version, char **date)
     NULL,                         /* can_apply_func */
     NULL,                         /* set_local_func */
     (H5Z_func_t)(bzip2_deflate)   /* filter_func */
-};
-#endif
+  };
 
   /* Register the filter class for the bzip2 compressor. */
   H5Zregister(&filter_class);
