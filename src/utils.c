@@ -200,16 +200,8 @@ PyObject *get_filter_names( hid_t loc_id,
    if ((nf = H5Pget_nfilters(dcpl))>0) {
      for (i=0; i<nf; i++) {
        cd_nelmts = 20;
-#if H5_USE_16_API || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7)
-       /* 1.6.x */
-       H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
-                     cd_values, sizeof(f_name), f_name);
-#else
-       /* 1.7.x */
        H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
                      cd_values, sizeof(f_name), f_name, NULL);
-#endif /* if H5_VERSION < "1.7" */
-
        filter_values = PyTuple_New(cd_nelmts);
        for (j=0;j<(long)cd_nelmts;j++) {
          PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));

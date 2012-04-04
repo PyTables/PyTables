@@ -19,7 +19,7 @@ createNestedType(void) {
     H5Tclose(tid2);
     offset += 4 + 2;  // add two to the offset so as to create gaps
     // Insert a nested compound
-    tid2 = H5Tcreate(H5T_COMPOUND, 12);     
+    tid2 = H5Tcreate(H5T_COMPOUND, 12);
     tid3 = H5Tcopy(H5T_NATIVE_CHAR);
     H5Tinsert(tid2, "char", offset2, tid3);
     H5Tclose(tid3);
@@ -61,8 +61,8 @@ getNestedSizeType(hid_t type_id) {
         offset = offset + itemsize;
     }
     return(offset);
-}      
-    
+}
+
 
 int
 main(int argc, char **argv)
@@ -80,7 +80,7 @@ main(int argc, char **argv)
 
     strcpy(file_name, argv[1]);
     strcpy(dset_name, argv[2]);
-    
+
     dims[0] = 20;  // Create 20 records
     dims_chunk[0] = 10;
 

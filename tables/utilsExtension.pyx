@@ -357,9 +357,8 @@ cdef hid_t get_native_type(hid_t type_id) nogil:
         if class_id == H5T_ARRAY:
             rank = H5Tget_array_ndims(type_id)
             dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-            H5Tget_array_dims(type_id, dims, NULL)
-            native_type_id = H5Tarray_create(native_super_type_id, rank, dims,
-                                             NULL)
+            H5Tget_array_dims(type_id, dims)
+            native_type_id = H5Tarray_create(native_super_type_id, rank, dims)
             free(dims)
             H5Tclose(native_super_type_id)
             return native_type_id
@@ -818,7 +817,7 @@ def AtomToHDF5Type(atom, char *byteorder):
   # Create an H5T_ARRAY in case of non-scalar atoms
   if atom.shape != ():
     dims = malloc_dims(atom.shape)
-    tid2 = H5Tarray_create(tid, len(atom.shape), dims, NULL)
+    tid2 = H5Tarray_create(tid, len(atom.shape), dims)
     free(dims)
     H5Tclose(tid)
     tid = tid2
@@ -972,7 +971,7 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
     shape = []
     ndims = H5Tget_array_ndims(type_id)
     dims = <hsize_t *>malloc(ndims * sizeof(hsize_t))
-    H5Tget_array_dims(type_id, dims, NULL)
+    H5Tget_array_dims(type_id, dims)
     for i from 0 <= i < ndims:
       shape.append(<int>dims[i])  # cast to avoid long representation (i.e. 2L)
     shape = tuple(shape)

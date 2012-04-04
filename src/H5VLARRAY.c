@@ -71,7 +71,7 @@ herr_t H5VLARRAYmake( hid_t loc_id,
    datatype = H5Tvlen_create(type_id);
  }
  else {
-   tid1 = H5Tarray_create(type_id, rank, dims, NULL);
+   tid1 = H5Tarray_create(type_id, rank, dims);
    datatype = H5Tvlen_create(tid1);
    H5Tclose( tid1 );   /* Release resources */
  }

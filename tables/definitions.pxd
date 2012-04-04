@@ -325,9 +325,9 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Tenum_insert(hid_t type, char *name, void *value)
 
   # Operations for array data types
-  hid_t H5Tarray_create(hid_t base_id, int ndims, hsize_t dims[], int perm[])
+  hid_t H5Tarray_create(hid_t base_id, int ndims, hsize_t dims[])
   int   H5Tget_array_ndims(hid_t type_id)
-  int   H5Tget_array_dims(hid_t type_id, hsize_t dims[], int perm[])
+  int   H5Tget_array_dims(hid_t type_id, hsize_t dims[])
 
   # Operations with attributes
   herr_t H5Adelete(hid_t loc_id, char *name)
