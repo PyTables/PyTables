@@ -257,8 +257,9 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Fget_vfd_handle(hid_t file_id, hid_t fapl_id, void **file_handle)
 
   # Operations with groups
-  hid_t  H5Gcreate(hid_t loc_id, char *name, size_t size_hint )
-  hid_t  H5Gopen(hid_t loc_id, char *name )
+  hid_t  H5Gcreate(hid_t loc_id, char *name, hid_t lcpl_id, hid_t gcpl_id,
+                   hid_t gapl_id)
+  hid_t  H5Gopen(hid_t loc_id, char *name, hid_t gapl_id)
   herr_t H5Gclose(hid_t group_id)
   herr_t H5Gunlink (hid_t file_id, char *name)
   herr_t H5Gmove(hid_t loc_id, char *src, char *dst)

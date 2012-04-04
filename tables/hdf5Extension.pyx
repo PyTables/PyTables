@@ -588,7 +588,8 @@ cdef class Group(Node):
     cdef hid_t ret
 
     # Create a new group
-    ret = H5Gcreate(self.parent_id, self.name, 0)
+    ret = H5Gcreate(self.parent_id, self.name, H5P_DEFAULT, H5P_DEFAULT,
+                    H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("Can't create the group %s." % self.name)
     self.group_id = ret
@@ -598,7 +599,7 @@ cdef class Group(Node):
   def _g_open(self):
     cdef hid_t ret
 
-    ret = H5Gopen(self.parent_id, self.name)
+    ret = H5Gopen(self.parent_id, self.name, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("Can't open the group: '%s'." % self.name)
     self.group_id = ret
@@ -645,7 +646,7 @@ cdef class Group(Node):
 
     # Open the group
     retvalue = None  # Default value
-    gchild_id = H5Gopen(self.group_id, group_name)
+    gchild_id = H5Gopen(self.group_id, group_name, H5P_DEFAULT)
     if gchild_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (group_name, self._v_pathname))
