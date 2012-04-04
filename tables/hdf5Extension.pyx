@@ -66,7 +66,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5P_DEFAULT, H5P_FILE_ACCESS,
   H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
   H5Fcreate, H5Fopen, H5Fclose,  H5Fflush, H5Fget_vfd_handle,
-  H5Gcreate, H5Gopen, H5Gclose, H5Gunlink, H5Gmove2,
+  H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
   H5Dget_space, H5Dvlen_reclaim,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
@@ -568,7 +568,7 @@ cdef class Node:
     cdef int ret
 
     # Delete this node
-    ret = H5Gunlink(parent._v_objectID, self.name)
+    ret = H5Ldelete(parent._v_objectID, self.name, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("problems deleting the node ``%s``" % self.name)
     return ret
@@ -697,7 +697,8 @@ cdef class Group(Node):
                   char *oldpathname, char *newpathname):
     cdef int ret
 
-    ret = H5Gmove2(oldparent, oldname, newparent, newname)
+    ret = H5Lmove(oldparent, oldname, newparent, newname,
+                  H5P_DEFAULT, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("Problems moving the node %s to %s" %
                          (oldpathname, newpathname) )

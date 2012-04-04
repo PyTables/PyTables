@@ -261,10 +261,11 @@ cdef extern from "hdf5.h" nogil:
                    hid_t gapl_id)
   hid_t  H5Gopen(hid_t loc_id, char *name, hid_t gapl_id)
   herr_t H5Gclose(hid_t group_id)
-  herr_t H5Gunlink (hid_t file_id, char *name)
-  herr_t H5Gmove(hid_t loc_id, char *src, char *dst)
-  herr_t H5Gmove2(hid_t src_loc_id, char *src_name,
-                  hid_t dst_loc_id, char *dst_name )
+
+  # Operations with links
+  herr_t H5Ldelete(hid_t file_id, char *name, hid_t lapl_id)
+  herr_t H5Lmove(hid_t src_loc_id, char *src_name,
+                  hid_t dst_loc_id, char *dst_name, hid_t lcpl, hid_t lap)
 
   # For dealing with datasets
   hid_t  H5Dopen(hid_t file_id, char *name, hid_t dapl_id)
