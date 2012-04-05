@@ -249,47 +249,48 @@ int get_objinfo(hid_t loc_id, const char *name) {
 
 /****************************************************************
 **
-**  gitercb(): Custom group iteration callback routine.
+**  litercb(): Custom link iteration callback routine.
 **
 ****************************************************************/
-herr_t gitercb(hid_t loc_id, const char *name, void *data) {
+herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
+               void *data) {
   PyObject   **out_info=(PyObject **)data;
   PyObject   *strname;
   /* herr_t     ret; */           /* Generic return value         */
   H5G_stat_t statbuf;
   int        namedtypes = 0;
 
-    /*
-     * Get type of the object and check it.
-     */
-    H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
-    /*
-    ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
-    CHECK(ret, FAIL, "H5Gget_objinfo");
-    */
+  /*
+   * Get type of the object and check it.
+   */
+  H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
+  /*
+  ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
+  CHECK(ret, FAIL, "H5Gget_objinfo");
+  */
 
-    strname = PyString_FromString(name);
-    if (statbuf.type == H5G_GROUP) {
-      PyList_Append(out_info[0], strname);
-    }
-    else if (statbuf.type == H5G_DATASET) {
-      PyList_Append(out_info[1], strname);
-    }
-    else if (statbuf.type == H5G_LINK) {
-      PyList_Append(out_info[2], strname);
-    }
-    else if (statbuf.type == H5G_TYPE) {
-      namedtypes++;
-    }
-    else if (statbuf.type == H5G_UNKNOWN) {
-      PyList_Append(out_info[3], strname);
-    }
-    else {                      /* Must be an external link */
-      PyList_Append(out_info[2], strname);
-    }
-    Py_DECREF(strname);
+  strname = PyString_FromString(name);
+  if (statbuf.type == H5G_GROUP) {
+    PyList_Append(out_info[0], strname);
+  }
+  else if (statbuf.type == H5G_DATASET) {
+    PyList_Append(out_info[1], strname);
+  }
+  else if (statbuf.type == H5G_LINK) {
+    PyList_Append(out_info[2], strname);
+  }
+  else if (statbuf.type == H5G_TYPE) {
+    namedtypes++;
+  }
+  else if (statbuf.type == H5G_UNKNOWN) {
+    PyList_Append(out_info[3], strname);
+  }
+  else {                      /* Must be an external link */
+    PyList_Append(out_info[2], strname);
+  }
+  Py_DECREF(strname);
 
-    return(0);  /* Loop until no more objects remain in directory */
+  return(0);  /* Loop until no more objects remain in directory */
 }
 
 /****************************************************************
@@ -298,7 +299,7 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
 **
 ****************************************************************/
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
-  int i=0;
+  hsize_t i=0;
   PyObject  *t, *tgroup, *tleave, *tlink, *tunknown;
   PyObject *info[4];
 
@@ -307,8 +308,11 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
   info[2] = tlink = PyList_New(0);
   info[3] = tunknown = PyList_New(0);
 
-  /* Iterate over all the childs behind loc_id (parent_id+loc_id) */
-  H5Giterate(parent_id, name, &i, gitercb, info);
+  /* Iterate over all the childs behind loc_id (parent_id+loc_id).
+   * NOTE: using H5_INDEX_CRT_ORDER instead of H5_INDEX_NAME causes failures
+   * in the test suite */
+  H5Literate_by_name(parent_id, name, H5_INDEX_NAME, H5_ITER_NATIVE,
+                     &i, litercb, info, H5P_DEFAULT);
 
   /* Create the tuple with the list of Groups and Datasets */
   t = PyTuple_New(4);

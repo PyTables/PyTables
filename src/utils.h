@@ -23,8 +23,8 @@
 #define UFAIL           (unsigned)(-1)
 
 /*
- *  * HDF Boolean type.
- *  */
+ * HDF Boolean type.
+ */
 #ifndef FALSE
 #   define FALSE 0
 #endif
