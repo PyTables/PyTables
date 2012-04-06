@@ -235,16 +235,35 @@ out:
 ****************************************************************/
 int get_objinfo(hid_t loc_id, const char *name) {
   herr_t     ret;            /* Generic return value         */
-  H5G_stat_t statbuf;
+  H5O_info_t oinfo;
 
   /* Get type of the object, without emiting an error in case the
      node does not exist. */
   H5E_BEGIN_TRY {
-    ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
+    ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);
   } H5E_END_TRY;
   if (ret < 0)
     return -2;
-  return statbuf.type;
+  return oinfo.type;
+}
+
+/****************************************************************
+**
+**  get_linkinfo(): Get information about the type of a link.
+**
+****************************************************************/
+int get_linkinfo(hid_t loc_id, const char *name) {
+  herr_t     ret;            /* Generic return value         */
+  H5L_info_t linfo;
+
+  /* Get type of the link, without emiting an error in case the
+     node does not exist. */
+  H5E_BEGIN_TRY {
+    ret = H5Lget_info(loc_id, name, &linfo, H5P_DEFAULT);
+  } H5E_END_TRY;
+  if (ret < 0)
+    return -2;
+  return linfo.type;
 }
 
 /****************************************************************
@@ -256,41 +275,51 @@ herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
                void *data) {
   PyObject   **out_info=(PyObject **)data;
   PyObject   *strname;
-  /* herr_t     ret; */           /* Generic return value         */
-  H5G_stat_t statbuf;
+  herr_t     ret;
+  H5O_info_t oinfo;
   int        namedtypes = 0;
 
-  /*
-   * Get type of the object and check it.
-   */
-  H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
-  /*
-  ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
-  CHECK(ret, FAIL, "H5Gget_objinfo");
-  */
-
   strname = PyString_FromString(name);
-  if (statbuf.type == H5G_GROUP) {
-    PyList_Append(out_info[0], strname);
-  }
-  else if (statbuf.type == H5G_DATASET) {
-    PyList_Append(out_info[1], strname);
-  }
-  else if (statbuf.type == H5G_LINK) {
-    PyList_Append(out_info[2], strname);
-  }
-  else if (statbuf.type == H5G_TYPE) {
-    namedtypes++;
-  }
-  else if (statbuf.type == H5G_UNKNOWN) {
-    PyList_Append(out_info[3], strname);
-  }
-  else {                      /* Must be an external link */
-    PyList_Append(out_info[2], strname);
+
+  switch(info->type) {
+    case H5L_TYPE_SOFT:
+    case H5L_TYPE_EXTERNAL:
+      PyList_Append(out_info[2], strname);
+      break;
+    case H5L_TYPE_ERROR:  /* XXX: check */
+      PyList_Append(out_info[3], strname);
+      break;
+    case H5L_TYPE_HARD:
+      /* Get type of the object and check it */
+      ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);
+      if (ret < 0)
+          return -1;
+
+      switch(oinfo.type) {
+        case H5O_TYPE_GROUP:
+          PyList_Append(out_info[0], strname);
+          break;
+        case H5O_TYPE_DATASET:
+          PyList_Append(out_info[1], strname);
+          break;
+        case H5O_TYPE_NAMED_DATATYPE:
+          ++namedtypes;
+          break;
+        case H5O_TYPE_UNKNOWN:
+          PyList_Append(out_info[3], strname);
+          break;
+        default:
+          /* should not happen */
+          PyList_Append(out_info[3], strname);
+      }
+      break;
+    default:
+      /* should not happen */
+      PyList_Append(out_info[3], strname);
   }
   Py_DECREF(strname);
 
-  return(0);  /* Loop until no more objects remain in directory */
+  return 0 ;  /* Loop until no more objects remain in directory */
 }
 
 /****************************************************************

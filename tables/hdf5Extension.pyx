@@ -60,7 +60,8 @@ from cpython cimport PyString_AsString, PyString_FromStringAndSize
 
 from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED,
-  H5G_UNKNOWN, H5G_GROUP, H5G_DATASET, H5G_LINK, H5G_TYPE,
+  H5O_TYPE_UNKNOWN, H5O_TYPE_GROUP, H5O_TYPE_DATASET, H5O_TYPE_NAMED_DATATYPE,
+  H5L_TYPE_ERROR, H5L_TYPE_HARD, H5L_TYPE_SOFT, H5L_TYPE_EXTERNAL,
   H5T_class_t, H5T_sign_t, H5T_NATIVE_INT,
   H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
   H5P_DEFAULT, H5P_FILE_ACCESS,
@@ -78,7 +79,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5ATTRget_attribute, H5ATTRget_attribute_string,
   H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims,
   H5ARRAYget_ndims, H5ARRAYget_info,
-  set_cache_size, get_objinfo, Giterate, Aiterate, H5UIget_info,
+  set_cache_size, get_objinfo, get_linkinfo, Giterate, Aiterate, H5UIget_info,
   get_len_of_range,  conv_float64_timeval32, truncate_dset)
 
 
@@ -611,21 +612,27 @@ cdef class Group(Node):
     cdef int ret
     cdef object node_type
 
-    ret = get_objinfo(self.group_id, h5name)
-    if ret == -2:
+    ret = get_linkinfo(self.group_id, h5name)
+    if ret == -2 or ret == H5L_TYPE_ERROR:
       node_type = "NoSuchNode"
-    elif ret == H5G_UNKNOWN:
-      node_type = "Unknown"
-    elif ret == H5G_GROUP:
-      node_type = "Group"
-    elif ret == H5G_DATASET:
-      node_type = "Leaf"
-    elif ret == H5G_LINK:
+    elif ret == H5L_TYPE_SOFT:
       node_type = "SoftLink"
-    elif ret == H5G_TYPE:
-      node_type = "NamedType"              # Not supported yet
-    else:
+    elif ret == H5L_TYPE_EXTERNAL:
       node_type = "ExternalLink"
+    elif ret == H5L_TYPE_HARD:
+        ret = get_objinfo(self.group_id, h5name)
+        if ret == -2:
+          node_type = "NoSuchNode"
+        elif ret == H5O_TYPE_UNKNOWN:
+          node_type = "Unknown"
+        elif ret == H5O_TYPE_GROUP:
+          node_type = "Group"
+        elif ret == H5O_TYPE_DATASET:
+          node_type = "Leaf"
+        elif ret == H5O_TYPE_NAMED_DATATYPE:
+          node_type = "NamedType"              # Not supported yet
+        else:
+          node_type = "Unknown"
     return node_type
 
 

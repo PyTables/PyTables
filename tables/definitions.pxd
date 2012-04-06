@@ -70,13 +70,17 @@ cdef extern from "hdf5.h" nogil:
     H5F_SCOPE_GLOBAL    = 1     # entire virtual file
     H5F_SCOPE_DOWN      = 2     # for internal use only
 
-  cdef enum H5G_obj_t:
-    H5G_UNKNOWN = -1            # Unknown object type
-    H5G_GROUP                   # Object is a group
-    H5G_DATASET                 # Object is a dataset
-    H5G_TYPE                    # Object is a named data type
-    H5G_LINK                    # Object is a symbolic link
-    #H5G_UDLINK                  # Object is a user-defined link  # 1.8.x
+  cdef enum H5O_type_t:
+      H5O_TYPE_UNKNOWN = -1     # Unknown object type
+      H5O_TYPE_GROUP            # Object is a group
+      H5O_TYPE_DATASET          # Object is a dataset
+      H5O_TYPE_NAMED_DATATYPE   # Object is a named data type
+
+  cdef enum H5L_type_t:
+    H5L_TYPE_ERROR    = -1      # Invalid link type id
+    H5L_TYPE_HARD     =  0      # Hard link id
+    H5L_TYPE_SOFT     =  1      # Soft link id
+    H5L_TYPE_EXTERNAL = 64,     # External link id
 
   # Values for fill value status
   cdef enum H5D_fill_value_t:
@@ -396,6 +400,7 @@ cdef extern from "H5ARRAY.h" nogil:
 cdef extern from "utils.h":
   herr_t set_cache_size(hid_t file_id, size_t cache_size) nogil
   int get_objinfo(hid_t loc_id, char *name) nogil
+  int get_linkinfo(hid_t loc_id, char *name) nogil
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   object H5UIget_info(hid_t loc_id, char *name, char *byteorder)

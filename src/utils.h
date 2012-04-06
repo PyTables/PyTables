@@ -60,6 +60,8 @@ PyObject *get_filter_names( hid_t loc_id, const char *dset_name);
 
 int get_objinfo(hid_t loc_id, const char *name);
 
+int get_linkinfo(hid_t loc_id, const char *name);
+
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name);
 
 PyObject *Aiterate(hid_t loc_id);
