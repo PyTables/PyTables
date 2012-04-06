@@ -183,7 +183,7 @@ _table__autoIndex = property(
 
     This value is persistent.
 
-    """ )
+    """)
 
 
 def restorecache(self):

@@ -71,8 +71,8 @@ Values in a condition may have the following types:
 
 Nevertheless, if the type passed is not among the above ones, it
 will be silently upcasted, so you don't need to worry too much about
-passing supported types: just pass whatever type you want and the
-interpreter will take care of it.
+passing supported types, except for the Unsigned 64 bits integer,
+that cannot be upcasted to any of the supported types.
 
 However, the types in PyTables conditions are somewhat stricter
 than those of Python. For instance, the *only* valid
