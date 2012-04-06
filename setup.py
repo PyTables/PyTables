@@ -415,7 +415,7 @@ CFLAGS.extend([
     #"-DH5Topen_vers=2",
     "-DH5Z_class_t_vers=2",
 ])
-#CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
+CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
 
 # Try to locate the compulsory and optional libraries.
 lzo2_enabled = False
@@ -464,7 +464,7 @@ for (package, location) in [
         hdf5_header = os.path.join(hdrdir, "H5public.h")
         hdf5_version = get_hdf5_version(hdf5_header)
         if hdf5_version < (1, 8, 4):
-            exit_with_error("minimum HDF5 version supported is HDF5 1.8.4")
+            exit_with_error("Unsupported HDF5 version!")
 
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
@@ -529,15 +529,6 @@ def get_cython_extfiles(extnames):
         extfile = os.path.join(extdir, extname)
         extpfile = '%s.pyx' % extfile
         extcfile = '%s.c' % extfile
-
-        # Copy extensions that depends on the HDF5 version
-        hdf5_maj_version, hdf5_min_version = hdf5_version[:2]
-        hdf5_majmin = "%d%d" % (hdf5_maj_version, hdf5_min_version)
-        if not hdf5_majmin in ("16", "18"):
-            exit_with_error("Unsupported HDF5 version!")
-        specific_ext = os.path.join(extdir, extname + hdf5_majmin + ".pyx")
-        if exists(specific_ext):
-            shutil.copy(specific_ext, extpfile)
 
         if not exists(extcfile) or newer(extpfile, extcfile):
             # For some reason, setup in setuptools does not compile

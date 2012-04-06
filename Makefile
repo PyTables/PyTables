@@ -27,7 +27,7 @@ clean:
 
 distclean:	clean
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
-	rm -f tables/_comp_*.c tables/*Extension.c tables/linkExtension.pyx
+	rm -f tables/_comp_*.c tables/*Extension.c
 	#git clean -fdx
 
 %:		%.in VERSION
