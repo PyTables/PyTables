@@ -256,7 +256,7 @@ class Basic32DTestCase(BasicTestCase):
     tupleChar = numpy.array(["121"], dtype="S3"); tupleChar.shape = (1,)*32
 
 
-class CompressionRatioProperty(unittest.TestCase):
+class size_on_disk__size_in_memory_properties(unittest.TestCase):
 
     def setUp(self):
         self.array_size = (10, 10)
@@ -268,19 +268,13 @@ class CompressionRatioProperty(unittest.TestCase):
 
     def tearDown(self):
         self.fileh.close()
-
         # Then, delete the file
         os.remove(self.file)
         common.cleanup(self)
 
     def test_all_zeros(self):
-        self.assertEqual(self.array.compression_ratio, 1)
-        self.assertIsInstance(self.array.compression_ratio, float)
-
-    def test_random_data(self):
-        self.array[:] = numpy.random.randint(0, 1e6, size=self.array_size)
-        self.assertEqual(self.array.compression_ratio, 1)
-        self.assertIsInstance(self.array.compression_ratio, float)
+        self.assertEqual(self.array.size_on_disk, 10 * 10 * 4)
+        self.assertEqual(self.array.size_in_memory, 10 * 10 * 4)
 
 
 class UnalignedAndComplexTestCase(unittest.TestCase):
@@ -2329,7 +2323,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
         # The 32 dimensions case is tested on GroupsArray
         #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
-        theSuite.addTest(unittest.makeSuite(CompressionRatioProperty))
+        theSuite.addTest(unittest.makeSuite(size_on_disk__size_in_memory_properties))
         theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexNotReopenNotEndianTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexReopenNotEndianTestCase))

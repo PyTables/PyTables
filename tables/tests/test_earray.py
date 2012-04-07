@@ -1143,7 +1143,7 @@ class NumericComprTestCase(BasicTestCase):
 # It remains a test of Numeric char types, but the code is getting too messy
 
 
-class CompressionRatioProperty(unittest.TestCase):
+class size_on_disk__size_in_memory_properties(unittest.TestCase):
 
     def setUp(self):
         self.array_size = (0, 10)
@@ -1163,34 +1163,32 @@ class CompressionRatioProperty(unittest.TestCase):
 
     def create_array(self, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.fileh.createEArray('/', 'earray', IntAtom(), self.array_size,
+        self.fileh.createEArray('/', 'earray', Int32Atom(), self.array_size,
                                 filters=filters, chunkshape=self.chunkshape)
         self.array = self.fileh.getNode('/', 'earray')
 
     def test_zero_length(self):
         complevel = 0
         self.create_array(complevel)
-        self.assertEqual(self.array.compression_ratio, 0)
-        self.assertIsInstance(self.array.compression_ratio, float)
+        self.assertEqual(self.array.size_on_disk, 0)
+        self.assertEqual(self.array.size_in_memory, 0)
 
     def test_no_compression(self):
         complevel = 0
         self.create_array(complevel)
         self.array.append([tuple(range(10))] * self.chunkshape[0] * 10)
-        self.assertEqual(self.array.compression_ratio, 1)
-        self.assertIsInstance(self.array.compression_ratio, float)
+        self.assertEqual(self.array.size_on_disk, 10 * 1000 * 10 * 4)
+        self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)
 
     def test_with_compression(self):
         complevel = 1
         self.create_array(complevel)
         self.array.append([tuple(range(10))] * self.chunkshape[0] * 10)
         file_size = os.stat(self.file).st_size
-        implied_file_size = self.array.compression_ratio * self.array.nrows * \
-                            self.array.rowsize
-        self.assertAlmostEqual(implied_file_size, file_size,
+        self.assertAlmostEqual(self.array.size_on_disk, file_size,
                                delta=self.hdf_overhead)
-        self.assertLess(self.array.compression_ratio, 1)
-        self.assertIsInstance(self.array.compression_ratio, float)
+        self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)
+        self.assertLess(self.array.size_on_disk, self.array.size_in_memory)
 
 
 class OffsetStrideTestCase(unittest.TestCase):
@@ -2686,7 +2684,7 @@ def suite():
         #    theSuite.addTest(unittest.makeSuite(NP_EmptyEArrayTestCase))
         #    theSuite.addTest(unittest.makeSuite(NP_MD6WriteTestCase))
         #    theSuite.addTest(unittest.makeSuite(NP_MD10WriteTestCase))
-        theSuite.addTest(unittest.makeSuite(CompressionRatioProperty))
+        theSuite.addTest(unittest.makeSuite(size_on_disk__size_in_memory_properties))
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))

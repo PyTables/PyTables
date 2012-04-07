@@ -255,21 +255,24 @@ class Leaf(Node):
         leaf has no such attribute, the default flavor is used.
         """ )
 
-    def _get_compression_ratio(self):
-        data_size = self.nrows * self.rowsize
-        disk_size = self._get_storage_size()
-        try:
-            return float(disk_size) / float(data_size)
-        except ZeroDivisionError:
-            return 0.0
+    # this function is needed because _get_storage_size is defined in
+    # hdf5Extensions, which isn't a parent of leaf.Leaf.
+    def _get_size_on_disk(self):
+        return self._get_storage_size()
 
-    compression_ratio = property(_get_compression_ratio, None, None,
+    size_on_disk = property(_get_size_on_disk, None, None,
         """
-        Return the compression ratio of the data on disk.
+        Return the size of the data in bytes as it's stored on disk.
+        """)
 
-        It is calculated as (size on disk) / (uncompressed size), so a number
-        less than one means the data is compressed.
-        """ )
+    def _get_size_in_memory(self):
+        return self.nrows * self.rowsize
+
+    size_in_memory = property(_get_size_in_memory, None, None,
+        """
+        Return the size of the data in bytes when it is loaded into
+        memory.
+        """)
 
     # Special methods
     # ~~~~~~~~~~~~~~~

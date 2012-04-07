@@ -1349,7 +1349,7 @@ class BigTablesTestCase(BasicTestCase):
     appendrows = 100
 
 
-class CompressionRatioProperty(unittest.TestCase):
+class size_on_disk__size_in_memory_properties(unittest.TestCase):
 
     def setUp(self):
         # set chunkshape so it divides evenly into array_size, to avoid
@@ -1376,27 +1376,25 @@ class CompressionRatioProperty(unittest.TestCase):
     def test_zero_length(self):
         complevel = 0
         self.create_table(complevel)
-        self.assertEqual(self.table.compression_ratio, 0)
-        self.assertIsInstance(self.table.compression_ratio, float)
+        self.assertEqual(self.table.size_on_disk, 0)
+        self.assertEqual(self.table.size_in_memory, 0)
 
     def test_no_compression(self):
         complevel = 0
         self.create_table(complevel)
         self.table.append([tuple(range(10))] * self.chunkshape[0] * 10)
-        self.assertEqual(self.table.compression_ratio, 1)
-        self.assertIsInstance(self.table.compression_ratio, float)
+        self.assertEqual(self.table.size_on_disk, 10 * 1000 * 10 * 4)
+        self.assertEqual(self.table.size_in_memory, 10 * 1000 * 10 * 4)
 
     def test_with_compression(self):
         complevel = 1
         self.create_table(complevel)
         self.table.append([tuple(range(10))] * self.chunkshape[0] * 10)
         file_size = os.stat(self.file).st_size
-        implied_file_size = self.table.compression_ratio * self.table.nrows * \
-                            self.table.rowsize
-        self.assertAlmostEqual(implied_file_size, file_size,
+        self.assertAlmostEqual(self.table.size_on_disk, file_size,
                                delta=self.hdf_overhead)
-        self.assertLess(self.table.compression_ratio, 1)
-        self.assertIsInstance(self.table.compression_ratio, float)
+        self.assertEqual(self.table.size_in_memory, 10 * 1000 * 10 * 4)
+        self.assertLess(self.table.size_on_disk, self.table.size_in_memory)
 
 
 class BasicRangeTestCase(unittest.TestCase):
@@ -5554,7 +5552,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Fletcher32TablesTestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
-        theSuite.addTest(unittest.makeSuite(CompressionRatioProperty))
+        theSuite.addTest(unittest.makeSuite(size_on_disk__size_in_memory_properties))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
