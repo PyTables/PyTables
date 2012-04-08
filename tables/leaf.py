@@ -256,7 +256,7 @@ class Leaf(Node):
         """ )
 
     # this function is needed because _get_storage_size is defined in
-    # hdf5Extensions, which isn't a parent of leaf.Leaf.
+    # hdf5Extension.Leaf, which isn't a parent of leaf.Leaf.
     def _get_size_on_disk(self):
         return self._get_storage_size()
 
