@@ -89,6 +89,19 @@ class BasicTestCase(unittest.TestCase):
                 if self.endiancheck:
                     self.assertNotEqual(bbo, abo)
 
+        obj = self.root.somearray
+        self.assertEqual(obj.flavor, 'numpy')
+        self.assertEqual(obj.shape, a.shape)
+        self.assertEqual(obj.ndim, a.ndim)
+        self.assertEqual(obj.chunkshape, None)
+        if a.shape:
+            nrows = a.shape[0]
+        else:
+            # scalar
+            nrows = 1
+
+        self.assertEqual(obj.nrows, nrows)
+
         self.assertTrue(allequal(a, b))
 
         self.fileh.close()

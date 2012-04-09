@@ -132,6 +132,8 @@ class Leaf(Node):
         Its value is 0 (i.e. the first dimension) when the dataset is
         not extendable, and `Leaf.extdim` (where available) for
         extendable ones.
+    ndim
+        The number of dimensions of the leaf data.
     nrows
         The length of the main dimension of the leaf data.
     nrowsinbuf
@@ -203,6 +205,10 @@ class Leaf(Node):
     objectID = property(
         lambda self: self._v_objectID, None, None,
         "A node identifier (may change from run to run)." )
+
+    ndim = property(
+        lambda self: len(self.shape), None, None,
+        "The number of dimensions of the leaf data." )
 
     # Lazy read-only attributes
     # `````````````````````````

@@ -1874,6 +1874,12 @@ Node (see :ref:`NodeClassDescr`):
     dataset is not extendable, and self.extdim
     (where available) for extendable ones.
 
+.. attribute:: Leaf.ndim
+
+    The number of dimensions of the leaf data.
+    
+    .. versionadded: 2.4
+
 .. attribute:: Leaf.nrows
 
     The length of the main dimension of the leaf data.

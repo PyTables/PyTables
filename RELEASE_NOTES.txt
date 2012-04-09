@@ -40,6 +40,8 @@ Changes from 2.3.1 to XXX
   :data:`tables.parameters.MAX_BLOSC_THREADS` and
   :data:`tables.parameters.MAX_NUMEXPR_THREADS` parameters respectively.
   Closes :issue:`142`.
+- :attr:`tables.Leaf.ndim` (read-only) attribute added to :class:`tables.Leaf`
+  objects (closes :issue:`126`)
 
 .. _numpy: http://numpy.scipy.org
 .. _Blosc: https://github.com/FrancescAlted/blosc

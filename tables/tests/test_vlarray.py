@@ -77,6 +77,16 @@ class BasicTestCase(unittest.TestCase):
 
     #----------------------------------------
 
+    def test00_attributes(self):
+        self.fileh = openFile(self.file, "r")
+        obj = self.fileh.getNode("/vlarray1")
+
+        self.assertEqual(obj.flavor, self.flavor)
+        self.assertEqual(obj.shape, (5,))
+        self.assertEqual(obj.ndim, 1)
+        self.assertEqual(obj.nrows, 5)
+        self.assertEqual(obj.atom.type, 'int32')
+
     def test01_read(self):
         """Checking vlarray read"""
 

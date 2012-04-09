@@ -101,6 +101,18 @@ class BasicTestCase(unittest.TestCase):
 
     #----------------------------------------
 
+    def test00_attributes(self):
+        if self.reopen:
+            self.fileh = openFile(self.file, "r")
+        obj = self.fileh.getNode("/carray1")
+
+        self.assertEqual(obj.flavor, self.flavor)
+        self.assertEqual(obj.shape, self.shape)
+        self.assertEqual(obj.ndim, len(self.shape))
+        self.assertEqual(obj.chunkshape, self.chunkshape)
+        self.assertEqual(obj.nrows, self.shape[0])
+        self.assertEqual(obj.atom.type, self.type)
+
     def test01_readCArray(self):
         """Checking read() of chunked layout arrays"""
 

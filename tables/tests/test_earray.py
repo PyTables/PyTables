@@ -113,6 +113,21 @@ class BasicTestCase(unittest.TestCase):
 
     #----------------------------------------
 
+    def test00_attributes(self):
+        if self.reopen:
+            self.fileh = openFile(self.file, "r")
+        obj = self.fileh.getNode("/earray1")
+
+        shape = list(self.shape)
+        shape[self.extdim] = self.chunksize * self.nappends
+        shape = tuple(shape)
+
+        self.assertEqual(obj.flavor, self.flavor)
+        self.assertEqual(obj.shape, shape)
+        self.assertEqual(obj.ndim, len(self.shape))
+        self.assertEqual(obj.nrows, shape[self.extdim])
+        self.assertEqual(obj.atom.type, self.type)
+
     def test01_iterEArray(self):
         """Checking enlargeable array iterator"""
 

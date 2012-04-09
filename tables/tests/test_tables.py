@@ -1258,6 +1258,15 @@ class BasicTestCase(common.PyTablesTestCase):
             print "self, table:", self.fletcher32, table.filters.fletcher32
         self.assertEqual(self.fletcher32, table.filters.fletcher32)
 
+    def test06_attributes(self):
+        self.fileh = openFile(self.file)
+        obj = self.fileh.getNode('/table0')
+
+        self.assertEqual(obj.flavor, 'numpy')
+        self.assertEqual(obj.shape, (self.expectedrows,))
+        self.assertEqual(obj.ndim, 1)
+        self.assertEqual(obj.nrows, self.expectedrows)
+
 class BasicWriteTestCase(BasicTestCase):
     title = "BasicWrite"
 
