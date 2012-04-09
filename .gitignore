@@ -8,4 +8,3 @@ tables/*.c
 
 # specific files
 src/version.h
-tables/linkExtension.pyx
