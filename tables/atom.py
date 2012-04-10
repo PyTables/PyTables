@@ -278,9 +278,10 @@ class Atom(object):
         Size in bytes of a sigle item in the atom.
 
         Specially useful for atoms of the ``string`` kind.
-
     kind
         The PyTables kind of the atom (a string).
+    ndim
+        The number of dimensions of the atom.
     recarrtype
         String type to be used in ``numpy.rec.array()``.
     shape
@@ -513,6 +514,9 @@ class Atom(object):
     recarrtype = property(
         lambda self: str(self.dtype.shape) + self.dtype.base.str[1:],
         None, None, "String type to be used in ``numpy.rec.array()``." )
+    ndim = property(
+        lambda self: len(self.shape),
+        None, None, "The number of dimensions of the atom." )
 
     # Special methods
     # ~~~~~~~~~~~~~~~

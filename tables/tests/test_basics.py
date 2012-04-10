@@ -2500,7 +2500,21 @@ class TestIsDescription(common.PyTablesTestCase):
         self.assertTrue('c' in TestDesc.columns)
 
 
-class TestAtomCopy(common.PyTablesTestCase):
+class TestAtom(common.PyTablesTestCase):
+    def test_atom_attributes01(self):
+        shape = (10, 10)
+        a = Float64Atom(shape=shape)
+
+        self.assertEqual(a.dflt, 0.)
+        self.assertEqual(a.dtype, numpy.dtype((numpy.float64, shape)))
+        self.assertEqual(a.itemsize, a.dtype.base.itemsize)
+        self.assertEqual(a.kind, 'float')
+        self.assertEqual(a.ndim, len(shape))
+        #self.assertEqual(a.recarrtype, )
+        self.assertEqual(a.shape, shape)
+        self.assertEqual(a.size, a.itemsize * numpy.prod(shape))
+        self.assertEqual(a.type, 'float64')
+
     def test_atom_copy01(self):
         shape = (10, 10)
         a = Float64Atom(shape=shape)
@@ -2523,7 +2537,7 @@ class TestAtomCopy(common.PyTablesTestCase):
         self.assertEqual(aa.dflt, -dflt)
 
 
-class TestColCopy(common.PyTablesTestCase):
+class TestCol(common.PyTablesTestCase):
     def test_col_copy01(self):
         shape = (10, 10)
         c = Float64Col(shape=shape)
@@ -2566,8 +2580,8 @@ def suite():
             theSuite.addTest(unittest.makeSuite(BloscSubprocess))
         theSuite.addTest(unittest.makeSuite(HDF5ErrorHandling))
         theSuite.addTest(unittest.makeSuite(TestIsDescription))
-        theSuite.addTest(unittest.makeSuite(TestAtomCopy))
-        theSuite.addTest(unittest.makeSuite(TestColCopy))
+        theSuite.addTest(unittest.makeSuite(TestAtom))
+        theSuite.addTest(unittest.makeSuite(TestCol))
 
     return theSuite
 

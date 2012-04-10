@@ -4704,6 +4704,11 @@ Atom instance variables
 
     The PyTables kind of the atom (a string).
 
+.. attribute:: Atom.ndim
+
+    The number of dimensions of the atom.
+    
+    .. versionadded:: 2.4
 
 .. attribute:: Atom.recarrtype
 
