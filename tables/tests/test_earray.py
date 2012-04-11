@@ -1143,7 +1143,7 @@ class NumericComprTestCase(BasicTestCase):
 # It remains a test of Numeric char types, but the code is getting too messy
 
 
-class size_on_disk__size_in_memory_properties(unittest.TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def setUp(self):
         self.array_size = (0, 10)
@@ -2684,7 +2684,7 @@ def suite():
         #    theSuite.addTest(unittest.makeSuite(NP_EmptyEArrayTestCase))
         #    theSuite.addTest(unittest.makeSuite(NP_MD6WriteTestCase))
         #    theSuite.addTest(unittest.makeSuite(NP_MD10WriteTestCase))
-        theSuite.addTest(unittest.makeSuite(size_on_disk__size_in_memory_properties))
+        theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))

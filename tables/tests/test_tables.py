@@ -1349,7 +1349,7 @@ class BigTablesTestCase(BasicTestCase):
     appendrows = 100
 
 
-class size_on_disk__size_in_memory_properties(unittest.TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def setUp(self):
         # set chunkshape so it divides evenly into array_size, to avoid
@@ -5552,7 +5552,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Fletcher32TablesTestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
-        theSuite.addTest(unittest.makeSuite(size_on_disk__size_in_memory_properties))
+        theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))

@@ -835,7 +835,7 @@ class NumericComprTestCase(BasicTestCase):
     step = 7
 
 
-class size_on_disk__size_in_memory_properties(unittest.TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def setUp(self):
         self.array_size = (10000, 10)
@@ -2531,7 +2531,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
-        theSuite.addTest(unittest.makeSuite(size_on_disk__size_in_memory_properties))
+        theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))

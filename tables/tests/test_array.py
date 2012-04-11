@@ -256,7 +256,7 @@ class Basic32DTestCase(BasicTestCase):
     tupleChar = numpy.array(["121"], dtype="S3"); tupleChar.shape = (1,)*32
 
 
-class size_on_disk__size_in_memory_properties(unittest.TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def setUp(self):
         self.array_size = (10, 10)
@@ -2323,7 +2323,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
         # The 32 dimensions case is tested on GroupsArray
         #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
-        theSuite.addTest(unittest.makeSuite(size_on_disk__size_in_memory_properties))
+        theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexNotReopenNotEndianTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexReopenNotEndianTestCase))

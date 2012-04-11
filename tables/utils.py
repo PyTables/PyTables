@@ -14,14 +14,13 @@
 
 from itertools import chain
 import collections
+import os, os.path, subprocess
+import sys
+from time import time
 try:
     from reprlib import repr
 except ImportError:
     pass
-
-import os, os.path, subprocess
-import sys
-from time import time
 
 import numpy
 
@@ -426,7 +425,7 @@ def sizeof_recursive(obj, handlers={}):
                    }
     all_handlers.update(handlers)    # user handlers take precedence
     seen = set()                     # track objects already counted
-    default_size = sys.getsizeof(0)  # estimate sizeof object without __sizeof__
+    default_size = sys.getsizeof(0)  # estimate for objects without __sizeof__
 
     def sizeof(obj):
         if id(obj) in seen:
