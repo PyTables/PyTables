@@ -4299,6 +4299,48 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             self.assertRaises(IndexError, vlarr.__getitem__, key)
 
 
+class SizeInMemoryPropertyTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+
+    def tearDown(self):
+        self.fileh.close()
+        # Then, delete the file
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def create_array(self, atom):
+        self.fileh.createVLArray('/', 'vlarray', atom)
+        self.array = self.fileh.getNode('/', 'vlarray')
+
+    def test_zero_length(self):
+        atom = Int32Atom()
+        self.create_array(atom)
+        self.assertEqual(self.array.size_in_memory, 0)
+
+    def test_numpy_int__numpy_flavor(self):
+        atom = Int32Atom()
+        self.create_array(atom)
+        self.array.flavor = 'numpy'
+        for i in xrange(2):
+            self.array.append(numpy.array([1, 2, 3], 'i4'))
+        expected_size = 3 * 2 * 4
+        self.assertEqual(self.array.size_in_memory, expected_size)
+
+    def test_numpy_int__python_flavor(self):
+        atom = Int32Atom()
+        self.create_array(atom)
+        self.array.flavor = 'python'
+        for i in xrange(2):
+            self.array.append(numpy.array([1, 2, 3], 'i4'))
+        sizeof = sys.getsizeof
+        expected_size = 2 * sum([sizeof(item) for item in [[1, 2, 3], 1, 2, 3]])
+        self.assertEqual(self.array.size_in_memory, expected_size)
+
+    def test_string__numpy_flavor(self):
+        self.assertFalse(True)
 
 #----------------------------------------------------------------------
 
@@ -4347,6 +4389,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
         theSuite.addTest(unittest.makeSuite(PointSelectionTestCase))
+        theSuite.addTest(unittest.makeSuite(SizeInMemoryPropertyTestCase))
 
         # Numeric is now deprecated
         #if numeric_imported:
