@@ -384,6 +384,8 @@ cdef extern from "hdf5.h":
                          void *buf)
   hid_t H5Dget_create_plist(hid_t dataset_id)
   hsize_t H5Dget_storage_size(hid_t dataset_id)
+  herr_t H5Dvlen_get_buf_size(hid_t dataset_id, hid_t type_id, hid_t space_id,
+                              hsize_t *size)
 
   # Functions for dealing with dataspaces
   hid_t H5Screate_simple(int rank, hsize_t dims[], hsize_t maxdims[])

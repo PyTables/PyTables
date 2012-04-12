@@ -76,7 +76,7 @@ from definitions cimport  \
      H5Fflush, H5Fget_vfd_handle, \
      H5Gcreate, H5Gopen, H5Gclose, H5Gunlink, H5Gmove, H5Gmove2, \
      H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, \
-     H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, \
+     H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size, \
      H5Tget_native_type, H5Tget_super, H5Tget_class, H5Tcopy, \
      H5Tclose, H5Tis_variable_str, H5Tget_sign, \
      H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
@@ -1507,6 +1507,31 @@ cdef class VLArray(Leaf):
       raise HDF5ExtError("Problems modifying the record.")
 
     return nobjects
+
+
+  # Because the size of each "row" is unknown, there is no easy way to
+  # calculate this value
+  def _get_memory_size(self):
+    cdef hsize_t nrows
+    cdef hsize_t size
+    cdef herr_t ret
+    nrows = self.nrows
+
+    # Get the dataspace handle
+    space_id = H5Dget_space(self.dataset_id)
+    # Create a memory dataspace handle
+    mem_space_id = H5Screate_simple(1, &nrows, NULL)
+    # Return the size of the entire dataset
+    ret = H5Dvlen_get_buf_size(self.dataset_id, self.type_id, mem_space_id,
+                               &size)
+    if ret < 0:
+        size = -1
+    # Terminate access to the memory dataspace
+    H5Sclose(mem_space_id)
+    # Terminate access to the dataspace
+    H5Sclose(space_id)
+
+    return size
 
 
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step):

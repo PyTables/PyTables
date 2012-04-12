@@ -194,14 +194,15 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         "The shape of the stored array.")
 
     def _get_size_in_memory(self):
-        data_size = 0
-        for i in xrange(self.nrows):
-            row = self.read(i, i+1, 1)[0]
-            try:
-                data_size += row.nbytes
-            except AttributeError:
-                data_size += sizeof_recursive(row)
-        return data_size
+        return self._get_memory_size()
+#        data_size = 0
+#        for i in xrange(self.nrows):
+#            row = self.read(i, i+1, 1)[0]
+#            try:
+#                data_size += row.nbytes
+#            except AttributeError:
+#                data_size += sizeof_recursive(row)
+#        return data_size
 
     size_in_memory = property(_get_size_in_memory, None, None,
         """
