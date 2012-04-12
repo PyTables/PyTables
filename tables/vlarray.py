@@ -193,6 +193,14 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         lambda self: (self.nrows,), None, None,
         "The shape of the stored array.")
 
+    def _get_size_on_disk(self):
+        raise NotImplementedError('size_on_disk not implemented for VLArrays')
+
+    size_on_disk = property(_get_size_on_disk, None, None,
+        """
+        Return the size of the data in bytes as it's stored on disk.
+        """)
+
     def _get_size_in_memory(self):
         return self._get_memory_size()
 #        data_size = 0
