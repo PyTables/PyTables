@@ -405,7 +405,7 @@ CFLAGS.extend([
     "-DH5Gcreate_vers=2",
     "-DH5Gopen_vers=2",
     "-DH5Pget_filter_vers=2",
-    #"-DH5Pget_filter_by_id_vers=2",
+    "-DH5Pget_filter_by_id_vers=2",
     #"-DH5Pinsert_vers=2",
     #"-DH5Pregister_vers=2",
     #"-DH5Rget_obj_type_vers=2",
