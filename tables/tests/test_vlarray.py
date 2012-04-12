@@ -4,6 +4,7 @@ import sys
 import unittest
 import os
 import tempfile
+import cPickle
 
 import numpy
 
@@ -4311,36 +4312,63 @@ class SizeInMemoryPropertyTestCase(unittest.TestCase):
         os.remove(self.file)
         common.cleanup(self)
 
-    def create_array(self, atom):
-        self.fileh.createVLArray('/', 'vlarray', atom)
+    def create_array(self, atom, complevel):
+        filters = Filters(complevel=complevel, complib='blosc')
+        self.fileh.createVLArray('/', 'vlarray', atom, filters=filters)
         self.array = self.fileh.getNode('/', 'vlarray')
 
     def test_zero_length(self):
         atom = Int32Atom()
-        self.create_array(atom)
+        complevel = 0
+        self.create_array(atom, complevel)
         self.assertEqual(self.array.size_in_memory, 0)
 
     def test_numpy_int__numpy_flavor(self):
         atom = Int32Atom()
-        self.create_array(atom)
+        complevel = 0
+        self.create_array(atom, complevel)
         self.array.flavor = 'numpy'
-        for i in xrange(2):
+        for i in xrange(10):
             self.array.append(numpy.array([1, 2, 3], 'i4'))
-        expected_size = 3 * 2 * 4
+        expected_size = 3 * 10 * 4
         self.assertEqual(self.array.size_in_memory, expected_size)
 
+    # compression will have no effect, since this is uncompressed size
+    def test_numpy_int__numpy_flavor__compressed(self):
+        atom = Int32Atom()
+        complevel = 1
+        self.create_array(atom, complevel)
+        self.array.flavor = 'numpy'
+        for i in xrange(10):
+            self.array.append(numpy.array([1, 2, 3], 'i4'))
+        expected_size = 3 * 10 * 4
+        self.assertEqual(self.array.size_in_memory, expected_size)
+
+    # flavor will have no effect on what's stored in HDF5 file
     def test_numpy_int__python_flavor(self):
         atom = Int32Atom()
-        self.create_array(atom)
+        complevel = 0
+        self.create_array(atom, complevel)
         self.array.flavor = 'python'
-        for i in xrange(2):
+        for i in xrange(10):
             self.array.append(numpy.array([1, 2, 3], 'i4'))
-        sizeof = sys.getsizeof
-        expected_size = 2 * sum([sizeof(item) for item in [[1, 2, 3], 1, 2, 3]])
+        expected_size = 3 * 10 * 4
         self.assertEqual(self.array.size_in_memory, expected_size)
 
-    def test_string__numpy_flavor(self):
-        self.assertFalse(True)
+    # this test relies on knowledge of the implementation, so it's not
+    # a great test
+    def test_object_atom(self):
+        atom = ObjectAtom()
+        complevel = 0
+        self.create_array(atom, complevel)
+        obj = [1, 2, 3]
+        for i in xrange(10):
+            self.array.append([obj])
+        pickle = cPickle.dumps(obj)
+        pickle_array = numpy.ndarray(buffer=pickle, dtype='uint8',
+                                     shape=len(pickle))
+        expected_size = 10 * pickle_array.nbytes
+        self.assertEqual(self.array.size_in_memory, expected_size)
 
 #----------------------------------------------------------------------
 

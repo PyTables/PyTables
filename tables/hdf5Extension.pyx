@@ -1517,19 +1517,22 @@ cdef class VLArray(Leaf):
     cdef herr_t ret
     nrows = self.nrows
 
-    # Get the dataspace handle
-    space_id = H5Dget_space(self.dataset_id)
-    # Create a memory dataspace handle
-    mem_space_id = H5Screate_simple(1, &nrows, NULL)
-    # Return the size of the entire dataset
-    ret = H5Dvlen_get_buf_size(self.dataset_id, self.type_id, mem_space_id,
-                               &size)
-    if ret < 0:
+    if nrows == 0:
+      size = 0
+    else:
+      # Get the dataspace handle
+      space_id = H5Dget_space(self.dataset_id)
+      # Create a memory dataspace handle
+      mem_space_id = H5Screate_simple(1, &nrows, NULL)
+      # Return the size of the entire dataset
+      ret = H5Dvlen_get_buf_size(self.dataset_id, self.type_id, mem_space_id,
+                                 &size)
+      if ret < 0:
         size = -1
-    # Terminate access to the memory dataspace
-    H5Sclose(mem_space_id)
-    # Terminate access to the dataspace
-    H5Sclose(space_id)
+      # Terminate access to the memory dataspace
+      H5Sclose(mem_space_id)
+      # Terminate access to the dataspace
+      H5Sclose(space_id)
 
     return size
 
