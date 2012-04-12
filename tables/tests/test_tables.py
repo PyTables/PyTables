@@ -1379,13 +1379,23 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.assertEqual(self.table.size_on_disk, 0)
         self.assertEqual(self.table.size_in_memory, 0)
 
-    def test_no_compression(self):
+    # add 10 chunks of data in one append
+    def test_no_compression__one_append(self):
         complevel = 0
         self.create_table(complevel)
         self.table.append([tuple(range(10))] * self.chunkshape[0] * 10)
         self.assertEqual(self.table.size_on_disk, 10 * 1000 * 10 * 4)
         self.assertEqual(self.table.size_in_memory, 10 * 1000 * 10 * 4)
 
+    # add 10 chunks of data in two appends
+    def test_no_compression__multiple_appends(self):
+        complevel = 0
+        self.create_table(complevel)
+        self.table.append([tuple(range(10))] * self.chunkshape[0] * 5)
+        self.table.append([tuple(range(10))] * self.chunkshape[0] * 5)
+        self.assertEqual(self.table.size_on_disk, 10 * 1000 * 10 * 4)
+        self.assertEqual(self.table.size_in_memory, 10 * 1000 * 10 * 4)
+        
     def test_with_compression(self):
         complevel = 1
         self.create_table(complevel)
