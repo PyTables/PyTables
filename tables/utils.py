@@ -12,8 +12,6 @@
 
 """
 
-from itertools import chain
-import collections
 import os, os.path, subprocess
 import sys
 from time import time
@@ -401,45 +399,6 @@ def detectNumberOfCores():
         if ncpus > 0:
             return ncpus
     return 1 # Default
-
-
-def sizeof_recursive(obj, handlers={}):
-    """ Returns the approximate memory footprint an object and all of its
-    contents.
-
-    Automatically finds the contents of the following builtin containers and
-    their subclasses:  tuple, list, deque, dict, set and frozenset.
-    To search other containers, add handlers to iterate over their contents:
-
-        handlers = {SomeContainerClass: iter,
-                    OtherContainerClass: OtherContainerClass.get_elements}
-
-    """
-    dict_handler = lambda d: chain.from_iterable(d.items())
-    all_handlers = {tuple: iter,
-                    list: iter,
-                    collections.deque: iter,
-                    dict: dict_handler,
-                    set: iter,
-                    frozenset: iter,
-                   }
-    all_handlers.update(handlers)    # user handlers take precedence
-    seen = set()                     # track objects already counted
-    default_size = sys.getsizeof(0)  # estimate for objects without __sizeof__
-
-    def sizeof(obj):
-        if id(obj) in seen:
-            return 0
-        seen.add(id(obj))
-        running_sum = sys.getsizeof(obj, default_size)
-
-        for typ, handler in all_handlers.items():
-            if isinstance(obj, typ):
-                running_sum += sum([sizeof(item) for item in handler(obj)])
-                break
-        return running_sum
-
-    return sizeof(obj)
 
 
 # Main part

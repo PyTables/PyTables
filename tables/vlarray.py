@@ -27,15 +27,13 @@ Misc variables:
 """
 
 import sys
-import warnings
 
 import numpy
 
 from tables import hdf5Extension
 from tables.utilsExtension import lrange
 from tables.utils import convertToNPAtom, convertToNPAtom2, idx2long, \
-     correct_byteorder, SizeType, is_idx, lazyattr, sizeof_recursive
-
+     correct_byteorder, SizeType, is_idx, lazyattr
 
 from tables.atom import (
     ObjectAtom, VLStringAtom, VLUnicodeAtom, EnumAtom, Atom, split_type )
@@ -203,14 +201,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
     def _get_size_in_memory(self):
         return self._get_memory_size()
-#        data_size = 0
-#        for i in xrange(self.nrows):
-#            row = self.read(i, i+1, 1)[0]
-#            try:
-#                data_size += row.nbytes
-#            except AttributeError:
-#                data_size += sizeof_recursive(row)
-#        return data_size
 
     size_in_memory = property(_get_size_in_memory, None, None,
         """

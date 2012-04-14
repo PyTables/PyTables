@@ -4323,7 +4323,6 @@ class SizeInMemoryPropertyTestCase(unittest.TestCase):
         self.create_array(atom, complevel)
         self.assertEqual(self.array.size_in_memory, 0)
 
-
     def int_tests(self, complevel, flavor):
         atom = Int32Atom()
         self.create_array(atom, complevel)
