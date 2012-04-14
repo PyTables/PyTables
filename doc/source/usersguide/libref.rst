@@ -1879,6 +1879,18 @@ Node (see :ref:`NodeClassDescr`):
 
     The shape of data in the leaf.
 
+.. attribute:: Leaf.size_on_disk
+
+    The size of this leaf's data in bytes as it is stored on disk.  If the data
+    is compressed, this shows the compressed size.  In the case of uncompressed,
+    chunked data, this may be slightly larger than the amount of data, due to
+    partially filled chunks.
+
+.. attribute:: Leaf.size_in_memory
+
+    The size of this leaf's data in bytes when it is fully loaded into memory.
+    This may be used in combination with size_on_disk to calculate the 
+    compression ratio of the data.
 
 
 Leaf instance variables - aliases
@@ -2264,6 +2276,21 @@ Table.cols.
 .. attribute:: Table.rowsize
 
     The size in bytes of each row in the table.
+
+
+.. attribute:: Table.size_on_disk
+
+    The size of this table's data in bytes as it is stored on disk.  If the data
+    is compressed, this shows the compressed size.  In the case of uncompressed,
+    chunked data, this may be slightly larger than the amount of data, due to
+    partially filled chunks.
+
+.. attribute:: Table.size_in_memory
+
+    The size of this table's data in bytes when it is fully loaded into memory.
+    This may be used in combination with size_on_disk to calculate the 
+    compression ratio of the data.
+
 
 
 Table methods - reading
@@ -3621,12 +3648,26 @@ Array instance variables
 
 .. attribute:: Array.rowsize
 
-    The size of the rows in dimensions orthogonal to
+    The size of the rows in bytes in dimensions orthogonal to
     *maindim*.
+
+.. attribute:: Array.nrows
+
+    The current number of rows in the table.
 
 .. attribute:: Array.nrow
 
     On iterators, this is the index of the current row.
+
+.. attribute:: Array.size_on_disk
+
+    The size of this array's data in bytes as it is stored on disk.
+
+.. attribute:: Array.size_in_memory
+
+    The size of this array's data in bytes when it is fully loaded into memory.
+    Since arrays do not support compression or chunking, this will always
+    equal size_in_disk.
 
 
 Array methods
@@ -3789,6 +3830,27 @@ The CArray class
     chunked layout and, as a consequence, it supports compression.
     You can use datasets of this class to easily save or load arrays to or
     from disk, with compression support included.
+
+    CArray includes all the instance variables and methods of Array.  Only those
+    with different behavior are mentioned here.
+
+.. _CArrayClassInstanceVariables:
+
+CArray instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attribute:: CArray.size_on_disk
+
+    The size of this carray's data in bytes as it is stored on disk.  If the data
+    is compressed, this shows the compressed size.  In the case of uncompressed,
+    chunked data, this may be slightly larger than the amount of data, due to
+    partially filled chunks.
+
+.. attribute:: CArray.size_in_memory
+
+    The size of this carray's data in bytes when it is fully loaded into memory.
+    This may be used in combination with size_on_disk to calculate the 
+    compression ratio of the data.
 
 
 Examples of use
@@ -3956,6 +4018,30 @@ VLArray instance variables
 .. attribute:: VLArray.nrow
 
     On iterators, this is the index of the current row.
+
+
+.. attribute:: VLArray.nrows
+
+    The current number of rows in the table.
+
+
+.. attribute:: VLArray.size_on_disk
+
+    The HDF5 library does not include a function to determine size_on_disk for
+    variable-length arrays.  Accessing this attribute will return a 
+    NotImplementedError.
+
+
+.. attribute:: VLArray.size_in_memory
+
+    The size of this array's data in bytes when it is fully loaded into memory.
+
+    .. note:: When data is stored in a VLArray using the ObjectAtom type, it is
+        first serialized using cPickle, and then converted to a NumPy array
+        suitable for storage in an HDF5 file.  This attribute will return the
+        size of that NumPy representation.  If you wish to know the size of the
+        Python objects after they are loaded from disk, you can use this 
+        `ActiveState recipe <http://code.activestate.com/recipes/577504/>`_.
 
 
 

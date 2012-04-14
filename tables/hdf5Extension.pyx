@@ -720,6 +720,7 @@ cdef class Leaf(Node):
   def _get_storage_size(self):
       return H5Dget_storage_size(self.dataset_id)
 
+      
   def _g_new(self, where, name, init):
     if init:
       # Put this info to 0 just when the class is initialized
