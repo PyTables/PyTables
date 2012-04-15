@@ -82,8 +82,16 @@ class Array(hdf5Extension.Array, Leaf):
         atomic objects to be saved.
     rowsize
         The size of the rows in dimensions orthogonal to ``maindim``.
+    nrows
+        The current number of rows in the table.
     nrow
         On iterators, this is the index of the current row.
+    size_on_disk
+        The size of this array's data in bytes as it is stored on disk.
+    size_in_memory
+        The size of this array's data in bytes when it is fully loaded into
+        memory. Since arrays do not support compression or chunking, this will
+        always equal size_on_disk.
 
     Public methods
     --------------

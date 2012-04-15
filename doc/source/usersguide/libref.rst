@@ -3667,7 +3667,7 @@ Array instance variables
 
     The size of this array's data in bytes when it is fully loaded into memory.
     Since arrays do not support compression or chunking, this will always
-    equal size_in_disk.
+    equal size_on_disk.
 
 
 Array methods
@@ -4019,6 +4019,9 @@ VLArray instance variables
 
     On iterators, this is the index of the current row.
 
+.. attribute:: VLArray.extdim
+   
+   The index of the enlargeable dimension (always 0 for vlarrays).
 
 .. attribute:: VLArray.nrows
 
