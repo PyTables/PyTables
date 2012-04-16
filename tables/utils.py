@@ -15,10 +15,6 @@
 import os, os.path, subprocess
 import sys
 from time import time
-try:
-    from reprlib import repr
-except ImportError:
-    pass
 
 import numpy
 
@@ -399,6 +395,7 @@ def detectNumberOfCores():
         if ncpus > 0:
             return ncpus
     return 1 # Default
+
 
 
 # Main part

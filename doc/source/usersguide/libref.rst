@@ -3653,7 +3653,7 @@ Array instance variables
 
 .. attribute:: Array.nrows
 
-    The current number of rows in the table.
+    The number of rows in the array.
 
 .. attribute:: Array.nrow
 
@@ -4025,7 +4025,7 @@ VLArray instance variables
 
 .. attribute:: VLArray.nrows
 
-    The current number of rows in the table.
+    The current number of rows in the array.
 
 
 .. attribute:: VLArray.size_on_disk

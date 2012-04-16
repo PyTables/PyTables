@@ -83,7 +83,7 @@ class Array(hdf5Extension.Array, Leaf):
     rowsize
         The size of the rows in dimensions orthogonal to ``maindim``.
     nrows
-        The current number of rows in the table.
+        The number of rows in the array.
     nrow
         On iterators, this is the index of the current row.
     size_on_disk

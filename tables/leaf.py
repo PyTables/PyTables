@@ -144,7 +144,6 @@ class Leaf(Node):
         requirements of your application.
     shape
         The shape of data in the leaf.
-
     size_on_disk
         The size of this leaf's data in bytes as it is stored on disk.  If the
         data is compressed, this shows the compressed size.  In the case of
@@ -218,7 +217,6 @@ class Leaf(Node):
     objectID = property(
         lambda self: self._v_objectID, None, None,
         "A node identifier (may change from run to run)." )
-
 
     # Lazy read-only attributes
     # `````````````````````````

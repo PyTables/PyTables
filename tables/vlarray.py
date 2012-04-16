@@ -88,7 +88,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     extdim
         The index of the enlargeable dimension (always 0 for vlarrays).
     nrows
-        The current number of rows in the table.
+        The current number of rows in the array.
     size_on_disk
         The HDF5 library does not include a function to determine size_on_disk
         for variable-length arrays.  Accessing this attribute will return a 
