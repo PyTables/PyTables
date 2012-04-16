@@ -155,6 +155,10 @@ class Array(hdf5Extension.Array, Leaf):
         _getrowsize, None, None,
         "The size of the rows in dimensions orthogonal to maindim.")
 
+    size_in_memory = property(
+        lambda self: self.nrows * self.rowsize, None, None,
+        "Return the size of the data in bytes when it is loaded into memory.")
+
     # Other methods
     # ~~~~~~~~~~~~~
     def __init__(self, parentNode, name,

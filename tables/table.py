@@ -501,7 +501,7 @@ class Table(tableExtension.Table, Leaf):
         of data, due to partially filled chunks.
     size_in_memory
         The size of this table's data in bytes when it is fully loaded into
-        memory. This may be used in combination with size_on_disk to calculate 
+        memory. This may be used in combination with size_on_disk to calculate
         the compression ratio of the data.
 
 
@@ -572,6 +572,10 @@ class Table(tableExtension.Table, Leaf):
     rowsize = property(
         lambda self: self.description._v_dtype.itemsize, None, None,
         "The size in bytes of each row in the table.")
+
+    size_in_memory = property(
+        lambda self: self.nrows * self.rowsize, None, None,
+        "Return the size of the data in bytes when it is loaded into memory.")
 
     # Lazy attributes
     # ```````````````

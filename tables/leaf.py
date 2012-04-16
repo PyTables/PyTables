@@ -270,15 +270,6 @@ class Leaf(Node):
         Return the size of the data in bytes as it's stored on disk.
         """)
 
-    def _get_size_in_memory(self):
-        return self.nrows * self.rowsize
-
-    size_in_memory = property(_get_size_in_memory, None, None,
-        """
-        Return the size of the data in bytes when it is loaded into
-        memory.
-        """)
-
     # Special methods
     # ~~~~~~~~~~~~~~~
     def __init__(self, parentNode, name,
