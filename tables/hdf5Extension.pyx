@@ -68,7 +68,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Fcreate, H5Fopen, H5Fclose,  H5Fflush, H5Fget_vfd_handle,
   H5Gcreate, H5Gopen, H5Gclose, H5Gunlink, H5Gmove2,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
-  H5Dget_space, H5Dvlen_reclaim,
+  H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
   H5Pcreate,  H5Pset_cache, H5Pclose,
@@ -90,6 +90,7 @@ __version__ = "$Revision$"
 
 
 #-------------------------------------------------------------------
+
 
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
 cdef extern from "H5ARRAY.h" nogil:
@@ -707,6 +708,10 @@ cdef class Group(Node):
 cdef class Leaf(Node):
   # Instance variables declared in .pxd
 
+  def _get_storage_size(self):
+      return H5Dget_storage_size(self.dataset_id)
+
+      
   def _g_new(self, where, name, init):
     if init:
       # Put this info to 0 just when the class is initialized
@@ -1492,6 +1497,30 @@ cdef class VLArray(Leaf):
       raise HDF5ExtError("Problems modifying the record.")
 
     return nobjects
+
+
+  # Because the size of each "row" is unknown, there is no easy way to
+  # calculate this value
+  def _get_memory_size(self):
+    cdef hid_t space_id
+    cdef hsize_t size
+    cdef herr_t ret
+
+    if self.nrows == 0:
+      size = 0
+    else:
+      # Get the dataspace handle
+      space_id = H5Dget_space(self.dataset_id)
+      # Return the size of the entire dataset
+      ret = H5Dvlen_get_buf_size(self.dataset_id, self.type_id, space_id,
+                                 &size)
+      if ret < 0:
+        size = -1
+
+      # Terminate access to the dataspace
+      H5Sclose(space_id)
+
+    return size
 
 
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step):

@@ -933,6 +933,68 @@ class NumericComprTestCase(BasicTestCase):
     stop = 100
     step = 7
 
+
+class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.array_size = (10000, 10)
+        # set chunkshape so it divides evenly into array_size, to avoid
+        # partially filled chunks
+        self.chunkshape = (1000, 10)
+        # approximate size (in bytes) of non-data portion of hdf5 file
+        self.hdf_overhead = 6000
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+
+    def tearDown(self):
+        self.fileh.close()
+        # Then, delete the file
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def create_array(self, complevel):
+        filters = Filters(complevel=complevel, complib='blosc')
+        self.array = self.fileh.createCArray('/', 'somearray', Int16Atom(),
+                                             self.array_size,
+                                             filters=filters,
+                                             chunkshape=self.chunkshape)
+
+    def test_no_data(self):
+        complevel = 0
+        self.create_array(complevel)
+        self.assertEqual(self.array.size_on_disk, 0)
+        self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
+
+    def test_data_no_compression(self):
+        complevel = 0
+        self.create_array(complevel)
+        self.array[:] = 1
+        self.assertEqual(self.array.size_on_disk, 10000 * 10 * 2)
+        self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
+
+    def test_highly_compressible_data(self):
+        complevel = 1
+        self.create_array(complevel)
+        self.array[:] = 1
+        self.fileh.flush()
+        file_size = os.stat(self.file).st_size
+        self.assertAlmostEqual(self.array.size_on_disk, file_size,
+                               delta=self.hdf_overhead)
+        self.assertLess(self.array.size_on_disk, self.array.size_in_memory)
+        self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
+
+    # XXX
+    def test_random_data(self):
+        complevel = 1
+        self.create_array(complevel)
+        self.array[:] = numpy.random.randint(0, 1e6, self.array_size)
+        self.fileh.flush()
+        file_size = os.stat(self.file).st_size
+        self.assertAlmostEqual(self.array.size_on_disk, file_size,
+                               delta=self.hdf_overhead)
+        self.assertAlmostEqual(self.array.size_on_disk, 10000 * 10 * 2)
+
+
 # It remains a test of Numeric char types, but the code is getting too messy
 
 class OffsetStrideTestCase(unittest.TestCase):
@@ -2585,6 +2647,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
+        theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))

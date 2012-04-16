@@ -4,6 +4,7 @@ import sys
 import unittest
 import os
 import tempfile
+import cPickle
 
 import numpy
 
@@ -4332,6 +4333,100 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             self.assertRaises(IndexError, vlarr.__getitem__, key)
 
 
+class SizeInMemoryPropertyTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+
+    def tearDown(self):
+        self.fileh.close()
+        # Then, delete the file
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def create_array(self, atom, complevel):
+        filters = Filters(complevel=complevel, complib='blosc')
+        self.array = self.fileh.createVLArray('/', 'vlarray', atom,
+                                              filters=filters)
+
+    def test_zero_length(self):
+        atom = Int32Atom()
+        complevel = 0
+        self.create_array(atom, complevel)
+        self.assertEqual(self.array.size_in_memory, 0)
+
+    def int_tests(self, complevel, flavor):
+        atom = Int32Atom()
+        self.create_array(atom, complevel)
+        self.array.flavor = flavor
+        expected_size = 0
+        for i in xrange(10):
+            row = numpy.arange((i + 1) * 10, dtype='i4')
+            self.array.append(row)
+            expected_size += row.nbytes
+        return expected_size
+
+    def test_numpy_int_numpy_flavor(self):
+        complevel = 0
+        flavor = 'numpy'
+        expected_size = self.int_tests(complevel, flavor)
+        self.assertEqual(self.array.size_in_memory, expected_size)
+
+    # compression will have no effect, since this is uncompressed size
+    def test_numpy_int_numpy_flavor_compressed(self):
+        complevel = 1
+        flavor = 'numpy'
+        expected_size = self.int_tests(complevel, flavor)
+        self.assertEqual(self.array.size_in_memory, expected_size)
+
+    # flavor will have no effect on what's stored in HDF5 file
+    def test_numpy_int_python_flavor(self):
+        complevel = 0
+        flavor = 'python'
+        expected_size = self.int_tests(complevel, flavor)
+        self.assertEqual(self.array.size_in_memory, expected_size)
+
+    # this relies on knowledge of the implementation, so it's not
+    # a great test
+    def test_object_atom(self):
+        atom = ObjectAtom()
+        complevel = 0
+        self.create_array(atom, complevel)
+        obj = [1, 2, 3]
+        for i in xrange(10):
+            self.array.append([obj])
+        pickle = cPickle.dumps(obj)
+        pickle_array = numpy.ndarray(buffer=pickle, dtype='uint8',
+                                     shape=len(pickle))
+        expected_size = 10 * pickle_array.nbytes
+        self.assertEqual(self.array.size_in_memory, expected_size)
+
+
+class SizeOnDiskPropertyTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+
+    def tearDown(self):
+        self.fileh.close()
+        # Then, delete the file
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def create_array(self, atom, complevel):
+        filters = Filters(complevel=complevel, complib='blosc')
+        self.fileh.createVLArray('/', 'vlarray', atom, filters=filters)
+        self.array = self.fileh.getNode('/', 'vlarray')
+
+    def test_not_implemented(self):
+        atom = IntAtom()
+        complevel = 0
+        self.create_array(atom, complevel)
+        self.assertRaises(NotImplementedError, getattr, self.array,
+                          'size_on_disk')
+
 
 #----------------------------------------------------------------------
 
@@ -4380,6 +4475,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
         theSuite.addTest(unittest.makeSuite(PointSelectionTestCase))
+        theSuite.addTest(unittest.makeSuite(SizeInMemoryPropertyTestCase))
+        theSuite.addTest(unittest.makeSuite(SizeOnDiskPropertyTestCase))
 
         # Numeric is now deprecated
         #if numeric_imported:

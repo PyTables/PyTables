@@ -87,6 +87,23 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         On iterators, this is the index of the current row.
     extdim
         The index of the enlargeable dimension (always 0 for vlarrays).
+    nrows
+        The current number of rows in the array.
+    size_on_disk
+        The HDF5 library does not include a function to determine size_on_disk
+        for variable-length arrays.  Accessing this attribute will return a
+        NotImplementedError.
+    size_in_memory
+        The size of this array's data in bytes when it is fully loaded into
+        memory
+
+        Note: When data is stored in a VLArray using the ObjectAtom type, it is
+        first serialized using cPickle, and then converted to a NumPy array
+        suitable for storage in an HDF5 file.  This attribute will return the
+        size of that NumPy representation.  If you wish to know the size of the
+        Python objects after they are loaded from disk, you can use this
+        `ActiveState recipe <http://code.activestate.com/recipes/577504/>`_.
+
 
     Public methods
     --------------
@@ -190,6 +207,16 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     shape = property(
         lambda self: (self.nrows,), None, None,
         "The shape of the stored array.")
+
+    def _get_size_on_disk(self):
+        raise NotImplementedError('size_on_disk not implemented for VLArrays')
+
+    size_on_disk = property(_get_size_on_disk, None, None,
+        "Return the size of the data in bytes as it's stored on disk.")
+
+    size_in_memory = property(
+        lambda self: self._get_memory_size(), None, None,
+        "Return the size of the data in bytes when it is loaded into memory.")
 
 
     # Other methods

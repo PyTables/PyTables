@@ -1150,6 +1150,66 @@ class NumericComprTestCase(BasicTestCase):
 
 # It remains a test of Numeric char types, but the code is getting too messy
 
+
+class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.array_size = (0, 10)
+        # set chunkshape so it divides evenly into array_size, to avoid
+        # partially filled chunks
+        self.chunkshape = (1000, 10)
+        # approximate size (in bytes) of non-data portion of hdf5 file
+        self.hdf_overhead = 6000
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+
+    def tearDown(self):
+        self.fileh.close()
+        # Then, delete the file
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def create_array(self, complevel):
+        filters = Filters(complevel=complevel, complib='blosc')
+        self.array = self.fileh.createEArray('/', 'earray', Int32Atom(),
+                                             self.array_size,
+                                             filters=filters,
+                                             chunkshape=self.chunkshape)
+
+    def test_zero_length(self):
+        complevel = 0
+        self.create_array(complevel)
+        self.assertEqual(self.array.size_on_disk, 0)
+        self.assertEqual(self.array.size_in_memory, 0)
+
+    # add 10 chunks of data in one append
+    def test_no_compression_one_append(self):
+        complevel = 0
+        self.create_array(complevel)
+        self.array.append([tuple(range(10))] * self.chunkshape[0] * 10)
+        self.assertEqual(self.array.size_on_disk, 10 * 1000 * 10 * 4)
+        self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)
+
+    # add 10 chunks of data in two appends
+    def test_no_compression_multiple_appends(self):
+        complevel = 0
+        self.create_array(complevel)
+        self.array.append([tuple(range(10))] * self.chunkshape[0] * 5)
+        self.array.append([tuple(range(10))] * self.chunkshape[0] * 5)
+        self.assertEqual(self.array.size_on_disk, 10 * 1000 * 10 * 4)
+        self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)
+
+    def test_with_compression(self):
+        complevel = 1
+        self.create_array(complevel)
+        self.array.append([tuple(range(10))] * self.chunkshape[0] * 10)
+        file_size = os.stat(self.file).st_size
+        self.assertAlmostEqual(self.array.size_on_disk, file_size,
+                               delta=self.hdf_overhead)
+        self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)
+        self.assertLess(self.array.size_on_disk, self.array.size_in_memory)
+
+
 class OffsetStrideTestCase(unittest.TestCase):
     mode  = "w"
     compress = 0
@@ -2643,6 +2703,7 @@ def suite():
         #    theSuite.addTest(unittest.makeSuite(NP_EmptyEArrayTestCase))
         #    theSuite.addTest(unittest.makeSuite(NP_MD6WriteTestCase))
         #    theSuite.addTest(unittest.makeSuite(NP_MD10WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))

@@ -143,6 +143,17 @@ class Leaf(Node):
         requirements of your application.
     shape
         The shape of data in the leaf.
+    size_on_disk
+        The size of this leaf's data in bytes as it is stored on disk.  If the
+        data is compressed, this shows the compressed size.  In the case of
+        uncompressed, chunked data, this may be slightly larger than the
+        amount of data, due to partially filled chunks.
+
+    size_in_memory
+        The size of this leaf's data in bytes when it is fully loaded into
+        memory. This may be used in combination with size_on_disk to calculate
+        the compression ratio of the data.
+
 
     Public instance variables -- aliases
     ------------------------------------
@@ -257,6 +268,10 @@ class Leaf(Node):
         leaf has no such attribute, the default flavor is used.
         """ )
 
+    size_on_disk = property(lambda self: self._get_storage_size(), None, None,
+        """
+        Return the size of the data in bytes as it's stored on disk.
+        """)
 
     # Special methods
     # ~~~~~~~~~~~~~~~

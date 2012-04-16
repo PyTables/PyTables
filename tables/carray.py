@@ -55,6 +55,22 @@ class CArray(Array):
     this class to easily save or load arrays to or from disk, with
     compression support included.
 
+    CArray includes all the instance variables and methods of Array.  Only those
+    with different behavior are mentioned here.
+
+    Public methods
+    --------------
+
+    size_on_disk
+        The size of this carray's data in bytes as it is stored on disk.  If the
+        data is compressed, this shows the compressed size.  In the case of
+        uncompressed, chunked data, this may be slightly larger than the amount
+        of data, due to partially filled chunks.
+    size_in_memory
+        The size of this carray's data in bytes when it is fully loaded into
+        memory. This may be used in combination with size_on_disk to calculate 
+        the compression ratio of the data.
+    
     Example of use
     --------------
 

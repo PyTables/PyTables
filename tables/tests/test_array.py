@@ -274,6 +274,24 @@ class Basic32DTestCase(BasicTestCase):
     tupleInt = numpy.array((32,)); tupleInt.shape = (1,)*32
     tupleChar = numpy.array(["121"], dtype="S3"); tupleChar.shape = (1,)*32
 
+class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.array_size = (10, 10)
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+        self.array = self.fileh.createArray('/', 'somearray',
+                                            numpy.zeros(self.array_size, 'i4'))
+
+    def tearDown(self):
+        self.fileh.close()
+        # Then, delete the file
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test_all_zeros(self):
+        self.assertEqual(self.array.size_on_disk, 10 * 10 * 4)
+        self.assertEqual(self.array.size_in_memory, 10 * 10 * 4)
 
 class UnalignedAndComplexTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in numpy.
@@ -2320,6 +2338,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
         # The 32 dimensions case is tested on GroupsArray
         #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
+        theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexNotReopenNotEndianTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexReopenNotEndianTestCase))
