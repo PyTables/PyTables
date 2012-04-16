@@ -6,6 +6,15 @@
 :Contact: pytables@googlemail.com
 
 
+Changes from 2.3.1 to XXX
+=========================
+
+- Leaf nodes now have attributes for retrieving the size of data in memory
+  and on disk.  Data on disk can be compressed, so the new attributes make it
+  easy to compute the data compression ration.
+  Thanks to Josh Ayers (close :issue:`141`)
+
+
 Changes from 2.3 to 2.3.1
 =========================
 
