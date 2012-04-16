@@ -265,12 +265,7 @@ class Leaf(Node):
         leaf has no such attribute, the default flavor is used.
         """ )
 
-    # this function is needed because _get_storage_size is defined in
-    # hdf5Extension.Leaf, which isn't a parent of leaf.Leaf.
-    def _get_size_on_disk(self):
-        return self._get_storage_size()
-
-    size_on_disk = property(_get_size_on_disk, None, None,
+    size_on_disk = property(lambda self: self._get_storage_size(), None, None,
         """
         Return the size of the data in bytes as it's stored on disk.
         """)

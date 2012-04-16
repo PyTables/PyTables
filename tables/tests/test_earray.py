@@ -1163,9 +1163,10 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def create_array(self, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.fileh.createEArray('/', 'earray', Int32Atom(), self.array_size,
-                                filters=filters, chunkshape=self.chunkshape)
-        self.array = self.fileh.getNode('/', 'earray')
+        self.array = self.fileh.createEArray('/', 'earray', Int32Atom(),
+                                             self.array_size,
+                                             filters=filters,
+                                             chunkshape=self.chunkshape)
 
     def test_zero_length(self):
         complevel = 0
@@ -1174,7 +1175,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.assertEqual(self.array.size_in_memory, 0)
 
     # add 10 chunks of data in one append
-    def test_no_compression__one_append(self):
+    def test_no_compression_one_append(self):
         complevel = 0
         self.create_array(complevel)
         self.array.append([tuple(range(10))] * self.chunkshape[0] * 10)
@@ -1182,7 +1183,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)
 
     # add 10 chunks of data in two appends
-    def test_no_compression__multiple_appends(self):
+    def test_no_compression_multiple_appends(self):
         complevel = 0
         self.create_array(complevel)
         self.array.append([tuple(range(10))] * self.chunkshape[0] * 5)
@@ -1190,7 +1191,6 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.assertEqual(self.array.size_on_disk, 10 * 1000 * 10 * 4)
         self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)
 
-        
     def test_with_compression(self):
         complevel = 1
         self.create_array(complevel)

@@ -4314,8 +4314,8 @@ class SizeInMemoryPropertyTestCase(unittest.TestCase):
 
     def create_array(self, atom, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.fileh.createVLArray('/', 'vlarray', atom, filters=filters)
-        self.array = self.fileh.getNode('/', 'vlarray')
+        self.array = self.fileh.createVLArray('/', 'vlarray', atom,
+                                              filters=filters)
 
     def test_zero_length(self):
         atom = Int32Atom()
@@ -4332,24 +4332,27 @@ class SizeInMemoryPropertyTestCase(unittest.TestCase):
             row = numpy.arange((i + 1) * 10, dtype='i4')
             self.array.append(row)
             expected_size += row.nbytes
-        self.assertEqual(self.array.size_in_memory, expected_size)
-        
-    def test_numpy_int__numpy_flavor(self):
+        return expected_size
+
+    def test_numpy_int_numpy_flavor(self):
         complevel = 0
         flavor = 'numpy'
-        self.int_tests(complevel, flavor)
-        
+        expected_size = self.int_tests(complevel, flavor)
+        self.assertEqual(self.array.size_in_memory, expected_size)
+
     # compression will have no effect, since this is uncompressed size
-    def test_numpy_int__numpy_flavor__compressed(self):
+    def test_numpy_int_numpy_flavor_compressed(self):
         complevel = 1
         flavor = 'numpy'
-        self.int_tests(complevel, flavor)
+        expected_size = self.int_tests(complevel, flavor)
+        self.assertEqual(self.array.size_in_memory, expected_size)
 
     # flavor will have no effect on what's stored in HDF5 file
-    def test_numpy_int__python_flavor(self):
+    def test_numpy_int_python_flavor(self):
         complevel = 0
         flavor = 'python'
-        self.int_tests(complevel, flavor)
+        expected_size = self.int_tests(complevel, flavor)
+        self.assertEqual(self.array.size_in_memory, expected_size)
 
     # this relies on knowledge of the implementation, so it's not
     # a great test
@@ -4388,10 +4391,10 @@ class SizeOnDiskPropertyTestCase(unittest.TestCase):
         atom = IntAtom()
         complevel = 0
         self.create_array(atom, complevel)
-        self.assertRaises(NotImplementedError, self.array.__getattribute__,
+        self.assertRaises(NotImplementedError, getattr, self.array,
                           'size_on_disk')
 
-        
+
 #----------------------------------------------------------------------
 
 def suite():

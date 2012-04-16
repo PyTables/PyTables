@@ -855,9 +855,10 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def create_array(self, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.fileh.createCArray('/', 'somearray', Int16Atom(), self.array_size,
-                                filters=filters, chunkshape=self.chunkshape)
-        self.array = self.fileh.getNode('/', 'somearray')
+        self.array = self.fileh.createCArray('/', 'somearray', Int16Atom(),
+                                             self.array_size,
+                                             filters=filters,
+                                             chunkshape=self.chunkshape)
 
     def test_no_data(self):
         complevel = 0
@@ -868,14 +869,14 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
     def test_data_no_compression(self):
         complevel = 0
         self.create_array(complevel)
-        self.array[:] = numpy.ones(self.array_size, 'i4')
+        self.array[:] = 1
         self.assertEqual(self.array.size_on_disk, 10000 * 10 * 2)
         self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
 
     def test_highly_compressible_data(self):
         complevel = 1
         self.create_array(complevel)
-        self.array[:] = numpy.ones(self.array_size, 'i4')
+        self.array[:] = 1
         self.fileh.flush()
         file_size = os.stat(self.file).st_size
         self.assertAlmostEqual(self.array.size_on_disk, file_size,
@@ -883,6 +884,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.assertLess(self.array.size_on_disk, self.array.size_in_memory)
         self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
 
+    # XXX
     def test_random_data(self):
         complevel = 1
         self.create_array(complevel)

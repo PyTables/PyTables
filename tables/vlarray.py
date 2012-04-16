@@ -91,7 +91,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         The current number of rows in the array.
     size_on_disk
         The HDF5 library does not include a function to determine size_on_disk
-        for variable-length arrays.  Accessing this attribute will return a 
+        for variable-length arrays.  Accessing this attribute will return a
         NotImplementedError.
     size_in_memory
         The size of this array's data in bytes when it is fully loaded into
@@ -101,7 +101,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         first serialized using cPickle, and then converted to a NumPy array
         suitable for storage in an HDF5 file.  This attribute will return the
         size of that NumPy representation.  If you wish to know the size of the
-        Python objects after they are loaded from disk, you can use this 
+        Python objects after they are loaded from disk, you can use this
         `ActiveState recipe <http://code.activestate.com/recipes/577504/>`_.
 
 
@@ -212,18 +212,11 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         raise NotImplementedError('size_on_disk not implemented for VLArrays')
 
     size_on_disk = property(_get_size_on_disk, None, None,
-        """
-        Return the size of the data in bytes as it's stored on disk.
-        """)
+        "Return the size of the data in bytes as it's stored on disk.")
 
-    def _get_size_in_memory(self):
-        return self._get_memory_size()
-
-    size_in_memory = property(_get_size_in_memory, None, None,
-        """
-        Return the size of the data in bytes when it is loaded into
-        memory.
-        """)
+    size_in_memory = property(
+        lambda self: self._get_memory_size(), None, None,
+        "Return the size of the data in bytes when it is loaded into memory.")
 
 
     # Other methods
