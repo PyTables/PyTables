@@ -1462,10 +1462,10 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.create_table(complevel)
         self.table.append([tuple(range(10))] * self.chunkshape[0] * 10)
         file_size = os.stat(self.file).st_size
-        self.assertAlmostEqual(self.table.size_on_disk, file_size,
-                               delta=self.hdf_overhead)
+        self.assertTrue(
+            abs(self.table.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertEqual(self.table.size_in_memory, 10 * 1000 * 10 * 4)
-        self.assertLess(self.table.size_on_disk, self.table.size_in_memory)
+        self.assertTrue(self.table.size_on_disk < self.table.size_in_memory)
 
 
 class BasicRangeTestCase(unittest.TestCase):

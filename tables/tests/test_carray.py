@@ -978,9 +978,9 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.array[:] = 1
         self.fileh.flush()
         file_size = os.stat(self.file).st_size
-        self.assertAlmostEqual(self.array.size_on_disk, file_size,
-                               delta=self.hdf_overhead)
-        self.assertLess(self.array.size_on_disk, self.array.size_in_memory)
+        self.assertTrue(
+            abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
+        self.assertTrue(self.array.size_on_disk < self.array.size_in_memory)
         self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
 
     # XXX
@@ -990,8 +990,8 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.array[:] = numpy.random.randint(0, 1e6, self.array_size)
         self.fileh.flush()
         file_size = os.stat(self.file).st_size
-        self.assertAlmostEqual(self.array.size_on_disk, file_size,
-                               delta=self.hdf_overhead)
+        self.assertTrue(
+            abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertAlmostEqual(self.array.size_on_disk, 10000 * 10 * 2)
 
 
