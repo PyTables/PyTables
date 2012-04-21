@@ -6,48 +6,81 @@
 :Contact: pytables@googlemail.com
 
 
-Changes from 2.3.1 to XXX
-=========================
+Changes from 2.3.1 to 2.4 (in development)
+==========================================
+
+New features
+------------
 
 - Improved HDF5 error logging management:
 
   * added a new function, :func:`tables.silenceHDF5Messages`, for suppressing
     (and re-enabling) HDF5 messages.  By default HDF5 error logging is now
-    suppressed. Closes :issue:`87`
+    suppressed. Closes :issue:`87`.
   * now all HDF5 error messages and trace-backs are trapped and attached to
-    the :exc:`HDF5ExtError` exception instances. Closes :issue:`120`
+    the :exc:`HDF5ExtError` exception instances. Closes :issue:`120`.
 
 - Added support for the float16 data type.  It is only available if numpy_
   provides it as well (i.e. numpy_ >= 1.6).  See :issue:`51`.
+
 - Leaf nodes now have attributes for retrieving the size of data in memory
   and on disk.  Data on disk can be compressed, so the new attributes make it
   easy to compute the data compression ration.
-  Thanks to Josh Ayers (close :issue:`141`)
+  Thanks to Josh Ayers (close :issue:`141`).
+
+- The maximum number of threads for Blosc_ and Numexpr_ is now handled using
+  the :data:`tables.parameters.MAX_BLOSC_THREADS` and
+  :data:`tables.parameters.MAX_NUMEXPR_THREADS` parameters respectively.
+  This allows a more fine grained configuration capability.
+  Closes :issue:`142`.
+
+- `ndim` (read-only) attribute added to :class:`tables.Leaf`,
+  :class:`tables.Atom` and :class:`tables.Col` objects (closes :issue:`126`).
+
+Other improvements
+------------------
+
 - Dropped support for HDF5 1.6.x. Now PyTables uses the HDF5 1.8 API
-  (closes :issue:`105`)
-- Blosc updated to v. 1.1.3
-- Improved support for bzip2 on Windows (:issue:`116`).  Thanks to cgohlke.
+  (closes :issue:`105`).
+
+- Blosc updated to v. 1.1.3.
+
+- Improved bzip2 detection on Windows (:issue:`116`).  Thanks to cgohlke.
+
 - Improved multi-arch support in GNU/Linux platforms (closes :issue:`124`)
   Thanks to Julian Taylor and Picca Frederic-Emmanuel.
+
 - Use new style syntax for exception raising. Closes :issue:`93`.
+
 - Fixed most of the warnings related to py3k compatibility (see :issue:`92`).
+
 - Fixed pyflakes warnings (closes :issue:`102`).
-- Cython extensions updated to use new constructs (closes `issue:`100`)
-- Reduced the number of build warnings (closes `issue:`101`)
-- Fixed broken inheritance in :class:`tables.IsDescription` classes
-  (thanks to Andrea Bedini).  Closes :issue:`65`.
-- Fixed table descriptions copy method (closes :issue:`131`)
+
+- Cython extensions updated to use new constructs (closes `issue:`100`).
+
+- Reduced the number of build warnings (closes `issue:`101`).
+
 - Removed the old lrucache module. It is no more needed after the merge with
-  PyTables Pro (closes :issue:`118`)
+  PyTables Pro (closes :issue:`118`).
+
+Bugs fixed
+----------
+
 - Fixed a segfault on platforms that do not support unaligned memory access
   (closes: :issue:`134`).  Thanks to Julian Taylor.
-- The :data:`tables.parameters.MAX_THREADS` is now deprecated.  The maximum
-  number of threads for Blosc_ and Numexpr_ is now handled using the
-  :data:`tables.parameters.MAX_BLOSC_THREADS` and
-  :data:`tables.parameters.MAX_NUMEXPR_THREADS` parameters respectively.
-  Closes :issue:`142`.
-- `ndim` (read-only) attribute added to :class:`tables.Leaf`, 
-  :class:`tables.Atom` and :class:`tables.Col` objects (closes :issue:`126`)
+
+- Fixed broken inheritance in :class:`tables.IsDescription` classes
+  (thanks to Andrea Bedini).  Closes :issue:`65`.
+
+- Fixed table descriptions copy method (closes :issue:`131`).
+
+Deprecations
+------------
+
+- The :data:`tables.parameters.MAX_THREADS` configuration parameter is now
+  deprecated.  Please use :data:`tables.parameters.MAX_BLOSC_THREADS` and
+  :data:`tables.parameters.MAX_NUMEXPR_THREADS` instead.
+  See :issue:`142`.
 
 .. _numpy: http://numpy.scipy.org
 .. _Blosc: https://github.com/FrancescAlted/blosc
