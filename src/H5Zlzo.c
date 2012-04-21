@@ -34,41 +34,23 @@
 #undef CHECKSUM
 
 size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
-		    const unsigned cd_values[], size_t nbytes,
-		    size_t *buf_size, void **buf);
+                    const unsigned cd_values[], size_t nbytes,
+                    size_t *buf_size, void **buf);
 
 
 int register_lzo(char **version, char **date) {
 
 #ifdef HAVE_LZO_LIB
 
-/* The conditional below is somewhat messy, but it is necessary because
-  the THG team has decided to fix an API inconsistency in the definition
-  of the H5Z_class_t structure in version 1.8.3 */
-#if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7) || \
-    (H5_USE_16_API && (H5_VERS_MAJOR > 1 || \
-      (H5_VERS_MAJOR == 1 && (H5_VERS_MINOR > 8 || \
-        (H5_VERS_MINOR == 8 && H5_VERS_RELEASE >= 3)))))
-   /* 1.6.x */
-  H5Z_class_t filter_class = {
-    (H5Z_filter_t)(FILTER_LZO),    /* filter_id */
-    "lzo",                         /* comment */
-    NULL,                          /* can_apply_func */
-    NULL,                          /* set_local_func */
-    (H5Z_func_t)(lzo_deflate)      /* filter_func */
-  };
-#else
-   /* 1.8.x where x < 3 */
   H5Z_class_t filter_class = {
     H5Z_CLASS_T_VERS,             /* H5Z_class_t version */
     (H5Z_filter_t)(FILTER_LZO),   /* filter_id */
     1, 1,                         /* Encoding and decoding enabled */
-    "lzo",	 		  /* comment */
+    "lzo",                        /* comment */
     NULL,                         /* can_apply_func */
     NULL,                         /* set_local_func */
     (H5Z_func_t)(lzo_deflate)     /* filter_func */
   };
-#endif
 
   /* Init the LZO library */
   if (lzo_init()!=LZO_E_OK) {
@@ -95,8 +77,8 @@ int register_lzo(char **version, char **date) {
 
 
 size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
-		    const unsigned cd_values[], size_t nbytes,
-		    size_t *buf_size, void **buf)
+                    const unsigned cd_values[], size_t nbytes,
+                    size_t *buf_size, void **buf)
 {
   size_t ret_value = 0;
 #ifdef HAVE_LZO_LIB
@@ -109,7 +91,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
   static unsigned int max_len_buffer = 0;
   /* int complevel = 1; */
 #if (defined CHECKSUM || defined DEBUG)
-  int object_version = 10;    	/* Default version 1.0 */
+  int object_version = 10;      /* Default version 1.0 */
   int object_type = Table;      /* Default object type */
 #endif
 #ifdef CHECKSUM
@@ -132,7 +114,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 #if (defined CHECKSUM || defined DEBUG)
     object_version = cd_values[1]; /* The table VERSION attribute */
     object_type = cd_values[2]; /* A tag for identifying the object
-				   (see tables.h) */
+                                   (see tables.h) */
 #endif
   }
 
@@ -147,11 +129,11 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 /*     printf("Decompressing chunk with LZO\n"); */
 #ifdef CHECKSUM
     if ((object_type == Table && object_version >= 20) ||
-	object_type != Table) {
-      nbytes -= 4; 		/* Point to uncompressed buffer length */
+        object_type != Table) {
+      nbytes -= 4;      /* Point to uncompressed buffer length */
       memcpy(&nalloc, ((unsigned char *)(*buf)+nbytes), 4);
       out_len = nalloc;
-      nbytes -= 4; 		/* Point to the checksum */
+      nbytes -= 4;      /* Point to the checksum */
 #ifdef DEBUG
       printf("Compressed bytes: %d. Uncompressed bytes: %d\n", nbytes, nalloc);
 #endif
@@ -161,11 +143,11 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     /* Only allocate the bytes for the outbuf */
     if (max_len_buffer == 0) {
       if (NULL==(outbuf = (void *)malloc(nalloc)))
-	fprintf(stderr, "Memory allocation failed for lzo uncompression.\n");
+        fprintf(stderr, "Memory allocation failed for lzo uncompression.\n");
     }
     else {
       if (NULL==(outbuf = (void *)malloc(max_len_buffer)))
-	fprintf(stderr, "Memory allocation failed for lzo uncompression.\n");
+        fprintf(stderr, "Memory allocation failed for lzo uncompression.\n");
       out_len = max_len_buffer;
       nalloc =  max_len_buffer;
     }
@@ -179,39 +161,39 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 #endif /* DEBUG */
 
       /* The assembler version is a 10% slower than the C version with
-	 gcc 3.2.2 and gcc 3.3.3 */
+         gcc 3.2.2 and gcc 3.3.3 */
 /*       status = lzo1x_decompress_asm_safe(*buf, (lzo_uint)nbytes, outbuf, */
-/* 				     &out_len, NULL); */
+/*                                          &out_len, NULL); */
       /* The safe and unsafe versions have the same speed more or less */
       status = lzo1x_decompress_safe(*buf, (lzo_uint)nbytes, outbuf,
-				       &out_len, NULL);
+                                     &out_len, NULL);
 
       if (status == LZO_E_OK) {
 #ifdef DEBUG
-	printf("decompressed %lu bytes back into %lu bytes\n",
-	       (long) nbytes, (long) out_len);
+        printf("decompressed %lu bytes back into %lu bytes\n",
+               (long) nbytes, (long) out_len);
 #endif
-	max_len_buffer = out_len;
-	break; /* done */
+        max_len_buffer = out_len;
+        break; /* done */
       }
       else if (status == LZO_E_OUTPUT_OVERRUN) {
-	nalloc *= 2;
-	out_len = (lzo_uint) nalloc;
-	if (NULL==(outbuf = realloc(outbuf, nalloc))) {
-	  fprintf(stderr, "Memory allocation failed for lzo uncompression\n");
-	}
+        nalloc *= 2;
+        out_len = (lzo_uint) nalloc;
+        if (NULL==(outbuf = realloc(outbuf, nalloc))) {
+          fprintf(stderr, "Memory allocation failed for lzo uncompression\n");
+        }
       }
       else {
-	/* this should NEVER happen */
-	fprintf(stderr, "internal error - decompression failed: %d\n", status);
-	ret_value = 0; /* fail */
-	goto done;
+        /* this should NEVER happen */
+        fprintf(stderr, "internal error - decompression failed: %d\n", status);
+        ret_value = 0; /* fail */
+        goto done;
       }
     }
 
 #ifdef CHECKSUM
     if ((object_type == Table && object_version >= 20) ||
-	object_type != Table) {
+        object_type != Table) {
 #ifdef DEBUG
       printf("Checksum uncompressing...");
 #endif
@@ -220,9 +202,9 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 
       /* Compare */
       if (memcmp(&checksum, (unsigned char*)(*buf)+nbytes, 4)) {
-	ret_value = 0; /*fail*/
-	fprintf(stderr,"Checksum failed!.\n");
-	goto done;
+        ret_value = 0; /*fail*/
+        fprintf(stderr,"Checksum failed!.\n");
+        goto done;
       }
     }
 #endif /* CHECKSUM */
@@ -253,7 +235,7 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
 
 #ifdef CHECKSUM
     if ((object_type == Table && object_version >= 20) ||
-	object_type != Table) {
+        object_type != Table) {
       z_dst_nbytes += 4+4;      /* Checksum + buffer size */
     }
 #endif
@@ -273,14 +255,14 @@ size_t lzo_deflate (unsigned flags, size_t cd_nelmts,
     }
 
     status = lzo1x_1_compress (z_src, z_src_nbytes, z_dst, &z_dst_nbytes,
-			       wrkmem);
+                               wrkmem);
 
     free(wrkmem);
     wrkmem = NULL;
 
 #ifdef CHECKSUM
     if ((object_type == Table && object_version >= 20) ||
-	object_type != Table) {
+        object_type != Table) {
 #ifdef DEBUG
       printf("Checksum compressing ...");
       printf("src_nbytes: %d, dst_nbytes: %d\n", z_src_nbytes, z_dst_nbytes);

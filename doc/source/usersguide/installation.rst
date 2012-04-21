@@ -51,13 +51,13 @@ Prerequisites
 First, make sure that you have
 
 * Python_ >= 2.4 (Python 3.x is not supported currently),
-* HDF5_ >= 1.6.10,
+* HDF5_ >= 1.8.4,
 * NumPy_ >= 1.4.1,
 * Numexpr_ >= 1.4.1 and
 * Cython_ >= 0.13
 
-installed (for testing purposes, we are using HDF5_ 1.6.10/1.8.5, NumPy_ 1.5
-and Numexpr_ 1.4.1 currently). If you don't, fetch and install them before
+installed (for testing purposes, we are using HDF5_ 1.8.8, NumPy_ 1.6.1
+and Numexpr_ 1.4.2 currently). If you don't, fetch and install them before
 proceeding.
 
 .. _Python: http://www.python.org
@@ -330,7 +330,7 @@ Windows prerequisites
 
 First, make sure that you have Python 2.4, NumPy 1.4.1 and Numexpr 1.4.1 or
 higher installed (PyTables binaries have been built using NumPy 1.5 and
-Numexpr 1.4.1).  The binaries already include DLLs for HDF5 (1.6.10, 1.8.5),
+Numexpr 1.4.1).  The binaries already include DLLs for HDF5 (1.8.4, 1.8.8),
 zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2 (1.0.5) for
 Windows (2.8.0).
 The LZO DLL can't be included because of license issues (but read below for

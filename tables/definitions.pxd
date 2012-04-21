@@ -70,13 +70,17 @@ cdef extern from "hdf5.h" nogil:
     H5F_SCOPE_GLOBAL    = 1     # entire virtual file
     H5F_SCOPE_DOWN      = 2     # for internal use only
 
-  cdef enum H5G_obj_t:
-    H5G_UNKNOWN = -1            # Unknown object type
-    H5G_GROUP                   # Object is a group
-    H5G_DATASET                 # Object is a dataset
-    H5G_TYPE                    # Object is a named data type
-    H5G_LINK                    # Object is a symbolic link
-    #H5G_UDLINK                  # Object is a user-defined link  # 1.8.x
+  cdef enum H5O_type_t:
+      H5O_TYPE_UNKNOWN = -1     # Unknown object type
+      H5O_TYPE_GROUP            # Object is a group
+      H5O_TYPE_DATASET          # Object is a dataset
+      H5O_TYPE_NAMED_DATATYPE   # Object is a named data type
+
+  cdef enum H5L_type_t:
+    H5L_TYPE_ERROR    = -1      # Invalid link type id
+    H5L_TYPE_HARD     =  0      # Hard link id
+    H5L_TYPE_SOFT     =  1      # Soft link id
+    H5L_TYPE_EXTERNAL = 64,     # External link id
 
   # Values for fill value status
   cdef enum H5D_fill_value_t:
@@ -225,33 +229,17 @@ cdef extern from "hdf5.h" nogil:
     H5E_WALK_UPWARD     = 0     # begin deep, end at API function
     H5E_WALK_DOWNWARD   = 1     # begin at API function, end deep
 
-  ctypedef hid_t   H5E_major_t
-  ctypedef hid_t   H5E_minor_t
-
   ctypedef struct H5E_error_t:
-    H5E_major_t maj_num         # major error number
-    H5E_minor_t min_num         # minor error number
-    const_char  *func_name      # function in which error occurred
-    const_char  *file_name      # file in which error occurred
-    unsigned    line            # line in file where error occurs
-    const_char  *desc           # optional supplied description
+    hid_t       cls_id      # class ID
+    hid_t       maj_num     # major error ID
+    hid_t       min_num     # minor error number
+    unsigned    line        # line in file where error occurs
+    const_char  *func_name  # function in which error occurred
+    const_char  *file_name  # file in which error occurred
+    const_char  *desc       # optional supplied description
 
-  ctypedef herr_t (*H5E_walk_t)(int n, H5E_error_t *err, void *data)
-  ctypedef herr_t (*H5E_auto_t)(void *data)
-
-  # 1.8 API
-  #ctypedef struct H5E_error_t
-  #  hid_t       cls_id      # class ID
-  #  hid_t       maj_num     # major error ID
-  #  hid_t       min_num     # minor error number
-  #  unsigned    line        # line in file where error occurs
-  #  const_char  *func_name  # function in which error occurred
-  #  const_char  *file_name  # file in which error occurred
-  #  const_char  *desc       # optional supplied description
-  #
-  #ctypedef herr_t (*H5E_walk_t)(unsigned n, const H5E_error_t *err, void *data)
-  #ctypedef herr_t (*H5E_auto_t)(hid_t estack, void *client_data)
-
+  ctypedef herr_t (*H5E_walk_t)(unsigned n, H5E_error_t *err, void *data)
+  ctypedef herr_t (*H5E_auto_t)(hid_t estack, void *data)
 
   #------------------------------------------------------------------
 
@@ -273,16 +261,18 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Fget_vfd_handle(hid_t file_id, hid_t fapl_id, void **file_handle)
 
   # Operations with groups
-  hid_t  H5Gcreate(hid_t loc_id, char *name, size_t size_hint )
-  hid_t  H5Gopen(hid_t loc_id, char *name )
+  hid_t  H5Gcreate(hid_t loc_id, char *name, hid_t lcpl_id, hid_t gcpl_id,
+                   hid_t gapl_id)
+  hid_t  H5Gopen(hid_t loc_id, char *name, hid_t gapl_id)
   herr_t H5Gclose(hid_t group_id)
-  herr_t H5Gunlink (hid_t file_id, char *name)
-  herr_t H5Gmove(hid_t loc_id, char *src, char *dst)
-  herr_t H5Gmove2(hid_t src_loc_id, char *src_name,
-                  hid_t dst_loc_id, char *dst_name )
+
+  # Operations with links
+  herr_t H5Ldelete(hid_t file_id, char *name, hid_t lapl_id)
+  herr_t H5Lmove(hid_t src_loc_id, char *src_name,
+                  hid_t dst_loc_id, char *dst_name, hid_t lcpl, hid_t lap)
 
   # For dealing with datasets
-  hid_t  H5Dopen(hid_t file_id, char *name)
+  hid_t  H5Dopen(hid_t file_id, char *name, hid_t dapl_id)
   herr_t H5Dclose(hid_t dset_id)
   herr_t H5Dread(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
                  hid_t file_space_id, hid_t plist_id, void *buf)
@@ -344,9 +334,9 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Tenum_insert(hid_t type, char *name, void *value)
 
   # Operations for array data types
-  hid_t H5Tarray_create(hid_t base_id, int ndims, hsize_t dims[], int perm[])
+  hid_t H5Tarray_create(hid_t base_id, int ndims, hsize_t dims[])
   int   H5Tget_array_ndims(hid_t type_id)
-  int   H5Tget_array_dims(hid_t type_id, hsize_t dims[], int perm[])
+  int   H5Tget_array_dims(hid_t type_id, hsize_t dims[])
 
   # Operations with attributes
   herr_t H5Adelete(hid_t loc_id, char *name)
@@ -370,14 +360,11 @@ cdef extern from "hdf5.h" nogil:
                           hbool_t backing_store)
 
   # Error Handling Interface
-  #herr_t H5Eget_auto(H5E_auto_t *func, void** data)
-  herr_t H5Eset_auto(H5E_auto_t func, void *data)
-  herr_t H5Eprint(FILE *stream)
-  const_char * H5Eget_major(H5E_major_t n) # deprecated
-  char * H5Eget_minor(H5E_minor_t n)       # deprecated
-  herr_t H5Ewalk(H5E_direction_t dir, H5E_walk_t func, void *data)
-
-  # 1.8 API
+  #herr_t H5Eget_auto(hid_t estack_id, H5E_auto_t *func, void** data)
+  herr_t H5Eset_auto(hid_t estack_id, H5E_auto_t func, void *data)
+  herr_t H5Eprint(hid_t estack_id, FILE *stream)
+  herr_t H5Ewalk(hid_t estack_id, H5E_direction_t dir, H5E_walk_t func,
+                 void *data)
   #hid_t H5Eget_current_stack(void)
   #herr_t H5Eclose_stack(hid_t estack_id)
   #ssize_t H5Eget_num(hid_t estack_id)
@@ -385,8 +372,6 @@ cdef extern from "hdf5.h" nogil:
   #                   size_t size)
   #herr_t H5Eclose_msg(hid_t mesg_id)
   #ssize_t H5Eget_class_name(hid_t class_id, char* name, size_t size)
-  #herr_t H5Ewalk(hid_t estack_id, H5E_direction_t dir, H5E_walk_t func,
-  #               void *data)
 
 # Specific HDF5 functions for PyTables
 cdef extern from "H5ATTR.h" nogil:
@@ -418,6 +403,7 @@ cdef extern from "H5ARRAY.h" nogil:
 cdef extern from "utils.h":
   herr_t set_cache_size(hid_t file_id, size_t cache_size) nogil
   int get_objinfo(hid_t loc_id, char *name) nogil
+  int get_linkinfo(hid_t loc_id, char *name) nogil
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   object H5UIget_info(hid_t loc_id, char *name, char *byteorder)

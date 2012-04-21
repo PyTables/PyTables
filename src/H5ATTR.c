@@ -50,11 +50,11 @@
 
 
 herr_t H5ATTRset_attribute( hid_t obj_id,
-			    const char *attr_name,
-			    hid_t type_id,
-			    size_t rank,
-			    hsize_t *dims,
-			    const char *attr_data )
+                            const char *attr_name,
+                            hid_t type_id,
+                            size_t rank,
+                            hsize_t *dims,
+                            const char *attr_data )
 {
  hid_t      space_id;
  hid_t      attr_id;
@@ -77,7 +77,8 @@ herr_t H5ATTRset_attribute( hid_t obj_id,
  }
 
  /* Create and write the attribute */
- attr_id = H5Acreate( obj_id, attr_name, type_id, space_id, H5P_DEFAULT );
+ attr_id = H5Acreate( obj_id, attr_name, type_id, space_id, H5P_DEFAULT,
+                      H5P_DEFAULT );
 
  if ( H5Awrite( attr_id, type_id, attr_data ) < 0 )
   goto out;
@@ -113,8 +114,8 @@ out:
  */
 
 herr_t H5ATTRset_attribute_string( hid_t obj_id,
-				   const char *attr_name,
-				   const char *attr_data )
+                                   const char *attr_name,
+                                   const char *attr_data )
 {
  hid_t      attr_type;
  hid_t      attr_size;
@@ -149,7 +150,8 @@ herr_t H5ATTRset_attribute_string( hid_t obj_id,
 
  /* Create and write the attribute */
 
- if ( (attr_id = H5Acreate( obj_id, attr_name, attr_type, attr_space_id, H5P_DEFAULT )) < 0 )
+ if ( (attr_id = H5Acreate( obj_id, attr_name, attr_type, attr_space_id,
+                            H5P_DEFAULT, H5P_DEFAULT )) < 0 )
   goto out;
 
  if ( H5Awrite( attr_id, attr_type, attr_data ) < 0 )
@@ -191,15 +193,16 @@ out:
 
 
 herr_t H5ATTRget_attribute( hid_t obj_id,
-			    const char *attr_name,
-			    hid_t type_id,
-			    void *data )
+                            const char *attr_name,
+                            hid_t type_id,
+                            void *data )
 {
 
  /* identifiers */
  hid_t attr_id;
 
- if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
+ if ( ( attr_id = H5Aopen_by_name(obj_id, ".", attr_name,
+                                  H5P_DEFAULT, H5P_DEFAULT) ) < 0 )
   return -1;
 
  if ( H5Aread( attr_id, type_id, data ) < 0 )
@@ -235,8 +238,8 @@ out:
  */
 
 herr_t H5ATTRget_attribute_string( hid_t obj_id,
-				   const char *attr_name,
-				   char **data)
+                                   const char *attr_name,
+                                   char **data)
 {
  /* identifiers */
  hid_t      attr_id;
@@ -244,7 +247,8 @@ herr_t H5ATTRget_attribute_string( hid_t obj_id,
  size_t     type_size;
 
  *data = NULL;
- if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
+ if ( ( attr_id = H5Aopen_by_name(obj_id, ".", attr_name,
+                                  H5P_DEFAULT, H5P_DEFAULT) ) < 0 )
   return -1;
 
  if ( (attr_type = H5Aget_type( attr_id )) < 0 )
@@ -305,8 +309,9 @@ out:
  */
 
 static herr_t find_attr( hid_t loc_id,
-			 const char *name,
-			 void *op_data)
+                         const char *name,
+                         const H5A_info_t *ainfo,
+                         void *op_data)
 {
 
  /* Define a default zero value for return. This will cause the
@@ -359,14 +364,15 @@ static herr_t find_attr( hid_t loc_id,
  */
 
 herr_t H5ATTRfind_attribute( hid_t loc_id,
-			     const char* attr_name )
+                             const char* attr_name )
 {
 
- unsigned int attr_num;
- herr_t       ret;
+ hsize_t attr_num;
+ herr_t  ret;
 
  attr_num = 0;
- ret = H5Aiterate( loc_id, &attr_num, find_attr, (void *)attr_name );
+ ret = H5Aiterate( loc_id, H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, &attr_num,
+                   find_attr, (void *)attr_name );
 
  return ret;
 }
@@ -388,17 +394,18 @@ herr_t H5ATTRfind_attribute( hid_t loc_id,
  */
 
 herr_t H5ATTRget_type_ndims( hid_t obj_id,
-			     const char *attr_name,
-			     hid_t *type_id,
-			     H5T_class_t *class_id,
-			     size_t *type_size,
-			     int *rank )
+                             const char *attr_name,
+                             hid_t *type_id,
+                             H5T_class_t *class_id,
+                             size_t *type_size,
+                             int *rank )
 {
  hid_t       attr_id;
  hid_t       space_id;
 
  /* Open the attribute. */
- if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
+ if ( ( attr_id = H5Aopen_by_name(obj_id, ".", attr_name,
+                                  H5P_DEFAULT, H5P_DEFAULT) ) < 0 )
  {
   return -1;
  }
@@ -453,14 +460,15 @@ out:
  */
 
 herr_t H5ATTRget_dims( hid_t obj_id,
-		       const char *attr_name,
-		       hsize_t *dims)
+                       const char *attr_name,
+                       hsize_t *dims)
 {
  hid_t       attr_id;
  hid_t       space_id;
 
  /* Open the attribute. */
- if ( ( attr_id = H5Aopen_name( obj_id, attr_name ) ) < 0 )
+ if ( ( attr_id = H5Aopen_by_name(obj_id, ".", attr_name,
+                                  H5P_DEFAULT, H5P_DEFAULT) ) < 0 )
  {
   return -1;
  }

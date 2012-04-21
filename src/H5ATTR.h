@@ -31,24 +31,24 @@ extern "C" {
  */
 
 herr_t H5ATTRset_attribute( hid_t obj_id,
-			    const char *attr_name,
-			    hid_t type_id,
-			    size_t rank,
-			    hsize_t *dims,
-			    const char *attr_data );
+                            const char *attr_name,
+                            hid_t type_id,
+                            size_t rank,
+                            hsize_t *dims,
+                            const char *attr_data );
 
 herr_t H5ATTRset_attribute_string( hid_t obj_id,
-				   const char *attr_name,
-				   const char *attr_data );
+                                   const char *attr_name,
+                                   const char *attr_data );
 
 herr_t H5ATTRget_attribute( hid_t loc_id,
-			    const char *attr_name,
-			    hid_t type_id,
-			    void *data );
+                            const char *attr_name,
+                            hid_t type_id,
+                            void *data );
 
 herr_t H5ATTRget_attribute_string( hid_t obj_id,
-				   const char *attr_name,
-				   char **data);
+                                   const char *attr_name,
+                                   char **data);
 
 /*-------------------------------------------------------------------------
  *
@@ -59,18 +59,18 @@ herr_t H5ATTRget_attribute_string( hid_t obj_id,
 
 
 herr_t H5ATTRfind_attribute( hid_t loc_id,
-			     const char* attr_name );
+                             const char* attr_name );
 
 herr_t H5ATTRget_type_ndims( hid_t loc_id,
-			     const char *attr_name,
-			     hid_t *type_id,
-			     H5T_class_t *class_id,
-			     size_t *type_size,
-			     int *rank );
+                             const char *attr_name,
+                             hid_t *type_id,
+                             H5T_class_t *class_id,
+                             size_t *type_size,
+                             int *rank );
 
 herr_t H5ATTRget_dims( hid_t loc_id,
-		       const char *attr_name,
-		       hsize_t *dims );
+                       const char *attr_name,
+                       hsize_t *dims );
 
 
 #ifdef __cplusplus

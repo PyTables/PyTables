@@ -23,8 +23,8 @@
 #define UFAIL           (unsigned)(-1)
 
 /*
- *  * HDF Boolean type.
- *  */
+ * HDF Boolean type.
+ */
 #ifndef FALSE
 #   define FALSE 0
 #endif
@@ -39,9 +39,9 @@
     if (ret == val) {                                                         \
         printf("*** UNEXPECTED RETURN from %s is %ld at line %4d "            \
                "in %s\n", where, (long)ret, (int)__LINE__, __FILE__);         \
-        H5Eprint (stdout);                                                    \
+        H5Eprint(H5E_DEFAULT, stdout);                                                    \
     }                                                                         \
-    H5Eclear();                                                               \
+    H5Eclear(H5E_DEFAULT);                                                               \
 } while(0)
 
 int getLibrary(char *libname);
@@ -59,6 +59,8 @@ PyObject *createNamesTuple(char *buffer[], int nelements);
 PyObject *get_filter_names( hid_t loc_id, const char *dset_name);
 
 int get_objinfo(hid_t loc_id, const char *name);
+
+int get_linkinfo(hid_t loc_id, const char *name);
 
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name);
 

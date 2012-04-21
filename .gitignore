@@ -9,4 +9,3 @@ tables/*.so
 
 # specific files
 src/version.h
-tables/linkExtension.pyx

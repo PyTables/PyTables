@@ -187,7 +187,7 @@ PyObject *get_filter_names( hid_t loc_id,
  PyObject *filter_values;
 
  /* Open the dataset. */
- if ( (dset = H5Dopen( loc_id, dset_name )) < 0 ) {
+ if ( (dset = H5Dopen( loc_id, dset_name, H5P_DEFAULT )) < 0 ) {
    goto out;
  }
 
@@ -200,16 +200,8 @@ PyObject *get_filter_names( hid_t loc_id,
    if ((nf = H5Pget_nfilters(dcpl))>0) {
      for (i=0; i<nf; i++) {
        cd_nelmts = 20;
-#if H5_USE_16_API || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7)
-       /* 1.6.x */
-       H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
-                     cd_values, sizeof(f_name), f_name);
-#else
-       /* 1.7.x */
        H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
                      cd_values, sizeof(f_name), f_name, NULL);
-#endif /* if H5_VERSION < "1.7" */
-
        filter_values = PyTuple_New(cd_nelmts);
        for (j=0;j<(long)cd_nelmts;j++) {
          PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
@@ -243,61 +235,91 @@ out:
 ****************************************************************/
 int get_objinfo(hid_t loc_id, const char *name) {
   herr_t     ret;            /* Generic return value         */
-  H5G_stat_t statbuf;
+  H5O_info_t oinfo;
 
   /* Get type of the object, without emiting an error in case the
      node does not exist. */
   H5E_BEGIN_TRY {
-    ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
+    ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);
   } H5E_END_TRY;
   if (ret < 0)
     return -2;
-  return statbuf.type;
+  return oinfo.type;
 }
 
 /****************************************************************
 **
-**  gitercb(): Custom group iteration callback routine.
+**  get_linkinfo(): Get information about the type of a link.
 **
 ****************************************************************/
-herr_t gitercb(hid_t loc_id, const char *name, void *data) {
+int get_linkinfo(hid_t loc_id, const char *name) {
+  herr_t     ret;            /* Generic return value         */
+  H5L_info_t linfo;
+
+  /* Get type of the link, without emiting an error in case the
+     node does not exist. */
+  H5E_BEGIN_TRY {
+    ret = H5Lget_info(loc_id, name, &linfo, H5P_DEFAULT);
+  } H5E_END_TRY;
+  if (ret < 0)
+    return -2;
+  return linfo.type;
+}
+
+/****************************************************************
+**
+**  litercb(): Custom link iteration callback routine.
+**
+****************************************************************/
+herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
+               void *data) {
   PyObject   **out_info=(PyObject **)data;
   PyObject   *strname;
-  /* herr_t     ret; */           /* Generic return value         */
-  H5G_stat_t statbuf;
+  herr_t     ret;
+  H5O_info_t oinfo;
   int        namedtypes = 0;
 
-    /*
-     * Get type of the object and check it.
-     */
-    H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
-    /*
-    ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
-    CHECK(ret, FAIL, "H5Gget_objinfo");
-    */
+  strname = PyString_FromString(name);
 
-    strname = PyString_FromString(name);
-    if (statbuf.type == H5G_GROUP) {
-      PyList_Append(out_info[0], strname);
-    }
-    else if (statbuf.type == H5G_DATASET) {
-      PyList_Append(out_info[1], strname);
-    }
-    else if (statbuf.type == H5G_LINK) {
+  switch(info->type) {
+    case H5L_TYPE_SOFT:
+    case H5L_TYPE_EXTERNAL:
       PyList_Append(out_info[2], strname);
-    }
-    else if (statbuf.type == H5G_TYPE) {
-      namedtypes++;
-    }
-    else if (statbuf.type == H5G_UNKNOWN) {
+      break;
+    case H5L_TYPE_ERROR:  /* XXX: check */
       PyList_Append(out_info[3], strname);
-    }
-    else {                      /* Must be an external link */
-      PyList_Append(out_info[2], strname);
-    }
-    Py_DECREF(strname);
+      break;
+    case H5L_TYPE_HARD:
+      /* Get type of the object and check it */
+      ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);
+      if (ret < 0)
+          return -1;
 
-    return(0);  /* Loop until no more objects remain in directory */
+      switch(oinfo.type) {
+        case H5O_TYPE_GROUP:
+          PyList_Append(out_info[0], strname);
+          break;
+        case H5O_TYPE_DATASET:
+          PyList_Append(out_info[1], strname);
+          break;
+        case H5O_TYPE_NAMED_DATATYPE:
+          ++namedtypes;
+          break;
+        case H5O_TYPE_UNKNOWN:
+          PyList_Append(out_info[3], strname);
+          break;
+        default:
+          /* should not happen */
+          PyList_Append(out_info[3], strname);
+      }
+      break;
+    default:
+      /* should not happen */
+      PyList_Append(out_info[3], strname);
+  }
+  Py_DECREF(strname);
+
+  return 0 ;  /* Loop until no more objects remain in directory */
 }
 
 /****************************************************************
@@ -306,7 +328,7 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
 **
 ****************************************************************/
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
-  int i=0;
+  hsize_t i=0;
   PyObject  *t, *tgroup, *tleave, *tlink, *tunknown;
   PyObject *info[4];
 
@@ -315,8 +337,11 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
   info[2] = tlink = PyList_New(0);
   info[3] = tunknown = PyList_New(0);
 
-  /* Iterate over all the childs behind loc_id (parent_id+loc_id) */
-  H5Giterate(parent_id, name, &i, gitercb, info);
+  /* Iterate over all the childs behind loc_id (parent_id+loc_id).
+   * NOTE: using H5_INDEX_CRT_ORDER instead of H5_INDEX_NAME causes failures
+   * in the test suite */
+  H5Literate_by_name(parent_id, name, H5_INDEX_NAME, H5_ITER_NATIVE,
+                     &i, litercb, info, H5P_DEFAULT);
 
   /* Create the tuple with the list of Groups and Datasets */
   t = PyTuple_New(4);
@@ -333,7 +358,8 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
 **  aitercb(): Custom attribute iteration callback routine.
 **
 ****************************************************************/
-static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
+static herr_t aitercb( hid_t loc_id, const char *name,
+                       const H5A_info_t *ainfo, void *op_data) {
   PyObject *strname;
 
   strname = PyString_FromString(name);
@@ -350,11 +376,12 @@ static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
 **
 ****************************************************************/
 PyObject *Aiterate(hid_t loc_id) {
-  unsigned int i = 0;
+  hsize_t i = 0;
   PyObject *attrlist;                  /* List where the attrnames are put */
 
   attrlist = PyList_New(0);
-  H5Aiterate(loc_id, &i, (H5A_operator_t)aitercb, (void *)attrlist);
+  H5Aiterate(loc_id, H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, &i,
+             (H5A_operator_t)aitercb, (void *)attrlist);
 
   return attrlist;
 }
@@ -374,7 +401,7 @@ H5T_class_t getHDF5ClassID(hid_t loc_id,
    hid_t        plist;
 
    /* Open the dataset. */
-   if ( (*dataset_id = H5Dopen( loc_id, name )) < 0 )
+   if ( (*dataset_id = H5Dopen( loc_id, name, H5P_DEFAULT )) < 0 )
      return -1;
 
    /* Get an identifier for the datatype. */
@@ -412,9 +439,9 @@ PyObject *H5UIget_info( hid_t loc_id,
   int         i;
 
   /* Open the dataset. */
-  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 ) {
+  if ( (dataset_id = H5Dopen( loc_id, dset_name, H5P_DEFAULT )) < 0 ) {
     Py_INCREF(Py_None);
-    return Py_None;  	/* Not chunked, so return None */
+    return Py_None;     /* Not chunked, so return None */
   }
 
   /* Get an identifier for the datatype. */
@@ -481,7 +508,7 @@ out:
  H5Tclose( type_id );
  H5Dclose( dataset_id );
  Py_INCREF(Py_None);
- return Py_None;  	/* Not chunked, so return None */
+ return Py_None;    /* Not chunked, so return None */
 
 }
 

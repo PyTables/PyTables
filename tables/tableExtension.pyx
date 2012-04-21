@@ -46,7 +46,7 @@ from cpython cimport PyString_AsString
 from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL,
-  H5Fflush, H5Dget_create_plist, H5Gunlink,
+  H5Fflush, H5Dget_create_plist,
   H5D_layout_t, H5Dopen, H5Dclose, H5Dread, H5Dget_type, H5Dget_space,
   H5Pget_layout, H5Pget_chunk, H5Pclose,
   H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose,
@@ -340,7 +340,7 @@ cdef class Table(Leaf):
     cdef H5D_layout_t layout
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name)
+    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
     if self.dataset_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
