@@ -1,32 +1,204 @@
-########################################################################
-#
-#       License: BSD
-#       Created: November 25, 2009
-#       Author:  Francesc Alted - faltet@pytables.com
-#
-#       $Id$
-#
-########################################################################
+"""
+.. class:: tables.link.Link
 
-"""Create links in the HDF5 file.
+    Abstract base class for all PyTables links.
 
-This module implements containers for soft and external links.  Hard
-links doesn't need a container as such as they are the same as regular
-nodes (groups or leaves).
+    A link is a node that refers to another node.
+    The Link class inherits
+    from Node class and the links that inherits
+    from Link are SoftLink
+    and ExternalLink.  There is not
+    a HardLink subclass because hard links behave
+    like a regular Group or Leaf.
+    Contrarily to other nodes, links cannot have HDF5 attributes.  This
+    is an HDF5 library limitation that might be solved in future
+    releases.
 
-Classes:
-
-    SoftLink
-    ExternalLink
-
-Functions:
+    See :ref:`LinksTutorial` for a small tutorial on how
+    to work with links.
 
 
-Misc variables:
+Link instance variables
+~~~~~~~~~~~~~~~~~~~~~~~
 
-    __version__
+.. attribute:: Link._v_attrs
+
+    A NoAttrs instance replacing the
+    typical *AttributeSet* instance of other
+    node objects.  The purpose of NoAttrs is
+    to make clear that HDF5 attributes are not supported in link
+    nodes.
+
+
+.. attribute:: Link.target
+
+    The path string to the pointed node.
+
+
+Link methods
+~~~~~~~~~~~~
+The following methods are useful for copying, moving, renaming
+and removing links.
+
+
+.. method:: Link.copy(newparent=None, newname=None, overwrite=False, createparents=False)
+
+    Copy this link and return the new one.
+
+    See :meth:`Node._f_copy` for a complete explanation of
+    the arguments.  Please note that there is no
+    recursive flag since links do not have child nodes.
+
+
+.. method:: Link.move(newparent=None, newname=None, overwrite=False)
+
+    Move or rename this link.
+
+    See :meth:`Node._f_move` for a complete explanation of the arguments.
+
+
+.. method:: Link.remove()
+
+    Remove this link from the hierarchy.
+
+
+.. method:: Link.rename(newname=None)
+
+    Rename this link in place.
+
+    See :meth:`Node._f_rename` for a complete explanation of the arguments.
+
+
+
+.. _SoftLinkClassDescr:
+
+The SoftLink class
+------------------
+
+.. class:: tables.link.SoftLink
+
+    Represents a soft link (aka symbolic link).
+
+    A soft link is a reference to another node in
+    the *same* file hierarchy.  Getting access to the
+    pointed node (this action is
+    called *dereferrencing*) is done via
+    the __call__ special method (see below).
+
+
+SoftLink special methods
+~~~~~~~~~~~~~~~~~~~~~~~~
+The following methods are specific for dereferrencing and
+representing soft links.
+
+
+.. method:: SoftLink.__call__()
+
+    Dereference self.target and return the
+    pointed object.
+
+    Example of use::
+
+        >>> f=tables.openFile('data/test.h5')
+        >>> print f.root.link0
+        /link0 (SoftLink) -> /another/path
+        >>> print f.root.link0()
+        /another/path (Group) ''
+
+.. method:: SoftLink.__str__()
+
+    Return a short string representation of the link.
+
+    Example of use::
+
+        >>> f=tables.openFile('data/test.h5')
+        >>> print f.root.link0
+        /link0 (SoftLink) -> /path/to/node
+
+
+.. _ExternalLinkClassDescr:
+
+The ExternalLink class
+----------------------
+
+.. class:: tables.link.ExternalLink
+
+    Represents an external link.
+
+    An external link is a reference to a node
+    in *another* file.  Getting access to the pointed
+    node (this action is called *dereferrencing*) is
+    done via the __call__ special method (see
+    below).
+
+    .. warning:: External links are only supported when PyTables is compiled
+       against HDF5 1.8.x series.  When using PyTables with HDF5 1.6.x,
+       the *parent* group containing external link
+       objects will be mapped to an Unknown instance
+       (see :ref:`UnknownClassDescr`) and you won't be able to access *any* node
+       hanging of this parent group.  It follows that if the parent group
+       containing the external link is the root group, you won't be able
+       to read *any* information contained in the file
+       when using HDF5 1.6.x.
+
+
+ExternalLink instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attribute:: ExternalLink.extfile
+
+    The external file handler, if the link has been
+    dereferenced.  In case the link has not been dereferenced
+    yet, its value is None.
+
+
+ExternalLink methods
+~~~~~~~~~~~~~~~~~~~~
+
+.. method:: ExternalLink.umount()
+
+    Safely unmount self.extfile, if opened.
+
+
+ExternalLink special methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The following methods are specific for dereferrencing and
+representing external links.
+
+
+.. method:: ExternalLink.__call__(**kwargs)
+
+    Dereference self.target and return the
+    pointed object.
+
+    You can pass all the arguments supported by the
+    :func:`openFile` function
+    (except filename, of course) so as to open
+    the referenced external file.
+
+    Example of use::
+
+        >>> f=tables.openFile('data1/test1.h5')
+        >>> print f.root.link2
+        /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
+        >>> plink2 = f.root.link2('a')  # open in 'a'ppend mode
+        >>> print plink2
+        /path/to/node (Group) ''
+        >>> print plink2._v_filename
+        'data2/test2.h5'        # belongs to referenced file
+
+.. method:: ExternalLink.__str__()
+
+    Return a short string representation of the link.
+
+    Example of use::
+
+        >>> f=tables.openFile('data1/test1.h5')
+        >>> print f.root.link2
+        /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
 
 """
+
 import os
 import tables as t
 from tables import linkExtension

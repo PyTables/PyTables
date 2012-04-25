@@ -1,31 +1,212 @@
-########################################################################
-#
-#       License: BSD
-#       Created: October 10, 2002
-#       Author:  Francesc Alted - faltet@pytables.com
-#
-#       $Id$
-#
-########################################################################
-
-"""Here is defined the Array class.
-
-See Array class docstring for more info.
-
-Classes:
-
-    Array
-    ImageArray
-
-Functions:
-
-
-Misc variables:
-
-    __version__
-
-
 """
+.. class:: tables.Array
+
+    This class represents homogeneous datasets in an HDF5 file.
+
+    This class provides methods to write or read data to or from array objects
+    in the file. This class does not allow you neither to enlarge nor compress
+    the datasets on disk; use the EArray class (see :ref:`EArrayClassDescr`)
+    if you want enlargeable dataset support or compression features, or CArray
+    (see :ref:`CArrayClassDescr`) if you just want compression.
+
+    An interesting property of the Array class is
+    that it remembers the *flavor* of the object that
+    has been saved so that if you saved, for example, a
+    list, you will get a list during
+    readings afterwards; if you saved a NumPy array, you will get a NumPy
+    object, and so forth.
+
+    Note that this class inherits all the public attributes and
+    methods that Leaf (see :ref:`LeafClassDescr`) already
+    provides. However, as Array instances have no
+    internal I/O buffers, it is not necessary to use the
+    flush() method they inherit from
+    Leaf in order to save their internal state to disk.
+    When a writing method call returns, all the data is already on disk.
+
+
+.. _ArrayClassInstanceVariables:
+
+Array instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attribute:: Array.atom
+
+    An Atom (see :ref:`AtomClassDescr`)
+    instance representing the *type* and
+    *shape* of the atomic objects to be
+    saved.
+
+.. attribute:: Array.rowsize
+
+    The size of the rows in bytes in dimensions orthogonal to
+    *maindim*.
+
+.. attribute:: Array.nrows
+
+    The number of rows in the array.
+
+.. attribute:: Array.nrow
+
+    On iterators, this is the index of the current row.
+
+.. attribute:: Array.size_on_disk
+
+    The size of this array's data in bytes as it is stored on disk.
+
+.. attribute:: Array.size_in_memory
+
+    The size of this array's data in bytes when it is fully loaded into memory.
+    Since arrays do not support compression or chunking, this will always
+    equal size_on_disk.
+
+
+Array methods
+~~~~~~~~~~~~~
+
+.. method:: Array.getEnum()
+
+    Get the enumerated type associated with this array.
+
+    If this array is of an enumerated type, the corresponding
+    Enum instance (see :ref:`EnumClassDescr`) is
+    returned. If it is not of an enumerated type, a
+    TypeError is raised.
+
+
+.. method:: Array.iterrows(start=None, stop=None, step=None)
+
+    Iterate over the rows of the array.
+
+    This method returns an iterator yielding an object of the
+    current flavor for each selected row in the array.  The returned
+    rows are taken from the *main dimension*.
+
+    If a range is not supplied, *all the
+    rows* in the array are iterated upon - you can also use
+    the :meth:`Array.__iter__` special method for that purpose.  If you only want
+    to iterate over a given *range of rows* in the
+    array, you may use the start,
+    stop and step parameters,
+    which have the same meaning as in :meth:`Array.read`.
+
+    Example of use::
+
+        result = [row for row in arrayInstance.iterrows(step=4)]
+
+.. method:: Array.next()
+
+    Get the next element of the array during an iteration.
+
+    The element is returned as an object of the current flavor.
+
+
+.. method:: Array.read(start=None, stop=None, step=None)
+
+    Get data in the array as an object of the current flavor.
+
+    The start, stop and
+    step parameters can be used to select only a
+    *range of rows* in the array.  Their meanings
+    are the same as in the built-in range() Python
+    function, except that negative values of step
+    are not allowed yet. Moreover, if only start is
+    specified, then stop will be set to
+    start+1. If you do not specify neither
+    start nor stop, then
+    *all the rows* in the array are
+    selected.
+
+
+Array special methods
+~~~~~~~~~~~~~~~~~~~~~
+The following methods automatically trigger actions when an
+Array instance is accessed in a special way
+(e.g. array[2:3,...,::2] will be equivalent to a
+call to array.__getitem__((slice(2, 3, None), Ellipsis,
+slice(None, None, 2)))).
+
+
+.. method:: Array.__getitem__(key)
+
+    Get a row, a range of rows or a slice from the array.
+
+    The set of tokens allowed for the key is
+    the same as that for extended slicing in Python (including the
+    Ellipsis or ... token).  The
+    result is an object of the current flavor; its shape depends on
+    the kind of slice used as key and the shape of
+    the array itself.
+
+    Furthermore, NumPy-style fancy indexing, where a list of
+    indices in a certain axis is specified, is also supported.  Note
+    that only one list per selection is supported right now.  Finally,
+    NumPy-style point and boolean selections are supported as well.
+
+    Example of use::
+
+        array1 = array[4]                       # simple selection
+        array2 = array[4:1000:2]                # slice selection
+        array3 = array[1, ..., ::2, 1:4, 4:]    # general slice selection
+        array4 = array[1, [1,5,10], ..., -1]    # fancy selection
+        array5 = array[np.where(array[:] > 4)]  # point selection
+        array6 = array[array[:] > 4]            # boolean selection
+
+
+.. method:: Array.__iter__()
+
+    Iterate over the rows of the array.
+
+    This is equivalent to calling
+    :meth:`Array.iterrows` with default arguments, i.e. it
+    iterates over *all the rows* in the array.
+
+    Example of use::
+
+        result = [row[2] for row in array]
+
+    Which is equivalent to::
+
+        result = [row[2] for row in array.iterrows()]
+
+
+.. method:: Array.__setitem__(key, value)
+
+    Set a row, a range of rows or a slice in the array.
+
+    It takes different actions depending on the type of the
+    key parameter: if it is an integer, the
+    corresponding array row is set to value (the
+    value is broadcast when needed).  If key is a
+    slice, the row slice determined by it is set to
+    value (as usual, if the slice to be updated
+    exceeds the actual shape of the array, only the values in the
+    existing range are updated).
+
+    If value is a multidimensional object,
+    then its shape must be compatible with the shape determined by
+    key, otherwise, a ValueError
+    will be raised.
+
+    Furthermore, NumPy-style fancy indexing, where a list of
+    indices in a certain axis is specified, is also supported.  Note
+    that only one list per selection is supported right now.  Finally,
+    NumPy-style point and boolean selections are supported as well.
+
+    Example of use::
+
+        a1[0] = 333        # assign an integer to a Integer Array row
+        a2[0] = 'b'        # assign a string to a string Array row
+        a3[1:4] = 5        # broadcast 5 to slice 1:4
+        a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
+
+        # General slice update (a5.shape = (4,3,2,8,5,10).
+        a5[1, ..., ::2, 1:4, 4:] = numpy.arange(1728, shape=(4,3,2,4,3,6))
+        a6[1, [1,5,10], ..., -1] = arr    # fancy selection
+        a7[np.where(a6[:] > 4)] = 4       # point selection + broadcast
+        a8[arr > 4] = arr2                # boolean selection
+"""
+
 
 import numpy
 

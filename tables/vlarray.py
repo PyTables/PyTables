@@ -1,30 +1,316 @@
-########################################################################
-#
-#       License: BSD
-#       Created: November 12, 2003
-#       Author:  Francesc Alted - faltet@pytables.com
-#
-#       $Id$
-#
-########################################################################
-
-"""Here is defined the VLArray class
-
-See VLArray class docstring for more info.
-
-Classes:
-
-    VLArray
-
-Functions:
-
-
-Misc variables:
-
-    __version__
-
-
 """
+.. class:: tables.VLArray
+
+    This class represents variable length (ragged) arrays in an HDF5 file.
+
+    Instances of this class represent array objects in the object
+    tree with the property that their rows can have a
+    *variable* number of homogeneous elements, called
+    *atoms*. Like Table datasets (see :ref:`TableClassDescr`),
+    variable length arrays can have only one dimension, and the elements
+    (atoms) of their rows can be fully multidimensional.
+    VLArray objects do also support compression.
+
+    When reading a range of rows from a VLArray,
+    you will *always* get a Python list of objects of
+    the current flavor (each of them for a row), which may have different
+    lengths.
+
+    This class provides methods to write or read data to or from
+    variable length array objects in the file. Note that it also inherits
+    all the public attributes and methods that Leaf
+    (see :ref:`LeafClassDescr`)
+    already provides.
+
+
+VLArray instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attribute:: VLArray.atom
+
+    An Atom (see :ref:`AtomClassDescr`)
+    instance representing the *type* and
+    *shape* of the atomic objects to be
+    saved. You may use a *pseudo-atom* for
+    storing a serialized object or variable length string per row.
+
+
+.. attribute:: VLArray.flavor
+
+    The type of data object read from this leaf.
+
+    Please note that when reading several rows of
+    VLArray data, the flavor only applies to
+    the *components* of the returned Python
+    list, not to the list itself.
+
+
+.. attribute:: VLArray.nrow
+
+    On iterators, this is the index of the current row.
+
+.. attribute:: VLArray.extdim
+
+   The index of the enlargeable dimension (always 0 for vlarrays).
+
+.. attribute:: VLArray.nrows
+
+    The current number of rows in the array.
+
+
+.. attribute:: VLArray.size_on_disk
+
+    The HDF5 library does not include a function to determine size_on_disk for
+    variable-length arrays.  Accessing this attribute will return a
+    NotImplementedError.
+
+
+.. attribute:: VLArray.size_in_memory
+
+    The size of this array's data in bytes when it is fully loaded into memory.
+
+    .. note:: When data is stored in a VLArray using the ObjectAtom type, it is
+        first serialized using cPickle, and then converted to a NumPy array
+        suitable for storage in an HDF5 file.  This attribute will return the
+        size of that NumPy representation.  If you wish to know the size of the
+        Python objects after they are loaded from disk, you can use this
+        `ActiveState recipe <http://code.activestate.com/recipes/577504/>`_.
+
+
+
+VLArray methods
+~~~~~~~~~~~~~~~
+
+.. method:: VLArray.append(sequence)
+
+    Add a sequence of data to the end of the dataset.
+
+    This method appends the objects in the
+    sequence to a *single row*
+    in this array. The type and shape of individual objects must be
+    compliant with the atoms in the array. In the case of serialized
+    objects and variable length strings, the object or string to
+    append is itself the sequence.
+
+.. method:: VLArray.getEnum()
+
+    Get the enumerated type associated with this array.
+
+    If this array is of an enumerated type, the corresponding
+    Enum instance (see :ref:`EnumClassDescr`) is
+    returned. If it is not of an enumerated type, a
+    TypeError is raised.
+
+
+
+.. method:: VLArray.iterrows(start=None, stop=None, step=None)
+
+    Iterate over the rows of the array.
+
+    This method returns an iterator yielding an object of the
+    current flavor for each selected row in the array.
+
+    If a range is not supplied, *all the
+    rows* in the array are iterated upon. You can also use
+    the :meth:`VLArray.__iter__` special method for that purpose.
+    If you only want to iterate over a given *range of
+    rows* in the array, you may use the
+    start, stop and
+    step parameters, which have the same meaning as
+    in :meth:`VLArray.read`.
+
+    Example of use::
+
+        for row in vlarray.iterrows(step=4):
+            print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, row)
+
+.. method:: VLArray.next()
+
+    Get the next element of the array during an iteration.
+
+    The element is returned as a list of objects of the current flavor.
+
+
+.. method:: VLArray.read(start=None, stop=None, step=1)
+
+    Get data in the array as a list of objects of the current flavor.
+
+    Please note that, as the lengths of the different rows are
+    variable, the returned value is a *Python list*
+    (not an array of the current flavor), with as many entries as
+    specified rows in the range parameters.
+
+    The start, stop and
+    step parameters can be used to select only a
+    *range of rows* in the array.  Their meanings
+    are the same as in the built-in range() Python
+    function, except that negative values of step
+    are not allowed yet. Moreover, if only start is
+    specified, then stop will be set to
+    start+1. If you do not specify neither
+    start nor stop, then
+    *all the rows* in the array are
+    selected.
+
+
+
+VLArray special methods
+~~~~~~~~~~~~~~~~~~~~~~~
+The following methods automatically trigger actions when a
+VLArray instance is accessed in a special way
+(e.g., vlarray[2:5] will be equivalent to a call
+to vlarray.__getitem__(slice(2, 5, None)).
+
+.. method:: VLArray.__getitem__(key)
+
+    Get a row or a range of rows from the array.
+
+    If key argument is an integer, the
+    corresponding array row is returned as an object of the current
+    flavor.  If key is a slice, the range of rows
+    determined by it is returned as a list of objects of the current
+    flavor.
+
+    In addition, NumPy-style point selections are supported.  In
+    particular, if key is a list of row
+    coordinates, the set of rows determined by it is returned.
+    Furthermore, if key is an array of boolean
+    values, only the coordinates where key
+    is True are returned.  Note that for the latter
+    to work it is necessary that key list would
+    contain exactly as many rows as the array has.
+
+    Example of use:::
+
+        a_row = vlarray[4]
+        a_list = vlarray[4:1000:2]
+        a_list2 = vlarray[[0,2]]   # get list of coords
+        a_list3 = vlarray[[0,-2]]  # negative values accepted
+        a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools
+
+
+.. method:: VLArray.__iter__()
+
+    Iterate over the rows of the array.
+
+    This is equivalent to calling
+    :meth:`VLArray.iterrows` with default arguments, i.e. it
+    iterates over *all the rows* in the array.
+
+    Example of use::
+
+        result = [row for row in vlarray]
+
+    Which is equivalent to::
+
+        result = [row for row in vlarray.iterrows()]
+
+
+.. method:: VLArray.__setitem__(key, value)
+
+    Set a row, or set of rows, in the array.
+
+    It takes different actions depending on the type of the
+    key parameter: if it is an integer, the
+    corresponding table row is set to value (a
+    record or sequence capable of being converted to the table
+    structure). If key is a slice, the row slice
+    determined by it is set to value (a record
+    array or sequence capable of being converted to the table
+    structure).
+
+    In addition, NumPy-style point selections are supported.  In
+    particular, if key is a list of row
+    coordinates, the set of rows determined by it is set
+    to value.  Furthermore,
+    if key is an array of boolean values, only the
+    coordinates where key
+    is True are set to values
+    from value.  Note that for the latter to work
+    it is necessary that key list would contain
+    exactly as many rows as the table has.
+
+    .. note:: When updating the rows of a VLArray
+       object which uses a pseudo-atom, there is a problem: you can
+       only update values with *exactly* the same
+       size in bytes than the original row.  This is very difficult to
+       meet with object pseudo-atoms, because
+       cPickle applied on a Python object does not
+       guarantee to return the same number of bytes than over another
+       object, even if they are of the same class.  This effectively
+       limits the kinds of objects than can be updated in
+       variable-length arrays.
+
+    Example of use::
+
+        vlarray[0] = vlarray[0] * 2 + 3
+        vlarray[99] = arange(96) * 2 + 3
+
+        # Negative values for the index are supported.
+        vlarray[-99] = vlarray[5] * 2 + 3
+        vlarray[1:30:2] = list_of_rows
+        vlarray[[1,3]] = new_1_and_3_rows
+
+
+
+Examples of use
+~~~~~~~~~~~~~~~
+See below a small example of the use of the
+VLArray class.  The code is available in
+:file:`examples/vlarray1.py`::
+
+    import tables
+    from numpy import *
+
+    # Create a VLArray:
+    fileh = tables.openFile('vlarray1.h5', mode='w')
+    vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
+    tables.Int32Atom(shape=()),
+                    "ragged array of ints",
+                    filters=tables.Filters(1))
+
+    # Append some (variable length) rows:
+    vlarray.append(array([5, 6]))
+    vlarray.append(array([5, 6, 7]))
+    vlarray.append([5, 6, 9, 8])
+
+    # Now, read it through an iterator:
+    print '-->', vlarray.title
+    for x in vlarray:
+        print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, x)
+
+    # Now, do the same with native Python strings.
+    vlarray2 = fileh.createVLArray(fileh.root, 'vlarray2',
+    tables.StringAtom(itemsize=2),
+                        "ragged array of strings",
+                        filters=tables.Filters(1))
+    vlarray2.flavor = 'python'
+
+    # Append some (variable length) rows:
+    print '-->', vlarray2.title
+    vlarray2.append(['5', '66'])
+    vlarray2.append(['5', '6', '77'])
+    vlarray2.append(['5', '6', '9', '88'])
+
+    # Now, read it through an iterator:
+    for x in vlarray2:
+        print '%s[%d]--> %s' % (vlarray2.name, vlarray2.nrow, x)
+
+    # Close the file.
+    fileh.close()
+
+The output for the previous script is something like::
+
+    --> ragged array of ints
+    vlarray1[0]--> [5 6]
+    vlarray1[1]--> [5 6 7]
+    vlarray1[2]--> [5 6 9 8]
+    --> ragged array of strings
+    vlarray2[0]--> ['5', '66']
+    vlarray2[1]--> ['5', '6', '77']
+    vlarray2[2]--> ['5', '6', '9', '88']
+"""
+
 
 import sys
 
@@ -677,7 +963,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             nobjects = len(nparr)
             if len(value) > nobjects:
                 raise ValueError("Length of value (%s) is larger than number "
-                                 "of elements in row (%s)" % (len(value), 
+                                 "of elements in row (%s)" % (len(value),
                                                               nobjects))
             try:
                 nparr[:] = value
