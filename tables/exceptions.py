@@ -16,39 +16,54 @@ Exceptions module
 In the :mod:`exceptions` module exceptions and warnings that are specific
 to PyTables are declared.
 
-:HDF5ExtError:
+**HDF5ExtError**
     A low level HDF5 operation failed.
-:ClosedNodeError:
+
+**ClosedNodeError**
     The operation can not be completed because the node is closed.
-:ClosedFileError:
+
+**ClosedFileError**
     The operation can not be completed because the hosting file is
     closed.
-:FileModeError:
+
+**FileModeError**
     The operation can not be carried out because the mode in which the
     hosting file is opened is not adequate.
-:NodeError:
+
+**NodeError**
     Invalid hierarchy manipulation operation requested.
-:NoSuchNodeError:
+
+**NoSuchNodeError**
     An operation was requested on a node that does not exist.
-:UndoRedoError:
+
+**UndoRedoError**
     Problems with doing/redoing actions with Undo/Redo feature.
-:UndoRedoWarning:
+
+**UndoRedoWarning**
     Issued when an action not supporting undo/redo is run.
-:NaturalNameWarning:
+
+**NaturalNameWarning**
     Issued when a non-pythonic name is given for a node.
-:PerformanceWarning:
+
+**PerformanceWarning**
     Warning for operations which may cause a performance drop.
-:FlavorError:
+
+**FlavorError**
     Unsupported or unavailable flavor or flavor conversion.
-:FlavorWarning:
+
+**FlavorWarning**
     Unsupported or unavailable flavor conversion.
-:FiltersWarning:
+
+**FiltersWarning**
     Unavailable filters.
-:OldIndexWarning:
+
+**OldIndexWarning**
     Unsupported index format.
-:DataTypeWarning:
+
+**DataTypeWarning**
     Unsupported data type.
-:Incompat16Warning:
+
+**Incompat16Warning**
     Format incompatible with HDF5 1.6.x series.
 
 
