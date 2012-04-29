@@ -11,9 +11,11 @@
 """
 .. _LinkClassDescr:
 
+.. currentmodule:: tables.link
+
 The Link class
 --------------
-.. class:: tables.link.Link
+.. class:: Link
 
     Abstract base class for all PyTables links.
 
@@ -37,9 +39,9 @@ Link instance variables
 
 .. attribute:: Link._v_attrs
 
-    A NoAttrs instance replacing the
+    A *NoAttrs* instance replacing the
     typical *AttributeSet* instance of other
-    node objects.  The purpose of NoAttrs is
+    node objects.  The purpose of *NoAttrs* is
     to make clear that HDF5 attributes are not supported in link
     nodes.
 

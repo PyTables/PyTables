@@ -11,90 +11,95 @@
 """
 .. _FileClassDescr:
 
+.. currentmodule:: tables
+
 The File Class
 --------------
-
-The in-memory representation of a PyTables file.
-
-An instance of this class is returned when a PyTables file is
-opened with the :func:`openFile` function. It offers methods to manipulate
-(create, rename, delete...) nodes and handle their attributes, as well
-as methods to traverse the object tree. The *user entry
-point* to the object tree attached to the HDF5 file is
-represented in the rootUEP attribute. Other
-attributes are available.
-
-File objects support an *Undo/Redo mechanism* which can be enabled with the
-:meth:`File.enableUndo` method. Once the Undo/Redo mechanism is
-enabled, explicit *marks* (with an optional unique
-name) can be set on the state of the database using the
-:meth:`File.mark`
-method. There are two implicit marks which are always available: the
-initial mark (0) and the final mark (-1).  Both the identifier of a
-mark and its name can be used in *undo* and
-*redo* operations.
-
-Hierarchy manipulation operations (node creation, movement and
-removal) and attribute handling operations (setting and deleting) made
-after a mark can be undone by using the :meth:`File.undo` method, which returns
-the database to the
-state of a past mark. If undo() is not followed by
-operations that modify the hierarchy or attributes, the
-:meth:`File.redo` method can
-be used to return the database to the state of a future mark. Else,
-future states of the database are forgotten.
-
-Note that data handling operations can not be undone nor redone
-by now. Also, hierarchy manipulation operations on nodes that do not
-support the Undo/Redo mechanism issue an
-UndoRedoWarning *before*
-changing the database.
-
-The Undo/Redo mechanism is persistent between sessions and can
-only be disabled by calling the :meth:`File.disableUndo` method.
-
-File objects can also act as context managers when using the
-with statement introduced in Python 2.5.  When
-exiting a context, the file is automatically closed.
-
 .. class:: File
 
-    .. attribute:: filename
+    The in-memory representation of a PyTables file.
 
-        The name of the opened file.
+    An instance of this class is returned when a PyTables file is
+    opened with the :func`tables.openFile` function. It offers methods to
+    manipulate (create, rename, delete...) nodes and handle their attributes,
+    as well as methods to traverse the object tree. The *user entry
+    point* to the object tree attached to the HDF5 file is
+    represented in the rootUEP attribute. Other
+    attributes are available.
 
-    .. attribute:: filters
+    File objects support an *Undo/Redo mechanism* which can be enabled with the
+    :meth:`File.enableUndo` method. Once the Undo/Redo mechanism is
+    enabled, explicit *marks* (with an optional unique
+    name) can be set on the state of the database using the
+    :meth:`File.mark`
+    method. There are two implicit marks which are always available: the
+    initial mark (0) and the final mark (-1).  Both the identifier of a
+    mark and its name can be used in *undo* and
+    *redo* operations.
 
-        Default filter properties for the root group (see :ref:`FiltersClassDescr`).
+    Hierarchy manipulation operations (node creation, movement and
+    removal) and attribute handling operations (setting and deleting) made
+    after a mark can be undone by using the :meth:`File.undo` method, which
+    returns the database to the
+    state of a past mark. If undo() is not followed by
+    operations that modify the hierarchy or attributes, the
+    :meth:`File.redo` method can
+    be used to return the database to the state of a future mark. Else,
+    future states of the database are forgotten.
 
-    .. attribute:: format_version
+    Note that data handling operations can not be undone nor redone
+    by now. Also, hierarchy manipulation operations on nodes that do not
+    support the Undo/Redo mechanism issue an
+    UndoRedoWarning *before*
+    changing the database.
 
-        The PyTables version number of this file.
+    The Undo/Redo mechanism is persistent between sessions and can
+    only be disabled by calling the :meth:`File.disableUndo` method.
 
-    .. attribute:: isopen
+    File objects can also act as context managers when using the
+    with statement introduced in Python 2.5.  When
+    exiting a context, the file is automatically closed.
 
-        True if the underlying file is open, false otherwise.
 
-    .. attribute:: mode
+File instance variables
+~~~~~~~~~~~~~~~~~~~~~~~
 
-        The mode in which the file was opened.
+.. attribute:: File.filename
 
-    .. attribute:: open_count
+    The name of the opened file.
 
-        The number of times this file has been opened currently.
+.. attribute:: File.filters
 
-    .. attribute:: root
+    Default filter properties for the root group (see :ref:`FiltersClassDescr`).
 
-        The *root* of the object tree hierarchy (a Group instance).
+.. attribute:: File.format_version
 
-    .. attribute:: rootUEP
+    The PyTables version number of this file.
 
-        The UEP (user entry point) group name in the file (see
-        the :func:`openFile` function).
+.. attribute:: File.isopen
 
-    .. attribute:: title
+    True if the underlying file is open, false otherwise.
 
-        The title of the root group in the file.
+.. attribute:: File.mode
+
+    The mode in which the file was opened.
+
+.. attribute:: File.open_count
+
+    The number of times this file has been opened currently.
+
+.. attribute:: File.root
+
+    The *root* of the object tree hierarchy (a Group instance).
+
+.. attribute:: File.rootUEP
+
+    The UEP (user entry point) group name in the file (see
+    the :func`tables.openFile` function).
+
+.. attribute:: File.title
+
+    The title of the root group in the file.
 
 File methods - file handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -173,7 +178,8 @@ File methods - file handling
 
 File methods - hierarchy manipulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. method:: File.copyChildren(srcgroup, dstgroup, overwrite=False, recursive=False, createparents=False, **kwargs)
+.. method:: File.copyChildren(srcgroup, dstgroup, overwrite=False, \
+            recursive=False, createparents=False, **kwargs)
 
     Copy the children of a group into another group.
 
@@ -192,7 +198,8 @@ File methods - hierarchy manipulation
     :meth:`Group._f_copyChildren` for a description of those
     arguments.
 
-.. method:: File.copyNode(where, newparent=None, newname=None, name=None, overwrite=False, recursive=False, createparents=False, **kwargs)
+.. method:: File.copyNode(where, newparent=None, newname=None, name=None, \
+            overwrite=False, recursive=False, createparents=False, **kwargs)
 
     Copy the node specified by where and name to newparent/newname.
 
@@ -226,11 +233,12 @@ File methods - hierarchy manipulation
 
     This method returns the newly created copy of the source
     node (i.e. the destination node).  See
-    :meth:`Node._f_copy`
+    :meth:`.Node._f_copy`
     for further details on the semantics of copying nodes.
 
 
-.. method:: File.createArray(where, name, object, title='', byteorder=None, createparents=False)
+.. method:: File.createArray(where, name, object, title='', byteorder=None, \
+            createparents=False)
 
     Create a new array with the given name in where location.
     See the Array class (in :ref:`ArrayClassDescr`) for more information on
@@ -261,7 +269,8 @@ File methods - hierarchy manipulation
     information on the rest of parameters.
 
 
-.. method:: File.createCArray(where, name, atom, shape, title='', filters=None, chunkshape=None, byteorder=None, createparents=False)
+.. method:: File.createCArray(where, name, atom, shape, title='', \
+            filters=None, chunkshape=None, byteorder=None, createparents=False)
 
     Create a new chunked array with the given name in where location.
     See the CArray class (in :ref:`CArrayClassDescr`) for more information on
@@ -290,7 +299,9 @@ File methods - hierarchy manipulation
 
 
 
-.. method:: File.createEArray(where, name, atom, shape, title='', filters=None, expectedrows=EXPECTED_ROWS_EARRAY, chunkshape=None, byteorder=None, createparents=False)
+.. method:: File.createEArray(where, name, atom, shape, title='', \
+            filters=None, expectedrows=EXPECTED_ROWS_EARRAY, \
+            chunkshape=None, byteorder=None, createparents=False)
 
     Create a new enlargeable array with the given name in where location.
     See the EArray (in :ref:`EArrayClassDescr`) class for more information on
@@ -338,7 +349,8 @@ File methods - hierarchy manipulation
     information on the rest of parameters.
 
 
-.. method:: File.createExternalLink(where, name, target, createparents=False, warn16incompat=False)
+.. method:: File.createExternalLink(where, name, target, createparents=False, \
+            warn16incompat=False)
 
     Create an external link to a target node
     with the given name
@@ -370,7 +382,8 @@ File methods - hierarchy manipulation
        contained in the file when using HDF5 1.6.x.
 
 
-.. method:: File.createGroup(where, name, title='', filters=None, createparents=False)
+.. method:: File.createGroup(where, name, title='', filters=None, \
+            createparents=False)
 
     Create a new group with the given name in
     where location.  See the
@@ -424,7 +437,9 @@ File methods - hierarchy manipulation
     for more information on soft links.
 
 
-.. method:: File.createTable(where, name, description, title='', filters=None, expectedrows=EXPECTED_ROWS_TABLE, chunkshape=None, byteorder=None, createparents=False)
+.. method:: File.createTable(where, name, description, title='', filters=None, \
+            expectedrows=EXPECTED_ROWS_TABLE, chunkshape=None, byteorder=None, \
+            createparents=False)
 
     Create a new table with the given name in
     where location.  See the
@@ -496,7 +511,9 @@ File methods - hierarchy manipulation
             path to exist (not done by default).
 
 
-.. method:: File.createVLArray(where, name, atom, title='', filters=None, expectedsizeinMB=1.0, chunkshape=None, byteorder=None, createparents=False)
+.. method:: File.createVLArray(where, name, atom, title='', filters=None,
+            expectedsizeinMB=1.0, chunkshape=None, byteorder=None,
+            createparents=False)
 
     Create a new variable-length array with the given
     name in where location.  See
@@ -532,7 +549,8 @@ File methods - hierarchy manipulation
     information on the rest of parameters.
 
 
-.. method:: File.moveNode(where, newparent=None, newname=None, name=None, overwrite=False, createparents=False)
+.. method:: File.moveNode(where, newparent=None, newname=None, name=None, \
+            overwrite=False, createparents=False)
 
     Move the node specified by where and name to newparent/newname.
 
@@ -595,8 +613,8 @@ File methods - tree traversal
 
     Get the node under where with the given name.
 
-    where can be a Node instance (see :ref:`NodeClassDescr`) or a path string leading to a node. If no
-    name is specified, that node is returned.
+    where can be a Node instance (see :ref:`NodeClassDescr`) or a path
+    string leading to a node. If no name is specified, that node is returned.
 
     If a name is specified, this must be a
     string with the name of a node under where.  In
@@ -727,8 +745,8 @@ File methods - Undo/Redo support
 
     Disabling the Undo/Redo mechanism leaves the database in the
     current state and forgets past and future database states. This
-    makes :meth:`File.mark`, :meth:`File.undo`, :meth:`File.redo` and other methods fail with an
-    UndoRedoError.
+    makes :meth:`File.mark`, :meth:`File.undo`, :meth:`File.redo` and other
+    methods fail with an UndoRedoError.
 
     Calling this method when the Undo/Redo mechanism is already
     disabled raises an UndoRedoError.

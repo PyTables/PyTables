@@ -11,9 +11,11 @@
 """
 .. _TableClassDescr:
 
+.. currentmodule:: tables
+
 The Table class
 ---------------
-.. class:: tables.Table
+.. class:: Table
 
     This class represents heterogeneous datasets in an HDF5 file.
 
@@ -47,7 +49,7 @@ The Table class
     PyTables supports *in-kernel* searches
     working simultaneously on several columns using complex conditions.
     These are faster than selections using Python expressions.  See the
-    :meth:`Tables.where` method for more information on in-kernel searches.
+    :meth:`Table.where` method for more information on in-kernel searches.
 
     Non-nested columns can be *indexed*.
     Searching an indexed column can be several times faster than searching
@@ -584,7 +586,8 @@ Table methods - writing
         table.modifyCoordinates([True, False, True], rows)
 
     Here, you can see how indexing can be used as a shorthand
-    for the :meth:`Table.modifyRows`  and :meth:`Table.modifyCoordinates` methods.
+    for the :meth:`Table.modifyRows`  and :meth:`Table.modifyCoordinates`
+    methods.
 
 
 .. _TableMethods_querying:
@@ -592,8 +595,8 @@ Table methods - writing
 Table methods - querying
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. method:: Table.getWhereList(condition, condvars=None, sort=False, start=None,
-            stop=None, step=None)
+.. method:: Table.getWhereList(condition, condvars=None, sort=False, \
+                               start=None, stop=None, step=None)
 
     Get the row coordinates fulfilling the given condition.
 
@@ -605,7 +608,8 @@ Table methods - querying
     :meth:`Table.where` method.
 
 
-.. method:: Table.readWhere(condition, condvars=None, field=None, start=None, stop=None, step=None)
+.. method:: Table.readWhere(condition, condvars=None, field=None, start=None, \
+                            stop=None, step=None)
 
     Read table data fulfilling the given *condition*.
 
@@ -618,7 +622,8 @@ Table methods - querying
     :meth:`Table.where` method.
 
 
-.. method:: Table.where(condition, condvars=None, start=None, stop=None, step=None)
+.. method:: Table.where(condition, condvars=None, start=None, stop=None, \
+                        step=None)
 
     Iterate over values fulfilling a condition.
 
@@ -696,7 +701,8 @@ Table methods - querying
        errors will happen.
 
 
-.. method:: Table.whereAppend(dstTable, condition, condvars=None, start=None, stop=None, step=None)
+.. method:: Table.whereAppend(dstTable, condition, condvars=None, start=None, \
+                              stop=None, step=None)
 
     Append rows fulfilling the condition to the dstTable table.
 
@@ -731,7 +737,8 @@ Table methods - querying
 Table methods - other
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. method:: Table.copy(newparent=None, newname=None, overwrite=False, createparents=False, **kwargs)
+.. method:: Table.copy(newparent=None, newname=None, overwrite=False, \
+                       createparents=False, **kwargs)
 
     Copy this table and return the new one.
 
@@ -769,7 +776,8 @@ Table methods - other
 
     This can be useful when you have chosen non-automatic
     indexing for the table (see the :attr:`Table.autoIndex`
-    property in :ref:`TableInstanceVariablesDescr`) and you want to update the indexes on it.
+    property in :ref:`TableInstanceVariablesDescr`) and you want to update the
+    indexes on it.
 
 
 .. method:: Table.getEnum(colname)
@@ -799,10 +807,9 @@ Table methods - other
     Recompute the existing indexes in table, *if* they are dirty.
 
     This can be useful when you have set
-    :attr:`Table.autoIndex` (see :ref:`TableInstanceVariablesDescr`) to false for the table
-    and you want to update the indexes
-    after a invalidating index operation
-    (:meth:`Table.removeRows`, for example).
+    :attr:`Table.autoIndex` (see :ref:`TableInstanceVariablesDescr`) to false
+    for the table and you want to update the indexes after a invalidating index
+    operation (:meth:`Table.removeRows`, for example).
 
 
 .. _ColsClassDescr:
@@ -958,7 +965,8 @@ Column instance variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. attribute:: Column.descr
 
-    The Description (see :ref:`DescriptionClassDescr`) instance of the parent table or nested column.
+    The Description (see :ref:`DescriptionClassDescr`) instance of the parent
+    table or nested column.
 
 .. attribute:: Column.dtype
 
@@ -1006,7 +1014,8 @@ Column instance variables
 Column methods
 ~~~~~~~~~~~~~~
 
-.. method:: Column.createIndex(optlevel=6, kind="medium", filters=None, tmp_dir=None)
+.. method:: Column.createIndex(optlevel=6, kind="medium", filters=None, \
+                               tmp_dir=None)
 
     Create an index for this column.
 
@@ -1096,8 +1105,8 @@ Column methods
     Recompute the associated index only if it is dirty.
 
     This can be useful when you have set
-    :attr:`Table.autoIndex` to false for the table and you want to update the column's
-    index after an invalidating index operation
+    :attr:`Table.autoIndex` to false for the table and you want to update the
+    column's index after an invalidating index operation
     (like :meth:`Table.removeRows`).
 
     This method does nothing if the column is not indexed.
@@ -1195,6 +1204,8 @@ Column special methods
 
 
 .. _RowClassDescr:
+
+.. currentmodule:: tables.tableExtension
 
 The Row class
 -------------

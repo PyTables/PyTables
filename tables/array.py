@@ -11,9 +11,11 @@
 """
 .. _ArrayClassDescr:
 
+.. currentmodule:: tables
+
 The Array class
 ---------------
-.. class:: tables.Array
+.. class:: Array
 
     This class represents homogeneous datasets in an HDF5 file.
 

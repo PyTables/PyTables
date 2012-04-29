@@ -11,9 +11,11 @@
 """
 .. _EArrayClassDescr:
 
+.. currentmodule:: tables
+
 The EArray class
 ----------------
-.. class:: tables.EArray
+.. class:: EArray
 
     This class represents extendable, homogeneous datasets in an HDF5 file.
 

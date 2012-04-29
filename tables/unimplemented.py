@@ -1,9 +1,11 @@
 """
 .. _UnImplementedClassDescr:
 
+.. currentmodule:: tables
+
 The UnImplemented class
 -----------------------
-.. class:: tables.UnImplemented
+.. class:: UnImplemented
 
     This class represents datasets not supported by PyTables in an
     HDF5 file.
@@ -37,7 +39,7 @@ The UnImplemented class
 
 The Unknown class
 -----------------
-.. class:: tables.Unknown
+.. class:: Unknown
 
     This class represents nodes reported
     as *unknown* by the underlying HDF5 library.

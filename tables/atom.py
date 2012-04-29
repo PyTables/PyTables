@@ -1,4 +1,6 @@
 """
+.. currentmodule:: tables
+
 Declarative classes
 -------------------
 In this section a series of classes that are meant to
@@ -10,7 +12,7 @@ primary PyTables datasets are described.
 
 The Atom class and its descendants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. class:: tables.Atom
+.. class:: Atom
 
     Defines the type of atomic cells stored in a dataset.
 

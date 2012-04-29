@@ -37,7 +37,8 @@ PyTables.
 
 .. currentmodule:: tables
 
-.. Top-level function documentation in tables/__init.py
+
+.. Top-level function documentation in tables/__init__.py
 
 .. automodule:: tables
 
@@ -62,12 +63,13 @@ PyTables.
 .. automodule:: tables.leaf
 
 
-.. Table class, Cols class, and Column class documentation in tables/table.py docstring
+.. Table class, Cols class, Column, and Row class documentation in
+   tables/table.py docstring
 
 .. automodule:: tables.table
 
 
-.. Description class, Col class, IsDescription class, and Row class documentation in
+.. Description class, Col class, and IsDescription class class documentation in
    tables/description.py docstring
 
 .. automodule:: tables.description

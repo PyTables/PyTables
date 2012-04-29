@@ -11,9 +11,11 @@
 """
 .. _VLArrayClassDescr:
 
+.. currentmodule:: tables
+
 The VLArray class
 -----------------
-.. class:: tables.VLArray
+.. class:: VLArray
 
     This class represents variable length (ragged) arrays in an HDF5 file.
 

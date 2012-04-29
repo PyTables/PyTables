@@ -11,6 +11,8 @@
 """
 .. _LeafClassDescr:
 
+.. currentmodule:: tables
+
 The Leaf class
 --------------
 .. class:: Leaf

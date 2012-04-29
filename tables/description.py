@@ -1,6 +1,8 @@
 """
 .. _DescriptionClassDescr:
 
+.. currentmodule:: tables
+
 The Description class
 ---------------------
 .. class:: Description

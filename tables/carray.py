@@ -12,9 +12,11 @@
 """
 .. _CArrayClassDescr:
 
+.. currentmodule:: tables
+
 The CArray class
 ----------------
-.. class:: tables.CArray
+.. class:: CArray
     This class represents homogeneous datasets in an HDF5 file.
 
     The difference between a CArray and a normal Array (see

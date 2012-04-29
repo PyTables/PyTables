@@ -1,6 +1,8 @@
 """
 .. _NodeClassDescr:
 
+.. currentmodule:: tables
+
 The Node class
 --------------
 .. class:: Node

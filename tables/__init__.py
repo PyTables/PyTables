@@ -97,7 +97,8 @@ Global functions
     arguments, this iterator will be deprecated.
 
 
-.. function:: openFile(filename, mode='r', title='', rootUEP="/", filters=None, **kwargs)
+.. function:: openFile(filename, mode='r', title='', rootUEP="/", \
+                       filters=None, **kwargs)
 
     Open a PyTables (or generic HDF5) file and return a File object.
 
@@ -111,9 +112,10 @@ Global functions
             following:
 
             * *'r'*: Read-only; no data can be modified.
-            * *'w'*: Write; a new file is created (an existing file with the same name would be deleted).
-            * *'a'*: Append; an existing file is opened for reading and writing, and if the file
-              does not exist it is created.
+            * *'w'*: Write; a new file is created (an existing file with the
+              same name would be deleted).
+            * *'a'*: Append; an existing file is opened for reading and writing,
+              and if the file does not exist it is created.
             * *'r+'*: It is similar to 'a', but the file must already exist.
         title : str
             If the file is to be created, a

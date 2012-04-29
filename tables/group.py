@@ -11,6 +11,8 @@
 """
 .. _GroupClassDescr:
 
+.. currentmodule:: tables
+
 The Group class
 ---------------
 .. class:: Group

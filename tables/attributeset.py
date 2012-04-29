@@ -11,9 +11,11 @@
 """
 .. _AttributeSetClassDescr:
 
+.. currentmodule:: tables.attributeset
+
 The AttributeSet class
 ----------------------
-.. class:: tables.attributeset.AttributeSet
+.. class:: AttributeSet
 
     Container for the HDF5 attributes of a Node
     (see :ref:`NodeClassDescr`).
