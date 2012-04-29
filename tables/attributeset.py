@@ -1,32 +1,183 @@
-########################################################################
-#
-#       License: BSD
-#       Created: May 26, 2003
-#       Author:  Francesc Alted - faltet@pytables.com
-#
-#       $Id$
-#
-########################################################################
+"""
+.. _AttributeSetClassDescr:
 
-"""Here is defined the AttributeSet class.
+The AttributeSet class
+----------------------
+.. class:: tables.attributeset.AttributeSet
 
-See AttributeSet class docstring for more info.
+    Container for the HDF5 attributes of a Node
+    (see :ref:`NodeClassDescr`).
 
-Classes:
+    This class provides methods to create new HDF5 node attributes,
+    and to get, rename or delete existing ones.
 
-    AttributeSet
+    Like in Group instances (see :ref:`GroupClassDescr`),
+    AttributeSet instances make use of the
+    *natural naming* convention, i.e. you can access
+    the attributes on disk as if they were normal Python attributes of the
+    AttributeSet instance.
 
-Functions:
+    This offers the user a very convenient way to access HDF5 node
+    attributes. However, for this reason and in order not to pollute the
+    object namespace, one can not assign *normal*
+    attributes to AttributeSet instances, and their
+    members use names which start by special prefixes as happens with
+    Group objects.
 
-    issysattrname(name)
 
-Misc variables:
+Notes on native and pickled attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The values of most basic types are saved as HDF5 native data
+in the HDF5 file.  This includes Python bool,
+int, float,
+complex and str (but not
+long nor unicode) values, as
+well as their NumPy scalar versions and homogeneous or
+*structured* NumPy arrays of them.  When read,
+these values are always loaded as NumPy scalar or array objects, as
+needed.
 
-    __version__
+For that reason, attributes in native HDF5 files will be
+always mapped into NumPy objects.  Specifically, a multidimensional
+attribute will be mapped into a multidimensional
+ndarray and a scalar will be mapped into a NumPy
+scalar object (for example, a scalar
+H5T_NATIVE_LLONG will be read and returned as a
+numpy.int64 scalar).
 
-    SYS_ATTR -- List with attributes considered as read-only
-    SYS_ATTR_PREFIXES -- List with prefixes for system attributes
+However, other kinds of values are serialized using
+cPickle, so you only will be able to correctly
+retrieve them using a Python-aware HDF5 library.  Thus, if you want
+to save Python scalar values and make sure you are able to read them
+with generic HDF5 tools, you should make use of *scalar or
+homogeneous/structured array NumPy objects* (for example,
+numpy.int64(1) or numpy.array([1, 2, 3],
+dtype='int16')).
 
+One more advice: because of the various potential difficulties
+in restoring a Python object stored in an attribute, you may end up
+getting a cPickle string where a Python object is
+expected. If this is the case, you may wish to run
+cPickle.loads() on that string to get an idea of
+where things went wrong, as shown in this example::
+
+    >>> import os, tempfile
+    >>> import tables
+    >>>
+    >>> class MyClass(object):
+    ...   foo = 'bar'
+    ...
+    >>> myObject = MyClass()  # save object of custom class in HDF5 attr
+    >>> h5fname = tempfile.mktemp(suffix='.h5')
+    >>> h5f = tables.openFile(h5fname, 'w')
+    >>> h5f.root._v_attrs.obj = myObject  # store the object
+    >>> print h5f.root._v_attrs.obj.foo  # retrieve it
+    bar
+    >>> h5f.close()
+    >>>
+    >>> del MyClass, myObject  # delete class of object and reopen file
+    >>> h5f = tables.openFile(h5fname, 'r')
+    >>> print repr(h5f.root._v_attrs.obj)
+    'ccopy_reg\\n_reconstructor...
+    >>> import cPickle  # let's unpickle that to see what went wrong
+    >>> cPickle.loads(h5f.root._v_attrs.obj)
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'module' object has no attribute 'MyClass'
+    >>> # So the problem was not in the stored object,
+    ... # but in the *environment* where it was restored.
+    ... h5f.close()
+    >>> os.remove(h5fname)
+
+
+AttributeSet instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attribute:: AttributeSet._v_attrnames
+
+    A list with all attribute names.
+
+
+.. attribute:: AttributeSet._v_attrnamessys
+
+    A list with system attribute names.
+
+
+.. attribute:: AttributeSet._v_attrnamesuser
+
+    A list with user attribute names.
+
+.. attribute:: AttributeSet._v_node
+
+    The Node instance (see :ref:`NodeClassDescr`) this
+    attribute set is associated with.
+
+
+.. attribute:: AttributeSet._v_unimplemented
+
+    A list of attribute names with unimplemented native HDF5 types.
+
+
+AttributeSet methods
+~~~~~~~~~~~~~~~~~~~~
+Note that this class overrides the
+__getattr__(), __setattr__()
+and __delattr__() special methods.  This allows
+you to read, assign or delete attributes on disk by just using the
+next constructs::
+
+    leaf.attrs.myattr = 'str attr'    # set a string (native support)
+    leaf.attrs.myattr2 = 3            # set an integer (native support)
+    leaf.attrs.myattr3 = [3, (1, 2)]  # a generic object (Pickled)
+    attrib = leaf.attrs.myattr        # get the attribute ``myattr``
+    del leaf.attrs.myattr             # delete the attribute ``myattr``
+
+In addition, the dictionary-like
+__getitem__(), __setitem__()
+and __delitem__() methods are available, so you
+may write things like this::
+
+    for name in :attr:`Node._v_attrs`._f_list():
+        print "name: %s, value: %s" % (name, :attr:`Node._v_attrs`[name])
+
+Use whatever idiom you prefer to access the attributes.
+
+If an attribute is set on a target node that already has a
+large number of attributes, a PerformanceWarning
+will be issued.
+
+
+.. method:: AttributeSet._f_copy(where)
+
+    Copy attributes to the where node.
+
+    Copies all user and certain system attributes to the given
+    where node (a Node instance - see :ref:`NodeClassDescr`),
+    replacing the existing ones.
+
+.. method:: AttributeSet._f_list(attrset='user')
+
+    Get a list of attribute names.
+
+    The attrset string selects the attribute
+    set to be used.  A 'user' value returns only
+    user attributes (this is the default).  A 'sys'
+    value returns only system attributes.  Finally,
+    'all' returns both system and user
+    attributes.
+
+
+.. method:: AttributeSet._f_rename(oldattrname, newattrname)
+
+    Rename an attribute from oldattrname to newattrname.
+
+
+.. method:: AttributeSet.__contains__(name)
+
+    Is there an attribute with that name?
+
+    A true value is returned if the attribute set has an
+    attribute with the given name, false otherwise.
 """
 
 import re

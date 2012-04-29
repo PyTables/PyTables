@@ -1,4 +1,8 @@
 """
+.. _UnImplementedClassDescr:
+
+The UnImplemented class
+-----------------------
 .. class:: tables.UnImplemented
 
     This class represents datasets not supported by PyTables in an

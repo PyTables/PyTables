@@ -1,4 +1,9 @@
 """
+.. _TableClassDescr:
+
+The Table class
+---------------
+
 .. class:: tables.Table
 
     This class represents heterogeneous datasets in an HDF5 file.
@@ -191,7 +196,6 @@ Table.cols.
     The size of this table's data in bytes when it is fully loaded into memory.
     This may be used in combination with size_on_disk to calculate the
     compression ratio of the data.
-
 
 
 Table methods - reading
@@ -489,7 +493,6 @@ Table methods - writing
     are the same as in :meth:`Table.append`.
 
 
-
 .. method:: Table.removeRows(start, stop=None)
 
     Remove a range of rows in the table.
@@ -501,19 +504,19 @@ Table methods - writing
     step parameter is not supported, and it is not
     foreseen to be implemented anytime soon.
 
-    Parameters
-    ----------
-    start : int
-        Sets the starting row to be removed. It accepts
-        negative values meaning that the count starts from the end.
-        A value of 0 means the first row.
-    stop : int
-        Sets the last row to be removed to
-        stop-1, i.e. the end point is omitted (in
-        the Python range() tradition). Negative
-        values are also accepted. A special value of
-        None (the default) means removing just
-        the row supplied in start.
+    :Parameters:
+
+        start : int
+            Sets the starting row to be removed. It accepts
+            negative values meaning that the count starts from the end.
+            A value of 0 means the first row.
+        stop : int
+            Sets the last row to be removed to
+            stop-1, i.e. the end point is omitted (in
+            the Python range() tradition). Negative
+            values are also accepted. A special value of
+            None (the default) means removing just
+            the row supplied in start.
 
 
 .. method:: Table.__setitem__(key, value)
@@ -568,7 +571,8 @@ Table methods - writing
 Table methods - querying
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. method:: Table.getWhereList(condition, condvars=None, sort=False, start=None, stop=None, step=None)
+.. method:: Table.getWhereList(condition, condvars=None, sort=False, start=None,
+            stop=None, step=None)
 
     Get the row coordinates fulfilling the given condition.
 
@@ -578,7 +582,6 @@ Table methods - querying
 
     The meaning of the other arguments is the same as in the
     :meth:`Table.where` method.
-
 
 
 .. method:: Table.readWhere(condition, condvars=None, field=None, start=None, stop=None, step=None)
@@ -714,26 +717,26 @@ Table methods - other
     Moreover, it recognises the following additional keyword
     arguments.
 
-    Parameters
-    ----------
-    sortby
-        If specified, and sortby
-        corresponds to a column with an index, then the copy will be
-        sorted by this index.  If you want to ensure a fully sorted
-        order, the index must be a CSI one.  A reverse sorted copy
-        can be achieved by specifying a negative value for
-        the step keyword.
-        If sortby is omitted or None, the original table order is used.
-    checkCSI
-        If true and a CSI index does not exist for the
-        sortby column, an error will be raised.
-        If false (the default), it does nothing.  You can use this
-        flag in order to explicitly check for the existence of a
-        CSI index.
-    propindexes
-        If true, the existing indexes in the source table are
-        propagated (created) to the new one.  If false (the
-        default), the indexes are not propagated.
+    :Parameters:
+
+        sortby
+            If specified, and sortby
+            corresponds to a column with an index, then the copy will be
+            sorted by this index.  If you want to ensure a fully sorted
+            order, the index must be a CSI one.  A reverse sorted copy
+            can be achieved by specifying a negative value for
+            the step keyword.
+            If sortby is omitted or None, the original table order is used.
+        checkCSI
+            If true and a CSI index does not exist for the
+            sortby column, an error will be raised.
+            If false (the default), it does nothing.  You can use this
+            flag in order to explicitly check for the existence of a
+            CSI index.
+        propindexes
+            If true, the existing indexes in the source table are
+            propagated (created) to the new one.  If false (the
+            default), the indexes are not propagated.
 
 
 
@@ -777,6 +780,391 @@ Table methods - other
     and you want to update the indexes
     after a invalidating index operation
     (:meth:`Table.removeRows`, for example).
+
+
+.. _ColsClassDescr:
+
+The Cols class
+--------------
+.. class:: Cols
+
+    Container for columns in a table or nested column.
+
+    This class is used as an *accessor* to the
+    columns in a table or nested column.  It supports the
+    *natural naming* convention, so that you can
+    access the different columns as attributes which lead to
+    Column instances (for non-nested columns) or
+    other Cols instances (for nested columns).
+
+    For instance, if table.cols is a
+    Cols instance with a column named
+    col1 under it, the later can be accessed as
+    table.cols.col1. If col1 is
+    nested and contains a col2 column, this can be
+    accessed as table.cols.col1.col2 and so
+    on. Because of natural naming, the names of members start with
+    special prefixes, like in the Group class (see
+    :ref:`GroupClassDescr`).
+
+    Like the Column class (see :ref:`ColumnClassDescr`),
+    Cols supports item access to read and write
+    ranges of values in the table or nested column.
+
+
+Cols instance variables
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attribute:: Cols._v_colnames
+
+    A list of the names of the columns hanging directly
+    from the associated table or nested column.  The order of
+    the names matches the order of their respective columns in
+    the containing table.
+
+.. attribute:: Cols._v_colpathnames
+
+    A list of the pathnames of all the columns under the
+    associated table or nested column (in preorder).  If it does
+    not contain nested columns, this is exactly the same as the
+    :attr:`Cols._v_colnames` attribute.
+
+.. attribute:: Cols._v_desc
+
+    The associated Description instance
+    (see :ref:`DescriptionClassDescr`).
+
+.. attribute:: Cols._v_table
+
+    The parent Table instance (see :ref:`TableClassDescr`).
+
+
+Cols methods
+~~~~~~~~~~~~
+
+.. method:: Cols._f_col(colname)
+
+    Get an accessor to the column colname.
+
+    This method returns a Column instance
+    (see :ref:`ColumnClassDescr`) if the requested column is not nested, and a
+    Cols instance (see :ref:`ColsClassDescr`) if it is.
+    You may use full column pathnames in colname.
+
+    Calling cols._f_col('col1/col2') is
+    equivalent to using cols.col1.col2.  However,
+    the first syntax is more intended for programmatic use.  It is
+    also better if you want to access columns with names that are
+    not valid Python identifiers.
+
+
+.. method:: Cols.__getitem__(key)
+
+    Get a row or a range of rows from a table or nested column.
+
+    If key argument is an integer, the corresponding nested type row is
+    returned as a record of the current flavor. If key is a slice, the range
+    of rows determined by it is returned as a structured array of the current
+    flavor.
+
+    Example of use::
+
+        record = table.cols[4]  # equivalent to table[4]
+        recarray = table.cols.Info[4:1000:2]
+
+    Those statements are equivalent to::
+
+        nrecord = table.read(start=4)[0]
+        nrecarray = table.read(start=4, stop=1000, step=2).field('Info')
+
+    Here you can see how a mix of natural naming, indexing and
+    slicing can be used as shorthands for the
+    :meth:`Table.read` method.
+
+
+.. method:: Cols.__len__()
+
+    Get the number of top level columns in table.
+
+
+.. method:: Cols.__setitem__(key)
+
+    Set a row or a range of rows in a table or nested column.
+
+    If key argument is an integer, the
+    corresponding row is set to value. If
+    key is a slice, the range of rows determined
+    by it is set to value.
+
+    Example of use::
+
+        table.cols[4] = record
+        table.cols.Info[4:1000:2] = recarray
+
+    Those statements are equivalent to::
+
+        table.modifyRows(4, rows=record)
+        table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)
+
+    Here you can see how a mix of natural naming, indexing and
+    slicing can be used as shorthands for the
+    :meth:`Table.modifyRows` and
+    :meth:`Table.modifyColumn` methods.
+
+
+.. _ColumnClassDescr:
+
+The Column class
+----------------
+.. class:: Column
+
+    Accessor for a non-nested column in a table.
+
+    Each instance of this class is associated with one
+    *non-nested* column of a table. These instances
+    are mainly used to read and write data from the table columns using
+    item access (like the Cols class - see :ref:`ColsClassDescr`), but there
+    are a few other associated methods to deal with indexes.
+
+
+Column instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~~
+.. attribute:: Column.descr
+
+    The Description (see :ref:`DescriptionClassDescr`) instance of the parent table or nested column.
+
+.. attribute:: Column.dtype
+
+    The NumPy dtype that most closely matches this column.
+
+.. attribute:: Column.index
+
+    The Index instance (see :ref:`IndexClassDescr`)
+    associated with this column (None if the
+    column is not indexed).
+
+.. attribute:: Column.is_indexed
+
+    True if the column is indexed, false otherwise.
+
+.. attribute:: Column.maindim
+
+    The dimension along which iterators work.
+
+    Its value is 0 (i.e. the first dimension).
+
+.. attribute:: Column.name
+
+    The name of the associated column.
+
+.. attribute:: Column.pathname
+
+    The complete pathname of the associated column (the
+    same as Column.name if the column is not
+    inside a nested column).
+
+.. attribute:: Column.shape
+
+    The shape of this column.
+
+.. attribute:: Column.table
+
+    The parent Table instance (see :ref:`TableClassDescr`).
+
+.. attribute:: Column.type
+
+    The PyTables type of the column (a string).
+
+
+Column methods
+~~~~~~~~~~~~~~
+
+.. method:: Column.createIndex(optlevel=6, kind="medium", filters=None, tmp_dir=None)
+
+    Create an index for this column.
+
+    Parameters
+    ----------
+    optlevel : int
+        The optimization level for building the index.  The
+        levels ranges from 0 (no optimization) up to 9 (maximum
+        optimization).  Higher levels of optimization mean better
+        chances for reducing the entropy of the index at the price
+        of using more CPU, memory and I/O resources for creating
+        the index.
+    kind : str
+        The kind of the index to be built.  It can take the
+        'ultralight', 'light',
+        'medium' or 'full'
+        values.  Lighter kinds ('ultralight'
+        and 'light') mean that the index takes
+        less space on disk, but will perform queries slower.
+        Heavier kinds ('medium'
+        and 'full') mean better chances for
+        reducing the entropy of the index (increasing the query
+        speed) at the price of using more disk space as well as
+        more CPU, memory and I/O resources for creating the index.
+
+        Note that selecting a full kind
+        with an optlevel of 9 (the maximum)
+        guarantees the creation of an index with zero entropy,
+        that is, a completely sorted index (CSI) - provided that
+        the number of rows in the table does not exceed the 2**48
+        figure (that is more than 100 trillions of rows).  See
+        :meth:`Column.createCSIndex` method for a
+        more direct way to create a CSI index.
+    filters : Filters
+        Specify the Filters instance used
+        to compress the index.  If None,
+        default index filters will be used (currently, zlib level
+        1 with shuffling).
+    tmp_dir
+        When kind is other
+        than 'ultralight', a temporary file is
+        created during the index build process.  You can use the
+        tmp_dir argument to specify the
+        directory for this temporary file.  The default is to
+        create it in the same directory as the file containing the
+        original table.
+
+    Notes
+    -----
+    .. warning:: In some situations it is useful to get a completely
+       sorted index (CSI).  For those cases, it is best to use
+       the :meth:`Column.createCSIndex` method instead.
+
+
+
+.. method:: Column.createCSIndex(filters=None, tmp_dir=None)
+
+    Create a completely sorted index (CSI) for this column.
+
+    This method guarantees the creation of an index with zero
+    entropy, that is, a completely sorted index (CSI) -- provided
+    that the number of rows in the table does not exceed the 2**48
+    figure (that is more than 100 trillions of rows).  A CSI index
+    is needed for some table methods (like
+    :meth:`Table.itersorted` or
+    :meth:`Table.readSorted`) in order to ensure
+    completely sorted results.
+
+    For the meaning of filters and
+    tmp_dir arguments see
+    :meth:`Column.createIndex`.
+
+    .. note:: This method is equivalent to
+       Column.createIndex(optlevel=9, kind='full', ...).
+
+
+.. method:: Column.reIndex()
+
+    Recompute the index associated with this column.
+
+    This can be useful when you suspect that, for any reason,
+    the index information is no longer valid and you want to rebuild it.
+
+    This method does nothing if the column is not indexed.
+
+
+.. method:: Column.reIndexDirty()
+
+    Recompute the associated index only if it is dirty.
+
+    This can be useful when you have set
+    :attr:`Table.autoIndex` to false for the table and you want to update the column's
+    index after an invalidating index operation
+    (like :meth:`Table.removeRows`).
+
+    This method does nothing if the column is not indexed.
+
+
+.. method:: Column.removeIndex()
+
+    Remove the index associated with this column.
+
+    This method does nothing if the column is not indexed. The
+    removed index can be created again by calling the
+    :meth:`Column.createIndex` method.
+
+
+Column special methods
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. method:: Column.__getitem__(key)
+
+    Get a row or a range of rows from a column.
+
+    If key argument is an integer, the
+    corresponding element in the column is returned as an object of
+    the current flavor.  If key is a slice, the
+    range of elements determined by it is returned as an array of
+    the current flavor.
+
+    Example of use::
+
+        print "Column handlers:"
+        for name in table.colnames:
+            print table.cols._f_col(name)
+            print "Select table.cols.name[1]-->", table.cols.name[1]
+            print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
+            print "Select table.cols.name[:]-->", table.cols.name[:]
+            print "Select table.cols._f_col('name')[:]-->", table.cols._f_col('name')[:]
+
+    The output of this for a certain arbitrary table is::
+
+        Column handlers:
+        /table.cols.name (Column(), string, idx=None)
+        /table.cols.lati (Column(), int32, idx=None)
+        /table.cols.longi (Column(), int32, idx=None)
+        /table.cols.vector (Column(2,), int32, idx=None)
+        /table.cols.matrix2D (Column(2, 2), float64, idx=None)
+        Select table.cols.name[1]--> Particle:     11
+        Select table.cols.name[1:2]--> ['Particle:     11']
+        Select table.cols.name[:]--> ['Particle:     10'
+         'Particle:     11' 'Particle:     12'
+         'Particle:     13' 'Particle:     14']
+        Select table.cols._f_col('name')[:]--> ['Particle:     10'
+         'Particle:     11' 'Particle:     12'
+         'Particle:     13' 'Particle:     14']
+
+    See the :file:`examples/table2.py` file for a
+    more complete example.
+
+
+.. method:: Column.__len__()
+
+    Get the number of elements in the column.
+
+    This matches the length in rows of the parent table.
+
+
+
+.. method:: Column.__setitem__(key, value)
+
+    Set a row or a range of rows in a column.
+
+    If key argument is an integer, the
+    corresponding element is set to value.  If
+    key is a slice, the range of elements
+    determined by it is set to value.
+
+    Example of use::
+
+        # Modify row 1
+        table.cols.col1[1] = -1
+
+        # Modify rows 1 and 3
+        table.cols.col1[1::2] = [2,3]
+
+    Which is equivalent to::
+
+        # Modify row 1
+        table.modifyColumns(start=1, columns=[[-1]], names=['col1'])
+
+        # Modify rows 1 and 3
+        columns = numpy.rec.fromarrays([[2,3]], formats='i4')
+        table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])
+
 """
 
 

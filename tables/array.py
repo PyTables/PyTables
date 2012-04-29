@@ -1,4 +1,8 @@
 """
+.. _ArrayClassDescr:
+
+The Array class
+---------------
 .. class:: tables.Array
 
     This class represents homogeneous datasets in an HDF5 file.

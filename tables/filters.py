@@ -1,25 +1,139 @@
 """
-Functionality related with filters in a PyTables file.
+.. _FiltersClassDescr:
 
-:Author: Ivan Vilata i Balaguer
-:Contact: ivan at selidor dot net
-:License: BSD
-:Created: 2007-02-23
-:Revision: $Id$
+The Filters class
+-----------------
+.. class:: tables.Filters()
 
-Variables
-=========
+    Container for filter properties.
 
-`__docformat`__
-    The format of documentation strings in this module.
-`__version__`
-    Repository version of this file.
-`all_complibs`
-    List of all compression libraries.
-`default_complib`
-    The default compression library.
-`foreign_complibs`
-    List of known but unsupported compression libraries.
+    This class is meant to serve as a container that keeps
+    information about the filter properties associated with the chunked
+    leaves, that is Table, CArray, EArray and VLArray.
+
+    Instances of this class can be directly compared for equality.
+
+
+Filters instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attribute:: Filters.fletcher32
+
+    Whether the *Fletcher32* filter is active or not.
+
+
+.. attribute:: Filters.complevel
+
+    The compression level (0 disables compression).
+
+
+.. attribute:: Filters.complib
+
+    The compression filter used (irrelevant when
+    compression is not enabled).
+
+.. attribute:: Filters.shuffle
+
+    Whether the *Shuffle* filter is active or not.
+
+
+Example of use
+~~~~~~~~~~~~~~
+This is a small example on using the
+Filters class::
+
+    import numpy
+    from tables import *
+
+    fileh = openFile('test5.h5', mode='w')
+    atom = Float32Atom()
+    filters = Filters(complevel=1, complib='blosc', fletcher32=True)
+    arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2), "A growable array", filters=filters)
+
+    # Append several rows in only one call
+    arr.append(numpy.array([[1., 2.],
+                            [2., 3.],
+                            [3., 4.]], dtype=numpy.float32))
+
+    # Print information on that enlargeable array
+    print "Result Array:"
+    print repr(arr)
+    fileh.close()
+
+This enforces the use of the Blosc library, a compression
+level of 1 and a Fletcher32 checksum filter as well. See the
+output of this example::
+
+    Result Array:
+    /earray (EArray(3, 2), fletcher32, shuffle, blosc(1)) 'A growable array'
+    type = float32
+    shape = (3, 2)
+    itemsize = 4
+    nrows = 3
+    extdim = 0
+    flavor = 'numpy'
+    byteorder = 'little'
+
+
+.. method:: Filters.__init__(complevel=0, complib='zlib', shuffle=True, fletcher32=False)
+
+    Create a new Filters instance.
+
+    :Parameters:
+    complevel : int
+        Specifies a compression level for data. The allowed
+        range is 0-9. A value of 0 (the default) disables
+        compression.
+    complib : str
+        Specifies the compression library to be used. Right
+        now, 'zlib' (the default), 'lzo', 'bzip2'
+        and 'blosc' are supported.  Specifying a
+        compression library which is not available in the system
+        issues a FiltersWarning and sets the library to the default one.
+    shuffle : bool
+        Whether or not to use the *Shuffle*
+        filter in the HDF5 library. This is normally used to improve
+        the compression ratio. A false value disables shuffling and
+        a true one enables it. The default value depends on whether
+        compression is enabled or not; if compression is enabled,
+        shuffling defaults to be enabled, else shuffling is
+        disabled. Shuffling can only be used when compression is enabled.
+    fletcher32 : bool
+        Whether or not to use the
+        *Fletcher32* filter in the HDF5 library.
+        This is used to add a checksum on each data chunk. A false
+        value (the default) disables the checksum.
+
+
+.. method:: Filters.copy(override)
+
+    Get a copy of the filters, possibly overriding some arguments.
+
+    Constructor arguments to be overridden must be passed as keyword arguments.
+
+    Using this method is recommended over replacing the
+    attributes of an instance, since instances of this class may
+    become immutable in the future::
+
+        >>> filters1 = Filters()
+        >>> filters2 = filters1.copy()
+        >>> filters1 == filters2
+        True
+        >>> filters1 is filters2
+        False
+        >>> filters3 = filters1.copy(complevel=1)
+        Traceback (most recent call last):
+        ...
+        ValueError: compression library ``None`` is not supported...
+        >>> filters3 = filters1.copy(complevel=1, complib='zlib')
+        >>> print filters1
+        Filters(complevel=0, shuffle=False, fletcher32=False)
+        >>> print filters3
+        Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
+        >>> filters1.copy(foobar=42)
+        Traceback (most recent call last):
+        ...
+        TypeError: __init__() got an unexpected keyword argument 'foobar'
 """
 
 # Imports

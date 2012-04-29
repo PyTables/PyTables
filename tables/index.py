@@ -1,31 +1,90 @@
-#######################################################################
-#
-#       License: BSD
-#       Created: June 08, 2004
-#       Author:  Francesc Alted - faltet@pytables.com
-#
-#       $Id$
-#
-########################################################################
+"""
+.. _IndexClassDescr:
 
-"""Here is defined the Index class.
+The Index class
+---------------
+.. class:: tables.index.Index
 
-See Index class docstring for more info.
+    Represents the index of a column in a table.
 
-Classes:
+    This class is used to keep the indexing information for
+    columns in a Table dataset (see :ref:`TableClassDescr`). It is
+    actually a descendant of the Group class (see
+    :ref:`GroupClassDescr`), with
+    some added functionality. An Index is always
+    associated with one and only one column in the table.
 
-    Index
-
-Functions:
-
-
-Misc variables:
-
-    __version__
-    defaultAutoIndex
-    defaultIndexFilters
+    .. note:: This class is mainly intended for internal use, but some of
+       its documented attributes and methods may be interesting for the
+       programmer.
 
 
+Index instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attribute:: Index.column
+
+    The Column (see :ref:`ColumnClassDescr`)
+    instance for the indexed column.
+
+.. attribute:: Index.dirty
+
+    Whether the index is dirty or not.
+
+    Dirty indexes are out of sync with column data, so
+    they exist but they are not usable.
+
+
+.. attribute:: Index.filters
+
+    Filter properties for this index - see
+    Filters in :ref:`FiltersClassDescr`.
+
+
+.. attribute:: Index.nelements
+
+    The number of currently indexed row for this column.
+
+
+.. attribute:: Index.is_CSI
+
+    Whether the index is completely sorted or not.
+
+
+Index methods
+~~~~~~~~~~~~~
+
+.. method:: Index.readSorted(start=None, stop=None, step=None)
+
+    Return the sorted values of index in the specified range.
+
+    The meaning of the start, stop and step arguments is
+    the same as in :meth:`Table.readSorted`.
+
+
+.. method:: Index.readIndices(start=None, stop=None, step=None)
+
+    Return the indices values of index in the specified range.
+
+    The meaning of the start, stop and step arguments is
+    the same as in :meth:`Table.readSorted`.
+
+
+Index special methods
+~~~~~~~~~~~~~~~~~~~~~
+
+.. method:: Index.__getitem__(key)
+
+    Return the indices values of index in the specified range.
+
+    If key argument is an integer, the
+    corresponding index is returned.  If key is a
+    slice, the range of indices determined by it is returned.  A
+    negative value of step in slice is supported,
+    meaning that the results will be returned in reverse
+    order.
+
+    This method is equivalent to :meth:`Index.readIndices`.
 """
 
 import sys

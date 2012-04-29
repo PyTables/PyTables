@@ -1,4 +1,8 @@
 """
+.. _CArrayClassDescr:
+
+The CArray class
+----------------
 .. class:: tables.CArray
     This class represents homogeneous datasets in an HDF5 file.
 

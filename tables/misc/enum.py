@@ -1,31 +1,165 @@
-########################################################################
-#
-#       License: BSD
-#       Created: May 4, 2005
-#       Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
-#
-#       $Id$
-#
-########################################################################
-
 """
-Implementation of enumerated types.
+.. _EnumClassDescr:
 
-This module provides the `Enum` class, which can be used to construct
-enumerated types.  Those types are defined by providing an *exhaustive
-set or list* of possible, named values for a variable of that type.
-Enumerated variables of the same type are usually compared between them
-for equality and sometimes for order, but are not usually operated upon.
+The Enum class
+--------------
+.. class:: tables.misc.enum.Enum
 
-Enumerated values have an associated *name* and *concrete value*.  Every
-name is unique and so are concrete values.  An enumerated variable
-always takes the concrete value, not its name.  Usually, the concrete
-value is not used directly, and frequently it is entirely irrelevant.
-For the same reason, an enumerated variable is not usually compared with
-concrete values out of its enumerated type.  For that kind of use,
-standard variables and constants are more adequate.
+    Enumerated type.
+
+    Each instance of this class represents an enumerated type. The
+    values of the type must be declared
+    *exhaustively* and named with
+    *strings*, and they might be given explicit
+    concrete values, though this is not compulsory. Once the type is
+    defined, it can not be modified.
+
+    There are three ways of defining an enumerated type. Each one
+    of them corresponds to the type of the only argument in the
+    constructor of Enum:
+
+    - *Sequence of names*: each enumerated
+      value is named using a string, and its order is determined by
+      its position in the sequence; the concrete value is assigned
+      automatically::
+
+          >>> boolEnum = Enum(['True', 'False'])
+
+    - *Mapping of names*: each enumerated
+      value is named by a string and given an explicit concrete value.
+      All of the concrete values must be different, or a
+      ValueError will be raised::
+
+          >>> priority = Enum({'red': 20, 'orange': 10, 'green': 0})
+          >>> colors = Enum({'red': 1, 'blue': 1})
+          Traceback (most recent call last):
+          ...
+          ValueError: enumerated values contain duplicate concrete values: 1
+
+    - *Enumerated type*: in that case, a copy
+      of the original enumerated type is created. Both enumerated
+      types are considered equal::
+
+          >>> prio2 = Enum(priority)
+          >>> priority == prio2
+          True
+
+    Please note that names starting with _ are
+    not allowed, since they are reserved for internal usage::
+
+        >>> prio2 = Enum(['_xx'])
+        Traceback (most recent call last):
+        ...
+        ValueError: name of enumerated value can not start with ``_``: '_xx'
+
+    The concrete value of an enumerated value is obtained by
+    getting its name as an attribute of the Enum
+    instance (see __getattr__()) or as an item (see
+    __getitem__()). This allows comparisons between
+    enumerated values and assigning them to ordinary Python
+    variables::
+
+        >>> redv = priority.red
+        >>> redv == priority['red']
+        True
+        >>> redv > priority.green
+        True
+        >>> priority.red == priority.orange
+        False
+
+    The name of the enumerated value corresponding to a concrete
+    value can also be obtained by using the
+    __call__() method of the enumerated type. In this
+    way you get the symbolic name to use it later with
+    __getitem__()::
+
+        >>> priority(redv)
+        'red'
+        >>> priority.red == priority[priority(priority.red)]
+        True
+
+    (If you ask, the __getitem__() method is
+    not used for this purpose to avoid ambiguity in the case of using
+    strings as concrete values.)
+
+
+Enum special methods
+~~~~~~~~~~~~~~~~~~~~
+
+.. method:: Enum.__call__(value, *default)
+
+    Get the name of the enumerated value with that concrete value.
+
+    If there is no value with that concrete value in the
+    enumeration and a second argument is given as a
+    default, this is returned. Else, a ValueError is raised.
+
+    This method can be used for checking that a concrete value
+    belongs to the set of concrete values in an enumerated type.
+
+.. method:: Enum.__contains__(name)
+
+    Is there an enumerated value with that
+    name in the type?
+
+    If the enumerated type has an enumerated value with that
+    name, True is returned.
+    Otherwise, False is returned. The
+    name must be a string.
+
+    This method does *not* check for
+    concrete values matching a value in an enumerated type. For
+    that, please use the :meth:`Enum.__call__` method.
+
+
+.. method:: Enum.__eq__(other)
+
+    Is the other enumerated type equivalent to this one?
+
+    Two enumerated types are equivalent if they have exactly
+    the same enumerated values (i.e. with the same names and
+    concrete values).
+
+
+.. method:: Enum.__getattr__(name)
+
+    Get the concrete value of the enumerated value with that
+    name.
+
+    The name of the enumerated value must
+    be a string. If there is no value with that
+    name in the enumeration, an
+    AttributeError is raised.
+
+
+.. method:: Enum.__getitem__(name)
+
+    Get the concrete value of the enumerated value with that name.
+
+    The name of the enumerated value must
+    be a string. If there is no value with that
+    name in the enumeration, a KeyError is raised.
+
+
+.. method:: Enum.__iter__()
+
+    Iterate over the enumerated values.
+
+    Enumerated values are returned as (name,
+    value) pairs *in no particular order*.
+
+
+.. method:: Enum.__len__()
+
+    Return the number of enumerated values in the enumerated type.
+
+
+.. method:: Enum.__repr__()
+
+    Return the canonical string representation of the
+    enumeration. The output of this method can be evaluated to give
+    a new enumeration object that will compare equal to this one.
 """
-
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""

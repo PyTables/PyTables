@@ -1,4 +1,8 @@
 """
+.. _VLArrayClassDescr:
+
+The VLArray class
+-----------------
 .. class:: tables.VLArray
 
     This class represents variable length (ragged) arrays in an HDF5 file.
@@ -77,7 +81,6 @@ VLArray instance variables
         `ActiveState recipe <http://code.activestate.com/recipes/577504/>`_.
 
 
-
 VLArray methods
 ~~~~~~~~~~~~~~~
 
@@ -151,7 +154,6 @@ VLArray methods
     start nor stop, then
     *all the rows* in the array are
     selected.
-
 
 
 VLArray special methods
@@ -250,7 +252,6 @@ to vlarray.__getitem__(slice(2, 5, None)).
         vlarray[-99] = vlarray[5] * 2 + 3
         vlarray[1:30:2] = list_of_rows
         vlarray[[1,3]] = new_1_and_3_rows
-
 
 
 Examples of use

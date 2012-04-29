@@ -1,4 +1,8 @@
 """
+.. _LinkClassDescr:
+
+The Link class
+--------------
 .. class:: tables.link.Link
 
     Abstract base class for all PyTables links.
@@ -69,12 +73,10 @@ and removing links.
     See :meth:`Node._f_rename` for a complete explanation of the arguments.
 
 
-
 .. _SoftLinkClassDescr:
 
 The SoftLink class
 ------------------
-
 .. class:: tables.link.SoftLink
 
     Represents a soft link (aka symbolic link).
@@ -120,7 +122,6 @@ representing soft links.
 
 The ExternalLink class
 ----------------------
-
 .. class:: tables.link.ExternalLink
 
     Represents an external link.
