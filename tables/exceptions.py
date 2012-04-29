@@ -9,44 +9,164 @@
 ########################################################################
 
 """
-Declare exceptions and warnings that are specific to PyTables.
+.. _ExceptionsDescr:
 
-Classes:
+Exceptions module
+-----------------
+In the :mod:`exceptions` module exceptions and warnings that are specific
+to PyTables are declared.
 
-`HDF5ExtError`
+:HDF5ExtError:
     A low level HDF5 operation failed.
-`ClosedNodeError`
+:ClosedNodeError:
     The operation can not be completed because the node is closed.
-`ClosedFileError`
+:ClosedFileError:
     The operation can not be completed because the hosting file is
     closed.
-`FileModeError`
+:FileModeError:
     The operation can not be carried out because the mode in which the
     hosting file is opened is not adequate.
-`NodeError`
+:NodeError:
     Invalid hierarchy manipulation operation requested.
-`NoSuchNodeError`
+:NoSuchNodeError:
     An operation was requested on a node that does not exist.
-`UndoRedoError`
+:UndoRedoError:
     Problems with doing/redoing actions with Undo/Redo feature.
-`UndoRedoWarning`
+:UndoRedoWarning:
     Issued when an action not supporting undo/redo is run.
-`NaturalNameWarning`
+:NaturalNameWarning:
     Issued when a non-pythonic name is given for a node.
-`PerformanceWarning`
+:PerformanceWarning:
     Warning for operations which may cause a performance drop.
-`FlavorError`
+:FlavorError:
     Unsupported or unavailable flavor or flavor conversion.
-`FlavorWarning`
+:FlavorWarning:
     Unsupported or unavailable flavor conversion.
-`FiltersWarning`
+:FiltersWarning:
     Unavailable filters.
-`OldIndexWarning`
+:OldIndexWarning:
     Unsupported index format.
-`DataTypeWarning`
+:DataTypeWarning:
     Unsupported data type.
-`Incompat16Warning`
+:Incompat16Warning:
     Format incompatible with HDF5 1.6.x series.
+
+
+The HDF5ExtError exception
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. exception:: exceptions.HDF5ExtError(RuntimeError)
+
+    A low level HDF5 operation failed.
+
+    This exception is raised the low level PyTables components used for
+    accessing HDF5 files.  It usually signals that something is not
+    going well in the HDF5 library or even at the Input/Output level.
+
+    Errors in the HDF5 C library may be accompanied by an extensive
+    HDF5 back trace on standard error (see also
+    :func:`tables.silenceHDF5Messages`).
+
+    .. versionchanged:: 2.4
+
+
+HDF5ExtError class variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. attribute:: HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY
+
+    Default policy for HDF5 backtrace handling:
+
+    * if set to False the HDF5 back trace is ignored and the
+      :attr:`HDF5ExtError.h5backtrace` attribute is set to None
+    * if set to True the back trace is retrieved from the HDF5
+      library and stored in the :attr:`HDF5ExtError.h5backtrace`
+      attribute as a list of tuples
+    * if set to "VERBOSE" (default) the HDF5 back trace is
+      stored in the :attr:`HDF5ExtError.h5backtrace` attribute
+      and also included in the string representation of the
+      exception
+
+    This parameter can be set using the
+    :envvar:`PT_DEFAULT_H5_BACKTRACE_POLICY` environment variable.
+    Allowed values are "IGNORE" (or "FALSE"), "SAVE" (or "TRUE") and
+    "VERBOSE" to set the policy to False, True and "VERBOSE"
+    respectively.  The special value "DEFAULT" can be used to reset
+    the policy to the default value
+
+    .. versionadded:: 2.4
+
+
+HDF5ExtError instance variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. attribute:: HDF5ExtError.h5backtrace
+
+    Contains the HDF5 back trace as a (possibly empty) list of
+    tuples.  Each tuple has the following format::
+
+        (filename, line number, function name, text)
+
+    Depending on the value of the *h5bt* parameter passed to the
+    initializer the h5backtrace attribute can be set to None.
+    This means that the HDF5 back trace has been simply ignored
+    (not retrieved from the HDF5 C library error stack) or that
+    there has been an error (silently ignored) during the HDF5 back
+    trace retrieval.
+
+    .. versionadded:: 2.4
+    .. seealso:: :func:`traceback.format_list`
+
+
+HDF5ExtError special methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. method:: HDF5ExtError.__init__(message, h5bt=None)
+
+    Initializer parameters:
+
+    :param message:
+        error message
+    :param h5bt:
+        This parameter (keyword only) controls the HDF5 back trace
+        handling:
+
+        * if set to False the HDF5 back trace is ignored and the
+          :attr:`HDF5ExtError.h5backtrace` attribute is set to None
+        * if set to True the back trace is retrieved from the HDF5
+          library and stored in the :attr:`HDF5ExtError.h5backtrace`
+          attribute as a list of tuples
+        * if set to "VERBOSE" (default) the HDF5 back trace is
+          stored in the :attr:`HDF5ExtError.h5backtrace` attribute
+          and also included in the string representation of the
+          exception
+        * if not set (or set to None) the default policy is used
+          (see :attr:`HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY`)
+
+    Keyword arguments different from 'h5bt' are ignored.
+
+    .. versionchanged:: 2.4
+
+.. method::  HDF5ExtError.__str__
+
+    Returns a sting representation of the exception.
+
+    The actual result depends on policy set in the initializer
+    :meth:`HDF5ExtError.__init__`.
+
+    .. versionadded:: 2.4
+
+
+HDF5ExtError methods
+^^^^^^^^^^^^^^^^^^^^
+
+.. method:: HDF5ExtError.format_h5_backtrace(backtrace=None)
+
+    Convert the HDF5 trace back represented as a list of tuples
+    (see :attr:`HDF5ExtError.h5backtrace`) into string.
+
+    .. versionadded:: 2.4
+
 """
 
 __docformat__ = 'reStructuredText'

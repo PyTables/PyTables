@@ -1,24 +1,248 @@
-########################################################################
-#
-#       License: BSD
-#       Created: June 12, 2009
-#       Author:  Francesc Alted - faltet@pytables.com
-#
-#       $Id$
-#
-########################################################################
+"""
+The Expr class - a general-purpose expression evaluator
+-------------------------------------------------------
+.. class:: Expr
 
-"""Here is defined the Expr class.
+    Expr is a class for evaluating expressions
+    containing array-like objects.  With it, you can evaluate expressions
+    (like "3*a+4*b") that operate on arbitrary large
+    arrays while optimizing the resources required to perform them
+    (basically main memory and CPU cache memory).  It is similar to the
+    Numexpr package (see :ref:`[NUMEXPR] <NUMEXPR>`), but in addition
+    to NumPy objects, it also accepts disk-based homogeneous arrays, like
+    the Array, CArray, EArray and Column PyTables objects.
 
-See `Expr` class docstring for more info.
+    All the internal computations are performed via the Numexpr
+    package, so all the broadcast and upcasting rules of Numexpr applies
+    here too.  These rules are very similar to the NumPy ones, but with
+    some exceptions due to the particularities of having to deal with
+    potentially very large disk-based arrays.  Be sure to read the
+    documentation of the
+    Expr constructor and methods as well as that of
+    Numexpr, if you want to fully grasp these particularities.
 
-Classes:
 
-    Expr
+Expr instance variables
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Functions:
+.. attribute:: Expr.append_mode
+
+    The appending mode for user-provided output containers.
+
+.. attribute:: Expr.maindim
+
+    Common main dimension for inputs in expression.
+
+.. attribute:: Expr.names
+
+    The names of variables in expression (list).
+
+.. attribute:: Expr.out
+
+    The user-provided container (if any) for the
+    expression outcome.
+
+.. attribute:: Expr.o_start
+
+    The start range selection for the user-provided output.
+
+.. attribute:: Expr.o_stop
+
+    The stop range selection for the user-provided output.
+
+.. attribute:: Expr.o_step
+
+    The step range selection for the user-provided output.
+
+.. attribute:: Expr.shape
+
+    Common shape for the arrays in expression.
+
+.. attribute:: Expr.values
+
+    The values of variables in expression (list).
 
 
+Expr special tuning variables for input/output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. warning:: The next parameters are meant only for advanced
+   users.  Please do not touch them if you don't know what you are
+   doing.
+
+.. attribute:: Expr.BUFFERTIMES
+
+    The maximum buffersize/rowsize ratio before issuing a
+    *PerformanceWarning*.  The default is 1000.
+
+.. attribute:: Expr.CHUNKTIMES
+
+    The number of chunks in the input buffer per each
+    variable in expression.  The default is 16.
+
+
+Expr methods
+~~~~~~~~~~~~
+
+.. method:: Expr.__init__(expr, uservars=None, **kwargs)
+
+    Compile the expression and initialize internal structures.
+
+    expr must be specified as a string like "2*a+3*b".
+
+    The uservars mapping may be used to
+    define the variable names appearing in expr.
+    This mapping should consist of identifier-like strings pointing
+    to any Array, CArray, EArray,
+    Column or NumPy ndarray instances (or even
+    others which will be tried to be converted to ndarrays).
+
+    When uservars is not provided
+    or None, the current local and global
+    namespace is sought instead of uservars.  It
+    is also possible to pass just some of the variables in
+    expression via the uservars mapping, and the
+    rest will be retrieved from the current local and global
+    namespaces.
+
+    *kwargs* is meant to pass additional
+    parameters to the Numexpr kernel.  This is basically the same as
+    the *kwargs* argument
+    in Numexpr.evaluate(), and is mainly meant
+    for advanced use.
+
+    After initialized, an Expr instance can
+    be evaluated via its eval() method.  This
+    class also provides an __iter__() method that
+    iterates over all the resulting rows in expression.
+
+    Example of use::
+
+        >>> a = f.createArray('/', 'a', np.array([1,2,3]))
+        >>> b = f.createArray('/', 'b', np.array([3,4,5]))
+        >>> c = np.array([4,5,6])
+        >>> expr = tb.Expr("2*a+b*c")   # initialize the expression
+        >>> expr.eval()                 # evaluate it
+        array([14, 24, 36])
+        >>> sum(expr)                   # use as an iterator
+        74
+
+    where you can see that you can mix different containers in
+    the expression (whenever shapes are consistent).
+
+    You can also work with multidimensional arrays::
+
+        >>> a2 = f.createArray('/', 'a2', np.array([[1,2],[3,4]]))
+        >>> b2 = f.createArray('/', 'b2', np.array([[3,4],[5,6]]))
+        >>> c2 = np.array([4,5])           # This will be broadcasted
+        >>> expr = tb.Expr("2*a2+b2-c2")
+        >>> expr.eval()
+        array([[1, 3],
+               [7, 9]])
+        >>> sum(expr)
+        array([ 8, 12])
+
+
+.. method:: Expr.eval()
+
+    Evaluate the expression and return the outcome.
+
+    Because of performance reasons, the computation order tries
+    to go along the common main dimension of all inputs.  If not
+    such a common main dimension is found, the iteration will go
+    along the leading dimension instead.
+
+    For non-consistent shapes in inputs (i.e. shapes having a
+    different number of dimensions), the regular NumPy broadcast
+    rules applies.  There is one exception to this rule though: when
+    the dimensions orthogonal to the main dimension of the
+    expression are consistent, but the main dimension itself differs
+    among the inputs, then the shortest one is chosen for doing the
+    computations.  This is so because trying to expand very large
+    on-disk arrays could be too expensive or simply not
+    possible.
+
+    Also, the regular Numexpr casting rules (which are similar
+    to those of NumPy, although you should check the Numexpr manual
+    for the exceptions) are applied to determine the output type.
+
+    Finally, if the setOuput() method
+    specifying a user container has already been called, the output
+    is sent to this user-provided container.  If not, a fresh NumPy
+    container is returned instead.
+
+    .. warning:: When dealing with large on-disk inputs, failing to
+       specify an on-disk container may consume all your available
+       memory.
+
+    For some examples of use see the :meth:`Expr.__init__` docs.
+
+
+.. method:: Expr.setInputsRange(start=None, stop=None, step=None)
+
+    Define a range for all inputs in expression.
+
+    The computation will only take place for the range defined
+    by the start, stop and step parameters in the main dimension of
+    inputs (or the leading one, if the object lacks the concept of
+    main dimension, like a NumPy container).  If not a common main
+    dimension exists for all inputs, the leading dimension will be
+    used instead.
+
+
+.. method:: Expr.setOutput(out, append_mode=False)
+
+    Set out as container for output as well as the append_mode.
+
+    The out must be a container that is meant
+    to keep the outcome of the expression.  It should be an
+    homogeneous type container and can typically be
+    an Array, CArray, EArray, Column or a NumPy ndarray.
+
+    The append_mode specifies the way of
+    which the output is filled.  If true, the rows of the outcome
+    are *appended* to the out
+    container.  Of course, for doing this it is necessary
+    that out would have
+    an append() method (like
+    an EArray, for example).
+
+    If append_mode is false, the output is
+    set via the __setitem__() method (see
+    the Expr.setOutputRange() for info on how to
+    select the rows to be updated).  If out is
+    smaller than what is required by the expression, only the
+    computations that are needed to fill up the container are
+    carried out.  If it is larger, the excess elements are
+    unaffected.
+
+
+.. method:: Expr.setOutputRange(start=None, stop=None, step=None)
+
+    Define a range for user-provided output object.
+
+    The output object will only be modified in the range
+    specified by the start,
+    stop and step parameters
+    in the main dimension of output (or the leading one, if the
+    object does not have the concept of main dimension, like a NumPy
+    container).
+
+
+Expr special methods
+~~~~~~~~~~~~~~~~~~~~
+
+.. method:: Expr.__iter__()
+
+    Iterate over the rows of the outcome of the expression.
+
+    This iterator always returns rows as NumPy objects, so a
+    possible out container specified
+    in :meth:`Expr.setOutput` method is ignored
+    here.
+
+    The :meth:`Expr.eval` documentation for
+    details on how the computation is carried out.  Also, for some
+    examples of use see the :meth:`Expr.__init__` docs.
 """
 
 import sys

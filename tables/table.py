@@ -3,7 +3,6 @@
 
 The Table class
 ---------------
-
 .. class:: tables.Table
 
     This class represents heterogeneous datasets in an HDF5 file.
@@ -800,7 +799,7 @@ Table methods - other
 
 The Cols class
 --------------
-.. class:: Cols
+.. class:: tables.Cols
 
     Container for columns in a table or nested column.
 
@@ -1156,7 +1155,6 @@ Column special methods
     This matches the length in rows of the parent table.
 
 
-
 .. method:: Column.__setitem__(key, value)
 
     Set a row or a range of rows in a column.
@@ -1166,7 +1164,7 @@ Column special methods
     key is a slice, the range of elements
     determined by it is set to value.
 
-    Example of use::
+    .. rubric:: Example of use:
 
     ::
 
@@ -1184,6 +1182,194 @@ Column special methods
         # Modify rows 1 and 3
         columns = numpy.rec.fromarrays([[2,3]], formats='i4')
         table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])
+
+
+.. _RowClassDescr:
+
+The Row class
+-------------
+.. class:: Row
+
+    Table row iterator and field accessor.
+
+    Instances of this class are used to fetch and set the values
+    of individual table fields.  It works very much like a dictionary,
+    where keys are the pathnames or positions (extended slicing is
+    supported) of the fields in the associated table in a specific row.
+
+    This class provides an *iterator interface*
+    so that you can use the same Row instance to
+    access successive table rows one after the other.  There are also
+    some important methods that are useful for accessing, adding and
+    modifying values in tables.
+
+
+Row instance variables
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. attribute:: Row.nrow
+
+    The current row number.
+
+    This property is useful for knowing which row is being
+    dealt with in the middle of a loop or iterator.
+
+
+Row methods
+~~~~~~~~~~~
+
+.. method:: Row.append()
+
+    Add a new row of data to the end of the dataset.
+
+    Once you have filled the proper fields for the current
+    row, calling this method actually appends the new data to the
+    *output buffer* (which will eventually be
+    dumped to disk).  If you have not set the value of a field, the
+    default value of the column will be used.
+
+    Example of use::
+
+        row = table.row
+        for i in xrange(nrows):
+            row['col1'] = i-1
+            row['col2'] = 'a'
+            row['col3'] = -1.0
+            row.append()
+        table.flush()
+
+    .. warning:: After completion of the loop in which :meth:`Row.append` has
+       been called, it is always
+       convenient to make a call to :meth:`Table.flush`
+       in order to avoid losing the last rows that may still remain
+       in internal buffers.
+
+
+.. method:: Row.fetch_all_fields()
+
+    Retrieve all the fields in the current row.
+
+    Contrarily to row[:] (see :ref:`RowSpecialMethods`), this returns row data as a
+    NumPy void scalar.  For instance::
+
+        [row.fetch_all_fields() for row in table.where('col1 < 3')]
+
+    will select all the rows that fulfill the given condition
+    as a list of NumPy records.
+
+
+.. method:: Row.update()
+
+    Change the data of the current row in the dataset.
+
+    This method allows you to modify values in a table when
+    you are in the middle of a table iterator like
+    :meth:`Table.iterrows` or :meth:`Table.where`.
+
+    Once you have filled the proper fields for the current
+    row, calling this method actually changes data in the
+    *output buffer* (which will eventually be
+    dumped to disk).  If you have not set the value of a field, its
+    original value will be used.
+
+    Examples of use::
+
+        for row in table.iterrows(step=10):
+            row['col1'] = row.nrow
+            row['col2'] = 'b'
+            row['col3'] = 0.0
+            row.update()
+        table.flush()
+
+    which modifies every tenth row in table.  Or::
+
+        for row in table.where('col1 > 3'):
+            row['col1'] = row.nrow
+            row['col2'] = 'b'
+            row['col3'] = 0.0
+            row.update()
+        table.flush()
+
+    which just updates the rows with values bigger than 3 in
+    the first column.
+
+    .. warning:: After completion of the loop in which :meth:`Row.update` has
+       been called, it is always
+       convenient to make a call to :meth:`Table.flush`
+       in order to avoid losing changed rows that may still remain in
+       internal buffers.
+
+
+.. _RowSpecialMethods:
+
+Row special methods
+~~~~~~~~~~~~~~~~~~~
+
+.. method:: Row.__contains__(item)
+
+    Is item in this row?
+
+    A true value is returned if item is
+    found in current row, false otherwise.
+
+
+.. method:: Row.__getitem__(key)
+
+    Get the row field specified by the key.
+
+    The key can be a string (the name of
+    the field), an integer (the position of the field) or a slice
+    (the range of field positions). When key is a
+    slice, the returned value is a *tuple*
+    containing the values of the specified fields.
+
+    Examples of use::
+
+        res = [row['var3'] for row in table.where('var2 < 20')]
+
+    which selects the var3 field for all
+    the rows that fulfil the condition. Or::
+
+        res = [row[4] for row in table if row[1] < 20]
+
+    which selects the field in the *4th*
+    position for all the rows that fulfil the
+    condition. Or::
+
+        res = [row[:] for row in table if row['var2'] < 20]
+
+    which selects the all the fields (in the form of a
+    *tuple*) for all the rows that fulfil the
+    condition. Or::
+
+        res = [row[1::2] for row in table.iterrows(2, 3000, 3)]
+
+    which selects all the fields in even positions (in the
+    form of a *tuple*) for all the rows in the
+    slice [2:3000:3].
+
+
+.. method:: Row.__setitem__(key, value)
+
+    Set the key row field to the specified value.
+
+    Differently from its __getitem__()
+    counterpart, in this case key can only be a
+    string (the name of the field). The changes done via
+    __setitem__() will not take effect on the
+    data on disk until any of the :meth:`Row.append` or
+    :meth:`Row.update` methods are called.
+
+    Example of use::
+
+        for row in table.iterrows(step=10):
+            row['col1'] = row.nrow
+            row['col2'] = 'b'
+            row['col3'] = 0.0
+            row.update()
+        table.flush()
+
+    which modifies every tenth row in the table.
 
 """
 
