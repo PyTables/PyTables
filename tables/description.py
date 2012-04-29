@@ -196,19 +196,18 @@ Col-derived constructors.
 
 .. method:: Col.__init__(*args)
 
-    Parameters
-    ----------
-    itemsize : int
-        For types with a non-fixed size, this sets the size in
-        bytes of individual items in the column.
-    shape : tuple
-        Sets the shape of the column. An integer shape of
-        N is equivalent to the tuple (N,).
-    dflt
-        Sets the default value for the column.
-    pos : int
-        Sets the position of column in table.  If unspecified,
-        the position will be randomly selected.
+    :Parameters:
+        itemsize : int
+            For types with a non-fixed size, this sets the size in
+            bytes of individual items in the column.
+        shape : tuple
+            Sets the shape of the column. An integer shape of
+            N is equivalent to the tuple (N,).
+        dflt
+            Sets the default value for the column.
+        pos : int
+            Sets the position of column in table.  If unspecified,
+            the position will be randomly selected.
 
 
 .. class:: StringCol(itemsize, shape=(), dflt='', pos=None)

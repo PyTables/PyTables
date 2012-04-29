@@ -160,45 +160,43 @@ Leaf methods
     recursive flag since leaves do not have child
     nodes.
 
-    Parameters
-    ----------
-    title
-        The new title for the destination. If omitted or
-        None, the original title is used.
-    filters : Filters
-        Specifying this parameter overrides the original
-        filter properties in the source node. If specified, it must
-        be an instance of the Filters class (see
-        :ref:`FiltersClassDescr`). The default is to copy the
-        filter properties from the source node.
-    copyuserattrs
-        You can prevent the user attributes from being copied
-        by setting this parameter to False. The
-        default is to copy them.
-    start, stop, step : int
-        Specify the range of rows to be copied; the default is
-        to copy all the rows.
-    stats
-        This argument may be used to collect statistics on the
-        copy process. When used, it should be a dictionary with keys
-        'groups', 'leaves' and
-        'bytes' having a numeric value. Their
-        values will be incremented to reflect the number of groups,
-        leaves and bytes, respectively, that have been copied during
-        the operation.
-    chunkshape
-        The chunkshape of the new leaf.  It supports a couple
-        of special values.  A value of keep means
-        that the chunkshape will be the same than original leaf
-        (this is the default).  A value of auto
-        means that a new shape will be computed automatically in
-        order to ensure best performance when accessing the dataset
-        through the main dimension.  Any other value should be an
-        integer or a tuple matching the dimensions of the
-        leaf.
+    :Parameters:
+        title
+            The new title for the destination. If omitted or
+            None, the original title is used.
+        filters : Filters
+            Specifying this parameter overrides the original
+            filter properties in the source node. If specified, it must
+            be an instance of the Filters class (see
+            :ref:`FiltersClassDescr`). The default is to copy the
+            filter properties from the source node.
+        copyuserattrs
+            You can prevent the user attributes from being copied
+            by setting this parameter to False. The
+            default is to copy them.
+        start, stop, step : int
+            Specify the range of rows to be copied; the default is
+            to copy all the rows.
+        stats
+            This argument may be used to collect statistics on the
+            copy process. When used, it should be a dictionary with keys
+            'groups', 'leaves' and
+            'bytes' having a numeric value. Their
+            values will be incremented to reflect the number of groups,
+            leaves and bytes, respectively, that have been copied during
+            the operation.
+        chunkshape
+            The chunkshape of the new leaf.  It supports a couple
+            of special values.  A value of keep means
+            that the chunkshape will be the same than original leaf
+            (this is the default).  A value of auto
+            means that a new shape will be computed automatically in
+            order to ensure best performance when accessing the dataset
+            through the main dimension.  Any other value should be an
+            integer or a tuple matching the dimensions of the
+            leaf.
 
-    Notes
-    -----
+
     .. warning:: Note that unknown parameters passed to this method will be
        ignored, so may want to double check the spell of these (i.e. if
        you write them incorrectly, they will most probably be

@@ -250,16 +250,15 @@ Atom-derived constructors:
 
 .. method:: Atom.__init__(*args)
 
-    Parameters
-    ----------
-    itemsize : int
-        For types with a non-fixed size, this sets the size in
-        bytes of individual items in the atom.
-    shape : tuple
-        Sets the shape of the atom. An integer shape of
-        N is equivalent to the tuple (N,).
-    dflt
-        Sets the default value for the atom.
+    :Parameters:
+        itemsize : int
+            For types with a non-fixed size, this sets the size in
+            bytes of individual items in the atom.
+        shape : tuple
+            Sets the shape of the atom. An integer shape of
+            N is equivalent to the tuple (N,).
+        dflt
+            Sets the default value for the atom.
 
 
 A relation of the different constructors with their
@@ -426,8 +425,7 @@ parameters follows.
         >>> atom4 != atom1
         True
 
-    Examples
-    --------
+    .. rubric:: Examples of use:
 
     The next C enum construction::
 
@@ -1367,8 +1365,7 @@ class EnumAtom(Atom):
     >>> atom4 != atom1
     True
 
-    Examples
-    --------
+    .. rubric:: Examples of use:
 
     The next C ``enum`` construction::
 

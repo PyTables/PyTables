@@ -80,29 +80,29 @@ output of this example::
     Create a new Filters instance.
 
     :Parameters:
-    complevel : int
-        Specifies a compression level for data. The allowed
-        range is 0-9. A value of 0 (the default) disables
-        compression.
-    complib : str
-        Specifies the compression library to be used. Right
-        now, 'zlib' (the default), 'lzo', 'bzip2'
-        and 'blosc' are supported.  Specifying a
-        compression library which is not available in the system
-        issues a FiltersWarning and sets the library to the default one.
-    shuffle : bool
-        Whether or not to use the *Shuffle*
-        filter in the HDF5 library. This is normally used to improve
-        the compression ratio. A false value disables shuffling and
-        a true one enables it. The default value depends on whether
-        compression is enabled or not; if compression is enabled,
-        shuffling defaults to be enabled, else shuffling is
-        disabled. Shuffling can only be used when compression is enabled.
-    fletcher32 : bool
-        Whether or not to use the
-        *Fletcher32* filter in the HDF5 library.
-        This is used to add a checksum on each data chunk. A false
-        value (the default) disables the checksum.
+        complevel : int
+            Specifies a compression level for data. The allowed
+            range is 0-9. A value of 0 (the default) disables
+            compression.
+        complib : str
+            Specifies the compression library to be used. Right
+            now, 'zlib' (the default), 'lzo', 'bzip2'
+            and 'blosc' are supported.  Specifying a
+            compression library which is not available in the system
+            issues a FiltersWarning and sets the library to the default one.
+        shuffle : bool
+            Whether or not to use the *Shuffle*
+            filter in the HDF5 library. This is normally used to improve
+            the compression ratio. A false value disables shuffling and
+            a true one enables it. The default value depends on whether
+            compression is enabled or not; if compression is enabled,
+            shuffling defaults to be enabled, else shuffling is
+            disabled. Shuffling can only be used when compression is enabled.
+        fletcher32 : bool
+            Whether or not to use the
+            *Fletcher32* filter in the HDF5 library.
+            This is used to add a checksum on each data chunk. A false
+            value (the default) disables the checksum.
 
 
 .. method:: Filters.copy(override)

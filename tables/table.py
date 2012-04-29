@@ -211,7 +211,9 @@ Table methods - reading
     table). If it does not exist, a KeyError is
     raised.
 
-    Example of use::
+    .. rubric:: Example of use:
+
+    ::
 
         narray = table.col('var2')
 
@@ -236,7 +238,9 @@ Table methods - reading
     stop and step parameters,
     which have the same meaning as in :meth:`Table.read`.
 
-    Example of use::
+    .. rubric:: Example of use:
+
+    ::
 
         result = [ row['var2'] for row in table.iterrows(step=5) if row['var1'] <= 20 ]
 
@@ -352,7 +356,9 @@ Table methods - reading
     to work it is necessary that key list would
     contain exactly as many rows as the table has.
 
-    Example of use::
+    .. rubric:: Example of use:
+
+    ::
 
         record = table[4]
         recarray = table[4:1000:2]
@@ -379,7 +385,9 @@ Table methods - reading
     :meth:`Table.iterrows` with default arguments, i.e. it
     iterates over *all the rows* in the table.
 
-    Example of use::
+    .. rubric:: Example of use:
+
+    ::
 
         result = [ row['var2'] for row in table if row['var1'] <= 20 ]
 
@@ -405,7 +413,9 @@ Table methods - writing
     NestedRecArray (deprecated) objects if numarray is available, lists of
     tuples or array records, and a string or Python buffer.
 
-    Example of use::
+    .. rubric:: Example of use:
+
+    ::
 
         from tables import *
 
@@ -543,7 +553,9 @@ Table methods - writing
     it is necessary that key list would contain
     exactly as many rows as the table has.
 
-    Example of use::
+    .. rubric:: Example of use:
+
+    ::
 
         # Modify just one existing row
         table[2] = [456,'db2',1.2]
@@ -646,7 +658,9 @@ Table methods - querying
     parameter to this method if you want to achieve maximum
     performance.
 
-    Example of use::
+    .. rubric:: Example of use:
+
+    ::
 
         >>> passvalues = [ row['col3'] for row in
         ...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
@@ -867,7 +881,9 @@ Cols methods
     of rows determined by it is returned as a structured array of the current
     flavor.
 
-    Example of use::
+    .. rubric:: Example of use:
+
+    ::
 
         record = table.cols[4]  # equivalent to table[4]
         recarray = table.cols.Info[4:1000:2]
@@ -896,7 +912,9 @@ Cols methods
     key is a slice, the range of rows determined
     by it is set to value.
 
-    Example of use::
+    .. rubric:: Example of use:
+
+    ::
 
         table.cols[4] = record
         table.cols.Info[4:1000:2] = recarray
@@ -983,52 +1001,50 @@ Column methods
 
     Create an index for this column.
 
-    Parameters
-    ----------
-    optlevel : int
-        The optimization level for building the index.  The
-        levels ranges from 0 (no optimization) up to 9 (maximum
-        optimization).  Higher levels of optimization mean better
-        chances for reducing the entropy of the index at the price
-        of using more CPU, memory and I/O resources for creating
-        the index.
-    kind : str
-        The kind of the index to be built.  It can take the
-        'ultralight', 'light',
-        'medium' or 'full'
-        values.  Lighter kinds ('ultralight'
-        and 'light') mean that the index takes
-        less space on disk, but will perform queries slower.
-        Heavier kinds ('medium'
-        and 'full') mean better chances for
-        reducing the entropy of the index (increasing the query
-        speed) at the price of using more disk space as well as
-        more CPU, memory and I/O resources for creating the index.
+    :Parameters:
+        optlevel : int
+            The optimization level for building the index.  The
+            levels ranges from 0 (no optimization) up to 9 (maximum
+            optimization).  Higher levels of optimization mean better
+            chances for reducing the entropy of the index at the price
+            of using more CPU, memory and I/O resources for creating
+            the index.
+        kind : str
+            The kind of the index to be built.  It can take the
+            'ultralight', 'light',
+            'medium' or 'full'
+            values.  Lighter kinds ('ultralight'
+            and 'light') mean that the index takes
+            less space on disk, but will perform queries slower.
+            Heavier kinds ('medium'
+            and 'full') mean better chances for
+            reducing the entropy of the index (increasing the query
+            speed) at the price of using more disk space as well as
+            more CPU, memory and I/O resources for creating the index.
 
-        Note that selecting a full kind
-        with an optlevel of 9 (the maximum)
-        guarantees the creation of an index with zero entropy,
-        that is, a completely sorted index (CSI) - provided that
-        the number of rows in the table does not exceed the 2**48
-        figure (that is more than 100 trillions of rows).  See
-        :meth:`Column.createCSIndex` method for a
-        more direct way to create a CSI index.
-    filters : Filters
-        Specify the Filters instance used
-        to compress the index.  If None,
-        default index filters will be used (currently, zlib level
-        1 with shuffling).
-    tmp_dir
-        When kind is other
-        than 'ultralight', a temporary file is
-        created during the index build process.  You can use the
-        tmp_dir argument to specify the
-        directory for this temporary file.  The default is to
-        create it in the same directory as the file containing the
-        original table.
+            Note that selecting a full kind
+            with an optlevel of 9 (the maximum)
+            guarantees the creation of an index with zero entropy,
+            that is, a completely sorted index (CSI) - provided that
+            the number of rows in the table does not exceed the 2**48
+            figure (that is more than 100 trillions of rows).  See
+            :meth:`Column.createCSIndex` method for a
+            more direct way to create a CSI index.
+        filters : Filters
+            Specify the Filters instance used
+            to compress the index.  If None,
+            default index filters will be used (currently, zlib level
+            1 with shuffling).
+        tmp_dir
+            When kind is other
+            than 'ultralight', a temporary file is
+            created during the index build process.  You can use the
+            tmp_dir argument to specify the
+            directory for this temporary file.  The default is to
+            create it in the same directory as the file containing the
+            original table.
 
-    Notes
-    -----
+
     .. warning:: In some situations it is useful to get a completely
        sorted index (CSI).  For those cases, it is best to use
        the :meth:`Column.createCSIndex` method instead.
@@ -1100,7 +1116,9 @@ Column special methods
     range of elements determined by it is returned as an array of
     the current flavor.
 
-    Example of use::
+    .. rubric:: Example of use:
+
+    ::
 
         print "Column handlers:"
         for name in table.colnames:
@@ -1149,6 +1167,8 @@ Column special methods
     determined by it is set to value.
 
     Example of use::
+
+    ::
 
         # Modify row 1
         table.cols.col1[1] = -1

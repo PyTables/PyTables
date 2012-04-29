@@ -167,8 +167,8 @@ Global functions
         filter properties for child groups, they will inherit these
         ones, which will in turn propagate to child nodes.
 
-    Notes
-    -----
+    .. rubric:: Notes
+
     In addition, it recognizes the names of parameters present
     in :file:`tables/parameters.py` as additional keyword
     arguments.  See :ref:`parameter_files` for a

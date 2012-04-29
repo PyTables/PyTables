@@ -127,32 +127,30 @@ Node (see :ref:`NodeClassDescr`):
     :meth:`Node._f_copy`. In addition, it recognizes the
     following keyword arguments:
 
-    Parameters
-    ----------
-    title
-        The new title for the destination. If omitted or
-        None, the original title is used. This
-        only applies to the topmost node in recursive copies.
-    filters : Filters
-        Specifying this parameter overrides the original
-        filter properties in the source node. If specified, it must
-        be an instance of the Filters class (see
-        :ref:`FiltersClassDescr`). The default is to copy the
-        filter properties from the source node.
-    copyuserattrs
-        You can prevent the user attributes from being copied
-        by setting this parameter to False. The
-        default is to copy them.
-    stats
-        This argument may be used to collect statistics on the
-        copy process. When used, it should be a dictionary with keys
-        'groups', 'leaves',
-        'links' and
-        'bytes' having a numeric value. Their
-        values will be incremented to reflect the number of groups,
-        leaves and bytes, respectively, that have been copied during
-        the operation.
-
+    :Parameters:
+        title
+            The new title for the destination. If omitted or
+            None, the original title is used. This
+            only applies to the topmost node in recursive copies.
+        filters : Filters
+            Specifying this parameter overrides the original
+            filter properties in the source node. If specified, it must
+            be an instance of the Filters class (see
+            :ref:`FiltersClassDescr`). The default is to copy the
+            filter properties from the source node.
+        copyuserattrs
+            You can prevent the user attributes from being copied
+            by setting this parameter to False. The
+            default is to copy them.
+        stats
+            This argument may be used to collect statistics on the
+            copy process. When used, it should be a dictionary with keys
+            'groups', 'leaves',
+            'links' and
+            'bytes' having a numeric value. Their
+            values will be incremented to reflect the number of groups,
+            leaves and bytes, respectively, that have been copied during
+            the operation.
 
 
 .. method:: Group._f_copyChildren(dstgroup, overwrite=False, recursive=False, createparents=False, **kwargs)
@@ -246,7 +244,9 @@ Node (see :ref:`NodeClassDescr`):
     don't want a recursive behavior, use
     :meth:`Group._f_iterNodes` instead.
 
-    Example of use::
+    .. rubric:: Example of use
+
+    ::
 
         # Recursively print all the arrays hanging from '/'
         print "Arrays in the object tree '/':"
@@ -338,7 +338,9 @@ instance::
 
     Return a detailed string representation of the group.
 
-    Example of use::
+    .. rubric:: Example of use
+
+    ::
 
         >>> f = tables.openFile('data/test.h5')
         >>> f.root.group0
@@ -371,7 +373,9 @@ instance::
 
     Return a short string representation of the group.
 
-    Example of use::
+    .. rubric:: Example of use
+
+    ::
 
         >>> f=tables.openFile('data/test.h5')
         >>> print f.root.group0

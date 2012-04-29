@@ -186,29 +186,28 @@ File methods - hierarchy manipulation
 
     Copy the node specified by where and name to newparent/newname.
 
-    Parameters
-    ----------
-    where : str
-        These arguments work as in
-        :meth:`File.getNode`, referencing the node to be acted
-        upon.
-    newparent : str or Group
-        The destination group that the node will be copied
-        into (a path name or a Group
-        instance). If not specified or None, the
-        current parent group is chosen as the new parent.
-    newname : str
-        The name to be assigned to the new copy in its
-        destination (a string).  If it is not specified or
-        None, the current name is chosen as the
-        new name.
-    name : str
-        These arguments work as in
-        :meth:`File.getNode`, referencing the node to be acted
-        upon.
+    :Parameters:
+        where : str
+            These arguments work as in
+            :meth:`File.getNode`, referencing the node to be acted
+            upon.
+        newparent : str or Group
+            The destination group that the node will be copied
+            into (a path name or a Group
+            instance). If not specified or None, the
+            current parent group is chosen as the new parent.
+        newname : str
+            The name to be assigned to the new copy in its
+            destination (a string).  If it is not specified or
+            None, the current name is chosen as the
+            new name.
+        name : str
+            These arguments work as in
+            :meth:`File.getNode`, referencing the node to be acted
+            upon.
 
-    Notes
-    -----
+    .. rubric:: Notes
+
     Additional keyword arguments may be passed to customize the
     copying process. The supported arguments depend on the kind of
     node being copied. See :meth:`Group._f_copy` and
@@ -227,28 +226,27 @@ File methods - hierarchy manipulation
     See the Array class (in :ref:`ArrayClassDescr`) for more information on
     arrays.
 
-    Parameters
-    ----------
-    object : python object
-        The array or scalar to be saved.  Accepted types are
-        NumPy arrays and scalars, numarray arrays
-        and string arrays (deprecated), Numeric arrays and scalars
-        (deprecated), as well as native Python sequences and scalars,
-        provided that values are regular (i.e. they are not like
-        [[1,2],2]) and homogeneous (i.e. all the
-        elements are of the same type).
+    :Parameters:
+        object : python object
+            The array or scalar to be saved.  Accepted types are
+            NumPy arrays and scalars, numarray arrays
+            and string arrays (deprecated), Numeric arrays and scalars
+            (deprecated), as well as native Python sequences and scalars,
+            provided that values are regular (i.e. they are not like
+            [[1,2],2]) and homogeneous (i.e. all the
+            elements are of the same type).
 
-        Also, objects that have some of their dimensions equal to 0 are not
-        supported (use an EArray node (see :ref:`EArrayClassDescr`) if you
-        want to store an array with one of its dimensions equal to 0).
-    byteorder : str
-        The byteorder of the data *on disk*, specified as
-        'little' or
-        'big'.  If this is not specified, the
-        byteorder is that of the given object.
+            Also, objects that have some of their dimensions equal to 0 are not
+            supported (use an EArray node (see :ref:`EArrayClassDescr`) if you
+            want to store an array with one of its dimensions equal to 0).
+        byteorder : str
+            The byteorder of the data *on disk*, specified as
+            'little' or
+            'big'.  If this is not specified, the
+            byteorder is that of the given object.
 
-    Notes
-    -----
+    .. rubric:: Notes
+
     See :meth:`File.createTable` for more
     information on the rest of parameters.
 
@@ -259,25 +257,24 @@ File methods - hierarchy manipulation
     See the CArray class (in :ref:`CArrayClassDescr`) for more information on
     chunked arrays.
 
-    Parameters
-    ----------
-    atom : Atom
-        An Atom (see :ref:`AtomClassDescr`)
-        instance representing the *type* and
-        *shape* of the atomic objects to be
-        saved.
-    shape : tuple
-        The shape of the new array.
-    chunkshape : tuple or number or None
-        The shape of the data chunk to be read or written in a
-        single HDF5 I/O operation.  Filters are applied to those
-        chunks of data.  The dimensionality of
-        chunkshape must be the same as that of
-        shape.  If None, a
-        sensible value is calculated (which is recommended).
+    :Parameters:
+        atom : Atom
+            An Atom (see :ref:`AtomClassDescr`)
+            instance representing the *type* and
+            *shape* of the atomic objects to be
+            saved.
+        shape : tuple
+            The shape of the new array.
+        chunkshape : tuple or number or None
+            The shape of the data chunk to be read or written in a
+            single HDF5 I/O operation.  Filters are applied to those
+            chunks of data.  The dimensionality of
+            chunkshape must be the same as that of
+            shape.  If None, a
+            sensible value is calculated (which is recommended).
 
-    Notes
-    -----
+    .. rubric:: Notes
+
     See :meth:`File.createTable` for more
     information on the rest of parameters.
 
@@ -289,45 +286,44 @@ File methods - hierarchy manipulation
     See the EArray (in :ref:`EArrayClassDescr`) class for more information on
     enlargeable arrays.
 
-    Parameters
-    ----------
-    atom : Atom
-        An Atom (see :ref:`AtomClassDescr`)
-        instance representing the *type* and
-        *shape* of the atomic objects to be saved.
-    shape : tuple
-        The shape of the new array.  One (and only one) of the
-        shape dimensions *must* be 0.  The
-        dimension being 0 means that the resulting
-        EArray object can be extended along it.
-        Multiple enlargeable dimensions are not supported right now.
-    expectedrows
-        A user estimate about the number of row elements that
-        will be added to the growable dimension in the
-        EArray node.  If not provided, the
-        default value is EXPECTED_ROWS_EARRAY
-        (see tables/parameters.py).  If you plan
-        to create either a much smaller or a much bigger array try
-        providing a guess; this will optimize the HDF5 B-Tree
-        creation and management process time and the amount of
-        memory used.
-    chunkshape : tuple, numeric, or None
-        The shape of the data chunk to be read or written in a
-        single HDF5 I/O operation.  Filters are applied to those
-        chunks of data.  The dimensionality of
-        chunkshape must be the same as that of
-        shape (beware: no dimension should be 0
-        this time!).  If None, a sensible value
-        is calculated based on the expectedrows
-        parameter (which is recommended).
-    byteorder : str
-        The byteorder of the data *on
-        disk*, specified as 'little' or
-        'big'. If this is not specified, the
-        byteorder is that of the platform.
+    :Parameters:
+        atom : Atom
+            An Atom (see :ref:`AtomClassDescr`)
+            instance representing the *type* and
+            *shape* of the atomic objects to be saved.
+        shape : tuple
+            The shape of the new array.  One (and only one) of the
+            shape dimensions *must* be 0.  The
+            dimension being 0 means that the resulting
+            EArray object can be extended along it.
+            Multiple enlargeable dimensions are not supported right now.
+        expectedrows
+            A user estimate about the number of row elements that
+            will be added to the growable dimension in the
+            EArray node.  If not provided, the
+            default value is EXPECTED_ROWS_EARRAY
+            (see tables/parameters.py).  If you plan
+            to create either a much smaller or a much bigger array try
+            providing a guess; this will optimize the HDF5 B-Tree
+            creation and management process time and the amount of
+            memory used.
+        chunkshape : tuple, numeric, or None
+            The shape of the data chunk to be read or written in a
+            single HDF5 I/O operation.  Filters are applied to those
+            chunks of data.  The dimensionality of
+            chunkshape must be the same as that of
+            shape (beware: no dimension should be 0
+            this time!).  If None, a sensible value
+            is calculated based on the expectedrows
+            parameter (which is recommended).
+        byteorder : str
+            The byteorder of the data *on
+            disk*, specified as 'little' or
+            'big'. If this is not specified, the
+            byteorder is that of the platform.
 
-    Notes
-    -----
+    .. rubric:: Notes
+
     See :meth:`File.createTable` for more
     information on the rest of parameters.
 
@@ -371,19 +367,18 @@ File methods - hierarchy manipulation
     Group class (in :ref:`GroupClassDescr`) for more information on
     groups.
 
-    Parameters
-    ----------
-    filters : Filters
-        An instance of the Filters class
-        (see :ref:`FiltersClassDescr`) that provides information
-        about the desired I/O filters applicable to the leaves that
-        hang directly from this new group (unless other filter
-        properties are specified for these leaves). Besides, if you
-        do not specify filter properties for its child groups, they
-        will inherit these ones.
+    :Parameters:
+        filters : Filters
+            An instance of the Filters class
+            (see :ref:`FiltersClassDescr`) that provides information
+            about the desired I/O filters applicable to the leaves that
+            hang directly from this new group (unless other filter
+            properties are specified for these leaves). Besides, if you
+            do not specify filter properties for its child groups, they
+            will inherit these ones.
 
-    Notes
-    -----
+    .. rubric:: Notes
+
     See :meth:`File.createTable` for more
     information on the rest of parameters.
 
@@ -426,70 +421,69 @@ File methods - hierarchy manipulation
     Table (in :ref:`TableClassDescr`) class for more information on
     tables.
 
-    Parameters
-    ----------
-    where : path or Group
-        The parent group where the new table will hang from.
-        It can be a path string (for example
-        '/level1/leaf5'), or a
-        Group instance (see :ref:`GroupClassDescr`).
-    name : str
-        The name of the new table.
-    description : Description
-        This is an object that describes the table, i.e. how
-        many columns it has, their names, types, shapes, etc.  It
-        can be any of the following:
+    :Parameters:
+        where : path or Group
+            The parent group where the new table will hang from.
+            It can be a path string (for example
+            '/level1/leaf5'), or a
+            Group instance (see :ref:`GroupClassDescr`).
+        name : str
+            The name of the new table.
+        description : Description
+            This is an object that describes the table, i.e. how
+            many columns it has, their names, types, shapes, etc.  It
+            can be any of the following:
 
-        * *A user-defined class*: This should inherit from the IsDescription
-          class (see :ref:`IsDescriptionClassDescr`) where table fields are
-          specified.
-        * *A dictionary*: For example, when you do not know beforehand which
-          structure your table will have).
-        * *A Description instance*: You can use the description attribute of
-          another table to create a new one with the same structure.
-        * *A NumPy dtype*: A completely general structured NumPy dtype.
-        * *A NumPy (structured) array instance*: The dtype of this structured
-          array will be used as the description.  Also, in case the array has
-          actual data, it will be injected into the newly created table.
-        * *A RecArray instance (deprecated)*: Object from the numarray
-          package.  This does not give you the possibility to create a nested
-          table.  Array data is injected into the new table.
-        * *A NestedRecArray instance (deprecated)*: If you want to have
-          nested columns in your table and you are using numarray, you can use
-          this object. Array data is injected into the new table.
-    title : str
-        A description for this node (it sets the TITLE HDF5 attribute on disk).
-    filters : Filters
-        An instance of the Filters class
-        (see :ref:`FiltersClassDescr`) that provides information
-        about the desired I/O filters to be applied during the life
-        of this object.
-    expectedrows : int
-        A user estimate of the number of records that will be
-        in the table. If not provided, the default value is
-        EXPECTED_ROWS_TABLE (see
-        :file:`tables/parameters.py`). If you plan to
-        create a bigger table try providing a guess; this will
-        optimize the HDF5 B-Tree creation and management process
-        time and memory used.
-    chunkshape
-        The shape of the data chunk to be read or written in a
-        single HDF5 I/O operation. Filters are applied to those
-        chunks of data. The rank of the
-        chunkshape for tables must be 1. If
-        None, a sensible value is calculated
-        based on the expectedrows parameter
-        (which is recommended).
-    byteorder : str
-        The byteorder of data *on disk*,
-        specified as 'little' or
-        'big'. If this is not specified, the
-        byteorder is that of the platform, unless you passed an
-        array as the description, in which case
-        its byteorder will be used.
-    createparents : bool
-        Whether to create the needed groups for the parent
-        path to exist (not done by default).
+            * *A user-defined class*: This should inherit from the IsDescription
+              class (see :ref:`IsDescriptionClassDescr`) where table fields are
+              specified.
+            * *A dictionary*: For example, when you do not know beforehand which
+              structure your table will have).
+            * *A Description instance*: You can use the description attribute of
+              another table to create a new one with the same structure.
+            * *A NumPy dtype*: A completely general structured NumPy dtype.
+            * *A NumPy (structured) array instance*: The dtype of this structured
+              array will be used as the description.  Also, in case the array has
+              actual data, it will be injected into the newly created table.
+            * *A RecArray instance (deprecated)*: Object from the numarray
+              package.  This does not give you the possibility to create a nested
+              table.  Array data is injected into the new table.
+            * *A NestedRecArray instance (deprecated)*: If you want to have
+              nested columns in your table and you are using numarray, you can use
+              this object. Array data is injected into the new table.
+        title : str
+            A description for this node (it sets the TITLE HDF5 attribute on disk).
+        filters : Filters
+            An instance of the Filters class
+            (see :ref:`FiltersClassDescr`) that provides information
+            about the desired I/O filters to be applied during the life
+            of this object.
+        expectedrows : int
+            A user estimate of the number of records that will be
+            in the table. If not provided, the default value is
+            EXPECTED_ROWS_TABLE (see
+            :file:`tables/parameters.py`). If you plan to
+            create a bigger table try providing a guess; this will
+            optimize the HDF5 B-Tree creation and management process
+            time and memory used.
+        chunkshape
+            The shape of the data chunk to be read or written in a
+            single HDF5 I/O operation. Filters are applied to those
+            chunks of data. The rank of the
+            chunkshape for tables must be 1. If
+            None, a sensible value is calculated
+            based on the expectedrows parameter
+            (which is recommended).
+        byteorder : str
+            The byteorder of data *on disk*,
+            specified as 'little' or
+            'big'. If this is not specified, the
+            byteorder is that of the platform, unless you passed an
+            array as the description, in which case
+            its byteorder will be used.
+        createparents : bool
+            Whether to create the needed groups for the parent
+            path to exist (not done by default).
 
 
 .. method:: File.createVLArray(where, name, atom, title='', filters=None, expectedsizeinMB=1.0, chunkshape=None, byteorder=None, createparents=False)
@@ -499,32 +493,31 @@ File methods - hierarchy manipulation
     the VLArray (in :ref:`VLArrayClassDescr`) class
     for more information on variable-length arrays.
 
-    Parameters
-    ----------
-    atom : Atom
-        An Atom (see :ref:`AtomClassDescr`)
-        instance representing the *type* and
-        *shape* of the atomic objects to be
-        saved.
-    expectedsizeinMB
-        An user estimate about the size (in MB) in the final
-        VLArray node. If not provided, the
-        default value is 1 MB. If you plan to create either a much
-        smaller or a much bigger array try providing a guess; this
-        will optimize the HDF5 B-Tree creation and management
-        process time and the amount of memory used. If you want to
-        specify your own chunk size for I/O purposes, see also the
-        chunkshape parameter below.
-    chunkshape
-        The shape of the data chunk to be read or written in a
-        single HDF5 I/O operation. Filters are applied to those
-        chunks of data. The dimensionality of
-        chunkshape must be 1. If
-        None, a sensible value is calculated
-        (which is recommended).
+    :Parameters:
+        atom : Atom
+            An Atom (see :ref:`AtomClassDescr`)
+            instance representing the *type* and
+            *shape* of the atomic objects to be
+            saved.
+        expectedsizeinMB
+            An user estimate about the size (in MB) in the final
+            VLArray node. If not provided, the
+            default value is 1 MB. If you plan to create either a much
+            smaller or a much bigger array try providing a guess; this
+            will optimize the HDF5 B-Tree creation and management
+            process time and the amount of memory used. If you want to
+            specify your own chunk size for I/O purposes, see also the
+            chunkshape parameter below.
+        chunkshape
+            The shape of the data chunk to be read or written in a
+            single HDF5 I/O operation. Filters are applied to those
+            chunks of data. The dimensionality of
+            chunkshape must be 1. If
+            None, a sensible value is calculated
+            (which is recommended).
 
-    Notes
-    -----
+    .. rubric:: Notes
+
     See :meth:`File.createTable` for more
     information on the rest of parameters.
 
@@ -533,24 +526,23 @@ File methods - hierarchy manipulation
 
     Move the node specified by where and name to newparent/newname.
 
-    Parameters
-    ----------
-    where, name : path
-        These arguments work as in
-        :meth:`File.getNode`, referencing the node to be acted upon.
-    newparent
-        The destination group the node will be moved into (a
-        path name or a Group instance). If it is
-        not specified or None, the current parent
-        group is chosen as the new parent.
-    newname
-        The new name to be assigned to the node in its
-        destination (a string). If it is not specified or
-        None, the current name is chosen as the
-        new name.
+    :Parameters:
+        where, name : path
+            These arguments work as in
+            :meth:`File.getNode`, referencing the node to be acted upon.
+        newparent
+            The destination group the node will be moved into (a
+            path name or a Group instance). If it is
+            not specified or None, the current parent
+            group is chosen as the new parent.
+        newname
+            The new name to be assigned to the node in its
+            destination (a string). If it is not specified or
+            None, the current name is chosen as the
+            new name.
 
-    Notes
-    -----
+    .. rubric:: Notes
+
     The other arguments work as in
     :meth:`Node._f_move`.
 
@@ -560,33 +552,31 @@ File methods - hierarchy manipulation
 
     Remove the object node *name* under *where* location.
 
-    Parameters
-    ----------
-    where, name
-        These arguments work as in
-        :meth:`File.getNode`, referencing the node to be acted upon.
-    recursive : bool
-        If not supplied or false, the node will be removed
-        only if it has no children; if it does, a
-        NodeError will be raised. If supplied
-        with a true value, the node and all its descendants will be
-        completely removed.
+    :Parameters:
+        where, name
+            These arguments work as in
+            :meth:`File.getNode`, referencing the node to be acted upon.
+        recursive : bool
+            If not supplied or false, the node will be removed
+            only if it has no children; if it does, a
+            NodeError will be raised. If supplied
+            with a true value, the node and all its descendants will be
+            completely removed.
 
 
 .. method:: File.renameNode(where, newname, name=None, overwrite=False)
 
     Change the name of the node specified by where and name to newname.
 
-    Parameters
-    ----------
-    where, name
-        These arguments work as in
-        :meth:`File.getNode`, referencing the node to be acted upon.
-    newname : str
-        The new name to be assigned to the node (a string).
-    overwrite : bool
-        Whether to recursively remove a node with the same
-        newname if it already exists (not done by default).
+    :Parameters:
+        where, name
+            These arguments work as in
+            :meth:`File.getNode`, referencing the node to be acted upon.
+        newname : str
+            The new name to be assigned to the node (a string).
+        overwrite : bool
+            Whether to recursively remove a node with the same
+            newname if it already exists (not done by default).
 
 
 File methods - tree traversal
@@ -629,18 +619,17 @@ File methods - tree traversal
 
     Iterate over children nodes hanging from where.
 
-    Parameters
-    ----------
-    where
-        This argument works as in
-        :meth:`File.getNode`, referencing the node to be acted upon.
-    classname
-        If the name of a class derived from
-        Node (see :ref:`NodeClassDescr`) is supplied, only instances of
-        that class (or subclasses of it) will be returned.
+    :Parameters:
+        where
+            This argument works as in
+            :meth:`File.getNode`, referencing the node to be acted upon.
+        classname
+            If the name of a class derived from
+            Node (see :ref:`NodeClassDescr`) is supplied, only instances of
+            that class (or subclasses of it) will be returned.
 
-    Notes
-    -----
+    .. rubric:: Notes
+
     The returned nodes are alphanumerically sorted by their
     name.  This is an iterator version of
     :meth:`File.listNodes`.
@@ -674,19 +663,18 @@ File methods - tree traversal
 
     Recursively iterate over nodes hanging from where.
 
-    Parameters
-    ----------
-    where
-        If supplied, the iteration starts from (and includes)
-        this group. It can be a path string or a
-        Group instance (see :ref:`GroupClassDescr`).
-    classname
-        If the name of a class derived from
-        Node (see :ref:`GroupClassDescr`) is supplied, only instances of
-        that class (or subclasses of it) will be returned.
+    :Parameters:
+        where
+            If supplied, the iteration starts from (and includes)
+            this group. It can be a path string or a
+            Group instance (see :ref:`GroupClassDescr`).
+        classname
+            If the name of a class derived from
+            Node (see :ref:`GroupClassDescr`) is supplied, only instances of
+            that class (or subclasses of it) will be returned.
 
-    Examples
-    --------
+    .. rubric:: Example of use
+
     ::
 
         # Recursively print all the nodes hanging from '/detector'.
@@ -710,7 +698,9 @@ File methods - tree traversal
     This is equivalent to calling
     :meth:`File.walkNodes` with no arguments.
 
-    Example of use::
+    .. rubric:: Example of use
+
+    ::
 
         # Recursively list all the nodes in the object tree.
         h5file = tables.openFile('vlarray1.h5')
@@ -849,69 +839,65 @@ File methods - attribute handling
 
     Copy PyTables attributes from one node to another.
 
-    Parameters
-    ----------
-    where, name
-        These arguments work as in
-        :meth:`File.getNode`, referencing the node to be acted upon.
-    dstnode
-        The destination node where the attributes will be
-        copied to. It can be a path string or a
-        Node instance (see :ref:`NodeClassDescr`).
+    :Parameters:
+        where, name
+            These arguments work as in
+            :meth:`File.getNode`, referencing the node to be acted upon.
+        dstnode
+            The destination node where the attributes will be
+            copied to. It can be a path string or a
+            Node instance (see :ref:`NodeClassDescr`).
 
 
 .. method:: File.delNodeAttr(where, attrname, name=None)
 
     Delete a PyTables attribute from the given node.
 
-    Parameters
-    ----------
-    where, name
-        These arguments work as in
-        :meth:`File.getNode`, referencing the node to be acted upon.
-    attrname
-        The name of the attribute to delete.  If the named
-        attribute does not exist, an
-        AttributeError is raised.
+    :Parameters:
+        where, name
+            These arguments work as in
+            :meth:`File.getNode`, referencing the node to be acted upon.
+        attrname
+            The name of the attribute to delete.  If the named
+            attribute does not exist, an
+            AttributeError is raised.
 
 
 .. method:: File.getNodeAttr(where, attrname, name=None)
 
     Get a PyTables attribute from the given node.
 
-    Parameters
-    ----------
-    where, name
-        These arguments work as in
-        :meth:`File.getNode`, referencing the node to be acted upon.
-    attrname
-        The name of the attribute to retrieve.  If the named
-        attribute does not exist, an
-        AttributeError is raised.
+    :Parameters:
+        where, name
+            These arguments work as in
+            :meth:`File.getNode`, referencing the node to be acted upon.
+        attrname
+            The name of the attribute to retrieve.  If the named
+            attribute does not exist, an
+            AttributeError is raised.
 
 
 .. method:: File.setNodeAttr(where, attrname, attrvalue, name=None)
 
     Set a PyTables attribute for the given node.
 
-    Parameters
-    ----------
-    where, name
-        These arguments work as in
-        :meth:`File.getNode`, referencing the node to be acted upon.
-    attrname
-        The name of the attribute to set.
-    attrvalue
-        The value of the attribute to set. Any kind of Python
-        object (like strings, ints, floats, lists, tuples, dicts,
-        small NumPy/Numeric/numarray objects...) can be stored as an
-        attribute. However, if necessary, cPickle
-        is automatically used so as to serialize objects that you
-        might want to save. See the AttributeSet
-        class (in :ref:`AttributeSetClassDescr`) for details.
+    :Parameters:
+        where, name
+            These arguments work as in
+            :meth:`File.getNode`, referencing the node to be acted upon.
+        attrname
+            The name of the attribute to set.
+        attrvalue
+            The value of the attribute to set. Any kind of Python
+            object (like strings, ints, floats, lists, tuples, dicts,
+            small NumPy/Numeric/numarray objects...) can be stored as an
+            attribute. However, if necessary, cPickle
+            is automatically used so as to serialize objects that you
+            might want to save. See the AttributeSet
+            class (in :ref:`AttributeSetClassDescr`) for details.
 
-    Notes
-    -----
+    .. rubric:: Notes
+
     If the node already has a large number of attributes, a
     PerformanceWarning is issued.
 
