@@ -121,7 +121,7 @@ output of this example::
         True
         >>> filters1 is filters2
         False
-        >>> filters3 = filters1.copy(complevel=1)
+        >>> filters3 = filters1.copy(complevel=1) #doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: compression library ``None`` is not supported...

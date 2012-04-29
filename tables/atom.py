@@ -193,7 +193,7 @@ Atom factory methods
     are not supported; you need to use the proper
     constructor::
 
-        >>> Atom.from_kind('enum')
+        >>> Atom.from_kind('enum') #doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: the ``enum`` kind is not supported...
