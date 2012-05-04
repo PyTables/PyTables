@@ -11,11 +11,12 @@ def update_docstring(app, what, name, obj, options, lines):
         match = re_search(section_re, line)
         if len(stripped_line) == len(match) and \
                             len(stripped_line) == len(previous_line):
-            indent_level = find_indent_level(line[i-1])
+            indent_level = find_indent_level(lines[i])
             if previous_line.lower() == 'parameters':
                 make_field_list(lines, i-1, indent_level, previous_line)
             else:
-                make_rubric()
+                make_rubric(lines, i-1, indent_level, previous_line)
+        previous_line = stripped_line
 
 
 def find_indent_level(line):
@@ -41,37 +42,84 @@ def re_search(regex, string):
 
 def make_field_list(lines, line_number, indent_level, field_title):
 
-    lines[line_number] = ':' + field_title + ':'
+    lines[line_number] = ' ' * indent_level + ':' + field_title + ':'
     lines[line_number+1] = ''
     line_number += 2
     for line_number, line in enumerate(lines[line_number:], line_number):
         if line.strip() != '' and find_indent_level(line) == indent_level:
             break
     for line_number, line in enumerate(lines[line_number:], line_number):
-        if line.strip() == '':
+        if line.strip() == '' or find_indent_level(line) < indent_level:
             return
         lines[line_number] = ' ' * 4 + line
 
 
+def make_rubric(lines, line_number, indent_level, field_title):
 
-def make_rubric():
-    pass
-
-
-
-
-
-
+    lines[line_number] = ' ' * indent_level + '.. rubric:: ' + field_title
+    lines[line_number+1] = ''
 
 
 def setup(app):
-
     app.connect('autodoc-process-docstring', update_docstring)
-
 
 
 if __name__ == '__main__':
     import unittest
+    import copy
+
+
+    class UpdateDocstringTests(unittest.TestCase):
+
+        def test_case1(self):
+            lines = ['Description of this class...',
+                     '',
+                     'Parameters',
+                     '~~~~~~~~~~',
+                     'parm 1',
+                     '    parm 1 description',
+                     'parm 2',
+                     'parm 3',
+                     '',
+                     '    New Section',
+                     '    ~~~~~~~~~~~',
+                     '    Text in the new section...']
+            orig_lines = copy.deepcopy(lines)
+            update_docstring(None, None, None, None, None, lines)
+            for row in [0, 1, 8, 11]:
+                self.assertEqual(lines[row], orig_lines[row])
+            self.assertEqual(lines[2],  ':Parameters:')
+            self.assertEqual(lines[3],  '')
+            self.assertEqual(lines[4],  '    parm 1')
+            self.assertEqual(lines[5],  '        parm 1 description')
+            self.assertEqual(lines[6],  '    parm 2')
+            self.assertEqual(lines[7],  '    parm 3')
+            self.assertEqual(lines[8],  '')
+            self.assertEqual(lines[9],  '    .. rubric:: New Section')
+            self.assertEqual(lines[10], '')
+            self.assertEqual(lines[11], '    Text in the new section...')
+
+        def test_case2(self):
+            lines = ['',
+                     'Section title',
+                     '~~~~~~~~~~~~~',
+                     'Section content',
+                     '    Parameters',
+                     '    ~~~~~~~~~~',
+                     '    parm 1',
+                     '        description 1',
+                     'Not part of parameters']
+            update_docstring(None, None, None, None, None, lines)
+            self.assertEqual(lines[0], '')
+            self.assertEqual(lines[1], '.. rubric:: Section title')
+            self.assertEqual(lines[2], '')
+            self.assertEqual(lines[3], 'Section content')
+            self.assertEqual(lines[4], '    :Parameters:')
+            self.assertEqual(lines[5], '')
+            self.assertEqual(lines[6], '        parm 1')
+            self.assertEqual(lines[7], '            description 1')
+            self.assertEqual(lines[8], 'Not part of parameters')
+
 
     class FindIndentLevelTests(unittest.TestCase):
 
@@ -111,6 +159,11 @@ if __name__ == '__main__':
             match = re_search(self.regex, string)
             self.assertEqual(match, '123')
 
+        def test_multiple_matches(self):
+            string = 'abc21abc3456'
+            match = re_search(self.regex, string)
+            self.assertEqual(match, '21')
+
 
     class MakeFieldListTests(unittest.TestCase):
 
@@ -139,17 +192,25 @@ if __name__ == '__main__':
             self.assertEqual(self.lines[6], '')
             self.assertEqual(self.lines[7], 'parameter 2')
 
-        def test_case2(self):
+        # heading and parameter 1 are indented an extra 4 spaces
+        # parameter 2 is un-indented, so it should not be part of the
+        # field list
+        def test_extra_indent(self):
             field_title = 'Parameters'
+            self.lines[1] = ' ' * 4 + self.lines[1]
+            self.lines[2] = ' ' * 4 + self.lines[2]
+            self.lines[3] = ' ' * 4
+            self.lines[4] = ' ' * 4 + self.lines[4]
+            self.lines[5] = ' ' * 4 + self.lines[5]
             del self.lines[6]
-            make_field_list(self.lines, 1, 0, field_title)
-            self.assertEqual(self.lines[1], ':Parameters:')
+            make_field_list(self.lines, 1, 4, field_title)
+            self.assertEqual(self.lines[1], '    :Parameters:')
             self.assertEqual(self.lines[2], '')
-            self.assertEqual(self.lines[3], '')
-            self.assertEqual(self.lines[4], '    parameter 1')
-            self.assertEqual(self.lines[5], '        parameter 1 details')
-            self.assertEqual(self.lines[6], '    parameter 2')
-            self.assertEqual(self.lines[7], '        parameter 2 details')
+            self.assertEqual(self.lines[3], ' ' * 4)
+            self.assertEqual(self.lines[4], '        parameter 1')
+            self.assertEqual(self.lines[5], '            parameter 1 details')
+            self.assertEqual(self.lines[6], 'parameter 2')
+            self.assertEqual(self.lines[7], '    parameter 2 details')
             self.assertEqual(self.lines[8], ' ' * 5)
             self.assertEqual(self.lines[9], 'Other text...')
 
@@ -169,6 +230,32 @@ if __name__ == '__main__':
             self.assertEqual(self.lines[0], ':Parameters:')
             self.assertEqual(self.lines[1], '')
             self.assertEqual(len(self.lines), 2)
+
+    class MakeRubricTests(unittest.TestCase):
+
+        def setUp(self):
+            self.lines = ['',
+                          'Section',
+                          '~~~~~~~',
+                          '',
+                          'Some text after the rubric...',
+                          'Other text...']
+
+        def test_case1(self):
+            make_rubric(self.lines, 1, 0, 'the rubric title')
+            self.assertEqual(self.lines[0], '')
+            self.assertEqual(self.lines[1], '.. rubric:: the rubric title')
+            self.assertEqual(self.lines[2], '')
+            self.assertEqual(self.lines[3], '')
+            self.assertEqual(self.lines[4], 'Some text after the rubric...')
+
+        def test_case2(self):
+            del self.lines[3]
+            make_rubric(self.lines, 1, 4, 'the rubric title')
+            self.assertEqual(self.lines[0], '')
+            self.assertEqual(self.lines[1], '    .. rubric:: the rubric title')
+            self.assertEqual(self.lines[2], '')
+            self.assertEqual(self.lines[3], 'Some text after the rubric...')
 
 
     unittest.main()
