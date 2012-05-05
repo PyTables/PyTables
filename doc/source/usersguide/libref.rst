@@ -69,23 +69,8 @@ Global variables
 
 Global functions
 ~~~~~~~~~~~~~~~~
-.. function:: copyFile(srcfilename, dstfilename, overwrite=False, **kwargs)
+.. autofunction:: tables.copyFile
 
-    An easy way of copying one PyTables file to another.
-
-    This function allows you to copy an existing PyTables file
-    named srcfilename to another file called
-    dstfilename. The source file must exist and be
-    readable. The destination file can be overwritten in place if
-    existing by asserting the overwrite
-    argument.
-
-    This function is a shorthand for the
-    :meth:`File.copyFile` method, which acts on an
-    already opened file. kwargs takes keyword
-    arguments used to customize the copying process. See the
-    documentation of :meth:`File.copyFile` for a description of those
-    arguments.
 
 .. function:: isHDF5File(filename)
 
@@ -126,59 +111,7 @@ Global functions
     arguments, this iterator will be deprecated.
 
 
-.. function:: openFile(filename, mode='r', title='', rootUEP="/", \
-                       filters=None, **kwargs)
-
-    Open a PyTables (or generic HDF5) file and return a File object.
-
-    :Parameters:
-        filename : str
-            The name of the file (supports environment variable
-            expansion). It is suggested that file names have any of the
-            .h5, .hdf or .hdf5 extensions, although this is not mandatory.
-        mode : str
-            The mode to open the file. It can be one of the
-            following:
-
-            * *'r'*: Read-only; no data can be modified.
-            * *'w'*: Write; a new file is created (an existing file with the
-              same name would be deleted).
-            * *'a'*: Append; an existing file is opened for reading and writing,
-              and if the file does not exist it is created.
-            * *'r+'*: It is similar to 'a', but the file must already exist.
-        title : str
-            If the file is to be created, a
-            TITLE string attribute will be set on the
-            root group with the given value. Otherwise, the title will
-            be read from disk, and this will not have any effect.
-        rootUEP : str
-            The root User Entry Point. This is a group in the HDF5
-            hierarchy which will be taken as the starting point to
-            create the object tree. It can be whatever existing group in
-            the file, named by its HDF5 path. If it does not exist, an
-            HDF5ExtError is issued. Use this if you
-            do not want to build the *entire* object
-            tree, but rather only a *subtree* of it.
-        filters : Filters
-            An instance of the Filters (see
-            :ref:`FiltersClassDescr`) class that provides
-            information about the desired I/O filters applicable to the
-            leaves that hang directly from the *root
-            group*, unless other filter properties are
-            specified for these leaves. Besides, if you do not specify
-            filter properties for child groups, they will inherit these
-            ones, which will in turn propagate to child nodes.
-
-    .. rubric:: Notes
-
-    In addition, it recognizes the names of parameters present
-    in :file:`tables/parameters.py` as additional keyword
-    arguments.  See :ref:`parameter_files` for a
-    detailed info on the supported parameters.
-
-    .. note:: If you need to deal with a large number of nodes in an
-       efficient way, please see :ref:`LRUOptim` for more info and advices about
-       the integrated node cache engine.
+.. autofunction:: tables.openFile
 
 
 .. function:: setBloscMaxThreads(nthreads)
@@ -274,9 +207,11 @@ The File Class
 .. autoclass:: tables.File
 
 
-.. Node class documentation in tables/node.py docstring
+.. _NodeClassDescr:
 
-.. automodule:: tables.node
+The Node class
+--------------
+.. autoclass:: tables.Node
 
 
 .. Group class documentation in tables/group.py docstring

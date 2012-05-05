@@ -236,7 +236,7 @@ latex_elements = {
 
 # -- Options for autodocumentation ---------------------------------------------
 autodoc_member_order = "groupwise"
-autoclass_content = "both"
+autoclass_content = "class"
 autosummary_generate = []
 
 # -- Options for Epub output ---------------------------------------------------

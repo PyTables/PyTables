@@ -123,18 +123,23 @@ def _checkfilters(filters):
 
 
 def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
+
     """
     An easy way of copying one PyTables file to another.
 
-    This function allows you to copy an existing PyTables file named
-    `srcfilename` to another file called `dstfilename`.  The source file
-    must exist and be readable.  The destination file can be overwritten
-    in place if existing by asserting the `overwrite` argument.
+    This function allows you to copy an existing PyTables file
+    named srcfilename to another file called
+    dstfilename. The source file must exist and be
+    readable. The destination file can be overwritten in place if
+    existing by asserting the overwrite
+    argument.
 
-    This function is a shorthand for the `File.copyFile()` method, which
-    acts on an already opened file.  `kwargs` takes keyword arguments
-    used to customize the copying process.  See the documentation of
-    `File.copyFile()` for a description of those arguments.
+    This function is a shorthand for the
+    :meth:`File.copyFile` method, which acts on an
+    already opened file. kwargs takes keyword
+    arguments used to customize the copying process. See the
+    documentation of :meth:`File.copyFile` for a description of those
+    arguments.
     """
 
     # Open the source file.
@@ -151,53 +156,57 @@ def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
 def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
              **kwargs):
 
-    """Open an HDF5 file and return a File object.
+    """
+    Open a PyTables (or generic HDF5) file and return a File object.
 
-    Arguments:
-
-    `filename` -- The name of the file (supports environment variable
-        expansion).  It is suggested that file names have any of the
-        ``.h5``, ``.hdf`` or ``.hdf5`` extensions, although this is not
-        mandatory.
-
-    `mode` -- The mode to open the file.  It can be one of the
+    Parameters
+    ~~~~~~~~~~
+    filename : str
+        The name of the file (supports environment variable
+        expansion). It is suggested that file names have any of the
+        .h5, .hdf or .hdf5 extensions, although this is not mandatory.
+    mode : str
+        The mode to open the file. It can be one of the
         following:
-
-        ``'r'``
-            Read-only; no data can be modified.
-        ``'w``'
-            Write; a new file is created (an existing file with the same
-            name would be deleted).
-        ``'a'``
-            Append; an existing file is opened for reading and writing,
-            and if the file does not exist it is created.
-        ``'r+'``
-            It is similar to ``'a'``, but the file must already exist.
-
-    `title` -- If the file is to be created, a ``TITLE`` string
-        attribute will be set on the root group with the given value.
-        Otherwise, the title will be read from disk, and this will not
-        have any effect.
-
-    `rootUEP` -- The root User Entry Point.  This is a group in the HDF5
-        hierarchy which will be taken as the starting point to create
-        the object tree.  It can be whatever existing group in the file,
-        named by its HDF5 path. If it does not exist, an `HDF5ExtError`
-        is issued.  Use this if you do not want to build the *entire*
-        object tree, but rather only a *subtree* of it.
-
-    `filters` -- An instance of the `Filters` class that provides
+            * *'r'*: Read-only; no data can be modified.
+            * *'w'*: Write; a new file is created (an existing file with the
+              same name would be deleted).
+            * *'a'*: Append; an existing file is opened for reading and writing,
+              and if the file does not exist it is created.
+            * *'r+'*: It is similar to 'a', but the file must already exist.
+    title : str
+        If the file is to be created, a
+        TITLE string attribute will be set on the
+        root group with the given value. Otherwise, the title will
+        be read from disk, and this will not have any effect.
+    rootUEP : str
+        The root User Entry Point. This is a group in the HDF5
+        hierarchy which will be taken as the starting point to
+        create the object tree. It can be whatever existing group in
+        the file, named by its HDF5 path. If it does not exist, an
+        HDF5ExtError is issued. Use this if you
+        do not want to build the *entire* object
+        tree, but rather only a *subtree* of it.
+    filters : Filters
+        An instance of the Filters (see
+        :ref:`FiltersClassDescr`) class that provides
         information about the desired I/O filters applicable to the
-        leaves that hang directly from the *root group*, unless other
-        filter properties are specified for these leaves.  Besides, if
-        you do not specify filter properties for child groups, they will
-        inherit these ones, which will in turn propagate to child nodes.
+        leaves that hang directly from the *root
+        group*, unless other filter properties are
+        specified for these leaves. Besides, if you do not specify
+        filter properties for child groups, they will inherit these
+        ones, which will in turn propagate to child nodes.
 
-    In addition, it recognizes the names of parameters present in
-    ``tables/parameters.py`` as additional keyword arguments. Check the
-    suitable appendix in User's Guide for a detailed info on the supported
-    parameters.
+    .. rubric:: Notes
 
+    In addition, it recognizes the names of parameters present
+    in :file:`tables/parameters.py` as additional keyword
+    arguments.  See :ref:`parameter_files` for a
+    detailed info on the supported parameters.
+
+    .. note:: If you need to deal with a large number of nodes in an
+       efficient way, please see :ref:`LRUOptim` for more info and advices about
+       the integrated node cache engine.
     """
 
     # Get the list of already opened files
@@ -543,7 +552,6 @@ class File(hdf5Extension.File, object):
             provided that values are regular (i.e. they are not like
             [[1,2],2]) and homogeneous (i.e. all the
             elements are of the same type).
-
             Also, objects that have some of their dimensions equal to 0 are not
             supported (use an EArray node (see :ref:`EArrayClassDescr`) if you
             want to store an array with one of its dimensions equal to 0).
@@ -740,6 +748,7 @@ class File(hdf5Extension.File, object):
         tables.
 
         Parameters
+        ~~~~~~~~~~
         where : path or Group
             The parent group where the new table will hang from.
             It can be a path string (for example
@@ -751,24 +760,23 @@ class File(hdf5Extension.File, object):
             This is an object that describes the table, i.e. how
             many columns it has, their names, types, shapes, etc.  It
             can be any of the following:
-
-            * *A user-defined class*: This should inherit from the IsDescription
-              class (see :ref:`IsDescriptionClassDescr`) where table fields are
-              specified.
-            * *A dictionary*: For example, when you do not know beforehand which
-              structure your table will have).
-            * *A Description instance*: You can use the description attribute of
-              another table to create a new one with the same structure.
-            * *A NumPy dtype*: A completely general structured NumPy dtype.
-            * *A NumPy (structured) array instance*: The dtype of this structured
-              array will be used as the description.  Also, in case the array has
-              actual data, it will be injected into the newly created table.
-            * *A RecArray instance (deprecated)*: Object from the numarray
-              package.  This does not give you the possibility to create a nested
-              table.  Array data is injected into the new table.
-            * *A NestedRecArray instance (deprecated)*: If you want to have
-              nested columns in your table and you are using numarray, you can use
-              this object. Array data is injected into the new table.
+                * *A user-defined class*: This should inherit from the IsDescription
+                  class (see :ref:`IsDescriptionClassDescr`) where table fields are
+                  specified.
+                * *A dictionary*: For example, when you do not know beforehand which
+                  structure your table will have).
+                * *A Description instance*: You can use the description attribute of
+                  another table to create a new one with the same structure.
+                * *A NumPy dtype*: A completely general structured NumPy dtype.
+                * *A NumPy (structured) array instance*: The dtype of this structured
+                  array will be used as the description.  Also, in case the array has
+                  actual data, it will be injected into the newly created table.
+                * *A RecArray instance (deprecated)*: Object from the numarray
+                  package.  This does not give you the possibility to create a nested
+                  table.  Array data is injected into the new table.
+                * *A NestedRecArray instance (deprecated)*: If you want to have
+                  nested columns in your table and you are using numarray, you can use
+                  this object. Array data is injected into the new table.
         title : str
             A description for this node (it sets the TITLE HDF5 attribute on disk).
         filters : Filters
@@ -803,9 +811,9 @@ class File(hdf5Extension.File, object):
             Whether to create the needed groups for the parent
             path to exist (not done by default).
 
-    .. method:: File.createVLArray(where, name, atom, title='', filters=None,
-                expectedsizeinMB=1.0, chunkshape=None, byteorder=None,
-                createparents=False)
+    .. method:: File.createVLArray(where, name, atom, title='', filters=None, \
+                                   expectedsizeinMB=1.0, chunkshape=None, \
+                                   byteorder=None, createparents=False)
 
         Create a new variable-length array with the given
         name in where location.  See
@@ -1223,7 +1231,6 @@ class File(hdf5Extension.File, object):
 
         If the node already has a large number of attributes, a
         PerformanceWarning is issued.
-
         """
 
     ## <class variables>
