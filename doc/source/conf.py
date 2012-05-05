@@ -29,6 +29,7 @@ sys.path.insert(0, os.path.abspath('../sphinxext'))
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.pngmath',
               'sphinx.ext.inheritance_diagram', 'sphinx.ext.extlinks',
               'ipython_console_highlighting', 'sphinx.ext.todo',
+              'pytables_doc'
               ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -9,7 +9,7 @@ def update_docstring(app, what, name, obj, options, lines):
     for i, line in enumerate(lines[1:], 1):
         stripped_line = line.strip()
         match = re_search(section_re, line)
-        if len(stripped_line) == len(match) and \
+        if match and len(stripped_line) == len(match) and \
                             len(stripped_line) == len(previous_line):
             indent_level = find_indent_level(lines[i])
             if previous_line.lower() == 'parameters':
@@ -96,12 +96,13 @@ if __name__ == '__main__':
                      'parm2',
                      'parm3:{int or something:else}',
                      '',
+                     '',
                      '    New Section',
                      '    ~~~~~~~~~~~',
                      '    Text in the new section...']
             orig_lines = copy.deepcopy(lines)
             update_docstring(None, None, None, None, None, lines)
-            for row in [0, 1, 8, 11]:
+            for row in [0, 1, 8, 9, 12]:
                 self.assertEqual(lines[row], orig_lines[row])
             self.assertEqual(lines[2],  ':Parameters:')
             self.assertEqual(lines[3],  '')
@@ -109,10 +110,8 @@ if __name__ == '__main__':
             self.assertEqual(lines[5],  '        parm1 description')
             self.assertEqual(lines[6],  '    **parm2**')
             self.assertEqual(lines[7],  '    **parm3**:{int or something:else}')
-            self.assertEqual(lines[8],  '')
-            self.assertEqual(lines[9],  '    .. rubric:: New Section')
-            self.assertEqual(lines[10], '')
-            self.assertEqual(lines[11], '    Text in the new section...')
+            self.assertEqual(lines[10], '    .. rubric:: New Section')
+            self.assertEqual(lines[11], '')
 
         def test_case2(self):
             lines = ['',
