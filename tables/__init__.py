@@ -54,9 +54,20 @@ if os.name == 'nt':
     os.environ['PATH'] = ';'.join((os.environ['PATH'], module_path))
     sys.path.append(module_path)
 
+# In order to improve diagnosis of a common Windows dependency
+# issue, we explicitly test that we can load the HDF5 dll before
+# loading tables.utilsExtensions.
+if os.name == 'nt':
+    import ctypes.util
+
+    if not ctypes.util.find_library('hdf5dll.dll'):
+        raise ImportError('Could not load "hdf5dll.dll", please ensure' +
+                ' that it can be found in the system path')
+
 
 # Necessary imports to get versions stored on the Pyrex extension
 from tables.utilsExtension import getPyTablesVersion, getHDF5Version
+
 
 __version__ = getPyTablesVersion()
 """The PyTables version number."""

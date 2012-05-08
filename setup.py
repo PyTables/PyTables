@@ -384,6 +384,20 @@ for arg in args:
         # when adding more flags later on
         #sys.argv.remove(arg)
 
+# For windows, search for the hdf5 dll in the path and use it if found.
+# This is much more convenient than having to manually set an environment
+# variable to rebuild pytables
+if not HDF5_DIR and os.name == 'nt':
+    import ctypes.util
+    libdir = ctypes.util.find_library('hdf5dll.dll')
+    # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.8.8\\bin\\hdf5dll.dll'
+    if libdir:
+        # Strip off the filename
+        libdir = os.path.dirname(libdir)
+        # Strip off the 'bin' directory
+        HDF5_DIR = os.path.dirname(libdir)
+        print "* Found HDF5 using system PATH ('%s')" % libdir
+
 # The next flag for the C compiler is needed for finding the C headers for
 # the Cython extensions
 CFLAGS.append("-Isrc")
