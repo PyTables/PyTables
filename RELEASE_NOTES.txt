@@ -47,6 +47,9 @@ Other improvements
 
 - Improved bzip2 detection on Windows (:issue:`116`).  Thanks to cgohlke.
 
+- For Windows, the setup.py script now has the ability to automatically find
+  the HDF5_DIR in the system PATH.  Thanks to Mark (mwiebe).
+
 - Improved multi-arch support in GNU/Linux platforms (closes :issue:`124`)
   Thanks to Julian Taylor and Picca Frederic-Emmanuel.
 
@@ -62,6 +65,9 @@ Other improvements
 
 - Removed the old lrucache module. It is no more needed after the merge with
   PyTables Pro (closes :issue:`118`).
+
+- Added explicit (import time) testing for hdf5dll.dll on Windows to improve
+  diagnostics (closes :issue:`146`).  Thanks to Mark (mwiebe).
 
 Bugs fixed
 ----------
