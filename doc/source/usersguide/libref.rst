@@ -205,6 +205,7 @@ Global functions
 The File Class
 --------------
 .. autoclass:: tables.File
+    :members:
 
 
 .. _NodeClassDescr:
