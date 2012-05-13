@@ -88,226 +88,30 @@ class Node(object):
     """
     Abstract base class for all PyTables nodes.
 
-    This is the base class for *all* nodes in a
-    PyTables hierarchy. It is an abstract class, i.e. it may not be
-    directly instantiated; however, every node in the hierarchy is an
-    instance of this class.
-
-    A PyTables node is always hosted in a PyTables
-    *file*, under a *parent group*,
-    at a certain *depth* in the node hierarchy. A node
-    knows its own *name* in the parent group and its
-    own *path name* in the file.
-
-    All the previous information is location-dependent, i.e. it may
-    change when moving or renaming a node in the hierarchy. A node also
-    has location-independent information, such as its *HDF5
-    object identifier* and its *attribute set*.
-
-    This class gathers the operations and attributes (both
-    location-dependent and independent) which are common to all PyTables
-    nodes, whatever their type is. Nonetheless, due to natural naming
-    restrictions, the names of all of these members start with a reserved
-    prefix (see the Group class in :ref:`GroupClassDescr`).
-
-    Sub-classes with no children (e.g. *leaf
-    nodes*) may define new methods, attributes and properties to
-    avoid natural naming restrictions. For instance,
-    _v_attrs may be shortened to
-    attrs and _f_rename to
-    rename. However, the original methods and
-    attributes should still be available.
-
-
-    Node instance variables - location dependent
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    .. attribute:: Node._v_depth
-
-        The depth of this node in the tree (an non-negative integer value).
-
-    .. attribute:: Node._v_file
-
-        The hosting File instance (see :ref:`FileClassDescr`).
-
-    .. attribute:: Node._v_name
-
-        The name of this node in its parent group (a string).
-
-    .. attribute:: Node._v_parent
-
-        The parent Group instance (see :ref:`GroupClassDescr`).
-
-    .. attribute:: Node._v_pathname
-
-        The path of this node in the tree (a string).
-
-
-    .. _NodeClassInstanceVariables:
-
-    Node instance variables - location independent
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    .. attribute:: Node._v_attrs
-
-        The associated AttributeSet instance
-        (see :ref:`AttributeSetClassDescr`).
-
-    .. attribute:: Node._v_isopen
-
-        Whether this node is open or not.
-
-    .. attribute:: Node._v_objectID
-
-        A node identifier (may change from run to run).
-
-
-    Node instance variables - attribute shorthands
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    .. attribute:: Node._v_title
-
-        A description of this node. A shorthand for TITLE attribute.
-
-
-    Node methods - hierarchy manipulation
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    .. method:: Node._f_close()
-
-        Close this node in the tree.
-
-        This releases all resources held by the node, so it should
-        not be used again. On nodes with data, it may be flushed to
-        disk.
-
-        You should not need to close nodes manually because they are
-        automatically opened/closed when they are loaded/evicted from the
-        integrated LRU cache.
-
-
-    .. method:: Node._f_copy(newparent=None, newname=None, overwrite=False, \
-                             recursive=False, createparents=False, **kwargs)
-
-        Copy this node and return the new node.
-
-        Creates and returns a copy of the node, maybe in a different
-        place in the hierarchy. newparent can be a
-        Group object (see :ref:`GroupClassDescr`) or a
-        pathname in string form. If it is not specified or
-        None, the current parent group is chosen as the
-        new parent.  newname must be a string with a
-        new name. If it is not specified or None, the
-        current name is chosen as the new name. If
-        recursive copy is stated, all descendants are
-        copied as well. If createparents is true, the
-        needed groups for the given new parent group path to exist will be
-        created.
-
-        Copying a node across databases is supported but can not be
-        undone. Copying a node over itself is not allowed, nor it is
-        recursively copying a node into itself. These result in a
-        NodeError. Copying over another existing node
-        is similarly not allowed, unless the optional
-        overwrite argument is true, in which case that
-        node is recursively removed before copying.
-
-        Additional keyword arguments may be passed to customize the
-        copying process. For instance, title and filters may be changed,
-        user attributes may be or may not be copied, data may be
-        sub-sampled, stats may be collected, etc. See the documentation
-        for the particular node type.
-
-        Using only the first argument is equivalent to copying the
-        node to a new location without changing its name. Using only the
-        second argument is equivalent to making a copy of the node in the
-        same group.
-
-
-    .. method:: Node._f_isVisible()
-
-        Is this node visible?
-
-
-    .. method:: Node._f_move(newparent=None, newname=None, overwrite=False, \
-                             createparents=False)
-
-        Move or rename this node.
-
-        Moves a node into a new parent group, or changes the name of
-        the node. newparent can be a
-        Group object (see :ref:`GroupClassDescr`) or a
-        pathname in string form. If it is not specified or
-        None, the current parent group is chosen as the
-        new parent.  newname must be a string with a
-        new name. If it is not specified or None, the
-        current name is chosen as the new name. If
-        createparents is true, the needed groups for
-        the given new parent group path to exist will be created.
-
-        Moving a node across databases is not allowed, nor it is
-        moving a node *into* itself. These result in a
-        NodeError. However, moving a node
-        *over* itself is allowed and simply does
-        nothing. Moving over another existing node is similarly not
-        allowed, unless the optional overwrite argument
-        is true, in which case that node is recursively removed before
-        moving.
-
-        Usually, only the first argument will be used, effectively
-        moving the node to a new location without changing its name.
-        Using only the second argument is equivalent to renaming the node
-        in place.
-
-
-    .. method:: Node._f_remove(recursive=False, force=False)
-
-        Remove this node from the hierarchy.
-
-        If the node has children, recursive removal must be stated
-        by giving recursive a true value; otherwise, a
-        NodeError will be raised.
-
-        If the node is a link to a Group object,
-        and you are sure that you want to delete it, you can do this by
-        setting the force flag to true.
-
-
-    .. method:: Node._f_rename(newname, overwrite=False)
-
-        Rename this node in place.
-
-        Changes the name of a node to *newname*
-        (a string).  If a node with the same newname
-        already exists and overwrite is true,
-        recursively remove it before renaming.
-
-
-    Node methods - attribute handling
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    .. method:: Node._f_delAttr(name)
-
-        Delete a PyTables attribute from this node.
-
-        If the named attribute does not exist, an
-        AttributeError is raised.
-
-
-    .. method:: Node._f_getAttr(name)
-
-        Get a PyTables attribute from this node.
-
-        If the named attribute does not exist, an
-        AttributeError is raised.
-
-
-    .. method:: Node._f_setAttr(name, value)
-
-        Set a PyTables attribute for this node.
-
-        If the node already has a large number of attributes, a
-        PerformanceWarning is issued.
+    This is the base class for *all* nodes in a PyTables hierarchy. It is an
+    abstract class, i.e. it may not be directly instantiated; however, every
+    node in the hierarchy is an instance of this class.
+
+    A PyTables node is always hosted in a PyTables *file*, under a *parent
+    group*, at a certain *depth* in the node hierarchy. A node knows its own
+    *name* in the parent group and its own *path name* in the file.
+
+    All the previous information is location-dependent, i.e. it may change when
+    moving or renaming a node in the hierarchy. A node also has
+    location-independent information, such as its *HDF5 object identifier* and
+    its *attribute set*.
+
+    This class gathers the operations and attributes (both location-dependent
+    and independent) which are common to all PyTables nodes, whatever their
+    type is. Nonetheless, due to natural naming restrictions, the names of all
+    of these members start with a reserved prefix (see the Group class
+    in :ref:`GroupClassDescr`).
+
+    Sub-classes with no children (e.g. *leaf nodes*) may define new methods,
+    attributes and properties to avoid natural naming restrictions. For
+    instance, _v_attrs may be shortened to attrs and _f_rename to
+    rename. However, the original methods and attributes should still be
+    available.
 
     """
 
@@ -326,14 +130,16 @@ class Node(object):
         return self._v_file._getNode(parentPath)
 
     _v_parent = property(
-        _g_getparent, None, None, "The parent `Group` instance.")
+        _g_getparent, None, None, ("The parent `Group` instance "
+                                   "(see :ref:`GroupClassDescr`)."))
 
 
     # '_v_attrs' is defined as a lazy read-only attribute.
     # This saves 0.7s/3.8s.
     @lazyattr
     def _v_attrs(self):
-        """The associated `AttributeSet` instance."""
+        """The associated `AttributeSet` instance
+        (see :ref:`AttributeSetClassDescr`)."""
         return self._AttributeSet(self)
 
 
@@ -349,14 +155,15 @@ class Node(object):
         self._v_attrs.TITLE = title
 
     _v_title = property(_g_gettitle, _g_settitle, None,
-                        "A description of this node.")
+                        ("A description of this node. A shorthand for "
+                         "TITLE attribute."))
 
     # </properties>
 
     # This may be looked up by ``__del__`` when ``__init__`` doesn't get
     # to be called.  See ticket #144 for more info.
     _v_isopen = False
-    """The default class attribute for _v_isopen."""
+    """Whehter this node is open or not."""
 
     # The ``_log`` argument is only meant to be used by ``_g_copyAsChild()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
@@ -365,7 +172,7 @@ class Node(object):
         # as it does not use this method implementation!
 
         self._v_file = None
-        """The hosting `File` instance."""
+        """The hosting File instance (see :ref:`FileClassDescr`)."""
         self._v_isopen = False
         """Whether this node is open or not."""
         self._v_pathname = None
@@ -677,7 +484,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Close the node itself.
         self._f_close()
         # hdf5Extension operations:
-        #   Remove the node from the HDF5 hierarchy.
+        # Remove the node from the HDF5 hierarchy.
         self._g_delete(parent)
 
 
@@ -685,13 +492,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
         Remove this node from the hierarchy.
 
-        If the node has children, recursive removal must be stated by
-        giving `recursive` a true value, or a `NodeError` will be
-        raised.
+        If the node has children, recursive removal must be stated by giving
+        recursive a true value; otherwise, a NodeError will be raised.
 
-        If the node is a link to a `Group` object, and you are sure that
-        you want to delete it, you can do this by setting the `force`
-        flag to true.
+        If the node is a link to a Group object, and you are sure that you want
+        to delete it, you can do this by setting the force flag to true.
         """
 
         self._g_checkOpen()
@@ -753,9 +558,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
         Rename this node in place.
 
-        Changes the name of a node to `newname` (a string).  If a node
-        with the same `newname` already exists and `overwrite` is true,
-        recursively remove it before renaming.
+        Changes the name of a node to *newname* (a string).  If a node with the
+        same newname already exists and overwrite is true, recursively remove
+        it before renaming.
         """
         self._f_move(newname=newname, overwrite=overwrite)
 
@@ -766,25 +571,23 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Move or rename this node.
 
         Moves a node into a new parent group, or changes the name of the
-        node.  `newparent` can be a `Group` object or a pathname in
-        string form.  If it is not specified or ``None`` , the current
-        parent group is chosen as the new parent.  `newname` must be a
-        string with a new name.  If it is not specified or ``None``, the
-        current name is chosen as the new name.  If `createparents` is
-        true, the needed groups for the given new parent group path to
-        exist will be created.
+        node. newparent can be a Group object (see :ref:`GroupClassDescr`) or a
+        pathname in string form. If it is not specified or None, the current
+        parent group is chosen as the new parent.  newname must be a string
+        with a new name. If it is not specified or None, the current name is
+        chosen as the new name. If createparents is true, the needed groups for
+        the given new parent group path to exist will be created.
 
-        Moving a node across databases is not allowed, nor it is moving
-        a node *into* itself.  These result in a `NodeError`.  However,
-        moving a node *over* itself is allowed and simply does nothing.
-        Moving over another existing node is similarly not allowed,
-        unless the optional `overwrite` argument is true, in which case
-        that node is recursively removed before moving.
+        Moving a node across databases is not allowed, nor it is moving a node
+        *into* itself. These result in a NodeError. However, moving a node
+        *over* itself is allowed and simply does nothing. Moving over another
+        existing node is similarly not allowed, unless the optional overwrite
+        argument is true, in which case that node is recursively removed before
+        moving.
 
-        Usually, only the first argument will be used, effectively
-        moving the node to a new location without changing its name.
-        Using only the second argument is equivalent to renaming the
-        node in place.
+        Usually, only the first argument will be used, effectively moving the
+        node to a new location without changing its name.  Using only the
+        second argument is equivalent to renaming the node in place.
         """
 
         self._g_checkOpen()
@@ -889,35 +692,34 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 overwrite=False, recursive=False, createparents=False,
                 **kwargs):
         """
-        Copy this node and return the new one.
+        Copy this node and return the new node.
 
-        Creates and returns a copy of the node, maybe in a different
-        place in the hierarchy.  `newparent` can be a `Group` object or
-        a pathname in string form.  If it is not specified or ``None``,
-        the current parent group is chosen as the new parent.  `newname`
-        must be a string with a new name.  If it is not specified or
-        ``None``, the current name is chosen as the new name.  If
-        `recursive` copy is stated, all descendents are copied as well.
-        If `createparents` is true, the needed groups for the given
-        new parent group path to exist will be created.
+        Creates and returns a copy of the node, maybe in a different place in
+        the hierarchy. newparent can be a Group object (see
+        :ref:`GroupClassDescr`) or a pathname in string form. If it is not
+        specified or None, the current parent group is chosen as the new
+        parent.  newname must be a string with a new name. If it is not
+        specified or None, the current name is chosen as the new name. If
+        recursive copy is stated, all descendants are copied as well. If
+        createparents is true, the needed groups for the given new parent group
+        path to exist will be created.
 
         Copying a node across databases is supported but can not be
-        undone.  Copying a node over itself is not allowed, nor it is
-        recursively copying a node into itself.  These result in a
-        `NodeError`.  Copying over another existing node is similarly
-        not allowed, unless the optional `overwrite` argument is true,
-        in which case that node is recursively removed before copying.
+        undone. Copying a node over itself is not allowed, nor it is
+        recursively copying a node into itself. These result in a
+        NodeError. Copying over another existing node is similarly not allowed,
+        unless the optional overwrite argument is true, in which case that node
+        is recursively removed before copying.
 
-        Additional keyword arguments may be passed to customize the
-        copying process.  For instance, title and filters may be
-        changed, user attributes may be or may not be copied, data may
-        be subsampled, stats may be collected, etc.  See the
-        documentation for the particular node type.
+        Additional keyword arguments may be passed to customize the copying
+        process. For instance, title and filters may be changed, user
+        attributes may be or may not be copied, data may be sub-sampled, stats
+        may be collected, etc. See the documentation for the particular node
+        type.
 
-        Using only the first argument is equivalent to copying the node
-        to a new location without changing its name.  Using only the
-        second argument is equivalent to making a copy of the node in
-        the same group.
+        Using only the first argument is equivalent to copying the node to a
+        new location without changing its name. Using only the second argument
+        is equivalent to making a copy of the node in the same group.
         """
 
         self._g_checkOpen()
@@ -1041,8 +843,7 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         """
         Get a PyTables attribute from this node.
 
-        If the named attribute does not exist, an `AttributeError` is
-        raised.
+        If the named attribute does not exist, an AttributeError is raised.
         """
         return getattr(self._v_attrs, name)
 
@@ -1051,7 +852,7 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         Set a PyTables attribute for this node.
 
         If the node already has a large number of attributes, a
-        `PerformanceWarning` is issued.
+        PerformanceWarning is issued.
         """
         setattr(self._v_attrs, name, value)
 
@@ -1059,8 +860,7 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         """
         Delete a PyTables attribute from this node.
 
-        If the named attribute does not exist, an `AttributeError` is
-        raised.
+        If the named attribute does not exist, an AttributeError is raised.
         """
         delattr(self._v_attrs, name)
 

@@ -213,11 +213,18 @@ The File Class
 The Node class
 --------------
 .. autoclass:: tables.Node
+    :members:
+    :private-members:
 
 
-.. Group class documentation in tables/group.py docstring
+.. _GroupClassDescr:
 
-.. automodule:: tables.group
+The Group class
+---------------
+
+.. autoclass:: tables.Group
+    :members:
+    :private-members:
 
 
 .. Leaf class documentation in tables/leaf.py docstring

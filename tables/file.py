@@ -359,11 +359,6 @@ class File(hdf5Extension.File, object):
         The UEP (user entry point) group name in the file (see
         the :func`tables.openFile` function).
 
-    .. attribute:: File.title
-
-        The title of the root group in the file.
-
-
     .. method:: File.fileno()
 
         Return the underlying OS integer file descriptor.
