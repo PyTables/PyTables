@@ -20,8 +20,8 @@ dist:		all
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
 
 clean:
-	rm -rf MANIFEST build dist
-	rm -f $(GENERATED) tables/*.so tables/numexpr/*.so
+	rm -rf MANIFEST build dist tmp
+	rm -f $(GENERATED) tables/*.so tables/numexpr/*.so a.out
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
 
