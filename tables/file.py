@@ -939,16 +939,6 @@ class File(hdf5Extension.File, object):
         class (in :ref:`ExternalLinkClassDescr`) for more information on
         external links.
 
-        .. warning:: External links are only supported when PyTables is
-           compiled against HDF5 1.8.x series.  When using PyTables with
-           HDF5 1.6.x, the *parent* group containing
-           external link objects will be mapped to
-           an Unknown instance (see :ref:`UnknownClassDescr`)
-           and you won't be able to access *any*
-           node hanging of this parent group.  It follows that if the
-           parent group containing the external link is the root group,
-           you won't be able to read *any* information
-           contained in the file when using HDF5 1.6.x.
         """
         if not are_extlinks_available:
             raise NotImplementedError(

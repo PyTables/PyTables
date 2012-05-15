@@ -227,9 +227,13 @@ The Group class
     :private-members:
 
 
-.. Leaf class documentation in tables/leaf.py docstring
+.. _LeafClassDescr:
 
-.. automodule:: tables.leaf
+The Leaf class
+--------------
+
+.. autoclass:: tables.Leaf
+    :members:
 
 
 .. Table class, Cols class, Column, and Row class documentation in
