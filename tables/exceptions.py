@@ -47,6 +47,10 @@ Classes:
     Unsupported data type.
 `Incompat16Warning`
     Format incompatible with HDF5 1.6.x series.
+
+    .. deprecated:: 2.4
+
+        Support for HDF5 1.6.x has been dropped.
 """
 
 __docformat__ = 'reStructuredText'
@@ -402,6 +406,11 @@ class Incompat16Warning(Warning):
     This warning is issued when using a functionality that is
     incompatible with the HDF5 1.6.x format and that may create issues
     for reading the files with PyTables compiled against HDF5 1.6.x.
+
+    .. deprecated:: 2.4
+
+        Support for HDF5 1.6.x has been dropped.
+
     """
     pass
 

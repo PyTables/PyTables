@@ -56,7 +56,7 @@ First, make sure that you have
 * Numexpr_ >= 1.4.1 and
 * Cython_ >= 0.13
 
-installed (for testing purposes, we are using HDF5_ 1.8.8, NumPy_ 1.6.1
+installed (for testing purposes, we are using HDF5_ 1.8.9, NumPy_ 1.6.1
 and Numexpr_ 1.4.2 currently). If you don't, fetch and install them before
 proceeding.
 
@@ -102,7 +102,7 @@ PyTables, so you don't need to install it separately.
     locations of the resource root directories on the setup.py command line.
     For example::
 
-        --hdf5=/stuff/hdf5-1.8.5
+        --hdf5=/stuff/hdf5-1.8.9
         --lzo=/stuff/lzo-2.02
         --bzip2=/stuff/bzip2-1.0.5
 
@@ -110,7 +110,7 @@ PyTables, so you don't need to install it separately.
     path, then you can specify the additional linker flags needed to find the
     shared library on the command line as well. For example::
 
-        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.5/lib"
+        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.9/lib"
 
     You may also want to try setting the :envvar:`LD_LIBRARY_PATH`
     environment variable to point to the directory where the shared libraries
@@ -120,7 +120,7 @@ PyTables, so you don't need to install it separately.
     It is also possible to link with specific libraries by setting the
     :envvar:`LIBS` environment variable::
 
-        LIBS="hdf5-1.8.5 nsl"
+        LIBS="hdf5-1.8.9 nsl"
 
     Finally, you can give additional flags to your compiler by passing them to
     the :option:`--cflags` flag::
@@ -330,7 +330,7 @@ Windows prerequisites
 
 First, make sure that you have Python 2.4, NumPy 1.4.1 and Numexpr 1.4.1 or
 higher installed (PyTables binaries have been built using NumPy 1.5 and
-Numexpr 1.4.1).  The binaries already include DLLs for HDF5 (1.8.4, 1.8.8),
+Numexpr 1.4.1).  The binaries already include DLLs for HDF5 (1.8.4, 1.8.9),
 zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2 (1.0.5) for
 Windows (2.8.0).
 The LZO DLL can't be included because of license issues (but read below for

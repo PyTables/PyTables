@@ -45,10 +45,8 @@ import tables.misc.proxydict
 from tables import hdf5Extension
 from tables import utilsExtension
 from tables import parameters
-from tables.exceptions import \
-     ClosedFileError, FileModeError, \
-     NodeError, NoSuchNodeError, UndoRedoError, \
-     PerformanceWarning, Incompat16Warning
+from tables.exceptions import (ClosedFileError, FileModeError,
+     NodeError, NoSuchNodeError, UndoRedoError, PerformanceWarning)
 from tables.registry import getClassByName
 from tables.path import joinPath, splitPath
 from tables import undoredo
@@ -67,14 +65,7 @@ from tables import linkExtension
 from tables.utils import detectNumberOfCores
 from tables import lrucacheExtension
 
-
-from tables.link import SoftLink
-try:
-    from tables.link import ExternalLink
-except ImportError:
-    are_extlinks_available = False
-else:
-    are_extlinks_available = True
+from tables.link import SoftLink, ExternalLink
 
 
 __version__ = "$Revision$"
@@ -982,30 +973,14 @@ class File(hdf5Extension.File, object):
         `createparents` is true, the intermediate groups required for
         reaching `where` are created (the default is not doing so).
 
-        The purpose of the `warn16incompat` argument is to avoid an
-        `Incompat16Warning` (see below).  The default is to issue the
-        warning.
-
         The returned node is an `ExternalLink` instance.  See the
         `SoftLink` class for more information on external links.
 
-        .. Warning:: External links are only supported when PyTables is
-           compiled against HDF5 1.8.x series.  When using PyTables with
-           HDF5 1.6.x, the *parent* group containing external link
-           objects will be mapped to an `Unknown` instance and you won't
-           be able to access *any* node hanging of this parent group.
-           It follows that if the parent group containing the external
-           link is the root group, you won't be able to read *any*
-           information contained in the file when using HDF5 1.6.x.
+        .. note::
+            The warn16incompat arrgument is deprected since version 2.4.
+            It will be ignored.
 
         """
-        if not are_extlinks_available:
-            raise NotImplementedError(
-                "External links are not available when using HDF5 1.6.x")
-        if warn16incompat:
-            warnings.warn("""\
-external links are only supported when PyTables is compiled against HDF5 1.8.x series and they, and their parent groups, are unreadable with HDF5 1.6.x series.  You can set `warn16incompat` argument to false to disable this warning.""",
-                          Incompat16Warning)
 
         if not isinstance(target, str):
             if hasattr(target, '_v_pathname'):   # quacks like a Node

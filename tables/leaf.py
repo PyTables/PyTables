@@ -706,24 +706,11 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         The truncation operation can only be applied to *enlargeable*
         datasets, else a `TypeError` will be raised.
-
-        .. Warning:: If you are using the HDF5 1.6.x series, and due to
-           limitations of them, `size` must be greater than zero
-           (i.e. the dataset can not be completely emptied).  A
-           `ValueError` will be issued if you are using HDF5 1.6.x and
-           try to pass a zero size to this method.  HDF5 1.8.x doesn't
-           undergo this problem.
         """
         # A non-enlargeable arrays (Array, CArray) cannot be truncated
         if self.extdim < 0:
             raise TypeError("non-enlargeable datasets cannot be truncated")
-        if (size > 0 or
-            (size == 0 and whichLibVersion("hdf5")[1] >= "1.8.0")):
-                self._g_truncate(size)
-        else:
-            raise ValueError("""
-`size` must be greater than 0 if you are using HDF5 < 1.8.0.
-With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
+        self._g_truncate(size)
 
 
     def isVisible(self):

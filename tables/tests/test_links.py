@@ -17,12 +17,7 @@ import shutil
 import tables as t
 from tables.tests import common
 
-try:
-    from tables.link import ExternalLink
-except ImportError:
-    are_extlinks_available = False
-else:
-    are_extlinks_available = True
+from tables.link import ExternalLink
 
 
 # Test for hard links
@@ -362,16 +357,12 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         extarr2 = self.exth5file.createArray(extgroup1, 'arr2', [1, 2, 3])
         # Create external links
         lgroup1 = self.h5file.createExternalLink(
-            '/', 'lgroup1', '%s:/group1'%self.extfname,
-            warn16incompat=False)
+            '/', 'lgroup1', '%s:/group1'%self.extfname)
         self.assertTrue(lgroup1 is not None)
         larr1 = self.h5file.createExternalLink(
-            group1, 'larr1', '%s:/arr1'%self.extfname,
-            warn16incompat=False)
+            group1, 'larr1', '%s:/arr1'%self.extfname)
         self.assertTrue(larr1 is not None)
-        larr2 = self.h5file.createExternalLink(
-            '/', 'larr2', extarr2,
-            warn16incompat=False)
+        larr2 = self.h5file.createExternalLink('/', 'larr2', extarr2)
         self.assertTrue(larr2 is not None)
         # Re-open the external file in 'r'ead-only mode
         self.exth5file.close()
@@ -559,44 +550,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         h5f.close()
         os.remove(fname)
 
-
-# Test for external links that are not supported in HDF5 1.6.x
-class UnknownTestCase(common.PyTablesTestCase):
-
-    # HDF5 1.6.x does not recognize external links at all.  Worse than
-    # that, it does not recognize groups containing external links, and
-    # they must be mapped into an `Unknown` node.
-    def test00_ExternalLinks(self):
-        """Checking external links with HDF5 1.6.x (`Unknown` node)."""
-
-        h5file = t.openFile(self._testFilename('elink.h5'))
-        node = h5file.getNode('/pep')
-        self.assertTrue(isinstance(node, t.Unknown))
-        if common.verbose:
-            print "Great!  The external links are recognized as `Unknown`."
-            print "Node:", node
-        h5file.close()
-
-
-    def test01_ExternalLinks(self):
-        """Checking copying external links with HDF5 1.6.x (`Unknown` node)."""
-
-        h5fname = self._testFilename('elink.h5')
-        h5fname_copy = tempfile.mktemp(".h5")
-        shutil.copy(h5fname, h5fname_copy)
-        h5file = t.openFile(h5fname_copy, "a")
-        node = h5file.getNode('/pep')
-        self.assertTrue(isinstance(node, t.Unknown))
-        node._f_copy('/', 'pep2')    # Should do nothing
-        self.assertTrue('/pep2' not in h5file)
-        if common.verbose:
-            print "Great!  The unknown nodes are not copied!"
-        h5file.close()
-        os.remove(h5fname_copy)
-
-
-
-
 #----------------------------------------------------------------------
 
 def suite():
@@ -609,10 +562,7 @@ def suite():
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(HardLinkTestCase))
         theSuite.addTest(unittest.makeSuite(SoftLinkTestCase))
-        if are_extlinks_available:
-            theSuite.addTest(unittest.makeSuite(ExternalLinkTestCase))
-        else:
-            theSuite.addTest(unittest.makeSuite(UnknownTestCase))
+        theSuite.addTest(unittest.makeSuite(ExternalLinkTestCase))
 
     return theSuite
 

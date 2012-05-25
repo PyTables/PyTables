@@ -88,6 +88,10 @@ Deprecations
   :data:`tables.parameters.MAX_NUMEXPR_THREADS` instead.
   See :issue:`142`.
 
+- Since the support for HDF5 .6.x has been dropped, the *warn16incompat*
+  argument of the :meth:`tables.File.createExternalLink` method and the
+  :exc:`Incompat16Warning` exception class are now deprecated.
+
 .. _numpy: http://numpy.scipy.org
 .. _Blosc: https://github.com/FrancescAlted/blosc
 .. _Numexpr: http://code.google.com/p/numexpr

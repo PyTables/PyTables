@@ -45,13 +45,7 @@ from tables.node import Node, NotLoggedMixin
 from tables.leaf import Leaf
 from tables.unimplemented import UnImplemented, Unknown
 
-from tables.link import Link, SoftLink
-try:
-    from tables.link import ExternalLink
-except ImportError:
-    are_extlinks_available = False
-else:
-    are_extlinks_available = True
+from tables.link import Link, SoftLink, ExternalLink
 
 
 __version__ = "$Revision$"

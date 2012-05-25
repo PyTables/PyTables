@@ -100,8 +100,7 @@ Cache limits
 
 .. data:: METADATA_CACHE_SIZE
 
-    Size (in bytes) of the HDF5 metadata cache.  This only
-    takes effect if using HDF5 1.8.x series.
+    Size (in bytes) of the HDF5 metadata cache.
 
 
 .. data:: NODE_CACHE_SLOTS

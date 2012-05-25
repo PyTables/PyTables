@@ -929,9 +929,6 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
         raise TypeError("the HDF5 class ``%s`` is not supported yet"
                         % HDF5ClassToString[class_id])
       # Recursively remove possible padding on type_id.
-      # H5Tpack(type_id)
-      # H5Tpack has problems with nested compund types that were solved
-      # in HDF5 1.8.2 (or perhaps 1.8.3).  Use the next better.
       native_type_id = get_nested_native_type(type_id)
       desc = Description(HDF5ToNPNestedType(native_type_id))
       # stype here is not exactly a string, but the NumPy dtype factory

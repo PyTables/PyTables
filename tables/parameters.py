@@ -150,10 +150,9 @@ before other chunks."""
 CHUNK_CACHE_SIZE = 2*_MB
 """Size (in bytes) for HDF5 chunk cache."""
 
-# Size for new metadata cache system in HDF5 1.8.x
+# Size for new metadata cache system
 METADATA_CACHE_SIZE = 1*_MB  # 1 MB is the default for HDF5
-"""Size (in bytes) of the HDF5 metadata cache.  This only takes effect
-if using HDF5 1.8.x series."""
+"""Size (in bytes) of the HDF5 metadata cache."""
 
 
 # NODE_CACHE_SLOTS tells the number of nodes that fits in the cache.

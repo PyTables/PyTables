@@ -598,34 +598,20 @@ File methods - hierarchy manipulation
 
 .. method:: File.createExternalLink(where, name, target, createparents=False, warn16incompat=False)
 
-    Create an external link to a target node
-    with the given name
-    in where location.  target
-    can be a node object in another file or a path string in the
-    form `file:/path/to/node`.  If
-    createparents is true, the intermediate
-    groups required for reaching where are
-    created (the default is not doing so).
+    Create an external link to a target node with the given name in where
+    location.
+    target can be a node object in another file or a path string in the form
+    `file:/path/to/node`.
+    If createparents is true, the intermediate groups required for reaching
+    where are created (the default is not doing so).
 
-    The purpose of the warn16incompat
-    argument is to avoid an Incompat16Warning
-    (see below).  The default is to issue the warning.
+    The returned node is an ExternalLink instance.
+    See the ExternalLink class (in :ref:`ExternalLinkClassDescr`) for more
+    information on external links.
 
-    The returned node is an ExternalLink
-    instance.  See the
-    ExternalLink class (in
-    :ref:`ExternalLinkClassDescr`) for more information on external links.
-
-    .. warning:: External links are only supported when PyTables is
-       compiled against HDF5 1.8.x series.  When using PyTables with
-       HDF5 1.6.x, the *parent* group containing
-       external link objects will be mapped to
-       an Unknown instance (see :ref:`UnknownClassDescr`)
-       and you won't be able to access *any*
-       node hanging of this parent group.  It follows that if the
-       parent group containing the external link is the root group,
-       you won't be able to read *any* information
-       contained in the file when using HDF5 1.6.x.
+    .. note::
+        The warn16incompat arrgument is deprected since version 2.4.
+        It will be ignored.
 
 
 .. method:: File.createGroup(where, name, title='', filters=None, createparents=False)
@@ -1877,7 +1863,7 @@ Node (see :ref:`NodeClassDescr`):
 .. attribute:: Leaf.ndim
 
     The number of dimensions of the leaf data.
-    
+
     .. versionadded: 2.4
 
 .. attribute:: Leaf.nrows
@@ -1905,7 +1891,7 @@ Node (see :ref:`NodeClassDescr`):
 .. attribute:: Leaf.size_in_memory
 
     The size of this leaf's data in bytes when it is fully loaded into memory.
-    This may be used in combination with size_on_disk to calculate the 
+    This may be used in combination with size_on_disk to calculate the
     compression ratio of the data.
 
 
@@ -2077,16 +2063,6 @@ Leaf methods
     The truncation operation can only be applied to
     *enlargeable* datasets, else a
     TypeError will be raised.
-
-    .. warning:: If you are using the HDF5 1.6.x series, and due to
-       limitations of them, size must be greater
-       than zero (i.e. the dataset can not be completely emptied).  A
-       ValueError will be issued if you are using
-       HDF5 1.6.x and try to pass a zero size to this method.  Also,
-       HDF5 1.6.x has the problem that it cannot work against
-       CArray objects (again, a
-       ValueError will be issued).  HDF5 1.8.x
-       doesn't undergo these problems.
 
 
 .. method:: Leaf.__len__()
@@ -2304,7 +2280,7 @@ Table.cols.
 .. attribute:: Table.size_in_memory
 
     The size of this table's data in bytes when it is fully loaded into memory.
-    This may be used in combination with size_on_disk to calculate the 
+    This may be used in combination with size_on_disk to calculate the
     compression ratio of the data.
 
 
@@ -3853,7 +3829,7 @@ CArray instance variables
 .. attribute:: CArray.size_in_memory
 
     The size of this carray's data in bytes when it is fully loaded into memory.
-    This may be used in combination with size_on_disk to calculate the 
+    This may be used in combination with size_on_disk to calculate the
     compression ratio of the data.
 
 
@@ -4024,7 +4000,7 @@ VLArray instance variables
     On iterators, this is the index of the current row.
 
 .. attribute:: VLArray.extdim
-   
+
    The index of the enlargeable dimension (always 0 for vlarrays).
 
 .. attribute:: VLArray.nrows
@@ -4035,7 +4011,7 @@ VLArray instance variables
 .. attribute:: VLArray.size_on_disk
 
     The HDF5 library does not include a function to determine size_on_disk for
-    variable-length arrays.  Accessing this attribute will return a 
+    variable-length arrays.  Accessing this attribute will return a
     NotImplementedError.
 
 
@@ -4047,7 +4023,7 @@ VLArray instance variables
         first serialized using cPickle, and then converted to a NumPy array
         suitable for storage in an HDF5 file.  This attribute will return the
         size of that NumPy representation.  If you wish to know the size of the
-        Python objects after they are loaded from disk, you can use this 
+        Python objects after they are loaded from disk, you can use this
         `ActiveState recipe <http://code.activestate.com/recipes/577504/>`_.
 
 
@@ -4414,21 +4390,9 @@ The ExternalLink class
 
     Represents an external link.
 
-    An external link is a reference to a node
-    in *another* file.  Getting access to the pointed
-    node (this action is called *dereferrencing*) is
-    done via the __call__ special method (see
-    below).
-
-    .. warning:: External links are only supported when PyTables is compiled
-       against HDF5 1.8.x series.  When using PyTables with HDF5 1.6.x,
-       the *parent* group containing external link
-       objects will be mapped to an Unknown instance
-       (see :ref:`UnknownClassDescr`) and you won't be able to access *any* node
-       hanging of this parent group.  It follows that if the parent group
-       containing the external link is the root group, you won't be able
-       to read *any* information contained in the file
-       when using HDF5 1.6.x.
+    An external link is a reference to a node in *another* file.
+    Getting access to the pointed node (this action is called
+    *dereferrencing*) is done via the __call__ special method (see below).
 
 
 ExternalLink instance variables
@@ -4796,7 +4760,7 @@ Atom instance variables
 .. attribute:: Atom.ndim
 
     The number of dimensions of the atom.
-    
+
     .. versionadded:: 2.4
 
 .. attribute:: Atom.recarrtype
@@ -6216,6 +6180,10 @@ to PyTables are declared.
     Unsupported data type.
 :Incompat16Warning:
     Format incompatible with HDF5 1.6.x series.
+
+    .. deprecated:: 2.4
+
+        Support for HDF5 1.6.x has been dropped.
 
 
 The HDF5ExtError exception

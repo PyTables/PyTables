@@ -1478,10 +1478,9 @@ In particular, note the multidimensional column cells in table
 Using links for more convenient access to nodes
 -----------------------------------------------
 
-Links are special nodes that can be used to create additional
-paths to your existing nodes.  PyTables supports three kinds of links:
-hard links, soft links (aka symbolic links) and, if using HDF5 1.8.x,
-external links.
+Links are special nodes that can be used to create additional paths to your
+existing nodes.  PyTables supports three kinds of links:
+hard links, soft links (aka symbolic links) and external links.
 
 Hard links let the user create additional paths to access
 another node in the same file, and once created, they are
@@ -1618,33 +1617,11 @@ the a1 array into a different file::
     >>> new_a1 = a1.copy(f2.root, 'a1')
     >>> f2.close()  # close the other file
 
-And now, we can remove the existing soft link and create the
-external link in its place::
+And now, we can remove the existing soft link and create the external link
+in its place::
 
     >>> la1.remove()
     >>> la1 = f1.createExternalLink(gl, 'la1', 'links2.h5:/a1')
-    /home/faltet/PyTables/pytables/branches/links/tables/file.py:971:
-    Incompat16Warning: external links are only supported when PyTables is compiled
-    against HDF5 1.8.x series and they, and their parent groups, are unreadable
-    with HDF5 1.6.x series.  You can set `warn16incompat` argument to false to
-    disable this warning.
-      Incompat16Warning)
-
-First, you should notice the warning when creating the
-external link: due to the need to change the format of the group
-containing an external link (introduced in HDF5 1.8), the parent
-groups (and hence, *all* its children) of
-external links are not readable with applications linked with HDF5
-1.6.x.  You should have this in mind if interoperability is
-important to you.  At any rate, you can disable the warning by
-setting the warn16incompat argument to true.
-See :meth:`File.createExternalLink`
-for more info.
-
-But, when using HDF5 1.8.x (I'm supposing that you are using
-it for exercising this part of the tutorial), the external link is
-completely functional::
-
     >>> print "``%s`` is an external link to: ``%s``" % (la1, la1.target)
     ``/gl/la1 (ExternalLink) -> links2.h5:/a1`` is an external link to: ``links2.h5:/a1``
 

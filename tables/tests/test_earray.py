@@ -2310,10 +2310,6 @@ class TruncateTestCase(unittest.TestCase):
     def test00_truncate(self):
         """Checking EArray.truncate() method (truncating to 0 rows)"""
 
-        # Only run this test for HDF5 >= 1.8.0
-        if whichLibVersion("hdf5")[1] < "1.8.0":
-            return
-
         array1 = self.fileh.root.array1
         # Truncate to 0 elements
         array1.truncate(0)

@@ -5212,10 +5212,6 @@ class TruncateTestCase(unittest.TestCase):
     def test00_truncate(self):
         """Checking Table.truncate() method (truncating to 0 rows)"""
 
-        # Only run this test for HDF5 >= 1.8.0
-        if whichLibVersion("hdf5")[1] < "1.8.0":
-            return
-
         table = self.fileh.root.table
         # Truncate to 0 elements
         table.truncate(0)
