@@ -2975,6 +2975,10 @@ Description instance variables
     column. You can use this as the names argument of NumPy array and
     NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
 
+.. attribute:: Description._v_pathname
+
+    Pathname of the table or nested column.
+
 .. attribute:: Description._v_pathnames
 
     A list of the pathnames of all the columns under this

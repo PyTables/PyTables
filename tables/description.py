@@ -371,6 +371,9 @@ class Description(object):
         or nested column.  You can use this for the ``names`` argument
         of `NestedRecArray` factory functions.
 
+    _v_pathname
+        Pathname of the table or nested column.
+
     _v_pathnames
         A list of the pathnames of all the columns under this table or
         nested column (in preorder).  If it does not contain nested
