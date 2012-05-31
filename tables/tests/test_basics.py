@@ -18,6 +18,7 @@ from tables import *
 from tables.flavor import all_flavors, array_of_flavor
 from tables.tests import common
 from tables.parameters import NODE_CACHE_SLOTS
+from tables.description import descr_from_dtype, dtype_from_descr
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
@@ -2498,6 +2499,74 @@ class TestIsDescription(common.PyTablesTestCase):
             pass
 
         self.assertTrue('c' in TestDesc.columns)
+
+    def test_descr_from_dtype(self):
+        t = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        descr, byteorder = descr_from_dtype(t)
+
+        self.assertTrue('col1' in descr._v_colObjects)
+        self.assertTrue('col2' in descr._v_colObjects)
+        self.assertEqual(len(descr._v_colObjects), 2)
+        self.assertTrue(isinstance(descr._v_colObjects['col1'], Col))
+        self.assertTrue(isinstance(descr._v_colObjects['col2'], Col))
+        self.assertEqual(descr._v_colObjects['col1'].dtype, numpy.int16)
+        self.assertEqual(descr._v_colObjects['col2'].dtype, float)
+
+    def test_dtype_from_descr_is_description(self):
+        # See gh-152
+        class TestDescParent(IsDescription):
+            col1 = Int16Col()
+            col2 = FloatCol()
+
+        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        t = dtype_from_descr(TestDescParent)
+
+        self.assertEqual(t, dtype)
+
+    def test_dtype_from_descr_is_description_instance(self):
+        # See gh-152
+        class TestDescParent(IsDescription):
+            col1 = Int16Col()
+            col2 = FloatCol()
+
+        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        t = dtype_from_descr(TestDescParent())
+
+        self.assertEqual(t, dtype)
+
+    def test_dtype_from_descr_description_instance(self):
+        # See gh-152
+        class TestDescParent(IsDescription):
+            col1 = Int16Col()
+            col2 = FloatCol()
+
+        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        desctiption = Description(TestDescParent().columns)
+        t = dtype_from_descr(desctiption)
+
+        self.assertEqual(t, dtype)
+
+    def test_dtype_from_descr_dict(self):
+        # See gh-152
+        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        t = dtype_from_descr({'col1': Int16Col(), 'col2': FloatCol()})
+
+        self.assertEqual(t, dtype)
+
+    def test_dtype_from_descr_invalid_type(self):
+        # See gh-152
+        self.assertRaises(ValueError, dtype_from_descr, [])
+
+    def test_dtype_from_descr_byteorder(self):
+        # See gh-152
+        class TestDescParent(IsDescription):
+            col1 = Int16Col()
+            col2 = FloatCol()
+
+        t = dtype_from_descr(TestDescParent, byteorder='>')
+
+        self.assertEqual(t['col1'].byteorder, '>')
+        self.assertEqual(t['col2'].byteorder, '>')
 
 
 class TestAtom(common.PyTablesTestCase):

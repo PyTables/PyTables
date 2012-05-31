@@ -764,6 +764,31 @@ def descr_from_dtype(dtype_):
     return Description(fields), fbyteorder
 
 
+def dtype_from_descr(descr, byteorder=None):
+    """
+    Get a (nested) NumPy dtype from a description instance and byteorder.
+
+    The descr parameter can be a Description or IsDescription
+    instance, sub-class of IsDescription or a dictionary.
+    """
+
+    if isinstance(descr, dict):
+        descr = Description(descr)
+    elif (type(descr) == type(IsDescription)
+                   and issubclass(descr, IsDescription)):
+        descr = Description(descr().columns)
+    elif isinstance(descr, IsDescription):
+        descr = Description(descr.columns)
+    elif not isinstance(descr, Description):
+        raise ValueError('invalid description: %r' % descr)
+
+    dtype_ = descr._v_dtype
+
+    if byteorder and byteorder != '|':
+        dtype_ = dtype_.newbyteorder(byteorder)
+
+    return dtype_
+
 
 if __name__=="__main__":
     """Test code"""
