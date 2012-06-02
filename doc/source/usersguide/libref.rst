@@ -3821,7 +3821,7 @@ The CArray class
 .. _CArrayClassInstanceVariables:
 
 CArray instance variables
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. attribute:: CArray.size_on_disk
 
@@ -5497,6 +5497,21 @@ creation.
     Maps the name of each column in the description to its
     own descriptive object.
 
+
+Description helper functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. function:: tables.description.descr_from_dtype(dtype_)
+
+    Get a description instance and byteorder from a (nested) NumPy dtype.
+
+.. function:: tables.description.dtype_from_descr(descr, byteorder=None)
+
+    Get a (nested) NumPy dtype from a description instance and byteorder.
+
+    The description parameter can be a :class:`Description` or
+    :class:`IsDescription` instance, any sub-class of :class:`IsDescription`
+    or a dictionary.
 
 
 Helper classes
