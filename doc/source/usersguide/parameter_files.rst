@@ -266,6 +266,7 @@ Miscellaneous
     many of them (e.g. > 4), perhaps one less than this.
 
     .. note::
+
         currently MAX_THREADS is only used as a fall-back if
         :data:`tables.parameters.MAX_NUMEXPR_THREADS` or
         :data:`tables.parameters.MAX_BLOSC_THREADS` are not set.

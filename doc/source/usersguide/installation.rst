@@ -204,15 +204,17 @@ you can proceed with the PyTables package itself.
 
         $ env PYTHONPATH=. python -c "import tables; tables.test()"
 
-      .. note:: the syntax used above overrides original contents of the
-                :envvar:`PYTHONPATH` environment variable.
-                If this is not the desired behaviour and the user just wants
-                to add some path before existing ones, then the safest syntax
-                to use is the following::
+      .. note::
 
-                  $ env PYTHONPATH=.${PYTHONPATH:+:$PYTHONPATH} python tables/tests/test_all.py
+            the syntax used above overrides original contents of the
+            :envvar:`PYTHONPATH` environment variable.
+            If this is not the desired behaviour and the user just wants
+            to add some path before existing ones, then the safest syntax
+            to use is the following::
 
-                Please refer to your :program:`sh` documentation for details.
+              $ env PYTHONPATH=.${PYTHONPATH:+:$PYTHONPATH} python tables/tests/test_all.py
+
+            Please refer to your :program:`sh` documentation for details.
 
    **Windows**
 
