@@ -248,9 +248,13 @@ The Leaf class
 .. automodule:: tables.description
 
 
-.. Array class documentation in tables/array.py
+.. _ArrayClassDescr:
 
-.. automodule:: tables.array
+The Array class
+---------------
+
+.. autoclass:: tables.Array
+    :members:
 
 
 .. CArray class documentation in tables/carray.py
