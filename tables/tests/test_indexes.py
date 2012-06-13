@@ -2318,6 +2318,72 @@ class readSortedIndex9(readSortedIndexTestCase):
     optlevel = 9
 
 
+class Issue156TestBase(PyTablesTestCase):
+    # field name in table according to which test_copysort() sorts the table
+    sort_field = None
+
+    def setUp(self):
+        # create hdf5 file
+        self.filename = tempfile.mktemp(".hdf5")
+        self.file = openFile(self.filename, mode="w")
+
+        # create nested table
+        class Foo(IsDescription):
+            frame = UInt16Col()
+            class Bar(IsDescription):
+                code = UInt16Col()
+
+        table = self.file.createTable('/', 'foo', Foo, filters=Filters(3, 'zlib'), createparents=True)
+
+        self.file.flush()
+
+        # fill table with 10 random numbers
+        for k in xrange(10):
+            row = table.row
+            row['frame'] = numpy.random.random_integers(0, 2**16-1)
+            row['Bar/code'] = numpy.random.random_integers(0, 2**16-1)
+            row.append()
+
+        self.file.flush()
+
+
+    def tearDown(self):
+        self.file.close()
+        os.remove(self.filename)
+
+
+    def _copysort(self):
+        # copy table
+        oldNode = self.file.getNode('/foo')
+        # create completely sorted index on a main column
+        oldNode.colinstances[self.sort_field].createCSIndex()
+
+        # this fails on ade2ba123efd267fd31
+        try:
+            newNode = oldNode.copy(newname='foo2', overwrite=True, sortby=self.sort_field, checkCSI=True, propindexes=True)
+        except AttributeError as e:
+            self.fail("test_copysort1() raised AttributeError unexpectedly: \n"+str(e))
+
+        # check column is sorted
+        self.assertTrue( numpy.all( newNode.col(self.sort_field) == sorted( oldNode.col(self.sort_field) ) ) )
+        # check index is available
+        self.assertTrue( newNode.colindexes.has_key(self.sort_field) )
+        # check CSI was propagated
+        self.assertTrue( newNode.colindexes[self.sort_field].is_CSI )
+
+
+class Issue156_1(Issue156TestBase):
+    # sort by field from non nested entry
+    sort_field = 'frame'
+    test_copysort = Issue156TestBase._copysort
+
+class Issue156_2(Issue156TestBase):
+    # sort by field from nested entry
+    sort_field = 'Bar/code'
+    test_copysort = Issue156TestBase._copysort
+
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -2351,6 +2417,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(readSortedIndex3))
         theSuite.addTest(unittest.makeSuite(readSortedIndex6))
         theSuite.addTest(unittest.makeSuite(readSortedIndex9))
+        theSuite.addTest(unittest.makeSuite(Issue156_1))
+        theSuite.addTest(unittest.makeSuite(Issue156_2))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))
