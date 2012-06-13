@@ -2628,13 +2628,14 @@ The 'names' parameter must be a list of strings.""")
         """Generate index in `other` table for every indexed column here."""
         oldcols, newcols = self.colinstances, other.colinstances
         for colname in newcols:
-            oldcolindexed = oldcols[colname].is_indexed
-            if oldcolindexed:
-                oldcolindex = oldcols[colname].index
-                newcol = newcols[colname]
-                newcol.createIndex(
-                    kind=oldcolindex.kind, optlevel=oldcolindex.optlevel,
-                    filters=oldcolindex.filters, tmp_dir=None)
+            if (isinstance(oldcols[colname], Column)):
+                oldcolindexed = oldcols[colname].is_indexed
+                if oldcolindexed:
+                    oldcolindex = oldcols[colname].index
+                    newcol = newcols[colname]
+                    newcol.createIndex(
+                        kind=oldcolindex.kind, optlevel=oldcolindex.optlevel,
+                        filters=oldcolindex.filters, tmp_dir=None)
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
