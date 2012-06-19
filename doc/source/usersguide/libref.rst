@@ -257,19 +257,31 @@ The Array class
     :members:
 
 
-.. CArray class documentation in tables/carray.py
+.. _CArrayClassDescr:
 
-.. automodule:: tables.carray
+The CArray class
+----------------
+
+.. autoclass:: CArray
+    :members:
 
 
-.. EArray class documentation in tables/earray.py
+.. _EArrayClassDescr:
 
-.. automodule:: tables.earray
+The EArray class
+----------------
+
+.. autoclass:: EArray
+    :members:
 
 
-.. VLArray class documentation in tables/vlarray.py
+.. _VLArrayClassDescr:
 
-.. automodule:: tables.vlarray
+The VLArray class
+-----------------
+
+.. autoclass:: VLArray
+    :members:
 
 
 .. Link class documentation in tables/link.py

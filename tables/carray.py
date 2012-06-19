@@ -9,85 +9,6 @@
 #
 ########################################################################
 
-"""
-.. _CArrayClassDescr:
-
-.. currentmodule:: tables
-
-The CArray class
-----------------
-.. class:: CArray
-    This class represents homogeneous datasets in an HDF5 file.
-
-    The difference between a CArray and a normal Array (see
-    :ref:`ArrayClassDescr`), from which it inherits, is that a CArray has a
-    chunked layout and, as a consequence, it supports compression.
-    You can use datasets of this class to easily save or load arrays to or
-    from disk, with compression support included.
-
-    CArray includes all the instance variables and methods of Array.  Only those
-    with different behavior are mentioned here.
-
-.. _CArrayClassInstanceVariables:
-
-CArray instance variables
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. attribute:: CArray.size_on_disk
-
-    The size of this carray's data in bytes as it is stored on disk.  If the data
-    is compressed, this shows the compressed size.  In the case of uncompressed,
-    chunked data, this may be slightly larger than the amount of data, due to
-    partially filled chunks.
-
-.. attribute:: CArray.size_in_memory
-
-    The size of this carray's data in bytes when it is fully loaded into memory.
-    This may be used in combination with size_on_disk to calculate the
-    compression ratio of the data.
-
-
-Examples of use
-~~~~~~~~~~~~~~~
-See below a small example of the use of the
-CArray class.  The code is available in
-:file:`examples/carray1.py`::
-
-    import numpy
-    import tables
-
-    fileName = 'carray1.h5'
-    shape = (200, 300)
-    atom = tables.UInt8Atom()
-    filters = tables.Filters(complevel=5, complib='zlib')
-
-    h5f = tables.openFile(fileName, 'w')
-    ca = h5f.createCArray(h5f.root, 'carray', atom, shape, filters=filters)
-
-    # Fill a hyperslab in ``ca``.
-    ca[10:60, 20:70] = numpy.ones((50, 50))
-    h5f.close()
-
-    # Re-open and read another hyperslab
-    h5f = tables.openFile(fileName)
-    print h5f
-    print h5f.root.carray[8:12, 18:22]
-    h5f.close()
-
-The output for the previous script is something like::
-
-    carray1.h5 (File) ''
-    Last modif.: 'Thu Apr 12 10:15:38 2007'
-    Object Tree:
-    / (RootGroup) ''
-    /carray (CArray(200, 300), shuffle, zlib(5)) ''
-    [[0 0 0 0]
-    [0 0 0 0]
-    [0 0 1 1]
-    [0 0 1 1]]
-"""
-
-
 import sys
 
 import numpy
@@ -105,38 +26,24 @@ __version__ = "$Revision$"
 obversion = "1.0"    # Support for time & enumerated datatypes.
 
 
-
 class CArray(Array):
     """
     This class represents homogeneous datasets in an HDF5 file.
 
-    The difference between a `CArray` and a normal `Array`, from which
-    it inherits, is that a `CArray` has a chunked layout and, as a
-    consequence, it supports compression.  You can use datasets of
-    this class to easily save or load arrays to or from disk, with
+    The difference between a CArray and a normal Array (see
+    :ref:`ArrayClassDescr`), from which it inherits, is that a CArray has a
+    chunked layout and, as a consequence, it supports compression.  You can use
+    datasets of this class to easily save or load arrays to or from disk, with
     compression support included.
 
     CArray includes all the instance variables and methods of Array.  Only those
     with different behavior are mentioned here.
 
-    Public methods
-    --------------
+    Examples
+    --------
 
-    size_on_disk
-        The size of this carray's data in bytes as it is stored on disk.  If the
-        data is compressed, this shows the compressed size.  In the case of
-        uncompressed, chunked data, this may be slightly larger than the amount
-        of data, due to partially filled chunks.
-    size_in_memory
-        The size of this carray's data in bytes when it is fully loaded into
-        memory. This may be used in combination with size_on_disk to calculate
-        the compression ratio of the data.
-
-    Example of use
-    --------------
-
-    See below a small example of the use of the `CArray` class.  The
-    code is available in ``examples/carray1.py``::
+    See below a small example of the use of the `CArray` class.  The code is
+    available in ``examples/carray1.py``::
 
         import numpy
         import tables
@@ -148,6 +55,7 @@ class CArray(Array):
 
         h5f = tables.openFile(fileName, 'w')
         ca = h5f.createCArray(h5f.root, 'carray', atom, shape, filters=filters)
+
         # Fill a hyperslab in ``ca``.
         ca[10:60, 20:70] = numpy.ones((50, 50))
         h5f.close()
