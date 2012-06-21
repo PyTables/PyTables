@@ -8,210 +8,6 @@
 #
 ########################################################################
 
-"""
-.. _LinkClassDescr:
-
-.. currentmodule:: tables.link
-
-The Link class
---------------
-.. class:: Link
-
-    Abstract base class for all PyTables links.
-
-    A link is a node that refers to another node.
-    The Link class inherits
-    from Node class and the links that inherits
-    from Link are SoftLink
-    and ExternalLink.  There is not
-    a HardLink subclass because hard links behave
-    like a regular Group or Leaf.
-    Contrarily to other nodes, links cannot have HDF5 attributes.  This
-    is an HDF5 library limitation that might be solved in future
-    releases.
-
-    See :ref:`LinksTutorial` for a small tutorial on how
-    to work with links.
-
-
-Link instance variables
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. attribute:: Link._v_attrs
-
-    A *NoAttrs* instance replacing the
-    typical *AttributeSet* instance of other
-    node objects.  The purpose of *NoAttrs* is
-    to make clear that HDF5 attributes are not supported in link
-    nodes.
-
-
-.. attribute:: Link.target
-
-    The path string to the pointed node.
-
-
-Link methods
-~~~~~~~~~~~~
-The following methods are useful for copying, moving, renaming
-and removing links.
-
-
-.. method:: Link.copy(newparent=None, newname=None, overwrite=False, createparents=False)
-
-    Copy this link and return the new one.
-
-    See :meth:`Node._f_copy` for a complete explanation of
-    the arguments.  Please note that there is no
-    recursive flag since links do not have child nodes.
-
-
-.. method:: Link.move(newparent=None, newname=None, overwrite=False)
-
-    Move or rename this link.
-
-    See :meth:`Node._f_move` for a complete explanation of the arguments.
-
-
-.. method:: Link.remove()
-
-    Remove this link from the hierarchy.
-
-
-.. method:: Link.rename(newname=None)
-
-    Rename this link in place.
-
-    See :meth:`Node._f_rename` for a complete explanation of the arguments.
-
-
-.. _SoftLinkClassDescr:
-
-The SoftLink class
-------------------
-.. class:: tables.link.SoftLink
-
-    Represents a soft link (aka symbolic link).
-
-    A soft link is a reference to another node in
-    the *same* file hierarchy.  Getting access to the
-    pointed node (this action is
-    called *dereferrencing*) is done via
-    the __call__ special method (see below).
-
-
-SoftLink special methods
-~~~~~~~~~~~~~~~~~~~~~~~~
-The following methods are specific for dereferrencing and
-representing soft links.
-
-
-.. method:: SoftLink.__call__()
-
-    Dereference self.target and return the
-    pointed object.
-
-    Example of use::
-
-        >>> f=tables.openFile('data/test.h5')
-        >>> print f.root.link0
-        /link0 (SoftLink) -> /another/path
-        >>> print f.root.link0()
-        /another/path (Group) ''
-
-.. method:: SoftLink.__str__()
-
-    Return a short string representation of the link.
-
-    Example of use::
-
-        >>> f=tables.openFile('data/test.h5')
-        >>> print f.root.link0
-        /link0 (SoftLink) -> /path/to/node
-
-
-.. _ExternalLinkClassDescr:
-
-The ExternalLink class
-----------------------
-.. class:: tables.link.ExternalLink
-
-    Represents an external link.
-
-    An external link is a reference to a node
-    in *another* file.  Getting access to the pointed
-    node (this action is called *dereferrencing*) is
-    done via the __call__ special method (see
-    below).
-
-    .. warning:: External links are only supported when PyTables is compiled
-       against HDF5 1.8.x series.  When using PyTables with HDF5 1.6.x,
-       the *parent* group containing external link
-       objects will be mapped to an Unknown instance
-       (see :ref:`UnknownClassDescr`) and you won't be able to access *any* node
-       hanging of this parent group.  It follows that if the parent group
-       containing the external link is the root group, you won't be able
-       to read *any* information contained in the file
-       when using HDF5 1.6.x.
-
-
-ExternalLink instance variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. attribute:: ExternalLink.extfile
-
-    The external file handler, if the link has been
-    dereferenced.  In case the link has not been dereferenced
-    yet, its value is None.
-
-
-ExternalLink methods
-~~~~~~~~~~~~~~~~~~~~
-
-.. method:: ExternalLink.umount()
-
-    Safely unmount self.extfile, if opened.
-
-
-ExternalLink special methods
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The following methods are specific for dereferrencing and
-representing external links.
-
-
-.. method:: ExternalLink.__call__(**kwargs)
-
-    Dereference self.target and return the
-    pointed object.
-
-    You can pass all the arguments supported by the
-    :func:`openFile` function
-    (except filename, of course) so as to open
-    the referenced external file.
-
-    Example of use::
-
-        >>> f=tables.openFile('data1/test1.h5')
-        >>> print f.root.link2
-        /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
-        >>> plink2 = f.root.link2('a')  # open in 'a'ppend mode
-        >>> print plink2
-        /path/to/node (Group) ''
-        >>> print plink2._v_filename
-        'data2/test2.h5'        # belongs to referenced file
-
-.. method:: ExternalLink.__str__()
-
-    Return a short string representation of the link.
-
-    Example of use::
-
-        >>> f=tables.openFile('data1/test1.h5')
-        >>> print f.root.link2
-        /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
-
-"""
-
 import os
 import tables as t
 from tables import linkExtension
@@ -238,25 +34,26 @@ def _g_getLinkClass(parent_id, name):
 
 
 class Link(Node):
-    """Abstract base class for all PyTables links.
+    """
+    Abstract base class for all PyTables links.
 
-    A link is a node that refers to another node.  The `Link` class
-    inherits from `Node` class and the links that inherits from `Link`
-    are `SoftLink` and `ExternalLink`.  There is not a `HardLink`
-    subclass because hard links behave like a regular `Group` or `Leaf`.
+    A link is a node that refers to another node.  The Link class inherits from
+    Node class and the links that inherits from Link are SoftLink and
+    ExternalLink.  There is not a HardLink subclass because hard links behave
+    like a regular Group or Leaf.  Contrarily to other nodes, links cannot have
+    HDF5 attributes.  This is an HDF5 library limitation that might be solved
+    in future releases.
 
-    Contrarily to other nodes, links cannot have HDF5 attributes.  This
-    is an HDF5 library limitation that might be solved in future
-    releases.
-
+    See :ref:`LinksTutorial` for a small tutorial on how to work with links.
     """
 
     # Properties
     @lazyattr
     def _v_attrs(self):
-        """A `NoAttrs` instance replacing the typical `AttributeSet`
-        instance of other node objects.  The purpose of `NoAttrs` is to
-        make clear that HDF5 attributes are not supported in link nodes.
+        """
+        A *NoAttrs* instance replacing the typical *AttributeSet* instance of
+        other node objects.  The purpose of *NoAttrs* is to make clear that
+        HDF5 attributes are not supported in link nodes.
         """
         class NoAttrs(AttributeSet):
             def __getattr__(self, name):
@@ -281,11 +78,12 @@ class Link(Node):
 
     def copy(self, newparent=None, newname=None,
              overwrite=False, createparents=False):
-        """Copy this link and return the new one.
+        """
+        Copy this link and return the new one.
 
-        See `Node._f_copy` for a complete explanation of the arguments.
-        Please note that there is no `recursive` flag since links do not
-        have child nodes.
+        See :meth:`Node._f_copy` for a complete explanation of the arguments.
+        Please note that there is no recursive flag since links do not have
+        child nodes.
         """
         newnode = self._f_copy(newparent=newparent, newname=newname,
                                overwrite=overwrite, createparents=createparents)
@@ -297,7 +95,7 @@ class Link(Node):
     def move(self, newparent=None, newname=None, overwrite=False):
         """Move or rename this link.
 
-        See `Node._f_move` for a complete explanation of the arguments.
+        See :meth:`Node._f_move` for a complete explanation of the arguments.
         """
         return self._f_move(newparent=newparent, newname=newname,
                             overwrite=overwrite)
@@ -312,7 +110,7 @@ class Link(Node):
     def rename(self, newname=None, overwrite=False):
         """Rename this link in place.
 
-        See `Node._f_rename` for a complete explanation of the arguments.
+        See :meth:`Node._f_rename` for a complete explanation of the arguments.
         """
         return self._f_rename(newname=newname, overwrite=overwrite)
 
@@ -321,14 +119,12 @@ class Link(Node):
         return str(self)
 
 
-
 class SoftLink(linkExtension.SoftLink, Link):
     """Represents a soft link (aka symbolic link).
 
-    A soft link is a reference to another node in the *same* file
-    hierarchy.  Getting access to the pointed node (this action is
-    called *dereferencing*) is done via the `__call__` special method (see
-    below).
+    A soft link is a reference to another node in the *same* file hierarchy.
+    Getting access to the pointed node (this action is called *dereferrencing*)
+    is done via the __call__ special method (see below).
     """
 
     # Class identifier.
@@ -382,22 +178,12 @@ if are_extlinks_available:
 
     # Declare this only if the extension is available
     class ExternalLink(linkExtension.ExternalLink, Link):
-        """Represents an external link.
+        """
+        Represents an external link.
 
-        An external link is a reference to a node in *another* file.
-        Getting access to the pointed node (this action is called
-        *dereferencing*) is done via the `__call__` special method (see
-        below).
-
-        .. Warning:: External links are only supported when PyTables is
-           compiled against HDF5 1.8.x series.  When using PyTables with
-           HDF5 1.6.x, the *parent* group containing external link
-           objects will be mapped to an `Unknown` instance and you won't
-           be able to access *any* node hanging of this parent group.
-           It follows that if the parent group containing the external
-           link is the root group, you won't be able to read *any*
-           information contained in the file when using HDF5 1.6.x.
-
+        An external link is a reference to a node in *another* file.  Getting
+        access to the pointed node (this action is called *dereferrencing*) is
+        done via the __call__ special method (see below).
         """
 
         # Class identifier.
@@ -405,9 +191,9 @@ if are_extlinks_available:
 
         def __init__(self, parentNode, name, target=None, _log = False):
             self.extfile = None
-            """The external file handler, if the link has been
-            dereferenced.  In case the link has not been dereferenced
-            yet, its value is None."""
+            """The external file handler, if the link has been dereferenced.
+            In case the link has not been dereferenced yet, its value is
+            None."""
             super(ExternalLink, self).__init__(parentNode, name, target, _log)
 
 
@@ -420,11 +206,11 @@ if are_extlinks_available:
 
         def __call__(self, **kwargs):
             """
-            Dereference `self.target` and return the object.
+            Dereference self.target and return the object.
 
-            You can pass all the arguments (except `filename`, of course)
-            supported by the `openFile()` function so as to open the
-            referenced external file.
+            You can pass all the arguments supported by the :func:`openFile`
+            function (except filename, of course) so as to open the referenced
+            external file.
 
             Example of use::
 
@@ -456,7 +242,7 @@ if are_extlinks_available:
 
 
         def umount(self):
-            """Safely unmount `self.extfile`, if opened."""
+            """Safely unmount self.extfile, if opened."""
             extfile = self.extfile
             # Close external file, if open
             if extfile is not None and extfile.isopen:

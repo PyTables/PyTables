@@ -284,9 +284,31 @@ The VLArray class
     :members:
 
 
-.. Link class documentation in tables/link.py
+.. _LinkClassDescr:
 
-.. automodule:: tables.link
+The Link class
+--------------
+
+.. autoclass:: tables.link.Link
+    :members:
+
+
+.. _SoftLinkClassDescr:
+
+The SoftLink class
+------------------
+
+.. autoclass:: tables.link.SoftLink
+    :members:
+
+
+.. _ExternalLinkClassDescr:
+
+The ExternalLink class
+----------------------
+
+.. autoclass:: tables.link.ExternalLink
+    :members:
 
 
 .. UnImplemented class and Unknown class documentation in tables/unimplemented.py
