@@ -5,6 +5,7 @@
 :Author: PyTables maintainers
 :Contact: pytables@googlemail.com
 
+.. py:currentmodule:: tables
 
 Changes from 2.3.1 to 2.4 (in development)
 ==========================================
@@ -14,11 +15,11 @@ New features
 
 - Improved HDF5 error logging management:
 
-  * added a new function, :func:`tables.silenceHDF5Messages`, for suppressing
+  * added a new function, :func:`silenceHDF5Messages`, for suppressing
     (and re-enabling) HDF5 messages.  By default HDF5 error logging is now
     suppressed. Closes :issue:`87`.
   * now all HDF5 error messages and trace-backs are trapped and attached to
-    the :exc:`tables.exceptions.HDF5ExtError` exception instances.
+    the :exc:`exceptions.HDF5ExtError` exception instances.
     Closes :issue:`120`.
 
 - Added support for the float16 data type.  It is only available if numpy_
@@ -30,13 +31,13 @@ New features
   Thanks to Josh Ayers (close :issue:`141`).
 
 - The maximum number of threads for Blosc_ and Numexpr_ is now handled using
-  the :data:`tables.parameters.MAX_BLOSC_THREADS` and
-  :data:`tables.parameters.MAX_NUMEXPR_THREADS` parameters respectively.
+  the :data:`parameters.MAX_BLOSC_THREADS` and
+  :data:`parameters.MAX_NUMEXPR_THREADS` parameters respectively.
   This allows a more fine grained configuration capability.
   Closes :issue:`142`.
 
-- `ndim` (read-only) attribute added to :class:`tables.Leaf`,
-  :class:`tables.Atom` and :class:`tables.Col` objects (closes :issue:`126`).
+- `ndim` (read-only) attribute added to :class:`Leaf`, :class:`Atom` and
+  :class:`Col` objects (closes :issue:`126`).
 
 
 Other improvements
@@ -59,11 +60,11 @@ Other improvements
 
 - Fixed most of the warnings related to py3k compatibility (see :issue:`92`).
 
-- Fixed pyflakes warnings (closes :issue:`102`).
+- Fixed pyflakes_ warnings (closes :issue:`102`).
 
-- Cython extensions updated to use new constructs (closes `issue:`100`).
+- Cython_ extensions updated to use new constructs (closes :issue:`100`).
 
-- Reduced the number of build warnings (closes `issue:`101`).
+- Reduced the number of build warnings (closes :issue:`101`).
 
 - Removed the old lrucache module. It is no more needed after the merge with
   PyTables Pro (closes :issue:`118`).
@@ -78,15 +79,15 @@ Bugs fixed
 - Fixed a segfault on platforms that do not support unaligned memory access
   (closes: :issue:`134`).  Thanks to Julian Taylor.
 
-- Fixed broken inheritance in :class:`tables.IsDescription` classes
-  (thanks to Andrea Bedini).  Closes :issue:`65`.
+- Fixed broken inheritance in :class:`IsDescription` classes (thanks to
+  Andrea Bedini).  Closes :issue:`65`.
 
 - Fixed table descriptions copy method (closes :issue:`131`).
 
 - Fixed open failures handling (closes :issue:`158`).
   Errors that happen when one tries to open an invalid HDF5 file (e.g. an
   empty file) are now detected earlier by PyTables and a proper exception
-  (:exc:`tables.exceptions.HDF5ExtError`) is raised.
+  (:exc:`exceptions.HDF5ExtError`) is raised.
   Also, in case of open failures, invalid file descriptors are no more cached.
   Before is fix it was not possible to completely close the bad file and reopen
   the same path, even if a valid file was created in the meanwhile.
@@ -96,18 +97,20 @@ Bugs fixed
 Deprecations
 ------------
 
-- The :data:`tables.parameters.MAX_THREADS` configuration parameter is now
-  deprecated.  Please use :data:`tables.parameters.MAX_BLOSC_THREADS` and
-  :data:`tables.parameters.MAX_NUMEXPR_THREADS` instead.
+- The :data:`parameters.MAX_THREADS` configuration parameter is now
+  deprecated.  Please use :data:`parameters.MAX_BLOSC_THREADS` and
+  :data:`parameters.MAX_NUMEXPR_THREADS` instead.
   See :issue:`142`.
 
 - Since the support for HDF5 1.6.x has been dropped, the *warn16incompat*
-  argument of the :meth:`tables.File.createExternalLink` method and the
-  :exc:`tables.Incompat16Warning` exception class are now deprecated.
+  argument of the :meth:`File.createExternalLink` method and the
+  :exc:`exceptions.Incompat16Warning` exception class are now deprecated.
 
 .. _numpy: http://numpy.scipy.org
 .. _Blosc: https://github.com/FrancescAlted/blosc
 .. _Numexpr: http://code.google.com/p/numexpr
+.. _pyflakes: https://launchpad.net/pyflakes
+.. _Cython: http://www.cython.org
 
 
 Changes from 2.3 to 2.3.1
