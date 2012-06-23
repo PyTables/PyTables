@@ -18,7 +18,8 @@ New features
     (and re-enabling) HDF5 messages.  By default HDF5 error logging is now
     suppressed. Closes :issue:`87`.
   * now all HDF5 error messages and trace-backs are trapped and attached to
-    the :exc:`HDF5ExtError` exception instances. Closes :issue:`120`.
+    the :exc:`tables.exceptions.HDF5ExtError` exception instances.
+    Closes :issue:`120`.
 
 - Added support for the float16 data type.  It is only available if numpy_
   provides it as well (i.e. numpy_ >= 1.6).  See :issue:`51`.
@@ -36,6 +37,7 @@ New features
 
 - `ndim` (read-only) attribute added to :class:`tables.Leaf`,
   :class:`tables.Atom` and :class:`tables.Col` objects (closes :issue:`126`).
+
 
 Other improvements
 ------------------
@@ -69,6 +71,7 @@ Other improvements
 - Added explicit (import time) testing for hdf5dll.dll on Windows to improve
   diagnostics (closes :issue:`146`).  Thanks to Mark (mwiebe).
 
+
 Bugs fixed
 ----------
 
@@ -79,6 +82,16 @@ Bugs fixed
   (thanks to Andrea Bedini).  Closes :issue:`65`.
 
 - Fixed table descriptions copy method (closes :issue:`131`).
+
+- Fixed open failures handling (closes :issue:`158`).
+  Errors that happen when one tries to open an invalid HDF5 file (e.g. an
+  empty file) are now detected earlier by PyTables and a proper exception
+  (:exc:`tables.exceptions.HDF5ExtError`) is raised.
+  Also, in case of open failures, invalid file descriptors are no more cached.
+  Before is fix it was not possible to completely close the bad file and reopen
+  the same path, even if a valid file was created in the meanwhile.
+  Thanks to Daniele for reporting and for the useful test code.
+
 
 Deprecations
 ------------
