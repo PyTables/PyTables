@@ -46,7 +46,12 @@ Other improvements
 - Dropped support for HDF5 1.6.x. Now PyTables uses the HDF5 1.8 API
   (closes :issue:`105`).
 
-- Blosc updated to v. 1.1.3.
+- Blosc_ updated to v. 1.1.3.
+
+- The Blosc_ compression library is now automatically disabled on platforms
+  that do not support unaligned memory access (see also
+  https://github.com/FrancescAlted/blosc/issues/3 and
+  http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=661286).
 
 - Improved bzip2 detection on Windows (:issue:`116`).  Thanks to cgohlke.
 

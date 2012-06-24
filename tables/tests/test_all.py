@@ -133,8 +133,8 @@ def print_versions():
     if tinfo is not None:
         print "BZIP2 version:     %s (%s)" % (tinfo[1], tinfo[2])
     tinfo = tables.whichLibVersion("blosc")
-    blosc_date = tinfo[2].split()[1]
     if tinfo is not None:
+        blosc_date = tinfo[2].split()[1]
         print "Blosc version:     %s (%s)" % (tinfo[1], blosc_date)
     try:
         from Cython.Compiler.Main import Version as Cython_Version

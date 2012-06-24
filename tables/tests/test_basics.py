@@ -2635,6 +2635,7 @@ class TestCol(common.PyTablesTestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
+    blosc_avail = whichLibVersion("blosc") is not None
 
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(NodeCacheOpenFile))
@@ -2644,7 +2645,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscBigEndian))
+        if blosc_avail:
+            theSuite.addTest(unittest.makeSuite(BloscBigEndian))
         if multiprocessing_imported:
             theSuite.addTest(unittest.makeSuite(BloscSubprocess))
         theSuite.addTest(unittest.makeSuite(HDF5ErrorHandling))
