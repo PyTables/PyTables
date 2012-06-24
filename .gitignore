@@ -1,6 +1,7 @@
 # Dirs
 build/
 doc/build/
+.ropeproject
 
 # File types
 *.pyc

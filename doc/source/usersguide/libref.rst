@@ -311,14 +311,31 @@ The ExternalLink class
     :members:
 
 
-.. UnImplemented class and Unknown class documentation in tables/unimplemented.py
+.. _UnImplementedClassDescr:
 
-.. automodule:: tables.unimplemented
+The UnImplemented class
+-----------------------
+
+.. autoclass:: UnImplemented
+    :members:
 
 
-.. AttributeSet class documentation in tables/attributeset.py
+.. _UnknownClassDescr:
 
-.. automodule:: tables.attributeset
+The Unknown class
+-----------------
+
+.. autoclass:: Unknown
+    :members:
+
+
+.. _AttributeSetClassDescr:
+
+The AttributeSet class
+----------------------
+
+.. autoclass:: AttributeSet
+    :members:
 
 
 .. All Atom and Pseudoatom class documentation in tables/atom.py
