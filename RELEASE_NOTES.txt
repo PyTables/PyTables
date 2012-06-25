@@ -98,6 +98,9 @@ Bugs fixed
   the same path, even if a valid file was created in the meanwhile.
   Thanks to Daniele for reporting and for the useful test code.
 
+- Fixed support to rich structured  numpy.dtype in
+  :func:`description.descr_from_dtype`.   Closes :issue:`160`.
+
 
 Deprecations
 ------------

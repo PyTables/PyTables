@@ -2512,6 +2512,15 @@ class TestIsDescription(common.PyTablesTestCase):
         self.assertEqual(descr._v_colObjects['col1'].dtype, numpy.int16)
         self.assertEqual(descr._v_colObjects['col2'].dtype, float)
 
+    def test_descr_from_dtype_rich_dtype(self):
+        header = [(('timestamp', 't'), 'u4'),
+                  (('unit (cluster) id', 'unit'),'u2')]
+        t = numpy.dtype(header)
+
+        descr, byteorder = descr_from_dtype(t)
+        self.assertEqual(len(descr._v_names), 2)
+        self.assertEqual(sorted(descr._v_names), ['t', 'unit'])
+
     def test_dtype_from_descr_is_description(self):
         # See gh-152
         class TestDescParent(IsDescription):

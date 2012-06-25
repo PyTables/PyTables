@@ -739,7 +739,8 @@ def descr_from_dtype(dtype_):
 
     fields = {}
     fbyteorder = '|'
-    for (name, (dtype, pos)) in dtype_.fields.iteritems():
+    for name  in dtype_.names:
+        dtype, pos = dtype_.fields[name][:2]
         kind = dtype.base.kind
         byteorder = dtype.base.byteorder
         if byteorder in '><=':
