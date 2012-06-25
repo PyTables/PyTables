@@ -130,9 +130,10 @@ def _arch_without_blosc():
 
 # Only register bloc compressor on platforms that actually support it.
 if _arch_without_blosc():
-    blosc_version = register_blosc_()
-else:
     blosc_version = None
+else:
+    blosc_version = register_blosc_()
+
 
 # Important: Blosc calls that modifies global variables in Blosc must be
 # called from the same extension where Blosc is registered in HDF5.
