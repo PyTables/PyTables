@@ -39,6 +39,10 @@ New features
 - `ndim` (read-only) attribute added to :class:`Leaf`, :class:`Atom` and
   :class:`Col` objects (closes :issue:`126`).
 
+- Added read support for variable length string attributes (non scalar
+  attributes are converted into numpy_ arrays with 'O8' type).
+  See :issue:`54`.
+
 
 Other improvements
 ------------------

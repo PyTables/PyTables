@@ -1551,6 +1551,42 @@ class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "Great! '0' and '0.' values can be safely retrieved."
 
 
+class VlenStrAttrTestCase(PyTablesTestCase):
+
+    def test01_vlen_str_scalar(self):
+        """Checking file with variable length string attributes."""
+
+        filename = self._testFilename('vlstr_attr.h5')
+        fileh = openFile(filename)
+        attr = "vlen_str_scalar"
+        self.assertEqual(fileh.getNodeAttr("/", attr), attr)
+        fileh.close()
+
+    def test02_vlen_str_array(self):
+        """Checking file with variable length string attributes (1d)."""
+
+        filename = self._testFilename('vlstr_attr.h5')
+        fileh = openFile(filename)
+        attr = "vlen_str_array"
+        v = fileh.getNodeAttr('/', attr)
+        self.assertEqual(v.ndim, 1)
+        for idx, item in enumerate(v):
+            self.assertEqual(item, "%s_%d" % (attr, idx))
+        fileh.close()
+
+    def test03_vlen_str_matrix(self):
+        """Checking file with variable length string attributes (2d)."""
+
+        filename = self._testFilename('vlstr_attr.h5')
+        fileh = openFile(filename)
+        attr = "vlen_str_matrix"
+        m = fileh.getNodeAttr('/', attr)
+        self.assertEqual(m.ndim, 2)
+        for row, rowdata in enumerate(m):
+            for col, item in enumerate(rowdata):
+                self.assertEqual(item, "%s_%d%d" % (attr, row, col))
+        fileh.close()
+
 
 class UnsupportedAttrTypeTestCase(PyTablesTestCase):
 
@@ -1602,6 +1638,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
         theSuite.addTest(unittest.makeSuite(SegFaultPythonTestCase))
+        theSuite.addTest(unittest.makeSuite(VlenStrAttrTestCase))
         theSuite.addTest(unittest.makeSuite(UnsupportedAttrTypeTestCase))
         theSuite.addTest(unittest.makeSuite(SpecificAttrsTestCase))
 

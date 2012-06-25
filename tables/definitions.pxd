@@ -379,6 +379,8 @@ cdef extern from "H5ATTR.h" nogil:
                              hid_t type_id, void *data)
   herr_t H5ATTRget_attribute_string(hid_t loc_id, char *attr_name,
                                     char **attr_value)
+  herr_t H5ATTRget_attribute_vlen_string_array(hid_t loc_id, char *attr_name,
+                                               char ***attr_value)
   herr_t H5ATTRset_attribute(hid_t obj_id, char *attr_name,
                              hid_t type_id, size_t rank,  hsize_t *dims,
                              char *attr_data )
