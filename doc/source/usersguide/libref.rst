@@ -334,13 +334,129 @@ The Unknown class
 The AttributeSet class
 ----------------------
 
-.. autoclass:: AttributeSet
+.. autoclass:: tables.attributeset.AttributeSet
     :members:
 
 
-.. All Atom and Pseudoatom class documentation in tables/atom.py
+Declarative classes
+-------------------
+In this section a series of classes that are meant to
+*declare* datatypes that are required for creating
+primary PyTables datasets are described.
 
-.. automodule:: tables.atom
+
+.. _AtomClassDescr:
+
+The Atom class and its descendants
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Atom
+    :members:
+
+
+.. _AtomConstructors:
+
+Atom Constructors
+^^^^^^^^^^^^^^^^^
+
+.. autoclass:: StringAtom
+    :members:
+
+.. autoclass:: BoolAtom
+    :members:
+
+.. autoclass:: IntAtom
+    :members:
+
+.. autoclass:: Int8Atom
+    :members:
+
+.. autoclass:: Int16Atom
+    :members:
+
+.. autoclass:: Int32Atom
+    :members:
+
+.. autoclass:: Int64Atom
+    :members:
+
+.. autoclass:: UIntAtom
+    :members:
+
+.. autoclass:: UInt8Atom
+    :members:
+
+.. autoclass:: UInt16Atom
+    :members:
+
+.. autoclass:: UInt32Atom
+    :members:
+
+.. autoclass:: UInt64Atom
+    :members:
+
+.. autoclass:: FloatAtom
+    :members:
+
+.. autoclass:: Float32Atom
+    :members:
+
+.. autoclass:: Float64Atom
+    :members:
+
+.. autoclass:: ComplexAtom
+    :members:
+
+.. autoclass:: Time32Atom
+    :members:
+
+.. autoclass:: Time64Atom
+    :members:
+
+.. autoclass:: EnumAtom
+    :members:
+
+
+Pseudo atoms
+^^^^^^^^^^^^
+Now, there come three special classes, ObjectAtom, VLStringAtom and
+VLUnicodeAtom, that actually do not descend from Atom, but which goal is so
+similar that they should be described here. Pseudo-atoms can only be used with
+VLArray datasets (see :ref:`VLArrayClassDescr`), and they do not support
+multidimensional values, nor multiple values per row.
+
+They can be recognised because they also have kind, type and shape attributes,
+but no size, itemsize or dflt ones. Instead, they have a base atom which
+defines the elements used for storage.
+
+See :file:`examples/vlarray1.py` and :file:`examples/vlarray2.py` for further
+examples on VLArray datasets, including object serialization and string
+management.
+
+
+Object Atom
+...........
+
+.. autoclass:: ObjectAtom
+    :members:
+
+
+.. _VLStringAtom:
+
+VLStringAtom
+............
+
+.. autoclass:: VLStringAtom
+    :members:
+
+
+.. _VLUnicodeAtom:
+
+VLUnicodeAtom
+.............
+
+.. autoclass:: VLUnicodeAtom
+    :members:
 
 
 Helper classes

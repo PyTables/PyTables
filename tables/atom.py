@@ -1,574 +1,3 @@
-"""
-.. currentmodule:: tables
-
-Declarative classes
--------------------
-In this section a series of classes that are meant to
-*declare* datatypes that are required for creating
-primary PyTables datasets are described.
-
-
-.. _AtomClassDescr:
-
-The Atom class and its descendants
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. class:: Atom
-
-    Defines the type of atomic cells stored in a dataset.
-
-    The meaning of *atomic* is that individual
-    elements of a cell can not be extracted directly by indexing (i.e.
-    __getitem__()) the dataset; e.g. if a dataset has
-    shape (2, 2) and its atoms have shape (3,), to get the third element
-    of the cell at (1, 0) one should use
-    dataset[1,0][2] instead of dataset[1,0,2].
-
-    The Atom class is meant to declare the
-    different properties of the *base element* (also
-    known as *atom*) of CArray,
-    EArray and VLArray datasets,
-    although they are also used to describe the base elements of
-    Array datasets. Atoms have the property that
-    their length is always the same.  However, you can grow datasets
-    along the extensible dimension in the case of
-    EArray or put a variable number of them on a
-    VLArray row. Moreover, they are not
-    restricted to scalar values, and they can be *fully
-    multidimensional objects*.
-
-    A series of descendant classes are offered in order to make
-    the use of these element descriptions easier. You should use a
-    particular Atom descendant class whenever you
-    know the exact type you will need when writing your code. Otherwise,
-    you may use one of the Atom.from_*() factory Methods.
-
-
-Atom instance variables
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. attribute:: Atom.dflt
-
-    The default value of the atom.
-
-    If the user does not supply a value for an element
-    while filling a dataset, this default value will be written
-    to disk. If the user supplies a scalar value for a
-    multidimensional atom, this value is automatically
-    *broadcast* to all the items in the atom
-    cell. If dflt is not supplied, an
-    appropriate zero value (or *null* string)
-    will be chosen by default.  Please note that default values
-    are kept internally as NumPy objects.
-
-.. attribute:: Atom.dtype
-
-    The NumPy dtype that most closely matches this atom.
-
-
-.. attribute:: Atom.itemsize
-
-    Size in bytes of a single item in the atom.
-
-    Specially useful for atoms of the string kind.
-
-
-.. attribute:: Atom.kind
-
-    The PyTables kind of the atom (a string).
-
-.. attribute:: Atom.ndim
-
-    The number of dimensions of the atom.
-
-    .. versionadded:: 2.4
-
-.. attribute:: Atom.recarrtype
-
-    String type to be used in numpy.rec.array().
-
-
-.. attribute:: Atom.shape
-
-    The shape of the atom (a tuple for scalar atoms).
-
-.. attribute:: Atom.size
-
-    Total size in bytes of the atom.
-
-
-.. attribute:: Atom.type
-
-    The PyTables type of the atom (a string).
-
-    Atoms can be compared with atoms and other objects for
-    strict (in)equality without having to compare individual
-    attributes::
-
-        >>> atom1 = StringAtom(itemsize=10)  # same as ``atom2``
-        >>> atom2 = Atom.from_kind('string', 10)  # same as ``atom1``
-        >>> atom3 = IntAtom()
-        >>> atom1 == 'foo'
-        False
-        >>> atom1 == atom2
-        True
-        >>> atom2 != atom1
-        False
-        >>> atom1 == atom3
-        False
-        >>> atom3 != atom2
-        True
-
-
-Atom methods
-^^^^^^^^^^^^
-
-.. method:: Atom.copy(**override)
-
-    Get a copy of the atom, possibly overriding some arguments.
-
-    Constructor arguments to be overridden must be passed as
-    keyword arguments::
-
-        >>> atom1 = StringAtom(itemsize=12)
-        >>> atom2 = atom1.copy()
-        >>> print atom1
-        StringAtom(itemsize=12, shape=(), dflt='')
-        >>> print atom2
-        StringAtom(itemsize=12, shape=(), dflt='')
-        >>> atom1 is atom2
-        False
-        >>> atom3 = atom1.copy(itemsize=100, shape=(2, 2))
-        >>> print atom3
-        StringAtom(itemsize=100, shape=(2, 2), dflt='')
-        >>> atom1.copy(foobar=42)
-        Traceback (most recent call last):
-        ...
-        TypeError: __init__() got an unexpected keyword argument 'foobar'
-
-
-Atom factory methods
-^^^^^^^^^^^^^^^^^^^^
-
-.. method:: Atom.from_dtype(dtype, dflt=None)
-
-    Create an Atom from a NumPy dtype.
-
-    An optional default value may be specified as the
-    dflt argument. Information in the
-    dtype not represented in an Atom is ignored::
-
-        >>> import numpy
-        >>> Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
-        Int16Atom(shape=(2, 2), dflt=0)
-        >>> Atom.from_dtype(numpy.dtype('S5'), dflt='hello')
-        StringAtom(itemsize=5, shape=(), dflt='hello')
-        >>> Atom.from_dtype(numpy.dtype('Float64'))
-        Float64Atom(shape=(), dflt=0.0)
-
-.. method:: Atom.from_kind(kind, itemsize=None, shape=(), dflt=None)
-
-    Create an Atom from a PyTables kind.
-
-    Optional item size, shape and default value may be
-    specified as the itemsize, shape and dflt
-    arguments, respectively. Bear in mind that not all atoms support
-    a default item size::
-
-        >>> Atom.from_kind('int', itemsize=2, shape=(2, 2))
-        Int16Atom(shape=(2, 2), dflt=0)
-        >>> Atom.from_kind('int', shape=(2, 2))
-        Int32Atom(shape=(2, 2), dflt=0)
-        >>> Atom.from_kind('int', shape=1)
-        Int32Atom(shape=(1,), dflt=0)
-        >>> Atom.from_kind('string', itemsize=5, dflt='hello')
-        StringAtom(itemsize=5, shape=(), dflt='hello')
-        >>> Atom.from_kind('string', dflt='hello')
-        Traceback (most recent call last):
-        ...
-        ValueError: no default item size for kind ``string``
-        >>> Atom.from_kind('Float')
-        Traceback (most recent call last):
-        ...
-        ValueError: unknown kind: 'Float'
-
-    Moreover, some kinds with atypical constructor signatures
-    are not supported; you need to use the proper
-    constructor::
-
-        >>> Atom.from_kind('enum') #doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        ...
-        ValueError: the ``enum`` kind is not supported...
-
-
-.. method:: Atom.from_sctype(sctype, shape=(), dflt=None)
-
-    Create an Atom from a NumPy scalar type sctype.
-
-    Optional shape and default value may be specified as the
-    shape and dflt
-    arguments, respectively. Information in the
-    sctype not represented in an Atom is ignored::
-
-        >>> import numpy
-        >>> Atom.from_sctype(numpy.int16, shape=(2, 2))
-        Int16Atom(shape=(2, 2), dflt=0)
-        >>> Atom.from_sctype('S5', dflt='hello')
-        Traceback (most recent call last):
-        ...
-        ValueError: unknown NumPy scalar type: 'S5'
-        >>> Atom.from_sctype('Float64')
-        Float64Atom(shape=(), dflt=0.0)
-
-
-.. method:: Atom.from_type(type, shape=(), dflt=None)
-
-    Create an Atom from a PyTables type.
-
-    Optional shape and default value may be specified as the
-    shape and dflt arguments, respectively::
-
-        >>> Atom.from_type('bool')
-        BoolAtom(shape=(), dflt=False)
-        >>> Atom.from_type('int16', shape=(2, 2))
-        Int16Atom(shape=(2, 2), dflt=0)
-        >>> Atom.from_type('string40', dflt='hello')
-        Traceback (most recent call last):
-        ...
-        ValueError: unknown type: 'string40'
-        >>> Atom.from_type('Float64')
-        Traceback (most recent call last):
-        ...
-        ValueError: unknown type: 'Float64'
-
-
-
-.. _AtomConstructors:
-
-Atom constructors
-^^^^^^^^^^^^^^^^^
-There are some common arguments for most
-Atom-derived constructors:
-
-.. method:: Atom.__init__(*args)
-
-    :Parameters:
-        itemsize : int
-            For types with a non-fixed size, this sets the size in
-            bytes of individual items in the atom.
-        shape : tuple
-            Sets the shape of the atom. An integer shape of
-            N is equivalent to the tuple (N,).
-        dflt
-            Sets the default value for the atom.
-
-
-A relation of the different constructors with their
-parameters follows.
-
-.. class:: StringAtom(itemsize, shape=(), dflt='')
-
-    Defines an atom of type string.
-
-    The item size is the *maximum* length
-    in characters of strings.
-
-
-.. class:: BoolAtom(shape=(), dflt=False)
-
-    Defines an atom of type bool.
-
-
-.. class:: IntAtom(itemsize=4, shape=(), dflt=0)
-
-    Defines an atom of a signed integral type (int kind).
-
-
-.. class:: Int8Atom(shape=(), dflt=0)
-
-    Defines an atom of type int8.
-
-
-.. class:: Int16Atom(shape=(), dflt=0)
-
-    Defines an atom of type int16.
-
-
-.. class:: Int32Atom(shape=(), dflt=0)
-
-    Defines an atom of type int32.
-
-
-.. class:: Int64Atom(shape=(), dflt=0)
-
-    Defines an atom of type int64.
-
-
-.. class:: UIntAtom(itemsize=4, shape=(), dflt=0)
-
-    Defines an atom of an unsigned integral type (uint kind).
-
-
-.. class:: UInt8Atom(shape=(), dflt=0)
-
-    Defines an atom of type uint8.
-
-
-.. class:: UInt16Atom(shape=(), dflt=0)
-
-    Defines an atom of type uint16.
-
-
-.. class:: UInt32Atom(shape=(), dflt=0)
-
-    Defines an atom of type uint32.
-
-
-.. class:: UInt64Atom(shape=(), dflt=0)
-
-    Defines an atom of type uint64.
-
-
-.. class:: Float32Atom(shape=(), dflt=0.0)
-
-    Defines an atom of type float32.
-
-
-.. class:: Float64Atom(shape=(), dflt=0.0)
-
-    Defines an atom of type float64.
-
-
-.. class:: ComplexAtom(itemsize, shape=(), dflt=0j)
-
-    Defines an atom of kind complex.
-
-    Allowed item sizes are 8 (single precision) and 16 (double
-    precision). This class must be used instead of more concrete
-    ones to avoid confusions with numarray-like
-    precision specifications used in PyTables 1.X.
-
-
-.. class:: TimeAtom(itemsize=4, shape=(), dflt=0)
-
-    Defines an atom of time type (time kind).
-
-    There are two distinct supported types of time: a 32 bit
-    integer value and a 64 bit floating point value. Both of them
-    reflect the number of seconds since the Unix epoch. This atom
-    has the property of being stored using the HDF5 time datatypes.
-
-
-.. class:: Time32Atom(shape=(), dflt=0)
-
-    Defines an atom of type time32.
-
-
-.. class:: Time64Atom(shape=(), dflt=0.0)
-
-    Defines an atom of type time64.
-
-
-.. class:: EnumAtom(enum, dflt, base, shape=())
-
-    Description of an atom of an enumerated type.
-
-    Instances of this class describe the atom type used to
-    store enumerated values. Those values belong to an enumerated
-    type, defined by the first argument (enum) in
-    the constructor of the atom, which accepts the same kinds of
-    arguments as the Enum class (see :ref:`EnumClassDescr`).  The
-    enumerated type is stored in the enum
-    attribute of the atom.
-
-    A default value must be specified as the second argument
-    (dflt) in the constructor; it must be the
-    *name* (a string) of one of the enumerated
-    values in the enumerated type. When the atom is created, the
-    corresponding concrete value is broadcast and stored in the
-    dflt attribute (setting different default
-    values for items in a multidimensional atom is not supported
-    yet). If the name does not match any value in the enumerated
-    type, a KeyError is raised.
-
-    Another atom must be specified as the
-    base argument in order to determine the base
-    type used for storing the values of enumerated values in memory
-    and disk. This *storage atom* is kept in the
-    base attribute of the created atom. As a
-    shorthand, you may specify a PyTables type instead of the
-    storage atom, implying that this has a scalar shape.
-
-    The storage atom should be able to represent each and
-    every concrete value in the enumeration. If it is not, a
-    TypeError is raised. The default value of the
-    storage atom is ignored.
-
-    The type attribute of enumerated atoms
-    is always enum.
-
-    Enumerated atoms also support comparisons with other objects::
-
-        >>> enum = ['T0', 'T1', 'T2']
-        >>> atom1 = EnumAtom(enum, 'T0', 'int8')  # same as ``atom2``
-        >>> atom2 = EnumAtom(enum, 'T0', Int8Atom())  # same as ``atom1``
-        >>> atom3 = EnumAtom(enum, 'T0', 'int16')
-        >>> atom4 = Int8Atom()
-        >>> atom1 == enum
-        False
-        >>> atom1 == atom2
-        True
-        >>> atom2 != atom1
-        False
-        >>> atom1 == atom3
-        False
-        >>> atom1 == atom4
-        False
-        >>> atom4 != atom1
-        True
-
-    .. rubric:: Examples of use:
-
-    The next C enum construction::
-
-        enum myEnum {
-                    T0,
-                    T1,
-                    T2
-                    };
-
-    would correspond to the following PyTables
-    declaration::
-
-        >>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')
-
-    Please note the dflt argument with a
-    value of 'T0'. Since the concrete value
-    matching T0 is unknown right now (we have
-    not used explicit concrete values), using the name is the only
-    option left for defining a default value for the atom.
-
-    The chosen representation of values for this enumerated
-    atom uses unsigned 32-bit integers, which surely wastes quite
-    a lot of memory. Another size could be selected by using the
-    base argument (this time with a full-blown
-    storage atom)::
-
-        >>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())
-
-    You can also define multidimensional arrays for data
-    elements::
-
-        >>> myEnumAtom = EnumAtom(
-        ...    ['T0', 'T1', 'T2'], 'T0', base='uint32', shape=(3,2))
-
-    for 3x2 arrays of uint32.
-
-
-Pseudo atoms
-^^^^^^^^^^^^
-Now, there come three special classes,
-ObjectAtom, VLStringAtom and
-VLUnicodeAtom, that actually do not descend
-from Atom, but which goal is so similar that
-they should be described here. Pseudo-atoms can only be used with
-VLArray datasets (see :ref:`VLArrayClassDescr`), and
-they do not support multidimensional values, nor multiple values
-per row.
-
-They can be recognised because they also have
-kind, type and
-shape attributes, but no
-size, itemsize or
-dflt ones. Instead, they have a
-base atom which defines the elements used for
-storage.
-
-See :file:`examples/vlarray1.py` and
-:file:`examples/vlarray2.py` for further examples on
-VLArray datasets, including object
-serialization and string management.
-
-
-ObjectAtom
-..........
-.. class:: ObjectAtom()
-
-    Defines an atom of type object.
-
-    This class is meant to fit *any* kind
-    of Python object in a row of a VLArray
-    dataset by using cPickle behind the
-    scenes. Due to the fact that you can not foresee how long will
-    be the output of the cPickle serialization
-    (i.e. the atom already has a *variable*
-    length), you can only fit *one object per
-    row*. However, you can still group several objects in
-    a single tuple or list and pass it to the
-    :meth:`VLArray.append` method.
-
-    Object atoms do not accept parameters and they cause the
-    reads of rows to always return Python objects. You can regard
-    object atoms as an easy way to save an
-    arbitrary number of generic Python objects in a
-    VLArray dataset.
-
-
-.. _VLStringAtom:
-
-VLStringAtom
-............
-.. class:: VLStringAtom()
-
-    Defines an atom of type vlstring.
-
-    This class describes a *row* of the
-    VLArray class, rather than an atom. It
-    differs from the StringAtom class in that you
-    can only add *one instance of it to one specific
-    row*, i.e. the :meth:`VLArray.append`
-    method only accepts one
-    object when the base atom is of this type.
-
-    Like StringAtom, this class does not
-    make assumptions on the encoding of the string, and raw bytes
-    are stored as is.  Unicode strings are supported as long as no
-    character is out of the ASCII set; otherwise, you will need to
-    *explicitly* convert them to strings before
-    you can save them.  For full Unicode support, using
-    VLUnicodeAtom (see :ref:`VLUnicodeAtom`) is recommended.
-
-    Variable-length string atoms do not accept parameters and
-    they cause the reads of rows to always return Python strings.
-    You can regard vlstring atoms as an easy way
-    to save generic variable length strings.
-
-
-.. _VLUnicodeAtom:
-
-VLUnicodeAtom
-.............
-.. class:: VLUnicodeAtom()
-
-    Defines an atom of type vlunicode.
-
-    This class describes a *row* of the
-    VLArray class, rather than an atom.  It is
-    very similar to VLStringAtom (see :ref:`VLStringAtom`), but it stores Unicode strings (using
-    32-bit characters a la UCS-4, so all strings of the same length
-    also take up the same space).
-
-    This class does not make assumptions on the encoding of
-    plain input strings.  Plain strings are supported as long as no
-    character is out of the ASCII set; otherwise, you will need to
-    *explicitly* convert them to Unicode before
-    you can save them.
-
-    Variable-length Unicode atoms do not accept parameters and
-    they cause the reads of rows to always return Python Unicode
-    strings.  You can regard vlunicode atoms as
-    an easy way to save variable length Unicode strings.
-"""
 
 # Imports
 # =======
@@ -777,77 +206,74 @@ class Atom(object):
     Defines the type of atomic cells stored in a dataset.
 
     The meaning of *atomic* is that individual elements of a cell can
-    not be extracted directly by indexing (i.e. ``__getitem__()``) the
+    not be extracted directly by indexing (i.e.  __getitem__()) the
     dataset; e.g. if a dataset has shape (2, 2) and its atoms have
     shape (3,), to get the third element of the cell at (1, 0) one
-    should use ``dataset[1,0][2]`` instead of ``dataset[1,0,2]``.
+    should use dataset[1,0][2] instead of dataset[1,0,2].
 
-    The `Atom` class is meant to declare the different properties of
-    the *base element* (also known as *atom*) of `CArray`, `EArray`
-    and `VLArray` datasets, although they are also used to describe
-    the base elements of `Array` datasets.  Atoms have the property
-    that their length is always the same.  However, you can grow
-    datasets along the extensible dimension in the case of `EArray` or
-    put a variable number of them on a `VLArray` row.  Moreover, atoms
-    are not restricted to scalar values, and they can be *fully
-    multidimensional objects*.
+    The Atom class is meant to declare the different properties of the
+    *base element* (also known as *atom*) of CArray, EArray and
+    VLArray datasets, although they are also used to describe the base
+    elements of Array datasets. Atoms have the property that their
+    length is always the same.  However, you can grow datasets along
+    the extensible dimension in the case of EArray or put a variable
+    number of them on a VLArray row. Moreover, they are not restricted
+    to scalar values, and they can be *fully multidimensional
+    objects*.
 
     A series of descendant classes are offered in order to make the
-    use of these element descriptions easier.  You should use a
-    particular `Atom` descendant class whenever you know the exact
-    type you will need when writing your code.  Otherwise, you may use
-    one of the ``Atom.from_*()`` factory methods.
+    use of these element descriptions easier. You should use a
+    particular Atom descendant class whenever you know the exact type
+    you will need when writing your code. Otherwise, you may use one
+    of the Atom.from_*() factory Methods.
 
-    Public instance variables
-    -------------------------
-
+    Parameters
+    ----------
+    itemsize : int
+        For types with a non-fixed size, this sets the size in
+        bytes of individual items in the atom.
+    shape : tuple
+        Sets the shape of the atom. An integer shape of
+        N is equivalent to the tuple (N,).
     dflt
-        The default value of the atom.
+        Sets the default value for the atom.
 
-        If the user does not supply a value for an element while
-        filling a dataset, this default value will be written to
-        disk. If the user supplies a scalar value for a
-        multidimensional atom, this value is automatically *broadcast*
-        to all the items in the atom cell.  If ``dflt`` is not
-        supplied, an appropriate zero value (or *null* string) will be
-        chosen by default.  Please note that default values are kept
-        internally as NumPy objects.
 
-    dtype
-        The NumPy ``dtype`` that most closely matches this atom.
-    itemsize
-        Size in bytes of a sigle item in the atom.
+    .. attribute:: Atom.itemsize
 
-        Specially useful for atoms of the ``string`` kind.
-    kind
+        Size in bytes of a single item in the atom.
+
+        Specially useful for atoms of the string kind.
+
+
+    .. attribute:: Atom.kind
+
         The PyTables kind of the atom (a string).
-    ndim
-        The number of dimensions of the atom.
-    recarrtype
-        String type to be used in ``numpy.rec.array()``.
-    shape
-        The shape of the atom (a tuple, ``()`` for scalar atoms).
-    size
-        Total size in bytes of the atom.
-    type
+
+
+    .. attribute:: Atom.type
+
         The PyTables type of the atom (a string).
 
-    Atoms can be compared with atoms and other objects for strict
-    (in)equality without having to compare individual attributes:
+        Atoms can be compared with atoms and other objects for
+        strict (in)equality without having to compare individual
+        attributes::
 
-    >>> atom1 = StringAtom(itemsize=10)  # same as ``atom2``
-    >>> atom2 = Atom.from_kind('string', 10)  # same as ``atom1``
-    >>> atom3 = IntAtom()
-    >>> atom1 == 'foo'
-    False
-    >>> atom1 == atom2
-    True
-    >>> atom2 != atom1
-    False
-    >>> atom1 == atom3
-    False
-    >>> atom3 != atom2
-    True
+            >>> atom1 = StringAtom(itemsize=10)  # same as ``atom2``
+            >>> atom2 = Atom.from_kind('string', 10)  # same as ``atom1``
+            >>> atom3 = IntAtom()
+            >>> atom1 == 'foo'
+            False
+            >>> atom1 == atom2
+            True
+            >>> atom2 != atom1
+            False
+            >>> atom1 == atom3
+            False
+            >>> atom3 != atom2
+            True
+
+
 
     Public methods
     --------------
@@ -900,21 +326,22 @@ class Atom(object):
     @classmethod
     def from_sctype(class_, sctype, shape=(), dflt=None):
         """
-        Create an `Atom` from a NumPy scalar type `sctype`.
+        Create an Atom from a NumPy scalar type sctype.
 
         Optional shape and default value may be specified as the
-        `shape` and `dflt` arguments, respectively.  Information in
-        the `sctype` not represented in an `Atom` is ignored.
+        shape and dflt
+        arguments, respectively. Information in the
+        sctype not represented in an Atom is ignored::
 
-        >>> import numpy
-        >>> Atom.from_sctype(numpy.int16, shape=(2, 2))
-        Int16Atom(shape=(2, 2), dflt=0)
-        >>> Atom.from_sctype('S5', dflt='hello')
-        Traceback (most recent call last):
-          ...
-        ValueError: unknown NumPy scalar type: 'S5'
-        >>> Atom.from_sctype('Float64')
-        Float64Atom(shape=(), dflt=0.0)
+            >>> import numpy
+            >>> Atom.from_sctype(numpy.int16, shape=(2, 2))
+            Int16Atom(shape=(2, 2), dflt=0)
+            >>> Atom.from_sctype('S5', dflt='hello')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown NumPy scalar type: 'S5'
+            >>> Atom.from_sctype('Float64')
+            Float64Atom(shape=(), dflt=0.0)
         """
         if ( not isinstance(sctype, type)
              or not issubclass(sctype, numpy.generic) ):
@@ -926,19 +353,19 @@ class Atom(object):
     @classmethod
     def from_dtype(class_, dtype, dflt=None):
         """
-        Create an `Atom` from a NumPy `dtype`.
+        Create an Atom from a NumPy dtype.
 
-        An optional default value may be specified as the `dflt`
-        argument.  Information in the `dtype` not represented in an
-        `Atom` is ignored.
+        An optional default value may be specified as the dflt
+        argument. Information in the dtype not represented in an Atom is
+        ignored::
 
-        >>> import numpy
-        >>> Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
-        Int16Atom(shape=(2, 2), dflt=0)
-        >>> Atom.from_dtype(numpy.dtype('S5'), dflt='hello')
-        StringAtom(itemsize=5, shape=(), dflt='hello')
-        >>> Atom.from_dtype(numpy.dtype('Float64'))
-        Float64Atom(shape=(), dflt=0.0)
+            >>> import numpy
+            >>> Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
+            Int16Atom(shape=(2, 2), dflt=0)
+            >>> Atom.from_dtype(numpy.dtype('S5'), dflt='hello')
+            StringAtom(itemsize=5, shape=(), dflt='hello')
+            >>> Atom.from_dtype(numpy.dtype('Float64'))
+            Float64Atom(shape=(), dflt=0.0)
         """
         basedtype = dtype.base
         if basedtype.names:
@@ -956,23 +383,23 @@ class Atom(object):
     @classmethod
     def from_type(class_, type, shape=(), dflt=None):
         """
-        Create an `Atom` from a PyTables `type`.
+        Create an Atom from a PyTables type.
 
         Optional shape and default value may be specified as the
-        `shape` and `dflt` arguments, respectively.
+        shape and dflt arguments, respectively::
 
-        >>> Atom.from_type('bool')
-        BoolAtom(shape=(), dflt=False)
-        >>> Atom.from_type('int16', shape=(2, 2))
-        Int16Atom(shape=(2, 2), dflt=0)
-        >>> Atom.from_type('string40', dflt='hello')
-        Traceback (most recent call last):
-          ...
-        ValueError: unknown type: 'string40'
-        >>> Atom.from_type('Float64')
-        Traceback (most recent call last):
-          ...
-        ValueError: unknown type: 'Float64'
+            >>> Atom.from_type('bool')
+            BoolAtom(shape=(), dflt=False)
+            >>> Atom.from_type('int16', shape=(2, 2))
+            Int16Atom(shape=(2, 2), dflt=0)
+            >>> Atom.from_type('string40', dflt='hello')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown type: 'string40'
+            >>> Atom.from_type('Float64')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown type: 'Float64'
         """
         if type not in all_types:
             raise ValueError("unknown type: %r" % (type,))
@@ -982,36 +409,38 @@ class Atom(object):
     @classmethod
     def from_kind(class_, kind, itemsize=None, shape=(), dflt=None):
         """
-        Create an `Atom` from a PyTables `kind`.
+        Create an Atom from a PyTables kind.
 
-        Optional item size, shape and default value may be specified
-        as the `itemsize`, `shape` and `dflt` arguments, respectively.
-        Bear in mind that not all atoms support a default item size.
+        Optional item size, shape and default value may be
+        specified as the itemsize, shape and dflt
+        arguments, respectively. Bear in mind that not all atoms support
+        a default item size::
 
-        >>> Atom.from_kind('int', itemsize=2, shape=(2, 2))
-        Int16Atom(shape=(2, 2), dflt=0)
-        >>> Atom.from_kind('int', shape=(2, 2))
-        Int32Atom(shape=(2, 2), dflt=0)
-        >>> Atom.from_kind('int', shape=1)
-        Int32Atom(shape=(1,), dflt=0)
-        >>> Atom.from_kind('string', itemsize=5, dflt='hello')
-        StringAtom(itemsize=5, shape=(), dflt='hello')
-        >>> Atom.from_kind('string', dflt='hello')
-        Traceback (most recent call last):
-          ...
-        ValueError: no default item size for kind ``string``
-        >>> Atom.from_kind('Float')
-        Traceback (most recent call last):
-          ...
-        ValueError: unknown kind: 'Float'
+            >>> Atom.from_kind('int', itemsize=2, shape=(2, 2))
+            Int16Atom(shape=(2, 2), dflt=0)
+            >>> Atom.from_kind('int', shape=(2, 2))
+            Int32Atom(shape=(2, 2), dflt=0)
+            >>> Atom.from_kind('int', shape=1)
+            Int32Atom(shape=(1,), dflt=0)
+            >>> Atom.from_kind('string', itemsize=5, dflt='hello')
+            StringAtom(itemsize=5, shape=(), dflt='hello')
+            >>> Atom.from_kind('string', dflt='hello')
+            Traceback (most recent call last):
+            ...
+            ValueError: no default item size for kind ``string``
+            >>> Atom.from_kind('Float')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown kind: 'Float'
 
-        Moreover, some kinds with atypical constructor signatures are
-        not supported; you need to use the proper constructor:
+        Moreover, some kinds with atypical constructor signatures
+        are not supported; you need to use the proper
+        constructor::
 
-        >>> Atom.from_kind('enum')  #doctest: +ELLIPSIS
-        Traceback (most recent call last):
-          ...
-        ValueError: the ``enum`` kind is not supported...
+            >>> Atom.from_kind('enum') #doctest: +ELLIPSIS
+            Traceback (most recent call last):
+            ...
+            ValueError: the ``enum`` kind is not supported...
         """
 
         kwargs = {'shape': shape}
@@ -1054,10 +483,12 @@ class Atom(object):
         None, None, "Total size in bytes of the atom." )
     recarrtype = property(
         lambda self: str(self.dtype.shape) + self.dtype.base.str[1:],
-        None, None, "String type to be used in ``numpy.rec.array()``." )
+        None, None, "String type to be used in numpy.rec.array()." )
     ndim = property(
-        lambda self: len(self.shape),
-        None, None, "The number of dimensions of the atom." )
+        lambda self: len(self.shape), None, None,
+        """The number of dimensions of the atom.
+
+        .. versionadded:: 2.4""")
 
     # Special methods
     # ~~~~~~~~~~~~~~~
@@ -1067,11 +498,24 @@ class Atom(object):
                                        "please use one of its subclasses"
                                        % self.__class__.__name__ )
         self.shape = shape = _normalize_shape(shape)
+        """The shape of the atom (a tuple for scalar atoms)."""
         # Curiously enough, NumPy isn't generally able to accept NumPy
         # integers in a shape. ;(
         npshape = tuple(int(s) for s in shape)
         self.dtype = dtype = numpy.dtype((nptype, npshape))
+        """The NumPy dtype that most closely matches this atom."""
         self.dflt = _normalize_default(dflt, dtype)
+        """The default value of the atom.
+
+        If the user does not supply a value for an element while
+        filling a dataset, this default value will be written to
+        disk. If the user supplies a scalar value for a
+        multidimensional atom, this value is automatically *broadcast*
+        to all the items in the atom cell. If dflt is not supplied, an
+        appropriate zero value (or *null* string) will be chosen by
+        default.  Please note that default values are kept internally
+        as NumPy objects."""
+
 
     def __repr__(self):
         args = 'shape=%s, dflt=%r' % (self.shape, self.dflt)
@@ -1097,23 +541,23 @@ class Atom(object):
         Get a copy of the atom, possibly overriding some arguments.
 
         Constructor arguments to be overridden must be passed as
-        keyword arguments.
+        keyword arguments::
 
-        >>> atom1 = StringAtom(itemsize=12)
-        >>> atom2 = atom1.copy()
-        >>> print atom1
-        StringAtom(itemsize=12, shape=(), dflt='')
-        >>> print atom2
-        StringAtom(itemsize=12, shape=(), dflt='')
-        >>> atom1 is atom2
-        False
-        >>> atom3 = atom1.copy(itemsize=100, shape=(2, 2))
-        >>> print atom3
-        StringAtom(itemsize=100, shape=(2, 2), dflt='')
-        >>> atom1.copy(foobar=42)
-        Traceback (most recent call last):
-          ...
-        TypeError: __init__() got an unexpected keyword argument 'foobar'
+            >>> atom1 = StringAtom(itemsize=12)
+            >>> atom2 = atom1.copy()
+            >>> print atom1
+            StringAtom(itemsize=12, shape=(), dflt='')
+            >>> print atom2
+            StringAtom(itemsize=12, shape=(), dflt='')
+            >>> atom1 is atom2
+            False
+            >>> atom3 = atom1.copy(itemsize=100, shape=(2, 2))
+            >>> print atom3
+            StringAtom(itemsize=100, shape=(2, 2), dflt='')
+            >>> atom1.copy(foobar=42)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() got an unexpected keyword argument 'foobar'
         """
         newargs = self._get_init_args()
         newargs.update(override)
@@ -1141,7 +585,7 @@ class Atom(object):
 
 class StringAtom(Atom):
     """
-    Defines an atom of type ``string``.
+    Defines an atom of type string.
 
     The item size is the *maximum* length in characters of strings.
     """
@@ -1161,7 +605,7 @@ class StringAtom(Atom):
 
 
 class BoolAtom(Atom):
-    """Defines an atom of type ``bool``."""
+    """Defines an atom of type bool."""
     kind = 'bool'
     itemsize = 1
     type = 'bool'
@@ -1172,23 +616,25 @@ class BoolAtom(Atom):
 
 
 class IntAtom(Atom):
-    """Defines an atom of a signed integral type (``int`` kind)."""
+    """Defines an atom of a signed integral type (int kind)."""
     kind = 'int'
     signed = True
     _deftype = 'int32'
     _defvalue = 0
     __init__ = _abstract_atom_init(_deftype, _defvalue)
 
+
 class UIntAtom(Atom):
-    """Defines an atom of an unsigned integral type (``uint`` kind)."""
+    """Defines an atom of an unsigned integral type (uint kind)."""
     kind = 'uint'
     signed = False
     _deftype = 'uint32'
     _defvalue = 0
     __init__ = _abstract_atom_init(_deftype, _defvalue)
 
+
 class FloatAtom(Atom):
-    """Defines an atom of a floating point type (``float`` kind)."""
+    """Defines an atom of a floating point type (float kind)."""
     kind = 'float'
     _deftype = 'float64'
     _defvalue = 0.0
@@ -1217,6 +663,7 @@ def _generate_integral_classes():
             newclass = _create_numeric_class(baseclass, itemsize)
             yield newclass
 
+
 def _generate_floating_classes():
     """Generate all floating classes."""
     itemsizes = [4, 8]
@@ -1227,6 +674,7 @@ def _generate_floating_classes():
         newclass = _create_numeric_class(FloatAtom, itemsize)
         yield newclass
 
+
 # Create all numeric atom classes.
 for _classgen in [_generate_integral_classes, _generate_floating_classes]:
     for _newclass in _classgen():
@@ -1236,12 +684,11 @@ del _classgen, _newclass
 
 class ComplexAtom(Atom):
     """
-    Defines an atom of a complex type.
+    Defines an atom of kind complex.
 
-    Allowed item sizes are 8 (single precision) and 16 (double
-    precision).  This class must be used instead of more concrete ones
-    to avoid confusions with ``numarray`` -like precision
-    specifications used in PyTables 1.X.
+    Allowed item sizes are 8 (single precision) and 16 (double precision). This
+    class must be used instead of more concrete ones to avoid confusions with
+    numarray-like precision specifications used in PyTables 1.X.
     """
 
     # This definition is a little more complex (no pun intended)
@@ -1284,12 +731,12 @@ Complex32Atom = Complex64Atom = Complex128Atom = _ComplexErrorAtom
 class TimeAtom(Atom):
 
     """
-    Defines an atom of time type (``time`` kind).
+    Defines an atom of time type (time kind).
 
-    There are two distinct supported types of time: a 32 bit integer
-    value and a 64 bit floating point value.  Both of them reflect the
-    number of seconds since the Unix epoch.  This atom has the
-    property of being stored using the HDF5 time datatypes.
+    There are two distinct supported types of time: a 32 bit integer value and
+    a 64 bit floating point value. Both of them reflect the number of seconds
+    since the Unix epoch. This atom has the property of being stored using the
+    HDF5 time datatypes.
     """
     kind = 'time'
     _deftype = 'time32'
@@ -1297,7 +744,7 @@ class TimeAtom(Atom):
     __init__ = _abstract_atom_init(_deftype, _defvalue)
 
 class Time32Atom(TimeAtom):
-    """Defines an atom of type ``time32``."""
+    """Defines an atom of type time32."""
     itemsize = 4
     type = 'time32'
     _defvalue = 0
@@ -1305,7 +752,7 @@ class Time32Atom(TimeAtom):
         Atom.__init__(self, 'int32', shape, dflt)
 
 class Time64Atom(TimeAtom):
-    """Defines an atom of type ``time64``."""
+    """Defines an atom of type time64."""
     itemsize = 8
     type = 'time64'
     _defvalue = 0.0
@@ -1318,87 +765,86 @@ class EnumAtom(Atom):
     """
     Description of an atom of an enumerated type.
 
-    Instances of this class describe the atom type used to store
-    enumerated values.  Those values belong to an enumerated type,
-    defined by the first argument (``enum``) in the constructor of the
-    atom, which accepts the same kinds of arguments as the ``Enum``
-    class.  The enumerated type is stored in the ``enum`` attribute of
-    the atom.
+    Instances of this class describe the atom type used to store enumerated
+    values. Those values belong to an enumerated type, defined by the first
+    argument (enum) in the constructor of the atom, which accepts the same
+    kinds of arguments as the Enum class (see :ref:`EnumClassDescr`).  The
+    enumerated type is stored in the enum attribute of the atom.
 
-    A default value must be specified as the second argument
-    (``dflt``) in the constructor; it must be the *name* (a string) of
-    one of the enumerated values in the enumerated type.  When the
-    atom is created, the corresponding concrete value is broadcast and
-    stored in the ``dflt`` attribute (setting different default values
-    for items in a multidimensional atom is not supported yet).  If
-    the name does not match any value in the enumerated type, a
-    ``KeyError`` is raised.
+    A default value must be specified as the second argument (dflt) in the
+    constructor; it must be the *name* (a string) of one of the enumerated
+    values in the enumerated type. When the atom is created, the corresponding
+    concrete value is broadcast and stored in the dflt attribute (setting
+    different default values for items in a multidimensional atom is not
+    supported yet). If the name does not match any value in the enumerated
+    type, a KeyError is raised.
 
-    Another atom must be specified as the ``base`` argument in order
-    to determine the base type used for storing the values of
-    enumerated values in memory and disk.  This *storage atom* is kept
-    in the ``base`` attribute of the created atom.  As a shorthand,
-    you may specify a PyTables type instead of the storage atom,
-    implying that this has a scalar shape.
+    Another atom must be specified as the base argument in order to determine
+    the base type used for storing the values of enumerated values in memory
+    and disk. This *storage atom* is kept in the base attribute of the created
+    atom. As a shorthand, you may specify a PyTables type instead of the
+    storage atom, implying that this has a scalar shape.
 
-    The storage atom should be able to represent each and every
-    concrete value in the enumeration.  If it is not, a ``TypeError``
-    is raised.  The default value of the storage atom is ignored.
+    The storage atom should be able to represent each and every concrete value
+    in the enumeration. If it is not, a TypeError is raised. The default value
+    of the storage atom is ignored.
 
-    The ``type`` attribute of enumerated atoms is always ``'enum'``.
+    The type attribute of enumerated atoms is always enum.
 
-    Enumerated atoms also support comparisons with other objects:
+    Enumerated atoms also support comparisons with other objects::
 
-    >>> enum = ['T0', 'T1', 'T2']
-    >>> atom1 = EnumAtom(enum, 'T0', 'int8')  # same as ``atom2``
-    >>> atom2 = EnumAtom(enum, 'T0', Int8Atom())  # same as ``atom1``
-    >>> atom3 = EnumAtom(enum, 'T0', 'int16')
-    >>> atom4 = Int8Atom()
-    >>> atom1 == enum
-    False
-    >>> atom1 == atom2
-    True
-    >>> atom2 != atom1
-    False
-    >>> atom1 == atom3
-    False
-    >>> atom1 == atom4
-    False
-    >>> atom4 != atom1
-    True
+        >>> enum = ['T0', 'T1', 'T2']
+        >>> atom1 = EnumAtom(enum, 'T0', 'int8')  # same as ``atom2``
+        >>> atom2 = EnumAtom(enum, 'T0', Int8Atom())  # same as ``atom1``
+        >>> atom3 = EnumAtom(enum, 'T0', 'int16')
+        >>> atom4 = Int8Atom()
+        >>> atom1 == enum
+        False
+        >>> atom1 == atom2
+        True
+        >>> atom2 != atom1
+        False
+        >>> atom1 == atom3
+        False
+        >>> atom1 == atom4
+        False
+        >>> atom4 != atom1
+        True
 
-    .. rubric:: Examples of use:
+    Examples
+    --------
 
-    The next C ``enum`` construction::
+    The next C enum construction::
 
-      enum myEnum {
-        T0,
-        T1,
-        T2
-      };
+        enum myEnum {
+                    T0,
+                    T1,
+                    T2
+                    };
 
-    would correspond to the following PyTables declaration:
+    would correspond to the following PyTables
+    declaration::
 
-    >>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')
+        >>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')
 
-    Please note the ``dflt`` argument with a value of ``'T0'``.  Since
-    the concrete value matching ``T0`` is unknown right now (we have
-    not used explicit concrete values), using the name is the only
-    option left for defining a default value for the atom.
+    Please note the dflt argument with a value of 'T0'. Since the concrete
+    value matching T0 is unknown right now (we have not used explicit concrete
+    values), using the name is the only option left for defining a default
+    value for the atom.
 
-    The chosen representation of values for this enumerated atom uses
-    unsigned 32-bit integers, which surely wastes quite a lot of
-    memory.  Another size could be selected by using the ``base``
-    argument (this time with a full-blown storage atom):
+    The chosen representation of values for this enumerated atom uses unsigned
+    32-bit integers, which surely wastes quite a lot of memory. Another size
+    could be selected by using the base argument (this time with a full-blown
+    storage atom)::
 
-    >>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())
+        >>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())
 
-    You can also define multidimensional arrays for data elements:
+    You can also define multidimensional arrays for data elements::
 
-    >>> myEnumAtom = EnumAtom(
-    ...    ['T0', 'T1', 'T2'], 'T0', base='uint32', shape=(3,2))
+        >>> myEnumAtom = EnumAtom(
+        ...    ['T0', 'T1', 'T2'], 'T0', base='uint32', shape=(3,2))
 
-    for 3x2 arrays of ``uint32``.
+    for 3x2 arrays of uint32.
     """
 
     # Registering this class in the class map may be a little wrong,
@@ -1565,23 +1011,21 @@ class VLStringAtom(_BufferedAtom):
     """
     Defines an atom of type ``vlstring``.
 
-    This class describes a *row* of the `VLArray` class, rather than
-    an atom.  It differs from the `StringAtom` class in that you can
-    only add *one instance of it to one specific row*, i.e. the
-    `VLArray.append()` method only accepts one object when the base
-    atom is of this type.
+    This class describes a *row* of the VLArray class, rather than an atom. It
+    differs from the StringAtom class in that you can only add *one instance of
+    it to one specific row*, i.e. the :meth:`VLArray.append` method only
+    accepts one object when the base atom is of this type.
 
-    Like `StringAtom`, this class does not make assumptions on the
-    encoding of the string, and raw bytes are stored as is.  Unicode
-    strings are supported as long as no character is out of the ASCII
-    set; otherwise, you will need to *explicitly* convert them to
-    strings before you can save them.  For full Unicode support, using
-    `VLUnicodeAtom` is recommended.
+    Like StringAtom, this class does not make assumptions on the encoding of
+    the string, and raw bytes are stored as is.  Unicode strings are supported
+    as long as no character is out of the ASCII set; otherwise, you will need
+    to *explicitly* convert them to strings before you can save them.  For full
+    Unicode support, using VLUnicodeAtom (see :ref:`VLUnicodeAtom`) is
+    recommended.
 
-    Variable-length string atoms do not accept parameters and they
-    cause the reads of rows to always return Python strings.  You can
-    regard ``vlstring`` atoms as an easy way to save generic variable
-    length strings.
+    Variable-length string atoms do not accept parameters and they cause the
+    reads of rows to always return Python strings.  You can regard vlstring
+    atoms as an easy way to save generic variable length strings.
     """
     kind = 'vlstring'
     type = 'vlstring'
@@ -1597,22 +1041,21 @@ class VLStringAtom(_BufferedAtom):
 
 class VLUnicodeAtom(_BufferedAtom):
     """
-    Defines an atom of type ``vlunicode``.
+    Defines an atom of type vlunicode.
 
-    This class describes a *row* of the `VLArray` class, rather than
-    an atom.  It is very similar to `VLStringAtom`, but it stores
-    Unicode strings (using 32-bit characters a la UCS-4, so all
-    strings of the same length also take up the same space).
+    This class describes a *row* of the VLArray class, rather than an atom.  It
+    is very similar to VLStringAtom (see :ref:`VLStringAtom`), but it stores
+    Unicode strings (using 32-bit characters a la UCS-4, so all strings of the
+    same length also take up the same space).
 
-    This class does not make assumptions on the encoding of plain
-    input strings.  Plain strings are supported as long as no
-    character is out of the ASCII set; otherwise, you will need to
-    *explicitly* convert them to Unicode before you can save them.
+    This class does not make assumptions on the encoding of plain input
+    strings.  Plain strings are supported as long as no character is out of the
+    ASCII set; otherwise, you will need to *explicitly* convert them to Unicode
+    before you can save them.
 
-    Variable-length Unicode atoms do not accept parameters and they
-    cause the reads of rows to always return Python Unicode strings.
-    You can regard ``vlunicode`` atoms as an easy way to save variable
-    length Unicode strings.
+    Variable-length Unicode atoms do not accept parameters and they cause the
+    reads of rows to always return Python Unicode strings.  You can regard
+    vlunicode atoms as an easy way to save variable length Unicode strings.
     """
     kind = 'vlunicode'
     type = 'vlunicode'
@@ -1648,20 +1091,18 @@ class VLUnicodeAtom(_BufferedAtom):
 
 class ObjectAtom(_BufferedAtom):
     """
-    Defines an atom of type ``object``.
+    Defines an atom of type object.
 
-    This class is meant to fit *any* kind of Python object in a row of
-    a `VLArray` dataset by using ``cPickle`` behind the scenes.  Due
-    to the fact that you can not foresee how long will be the output
-    of the ``cPickle`` serialization (i.e. the atom already has a
-    *variable* length), you can only fit *one object per row*.
-    However, you can still group several objects in a single tuple or
-    list and pass it to the `VLArray.append()` method.
+    This class is meant to fit *any* kind of Python object in a row of a
+    VLArray dataset by using cPickle behind the scenes. Due to the fact that
+    you can not foresee how long will be the output of the cPickle
+    serialization (i.e. the atom already has a *variable* length), you can only
+    fit *one object per row*. However, you can still group several objects in a
+    single tuple or list and pass it to the :meth:`VLArray.append` method.
 
-    Object atoms do not accept parameters and they cause the reads of
-    rows to always return Python objects.  You can regard ``object``
-    atoms as an easy way to save an arbitrary number of generic Python
-    objects in a `VLArray` dataset.
+    Object atoms do not accept parameters and they cause the reads of rows to
+    always return Python objects. You can regard object atoms as an easy way to
+    save an arbitrary number of generic Python objects in a VLArray dataset.
     """
     kind = 'object'
     type = 'object'
