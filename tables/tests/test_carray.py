@@ -994,7 +994,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
             abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
 
         # XXX: check. The test fails if blosc is not available
-        if False: #whichLibVersion('blosc') is not None:
+        if whichLibVersion('blosc') is not None:
             self.assertAlmostEqual(self.array.size_on_disk, 10000 * 10 * 2)
         else:
             self.assertTrue(
