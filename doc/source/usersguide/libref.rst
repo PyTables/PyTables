@@ -460,22 +460,28 @@ VLUnicodeAtom
 
 
 Helper classes
-.. --------------
+--------------
 .. move this section into its own file
 
 This section describes some classes that do not fit in any other
 section and that mainly serve for ancillary purposes.
 
 
-.. Filters class documentation in tables/filters.py
+.. _FiltersClassDescr:
 
-.. automodule:: tables.filters
+The Filters class
+-----------------
 
+.. autoclass:: Filters
+    :members:
 
-.. Index class documentation in tables/index.py
+.. _IndexClassDescr:
 
-.. automodule:: tables.index
+The Index class
+---------------
 
+.. autoclass:: tables.index.Index
+    :members:
 
 .. Enum class documentation in tables/misc/enum.py
 

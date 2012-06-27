@@ -8,95 +8,6 @@
 #
 ########################################################################
 
-"""
-.. _IndexClassDescr:
-
-The Index class
----------------
-.. class:: tables.index.Index
-
-    Represents the index of a column in a table.
-
-    This class is used to keep the indexing information for
-    columns in a Table dataset (see :ref:`TableClassDescr`). It is
-    actually a descendant of the Group class (see
-    :ref:`GroupClassDescr`), with
-    some added functionality. An Index is always
-    associated with one and only one column in the table.
-
-    .. note:: This class is mainly intended for internal use, but some of
-       its documented attributes and methods may be interesting for the
-       programmer.
-
-
-Index instance variables
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. attribute:: Index.column
-
-    The Column (see :ref:`ColumnClassDescr`)
-    instance for the indexed column.
-
-.. attribute:: Index.dirty
-
-    Whether the index is dirty or not.
-
-    Dirty indexes are out of sync with column data, so
-    they exist but they are not usable.
-
-
-.. attribute:: Index.filters
-
-    Filter properties for this index - see
-    Filters in :ref:`FiltersClassDescr`.
-
-
-.. attribute:: Index.nelements
-
-    The number of currently indexed row for this column.
-
-
-.. attribute:: Index.is_CSI
-
-    Whether the index is completely sorted or not.
-
-
-Index methods
-~~~~~~~~~~~~~
-
-.. method:: Index.readSorted(start=None, stop=None, step=None)
-
-    Return the sorted values of index in the specified range.
-
-    The meaning of the start, stop and step arguments is
-    the same as in :meth:`Table.readSorted`.
-
-
-.. method:: Index.readIndices(start=None, stop=None, step=None)
-
-    Return the indices values of index in the specified range.
-
-    The meaning of the start, stop and step arguments is
-    the same as in :meth:`Table.readSorted`.
-
-
-Index special methods
-~~~~~~~~~~~~~~~~~~~~~
-
-.. method:: Index.__getitem__(key)
-
-    Return the indices values of index in the specified range.
-
-    If key argument is an integer, the
-    corresponding index is returned.  If key is a
-    slice, the range of indices determined by it is returned.  A
-    negative value of step in slice is supported,
-    meaning that the results will be returned in reverse
-    order.
-
-    This method is equivalent to :meth:`Index.readIndices`.
-"""
-
 import sys
 from bisect import bisect_left, bisect_right
 from time import time, clock
@@ -184,30 +95,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     """
     Represents the index of a column in a table.
 
-    This class is used to keep the indexing information for columns in a
-    `Table` dataset.  It is actually a descendant of the `Group` class,
-    with some added functionality.  An `Index` is always associated with
-    one and only one column in the table.
+    This class is used to keep the indexing information for columns in a Table
+    dataset (see :ref:`TableClassDescr`). It is actually a descendant of the
+    Group class (see :ref:`GroupClassDescr`), with some added functionality. An
+    Index is always associated with one and only one column in the table.
 
-    This class is mainly intended for internal use, but some of its
-    attributes may be interesting for the programmer.
-
-    Public instance variables
-    -------------------------
-
-    column
-        The `Column` instance for the indexed column.
-    dirty
-        Whether the index is dirty or not. Dirty indexes are out of sync
-        with column data, so are not usable.
-    kind
-        The kind of the index.
-    optlevel
-        The optimization level during index creation.
-    filters
-        Filter properties for this index --see `Filters`.
-    nelements
-        The number of currently indexed rows for this column.
+    .. note:: This class is mainly intended for internal use, but some of its
+       documented attributes and methods may be interesting for the programmer.
     """
 
     _c_classId = 'INDEX'
@@ -222,8 +116,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         "The kind of this index.")
 
     filters = property(
-        lambda self: self._v_filters, None, None,
-        "The filters for this index.")
+        lambda self: self._v_filters, None, None, """
+        Filter properties for this index - see Filters in
+        :ref:`FiltersClassDescr`.""")
 
     def _getdirty(self):
         if 'DIRTY' not in self._v_attrs:
@@ -247,8 +142,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """
         Whether the index is dirty or not.
 
-        Dirty indexes are out of sync with column data, so they exist
-        but they are not usable.
+        Dirty indexes are out of sync with column data, so they exist but they
+        are not usable.
         """ )
 
     def _getcolumn(self):
@@ -258,8 +153,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         return column
 
     column = property(
-        _getcolumn, None, None,
-        "Accessor for the `Column` object of this index.")
+        _getcolumn, None, None, """
+        The Column (see :ref:`ColumnClassDescr`) instance for the indexed
+        column.""")
 
     def _gettable(self):
         tablepath, columnpath = _tableColumnPathnameOfIndex(self._v_pathname)
@@ -453,7 +349,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.nrows = None
         """The total number of slices in the index."""
         self.nelements = None
-        """The number of currently indexed row for this column."""
+        """The number of currently indexed rows for this column."""
         self.blocksizes = blocksizes
         """The four main sizes of the compound blocks (if specified)."""
         self.dirtycache = True
@@ -1741,19 +1637,21 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def readSorted(self, start=None, stop=None, step=None):
-        """Return the sorted values of index in the specified range.
+        """
+        Return the sorted values of index in the specified range.
 
-        The meaning of the `start`, `stop` and `step` arguments is the
-        same as in `Table.readSorted()`.
+        The meaning of the start, stop and step arguments is the same as in
+        :meth:`Table.readSorted`.
         """
         return self.read_sorted_indices('sorted', start, stop, step)
 
 
     def readIndices(self, start=None, stop=None, step=None):
-        """Return the indices values of index in the specified range.
+        """
+        Return the indices values of index in the specified range.
 
-        The meaning of the `start`, `stop` and `step` arguments is the
-        same as in `Table.readSorted()`.
+        The meaning of the start, stop and step arguments is the same as in
+        :meth:`Table.readSorted`.
         """
         return self.read_sorted_indices('indices', start, stop, step)
 
@@ -1779,15 +1677,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def __getitem__(self, key):
-        """Return the indices values of index in the specified range.
+        """
+        Return the indices values of index in the specified range.
 
-        If the `key` argument is an integer, the corresponding index is
-        returned.  If `key` is a slice, the range of indices determined
-        by it is returned.  A negative value of `step` in slice is
-        supported, meaning that the results will be returned in reverse
-        order.
+        If key argument is an integer, the corresponding index is returned.  If
+        key is a slice, the range of indices determined by it is returned.  A
+        negative value of step in slice is supported, meaning that the results
+        will be returned in reverse order.
 
-        This method is equivalent to `Index.readIndices()`.
+        This method is equivalent to :meth:`Index.readIndices`.
         """
         if is_idx(key):
             if key < 0:
