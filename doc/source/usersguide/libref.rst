@@ -500,8 +500,44 @@ The Expr class - a general-purpose expression evaluator
     :members:
 
 
-.. HDF5ExtError and other PyTables specific exception classes are
-   documented in tables/exceptions.py
+.. _ExceptionsDescr:
 
-.. automodule:: tables.exceptions
+Exceptions module
+-----------------
+In the :mod:`exceptions` module exceptions and warnings that are specific
+to PyTables are declared.
 
+.. autoexception:: tables.HDF5ExtError
+    :members:
+
+.. autoexception:: ClosedNodeError
+
+.. autoexception:: ClosedFileError
+
+.. autoexception:: FileModeError
+
+.. autoexception:: NodeError
+
+.. autoexception:: NoSuchNodeError
+
+.. autoexception:: UndoRedoError
+
+.. autoexception:: UndoRedoWarning
+
+.. autoexception:: NaturalNameWarning
+
+.. autoexception:: PerformanceWarning
+
+.. autoexception:: FlavorError
+
+.. autoexception:: FlavorWarning
+
+.. autoexception:: FiltersWarning
+
+.. autoexception:: OldIndexWarning
+
+.. autoexception:: DataTypeWarning
+
+.. autoexception:: Incompat16Warning
+
+.. autoexception:: ExperimentalFeatureWarning
