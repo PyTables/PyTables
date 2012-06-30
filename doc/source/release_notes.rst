@@ -8,6 +8,7 @@ PyTables
 .. toctree::
     :maxdepth: 1
 
+    release-notes/RELEASE_NOTES_v2.4.x
     release-notes/RELEASE_NOTES_v2.3.x
     release-notes/RELEASE_NOTES_v2.2.x
     release-notes/RELEASE_NOTES_v2.1.x
@@ -46,6 +47,7 @@ Release timeline
 ----------------
 
 =============== =========== ==========
+PyTables        2.4b1       2012-MM-DD
 PyTables        2.3.1       2011-10-28
 PyTables        2.3         2011-09-23
 PyTables        2.3rc1      2011-09-11

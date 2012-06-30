@@ -18,7 +18,7 @@ compression is used) than other solutions such as relational or object
 oriented databases.
 
 You can have a look at the MainFeatures of PyTables. Also, find more info
-by reading the PyTables FAQ.
+by reading the PyTables :doc:`FAQ`.
 
 PyTables development is a continuing effort and we are always looking for
 more developers, testers, and users.  If you are interested in being
@@ -35,6 +35,8 @@ Contents
 
     downloads
     usersguide/index
+    FAQ
+    MIGRATING_TO_2.x
     release_notes
     project_pointers
     development
