@@ -483,14 +483,21 @@ The Index class
 .. autoclass:: tables.index.Index
     :members:
 
-.. Enum class documentation in tables/misc/enum.py
 
-.. automodule:: tables.misc.enum
+.. _EnumClassDescr:
+
+The Enum class
+--------------
+
+.. autoclass:: tables.misc.enum.Enum
+    :members:
 
 
-.. Expr class documentation in tables/expression.py
+The Expr class - a general-purpose expression evaluator
+-------------------------------------------------------
 
-.. automodule:: tables.expression
+.. autoclass:: Expr
+    :members:
 
 
 .. HDF5ExtError and other PyTables specific exception classes are
