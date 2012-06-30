@@ -6,19 +6,19 @@ Bibliography
 :ref:`[HDFG1] <HDFG1>`
     The HDF Group. What is HDF5?. Concise description about HDF5 capabilities
     and its differences from earlier versions (HDF4).
-    `<http://hdfgroup.org/whatishdf5.html>`_.
+    `<http://www.hdfgroup.org/whatishdf5.html>`_.
 
 .. _HDFG2:
 
 :ref:`[HDFG2] <HDFG2>`
     The HDF Group. Introduction to HDF5. Introduction to the HDF5 data model
-    and programming model. `<http://hdfgroup.org/HDF5/doc/H5.intro.html>`_.
+    and programming model. `<http://www.hdfgroup.org/HDF5/doc/H5.intro.html>`_.
 
 .. _HDFG3:
 
 :ref:`[HDFG3] <HDFG3>`
     The HDF Group. The HDF5 table programming model. Examples on using HDF5
-    tables with the C API. `<http://hdfgroup.org/HDF5/Tutor/h5table.html>`_.
+    tables with the C API. `<http://www.hdfgroup.org/HDF5/Tutor/h5table.html>`_.
 
 .. _MERTZ:
 
@@ -171,7 +171,7 @@ Bibliography
     Vicent Mas. ViTables. A GUI for PyTables/HDF5 files.
     It is a graphical tool for browsing and editing files in both PyTables
     and HDF5 formats.
-    `<http://www.vitables.org>`_.
+    `<http://vitables.org>`_.
 
 .. _GIT:
 
