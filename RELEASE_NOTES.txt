@@ -105,6 +105,9 @@ Bugs fixed
 - Fixed support to rich structured  numpy.dtype in
   :func:`description.descr_from_dtype`.   Closes :issue:`160`.
 
+- Fixed sorting of nested tables that caused AttributeError.
+  Closes :issue:`156` and :issue:`157`.  Thanks to Uwe Mayer.
+
 
 Deprecations
 ------------
