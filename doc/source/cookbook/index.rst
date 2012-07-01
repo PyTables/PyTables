@@ -12,7 +12,8 @@ Contents
 --------
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     hints_for_sql_users
+    PyTables & py2exe Howto (by Tommy Edvardsen) <py2exe_howto>
 

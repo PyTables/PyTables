@@ -535,6 +535,9 @@ consider migrating to NumPy as soon as possible.
 To get rid of these errors, just uninstall `Numeric`.
 
 
+-----
+
+
 .. target-notes::
 
 .. _HDF5: http://www.hdfgroup.org/HDF5

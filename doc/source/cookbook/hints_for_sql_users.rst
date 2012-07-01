@@ -710,6 +710,9 @@ should be changed to::
     group[pressure] += sum((r['energy'] + r['ADCcount'] for r in rows_grouped_by_pressure))
 
 
+-----
+
+
 .. target-notes::
 
 .. _`PyTables users' list`: https://lists.sourceforge.net/lists/listinfo/pytables-users
