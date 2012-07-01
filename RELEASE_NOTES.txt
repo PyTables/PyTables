@@ -81,6 +81,11 @@ Other improvements
 - Added explicit (import time) testing for hdf5dll.dll on Windows to improve
   diagnostics (closes :issue:`146`).  Thanks to Mark (mwiebe).
 
+- Documentation improvements:
+
+  * new coockbook section (contents have been coming from the PyTables wiki
+    on http://www.pytables.org)
+
 
 Bugs fixed
 ----------
