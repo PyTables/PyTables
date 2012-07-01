@@ -2345,7 +2345,9 @@ class Issue156TestBase(PyTablesTestCase):
             class Bar(IsDescription):
                 code = UInt16Col()
 
-        table = self.file.createTable('/', 'foo', Foo, filters=Filters(3, 'zlib'), createparents=True)
+        table = self.file.createTable('/', 'foo', Foo,
+                                      filters=Filters(3, 'zlib'),
+                                      createparents=True)
 
         self.file.flush()
 
@@ -2358,30 +2360,30 @@ class Issue156TestBase(PyTablesTestCase):
 
         self.file.flush()
 
-
     def tearDown(self):
         self.file.close()
         os.remove(self.filename)
 
-
     def _copysort(self):
         # copy table
         oldNode = self.file.getNode('/foo')
+
         # create completely sorted index on a main column
         oldNode.colinstances[self.sort_field].createCSIndex()
 
         # this fails on ade2ba123efd267fd31
-        try:
-            newNode = oldNode.copy(newname='foo2', overwrite=True, sortby=self.sort_field, checkCSI=True, propindexes=True)
-        except AttributeError as e:
-            self.fail("test_copysort1() raised AttributeError unexpectedly: \n"+str(e))
+        # see gh-156
+        newNode = oldNode.copy(newname='foo2', overwrite=True,
+                               sortby=self.sort_field, checkCSI=True,
+                               propindexes=True)
 
         # check column is sorted
-        self.assertTrue( numpy.all( newNode.col(self.sort_field) == sorted( oldNode.col(self.sort_field) ) ) )
+        self.assertTrue(numpy.all(
+            newNode.col(self.sort_field) == sorted(oldNode.col(self.sort_field))))
         # check index is available
-        self.assertTrue( newNode.colindexes.has_key(self.sort_field) )
+        self.assertTrue(newNode.colindexes.has_key(self.sort_field))
         # check CSI was propagated
-        self.assertTrue( newNode.colindexes[self.sort_field].is_CSI )
+        self.assertTrue(newNode.colindexes[self.sort_field].is_CSI)
 
 
 class Issue156_1(Issue156TestBase):
@@ -2389,11 +2391,11 @@ class Issue156_1(Issue156TestBase):
     sort_field = 'frame'
     test_copysort = Issue156TestBase._copysort
 
+
 class Issue156_2(Issue156TestBase):
     # sort by field from nested entry
     sort_field = 'Bar/code'
     test_copysort = Issue156TestBase._copysort
-
 
 
 #----------------------------------------------------------------------
