@@ -37,6 +37,7 @@ Contents
     usersguide/index
     FAQ
     MIGRATING_TO_2.x
+    cookbook/index
     release_notes
     project_pointers
     development

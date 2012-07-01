@@ -31,7 +31,7 @@ scratch if you have Cython installed, but this is not necessary, as the Cython
 compiled source is included in the source distribution.
 
 To compile PyTables you will need a recent version of Python, the HDF5 (C
-flavor) library from http://www,hdfgroup.org, and the NumPy (see
+flavor) library from http://www.hdfgroup.org, and the NumPy (see
 :ref:`[NUMPY] <NUMPY>`) and Numexpr (see  :ref:`[NUMEXPR] <NUMEXPR>`)
 packages.
 Although you won't need numarray (see :ref:`[NUMARRAY] <NUMARRAY>`) or Numeric

@@ -540,10 +540,10 @@ To get rid of these errors, just uninstall `Numeric`.
 .. _HDF5: http://www.hdfgroup.org/HDF5
 .. _`Python language`: http://www.python.org
 .. _NumPy: http://numpy.scipy.org
-.. _`users mailing list`: http://lists.sourceforge.net/lists/listinfo/pytables-users
+.. _`users mailing list`: https://lists.sourceforge.net/lists/listinfo/pytables-users
 .. _`archives of the user's list`: http://sourceforge.net/mailarchive/forum.php?forum_id=13760
 .. _`Gmane archives`: http://www.mail-archive.com/pytables-users@lists.sourceforge.net/
-.. _`R&D 100 Award`: http://www.hdfgroup.com/HDF5/RD100-2002/
+.. _`R&D 100 Award`: http://www.hdfgroup.org/HDF5/RD100-2002/
 .. _ViTables: http://vitables.org
 .. _Cython: http://cython.org
 .. _`Francesc Alted`: http://www.pytables.org/moin/FrancescAlted
@@ -563,7 +563,7 @@ To get rid of these errors, just uninstall `Numeric`.
 .. _`zlib`: http://zlib.net
 .. _numexpr: http://code.google.com/p/numexpr
 .. _`FAQ of h5py`: http://code.google.com/p/h5py/wiki/FAQ
-.. _`issue tracker`: http://www.pytables.org/trac/report
+.. _`issue tracker`: https://github.com/PyTables/PyTables/issues
 .. _GitHub: https://github.com
 .. _`HDF5 manual`: http://www.hdfgroup.org/HDF5/doc/RM/RM_H5T.html
 .. _SQLObject: http://sqlobject.org
