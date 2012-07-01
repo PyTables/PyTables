@@ -9,382 +9,6 @@
 ########################################################################
 
 """
-.. _TableClassDescr:
-
-.. currentmodule:: tables
-
-The Table class
----------------
-.. class:: Table
-
-    This class represents heterogeneous datasets in an HDF5 file.
-
-    Tables are leaves (see the Leaf class in
-    :ref:`LeafClassDescr`) whose
-    data consists of a unidimensional sequence of
-    *rows*, where each row contains one or more
-    *fields*.  Fields have an associated unique
-    *name* and *position*, with the
-    first field having position 0.  All rows have the same fields, which
-    are arranged in *columns*.
-
-    Fields can have any type supported by the Col
-    class (see :ref:`ColClassDescr`)
-    and its descendants, which support multidimensional data.  Moreover, a
-    field can be *nested* (to an arbitrary depth),
-    meaning that it includes further fields inside.  A field named
-    x inside a nested field a in a
-    table can be accessed as the field a/x (its
-    *path name*) from the table.
-
-    The structure of a table is declared by its description, which
-    is made available in the Table.description
-    attribute (see :ref:`TableInstanceVariablesDescr`).
-
-    This class provides new methods to read, write and search table
-    data efficiently.  It also provides special Python methods to allow
-    accessing the table as a normal sequence or array (with extended
-    slicing supported).
-
-    PyTables supports *in-kernel* searches
-    working simultaneously on several columns using complex conditions.
-    These are faster than selections using Python expressions.  See the
-    :meth:`Table.where` method for more information on in-kernel searches.
-
-    Non-nested columns can be *indexed*.
-    Searching an indexed column can be several times faster than searching
-    a non-nested one.  Search methods automatically take advantage of
-    indexing where available.
-
-    When iterating a table, an object from the
-    Row (see :ref:`RowClassDescr`) class is used.  This object allows to
-    read and write data one row at a time, as well as to perform queries
-    which are not supported by in-kernel syntax (at a much lower speed, of
-    course).
-
-    Objects of this class support access to individual columns via
-    *natural naming* through the
-    Table.cols accessor (see :ref:`TableInstanceVariablesDescr`).
-    Nested columns are mapped to Cols instances, and
-    non-nested ones to Column instances.  See the
-    Column class in :ref:`ColumnClassDescr` for examples of this feature.
-
-
-.. _TableInstanceVariablesDescr:
-
-Table instance variables
-~~~~~~~~~~~~~~~~~~~~~~~~
-The following instance variables are provided in addition to
-those in Leaf (see :ref:`LeafClassDescr`).  Please note that there are several
-col* dictionaries to ease retrieving information
-about a column directly by its path name, avoiding the need to walk
-through Table.description or
-Table.cols.
-
-
-.. attribute:: Table.autoIndex
-
-    Automatically keep column indexes up to date?
-
-    Setting this value states whether existing indexes
-    should be automatically updated after an append operation or
-    recomputed after an index-invalidating operation (i.e. removal
-    and modification of rows). The default is true.
-
-    This value gets into effect whenever a column is
-    altered. If you don't have automatic indexing activated and
-    you want to do an immediate update use
-    :meth:`Table.flushRowsToIndex`; for immediate reindexing
-    of invalidated indexes, use
-    :meth:`Table.reIndexDirty`.
-
-    This value is persistent.
-
-.. attribute:: Table.coldescrs
-
-    Maps the name of a column to its Col
-    description (see :ref:`ColClassDescr`).
-
-
-.. attribute:: Table.coldflts
-
-    Maps the name of a column to its default value.
-
-.. attribute:: Table.coldtypes
-
-    Maps the name of a column to its NumPy data type.
-
-
-.. attribute:: Table.colindexed
-
-    Is the column which name is used as a key indexed?
-
-
-.. attribute:: Table.colindexes
-
-    A dictionary with the indexes of the indexed columns.
-
-.. attribute:: Table.colinstances
-
-    Maps the name of a column to its
-    Column (see :ref:`ColumnClassDescr`) or
-    Cols (see :ref:`ColsClassDescr`) instance.
-
-
-.. attribute:: Table.colnames
-
-    A list containing the names of *top-level* columns in the table.
-
-
-.. attribute:: Table.colpathnames
-
-    A list containing the pathnames of
-    *bottom-level* columns in the table.
-
-    These are the leaf columns obtained when walking the
-    table description left-to-right, bottom-first. Columns inside
-    a nested column have slashes (/) separating
-    name components in their pathname.
-
-.. attribute:: Table.cols
-
-    A Cols instance that provides
-    *natural naming* access to non-nested
-    (Column, see :ref:`ColumnClassDescr`) and
-    nested (Cols, see :ref:`ColsClassDescr`)
-    columns.
-
-.. attribute:: Table.coltypes
-
-    Maps the name of a column to its PyTables
-    data type.
-
-
-.. attribute:: Table.description
-
-    A Description instance (see :ref:`DescriptionClassDescr`)
-    reflecting the structure of the table.
-
-.. attribute:: Table.extdim
-
-    The index of the enlargeable dimension (always 0 for tables).
-
-
-.. attribute:: Table.indexed
-
-    Does this table have any indexed columns?
-
-
-.. attribute:: Table.indexedcolpathnames
-
-    List of the pathnames of indexed columns in the table.
-
-
-.. attribute:: Table.nrows
-
-    The current number of rows in the table.
-
-
-.. attribute:: Table.row
-
-    The associated Row instance (see :ref:`RowClassDescr`).
-
-
-.. attribute:: Table.rowsize
-
-    The size in bytes of each row in the table.
-
-
-.. attribute:: Table.size_on_disk
-
-    The size of this table's data in bytes as it is stored on disk.  If the data
-    is compressed, this shows the compressed size.  In the case of uncompressed,
-    chunked data, this may be slightly larger than the amount of data, due to
-    partially filled chunks.
-
-.. attribute:: Table.size_in_memory
-
-    The size of this table's data in bytes when it is fully loaded into memory.
-    This may be used in combination with size_on_disk to calculate the
-    compression ratio of the data.
-
-
-Table methods - reading
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. method:: Table.col(name)
-
-    Get a column from the table.
-
-    If a column called name exists in the
-    table, it is read and returned as a NumPy object, or as a
-    numarray object (depending on the flavor of the
-    table). If it does not exist, a KeyError is
-    raised.
-
-    .. rubric:: Example of use:
-
-    ::
-
-        narray = table.col('var2')
-
-    That statement is equivalent to:::
-
-        narray = table.read(field='var2')
-
-    Here you can see how this method can be used as a shorthand
-    for the :meth:`Table.read` method.
-
-
-.. method:: Table.iterrows(start=None, stop=None, step=None)
-
-    Iterate over the table using a Row
-    instance (see :ref:`RowClassDescr`).
-
-    If a range is not supplied, *all the
-    rows* in the table are iterated upon - you can also use
-    the :meth:`Table.__iter__` special method for that purpose. If you want to
-    iterate over a given *range of rows* in the
-    table, you may use the start,
-    stop and step parameters,
-    which have the same meaning as in :meth:`Table.read`.
-
-    .. rubric:: Example of use:
-
-    ::
-
-        result = [ row['var2'] for row in table.iterrows(step=5) if row['var1'] <= 20 ]
-
-    .. note:: This iterator can be nested (see :meth:`Table.where` for an
-       example).
-
-    .. warning:: When in the middle of a table row iterator, you should not
-       use methods that can change the number of rows in the table
-       (like :meth:`Table.append` or :meth:`Table.removeRows`)
-       or unexpected errors will happen.
-
-
-.. method:: Table.itersequence(sequence)
-
-    Iterate over a sequence of row coordinates.
-
-    .. note:: This iterator can be nested (see :meth:`Table.where` for an
-       example).
-
-
-.. method:: Table.itersorted(sortby, checkCSI=False, start=None, stop=None, step=None)
-
-    Iterate table data following the order of the index of sortby column.
-
-    sortby column must have associated a
-    full index.  If you want to ensure a fully
-    sorted order, the index must be a CSI one.  You may want to use
-    the checkCSI argument in order to explicitly
-    check for the existence of a CSI index.
-
-    The meaning of the start,
-    stop and step arguments is
-    the same as in :meth:`Table.read`.  However, in this case a negative value
-    of step is supported, meaning that the results
-    will be returned in reverse sorted order.
-
-
-.. method:: Table.read(start=None, stop=None, step=None, field=None)
-
-    Get data in the table as a (record) array.
-
-    The start, stop and
-    step parameters can be used to select only a
-    *range of rows* in the table. Their meanings
-    are the same as in the built-in range() Python
-    function, except that negative values of step
-    are not allowed yet. Moreover, if only start is
-    specified, then stop will be set to
-    start+1. If you do not specify neither
-    start nor stop, then
-    *all the rows* in the table are
-    selected.
-
-    If field is supplied only the named column will be selected.
-    If the column is not nested, an *array* of the current flavor will be
-    returned; if it is, a *structured array* will be used instead.
-    If no field is specified, all the columns will be returned in a
-    structured array of the current flavor.
-
-    Columns under a nested column can be specified in the field parameter by
-    using a slash character (/) as a separator (e.g. 'position/x').
-
-
-.. method:: Table.readCoordinates(coords, field=None)
-
-    Get a set of rows given their indexes as a (record) array.
-
-    This method works much like the :meth:`Table.read`
-    method, but it uses a sequence
-    (coords) of row indexes to select the wanted
-    columns, instead of a column range.
-
-    The selected rows are returned in an array or structured array of the
-    current flavor.
-
-
-.. method:: Table.readSorted(sortby, checkCSI=False, field=None, start=None, stop=None, step=None)
-
-    Read table data following the order of the index of sortby column.
-
-    sortby column must have associated a
-    full index.  If you want to ensure a fully
-    sorted order, the index must be a CSI one.  You may want to use
-    the checkCSI argument in order to explicitly
-    check for the existence of a CSI index.
-
-    If field is supplied only the named column will be selected.
-    If the column is not nested, an *array* of the current flavor will be
-    returned; if it is, a *structured array* will be used instead.
-    If no field is specified, all the columns will be returned in a
-    structured array of the current flavor.
-
-    The meaning of the start, stop and step arguments is the same as in
-    :meth:`Table.read`.  However, in this case a negative value of step is
-    supported, meaning that the results will be returned in reverse sorted
-    order.
-
-
-.. method:: Table.__getitem__(key)
-
-    Get a row or a range of rows from the table.
-
-    If key argument is an integer, the corresponding table row is returned as
-    a record of the current flavor. If key is a slice, the range of rows
-    determined by it is returned as a structured array of the current flavor.
-
-    In addition, NumPy-style point selections are supported.  In
-    particular, if key is a list of row
-    coordinates, the set of rows determined by it is returned.
-    Furthermore, if key is an array of boolean
-    values, only the coordinates where key
-    is True are returned.  Note that for the latter
-    to work it is necessary that key list would
-    contain exactly as many rows as the table has.
-
-    .. rubric:: Example of use:
-
-    ::
-
-        record = table[4]
-        recarray = table[4:1000:2]
-        recarray = table[[4,1000]]   # only retrieves rows 4 and 1000
-        recarray = table[[True, False, ..., True]]
-
-    Those statements are equivalent to::
-
-        record = table.read(start=4)[0]
-        recarray = table.read(start=4, stop=1000, step=2)
-        recarray = table.readCoordinates([4,1000])
-        recarray = table.readCoordinates([True, False, ..., True])
-
-    Here, you can see how indexing can be used as a shorthand
-    for the :meth:`Table.read` and :meth:`Table.readCoordinates` methods.
 
 
 .. method:: Table.__iter__()
@@ -1764,54 +1388,58 @@ class Table(tableExtension.Table, Leaf):
     """
     This class represents heterogeneous datasets in an HDF5 file.
 
-    Tables are leaves (see the `Leaf` class) whose data consists of a
-    unidimensional sequence of *rows*, where each row contains one or
-    more *fields*.  Fields have an associated unique *name* and
-    *position*, with the first field having position 0.  All rows have
-    the same fields, which are arranged in *columns*.
+    Tables are leaves (see the Leaf class in :ref:`LeafClassDescr`) whose data
+    consists of a unidimensional sequence of *rows*, where each row contains
+    one or more *fields*.  Fields have an associated unique *name* and
+    *position*, with the first field having position 0.  All rows have the same
+    fields, which are arranged in *columns*.
 
-    Fields can have any type supported by the `Col` class and its
-    descendants, which support multidimensional data.  Moreover, a field
-    can be *nested* (to an arbitrary depth), meaning that it includes
-    further fields inside.  A field named ``x`` inside a nested field
-    ``a`` in a table can be accessed as the field ``a/x`` (its *path
-    name*) from the table.
+    Fields can have any type supported by the Col class (see
+    :ref:`ColClassDescr`) and its descendants, which support multidimensional
+    data.  Moreover, a field can be *nested* (to an arbitrary depth), meaning
+    that it includes further fields inside.  A field named x inside a nested
+    field a in a table can be accessed as the field a/x (its *path name*) from
+    the table.
 
-    The structure of a table is declared by its description, which is
-    made available in the `Table.description` attribute.
+    The structure of a table is declared by its description, which is made
+    available in the Table.description attribute (see
+    :ref:`TableInstanceVariablesDescr`).
 
     This class provides new methods to read, write and search table data
-    efficiently.  It also provides special Python methods to allow
-    accessing the table as a normal sequence or array (with extended
-    slicing supported).
+    efficiently.  It also provides special Python methods to allow accessing
+    the table as a normal sequence or array (with extended slicing supported).
 
-    PyTables supports *in-kernel* searches working simultaneously on
-    several columns using complex conditions.  These are faster than
-    selections using Python expressions.  See the `Tables.where()`
-    method for more information on in-kernel searches.
+    PyTables supports *in-kernel* searches working simultaneously on several
+    columns using complex conditions.  These are faster than selections using
+    Python expressions.  See the :meth:`Table.where` method for more
+    information on in-kernel searches.
 
-    Non-nested columns can be *indexed*.  Searching an indexed column
-    can be several times faster than searching a non-nested one.  Search
-    methods automatically take advantage of indexing where available.
+    Non-nested columns can be *indexed*.  Searching an indexed column can be
+    several times faster than searching a non-nested one.  Search methods
+    automatically take advantage of indexing where available.
 
-    When iterating a table, an object from the `Row` class is used.
-    This object allows to read and write data one row at a time, as well
-    as to perform queries which are not supported by in-kernel syntax
-    (at a much lower speed, of course).
+    When iterating a table, an object from the Row (see :ref:`RowClassDescr`)
+    class is used.  This object allows to read and write data one row at a
+    time, as well as to perform queries which are not supported by in-kernel
+    syntax (at a much lower speed, of course).
 
-    Objects of this class support access to individual columns via
-    *natural naming* through the `Table.cols` accessor.  Nested columns
-    are mapped to `Cols` instances, and non-nested ones to `Column`
-    instances.  See the `Column` class for examples of this feature.
+    Objects of this class support access to individual columns via *natural
+    naming* through the Table.cols accessor (see
+    :ref:`TableInstanceVariablesDescr`).  Nested columns are mapped to Cols
+    instances, and non-nested ones to Column instances.  See the Column class
+    in :ref:`ColumnClassDescr` for examples of this feature.
+
+    The instance variables below are provided in addition to those in Leaf (see
+    :ref:`LeafClassDescr`).  Please note that there are several col*
+    dictionaries to ease retrieving information about a column directly by its
+    path name, avoiding the need to walk through Table.description or
+    Table.cols.
+
+
 
     Instance variables
     ------------------
 
-    The following instance variables are provided in addition to those
-    in `Leaf`.  Please note that there are several ``col*`` dictionaries
-    to ease retrieving information about a column directly by its path
-    name, avoiding the need to walk through `Table.description` or
-    `Table.cols`.
 
     autoIndex
         Automatically keep column indexes up to date?
@@ -1929,7 +1557,7 @@ class Table(tableExtension.Table, Leaf):
     # ~~~~~~~~~~
     @lazyattr
     def row(self):
-        """The associated `Row` instance."""
+        """The associated Row instance (see :ref:`RowClassDescr`)."""
         return tableExtension.Row(self)
 
     @lazyattr
@@ -1950,7 +1578,10 @@ class Table(tableExtension.Table, Leaf):
 
     size_in_memory = property(
         lambda self: self.nrows * self.rowsize, None, None,
-        "Return the size of the data in bytes when it is loaded into memory.")
+        """The size of this table's data in bytes when it is fully loaded into
+        memory.  This may be used in combination with size_on_disk to calculate
+        the compression ratio of the data.""")
+
 
     # Lazy attributes
     # ```````````````
@@ -1989,14 +1620,25 @@ class Table(tableExtension.Table, Leaf):
     # Index-related properties
     # ````````````````````````
     autoIndex = _table__autoIndex
+    """Automatically keep column indexes up to date?
+
+    Setting this value states whether existing indexes should be automatically
+    updated after an append operation or recomputed after an index-invalidating
+    operation (i.e. removal and modification of rows). The default is true.
+
+    This value gets into effect whenever a column is altered. If you don't have
+    automatic indexing activated and you want to do an immediate update use
+    :meth:`Table.flushRowsToIndex`; for immediate reindexing of invalidated
+    indexes, use :meth:`Table.reIndexDirty`.
+
+    This value is persistent.
+    """
 
     indexedcolpathnames = property(
         lambda self: [ _colpname for _colpname in self.colpathnames
                        if self.colindexed[_colpname] ],
         None, None,
-        """
-        The pathnames of the indexed columns of this table.
-        """ )
+        """List of pathnames of indexed columns in the table.""" )
 
     colindexes = property(
         lambda self: _ColIndexes(
@@ -2078,7 +1720,8 @@ class Table(tableExtension.Table, Leaf):
         self.nrows = SizeType(0)
         """The current number of rows in the table."""
         self.description = None
-        """A `Description` instance reflecting the structure of the table."""
+        """A Description instance (see :ref:`DescriptionClassDescr`)
+        reflecting the structure of the table."""
         self._time64colnames = []
         """The names of ``Time64`` columns."""
         self._strcolnames = []
@@ -2089,9 +1732,7 @@ class Table(tableExtension.Table, Leaf):
         """Private storage for the `chunkshape` property of the leaf."""
 
         self.indexed = False
-        """
-        Does this table have any indexed columns?
-        """
+        """Does this table have any indexed columns?"""
         self._indexedrows = 0
         """Number of rows indexed in disk."""
         self._unsaved_indexedrows = 0
@@ -2102,21 +1743,24 @@ class Table(tableExtension.Table, Leaf):
         """Private variable that caches the value for autoIndex."""
 
         self.colnames = []
-        """
-        A list containing the names of *top-level* columns in the table.
-        """
+        """A list containing the names of *top-level* columns in the table."""
         self.colpathnames = []
         """
         A list containing the pathnames of *bottom-level* columns in the
-        table.  These are the leaf columns obtained when walking the
+        table.
+
+        These are the leaf columns obtained when walking the
         table description left-to-right, bottom-first.  Columns inside a
-        nested column have slashes (``/``) separating name components in
+        nested column have slashes (/) separating name components in
         their pathname.
         """
         self.colinstances = {}
-        """Maps the name of a column to its `Column` or `Cols` instance."""
+        """Maps the name of a column to its Column (see
+        :ref:`ColumnClassDescr`) or Cols (see :ref:`ColsClassDescr`)
+        instance."""
         self.coldescrs = {}
-        """Maps the name of a column to its `Col` description."""
+        """Maps the name of a column to its Col description (see
+        :ref:`ColClassDescr`)."""
         self.coltypes = {}
         """Maps the name of a column to its PyTables data type."""
         self.coldtypes = {}
@@ -2124,9 +1768,7 @@ class Table(tableExtension.Table, Leaf):
         self.coldflts = {}
         """Maps the name of a column to its default value."""
         self.colindexed = {}
-        """
-        Is the column which name is used as a key indexed?
-        """
+        """Is the column which name is used as a key indexed?"""
 
         self._useIndex = False
         """Whether an index can be used or not in a search.  Boolean."""
@@ -2146,8 +1788,9 @@ class Table(tableExtension.Table, Leaf):
         """The NumPy datatype fopr this table."""
         self.cols = None
         """
-        A `Cols` instance that provides *natural naming* access to
-        non-nested (`Column`) and nested (`Cols`) columns.
+        A Cols instance that provides *natural naming* access to non-nested
+        (Column, see :ref:`ColumnClassDescr`) and nested (Cols, see
+        :ref:`ColsClassDescr`) columns.
         """
         self._dirtycache = True
         """Whether the data caches are dirty or not. Initially set to yes."""
@@ -2940,10 +2583,11 @@ class Table(tableExtension.Table, Leaf):
 
     def itersequence(self, sequence):
         """
-        Iterate over a `sequence` of row coordinates.
+        Iterate over a sequence of row coordinates.
 
-        .. Note:: This iterator can be nested (see `Table.where()` for
-           an example).
+        Notes
+        -----
+        This iterator can be nested (see :meth:`Table.where` for an example).
         """
 
         if not hasattr(sequence, '__getitem__'):
@@ -2992,18 +2636,17 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
     def itersorted(self, sortby, checkCSI=False,
                    start=None, stop=None, step=None):
         """
-        Iterate table data following the order of the index of `sortby` column.
+        Iterate table data following the order of the index of sortby column.
 
-        `sortby` column must have associated a 'full' index.  If you
-        want to ensure a completely sorted order, the index must be a
-        CSI one.  You may want to use the `checkCSI` argument in order
-        to explicitely check for the existence of a CSI index.
+        The sortby column must have associated a full index.  If you want to
+        ensure a fully sorted order, the index must be a CSI one.  You may want
+        to use the checkCSI argument in order to explicitly check for the
+        existence of a CSI index.
 
-        The meaning of the `start`, `stop` and `step` arguments is the
-        same as in `Table.read()`.  However, in this case a negative
-        value of `step` is supported, meaning that the results will be
-        returned in reverse sorted order.
-
+        The meaning of the start, stop and step arguments is the same as in
+        :meth:`Table.read`.  However, in this case a negative value of step is
+        supported, meaning that the results will be returned in reverse sorted
+        order.
         """
         index = self._check_sortby_CSI(sortby, checkCSI)
         # Adjust the slice to be used.
@@ -3017,24 +2660,23 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
     def readSorted(self, sortby, checkCSI=False, field=None,
                    start=None, stop=None, step=None):
         """
-        Read table data following the order of the index of `sortby` column.
+        Read table data following the order of the index of sortby column.
 
-        `sortby` column must have associated a 'full' index.  If you
-        want to ensure a completely sorted order, the index must be a
-        CSI one.  You may want to use the `checkCSI` argument in order
-        to explicitely check for the existence of a CSI index.
+        The sortby column must have associated a full index.  If you want to
+        ensure a fully sorted order, the index must be a CSI one.  You may want
+        to use the checkCSI argument in order to explicitly check for the
+        existence of a CSI index.
 
-        If `field` is supplied only the named column will be selected.
-        If the column is not nested, an *array* of the current flavor
-        will be returned; if it is, a *structured array* will be used
-        instead.  If no `field` is specified, all the columns will be
-        returned in a structured array of the current flavor.
+        If field is supplied only the named column will be selected.  If the
+        column is not nested, an *array* of the current flavor will be
+        returned; if it is, a *structured array* will be used instead.  If no
+        field is specified, all the columns will be returned in a structured
+        array of the current flavor.
 
-        The meaning of the `start`, `stop` and `step` arguments is the
-        same as in `Table.read()`.  However, in this case a negative
-        value of `step` is supported, meaning that the results will be
-        returned in reverse sorted order.
-
+        The meaning of the start, stop and step arguments is the same as in
+        :meth:`Table.read`.  However, in this case a negative value of step is
+        supported, meaning that the results will be returned in reverse sorted
+        order.
         """
         self._checkFieldIfNumeric(field)
         index = self._check_sortby_CSI(sortby, checkCSI)
@@ -3044,27 +2686,32 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def iterrows(self, start=None, stop=None, step=None):
         """
-        Iterate over the table using a `Row` instance.
+        Iterate over the table using a Row instance (see :ref:`RowClassDescr`).
 
-        If a range is not supplied, *all the rows* in the table are
-        iterated upon --you can also use the `Table.__iter__()` special
-        method for that purpose.  If you only want to iterate over a
-        given *range of rows* in the table, you may use the `start`,
-        `stop` and `step` parameters, which have the same meaning as in
-        `Table.read()`.
+        If a range is not supplied, *all the rows* in the table are iterated
+        upon - you can also use the :meth:`Table.__iter__` special method for
+        that purpose. If you want to iterate over a given *range of rows* in
+        the table, you may use the start, stop and step parameters, which have
+        the same meaning as in :meth:`Table.read`.
 
-        Example of use::
+        .. warning:: When in the middle of a table row iterator, you should not
+            use methods that can change the number of rows in the table (like
+            :meth:`Table.append` or :meth:`Table.removeRows`) or unexpected
+            errors will happen.
 
-            result = [ row['var2'] for row in table.iterrows(step=5)
-                       if row['var1'] <= 20 ]
+        Examples
+        --------
 
-        .. Note:: This iterator can be nested (see `Table.where()` for
-           an example).
+        ::
 
-        .. Warning:: When in the middle of a table row iterator, you
-           should not use methods that can change the number of rows in
-           the table (like `Table.append()` or `Table.removeRows()`) or
-           unexpected errors will happen.
+            result = [ row['var2'] for row in table.iterrows(step=5) if row['var1'] <= 20 ]
+
+        Notes
+        -----
+        This iterator can be nested (see :meth:`Table.where` for an example).
+
+        Warning
+        -------
         """
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
@@ -3157,23 +2804,21 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Get data in the table as a (record) array.
 
-        The `start`, `stop` and `step` parameters can be used to select
-        only a *range of rows* in the table.  Their meanings are the
-        same as in the built-in `range()` Python function, except that
-        negative values of `step` are not allowed yet.  Moreover, if
-        only `start` is specified, then `stop` will be set to
-        ``start+1``.  If you do not specify neither `start` nor `stop`,
-        then *all the rows* in the table are selected.
+        The start, stop and step parameters can be used to select only a *range
+        of rows* in the table. Their meanings are the same as in the built-in
+        range() Python function, except that negative values of step are not
+        allowed yet. Moreover, if only start is specified, then stop will be
+        set to start+1. If you do not specify neither start nor stop, then *all
+        the rows* in the table are selected.
 
-        If `field` is supplied only the named column will be selected.
-        If the column is not nested, an *array* of the current flavor
-        will be returned; if it is, a *structured array* will be used
-        instead.  If no `field` is specified, all the columns will be
-        returned in a structured array of the current flavor.
+        If field is supplied only the named column will be selected.  If the
+        column is not nested, an *array* of the current flavor will be
+        returned; if it is, a *structured array* will be used instead.  If no
+        field is specified, all the columns will be returned in a structured
+        array of the current flavor.
 
-        Columns under a nested column can be specified in the `field`
-        parameter by using a slash character (``/``) as a separator
-        (e.g. ``'position/x'``).
+        Columns under a nested column can be specified in the field parameter by
+        using a slash character (/) as a separator (e.g. 'position/x').
         """
 
         if field:
@@ -3224,12 +2869,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Get a set of rows given their indexes as a (record) array.
 
-        This method works much like the `read()` method, but it uses a
-        sequence (`coords`) of row indexes to select the wanted columns,
+        This method works much like the :meth:`Table.read` method, but it uses
+        a sequence (coords) of row indexes to select the wanted columns,
         instead of a column range.
 
-        The selected rows are returned in an array or structured array
-        of the current flavor.
+        The selected rows are returned in an array or structured array of the
+        current flavor.
         """
         self._checkFieldIfNumeric(field)
         result = self._readCoordinates(coords, field)
@@ -3260,12 +2905,14 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Get a column from the table.
 
-        If a column called `name` exists in the table, it is read and
-        returned as a NumPy object or as a ``numarray`` object
-        (depending on the flavor of the table).  If it does not exist, a
-        `KeyError` is raised.
+        If a column called name exists in the table, it is read and returned as
+        a NumPy object, or as a numarray object (depending on the flavor of the
+        table). If it does not exist, a KeyError is raised.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             narray = table.col('var2')
 
@@ -3273,8 +2920,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
             narray = table.read(field='var2')
 
-        Here you can see how this method can be used as a shorthand for
-        the `Table.read()` method.
+        Here you can see how this method can be used as a shorthand for the
+        :meth:`Table.read` method.
         """
         return self.read(field=name)
 
@@ -3283,20 +2930,22 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Get a row or a range of rows from the table.
 
-        If `key` argument is an integer, the corresponding table row is
-        returned as a record of the current flavor.  If `key` is a
-        slice, the range of rows determined by it is returned as a
-        structured array of the current flavor.
+        If key argument is an integer, the corresponding table row is returned
+        as a record of the current flavor. If key is a slice, the range of rows
+        determined by it is returned as a structured array of the current
+        flavor.
 
         In addition, NumPy-style point selections are supported.  In
-        particular, if `key` is a list of row coordinates, the set of
-        rows determined by it is returned.  Furthermore, if `key` is an
-        array of boolean values, only the coordinates where `key` is
-        ``True`` are returned.  Note that for the latter to work it is
-        necessary that `key` list would contain exactly as many rows as
-        the table has.
+        particular, if key is a list of row coordinates, the set of rows
+        determined by it is returned.  Furthermore, if key is an array of
+        boolean values, only the coordinates where key is True are returned.
+        Note that for the latter to work it is necessary that key list would
+        contain exactly as many rows as the table has.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             record = table[4]
             recarray = table[4:1000:2]
@@ -3311,7 +2960,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             recarray = table.readCoordinates([True, False, ..., True])
 
         Here, you can see how indexing can be used as a shorthand for the
-        `read()` or `readCoordinates()` methods.
+        :meth:`Table.read` and :meth:`Table.readCoordinates` methods.
         """
 
         if is_idx(key):

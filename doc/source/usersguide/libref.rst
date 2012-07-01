@@ -204,7 +204,7 @@ Global functions
 
 The File Class
 --------------
-.. autoclass:: tables.File
+.. autoclass:: File
     :members:
 
 
@@ -212,7 +212,7 @@ The File Class
 
 The Node class
 --------------
-.. autoclass:: tables.Node
+.. autoclass:: Node
     :members:
     :private-members:
 
@@ -222,7 +222,7 @@ The Node class
 The Group class
 ---------------
 
-.. autoclass:: tables.Group
+.. autoclass:: Group
     :members:
     :private-members:
 
@@ -232,14 +232,22 @@ The Group class
 The Leaf class
 --------------
 
-.. autoclass:: tables.Leaf
+.. autoclass:: Leaf
     :members:
 
+
+.. _TableClassDescr:
+
+The Table class
+---------------
+
+.. autoclass:: Table
+    :members:
 
 .. Table class, Cols class, Column, and Row class documentation in
    tables/table.py docstring
 
-.. automodule:: tables.table
+
 
 
 .. Description class, Col class, and IsDescription class class documentation in
@@ -253,7 +261,7 @@ The Leaf class
 The Array class
 ---------------
 
-.. autoclass:: tables.Array
+.. autoclass:: Array
     :members:
 
 
