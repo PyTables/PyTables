@@ -275,10 +275,24 @@ The Row class
     :members:
 
 
-.. Description class, Col class, and IsDescription class class documentation in
+.. _DescriptionClassDescr:
+
+The Description class
+---------------------
+
+.. autoclass:: Description
+    :members:
+
+.. Col subclass and IsDescription class documentation in
    tables/description.py docstring
 
-.. automodule:: tables.description
+.. _ColClassDescr:
+
+The Col class and its descendants
+---------------------------------
+
+.. autoclass:: Col
+    :members:
 
 
 .. _ArrayClassDescr:

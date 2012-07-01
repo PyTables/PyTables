@@ -1,216 +1,4 @@
 """
-.. _DescriptionClassDescr:
-
-.. currentmodule:: tables
-
-The Description class
----------------------
-.. class:: Description
-
-    This class represents descriptions of the structure of tables.
-
-    An instance of this class is automatically bound to Table (see
-    :ref:`TableClassDescr`) objects when they are created.  It provides a
-    browseable representation of the structure of the table, made of
-    non-nested (Col - see :ref:`ColClassDescr`) and nested (Description)
-    columns. It also contains information that will allow you to build
-    NestedRecArray (see :class:`NestedRecArray`) objects suited for the
-    different columns in a table (be they nested or not).
-
-    Column definitions under a description can be accessed as
-    attributes of it (*natural naming*). For
-    instance, if table.description is a
-    Description instance with a column named
-    col1 under it, the later can be accessed as
-    table.description.col1. If
-    col1 is nested and contains a
-    col2 column, this can be accessed as
-    table.description.col1.col2. Because of natural
-    naming, the names of members start with special prefixes, like in
-    the Group class (see :ref:`GroupClassDescr`).
-
-
-Description instance variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. attribute:: Description._v_colObjects
-
-    A dictionary mapping the names of the columns hanging
-    directly from the associated table or nested column to their
-    respective descriptions (Col - see :ref:`ColClassDescr` or
-    Description - see :ref:`DescriptionClassDescr` instances).
-
-.. attribute:: Description._v_dflts
-
-    A dictionary mapping the names of non-nested columns
-    hanging directly from the associated table or nested column
-    to their respective default values.
-
-.. attribute:: Description._v_dtype
-
-    The NumPy type which reflects the structure of this
-    table or nested column.  You can use this as the
-    dtype argument of NumPy array factories.
-
-.. attribute:: Description._v_dtypes
-
-    A dictionary mapping the names of non-nested columns
-    hanging directly from the associated table or nested column
-    to their respective NumPy types.
-
-.. attribute:: Description._v_is_nested
-
-    Whether the associated table or nested column contains
-    further nested columns or not.
-
-.. attribute:: Description._v_itemsize
-
-    The size in bytes of an item in this table or nested column.
-
-.. attribute:: Description._v_name
-
-    The name of this description group. The name of the
-    root group is '/'.
-
-.. attribute:: Description._v_names
-
-    A list of the names of the columns hanging directly
-    from the associated table or nested column. The order of the
-    names matches the order of their respective columns in the
-    containing table.
-
-.. attribute:: Description._v_nestedDescr
-
-    A nested list of pairs of (name, format) tuples for all the columns under
-    this table or nested column. You can use this as the dtype and descr
-    arguments of NumPy array and NestedRecArray (see
-    :ref:`NestedRecArrayClassDescr`) factories, respectively.
-
-.. attribute:: Description._v_nestedFormats
-
-    A nested list of the NumPy string formats (and shapes)
-    of all the columns under this table or nested column. You
-    can use this as the formats argument of
-    NumPy array and NestedRecArray (see :class:`NestedRecArray`) factories.
-
-.. attribute:: Description._v_nestedlvl
-
-    The level of the associated table or nested column in
-    the nested datatype.
-
-.. attribute:: Description._v_nestedNames
-
-    A nested list of the names of all the columns under this table or nested
-    column. You can use this as the names argument of NumPy array and
-    NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
-
-.. attribute:: Description._v_pathnames
-
-    A list of the pathnames of all the columns under this
-    table or nested column (in preorder).  If it does not
-    contain nested columns, this is exactly the same as the
-    :attr:`Description._v_names` attribute.
-
-.. attribute:: Description._v_types
-
-    A dictionary mapping the names of non-nested columns
-    hanging directly from the associated table or nested column
-    to their respective PyTables types.
-
-
-Description methods
-~~~~~~~~~~~~~~~~~~~
-
-.. method:: Description._f_walk(type='All')
-
-    Iterate over nested columns.
-
-    If type is 'All'
-    (the default), all column description objects
-    (Col and Description
-    instances) are yielded in top-to-bottom order (preorder).
-
-    If type is 'Col' or
-    'Description', only column descriptions of
-    that type are yielded.
-
-
-.. _ColClassDescr:
-
-The Col class and its descendants
----------------------------------
-.. class:: Col
-
-    Defines a non-nested column.
-
-    Col instances are used as a means to
-    declare the different properties of a non-nested column in a table
-    or nested column.  Col classes are descendants of
-    their equivalent Atom classes (see :ref:`AtomClassDescr`), but their
-    instances have an additional _v_pos attribute
-    that is used to decide the position of the column inside its parent
-    table or nested column (see the IsDescription
-    class in :ref:`IsDescriptionClassDescr` for more information on column positions).
-
-    In the same fashion as Atom, you should use
-    a particular Col descendant class whenever you
-    know the exact type you will need when writing your code. Otherwise,
-    you may use one of the Col.from_*() factory methods.
-
-
-Col instance variables
-~~~~~~~~~~~~~~~~~~~~~~
-In addition to the variables that they inherit from the
-Atom class, Col instances
-have the following attributes.
-
-.. attribute:: Col._v_pos
-
-    The *relative* position of this
-    column with regard to its column siblings.
-
-
-Col factory methods
-~~~~~~~~~~~~~~~~~~~
-Each factory method inherited from
-the Atom class is available with the same
-signature, plus an additional pos parameter
-(placed in last position) which defaults
-to None and that may take an integer value.
-This parameter might be used to specify the position of the column
-in the table.
-
-Besides, there are the next additional factory methods,
-available only for Col objects.
-
-
-.. method:: Col.from_atom(atom, pos=None)
-
-    Create a Col definition from a PyTables atom.
-
-    An optional position may be specified as the pos argument.
-
-
-Col constructors
-~~~~~~~~~~~~~~~~
-There are some common arguments for most
-Col-derived constructors.
-
-.. method:: Col.__init__(*args)
-
-    :Parameters:
-        itemsize : int
-            For types with a non-fixed size, this sets the size in
-            bytes of individual items in the column.
-        shape : tuple
-            Sets the shape of the column. An integer shape of
-            N is equivalent to the tuple (N,).
-        dflt
-            Sets the default value for the column.
-        pos : int
-            Sets the position of column in table.  If unspecified,
-            the position will be randomly selected.
-
 
 .. class:: StringCol(itemsize, shape=(), dflt='', pos=None)
 
@@ -414,64 +202,47 @@ class Col(atom.Atom):
     """
     Defines a non-nested column.
 
-    `Col` instances are used as a means to declare the different
-    properties of a non-nested column in a table or nested column.
-    `Col` classes are descendants of their equivalent `Atom` classes,
-    but their instances have an additional ``_v_pos`` attribute that is
-    used to decide the position of the column inside its parent table or
-    nested column (see the `IsDescription` class for more information on
-    column positions).
+    Col instances are used as a means to declare the different properties of a
+    non-nested column in a table or nested column.  Col classes are descendants
+    of their equivalent Atom classes (see :ref:`AtomClassDescr`), but their
+    instances have an additional _v_pos attribute that is used to decide the
+    position of the column inside its parent table or nested column (see the
+    IsDescription class in :ref:`IsDescriptionClassDescr` for more information
+    on column positions).
 
-    In the same fashion as `Atom`, you should use a particular `Col`
-    descendant class whenever you know the exact type you will need when
-    writing your code.  Otherwise, you may use one of the
-    ``Col.from_*()`` factory methods.
+    In the same fashion as Atom, you should use a particular Col descendant
+    class whenever you know the exact type you will need when writing your
+    code. Otherwise, you may use one of the Col.from_*() factory methods.
 
-    Public instance variables
-    -------------------------
+    Each factory method inherited from the Atom class is available with the
+    same signature, plus an additional pos parameter (placed in last position)
+    which defaults to None and that may take an integer value.  This parameter
+    might be used to specify the position of the column in the table.
 
-    In addition to the variables that they inherit from the `Atom`
-    class, `Col` instances have the following attributes:
+    Besides, there are the next additional factory methods, available only for
+    Col objects.
 
-    _v_pos
-        The *relative* position of this column with regard to its column
-        siblings.
+    The following parameters are available for most Col-derived constructors.
 
-    Factory methods
-    ---------------
-
-    Each factory method inherited from the `Atom` class is available
-    with the same signature, plus an additional `pos` parameter (placed
-    in last position) which defaults to ``None`` and that may take an
-    integer value.  This parameter might be used to specify the position
-    of the column in the table.
-
-    Besides, there are the next additional factory methods, available
-    only for `Col` objects:</para>
-
-    from_atom(atom[, pos])
-        Create a `Col` definition from a PyTables ``atom``.
-
-    Constructors
-    ------------
-
-    There are some common arguments for most `Col` -derived
-    constructors:
-
-    itemsize
-        For types with a non-fixed size, this sets the size in bytes
-        of individual items in the column.
-
-    shape
-        Sets the shape of the column.  An integer shape of ``N`` is
-        equivalent to the tuple ``(N,)``.
-
+    Parameters
+    ----------
+    itemsize : int
+        For types with a non-fixed size, this sets the size in bytes of
+        individual items in the column.
+    shape : tuple
+        Sets the shape of the column. An integer shape of N is equivalent to
+        the tuple (N,).
     dflt
         Sets the default value for the column.
+    pos : int
+        Sets the position of column in table.  If unspecified, the position
+        will be randomly selected.
 
-    pos
-        Sets the position of column in table.  If unspecified, the
-        position will be randomly selected.
+
+    .. attribute:: Col._v_pos
+
+        The *relative* position of this column with regard to its column
+        siblings.
 
     """
 
@@ -492,9 +263,9 @@ class Col(atom.Atom):
     @classmethod
     def from_atom(class_, atom, pos=None):
         """
-        Create a `Col` definition from a PyTables `atom`.
+        Create a Col definition from a PyTables atom.
 
-        An optional position may be specified as the `pos` argument.
+        An optional position may be specified as the pos argument.
         """
         prefix = atom.prefix()
         kwargs = atom._get_init_args()
@@ -651,99 +422,104 @@ class Description(object):
     """
     This class represents descriptions of the structure of tables.
 
-    An instance of this class is automatically bound to `Table` objects
-    when they are created.  It provides a browseable representation of
-    the structure of the table, made of non-nested (`Col`) and nested
-    (`Description`) columns.  It also contains information that will
-    allow you to build ``NestedRecArray`` objects suited for the
-    different columns in a table (be they nested or not).
+    An instance of this class is automatically bound to Table (see
+    :ref:`TableClassDescr`) objects when they are created.  It provides a
+    browseable representation of the structure of the table, made of non-nested
+    (Col - see :ref:`ColClassDescr`) and nested (Description) columns. It also
+    contains information that will allow you to build NestedRecArray (see
+    :class:`NestedRecArray`) objects suited for the different columns in a
+    table (be they nested or not).
 
-    Column definitions under a description can be accessed as attributes
-    of it (*natural naming*).  For instance, if ``table.description`` is
-    a ``Description`` instance with a colum named ``col1`` under it, the
-    later can be accessed as ``table.description.col1``.  If ``col1`` is
-    nested and contains a ``col2`` column, this can be accessed as
-    ``table.description.col1.col2``.  Because of natural naming, the
-    names of members start with special prefixes, like in the `Group`
-    class.
+    Column definitions under a description can be accessed as attributes of it
+    (*natural naming*). For instance, if table.description is a Description
+    instance with a column named col1 under it, the later can be accessed as
+    table.description.col1. If col1 is nested and contains a col2 column, this
+    can be accessed as table.description.col1.col2. Because of natural naming,
+    the names of members start with special prefixes, like in the Group class
+    (see :ref:`GroupClassDescr`).
 
-    Public instance variables
-    -------------------------
+    .. attribute:: Description._v_colObjects
 
-    _v_colObjects
-        A dictionary mapping the names of the columns hanging directly
-        from the associated table or nested column to their respective
-        descriptions (`Col` or `Description` instances).
-
-    _v_dflts
-        A dictionary mapping the names of non-nested columns hanging
+        A dictionary mapping the names of the columns hanging
         directly from the associated table or nested column to their
-        respective default values.
+        respective descriptions (Col - see :ref:`ColClassDescr` or
+        Description - see :ref:`DescriptionClassDescr` instances).
 
-    _v_dtype
-        The NumPy type which reflects the structure of this table or
-        nested column.  You can use this as the ``dtype`` argument of
-        NumPy array factories.
+    .. attribute:: Description._v_dflts
 
-    _v_dtypes
-        A dictionary mapping the names of non-nested columns hanging
-        directly from the associated table or nested column to their
-        respective NumPy types.
+        A dictionary mapping the names of non-nested columns
+        hanging directly from the associated table or nested column
+        to their respective default values.
 
-    _v_is_nested
-        Whether the associated table or nested column contains further
-        nested columns or not.
+    .. attribute:: Description._v_dtype
 
-    _v_itemsize
+        The NumPy type which reflects the structure of this
+        table or nested column.  You can use this as the
+        dtype argument of NumPy array factories.
+
+    .. attribute:: Description._v_dtypes
+
+        A dictionary mapping the names of non-nested columns
+        hanging directly from the associated table or nested column
+        to their respective NumPy types.
+
+    .. attribute:: Description._v_is_nested
+
+        Whether the associated table or nested column contains
+        further nested columns or not.
+
+    .. attribute:: Description._v_itemsize
+
         The size in bytes of an item in this table or nested column.
 
-    _v_name
-        The name of this description group.  The name of the root group
-        is ``'/'``.
+    .. attribute:: Description._v_name
 
-    _v_names
-        A list of the names of the columns hanging directly from the
-        associated table or nested column.  The order of the names
-        matches the order of their respective columns in the containing
-        table.
+        The name of this description group. The name of the
+        root group is '/'.
 
-    _v_nestedDescr
-        A nested list of pairs of ``(name, format)`` tuples for all the
-        columns under this table or nested column.  You can use this as
-        the ``dtype`` and ``descr`` arguments of NumPy array and
-        `NestedRecArray` factories, respectively.
+    .. attribute:: Description._v_names
 
-    _v_nestedFormats
-        A nested list of the NumPy string formats (and shapes) of all
-        the columns under this table or nested column.  You can use this
-        as the ``formats`` argument of NumPy array and `NestedRecArray`
-        factories.
+        A list of the names of the columns hanging directly
+        from the associated table or nested column. The order of the
+        names matches the order of their respective columns in the
+        containing table.
 
-    _v_nestedlvl
-        The level of the associated table or nested column in the nested
-        datatype.
+    .. attribute:: Description._v_nestedDescr
 
-    _v_nestedNames
-        A nested list of the names of all the columns under this table
-        or nested column.  You can use this for the ``names`` argument
-        of `NestedRecArray` factory functions.
+        A nested list of pairs of (name, format) tuples for all the columns under
+        this table or nested column. You can use this as the dtype and descr
+        arguments of NumPy array and NestedRecArray (see
+        :ref:`NestedRecArrayClassDescr`) factories, respectively.
 
-    _v_pathnames
-        A list of the pathnames of all the columns under this table or
-        nested column (in preorder).  If it does not contain nested
-        columns, this is exactly the same as the `Description._v_names`
-        attribute.
+    .. attribute:: Description._v_nestedFormats
 
-    _v_types
-        A dictionary mapping the names of non-nested columns hanging
-        directly from the associated table or nested column to their
-        respective PyTables types.
+        A nested list of the NumPy string formats (and shapes)
+        of all the columns under this table or nested column. You
+        can use this as the formats argument of
+        NumPy array and NestedRecArray (see :class:`NestedRecArray`) factories.
 
-    Public methods
-    --------------
+    .. attribute:: Description._v_nestedlvl
 
-    _f_walk([type])
-        Iterate over nested columns.
+        The level of the associated table or nested column in
+        the nested datatype.
+
+    .. attribute:: Description._v_nestedNames
+
+        A nested list of the names of all the columns under this table or nested
+        column. You can use this as the names argument of NumPy array and
+        NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
+
+    .. attribute:: Description._v_pathnames
+
+        A list of the pathnames of all the columns under this table or nested
+        column (in preorder).  If it does not contain nested columns, this is
+        exactly the same as the :attr:`Description._v_names` attribute.
+
+    .. attribute:: Description._v_types
+
+        A dictionary mapping the names of non-nested columns hanging directly
+        from the associated table or nested column to their respective PyTables
+        types.
     """
 
     def __init__(self, classdict, nestedlvl=-1, validate=True):
@@ -967,12 +743,11 @@ class Description(object):
         """
         Iterate over nested columns.
 
-        If `type` is ``'All'`` (the default), all column description
-        objects (`Col` and `Description` instances) are yielded in
-        top-to-bottom order (preorder).
+        If type is 'All' (the default), all column description objects (Col and
+        Description instances) are yielded in top-to-bottom order (preorder).
 
-        If `type` is ``'Col'`` or ``'Description'``, only column or
-        descriptions of the specified type are yielded.
+        If type is 'Col' or 'Description', only column descriptions of that
+        type are yielded.
         """
 
         if type not in ["All", "Col", "Description"]:
