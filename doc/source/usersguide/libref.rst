@@ -248,7 +248,31 @@ The Table class
    tables/table.py docstring
 
 
+.. _ColsClassDescr:
 
+The Cols class
+--------------
+
+.. autoclass:: Cols
+    :members:
+
+
+.. _ColumnClassDescr:
+
+The Column class
+----------------
+
+.. autoclass:: Column
+    :members:
+
+
+.. _RowClassDescr:
+
+The Row class
+-------------
+
+.. autoclass:: Row
+    :members:
 
 .. Description class, Col class, and IsDescription class class documentation in
    tables/description.py docstring
