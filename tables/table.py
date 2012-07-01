@@ -11,431 +11,6 @@
 """
 
 
-.. method:: Table.__iter__()
-
-    Iterate over the table using a Row
-    instance (see :ref:`RowClassDescr`).
-
-    This is equivalent to calling
-    :meth:`Table.iterrows` with default arguments, i.e. it
-    iterates over *all the rows* in the table.
-
-    .. rubric:: Example of use:
-
-    ::
-
-        result = [ row['var2'] for row in table if row['var1'] <= 20 ]
-
-    Which is equivalent to::
-
-        result = [ row['var2'] for row in table.iterrows() if row['var1'] <= 20 ]
-
-    .. note:: This iterator can be nested (see :meth:`Table.where` for an
-       example).
-
-
-Table methods - writing
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. method:: Table.append(rows)
-
-    Append a sequence of rows to the end of the table.
-
-    The rows argument may be any object which can be converted to a record
-    array compliant with the table structure (otherwise, a ValueError is
-    raised).
-    This includes NumPy structured arrays, RecArray (depracated) or
-    NestedRecArray (deprecated) objects if numarray is available, lists of
-    tuples or array records, and a string or Python buffer.
-
-    .. rubric:: Example of use:
-
-    ::
-
-        from tables import *
-
-        class Particle(IsDescription):
-            name        = StringCol(16, pos=1) # 16-character String
-            lati        = IntCol(pos=2)        # integer
-            longi       = IntCol(pos=3)        # integer
-            pressure    = Float32Col(pos=4)    # float  (single-precision)
-            temperature = FloatCol(pos=5)      # double (double-precision)
-
-        fileh = openFile('test4.h5', mode='w')
-        table = fileh.createTable(fileh.root, 'table', Particle, "A table")
-
-        # Append several rows in only one call
-        table.append([("Particle:     10", 10, 0, 10*10, 10**2),
-                      ("Particle:     11", 11, -1, 11*11, 11**2),
-                      ("Particle:     12", 12, -2, 12*12, 12**2)])
-        fileh.close()
-
-
-
-.. method:: Table.modifyColumn(start=None, stop=None, step=1, column=None, colname=None)
-
-    Modify one single column in the row slice [start:stop:step].
-
-    The colname argument specifies the name
-    of the column in the table to be modified with the data given in
-    column.  This method returns the number of rows
-    modified.  Should the modification exceed the length of the table,
-    an IndexError is raised before changing data.
-
-    The column argument may be any object
-    which can be converted to a (record) array compliant with the
-    structure of the column to be modified (otherwise, a
-    ValueError is raised).  This includes NumPy
-    (record) arrays, NumArray (deprecated),
-    RecArray (deprecated) or
-    NestedRecArray (deprecated) objects if
-    numarray is available, Numeric arrays
-    if available (deprecated), lists of scalars, tuples or array
-    records, and a string or Python buffer.
-
-
-.. method:: Table.modifyColumns(start=None, stop=None, step=1, columns=None, names=None)
-
-    Modify a series of columns in the row slice [start:stop:step].
-
-    The names argument specifies the names of
-    the columns in the table to be modified with the data given in
-    columns.  This method returns the number of
-    rows modified.  Should the modification exceed the length of the
-    table, an IndexError is raised before changing data.
-
-    The columns argument may be any object which can be converted to a
-    structured array compliant with the structure of the columns to be
-    modified (otherwise, a ValueError is raised).  This includes NumPy
-    structured arrays, RecArray (deprecated) or NestedRecArray (deprecated)
-    objects if numarray is available, lists of tuples or array records, and
-    a string or Python buffer.
-
-
-.. method:: Table.modifyCoordinates(coords, rows)
-
-    Modify a series of rows in positions specified in coords
-
-    The values in the selected rows will be modified with the
-    data given in rows.  This method returns the
-    number of rows modified.
-
-    The possible values for the rows argument
-    are the same as in :meth:`Table.append`.
-
-
-.. method:: Table.modifyRows(start=None, stop=None, step=1, rows=None)
-
-    Modify a series of rows in the slice [start:stop:step].
-
-    The values in the selected rows will be modified with the
-    data given in rows.  This method returns the
-    number of rows modified.  Should the modification exceed the
-    length of the table, an IndexError is raised
-    before changing data.
-
-    The possible values for the rows argument
-    are the same as in :meth:`Table.append`.
-
-
-.. method:: Table.removeRows(start, stop=None)
-
-    Remove a range of rows in the table.
-
-    If only start is supplied, only this row
-    is to be deleted.  If a range is supplied, i.e. both the
-    start and stop parameters
-    are passed, all the rows in the range are removed. A
-    step parameter is not supported, and it is not
-    foreseen to be implemented anytime soon.
-
-    :Parameters:
-
-        start : int
-            Sets the starting row to be removed. It accepts
-            negative values meaning that the count starts from the end.
-            A value of 0 means the first row.
-        stop : int
-            Sets the last row to be removed to
-            stop-1, i.e. the end point is omitted (in
-            the Python range() tradition). Negative
-            values are also accepted. A special value of
-            None (the default) means removing just
-            the row supplied in start.
-
-
-.. method:: Table.__setitem__(key, value)
-
-    Set a row or a range of rows in the table.
-
-    It takes different actions depending on the type of the
-    key parameter: if it is an integer, the
-    corresponding table row is set to value (a
-    record or sequence capable of being converted to the table
-    structure). If key is a slice, the row slice
-    determined by it is set to value (a record
-    array or sequence capable of being converted to the table
-    structure).
-
-    In addition, NumPy-style point selections are supported.  In
-    particular, if key is a list of row
-    coordinates, the set of rows determined by it is set
-    to value.  Furthermore,
-    if key is an array of boolean values, only the
-    coordinates where key
-    is True are set to values
-    from value.  Note that for the latter to work
-    it is necessary that key list would contain
-    exactly as many rows as the table has.
-
-    .. rubric:: Example of use:
-
-    ::
-
-        # Modify just one existing row
-        table[2] = [456,'db2',1.2]
-
-        # Modify two existing rows
-        rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]], formats='i4,a3,f8')
-        table[1:30:2] = rows             # modify a table slice
-        table[[1,3]] = rows              # only modifies rows 1 and 3
-        table[[True,False,True]] = rows  # only modifies rows 0 and 2
-
-    Which is equivalent to::
-
-        table.modifyRows(start=2, rows=[456,'db2',1.2])
-        rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]], formats='i4,a3,f8')
-        table.modifyRows(start=1, stop=3, step=2, rows=rows)
-        table.modifyCoordinates([1,3,2], rows)
-        table.modifyCoordinates([True, False, True], rows)
-
-    Here, you can see how indexing can be used as a shorthand
-    for the :meth:`Table.modifyRows`  and :meth:`Table.modifyCoordinates`
-    methods.
-
-
-.. _TableMethods_querying:
-
-Table methods - querying
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. method:: Table.getWhereList(condition, condvars=None, sort=False, \
-                               start=None, stop=None, step=None)
-
-    Get the row coordinates fulfilling the given condition.
-
-    The coordinates are returned as a list of the current
-    flavor.  sort means that you want to retrieve
-    the coordinates ordered. The default is to not sort them.
-
-    The meaning of the other arguments is the same as in the
-    :meth:`Table.where` method.
-
-
-.. method:: Table.readWhere(condition, condvars=None, field=None, start=None, \
-                            stop=None, step=None)
-
-    Read table data fulfilling the given *condition*.
-
-    This method is similar to :meth:`Table.read`, having their common arguments
-    and return values the same meanings. However, only the rows
-    fulfilling the *condition* are included in the
-    result.
-
-    The meaning of the other arguments is the same as in the
-    :meth:`Table.where` method.
-
-
-.. method:: Table.where(condition, condvars=None, start=None, stop=None, \
-                        step=None)
-
-    Iterate over values fulfilling a condition.
-
-    This method returns a Row iterator (see
-    :ref:`RowClassDescr`) which
-    only selects rows in the table that satisfy the given
-    condition (an expression-like string).
-
-    The condvars mapping may be used to
-    define the variable names appearing in the
-    condition. condvars should
-    consist of identifier-like strings pointing to
-    Column (see :ref:`ColumnClassDescr`) instances *of this
-    table*, or to other values (which will be converted to
-    arrays). A default set of condition variables is provided where
-    each top-level, non-nested column with an identifier-like name
-    appears. Variables in condvars override the
-    default ones.
-
-    When condvars is not provided or
-    None, the current local and global namespace is
-    sought instead of condvars. The previous
-    mechanism is mostly intended for interactive usage. To disable it,
-    just specify a (maybe empty) mapping as condvars.
-
-    If a range is supplied (by setting some of the
-    start, stop or step parameters), only the rows in that range
-    and fulfilling the condition
-    are used. The meaning of the start,
-    stop and step parameters is
-    the same as in the range() Python function,
-    except that negative values of step are
-    not allowed. Moreover, if only
-    start is specified, then
-    stop will be set to start+1.
-
-    When possible, indexed columns participating in the
-    condition will be used to speed up the search. It is recommended
-    that you place the indexed columns as left and out in the
-    condition as possible. Anyway, this method has always better
-    performance than regular Python selections on the table.
-
-    You can mix this method with regular Python selections in
-    order to support even more complex queries. It is strongly
-    recommended that you pass the most restrictive condition as the
-    parameter to this method if you want to achieve maximum
-    performance.
-
-    .. rubric:: Example of use:
-
-    ::
-
-        >>> passvalues = [ row['col3'] for row in
-        ...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
-        ...                if your_function(row['col2']) ]
-        >>> print "Values that pass the cuts:", passvalues
-
-    Note that, from PyTables 1.1 on, you can nest several
-    iterators over the same table. For example::
-
-        for p in rout.where('pressure < 16'):
-            for q in rout.where('pressure < 9'):
-                for n in rout.where('energy < 10'):
-                    print "pressure, energy:", p['pressure'], n['energy']
-
-    In this example, iterators returned by
-    :meth:`Table.where` have been used, but you may as
-    well use any of the other reading iterators that
-    Table objects offer. See the file
-    :file:`examples/nested-iter.py` for the full code.
-
-    .. warning:: When in the middle of a table row iterator, you should not
-       use methods that can change the number of rows in the table
-       (like :meth:`Table.append` or :meth:`Table.removeRows`) or unexpected
-       errors will happen.
-
-
-.. method:: Table.whereAppend(dstTable, condition, condvars=None, start=None, \
-                              stop=None, step=None)
-
-    Append rows fulfilling the condition to the dstTable table.
-
-    dstTable must be capable of taking the
-    rows resulting from the query, i.e. it must have columns with the
-    expected names and compatible types. The meaning of the other
-    arguments is the same as in the :meth:`Table.where`
-    method.
-
-    The number of rows appended to dstTable
-    is returned as a result.
-
-
-
-.. method:: Table.willQueryUseIndexing(condition, condvars=None)
-
-    Will a query for the condition use indexing?
-
-    The meaning of the condition and
-    *condvars* arguments is the same as in the
-    :meth:`Table.where` method. If condition can use
-    indexing, this method returns a frozenset with the path names of
-    the columns whose index is usable. Otherwise, it returns an empty
-    list.
-
-    This method is mainly intended for testing. Keep in mind
-    that changing the set of indexed columns or their dirtiness may
-    make this method return different values for the same arguments at
-    different times.
-
-
-Table methods - other
-~~~~~~~~~~~~~~~~~~~~~
-
-.. method:: Table.copy(newparent=None, newname=None, overwrite=False, \
-                       createparents=False, **kwargs)
-
-    Copy this table and return the new one.
-
-    This method has the behavior and keywords described in
-    :meth:`Leaf.copy`.
-    Moreover, it recognises the following additional keyword
-    arguments.
-
-    :Parameters:
-
-        sortby
-            If specified, and sortby
-            corresponds to a column with an index, then the copy will be
-            sorted by this index.  If you want to ensure a fully sorted
-            order, the index must be a CSI one.  A reverse sorted copy
-            can be achieved by specifying a negative value for
-            the step keyword.
-            If sortby is omitted or None, the original table order is used.
-        checkCSI
-            If true and a CSI index does not exist for the
-            sortby column, an error will be raised.
-            If false (the default), it does nothing.  You can use this
-            flag in order to explicitly check for the existence of a
-            CSI index.
-        propindexes
-            If true, the existing indexes in the source table are
-            propagated (created) to the new one.  If false (the
-            default), the indexes are not propagated.
-
-
-
-.. method:: Table.flushRowsToIndex()
-
-    Add remaining rows in buffers to non-dirty indexes.
-
-    This can be useful when you have chosen non-automatic
-    indexing for the table (see the :attr:`Table.autoIndex`
-    property in :ref:`TableInstanceVariablesDescr`) and you want to update the
-    indexes on it.
-
-
-.. method:: Table.getEnum(colname)
-
-    Get the enumerated type associated with the named column.
-
-    If the column named colname (a string)
-    exists and is of an enumerated type, the corresponding
-    Enum instance (see :ref:`EnumClassDescr`) is
-    returned. If it is not of an enumerated type, a
-    TypeError is raised. If the column does not
-    exist, a KeyError is raised.
-
-
-.. method:: Table.reIndex()
-
-    Recompute all the existing indexes in the table.
-
-    This can be useful when you suspect that, for any reason,
-    the index information for columns is no longer valid and want to
-    rebuild the indexes on it.
-
-
-
-.. method:: Table.reIndexDirty()
-
-    Recompute the existing indexes in table, *if* they are dirty.
-
-    This can be useful when you have set
-    :attr:`Table.autoIndex` (see :ref:`TableInstanceVariablesDescr`) to false
-    for the table and you want to update the indexes after a invalidating index
-    operation (:meth:`Table.removeRows`, for example).
-
-
 .. _ColsClassDescr:
 
 The Cols class
@@ -2360,19 +1935,16 @@ class Table(tableExtension.Table, Leaf):
 
     def willQueryUseIndexing(self, condition, condvars=None):
         """
-        Will a query for the `condition` use indexing?
+        Will a query for the condition use indexing?
 
-        The meaning of the `condition` and `condvars` arguments is the
-        same as in the `Table.where()` method.  If `condition` can use
-        indexing, this method returns a frozenset with the path names of
-        the columns whose index is usable.  Otherwise, it returns an
-        empty list.
+        The meaning of the condition and *condvars* arguments is the same as in
+        the :meth:`Table.where` method. If condition can use indexing, this
+        method returns a frozenset with the path names of the columns whose
+        index is usable. Otherwise, it returns an empty list.
 
-        This method is mainly intended for testing.  Keep in mind that
-        changing the set of indexed columns or their dirtyness may make
-        this method return different values for the same arguments at
-        different times.
-
+        This method is mainly intended for testing. Keep in mind that changing
+        the set of indexed columns or their dirtiness may make this method
+        return different values for the same arguments at different times.
         """
         # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars, depth=2)
@@ -2385,70 +1957,72 @@ class Table(tableExtension.Table, Leaf):
     def where( self, condition, condvars=None,
                start=None, stop=None, step=None ):
         """
-        Iterate over values fulfilling a `condition`.
+        Iterate over values fulfilling a condition.
 
-        This method returns a `Row` iterator which only selects rows in
-        the table that satisfy the given `condition` (an expression-like
-        string).
+        This method returns a Row iterator (see :ref:`RowClassDescr`) which
+        only selects rows in the table that satisfy the given condition (an
+        expression-like string).
 
-        The `condvars` mapping may be used to define the variable names
-        appearing in the `condition`.  `condvars` should consist of
-        identifier-like strings pointing to `Column` instances *of this
-        table*, or to other values (which will be converted to arrays).
+        The condvars mapping may be used to define the variable names appearing
+        in the condition. condvars should consist of identifier-like strings
+        pointing to Column (see :ref:`ColumnClassDescr`) instances *of this
+        table*, or to other values (which will be converted to arrays). A
+        default set of condition variables is provided where each top-level,
+        non-nested column with an identifier-like name appears. Variables in
+        condvars override the default ones.
 
-        When `condvars` is not provided or `None`, the current local and
-        global namespace is sought instead of `condvars`.  The previous
-        mechanism is mostly intended for interactive usage.  To disable
-        it, just specify a (maybe empty) mapping as `condvars`.
+        When condvars is not provided or None, the current local and global
+        namespace is sought instead of condvars. The previous mechanism is
+        mostly intended for interactive usage. To disable it, just specify a
+        (maybe empty) mapping as condvars.
 
-        A default set of condition variables is always provided where
-        each top-level column with an identifier-like name appears.
-        Only variables in `condvars` can override the default variables.
+        If a range is supplied (by setting some of the start, stop or step
+        parameters), only the rows in that range and fulfilling the condition
+        are used. The meaning of the start, stop and step parameters is the
+        same as in the range() Python function, except that negative values of
+        step are not allowed. Moreover, if only start is specified, then stop
+        will be set to start+1.
 
-        If a range is supplied (by setting some of the `start`, `stop`
-        or `step` parameters), only the rows in that range *and*
-        fullfilling the `condition` are used.  The meaning of the
-        `start`, `stop` and `step` parameters is the same as in the
-        ``range()`` Python function, except that negative values of
-        `step` are *not* allowed.  Moreover, if only `start` is
-        specified, then `stop` will be set to ``start+1``.
+        When possible, indexed columns participating in the condition will be
+        used to speed up the search. It is recommended that you place the
+        indexed columns as left and out in the condition as possible. Anyway,
+        this method has always better performance than regular Python
+        selections on the table.
 
-        When possible, indexed columns participating in the condition
-        will be used to speed up the search.  It is recommended that you
-        place the indexed columns as left and out in the condition as
-        possible.  Anyway, this method has always better performance
-        than standard Python selections on the table.
+        You can mix this method with regular Python selections in order to
+        support even more complex queries. It is strongly recommended that you
+        pass the most restrictive condition as the parameter to this method if
+        you want to achieve maximum performance.
 
-        You can mix this method with standard Python selections in order
-        to support even more complex queries.  It is strongly
-        recommended that you pass the most restrictive condition as the
-        parameter to this method if you want to achieve maximum
-        performance.
+        .. warning:: When in the middle of a table row iterator, you should not
+            use methods that can change the number of rows in the table (like
+            :meth:`Table.append` or :meth:`Table.removeRows`) or unexpected
+            errors will happen.
 
-        Example of use:
 
-        >>> passvalues = [ row['col3'] for row in
-        ...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
-        ...                if your_function(row['col2']) ]
-        >>> print \"Values that pass the cuts:\", passvalues
+        Examples
+        --------
 
-        Note that, from PyTables 1.1 on, you can nest several iterators
-        over the same table.  For example:
+        ::
 
-        >>> for p in rout.where('pressure < 16'):
-        ...   for q in rout.where('pressure < 9'):
-        ...     for n in rout.where('energy < 10'):
-        ...       print \"pressure, energy:\", p['pressure'], n['energy']
+            >>> passvalues = [ row['col3'] for row in
+            ...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
+            ...                if your_function(row['col2']) ]
+            >>> print "Values that pass the cuts:", passvalues
 
-        In this example, iterators returned by ``Table.where()`` have
-        been used, but you may as well use any of the other reading
-        iterators that ``Table`` objects offer.  See the file
-        ``examples/nested-iter.py`` for the full code.
+        Note that, from PyTables 1.1 on, you can nest several
+        iterators over the same table. For example::
 
-        .. Warning:: When in the middle of a table row iterator, you
-           should not use methods that can change the number of rows in
-           the table (like ``Table.append()`` or ``Table.removeRows()``)
-           or unexpected errors will happen.
+            for p in rout.where('pressure < 16'):
+                for q in rout.where('pressure < 9'):
+                    for n in rout.where('energy < 10'):
+                        print "pressure, energy:", p['pressure'], n['energy']
+
+        In this example, iterators returned by :meth:`Table.where` have been
+        used, but you may as well use any of the other reading iterators that
+        Table objects offer. See the file :file:`examples/nested-iter.py` for
+        the full code.
+
         """
         return self._where(condition, condvars, start, stop, step)
 
@@ -2502,14 +2076,14 @@ class Table(tableExtension.Table, Leaf):
     def readWhere( self, condition, condvars=None, field=None,
                    start=None, stop=None, step=None ):
         """
-        Read table data fulfilling the given `condition`.
+        Read table data fulfilling the given *condition*.
 
-        This method is similar to `Table.read()`, having their common
-        arguments and return values the same meanings.  However, only
-        the rows fulfilling the `condition` are included in the result.
+        This method is similar to :meth:`Table.read`, having their common
+        arguments and return values the same meanings. However, only the rows
+        fulfilling the *condition* are included in the result.
 
         The meaning of the other arguments is the same as in the
-        `Table.where()` method.
+        :meth:`Table.where` method.
         """
         self._checkFieldIfNumeric(field)
 
@@ -2530,15 +2104,14 @@ class Table(tableExtension.Table, Leaf):
     def whereAppend( self, dstTable, condition, condvars=None,
                      start=None, stop=None, step=None ):
         """
-        Append rows fulfulling the `condition` to the `dstTable` table.
+        Append rows fulfilling the condition to the dstTable table.
 
-        `dstTable` must be capable of taking the rows resulting from the
-        query, i.e. it must have columns with the expected names and
-        compatible types.  The meaning of the other arguments is the
-        same as in the `Table.where()` method.
+        dstTable must be capable of taking the rows resulting from the query,
+        i.e. it must have columns with the expected names and compatible
+        types. The meaning of the other arguments is the same as in the
+        :meth:`Table.where` method.
 
-        The number of rows appended to `dstTable` is returned as a
-        result.
+        The number of rows appended to dstTable is returned as a result.
         """
         # Check that the destination file is not in read-only mode.
         dstTable._v_file._checkWritable()
@@ -2561,14 +2134,14 @@ class Table(tableExtension.Table, Leaf):
     def getWhereList( self, condition, condvars=None, sort=False,
                       start=None, stop=None, step=None ):
         """
-        Get the row coordinates fulfilling the given `condition`.
+        Get the row coordinates fulfilling the given condition.
 
-        The coordinates are returned as a list of the current flavor.
-        `sort` means that you want to retrieve the coordinates ordered.
-        The default is to not sort them.
+        The coordinates are returned as a list of the current flavor.  sort
+        means that you want to retrieve the coordinates ordered. The default is
+        to not sort them.
 
         The meaning of the other arguments is the same as in the
-        `Table.where()` method.
+        :meth:`Table.where` method.
         """
 
         coords = [ p.nrow for p in
@@ -2723,23 +2296,25 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def __iter__(self):
         """
-        Iterate over the table using a `Row` instance.
+        Iterate over the table using a Row instance (see :ref:`RowClassDescr`).
 
-        This is equivalent to calling `Table.iterrows()` with default
+        This is equivalent to calling :meth:`Table.iterrows` with default
         arguments, i.e. it iterates over *all the rows* in the table.
 
-        Example of use::
+        Examples
+        --------
 
-            result = [ row['var2'] for row in table
-                       if row['var1'] <= 20 ]
+        ::
+
+            result = [ row['var2'] for row in table if row['var1'] <= 20 ]
 
         Which is equivalent to::
 
-            result = [ row['var2'] for row in table.iterrows()
-                       if row['var1'] <= 20 ]
+            result = [ row['var2'] for row in table.iterrows() if row['var1'] <= 20 ]
 
-        .. Note:: This iterator can be nested (see `Table.where()` for
-           an example).
+        Notes
+        -----
+        This iterator can be nested (see :meth:`Table.where` for an example).
         """
         return self.iterrows()
 
@@ -2885,10 +2460,10 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Get the enumerated type associated with the named column.
 
-        If the column named `colname` (a string) exists and is of an
-        enumerated type, the corresponding `Enum` instance is returned.
-        If it is not of an enumerated type, a `TypeError` is raised.  If
-        the column does not exist, a `KeyError` is raised.
+        If the column named colname (a string) exists and is of an enumerated
+        type, the corresponding Enum instance (see :ref:`EnumClassDescr`) is
+        returned. If it is not of an enumerated type, a TypeError is raised. If
+        the column does not exist, a KeyError is raised.
         """
 
         self._checkColumn(colname)
@@ -2988,25 +2563,28 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Set a row or a range of rows in the table.
 
-        It takes different actions depending on the type of the `key`
-        parameter: if it is an integer, the corresponding table row is
-        set to `value` (a record, list or tuple capable of being
-        converted to the table field format).  If `key` is a slice, the
-        row slice determined by it is set to `value` (a NumPy record
-        array, ``NestedRecArray`` or list of rows).
+        It takes different actions depending on the type of the key parameter:
+        if it is an integer, the corresponding table row is set to value (a
+        record or sequence capable of being converted to the table
+        structure). If key is a slice, the row slice determined by it is set to
+        value (a record array or sequence capable of being converted to the
+        table structure).
 
         In addition, NumPy-style point selections are supported.  In
-        particular, if `key` is a list of row coordinates, the set of
-        rows determined by it is set to `value`.  Furthermore, if `key`
-        is an array of boolean values, only the coordinates where `key`
-        is ``True`` are set to values from `value`.  Note that for the
-        latter to work it is necessary that `key` list would contain
-        exactly as many rows as the table has.
+        particular, if key is a list of row coordinates, the set of rows
+        determined by it is set to value.  Furthermore, if key is an array of
+        boolean values, only the coordinates where key is True are set to
+        values from value.  Note that for the latter to work it is necessary
+        that key list would contain exactly as many rows as the table has.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             # Modify just one existing row
             table[2] = [456,'db2',1.2]
+
             # Modify two existing rows
             rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
                                    formats='i4,a3,f8')
@@ -3023,8 +2601,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             table.modifyCoordinates([1,3,2], rows)
             table.modifyCoordinates([True, False, True], rows)
 
-        Here, you can see how indexing can be used as a shorthand for
-        the `modifyRows()` or `modifyCoordinates()` methods.
+        Here, you can see how indexing can be used as a shorthand for the
+        :meth:`Table.modifyRows` and :meth:`Table.modifyCoordinates` methods.
         """
 
         self._v_file._checkWritable()
@@ -3067,18 +2645,21 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def append(self, rows):
         """
-        Append a sequence of `rows` to the end of the table.
+        Append a sequence of rows to the end of the table.
 
-        The `rows` argument may be any object which can be converted to
-        a structured array compliant with the table structure
-        (otherwise, a `ValueError` is raised).  This includes NumPy
-        structured arrays, ``RecArray`` or ``NestedRecArray`` objects
-        if ``numarray`` is available, lists of tuples or array records,
-        and a string or Python buffer.
+        The rows argument may be any object which can be converted to a record
+        array compliant with the table structure (otherwise, a ValueError is
+        raised).  This includes NumPy structured arrays, RecArray (depracated)
+        or NestedRecArray (deprecated) objects if numarray is available, lists
+        of tuples or array records, and a string or Python buffer.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             from tables import *
+
             class Particle(IsDescription):
                 name        = StringCol(16, pos=1) # 16-character String
                 lati        = IntCol(pos=2)        # integer
@@ -3087,11 +2668,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 temperature = FloatCol(pos=5)      # double (double-precision)
 
             fileh = openFile('test4.h5', mode='w')
-            table = fileh.createTable(fileh.root, 'table', Particle, \"A table\")
+            table = fileh.createTable(fileh.root, 'table', Particle, "A table")
+
             # Append several rows in only one call
-            table.append([(\"Particle:     10\", 10, 0, 10*10, 10**2),
-                          (\"Particle:     11\", 11, -1, 11*11, 11**2),
-                          (\"Particle:     12\", 12, -2, 12*12, 12**2)])
+            table.append([("Particle:     10", 10, 0, 10*10, 10**2),
+                          ("Particle:     11", 11, -1, 11*11, 11**2),
+                          ("Particle:     12", 12, -2, 12*12, 12**2)])
             fileh.close()
         """
 
@@ -3147,14 +2729,13 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def modifyCoordinates(self, coords, rows):
         """
-        Modify a series of rows in positions specified in `coords`.
+        Modify a series of rows in positions specified in coords
 
-        The values in the selected rows will be modified with the data
-        given in `rows`.  This method returns the number of rows
-        modified.
+        The values in the selected rows will be modified with the data given in
+        rows.  This method returns the number of rows modified.
 
-        The possible values for the `rows` argument are the same as in
-        `Table.append()`.
+        The possible values for the rows argument are the same as in
+        :meth:`Table.append`.
         """
 
         if rows is None:      # Nothing to be done
@@ -3183,15 +2764,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
         """
-        Modify a series of rows in the slice ``[start:stop:step]``.
+        Modify a series of rows in the slice [start:stop:step].
 
-        The values in the selected rows will be modified with the data
-        given in `rows`.  This method returns the number of rows
-        modified.  Should the modification exceed the length of the
-        table, an `IndexError` is raised before changing data.
+        The values in the selected rows will be modified with the data given in
+        rows.  This method returns the number of rows modified.  Should the
+        modification exceed the length of the table, an IndexError is raised
+        before changing data.
 
-        The possible values for the `rows` argument are the same as in
-        `Table.append()`.
+        The possible values for the rows argument are the same as in
+        :meth:`Table.append`.
         """
 
         if rows is None:      # Nothing to be done
@@ -3237,21 +2818,20 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
     def modifyColumn(self, start=None, stop=None, step=1,
                      column=None, colname=None):
         """
-        Modify one single column in the row slice ``[start:stop:step]``.
+        Modify one single column in the row slice [start:stop:step].
 
-        The `colname` argument specifies the name of the column in the
-        table to be modified with the data given in `column`.  This
-        method returns the number of rows modified.  Should the
-        modification exceed the length of the table, an `IndexError`
-        is raised before changing data.
+        The colname argument specifies the name of the column in the table to
+        be modified with the data given in column.  This method returns the
+        number of rows modified.  Should the modification exceed the length of
+        the table, an IndexError is raised before changing data.
 
-        The `column` argument may be any object which can be converted
-        to a (record) array compliant with the structure of the column
-        to be modified (otherwise, a `ValueError` is raised).  This
-        includes NumPy (record) arrays, ``NumArray``, ``RecArray`` or
-        ``NestedRecArray`` objects if ``numarray`` is available, Numeric
-        arrays if available, lists of scalars, tuples or array records,
-        and a string or Python buffer.
+        The column argument may be any object which can be converted to a
+        (record) array compliant with the structure of the column to be
+        modified (otherwise, a ValueError is raised).  This includes NumPy
+        (record) arrays, NumArray (deprecated), RecArray (deprecated) or
+        NestedRecArray (deprecated) objects if numarray is available, Numeric
+        arrays if available (deprecated), lists of scalars, tuples or array
+        records, and a string or Python buffer.
         """
 
         if not isinstance(colname, str):
@@ -3319,20 +2899,19 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
     def modifyColumns(self, start=None, stop=None, step=1,
                       columns=None, names=None):
         """
-        Modify a series of columns in the row slice ``[start:stop:step]``.
+        Modify a series of columns in the row slice [start:stop:step].
 
-        The `names` argument specifies the names of the columns in the
-        table to be modified with the data given in `columns`.  This
-        method returns the number of rows modified.  Should the
-        modification exceed the length of the table, an `IndexError`
-        is raised before changing data.
+        The names argument specifies the names of the columns in the table to
+        be modified with the data given in columns.  This method returns the
+        number of rows modified.  Should the modification exceed the length of
+        the table, an IndexError is raised before changing data.
 
-        The `columns` argument may be any object which can be converted
-        to a structured array compliant with the structure of the
-        columns to be modified (otherwise, a `ValueError` is raised).
-        This includes NumPy structured arrays, ``RecArray`` or
-        ``NestedRecArray`` objects if ``numarray`` is available, lists
-        of tuples or array records, and a string or Python buffer.
+        The columns argument may be any object which can be converted to a
+        structured array compliant with the structure of the columns to be
+        modified (otherwise, a ValueError is raised).  This includes NumPy
+        structured arrays, RecArray (deprecated) or NestedRecArray (deprecated)
+        objects if numarray is available, lists of tuples or array records, and
+        a string or Python buffer.
         """
 
         if type(names) not in (list, tuple):
@@ -3397,10 +2976,10 @@ The 'names' parameter must be a list of strings.""")
         """
         Add remaining rows in buffers to non-dirty indexes.
 
-        This can be useful when you have chosen non-automatic indexing
-        for the table (see the `Table.autoIndex` property) and you want
-        to update the indexes on it.
-
+        This can be useful when you have chosen non-automatic indexing for the
+        table (see the :attr:`Table.autoIndex` property in
+        :ref:`TableInstanceVariablesDescr`) and you want to update the indexes
+        on it.
         """
 
         rowsadded = 0
@@ -3453,23 +3032,22 @@ The 'names' parameter must be a list of strings.""")
         """
         Remove a range of rows in the table.
 
-        If only `start` is supplied, only this row is to be deleted.  If
-        a range is supplied, i.e. both the `start` and `stop` parameters
-        are passed, all the rows in the range are removed.  A ``step``
-        parameter is not supported, and it is not foreseen to be
-        implemented anytime soon.
+        If only start is supplied, only this row is to be deleted.  If a range
+        is supplied, i.e. both the start and stop parameters are passed, all
+        the rows in the range are removed. A step parameter is not supported,
+        and it is not foreseen to be implemented anytime soon.
 
-        `start`
-            Sets the starting row to be removed.  It accepts negative
-            values meaning that the count starts from the end.  A value
-            of 0 means the first row.
-
-        `stop`
-            Sets the last row to be removed to ``stop-1``, i.e. the end
-            point is omitted (in the Python ``range()`` tradition).
-            Negative values are also accepted.  A special value of
-            ``None`` (the default) means removing just the row supplied
-            in `start`.
+        Parameters
+        ----------
+        start : int
+            Sets the starting row to be removed. It accepts negative values
+            meaning that the count starts from the end.  A value of 0 means the
+            first row.
+        stop : int
+            Sets the last row to be removed to stop-1, i.e. the end point is
+            omitted (in the Python range() tradition). Negative values are also
+            accepted. A special value of None (the default) means removing just
+            the row supplied in start.
         """
 
         (start, stop, step) = self._processRangeRead(start, stop, 1)
@@ -3600,10 +3178,9 @@ The 'names' parameter must be a list of strings.""")
         """
         Recompute all the existing indexes in the table.
 
-        This can be useful when you suspect that, for any reason, the
-        index information for columns is no longer valid and want to
-        rebuild the indexes on it.
-
+        This can be useful when you suspect that, for any reason, the index
+        information for columns is no longer valid and want to rebuild the
+        indexes on it.
         """
         self._doReIndex(dirty=False)
 
@@ -3612,11 +3189,10 @@ The 'names' parameter must be a list of strings.""")
         """
         Recompute the existing indexes in table, *if* they are dirty.
 
-        This can be useful when you have set `Table.autoIndex` to false
-        for the table and you want to update the indexes after a
-        invalidating index operation (`Table.removeRows()`, for
-        example).
-
+        This can be useful when you have set :attr:`Table.autoIndex` (see
+        :ref:`TableInstanceVariablesDescr`) to false for the table and you want
+        to update the indexes after a invalidating index operation
+        (:meth:`Table.removeRows`, for example).
         """
         self._doReIndex(dirty=True)
 
@@ -3707,28 +3283,31 @@ The 'names' parameter must be a list of strings.""")
     # the additional keywords for the Table case.
     def copy( self, newparent=None, newname=None, overwrite=False,
               createparents=False, **kwargs ):
-        """ Copy this table and return the new one.
+        """
+        Copy this table and return the new one.
 
         This method has the behavior and keywords described in
-        `Leaf.copy()`.  Moreover, it recognises the next additional
-        keyword arguments:
+        :meth:`Leaf.copy`.  Moreover, it recognises the following additional
+        keyword arguments.
 
-        `sortby`
-            If specified, and `sortby` corresponds to a column with an
-            index, then the copy will be sorted by this index.  If you
-            want to ensure a fully sorted order, the index must be a CSI
-            one.  A reverse sorted copy can be achieved by specifying a
-            negative value for the `step` keyword.  If `sortby` is
-            omitted or ``None``, the original table order is used.
-        `checkCSI`
-            If true and a CSI index does not exist for the `sortby`
-            column, an error will be raised.  If false (the default), it
-            does nothing.  You can use this flag in order to explicitely
-            check for the existence of a CSI index.
-        `propindexes`
-            If true, the existing indexes in the source table are
-            propagated (created) to the new one.  If false (the
-            default), the indexes are not propagated.
+        Parameters
+        ----------
+        sortby
+            If specified, and sortby corresponds to a column with an index,
+            then the copy will be sorted by this index.  If you want to ensure
+            a fully sorted order, the index must be a CSI one.  A reverse
+            sorted copy can be achieved by specifying a negative value for the
+            step keyword.  If sortby is omitted or None, the original table
+            order is used.
+        checkCSI
+            If true and a CSI index does not exist for the sortby column, an
+            error will be raised.  If false (the default), it does nothing.
+            You can use this flag in order to explicitly check for the
+            existence of a CSI index.
+        propindexes
+            If true, the existing indexes in the source table are propagated
+            (created) to the new one.  If false (the default), the indexes are
+            not propagated.
         """
         return super(Table, self).copy(
             newparent, newname, overwrite, createparents, **kwargs)
