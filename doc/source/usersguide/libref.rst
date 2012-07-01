@@ -271,8 +271,9 @@ The Column class
 The Row class
 -------------
 
-.. autoclass:: Row
+.. autoclass:: tables.tableExtension.Row
     :members:
+
 
 .. Description class, Col class, and IsDescription class class documentation in
    tables/description.py docstring
