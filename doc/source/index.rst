@@ -38,6 +38,7 @@ Contents
     FAQ
     MIGRATING_TO_2.x
     cookbook/index
+    other_material
     release_notes
     project_pointers
     development
