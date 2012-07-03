@@ -41,24 +41,23 @@ deftype_from_kind = {}  # filled as atom classes are created
 _type_re = re.compile(r'^([a-z]+)([0-9]*)$')
 def split_type(type):
     """
-    Split a PyTables `type` into a PyTables kind and an item size.
+    Split a PyTables type into a PyTables kind and an item size.
 
-    Returns a tuple of ``(kind, itemsize)``.  If no item size is
-    present in the `type` (in the form of a precision), the returned
-    item size is `None`.
+    Returns a tuple of (kind, itemsize). If no item size is present in the type
+    (in the form of a precision), the returned item size is None::
 
-    >>> split_type('int32')
-    ('int', 4)
-    >>> split_type('string')
-    ('string', None)
-    >>> split_type('int20')
-    Traceback (most recent call last):
-      ...
-    ValueError: precision must be a multiple of 8: 20
-    >>> split_type('foo bar')
-    Traceback (most recent call last):
-      ...
-    ValueError: malformed type: 'foo bar'
+        >>> split_type('int32')
+        ('int', 4)
+        >>> split_type('string')
+        ('string', None)
+        >>> split_type('int20')
+        Traceback (most recent call last):
+        ...
+        ValueError: precision must be a multiple of 8: 20
+        >>> split_type('foo bar')
+        Traceback (most recent call last):
+        ...
+        ValueError: malformed type: 'foo bar'
     """
 
     match = _type_re.match(type)

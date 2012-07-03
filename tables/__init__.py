@@ -24,18 +24,17 @@ __version__ = getPyTablesVersion()
 hdf5Version = getHDF5Version()
 """The underlying HDF5 library version number."""
 is_pro = True
-"""True for PyTables Professional edition, false otherwise.
+"""
+    True for PyTables Professional edition, false otherwise.
 
-.. note:: PyTables Professional edition has been released under open
-          source license. Starting with version 2.3, PyTables includes all
-          features of PyTables Pro.
+    .. note:: PyTables Professional edition has been released
+       under an open source license. Starting with version 2.3, PyTables
+       includes all features of PyTables Pro.  In order to reflect the presence
+       of advanced features :data:`is_pro` is always set to True.
+       :data:`is_pro` should be considered *deprecated*.  It will be removed in
+       the next major release.
 
-          In order to reflect the presence of advanced features *is_pro*
-          is always set to True.
-
-
-.. deprecated:: :data:`tables.is_pro` should be considered deprecated
-                and it will be removed in the next major release.
+    .. deprecated:: 2.3
 
 """
 

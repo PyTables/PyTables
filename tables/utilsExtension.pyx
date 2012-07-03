@@ -123,13 +123,13 @@ blosc_version_string, blosc_version_date = blosc_version
 # Important: Blosc calls that modifies global variables in Blosc must be
 # called from the same extension where Blosc is registered in HDF5.
 def setBloscMaxThreads(nthreads):
-  """Set the maximum number of threads that Blosc can use.
+  """setBloscMaxThreads(nthreads)
+  Set the maximum number of threads that Blosc can use.
 
   This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
-  setting in :mod:`tables.parameters`, so the new value will be
-  effective until this function is called again or a new file with
-  a different :data:`tables.parameters.MAX_BLOSC_THREADS` value is
-  specified.
+  setting in :mod:`tables.parameters`, so the new value will be effective until
+  this function is called again or a new file with a different
+  :data:`tables.parameters.MAX_BLOSC_THREADS` value is specified.
 
   Returns the previous setting for maximum threads.
   """
@@ -213,7 +213,8 @@ def _dump_h5_backtrace():
 HDF5ExtError._dump_h5_backtrace = _dump_h5_backtrace
 
 def silenceHDF5Messages(silence=True):
-    """Silence (or re-enable) messages from the HDF5 C library.
+    """silenceHDF5Messages(silence=True)
+    Silence (or re-enable) messages from the HDF5 C library.
 
     The *silence* parameter can be used control the behaviour and reset
     the standard HDF5 logging.
@@ -397,12 +398,12 @@ def encode_filename(object filename):
 # Main functions
 
 def isHDF5File(object filename):
-  """isHDF5File(filename) -> bool
+  """isHDF5File(filename)
   Determine whether a file is in the HDF5 format.
 
   When successful, it returns a true value if the file is an HDF5
   file, false otherwise.  If there were problems identifying the file,
-  an `HDF5ExtError` is raised.
+  an HDF5ExtError is raised.
   """
 
   # Encode the filename in case it is unicode
@@ -418,12 +419,12 @@ def isHDF5File(object filename):
 
 
 def isPyTablesFile(object filename):
-  """isPyTablesFile(filename) -> true or false value
+  """isPyTablesFile(filename)
   Determine whether a file is in the PyTables format.
 
   When successful, it returns the format version string if the file is a
-  PyTables file, `None` otherwise.  If there were problems identifying the
-  file, an `HDF5ExtError` is raised.
+  PyTables file, None otherwise.  If there were problems identifying the
+  file, an HDF5ExtError is raised.
   """
 
   cdef hid_t file_id
@@ -455,16 +456,16 @@ def getPyTablesVersion():
 
 
 def whichLibVersion(char *name):
-  """whichLibVersion(name) -> version info
+  """whichLibVersion(name)
   Get version information about a C library.
 
-  If the library indicated by `name` is available, this function returns a
+  If the library indicated by name is available, this function returns a
   3-tuple containing the major library version as an integer, its full version
-  as a string, and the version date as a string.  If the library is not
-  available, ``None`` is returned.
+  as a string, and the version date as a string. If the library is not
+  available, None is returned.
 
-  The currently supported library names are ``hdf5``, ``zlib``, ``lzo``, and
-  ``bzip2``.  If another name is given, a ``ValueError`` is raised.
+  The currently supported library names are hdf5, zlib, lzo and bzip2. If
+  another name is given, a ValueError is raised.
   """
 
   libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc')
@@ -1036,21 +1037,20 @@ def createNestedType(object desc, char *byteorder):
 
 
 cdef class lrange:
-  """
+  """lrange([start], stop[, step])
   Iterate over long ranges.
 
-  This is similar to ``xrange()``, but it allows 64-bit arguments on all
-  platforms.  The results of the iteration are sequentially yielded in
-  the form of ``numpy.int64`` values, but getting random individual
-  items is not supported.
+  This is similar to xrange(), but it allows 64-bit arguments on all platforms.
+  The results of the iteration are sequentially yielded in the form of
+  numpy.int64 values, but getting random individual items is not supported.
 
-  Because of the Python 32-bit limitation on object lengths, the
-  ``length`` attribute (which is also a ``numpy.int64`` value) should be
-  used instead of the ``len()`` syntax.
+  Because of the Python 32-bit limitation on object lengths, the length
+  attribute (which is also a numpy.int64 value) should be used instead of the
+  len() syntax.
 
-  Default ``start`` and ``step`` arguments are supported in the same way
-  as in ``xrange()``.  When the standard ``[x]range()`` Python objects
-  support 64-bit arguments, this iterator will be deprecated.
+  Default start and step arguments are supported in the same way as in
+  xrange().  When the standard [x]range() Python objects support 64-bit
+  arguments, this iterator will be deprecated.
   """
   cdef npy_int64 start, stop, step, next
   cdef dtype int64  # caches the ``numpy.int64`` type
@@ -1059,8 +1059,8 @@ cdef class lrange:
     """
     Get the number of elements in this iteration.
 
-    This should be used instead of ``len()`` because the latter
-    truncates the real length to a 32-bit signed value.
+    This should be used instead of len() because the latter truncates the real
+    length to a 32-bit signed value.
     """
     def __get__(self):
       cdef npy_int64 rlen

@@ -212,14 +212,13 @@ def array_of_flavor(array, dst_flavor):
 
 def restrict_flavors(keep=['python']):
     """
-    Disable all flavors except those in `keep`.
+    Disable all flavors except those in keep.
 
-    Providing an empty `keep` sequence implies disabling all flavors
-    (but the internal one).  If the sequence is not specified, only
-    optional flavors are disabled.
+    Providing an empty keep sequence implies disabling all flavors (but the
+    internal one).  If the sequence is not specified, only optional flavors are
+    disabled.
 
-    .. Important::
-       Once you disable a flavor, it can not be enabled again.
+    .. important:: Once you disable a flavor, it can not be enabled again.
     """
     keep = set(keep).union([internal_flavor])
     remove = set(all_flavors).difference(keep)
