@@ -158,39 +158,36 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
     Parameters
     ----------
     filename : str
-        The name of the file (supports environment variable
-        expansion). It is suggested that file names have any of the
-        .h5, .hdf or .hdf5 extensions, although this is not mandatory.
+        The name of the file (supports environment variable expansion). It is
+        suggested that file names have any of the .h5, .hdf or .hdf5
+        extensions, although this is not mandatory.
     mode : str
         The mode to open the file. It can be one of the
         following:
+
             * *'r'*: Read-only; no data can be modified.
             * *'w'*: Write; a new file is created (an existing file with the
               same name would be deleted).
             * *'a'*: Append; an existing file is opened for reading and writing,
               and if the file does not exist it is created.
             * *'r+'*: It is similar to 'a', but the file must already exist.
+
     title : str
-        If the file is to be created, a
-        TITLE string attribute will be set on the
-        root group with the given value. Otherwise, the title will
-        be read from disk, and this will not have any effect.
+        If the file is to be created, a TITLE string attribute will be set on
+        the root group with the given value. Otherwise, the title will be read
+        from disk, and this will not have any effect.
     rootUEP : str
-        The root User Entry Point. This is a group in the HDF5
-        hierarchy which will be taken as the starting point to
-        create the object tree. It can be whatever existing group in
-        the file, named by its HDF5 path. If it does not exist, an
-        HDF5ExtError is issued. Use this if you
-        do not want to build the *entire* object
-        tree, but rather only a *subtree* of it.
+        The root User Entry Point. This is a group in the HDF5 hierarchy which
+        will be taken as the starting point to create the object tree. It can
+        be whatever existing group in the file, named by its HDF5 path. If it
+        does not exist, an HDF5ExtError is issued. Use this if you do not want
+        to build the *entire* object tree, but rather only a *subtree* of it.
     filters : Filters
-        An instance of the Filters (see
-        :ref:`FiltersClassDescr`) class that provides
-        information about the desired I/O filters applicable to the
-        leaves that hang directly from the *root
-        group*, unless other filter properties are
-        specified for these leaves. Besides, if you do not specify
-        filter properties for child groups, they will inherit these
+        An instance of the Filters (see :ref:`FiltersClassDescr`) class that
+        provides information about the desired I/O filters applicable to the
+        leaves that hang directly from the *root group*, unless other filter
+        properties are specified for these leaves. Besides, if you do not
+        specify filter properties for child groups, they will inherit these
         ones, which will in turn propagate to child nodes.
 
     Notes
@@ -584,15 +581,18 @@ class File(hdf5Extension.File, object):
         name : str
             The name of the new group.
         title : str, optional
+            A description for this node (it sets the TITLE HDF5 attribute on
+            disk).
         filters : Filters
-            An instance of the Filters class
-            (see :ref:`FiltersClassDescr`) that provides information
-            about the desired I/O filters applicable to the leaves that
-            hang directly from this new group (unless other filter
-            properties are specified for these leaves). Besides, if you
-            do not specify filter properties for its child groups, they
-            will inherit these ones.
+            An instance of the Filters class (see :ref:`FiltersClassDescr`)
+            that provides information about the desired I/O filters applicable
+            to the leaves that hang directly from this new group (unless other
+            filter properties are specified for these leaves). Besides, if you
+            do not specify filter properties for its child groups, they will
+            inherit these ones.
         createparents : bool
+            Whether to create the needed groups for the parent
+            path to exist (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
@@ -605,10 +605,8 @@ class File(hdf5Extension.File, object):
                     chunkshape=None, byteorder=None,
                     createparents=False):
         """
-        Create a new table with the given name in
-        where location.  See the
-        Table (in :ref:`TableClassDescr`) class for more information on
-        tables.
+        Create a new table with the given name in where location.  See the
+        Table (in :ref:`TableClassDescr`) class for more information on tables.
 
         Parameters
         ----------
@@ -622,6 +620,7 @@ class File(hdf5Extension.File, object):
             This is an object that describes the table, i.e. how
             many columns it has, their names, types, shapes, etc.  It
             can be any of the following:
+
                 * *A user-defined class*: This should inherit from the
                   IsDescription class (see :ref:`IsDescriptionClassDescr`) where
                   table fields are specified.
@@ -642,6 +641,7 @@ class File(hdf5Extension.File, object):
                   nested columns in your table and you are using numarray, you
                   can use this object. Array data is injected into the new
                   table.
+
         title : str
             A description for this node (it sets the TITLE HDF5 attribute
             on disk).
@@ -667,8 +667,8 @@ class File(hdf5Extension.File, object):
             unless you passed an array as the description, in which case
             its byteorder will be used.
         createparents : bool
-            Whether to create the needed groups for the parent
-            path to exist (not done by default).
+            Whether to create the needed groups for the parent path to exist
+            (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
         if description is None:
@@ -695,22 +695,25 @@ class File(hdf5Extension.File, object):
         name : str
             The name of the new array
         object : python object
-            The array or scalar to be saved.  Accepted types are
-            NumPy arrays and scalars, numarray arrays
-            and string arrays (deprecated), Numeric arrays and scalars
-            (deprecated), as well as native Python sequences and scalars,
-            provided that values are regular (i.e. they are not like
-            [[1,2],2]) and homogeneous (i.e. all the
-            elements are of the same type).
-            Also, objects that have some of their dimensions equal to 0 are not
-            supported (use an EArray node (see :ref:`EArrayClassDescr`) if you
-            want to store an array with one of its dimensions equal to 0).
+            The array or scalar to be saved.  Accepted types are NumPy arrays
+            and scalars, numarray arrays and string arrays (deprecated),
+            Numeric arrays and scalars (deprecated), as well as native Python
+            sequences and scalars, provided that values are regular (i.e. they
+            are not like [[1,2],2]) and homogeneous (i.e. all the elements are
+            of the same type).  Also, objects that have some of their
+            dimensions equal to 0 are not supported (use an EArray node (see
+            :ref:`EArrayClassDescr`) if you want to store an array with one of
+            its dimensions equal to 0).
         title : str
+            A description for this node (it sets the TITLE HDF5 attribute on
+            disk).
         byteorder : str
             The byteorder of the data *on disk*, specified as 'little' or
             'big'.  If this is not specified, the byteorder is that of the
             given object.
         createparents : bool, optional
+            Whether to create the needed groups for the parent path to exist
+            (not done by default).
 
         Notes
         -----
@@ -743,18 +746,24 @@ class File(hdf5Extension.File, object):
         shape : tuple
             The shape of the new array.
         title : str, optional
+            A description for this node (it sets the TITLE HDF5 attribute on
+            disk).
         filters : Filters, optional
+            An instance of the Filters class (see :ref:`FiltersClassDescr`) that
+            provides information about the desired I/O filters to be applied
+            during the life of this object.
         chunkshape : tuple or number or None, optional
-            The shape of the data chunk to be read or written in a
-            single HDF5 I/O operation.  Filters are applied to those
-            chunks of data.  The dimensionality of
-            chunkshape must be the same as that of shape.  If None, a
-            sensible value is calculated (which is recommended).
+            The shape of the data chunk to be read or written in a single HDF5
+            I/O operation.  Filters are applied to those chunks of data.  The
+            dimensionality of chunkshape must be the same as that of shape.  If
+            None, a sensible value is calculated (which is recommended).
         byteorder : str, optional
             The byteorder of the data *on disk*, specified as 'little' or
             'big'.  If this is not specified, the byteorder is that of the
             given object.
         createparents : bool, optional
+            Whether to create the needed groups for the parent path to exist
+            (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
@@ -781,41 +790,37 @@ class File(hdf5Extension.File, object):
         name : str
             The name of the new array
         atom : Atom
-            An Atom (see :ref:`AtomClassDescr`)
-            instance representing the *type* and
-            *shape* of the atomic objects to be saved.
+            An Atom (see :ref:`AtomClassDescr`) instance representing the
+            *type* and *shape* of the atomic objects to be saved.
         shape : tuple
-            The shape of the new array.  One (and only one) of the
-            shape dimensions *must* be 0.  The
-            dimension being 0 means that the resulting
-            EArray object can be extended along it.
-            Multiple enlargeable dimensions are not supported right now.
+            The shape of the new array.  One (and only one) of the shape
+            dimensions *must* be 0.  The dimension being 0 means that the
+            resulting EArray object can be extended along it.  Multiple
+            enlargeable dimensions are not supported right now.
         title : str, optional
+            A description for this node (it sets the TITLE HDF5 attribute on
+            disk).
         expectedrows : int, optional
-            A user estimate about the number of row elements that
-            will be added to the growable dimension in the
-            EArray node.  If not provided, the
-            default value is EXPECTED_ROWS_EARRAY
-            (see tables/parameters.py).  If you plan
-            to create either a much smaller or a much bigger array try
-            providing a guess; this will optimize the HDF5 B-Tree
-            creation and management process time and the amount of
-            memory used.
+            A user estimate about the number of row elements that will be added
+            to the growable dimension in the EArray node.  If not provided, the
+            default value is EXPECTED_ROWS_EARRAY (see tables/parameters.py).
+            If you plan to create either a much smaller or a much bigger array
+            try providing a guess; this will optimize the HDF5 B-Tree creation
+            and management process time and the amount of memory used.
         chunkshape : tuple, numeric, or None, optional
-            The shape of the data chunk to be read or written in a
-            single HDF5 I/O operation.  Filters are applied to those
-            chunks of data.  The dimensionality of
-            chunkshape must be the same as that of
-            shape (beware: no dimension should be 0
-            this time!).  If None, a sensible value
-            is calculated based on the expectedrows
-            parameter (which is recommended).
+            The shape of the data chunk to be read or written in a single HDF5
+            I/O operation.  Filters are applied to those chunks of data.  The
+            dimensionality of chunkshape must be the same as that of shape
+            (beware: no dimension should be 0 this time!).  If None, a sensible
+            value is calculated based on the expectedrows parameter (which is
+            recommended).
         byteorder : str, optional
-            The byteorder of the data *on
-            disk*, specified as 'little' or
-            'big'. If this is not specified, the
-            byteorder is that of the platform.
+            The byteorder of the data *on disk*, specified as 'little' or
+            'big'. If this is not specified, the byteorder is that of the
+            platform.
         createparents : bool, optional
+            Whether to create the needed groups for the parent path to exist
+            (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
@@ -843,34 +848,35 @@ class File(hdf5Extension.File, object):
         name : str
             The name of the new array
         atom : Atom
-            An Atom (see :ref:`AtomClassDescr`)
-            instance representing the *type* and
-            *shape* of the atomic objects to be
-            saved.
+            An Atom (see :ref:`AtomClassDescr`) instance representing the
+            *type* and *shape* of the atomic objects to be saved.
         title : str, optional
+            A description for this node (it sets the TITLE HDF5 attribute on
+            disk).
         filters : Filters
+            An instance of the Filters class (see :ref:`FiltersClassDescr`) that
+            provides information about the desired I/O filters to be applied
+            during the life of this object.
         expectedsizeinMB : int, optional
-            An user estimate about the size (in MB) in the final
-            VLArray node. If not provided, the
-            default value is 1 MB. If you plan to create either a much
-            smaller or a much bigger array try providing a guess; this
-            will optimize the HDF5 B-Tree creation and management
-            process time and the amount of memory used. If you want to
-            specify your own chunk size for I/O purposes, see also the
-            chunkshape parameter below.
+            An user estimate about the size (in MB) in the final VLArray
+            node. If not provided, the default value is 1 MB. If you plan to
+            create either a much smaller or a much bigger array try providing a
+            guess; this will optimize the HDF5 B-Tree creation and management
+            process time and the amount of memory used. If you want to specify
+            your own chunk size for I/O purposes, see also the chunkshape
+            parameter below.
         chunkshape : int or tuple of int, optional
-            The shape of the data chunk to be read or written in a
-            single HDF5 I/O operation. Filters are applied to those
-            chunks of data. The dimensionality of
-            chunkshape must be 1. If
-            None, a sensible value is calculated
-            (which is recommended).
+            The shape of the data chunk to be read or written in a single HDF5
+            I/O operation. Filters are applied to those chunks of data. The
+            dimensionality of chunkshape must be 1. If None, a sensible value
+            is calculated (which is recommended).
         byteorder : str, optional
-            The byteorder of the data *on
-            disk*, specified as 'little' or
-            'big'. If this is not specified, the
-            byteorder is that of the platform.
+            The byteorder of the data *on disk*, specified as 'little' or
+            'big'. If this is not specified, the byteorder is that of the
+            platform.
         createparents : bool, optional
+            Whether to create the needed groups for the parent path to exist
+            (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
@@ -1307,10 +1313,10 @@ class File(hdf5Extension.File, object):
         createparents : bool, optional
             If True, any necessary parents of dstgroup will be created.
             Defaults to False.
-        kwargs
+        kwargs : dict
            Additional keyword arguments can be used to customize the copying
            process.  See the documentation of :meth:`Group._f_copyChildren`
-            for a description of those arguments.
+           for a description of those arguments.
         """
 
         srcGroup = self.getNode(srcgroup)  # Does the source node exist?

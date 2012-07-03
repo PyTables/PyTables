@@ -1583,9 +1583,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         Notes
         -----
         This iterator can be nested (see :meth:`Table.where` for an example).
-
-        Warning
-        -------
         """
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:

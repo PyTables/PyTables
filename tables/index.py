@@ -1456,12 +1456,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         It returns the following info:
 
-        noverlaps -- The total number of elements that overlaps in index (int).
-        multiplicity -- The number of times that a concrete slice overlaps
-            with any other (array of ints).
-        toverlap -- An ovelap index: the sum of the values in segment slices
-            that overlaps divided by the entire range of values (float).
-            This index is only computed for numerical types.
+        noverlaps : int
+            The total number of elements that overlaps in index.
+        multiplicity : array of int
+            The number of times that a concrete slice overlaps with any other.
+        toverlap : float
+            An ovelap index: the sum of the values in segment slices that
+            overlaps divided by the entire range of values.  This index is only
+            computed for numerical types.
         """
 
         ss = self.slicesize
@@ -1545,12 +1547,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         It returns the following info:
 
-        noverlaps -- The total number of slices that overlaps in index (int).
-        multiplicity -- The number of times that a concrete slice overlaps
-            with any other (array of ints).
-        toverlap -- An ovelap index: the sum of the values in segment slices
-            that overlaps divided by the entire range of values (float).
-            This index is only computed for numerical types.
+        noverlaps : int
+            The total number of slices that overlaps in index.
+        multiplicity : array of int
+            The number of times that a concrete slice overlaps with any other.
+        toverlap : float
+            An ovelap index: the sum of the values in segment slices that
+            overlaps divided by the entire range of values.  This index is only
+            computed for numerical types.
         """
 
         ranges = where.ranges[:]

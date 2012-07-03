@@ -172,11 +172,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         A list with all attribute names.
 
-
     .. attribute:: AttributeSet._v_attrnamessys
 
         A list with system attribute names.
-
 
     .. attribute:: AttributeSet._v_attrnamesuser
 
@@ -186,48 +184,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         A list of attribute names with unimplemented native HDF5 types.
 
-
-
-
-    Public instance variables
-    -------------------------
-
-    _v_attrnames
-        A list with all attribute names.
-    _v_attrnamessys
-        A list with system attribute names.
-    _v_attrnamesuser
-        A list with user attribute names.
-    _v_node
-        The `Node` instance this attribute set is associated with.
-    _v_unimplemented
-        A list of attribute names with unimplemented native HDF5 types.
-
-    Public methods
-    --------------
-
-    Note that this class overrides the ``__setattr__()``,
-    ``__getattr__()`` and ``__delattr__()`` special methods.  This
-    allows you to read, assign or delete attributes on disk by just
-    using the next constructs::
-
-        leaf.attrs.myattr = 'str attr'    # set a string (native support)
-        leaf.attrs.myattr2 = 3            # set an integer (native support)
-        leaf.attrs.myattr3 = [3, (1, 2)]  # a generic object (Pickled)
-        attrib = leaf.attrs.myattr        # get the attribute ``myattr``
-        del leaf.attrs.myattr             # delete the attribute ``myattr``
-
-    If an attribute is set on a target node that already has a large
-    number of attributes, a ``PerformanceWarning`` will be issued.
-
-    _f_copy()
-        Copy attributes to the ``where`` node.
-    _f_list(attrset)
-        Get a list of attribute names.
-    _f_rename(oldattrname, newattrname)
-        Rename an attribute from ``oldattrname`` to ``newattrname``.
-    __contains__(name)
-        Is there an attribute with that ``name``?
     """
 
     def _g_getnode(self):

@@ -237,6 +237,7 @@ class Atom(object):
     dflt
         Sets the default value for the atom.
 
+    The following are the public methods and attributes of the Atom class.
 
     .. attribute:: Atom.itemsize
 
@@ -271,43 +272,6 @@ class Atom(object):
             False
             >>> atom3 != atom2
             True
-
-
-
-    Public methods
-    --------------
-
-    copy(**override)
-        Get a copy of the atom, possibly overriding some arguments.
-
-    Factory methods
-    ---------------
-
-    from_dtype(dtype[, dflt])
-        Create an `Atom` from a NumPy ``dtype``.
-    from_kind(kind[, itemsize][, shape][, dflt])
-        Create a `Atom` from a PyTables ``kind``.
-    from_sctype(sctype[, shape][, dflt])
-        Create a `Atom` from a NumPy scalar type ``sctype``.
-    from_type(type[, shape][, dflt])
-        Create a `Atom` from a PyTables ``type``.
-
-    Constructors
-    ------------
-
-    There are some common arguments for most `Atom` -derived
-    constructors:
-
-    itemsize
-        For types with a non-fixed size, this sets the size in bytes
-        of individual items in the atom.
-
-    shape
-        Sets the shape of the atom.  An integer shape of ``N`` is
-        equivalent to the tuple ``(N,)``.
-
-    dflt
-        Sets the default value for the atom.
 
     """
 

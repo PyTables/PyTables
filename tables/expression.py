@@ -47,20 +47,18 @@ class Expr(object):
         This specifies the expression to be evaluated, such as "2*a+3*b".
     uservars : dict
         This can be used to define the variable names appearing in *expr*.
-        This mapping should consist of
-        identifier-like strings pointing to any `Array`, `CArray`,
-        `EArray`, `Column` or NumPy ndarray instances (or even others
-        which will tried to be converted to ndarrays).
-        When `uservars` is not provided or `None`, the current local and
-        global namespace is sought instead of `uservars`.  It is also
-        possible to pass just some of the variables in expression via
-        the `uservars` mapping, and the rest will be retrieved from the
-        current local and global namespaces.
-    **kwargs : dict
-        This is meant to pass additional parameters to the Numexpr
-        kernel.  This is basically the same as the **kwargs argument
-        in Numexpr.evaluate(), and is mainly meant for advanced
-        use.
+        This mapping should consist of identifier-like strings pointing to any
+        `Array`, `CArray`, `EArray`, `Column` or NumPy ndarray instances (or
+        even others which will tried to be converted to ndarrays).  When
+        `uservars` is not provided or `None`, the current local and global
+        namespace is sought instead of `uservars`.  It is also possible to pass
+        just some of the variables in expression via the `uservars` mapping,
+        and the rest will be retrieved from the current local and global
+        namespaces.
+    kwargs : dict
+        This is meant to pass additional parameters to the Numexpr kernel.
+        This is basically the same as the kwargs argument in
+        Numexpr.evaluate(), and is mainly meant for advanced use.
 
     Examples
     --------
