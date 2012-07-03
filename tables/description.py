@@ -1,165 +1,3 @@
-"""
-
-.. class:: StringCol(itemsize, shape=(), dflt='', pos=None)
-
-    Defines an column of type string.
-
-
-.. class:: BoolCol(shape=(), dflt=False, pos=None)
-
-    Defines an column of type bool.
-
-
-.. class:: IntCol(itemsize=4, shape=(), dflt=0, pos=None)
-
-    Defines an column of a signed integral type (int kind).
-
-
-.. class:: Int8Col(shape=(), dflt=0, pos=None)
-
-    Defines an column of type int8.
-
-
-.. class:: Int16Col(shape=(), dflt=0, pos=None)
-
-    Defines an column of type int16.
-
-
-.. class:: Int32Col(shape=(), dflt=0, pos=None)
-
-    Defines an column of type int32.
-
-
-.. class:: Int64Col(shape=(), dflt=0, pos=None)
-
-    Defines an column of type int64.
-
-
-.. class:: UIntCol(itemsize=4, shape=(), dflt=0, pos=None)
-
-    Defines an column of an unsigned integral type (uint kind).
-
-
-.. class:: UInt8Col(shape=(), dflt=0, pos=None)
-
-    Defines an column of type uint8.
-
-
-.. class:: UInt16Col(shape=(), dflt=0, pos=None)
-
-    Defines an column of type uint16.
-
-
-.. class:: UInt32Col(shape=(), dflt=0, pos=None)
-
-    Defines an column of type uint32.
-
-
-.. class:: UInt64Col(shape=(), dflt=0, pos=None)
-
-    Defines an column of type uint64.
-
-
-.. class:: Float32Col(shape=(), dflt=0.0, pos=None)
-
-    Defines an column of type float32.
-
-
-.. class:: Float64Col(shape=(), dflt=0.0, pos=None)
-
-    Defines an column of type float64.
-
-
-.. class:: ComplexCol(itemsize, shape=(), dflt=0j, pos=None)
-
-    Defines an column of kind complex.
-
-
-.. class:: TimeCol(itemsize=4, shape=(), dflt=0, pos=None)
-
-    Defines an column of time type (time kind).
-
-
-.. class:: Time32Col(shape=(), dflt=0, pos=None)
-
-    Defines an column of type time32.
-
-
-.. class:: Time64Col(shape=(), dflt=0.0, pos=None)
-
-    Defines an column of type time64.
-
-
-.. class:: EnumCol(enum, dflt, base, shape=(), pos=None)
-
-    Description of an column of an enumerated type.
-
-
-.. _IsDescriptionClassDescr:
-
-The IsDescription class
------------------------
-.. class:: IsDescription()
-
-    Description of the structure of a table or nested column.
-
-    This class is designed to be used as an easy, yet meaningful
-    way to describe the structure of new Table (see
-    :ref:`TableClassDescr`)
-    datasets or nested columns through the definition of
-    *derived classes*. In order to define such a
-    class, you must declare it as descendant of
-    IsDescription, with as many attributes as columns
-    you want in your table. The name of each attribute will become the
-    name of a column, and its value will hold a description of it.
-
-    Ordinary columns can be described using instances of the
-    Col class (see :ref:`ColClassDescr`). Nested columns can be described by
-    using classes derived from IsDescription,
-    instances of it, or name-description dictionaries. Derived classes
-    can be declared in place (in which case the column takes the name of
-    the class) or referenced by name.
-
-    Nested columns can have a _v_pos special
-    attribute which sets the *relative* position of
-    the column among sibling columns *also having explicit
-    positions*.  The pos constructor
-    argument of Col instances is used for the same
-    purpose.  Columns with no explicit position will be placed
-    afterwards in alphanumeric order.
-
-    Once you have created a description object, you can pass it to
-    the Table constructor, where all the information
-    it contains will be used to define the table structure.
-
-
-IsDescription special attributes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-These are the special attributes that the user can specify
-*when declaring* an
-IsDescription subclass to complement its
-*metadata*.
-
-.. attribute:: IsDescription._v_pos
-
-    Sets the position of a possible nested column
-    description among its sibling columns.
-
-
-IsDescription class variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The following attributes are *automatically
-created* when an IsDescription
-subclass is declared.  Please note that declared columns can no
-longer be accessed as normal class variables after its
-creation.
-
-.. attribute:: IsDescription.columns
-
-    Maps the name of each column in the description to its
-    own descriptive object.
-
-"""
 
 # Imports
 # =======
@@ -791,8 +629,8 @@ class metaIsDescription(type):
     def __new__(cls, classname, bases, classdict):
         """ Return a new class with a "columns" attribute filled
         """
-
-        newdict = {"columns": {},}
+        newdict = {"columns": {}, }
+        newdict['__doc__'] = classdict['__doc__']
         for b in bases:
             if "columns" in b.__dict__:
                 newdict["columns"].update(b.__dict__["columns"])
@@ -812,50 +650,41 @@ class IsDescription(object):
     Description of the structure of a table or nested column.
 
     This class is designed to be used as an easy, yet meaningful way to
-    describe the structure of new `Table` datasets or nested columns
-    through the definition of *derived classes*.  In order to define
-    such a class, you must declare it as descendant of `IsDescription`,
-    with as many attributes as columns you want in your table.  The name
-    of each attribute will become the name of a column, and its value
-    will hold a description of it.
+    describe the structure of new Table (see :ref:`TableClassDescr`) datasets
+    or nested columns through the definition of *derived classes*. In order to
+    define such a class, you must declare it as descendant of IsDescription,
+    with as many attributes as columns you want in your table. The name of each
+    attribute will become the name of a column, and its value will hold a
+    description of it.
 
-    Ordinary columns can be described using instances of the `Col`
-    class.  Nested columns can be described by using classes derived
-    from `IsDescription`, instances of it, or name-description
-    dictionaries.  Derived classes can be declared in place (in which
-    case the column takes the name of the class) or referenced by name.
+    Ordinary columns can be described using instances of the Col class (see
+    :ref:`ColClassDescr`). Nested columns can be described by using classes
+    derived from IsDescription, instances of it, or name-description
+    dictionaries. Derived classes can be declared in place (in which case the
+    column takes the name of the class) or referenced by name.
 
-    Nested columns can have a ``_v_pos`` special attribute which sets
-    the *relative* position of the column among sibling columns *also
-    having explicit positions*.  The ``pos`` constructor argument of
-    `Col` intances is used for the same purpose.  Columns with no
-    explicit position will be placed afterwards in alphanumeric order.
+    Nested columns can have a _v_pos special attribute which sets the
+    *relative* position of the column among sibling columns *also having
+    explicit positions*.  The pos constructor argument of Col instances is used
+    for the same purpose.  Columns with no explicit position will be placed
+    afterwards in alphanumeric order.
 
-    Once you have created a description object, you can pass it to the
-    `Table` constructor, where all the information it contains will be
-    used to define the table structure.
+    Once you have created a description object, you can pass it to the Table
+    constructor, where all the information it contains will be used to define
+    the table structure.
 
-    Special attributes
-    ------------------
+    .. attribute:: _v_pos
 
-    These are the special attributes that the user can specify *when
-    declaring* an `IsDescription` subclass to complement its *metadata*.
+        Sets the position of a possible nested column description among its
+        sibling columns.  This attribute can be specified *when declaring*
+        an IsDescription subclass to complement its *metadata*.
 
-    _v_pos
-        Sets the position of a possible nested column description among
-        its sibling columns.
+    .. attribute:: columns
 
-    Class variables
-    ---------------
-
-    The following attributes are *automatically created* when an
-    `IsDescription` subclass is declared.  Please note that declared
-    columns can no longer be accessed as normal class variables after
-    its creation.
-
-    columns
-        Maps the name of each column in the description to its own
-        descriptive object.
+        Maps the name of each column in the description to its own descriptive
+        object. This attribute is *automatically created* when an IsDescription
+        subclass is declared.  Please note that declared columns can no longer
+        be accessed as normal class variables after its creation.
     """
     __metaclass__ = metaIsDescription
 

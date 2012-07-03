@@ -161,8 +161,6 @@ The Description class
 .. autoclass:: Description
     :members:
 
-.. Col subclass and IsDescription class documentation in
-   tables/description.py docstring
 
 .. _ColClassDescr:
 
@@ -170,6 +168,72 @@ The Col class and its descendants
 ---------------------------------
 
 .. autoclass:: Col
+    :members:
+
+.. autoclass:: StringCol
+    :members:
+
+.. autoclass:: BoolCol
+    :members:
+
+.. autoclass:: IntCol
+    :members:
+
+.. autoclass:: Int8Col
+    :members:
+
+.. autoclass:: Int16Col
+    :members:
+
+.. autoclass:: Int32Col
+    :members:
+
+.. autoclass:: Int64Col
+    :members:
+
+.. autoclass:: UIntCol
+    :members:
+
+.. autoclass:: UInt8Col
+    :members:
+
+.. autoclass:: UInt16Col
+    :members:
+
+.. autoclass:: UInt32Col
+    :members:
+
+.. autoclass:: UInt64Col
+    :members:
+
+.. autoclass:: Float32Col
+    :members:
+
+.. autoclass:: Float64Col
+    :members:
+
+.. autoclass:: ComplexCol
+    :members:
+
+.. autoclass:: TimeCol
+    :members:
+
+.. autoclass:: Time32Col
+    :members:
+
+.. autoclass:: Time64Col
+    :members:
+
+.. autoclass:: EnumCol
+    :members:
+
+
+.. _IsDescriptionClassDescr:
+
+The IsDescription class
+-----------------------
+
+.. autoclass:: IsDescription
     :members:
 
 
