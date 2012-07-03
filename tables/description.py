@@ -630,7 +630,8 @@ class metaIsDescription(type):
         """ Return a new class with a "columns" attribute filled
         """
         newdict = {"columns": {}, }
-        newdict['__doc__'] = classdict['__doc__']
+        if '__doc__' in classdict:
+            newdict['__doc__'] = classdict['__doc__']
         for b in bases:
             if "columns" in b.__dict__:
                 newdict["columns"].update(b.__dict__["columns"])
