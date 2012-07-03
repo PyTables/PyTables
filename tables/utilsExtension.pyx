@@ -201,7 +201,7 @@ cdef herr_t e_walk_cb(unsigned n, H5E_error_t *err, void *data) with gil:
     msg = "%s (MAJOR: %d, MINOR: %d)" % (
                     bytes(<char*>err.desc).decode('utf-8'),
                     err.maj_num,
-                    err.maj_num)
+                    err.min_num)
 
     # XXX: extract class info (see H5E_walk1_cb in H5Eint.c)
 
