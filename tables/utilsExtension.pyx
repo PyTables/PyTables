@@ -32,8 +32,8 @@ from tables.utils import checkFileAccess
 
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
-from libc.string cimport strchr, strcpy, strncpy, strcmp, strdup
-from cpython cimport PyString_AsString, PyString_FromString
+from libc.string cimport strchr, strcmp
+from cpython cimport PyString_AsString
 from numpy cimport (import_array, ndarray, dtype,
   NPY_INT64, npy_int64,
   PyArray_DescrFromType)
@@ -42,7 +42,7 @@ from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5Fopen, H5Fclose, H5Fis_hdf5,
   H5Gopen, H5Gclose,
-  H5E_auto_t, H5Eset_auto, H5Eprint,
+  H5E_auto_t, H5Eset_auto, H5Eprint, H5Eget_msg,
   H5E_error_t, H5E_walk_t, H5Ewalk, H5E_WALK_DOWNWARD, H5E_DEFAULT,
   H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
   H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
@@ -194,16 +194,27 @@ else:  # Unix systems
 #ctypedef H5E_error_t* const_H5E_error_t_ptr "const H5E_error_t*"
 cdef herr_t e_walk_cb(unsigned n, H5E_error_t *err, void *data) with gil:
     cdef object bt = <object>data   # list
+    #cdef char major_msg[256]
+    #cdef char minor_msg[256]
+    #cdef ssize_t msg_len
 
     if err == NULL:
         return -1
 
-    msg = "%s (MAJOR: %d, MINOR: %d)" % (
-                    bytes(<char*>err.desc).decode('utf-8'),
-                    err.maj_num,
-                    err.min_num)
+    #msg_len = H5Eget_msg(err.maj_num, NULL, major_msg, 256)
+    #if msg_len < 0:
+    #    major_msg[0] = '\0'
 
-    # XXX: extract class info (see H5E_walk1_cb in H5Eint.c)
+    #msg_len = H5Eget_msg(err.min_num, NULL, minor_msg, 256)
+    #if msg_len < 0:
+    #    minor_msg[0] = '\0'
+
+    #msg = "%s (MAJOR: %s, MINOR: %s)" % (
+    #                bytes(<char*>err.desc).decode('utf-8'),
+    #                bytes(<char*>major_msg).decode('utf-8'),
+    #                bytes(<char*>minor_msg).decode('utf-8'))
+
+    msg = bytes(<char*>err.desc).decode('utf-8')
 
     bt.append((
         bytes(<char*>err.file_name).decode('utf-8'),

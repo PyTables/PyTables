@@ -71,10 +71,10 @@ cdef extern from "hdf5.h" nogil:
     H5F_SCOPE_DOWN      = 2     # for internal use only
 
   cdef enum H5O_type_t:
-      H5O_TYPE_UNKNOWN = -1     # Unknown object type
-      H5O_TYPE_GROUP            # Object is a group
-      H5O_TYPE_DATASET          # Object is a dataset
-      H5O_TYPE_NAMED_DATATYPE   # Object is a named data type
+    H5O_TYPE_UNKNOWN = -1       # Unknown object type
+    H5O_TYPE_GROUP              # Object is a group
+    H5O_TYPE_DATASET            # Object is a dataset
+    H5O_TYPE_NAMED_DATATYPE     # Object is a named data type
 
   cdef enum H5L_type_t:
     H5L_TYPE_ERROR    = -1      # Invalid link type id
@@ -229,6 +229,10 @@ cdef extern from "hdf5.h" nogil:
     H5E_WALK_UPWARD     = 0     # begin deep, end at API function
     H5E_WALK_DOWNWARD   = 1     # begin at API function, end deep
 
+  cdef enum H5E_type_t:
+    H5E_MAJOR
+    H5E_MINOR
+
   ctypedef struct H5E_error_t:
     hid_t       cls_id      # class ID
     hid_t       maj_num     # major error ID
@@ -368,8 +372,8 @@ cdef extern from "hdf5.h" nogil:
   #hid_t H5Eget_current_stack(void)
   #herr_t H5Eclose_stack(hid_t estack_id)
   #ssize_t H5Eget_num(hid_t estack_id)
-  #ssize_t H5Eget_msg(hid_t mesg_id, H5E_type_t* mesg_type, char* mesg,
-  #                   size_t size)
+  ssize_t H5Eget_msg(hid_t mesg_id, H5E_type_t* mesg_type, char* mesg,
+                     size_t size)
   #herr_t H5Eclose_msg(hid_t mesg_id)
   #ssize_t H5Eget_class_name(hid_t class_id, char* name, size_t size)
 
