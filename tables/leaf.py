@@ -108,12 +108,6 @@ class Leaf(Node):
 
         The shape of data in the leaf.
 
-    .. attribute:: size_in_memory
-
-        The size of this leaf's data in bytes when it is fully loaded into
-        memory. This may be used in combination with size_on_disk to calculate
-        the compression ratio of the data.
-
     """
 
     # Properties
