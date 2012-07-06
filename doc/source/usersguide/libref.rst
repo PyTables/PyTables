@@ -2,38 +2,27 @@
 
 Library Reference
 =================
-PyTables implements several classes to represent the different
-nodes in the object tree. They are named File,
-Group, Leaf,
-Table, Array,
-CArray, EArray,
-VLArray and UnImplemented. Another
-one allows the user to complement the information on these different
-objects; its name is AttributeSet. Finally, another
-important class called IsDescription allows to build
-a Table record description by declaring a subclass of
-it. Many other classes are defined in PyTables, but they can be regarded
-as helpers whose goal is mainly to declare the *data type
-properties* of the different first class objects and will be
+PyTables implements several classes to represent the different nodes in the
+object tree. They are named File, Group, Leaf, Table, Array, CArray, EArray,
+VLArray and UnImplemented. Another one allows the user to complement the
+information on these different objects; its name is AttributeSet. Finally,
+another important class called IsDescription allows to build a Table record
+description by declaring a subclass of it. Many other classes are defined in
+PyTables, but they can be regarded as helpers whose goal is mainly to declare
+the *data type properties* of the different first class objects and will be
 described at the end of this chapter as well.
 
-An important function, called openFile is
-responsible to create, open or append to files. In addition, a few
-utility functions are defined to guess if the user supplied file is a
-*PyTables* or *HDF5* file. These
-are called isPyTablesFile() and
-isHDF5File(), respectively. There exists also a
-function called whichLibVersion() that informs about
-the versions of the underlying C libraries (for example, HDF5 or
-Zlib) and another called
-print_versions() that prints all the versions of the
-software that PyTables relies on. Finally, test()
-lets you run the complete test suite from a Python console
-interactively.
+An important function, called openFile is responsible to create, open or append
+to files. In addition, a few utility functions are defined to guess if the user
+supplied file is a *PyTables* or *HDF5* file. These are called isPyTablesFile()
+and isHDF5File(), respectively. There exists also a function called
+whichLibVersion() that informs about the versions of the underlying C libraries
+(for example, HDF5 or Zlib) and another called print_versions() that prints all
+the versions of the software that PyTables relies on. Finally, test() lets you
+run the complete test suite from a Python console interactively.
 
-Let's start discussing the first-level variables and functions
-available to the user, then the different classes defined in
-PyTables.
+Let's start discussing the first-level variables and functions available to the
+user, then the different classes defined in PyTables.
 
 .. currentmodule:: tables
 
@@ -121,9 +110,6 @@ The Table class
 
 .. autoclass:: Table
     :members:
-
-.. Table class, Cols class, Column, and Row class documentation in
-   tables/table.py docstring
 
 
 .. _ColsClassDescr:
@@ -450,7 +436,6 @@ VLUnicodeAtom
 
 Helper classes
 --------------
-.. move this section into its own file
 
 This section describes some classes that do not fit in any other
 section and that mainly serve for ancillary purposes.
@@ -464,12 +449,20 @@ The Filters class
 .. autoclass:: Filters
     :members:
 
+
 .. _IndexClassDescr:
 
 The Index class
 ---------------
 
 .. autoclass:: tables.index.Index
+    :members:
+
+
+The IndexArray class
+-------------------
+
+.. autoclass:: tables.indexes.IndexArray
     :members:
 
 

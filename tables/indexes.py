@@ -24,7 +24,6 @@ Misc variables:
 
     __version__
 
-
 """
 
 __version__ = "$Revision$"
@@ -55,6 +54,23 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
     All NumPy typecodes are supported except for complex datatypes.
+
+    Parameters
+    ----------
+    parentNode
+        The Index class from which this object will hang off.
+    name : str
+        The name of this node in its parent group.
+    atom
+        An Atom object representing the shape and type of the atomic objects to
+        be saved. Only scalar atoms are supported.
+    title
+        Sets a TITLE attribute on the array entity.
+    filters : Filters
+        An instance of the Filters class that provides information about the
+        desired I/O filters to be applied during the life of this object.
+    byteorder
+        The byteroder of the data on-disk.
     """
 
     # Class identifier.
@@ -81,21 +97,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
 
         Keyword arguments:
 
-        parentNode -- The Index class from which this object will hang off.
-
-        name -- The name of this node in its parent group (a string).
-
-        atom -- An Atom object representing the shape and type of the
-            atomic objects to be saved. Only scalar atoms are
-            supported.
-
-        title -- Sets a TITLE attribute on the array entity.
-
-        filters -- An instance of the Filters class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        byteorder -- The byteroder of the data on-disk.
 
         """
         self._v_pathname = parentNode._g_join(name)
