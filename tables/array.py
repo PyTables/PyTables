@@ -256,7 +256,10 @@ class Array(hdf5Extension.Array, Leaf):
         in the array, you may use the start, stop and step parameters, which
         have the same meaning as in :meth:`Array.read`.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             result = [row for row in arrayInstance.iterrows(step=4)]
         """
@@ -278,7 +281,10 @@ class Array(hdf5Extension.Array, Leaf):
         This is equivalent to calling :meth:`Array.iterrows` with default
         arguments, i.e. it iterates over *all the rows* in the array.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             result = [row[2] for row in array]
 
@@ -601,7 +607,10 @@ class Array(hdf5Extension.Array, Leaf):
         per selection is supported right now.  Finally, NumPy-style point and
         boolean selections are supported as well.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             array1 = array[4]                       # simple selection
             array2 = array[4:1000:2]                # slice selection
@@ -650,7 +659,10 @@ class Array(hdf5Extension.Array, Leaf):
         per selection is supported right now.  Finally, NumPy-style point and
         boolean selections are supported as well.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             a1[0] = 333        # assign an integer to a Integer Array row
             a2[0] = 'b'        # assign a string to a string Array row

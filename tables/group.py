@@ -383,7 +383,12 @@ class Group(hdf5Extension.Group, Node):
         """
         Iterate over the child nodes hanging directly from the group.
 
-        This iterator is *not* recursive. Example of use::
+        This iterator is *not* recursive.
+
+        Examples
+        --------
+
+        ::
 
             # Non-recursively list all the nodes hanging from '/detector'
             print "Nodes in '/detector' group:"
@@ -421,7 +426,8 @@ class Group(hdf5Extension.Group, Node):
         yielding only groups.  If you don't want a recursive behavior,
         use :meth:`Group._f_iterNodes` instead.
 
-        .. rubric:: Example of use
+        Examples
+        --------
 
         ::
 
@@ -1026,7 +1032,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         """
         Return a short string representation of the group.
 
-        .. rubric:: Example of use
+        Examples
+        --------
 
         ::
 
@@ -1045,7 +1052,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         """
         Return a detailed string representation of the group.
 
-        .. rubric:: Example of use
+        Examples
+        --------
 
         ::
 

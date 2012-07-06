@@ -479,7 +479,10 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         in the array, you may use the start, stop and step parameters, which
         have the same meaning as in :meth:`VLArray.read`.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             for row in vlarray.iterrows(step=4):
                 print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, row)
@@ -498,7 +501,10 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         This is equivalent to calling :meth:`VLArray.iterrows` with default
         arguments, i.e. it iterates over *all the rows* in the array.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             result = [row for row in vlarray]
 
@@ -565,7 +571,10 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         Note that for the latter to work it is necessary that key list would
         contain exactly as many rows as the array has.
 
-        Example of use:::
+        Examples
+        --------
+
+        ::
 
             a_row = vlarray[4]
             a_list = vlarray[4:1000:2]
@@ -662,7 +671,10 @@ class VLArray(hdf5Extension.VLArray, Leaf):
            same class.  This effectively limits the kinds of objects than can
            be updated in variable-length arrays.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             vlarray[0] = vlarray[0] * 2 + 3
             vlarray[99] = arange(96) * 2 + 3

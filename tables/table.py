@@ -2904,7 +2904,8 @@ class Cols(object):
         value. If key is a slice, the range of rows determined by it is set to
         value.
 
-        .. rubric:: Example of use:
+        Examples
+        --------
 
         ::
 

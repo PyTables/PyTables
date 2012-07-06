@@ -382,8 +382,8 @@ sequences, mappings and other enumerations""")
         the same enumerated values (i.e. with the same names and
         concrete values).
 
-        Example
-        -------
+        Examples
+        --------
 
         Let ``enum*`` be enumerated types defined as:
 

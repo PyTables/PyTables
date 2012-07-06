@@ -134,7 +134,10 @@ class SoftLink(linkExtension.SoftLink, Link):
         """
         Dereference `self.target` and return the object.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             >>> f=tables.openFile('data/test.h5')
             >>> print f.root.link0
@@ -153,7 +156,10 @@ class SoftLink(linkExtension.SoftLink, Link):
         """
         Return a short string representation of the link.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             >>> f=tables.openFile('data/test.h5')
             >>> print f.root.link0
@@ -212,7 +218,10 @@ if are_extlinks_available:
             function (except filename, of course) so as to open the referenced
             external file.
 
-            Example of use::
+            Examples
+            --------
+
+            ::
 
                 >>> f=tables.openFile('data1/test1.h5')
                 >>> print f.root.link2
@@ -260,7 +269,10 @@ if are_extlinks_available:
             """
             Return a short string representation of the link.
 
-            Example of use::
+            Examples
+            --------
+
+            ::
 
                 >>> f=tables.openFile('data1/test1.h5')
                 >>> print f.root.link2

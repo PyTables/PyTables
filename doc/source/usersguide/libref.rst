@@ -73,6 +73,7 @@ The File Class
 --------------
 .. autoclass:: File
     :members:
+    :special-members:
 
 
 .. _NodeClassDescr:
@@ -92,6 +93,7 @@ The Group class
 .. autoclass:: Group
     :members:
     :private-members:
+    :special-members:
 
 
 .. _LeafClassDescr:
@@ -101,6 +103,7 @@ The Leaf class
 
 .. autoclass:: Leaf
     :members:
+    :private-members:
 
 
 .. _TableClassDescr:
@@ -110,6 +113,7 @@ The Table class
 
 .. autoclass:: Table
     :members:
+    :special-members:
 
 
 .. _ColsClassDescr:
@@ -119,6 +123,8 @@ The Cols class
 
 .. autoclass:: Cols
     :members:
+    :private-members:
+    :special-members:
 
 
 .. _ColumnClassDescr:
@@ -128,6 +134,7 @@ The Column class
 
 .. autoclass:: Column
     :members:
+    :special-members:
 
 
 .. _RowClassDescr:
@@ -137,6 +144,7 @@ The Row class
 
 .. autoclass:: tables.tableExtension.Row
     :members:
+    :special-members:
 
 
 .. _DescriptionClassDescr:
@@ -146,6 +154,7 @@ The Description class
 
 .. autoclass:: Description
     :members:
+    :private-members:
 
 
 .. _ColClassDescr:
@@ -155,6 +164,7 @@ The Col class and its descendants
 
 .. autoclass:: Col
     :members:
+    :private-members:
 
 .. autoclass:: StringCol
     :members:
@@ -221,6 +231,7 @@ The IsDescription class
 
 .. autoclass:: IsDescription
     :members:
+    :private-members:
 
 
 .. _ArrayClassDescr:
@@ -230,6 +241,7 @@ The Array class
 
 .. autoclass:: Array
     :members:
+    :special-members:
 
 
 .. _CArrayClassDescr:
@@ -257,6 +269,7 @@ The VLArray class
 
 .. autoclass:: VLArray
     :members:
+    :special-members:
 
 
 .. _LinkClassDescr:
@@ -266,6 +279,7 @@ The Link class
 
 .. autoclass:: tables.link.Link
     :members:
+    :private-members:
 
 
 .. _SoftLinkClassDescr:
@@ -275,6 +289,7 @@ The SoftLink class
 
 .. autoclass:: tables.link.SoftLink
     :members:
+    :special-members:
 
 
 .. _ExternalLinkClassDescr:
@@ -284,6 +299,7 @@ The ExternalLink class
 
 .. autoclass:: tables.link.ExternalLink
     :members:
+    :special-members:
 
 
 .. _UnImplementedClassDescr:
@@ -311,6 +327,7 @@ The AttributeSet class
 
 .. autoclass:: tables.attributeset.AttributeSet
     :members:
+    :private-members:
 
 
 Declarative classes
@@ -457,10 +474,11 @@ The Index class
 
 .. autoclass:: tables.index.Index
     :members:
+    :special-members:
 
 
 The IndexArray class
--------------------
+--------------------
 
 .. autoclass:: tables.indexes.IndexArray
     :members:
@@ -473,6 +491,7 @@ The Enum class
 
 .. autoclass:: tables.misc.enum.Enum
     :members:
+    :special-members:
 
 
 The Expr class - a general-purpose expression evaluator
@@ -480,6 +499,7 @@ The Expr class - a general-purpose expression evaluator
 
 .. autoclass:: Expr
     :members:
+    :special-members:
 
 
 .. _ExceptionsDescr:

@@ -2171,7 +2171,11 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
     def __str__(self):
         """
         Return a short string representation of the object tree.
-        Example of use::
+
+        Examples
+        --------
+
+        ::
 
             >>> f = tables.openFile('data/test.h5')
             >>> print f
