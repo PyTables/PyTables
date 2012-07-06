@@ -1,3 +1,4 @@
+
 ########################################################################
 #
 # License: BSD
@@ -87,23 +88,6 @@ class Expr(object):
                [7, 9]])
         >>> sum(expr)
         array([ 8, 12])
-
-
-    Notes
-    -----
-    .. warning:: The next parameters are meant only for advanced
-       users.  Please do not touch them if you don't know what you are
-       doing.
-
-    .. attribute:: Expr.BUFFERTIMES
-
-        The maximum buffersize/rowsize ratio before issuing a
-        *PerformanceWarning*.  The default is 1000.
-
-    .. attribute:: Expr.CHUNKTIMES
-
-        The number of chunks in the input buffer per each
-        variable in expression.  The default is 16.
 
     """
 
