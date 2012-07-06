@@ -931,20 +931,19 @@ class File(hdf5Extension.File, object):
     def createExternalLink(self, where, name, target, createparents=False,
                            warn16incompat=True):
         """
-        Create an external link to a target node with the given name
-        in where location.  target
-        can be a node object in another file or a path string in the
-        form `file:/path/to/node`.  If createparents is true, the intermediate
-        groups required for reaching where are created (the default is
-        not doing so).
-
-        The purpose of the warn16incompat argument is to avoid an
-        Incompat16Warning (see below).  The default is to issue the warning.
+        Create an external link to a target node with the given name in where
+        location.  target can be a node object in another file or a path string
+        in the form `file:/path/to/node`.  If createparents is true, the
+        intermediate groups required for reaching where are created (the
+        default is not doing so).
 
         The returned node is an ExternalLink instance.  See the ExternalLink
         class (in :ref:`ExternalLinkClassDescr`) for more information on
         external links.
 
+        .. note::
+            The warn16incompat argument is deprecated since version 2.4. It
+            will be ignored.
         """
         if not are_extlinks_available:
             raise NotImplementedError(
