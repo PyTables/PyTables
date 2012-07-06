@@ -264,9 +264,9 @@ class Description(object):
     :ref:`TableClassDescr`) objects when they are created.  It provides a
     browseable representation of the structure of the table, made of non-nested
     (Col - see :ref:`ColClassDescr`) and nested (Description) columns. It also
-    contains information that will allow you to build NestedRecArray (see
-    :class:`NestedRecArray`) objects suited for the different columns in a
-    table (be they nested or not).
+    contains information that will allow you to build NestedRecArray
+    (deprecated) objects suited for the different columns in a table (be they
+    nested or not).
 
     Column definitions under a description can be accessed as attributes of it
     (*natural naming*). For instance, if table.description is a Description
@@ -331,10 +331,10 @@ class Description(object):
 
     .. attribute:: Description._v_nestedFormats
 
-        A nested list of the NumPy string formats (and shapes)
-        of all the columns under this table or nested column. You
-        can use this as the formats argument of
-        NumPy array and NestedRecArray (see :class:`NestedRecArray`) factories.
+        A nested list of the NumPy string formats (and shapes) of all the
+        columns under this table or nested column. You can use this as the
+        formats argument of NumPy array and NestedRecArray (deprecated)
+        factories.
 
     .. attribute:: Description._v_nestedlvl
 
@@ -343,9 +343,9 @@ class Description(object):
 
     .. attribute:: Description._v_nestedNames
 
-        A nested list of the names of all the columns under this table or nested
-        column. You can use this as the names argument of NumPy array and
-        NestedRecArray (see :ref:`NestedRecArrayClassDescr`) factories.
+        A nested list of the names of all the columns under this table or
+        nested column. You can use this as the names argument of NumPy array
+        and NestedRecArray (deprecated) factories.
 
     .. attribute:: Description._v_pathnames
 
