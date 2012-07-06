@@ -51,6 +51,20 @@ class Array(hdf5Extension.Array, Leaf):
     to disk.  When a writing method call returns, all the data is already on
     disk.
 
+    Parameters
+    ----------
+    object
+        The array or scalar to be saved.  Accepted types are NumPy arrays and
+        scalars, ``numarray`` arrays and string arrays, Numeric arrays and
+        scalars, as well as native Python sequences and scalars, provided that
+        values are regular (i.e. they are not like ``[[1,2],2]``) and
+        homogeneous (i.e. all the elements are of the same type).
+    title
+        A description for this node (it sets the ``TITLE`` HDF5 attribute on
+        disk).
+    byteorder
+        The byteorder of the data *on disk*, specified as 'little' or 'big'.
+        If this is not specified, the byteorder is that of the given `object`.
     """
 
     # Class identifier.
@@ -97,26 +111,6 @@ class Array(hdf5Extension.Array, Leaf):
     def __init__(self, parentNode, name,
                  object=None, title="",
                  byteorder=None, _log=True, _atom=None):
-        """
-        Create an `Array` instance.
-
-        `object`
-            The array or scalar to be saved.  Accepted types are NumPy
-            arrays and scalars, ``numarray`` arrays and string arrays,
-            Numeric arrays and scalars, as well as native Python
-            sequences and scalars, provided that values are regular
-            (i.e. they are not like ``[[1,2],2]``) and homogeneous
-            (i.e. all the elements are of the same type).
-
-        `title`
-            A description for this node (it sets the ``TITLE`` HDF5
-            attribute on disk).
-
-        `byteorder`
-            The byteorder of the data *on disk*, specified as 'little'
-            or 'big'.  If this is not specified, the byteorder is that
-            of the given `object`.
-        """
 
         self._v_version = None
         """The object version of this array."""

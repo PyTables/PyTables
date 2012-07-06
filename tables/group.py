@@ -80,6 +80,16 @@ class Group(hdf5Extension.Group, Node):
     you set a Python attribute in the Group with the same name as that node
     (you will get a NaturalNameWarning when doing this).
 
+    Parameters
+    ----------
+    title
+        The title for this group
+    new
+        If this group is new or has to be read from disk
+    filters : Filters
+        A Filters instance
+
+
     Notes
     -----
     The following documentation includes methods that are automatically called
@@ -189,13 +199,6 @@ class Group(hdf5Extension.Group, Node):
     def __init__(self, parentNode, name,
                  title="", new=False, filters=None,
                  _log=True):
-        """Create the basic structures to keep group information.
-
-        title -- The title for this group
-        new -- If this group is new or has to be read from disk
-        filters -- A Filters instance
-
-        """
 
         # Remember to assign these values in the root group constructor
         # if it does not use this one!

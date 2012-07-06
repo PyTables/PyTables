@@ -423,6 +423,37 @@ class Table(tableExtension.Table, Leaf):
     dictionaries to ease retrieving information about a column directly by its
     path name, avoiding the need to walk through Table.description or
     Table.cols.
+
+    Parameters
+    ----------
+    description
+        An IsDescription subclass or a dictionary where the keys are the field
+        names, and the values the type definitions. In addition, a pure NumPy
+        dtype is accepted.  And it can be also a recarray NumPy object,
+        RecArray numarray object or NestedRecArray. If None, the table metadata
+        is read from disk, else, it's taken from previous parameters.
+    title
+        Sets a TITLE attribute on the HDF5 table entity.
+    filters : Filters
+        An instance of the Filters class that provides information about the
+        desired I/O filters to be applied during the life of this object.
+    expectedrows
+        A user estimate about the number of rows that will be on table. If not
+        provided, the default value is ``EXPECTED_ROWS_TABLE`` (see
+        ``tables/parameters.py``).  If you plan to save bigger tables, try
+        providing a guess; this will optimize the HDF5 B-Tree creation and
+        management process time and memory used.
+    chunkshape
+        The shape of the data chunk to be read or written as a single HDF5 I/O
+        operation. The filters are applied to those chunks of data. Its rank
+        for tables has to be 1.  If ``None``, a sensible value is calculated
+        based on the `expectedrows` parameter (which is recommended).
+    byteorder
+        The byteorder of the data *on-disk*, specified as 'little' or 'big'. If
+        this is not specified, the byteorder is that of the platform, unless
+        you passed a recarray as the `description`, in which case the recarray
+        byteorder will be chosen.
+
     """
 
     # Class identifier.
@@ -538,44 +569,6 @@ class Table(tableExtension.Table, Leaf):
                  description=None, title="", filters=None,
                  expectedrows=None, chunkshape=None,
                  byteorder=None, _log=True):
-        """Create an instance of Table.
-
-        Keyword arguments:
-
-        description -- A IsDescription subclass or a dictionary where
-            the keys are the field names, and the values the type
-            definitions. In addition, a pure NumPy dtype is accepted.
-            And it can be also a recarray NumPy object, RecArray
-            numarray object or NestedRecArray. If None, the table
-            metadata is read from disk, else, it's taken from previous
-            parameters.
-
-        title -- Sets a TITLE attribute on the HDF5 table entity.
-
-        filters -- An instance of the Filters class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        expectedrows -- An user estimate about the number of rows that
-            will be on table. If not provided, the default value is
-            ``EXPECTED_ROWS_TABLE`` (see ``tables/parameters.py``).  If
-            you plan to save bigger tables, try providing a guess; this
-            will optimize the HDF5 B-Tree creation and management
-            process time and memory used.
-
-        chunkshape -- The shape of the data chunk to be read or written
-            as a single HDF5 I/O operation. The filters are applied to
-            those chunks of data. Its rank for tables has to be 1.  If
-            ``None``, a sensible value is calculated based on the
-            `expectedrows` parameter (which is recommended).
-
-        byteorder -- The byteorder of the data *on-disk*, specified as
-            'little' or 'big'. If this is not specified, the byteorder
-            is that of the platform, unless you passed a recarray as the
-            `description`, in which case the recarray byteorder will be
-            chosen.
-
-        """
 
         self._v_new = new = description is not None
         """Is this the first time the node has been created?"""
@@ -2767,8 +2760,6 @@ class Cols(object):
 
 
     def __init__(self, table, desc):
-        """Create the container to keep the column information.
-        """
 
         myDict = self.__dict__
         myDict['_v__tableFile'] = table._v_file
@@ -3007,6 +2998,15 @@ class Column(object):
     table columns using item access (like the Cols class - see
     :ref:`ColsClassDescr`), but there are a few other associated methods to
     deal with indexes.
+
+    Parameters
+    ----------
+    table
+        The parent table instance
+    name
+        The name of the column that is associated with this object
+    descr
+        The parent description object
     """
 
     # Lazy read-only attributes
@@ -3065,15 +3065,7 @@ class Column(object):
         first dimension).""")
 
     def __init__(self, table, name, descr):
-        """Create the container to keep the column information.
 
-        Parameters:
-
-        table -- The parent table instance
-        name -- The name of the column that is associated with this object
-        descr -- The parent description object
-
-        """
         self._tableFile = table._v_file
         self._tablePath = table._v_pathname
         self.name = name

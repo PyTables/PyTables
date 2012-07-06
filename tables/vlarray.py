@@ -53,7 +53,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     inherits all the public attributes and methods that Leaf (see
     :ref:`LeafClassDescr`) already provides.
 
-
     .. attribute:: VLArray.flavor
 
         The type of data object read from this leaf.
@@ -62,9 +61,34 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         the flavor only applies to the *components* of the returned
         Python list, not to the list itself.
 
+    Parameters
+    ----------
+    atom
+        An `Atom` instance representing the *type* and *shape* of the atomic
+        objects to be saved.
+    title
+        A description for this node (it sets the ``TITLE`` HDF5 attribute on
+        disk).
+    filters
+        An instance of the `Filters` class that provides information about the
+        desired I/O filters to be applied during the life of this object.
+    expectedsizeinMB
+        An user estimate about the size (in MB) in the final `VLArray` object.
+        If not provided, the default value is 1 MB.  If you plan to create
+        either a much smaller or a much bigger `VLArray` try providing a guess;
+        this will optimize the HDF5 B-Tree creation and management process time
+        and the amount of memory used.
+    chunkshape
+        The shape of the data chunk to be read or written in a single HDF5 I/O
+        operation.  Filters are applied to those chunks of data.  The
+        dimensionality of `chunkshape` must be 1.  If ``None``, a sensible
+        value is calculated (which is recommended).
+    byteorder
+        The byteorder of the data *on disk*, specified as 'little' or 'big'.
+        If this is not specified, the byteorder is that of the platform.
+
     Examples
     --------
-
     See below a small example of the use of the VLArray class.  The code is
     available in :file:`examples/vlarray1.py`::
 
@@ -118,6 +142,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         vlarray2[0]--> ['5', '66']
         vlarray2[1]--> ['5', '6', '77']
         vlarray2[2]--> ['5', '6', '9', '88']
+
     """
 
     # Class identifier.
@@ -171,42 +196,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
                   filters=None, expectedsizeinMB=1.0,
                   chunkshape=None, byteorder=None,
                   _log=True ):
-        """
-        Create a `VLArray` instance.
-
-        `atom`
-            An `Atom` instance representing the *type* and *shape* of
-            the atomic objects to be saved.
-
-        `title`
-            A description for this node (it sets the ``TITLE`` HDF5
-            attribute on disk).
-
-        `filters`
-            An instance of the `Filters` class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        `expectedsizeinMB`
-            An user estimate about the size (in MB) in the final
-            `VLArray` object.  If not provided, the default value is 1
-            MB.  If you plan to create either a much smaller or a much
-            bigger `VLArray` try providing a guess; this will optimize
-            the HDF5 B-Tree creation and management process time and
-            the amount of memory used.
-
-        `chunkshape`
-            The shape of the data chunk to be read or written in a
-            single HDF5 I/O operation.  Filters are applied to those
-            chunks of data.  The dimensionality of `chunkshape` must
-            be 1.  If ``None``, a sensible value is calculated (which
-            is recommended).
-
-        `byteorder`
-            The byteorder of the data *on disk*, specified as 'little'
-            or 'big'.  If this is not specified, the byteorder is that
-            of the platform.
-        """
 
         self._v_version = None
         """The object version of this array."""

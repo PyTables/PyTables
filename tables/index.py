@@ -102,6 +102,34 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     .. note:: This class is mainly intended for internal use, but some of its
        documented attributes and methods may be interesting for the programmer.
+
+    Parameters
+    ----------
+    atom : Atom
+        An Atom object representing the shape and type of the atomic objects to
+        be saved. Only scalar atoms are supported.
+    title
+        Sets a TITLE attribute of the Index entity.
+    kind
+        The desired kind for this index.  The 'full' kind specifies a complete
+        track of the row position (64-bit), while the 'medium', 'light' or
+        'ultralight' kinds only specify in which chunk the row is (using
+        32-bit, 16-bit and 8-bit respectively).
+    optlevel
+        The desired optimization level for this index.
+    filters : Filters
+        An instance of the Filters class that provides information about the
+        desired I/O filters to be applied during the life of this object.
+    tmp_dir
+        The directory for the temporary files.
+    expectedrows
+        Represents an user estimate about the number of row slices that will be
+        added to the growable dimension in the IndexArray object.
+    byteorder
+        The byteorder of the index datasets *on-disk*.
+    blocksizes
+        The four main sizes of the compound blocks in index datasets (a low
+        level parameter).
     """
 
     _c_classId = 'INDEX'
@@ -283,40 +311,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                  byteorder=None,
                  blocksizes=None,
                  new=True):
-        """Create an Index instance.
-
-        Keyword arguments:
-
-        atom -- An Atom object representing the shape and type of the
-            atomic objects to be saved. Only scalar atoms are
-            supported.
-
-        title -- Sets a TITLE attribute of the Index entity.
-
-        kind -- The desired kind for this index.  The 'full' kind
-            specifies a complete track of the row position (64-bit),
-            while the 'medium', 'light' or 'ultralight' kinds only
-            specify in which chunk the row is (using 32-bit, 16-bit and
-            8-bit respectively).
-
-        optlevel -- The desired optimization level for this index.
-
-        filters -- An instance of the Filters class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        tmp_dir -- The directory for the temporary files.
-
-        expectedrows -- Represents an user estimate about the number
-            of row slices that will be added to the growable dimension
-            in the IndexArray object.
-
-        byteorder -- The byteorder of the index datasets *on-disk*.
-
-        blocksizes -- The four main sizes of the compound blocks in
-            index datasets (a low level parameter).
-
-        """
 
         self._v_version = None
         """The object version of this index."""
