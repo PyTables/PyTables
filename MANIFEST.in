@@ -10,7 +10,7 @@ recursive-include blosc *.c *.h
 
 recursive-include LICENSES *
 recursive-include utils *
-recursive-include doc *.txt *.pdf *.html *.css *.png Makefile
+recursive-include doc *.txt *.pdf *.html *.css *.png Makefile make.bat
 recursive-include doc/scripts *.py
 recursive-include doc/sphinxext *
 recursive-exclude doc/build *

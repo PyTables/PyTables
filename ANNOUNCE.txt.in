@@ -1,10 +1,10 @@
-================================
+===========================
 Announcing PyTables @VERSION@
-================================
+===========================
 
 We are happy to announce PyTables @VERSION@.
 
-This is an incremental release which includes many changes to prepare for 
+This is an incremental release which includes many changes to prepare for
 future Python 3 support.
 
 
@@ -14,12 +14,12 @@ What's new
 This release includes support for the float16 data type and read-only support
 for variable length string attributes.
 
-The handling of HDF5 errors has been improved.  The user will no longer see 
-HDF5 error stacks dumped to the console.  All HDF5 error messages are trapped 
+The handling of HDF5 errors has been improved.  The user will no longer see
+HDF5 error stacks dumped to the console.  All HDF5 error messages are trapped
 and attached to a proper Python exception.
 
-Now PyTables only supports HDF5 v1.8.4+. All the code had been updated to
-the new HDF5 API.  Supporting only HDF5 1.8 series is beneficial for future 
+Now PyTables only supports HDF5 v1.8.4+. All the code has been updated to
+the new HDF5 API.  Supporting only HDF5 1.8 series is beneficial for future
 development.
 
 As always, a large amount of bugs have been addressed and squashed as well.
