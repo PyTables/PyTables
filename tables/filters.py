@@ -46,8 +46,7 @@ _fletcher32_flag = 0x2
 # Classes
 # =======
 class Filters(object):
-    """
-    Container for filter properties.
+    """Container for filter properties.
 
     This class is meant to serve as a container that keeps information about
     the filter properties associated with the chunked leaves, that is Table,
@@ -151,8 +150,7 @@ class Filters(object):
 
     @classmethod
     def _unpack(class_, packed):
-        """
-        Create a new `Filters` object from a packed version.
+        """Create a new `Filters` object from a packed version.
 
         >>> Filters._unpack(0)
         Filters(complevel=0, shuffle=False, fletcher32=False)
@@ -169,6 +167,7 @@ class Filters(object):
           ...
         ValueError: invalid compression library id: 0
         """
+
         kwargs = {'_new': False}
         # Byte 0: compression level.
         kwargs['complevel'] = complevel = packed & 0xff
@@ -187,8 +186,7 @@ class Filters(object):
         return class_(**kwargs)
 
     def _pack(self):
-        """
-        Pack the `Filters` object into a 64-bit NumPy integer.
+        """Pack the `Filters` object into a 64-bit NumPy integer.
 
         >>> type(Filters()._pack())
         <type 'numpy.int64'>
@@ -200,6 +198,7 @@ class Filters(object):
         >>> hexl(Filters(9, 'zlib', shuffle=True, fletcher32=True)._pack())
         '0x30109L'
         """
+
         packed = numpy.int64(0)
         # Byte 2: parameterless filters.
         if self.shuffle:
@@ -287,8 +286,7 @@ class Filters(object):
     #                 self.shuffle, self.fletcher32))
 
     def copy(self, **override):
-        """
-        Get a copy of the filters, possibly overriding some arguments.
+        """Get a copy of the filters, possibly overriding some arguments.
 
         Constructor arguments to be overridden must be passed as keyword
         arguments.
@@ -326,8 +324,10 @@ class Filters(object):
 # =========
 def _test():
     """Run ``doctest`` on this module."""
+
     import doctest
     doctest.testmod()
+
 
 if __name__ == '__main__':
     _test()

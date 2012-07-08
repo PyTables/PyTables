@@ -48,8 +48,7 @@ def same_position(oldmethod):
 # Column classes
 # ==============
 class Col(atom.Atom):
-    """
-    Defines a non-nested column.
+    """Defines a non-nested column.
 
     Col instances are used as a means to declare the different properties of a
     non-nested column in a table or nested column.  Col classes are descendants
@@ -106,16 +105,17 @@ class Col(atom.Atom):
     @classmethod
     def prefix(class_):
         """Return the column class prefix."""
+
         cname = class_.__name__
         return cname[:cname.rfind('Col')]
 
     @classmethod
     def from_atom(class_, atom, pos=None):
-        """
-        Create a Col definition from a PyTables atom.
+        """Create a Col definition from a PyTables atom.
 
         An optional position may be specified as the pos argument.
         """
+
         prefix = atom.prefix()
         kwargs = atom._get_init_args()
         colclass = class_._class_from_prefix[prefix]
@@ -123,21 +123,20 @@ class Col(atom.Atom):
 
     @classmethod
     def from_sctype(class_, sctype, shape=(), dflt=None, pos=None):
-        """
-        Create a `Col` definition from a NumPy scalar type `sctype`.
+        """Create a `Col` definition from a NumPy scalar type `sctype`.
 
         Optional shape, default value and position may be specified as
         the `shape`, `dflt` and `pos` arguments, respectively.
         Information in the `sctype` not represented in a `Col` is
         ignored.
         """
+
         newatom = atom.Atom.from_sctype(sctype, shape, dflt)
         return class_.from_atom(newatom, pos=pos)
 
     @classmethod
     def from_dtype(class_, dtype, dflt=None, pos=None):
-        """
-        Create a `Col` definition from a NumPy `dtype`.
+        """Create a `Col` definition from a NumPy `dtype`.
 
         Optional default value and position may be specified as the
         `dflt` and `pos` arguments, respectively.  The `dtype` must have
@@ -145,30 +144,31 @@ class Col(atom.Atom):
         system.  Information in the `dtype` not represented in a `Col`
         is ignored.
         """
+
         newatom = atom.Atom.from_dtype(dtype, dflt)
         return class_.from_atom(newatom, pos=pos)
 
     @classmethod
     def from_type(class_, type, shape=(), dflt=None, pos=None):
-        """
-        Create a `Col` definition from a PyTables `type`.
+        """Create a `Col` definition from a PyTables `type`.
 
         Optional shape, default value and position may be specified as
         the `shape`, `dflt` and `pos` arguments, respectively.
         """
+
         newatom = atom.Atom.from_type(type, shape, dflt)
         return class_.from_atom(newatom, pos=pos)
 
     @classmethod
     def from_kind(class_, kind, itemsize=None, shape=(), dflt=None, pos=None):
-        """
-        Create a `Col` definition from a PyTables `kind`.
+        """Create a `Col` definition from a PyTables `kind`.
 
         Optional item size, shape, default value and position may be
         specified as the `itemsize`, `shape`, `dflt` and `pos`
         arguments, respectively.  Bear in mind that not all columns
         support a default item size.
         """
+
         newatom = atom.Atom.from_kind(kind, itemsize, shape, dflt)
         return class_.from_atom(newatom, pos=pos)
 
@@ -183,14 +183,14 @@ class Col(atom.Atom):
         atombase = getattr(atom, '%sAtom' % prefix)
 
         class NewCol(class_, atombase):
-            """
-            Defines a non-nested column of a particular type.
+            """Defines a non-nested column of a particular type.
 
             The constructor accepts the same arguments as the equivalent
             `Atom` class, plus an additional ``pos`` argument for
             position information, which is assigned to the `_v_pos`
             attribute.
             """
+
             def __init__(self, *args, **kwargs):
                 pos = kwargs.pop('pos', None)
                 class_from_prefix = self._class_from_prefix
@@ -235,12 +235,14 @@ class Col(atom.Atom):
     # ~~~~~~~~~~~~~~~
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments."""
+
         kwargs = dict((arg, getattr(self, arg)) for arg in ('shape', 'dflt'))
         kwargs['pos'] = getattr(self, '_v_pos', None)
         return kwargs
 
 def _generate_col_classes():
     """Generate all column classes."""
+
     # Abstract classes are not in the class map.
     cprefixes = ['Int', 'UInt', 'Float', 'Time']
     for (kind, kdata) in atom.atom_map.iteritems():
@@ -268,8 +270,7 @@ del _newclass
 # Table description classes
 # =========================
 class Description(object):
-    """
-    This class represents descriptions of the structure of tables.
+    """This class represents descriptions of the structure of tables.
 
     An instance of this class is automatically bound to Table (see
     :ref:`TableClassDescr`) objects when they are created.  It provides a
@@ -357,6 +358,10 @@ class Description(object):
         A nested list of the names of all the columns under this table or
         nested column. You can use this as the names argument of NumPy array
         and NestedRecArray (deprecated) factories.
+
+    .. attribute:: Description._v_pathname
+
+        Pathname of the table or nested column.
 
     .. attribute:: Description._v_pathnames
 
@@ -494,8 +499,8 @@ class Description(object):
 
 
     def _g_setNestedNamesDescr(self):
-        """Computes the nested names and descriptions for nested datatypes.
-        """
+        """Computes the nested names and descriptions for nested datatypes."""
+
         names = self._v_names
         fmts = self._v_nestedFormats
         self._v_nestedNames = names[:]  # Important to do a copy!
@@ -589,8 +594,7 @@ class Description(object):
 
 
     def _f_walk(self, type='All'):
-        """
-        Iterate over nested columns.
+        """Iterate over nested columns.
 
         If type is 'All' (the default), all column description objects (Col and
         Description instances) are yielded in top-to-bottom order (preorder).
@@ -619,8 +623,8 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
 
 
     def __repr__(self):
-        """ Gives a detailed Description column representation.
-        """
+        """Gives a detailed Description column representation."""
+
         rep = [ '%s\"%s\": %r' %  \
                 ("  "*self._v_nestedlvl, k, self._v_colObjects[k])
                 for k in self._v_names]
@@ -628,18 +632,17 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
 
 
     def __str__(self):
-        """ Gives a brief Description representation.
-        """
+        """Gives a brief Description representation."""
+
         return 'Description(%s)' % self._v_nestedDescr
 
 
-
 class metaIsDescription(type):
-    "Helper metaclass to return the class variables as a dictionary "
+    """Helper metaclass to return the class variables as a dictionary"""
 
     def __new__(cls, classname, bases, classdict):
-        """ Return a new class with a "columns" attribute filled
-        """
+        """Return a new class with a "columns" attribute filled"""
+
         newdict = {"columns": {}, }
         if '__doc__' in classdict:
             newdict['__doc__'] = classdict['__doc__']
@@ -656,10 +659,8 @@ class metaIsDescription(type):
         return type.__new__(cls, classname, bases, newdict)
 
 
-
 class IsDescription(object):
-    """
-    Description of the structure of a table or nested column.
+    """Description of the structure of a table or nested column.
 
     This class is designed to be used as an easy, yet meaningful way to
     describe the structure of new Table (see :ref:`TableClassDescr`) datasets
@@ -701,11 +702,8 @@ class IsDescription(object):
     __metaclass__ = metaIsDescription
 
 
-
 def descr_from_dtype(dtype_):
-    """
-    Get a description instance and byteorder from a (nested) NumPy dtype.
-    """
+    """Get a description instance and byteorder from a (nested) NumPy dtype."""
 
     fields = {}
     fbyteorder = '|'
@@ -734,7 +732,6 @@ def descr_from_dtype(dtype_):
     return Description(fields), fbyteorder
 
 
-
 if __name__=="__main__":
     """Test code"""
 
@@ -745,6 +742,7 @@ if __name__=="__main__":
 
     class Test(IsDescription):
         """A description that has several columns"""
+
         x = Col.from_type("int32", 2, 0, pos=0)
         y = Col.from_kind('float', dflt=1, shape=(2, 3))
         z = UInt8Col(dflt=1)

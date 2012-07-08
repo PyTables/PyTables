@@ -8,9 +8,7 @@
 #
 ########################################################################
 
-"""Pyrex utilities for PyTables and HDF5 library.
-
-"""
+"""Pyrex utilities for PyTables and HDF5 library."""
 
 import sys
 import warnings
@@ -124,6 +122,7 @@ blosc_version_string, blosc_version_date = blosc_version
 # called from the same extension where Blosc is registered in HDF5.
 def setBloscMaxThreads(nthreads):
   """setBloscMaxThreads(nthreads)
+
   Set the maximum number of threads that Blosc can use.
 
   This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
@@ -214,6 +213,7 @@ HDF5ExtError._dump_h5_backtrace = _dump_h5_backtrace
 
 def silenceHDF5Messages(silence=True):
     """silenceHDF5Messages(silence=True)
+
     Silence (or re-enable) messages from the HDF5 C library.
 
     The *silence* parameter can be used control the behaviour and reset
@@ -238,6 +238,7 @@ silenceHDF5Messages()
 
 cdef hsize_t *malloc_dims(object pdims):
   """Return a malloced hsize_t dims from a python pdims."""
+
   cdef int i, rank
   cdef hsize_t *dims
 
@@ -272,7 +273,9 @@ cdef hid_t get_nested_native_type(hid_t type_id) nogil:
   """Get a native nested type of an HDF5 type.
 
   In addition, it also recursively remove possible padding on type_id, i.e. it
-  acts as a combination of H5Tget_native_type and H5Tpack."""
+  acts as a combination of H5Tget_native_type and H5Tpack.
+  """
+
   cdef hid_t   tid, tid2
   cdef hid_t   member_type_id, native_type_id
   cdef hsize_t nfields
@@ -327,6 +330,7 @@ cdef hid_t get_nested_native_type(hid_t type_id) nogil:
 # this can be simplified.
 cdef hid_t get_native_type(hid_t type_id) nogil:
   """Get the native type of a HDF5 type."""
+
   cdef H5T_class_t class_id, super_class_id
   cdef hid_t native_type_id, super_type_id, native_super_type_id
   cdef int rank
@@ -387,6 +391,7 @@ cdef hid_t get_native_type(hid_t type_id) nogil:
 
 def encode_filename(object filename):
   """Return the encoded filename in the filesystem encoding."""
+
   if type(filename) is unicode:
     encoding = sys.getfilesystemencoding()
     encname = filename.encode(encoding)
@@ -421,6 +426,7 @@ def isHDF5File(object filename):
 
 def isPyTablesFile(object filename):
   """isPyTablesFile(filename)
+
   Determine whether a file is in the PyTables format.
 
   When successful, it returns the format version string if the file is a
@@ -497,8 +503,8 @@ def whichLibVersion(char *name):
 
 
 def whichClass(hid_t loc_id, char *name):
-  """Detects a class ID using heuristics.
-  """
+  """Detects a class ID using heuristics."""
+
   cdef H5T_class_t  class_id
   cdef H5D_layout_t layout
   cdef hsize_t      nfields
@@ -586,8 +592,7 @@ def whichClass(hid_t loc_id, char *name):
 
 
 def getNestedField(recarray, fieldname):
-  """
-  Get the maybe nested field named `fieldname` from the `recarray`.
+  """Get the maybe nested field named `fieldname` from the `recarray`.
 
   The `fieldname` may be a simple field name or a nested field name
   with slah-separated components.
@@ -653,13 +658,14 @@ def read_f_attr(hid_t file_id, char *attr_name):
 
 
 def getFilters(parent_id, name):
-  "Get a dictionary with the filter names and cd_values"
+  """Get a dictionary with the filter names and cd_values"""
   return get_filter_names(parent_id, name)
 
 
 # This is used by several <Leaf>._convertTypes() methods.
 def getTypeEnum(hid_t h5type):
   """_getTypeEnum(h5type) -> hid_t
+
   Get the native HDF5 enumerated type of `h5type`.
 
   If `h5type` is an enumerated type, it is returned.  If it is a
@@ -691,6 +697,7 @@ def getTypeEnum(hid_t h5type):
 
 def enumFromHDF5(hid_t enumId, char *byteorder):
   """enumFromHDF5(enumId) -> (Enum, npType)
+
   Convert an HDF5 enumerated type to a PyTables one.
 
   This function takes an HDF5 enumerated type and returns an `Enum`
@@ -745,6 +752,7 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
 
 def enumToHDF5(object enumAtom, char *byteorder):
   """enumToHDF5(enumAtom, byteorder) -> hid_t
+
   Convert a PyTables enumerated type to an HDF5 one.
 
   This function creates an HDF5 enumerated type from the information
@@ -830,6 +838,7 @@ def AtomToHDF5Type(atom, char *byteorder):
 
 def loadEnum(hid_t type_id):
   """loadEnum() -> (Enum, npType)
+
   Load the enumerated HDF5 type associated with this type_id.
 
   It returns an `Enum` instance built from that, and the
@@ -851,9 +860,9 @@ def loadEnum(hid_t type_id):
     if H5Tclose(enumId) < 0:
       raise HDF5ExtError("failed to close HDF5 enumerated type")
 
-
 def HDF5ToNPNestedType(hid_t type_id):
   """Given a HDF5 `type_id`, return a dtype string representation of it."""
+
   cdef hid_t   member_type_id
   cdef hsize_t nfields
   cdef int     i
@@ -899,6 +908,7 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
   Returns the string repr of type and its shape.  The exception is for
   compounds types, that returns a NumPy dtype and shape instead.
   """
+
   cdef H5T_sign_t  sign
   cdef hid_t       super_type_id, native_type_id
   cdef H5T_class_t class_id
@@ -995,6 +1005,7 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
   See `HDF5ToNPExtType` for an explanation of the `pure_numpy_types`
   parameter.
   """
+
   cdef object stype, shape, atom_, sctype, tsize, kind
   cdef object dflt, base, enum, nptype
 
@@ -1016,6 +1027,7 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
 
 def createNestedType(object desc, char *byteorder):
   """Create a nested type based on a description and return an HDF5 type."""
+
   cdef hid_t   tid, tid2
   cdef size_t  offset
 
@@ -1055,16 +1067,17 @@ cdef class lrange:
   xrange().  When the standard [x]range() Python objects support 64-bit
   arguments, this iterator will be deprecated.
   """
+
   cdef npy_int64 start, stop, step, next
   cdef dtype int64  # caches the ``numpy.int64`` type
 
   property length:  # no __len__ since the result would get truncated
-    """
-    Get the number of elements in this iteration.
+    """Get the number of elements in this iteration.
 
     This should be used instead of len() because the latter truncates the real
     length to a 32-bit signed value.
     """
+
     def __get__(self):
       cdef npy_int64 rlen
       rlen = get_len_of_range(self.start, self.stop, self.step)

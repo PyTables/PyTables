@@ -192,8 +192,7 @@ class Expr(object):
     # The next method is similar to their counterpart in `Table`, but
     # adapted to the `Expr` own requirements.
     def _requiredExprVars(self, expression, uservars, depth=2):
-        """
-        Get the variables required by the `expression`.
+        """Get the variables required by the `expression`.
 
         A new dictionary defining the variables used in the `expression`
         is returned.  Required variables are first looked up in the
@@ -212,6 +211,7 @@ class Expr(object):
         `depth` specifies the depth of the frame in order to reach local
         or global variables.
         """
+
         # Get the names of variables used in the expression.
         exprvarsCache = self._exprvarsCache
         if not expression in exprvarsCache:
@@ -269,8 +269,7 @@ class Expr(object):
 
 
     def setInputsRange(self, start=None, stop=None, step=None):
-        """
-        Define a range for all inputs in expression.
+        """Define a range for all inputs in expression.
 
         The computation will only take place for the range defined by the
         start, stop and step parameters in the main dimension of inputs (or the
@@ -285,8 +284,7 @@ class Expr(object):
 
 
     def setOutput(self, out, append_mode=False):
-        """
-        Set out as container for output as well as the append_mode.
+        """Set out as container for output as well as the append_mode.
 
         The out must be a container that is meant to keep the outcome of the
         expression.  It should be an homogeneous type container and can
@@ -317,8 +315,7 @@ class Expr(object):
 
 
     def setOutputRange(self, start=None, stop=None, step=None):
-        """
-        Define a range for user-provided output object.
+        """Define a range for user-provided output object.
 
         The output object will only be modified in the range specified by the
         start, stop and step parameters in the main dimension of output (or the
@@ -499,8 +496,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
 
     def eval(self):
-        """
-        Evaluate the expression and return the outcome.
+        """Evaluate the expression and return the outcome.
 
         Because of performance reasons, the computation order tries to go along
         the common main dimension of all inputs.  If not such a common main
@@ -592,8 +588,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
 
     def __iter__(self):
-        """
-        Iterate over the rows of the outcome of the expression.
+        """Iterate over the rows of the outcome of the expression.
 
         This iterator always returns rows as NumPy objects, so a possible out
         container specified in :meth:`Expr.setOutput` method is ignored here.

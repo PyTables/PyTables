@@ -35,8 +35,7 @@ all_types = set()  # filled as atom classes are created
 """Set of all PyTables types."""
 
 atom_map = {}  # filled as atom classes are created
-"""
-Maps atom kinds to item sizes and atom classes.
+"""Maps atom kinds to item sizes and atom classes.
 
 If there is a fixed set of possible item sizes for a given kind, the
 kind maps to another mapping from item size in bytes to atom class.
@@ -51,8 +50,7 @@ deftype_from_kind = {}  # filled as atom classes are created
 # ================
 _type_re = re.compile(r'^([a-z]+)([0-9]*)$')
 def split_type(type):
-    """
-    Split a PyTables type into a PyTables kind and an item size.
+    """Split a PyTables type into a PyTables kind and an item size.
 
     Returns a tuple of (kind, itemsize). If no item size is present in the type
     (in the form of a precision), the returned item size is None::
@@ -95,6 +93,7 @@ def _invalid_itemsize_error(kind, itemsize, itemsizes):
 
 def _abstract_atom_init(deftype, defvalue):
     """Return a constructor for an abstract `Atom` class."""
+
     defitemsize = split_type(deftype)[1]
     def __init__(self, itemsize=defitemsize, shape=(), dflt=defvalue):
         assert self.kind in atom_map
@@ -131,6 +130,7 @@ def _normalize_shape(shape):
 
 def _normalize_default(value, dtype):
     """Return `value` as a valid default of NumPy type `dtype`."""
+
     # Create NumPy objects as defaults
     # This is better in order to serialize them as attributes
     if value is None:
@@ -151,8 +151,7 @@ def _normalize_default(value, dtype):
     return default
 
 def _cmp_dispatcher(other_method_name):
-    """
-    Dispatch comparisons to a method of the *other* object.
+    """Dispatch comparisons to a method of the *other* object.
 
     Returns a new *rich comparison* method which dispatches calls to
     the method `other_method_name` of the *other* object.  If there is
@@ -160,6 +159,7 @@ def _cmp_dispatcher(other_method_name):
 
     This is part of the implementation of a double dispatch pattern.
     """
+
     def dispatched_cmp(self, other):
         try:
             other_method = getattr(other, other_method_name)
@@ -172,9 +172,7 @@ def _cmp_dispatcher(other_method_name):
 # Helper classes
 # ==============
 class MetaAtom(type):
-
-    """
-    Atom metaclass.
+    """Atom metaclass.
 
     This metaclass ensures that data about atom classes gets inserted
     into the suitable registries.
@@ -211,9 +209,7 @@ class MetaAtom(type):
 # Atom classes
 # ============
 class Atom(object):
-
-    """
-    Defines the type of atomic cells stored in a dataset.
+    """Defines the type of atomic cells stored in a dataset.
 
     The meaning of *atomic* is that individual elements of a cell can
     not be extracted directly by indexing (i.e.  __getitem__()) the
@@ -299,8 +295,7 @@ class Atom(object):
 
     @classmethod
     def from_sctype(class_, sctype, shape=(), dflt=None):
-        """
-        Create an Atom from a NumPy scalar type sctype.
+        """Create an Atom from a NumPy scalar type sctype.
 
         Optional shape and default value may be specified as the
         shape and dflt
@@ -326,8 +321,7 @@ class Atom(object):
 
     @classmethod
     def from_dtype(class_, dtype, dflt=None):
-        """
-        Create an Atom from a NumPy dtype.
+        """Create an Atom from a NumPy dtype.
 
         An optional default value may be specified as the dflt
         argument. Information in the dtype not represented in an Atom is
@@ -356,8 +350,7 @@ class Atom(object):
 
     @classmethod
     def from_type(class_, type, shape=(), dflt=None):
-        """
-        Create an Atom from a PyTables type.
+        """Create an Atom from a PyTables type.
 
         Optional shape and default value may be specified as the
         shape and dflt arguments, respectively::
@@ -375,6 +368,7 @@ class Atom(object):
             ...
             ValueError: unknown type: 'Float64'
         """
+
         if type not in all_types:
             raise ValueError("unknown type: %r" % (type,))
         kind, itemsize = split_type(type)
@@ -382,8 +376,7 @@ class Atom(object):
 
     @classmethod
     def from_kind(class_, kind, itemsize=None, shape=(), dflt=None):
-        """
-        Create an Atom from a PyTables kind.
+        """Create an Atom from a PyTables kind.
 
         Optional item size, shape and default value may be
         specified as the itemsize, shape and dflt
@@ -511,8 +504,7 @@ class Atom(object):
     # Public methods
     # ~~~~~~~~~~~~~~
     def copy(self, **override):
-        """
-        Get a copy of the atom, possibly overriding some arguments.
+        """Get a copy of the atom, possibly overriding some arguments.
 
         Constructor arguments to be overridden must be passed as
         keyword arguments::
@@ -540,29 +532,30 @@ class Atom(object):
     # Private methods
     # ~~~~~~~~~~~~~~~
     def _get_init_args(self):
-        """
-        Get a dictionary of instance constructor arguments.
+        """Get a dictionary of instance constructor arguments.
 
         This implementation works on classes which use the same names
         for both constructor arguments and instance attributes.
         """
+
         return dict( (arg, getattr(self, arg))
                      for arg in inspect.getargspec(self.__init__)[0]
                      if arg != 'self' )
 
     def _is_equal_to_atom(self, atom):
         """Is this object equal to the given `atom`?"""
+
         return ( self.type == atom.type and self.shape == atom.shape
                  and self.itemsize == atom.itemsize
                  and numpy.all(self.dflt == atom.dflt) )
 
 
 class StringAtom(Atom):
-    """
-    Defines an atom of type string.
+    """Defines an atom of type string.
 
     The item size is the *maximum* length in characters of strings.
     """
+
     kind = 'string'
     itemsize = property(
         lambda self: self.dtype.base.itemsize,
@@ -580,6 +573,7 @@ class StringAtom(Atom):
 
 class BoolAtom(Atom):
     """Defines an atom of type bool."""
+
     kind = 'bool'
     itemsize = 1
     type = 'bool'
@@ -591,6 +585,7 @@ class BoolAtom(Atom):
 
 class IntAtom(Atom):
     """Defines an atom of a signed integral type (int kind)."""
+
     kind = 'int'
     signed = True
     _deftype = 'int32'
@@ -600,6 +595,7 @@ class IntAtom(Atom):
 
 class UIntAtom(Atom):
     """Defines an atom of an unsigned integral type (uint kind)."""
+
     kind = 'uint'
     signed = False
     _deftype = 'uint32'
@@ -609,6 +605,7 @@ class UIntAtom(Atom):
 
 class FloatAtom(Atom):
     """Defines an atom of a floating point type (float kind)."""
+
     kind = 'float'
     _deftype = 'float64'
     _defvalue = 0.0
@@ -616,10 +613,10 @@ class FloatAtom(Atom):
 
 
 def _create_numeric_class(baseclass, itemsize):
-    """
-    Create a numeric atom class with the given `baseclass` and an
+    """Create a numeric atom class with the given `baseclass` and an
     `itemsize`.
     """
+
     prefix = '%s%d' % (baseclass.prefix(), itemsize * 8)
     type_ = prefix.lower()
     classdict = { 'itemsize': itemsize, 'type': type_,
@@ -632,6 +629,7 @@ def _create_numeric_class(baseclass, itemsize):
 
 def _generate_integral_classes():
     """Generate all integral classes."""
+
     for baseclass in [IntAtom, UIntAtom]:
         for itemsize in [1, 2, 4, 8]:
             newclass = _create_numeric_class(baseclass, itemsize)
@@ -640,6 +638,7 @@ def _generate_integral_classes():
 
 def _generate_floating_classes():
     """Generate all floating classes."""
+
     itemsizes = [4, 8]
     # numpy >= 1.6
     if hasattr(numpy, 'float16'):
@@ -657,8 +656,7 @@ del _classgen, _newclass
 
 
 class ComplexAtom(Atom):
-    """
-    Defines an atom of kind complex.
+    """Defines an atom of kind complex.
 
     Allowed item sizes are 8 (single precision) and 16 (double precision). This
     class must be used instead of more concrete ones to avoid confusions with
@@ -692,6 +690,7 @@ class ComplexAtom(Atom):
 
 class _ComplexErrorAtom(ComplexAtom):
     """Reminds the user to stop using the old complex atom names."""
+
     __metaclass__ = type  # do not register anything about this class
     def __init__(self, shape=(), dflt=ComplexAtom._defvalue):
         raise TypeError(
@@ -703,15 +702,14 @@ Complex32Atom = Complex64Atom = Complex128Atom = _ComplexErrorAtom
 
 
 class TimeAtom(Atom):
-
-    """
-    Defines an atom of time type (time kind).
+    """Defines an atom of time type (time kind).
 
     There are two distinct supported types of time: a 32 bit integer value and
     a 64 bit floating point value. Both of them reflect the number of seconds
     since the Unix epoch. This atom has the property of being stored using the
     HDF5 time datatypes.
     """
+
     kind = 'time'
     _deftype = 'time32'
     _defvalue = 0
@@ -719,6 +717,7 @@ class TimeAtom(Atom):
 
 class Time32Atom(TimeAtom):
     """Defines an atom of type time32."""
+
     itemsize = 4
     type = 'time32'
     _defvalue = 0
@@ -727,6 +726,7 @@ class Time32Atom(TimeAtom):
 
 class Time64Atom(TimeAtom):
     """Defines an atom of type time64."""
+
     itemsize = 8
     type = 'time64'
     _defvalue = 0.0
@@ -735,9 +735,7 @@ class Time64Atom(TimeAtom):
 
 
 class EnumAtom(Atom):
-
-    """
-    Description of an atom of an enumerated type.
+    """Description of an atom of an enumerated type.
 
     Instances of this class describe the atom type used to store enumerated
     values. Those values belong to an enumerated type, defined by the first
@@ -875,15 +873,18 @@ class EnumAtom(Atom):
 
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments."""
+
         return dict( enum=self.enum, dflt=self._defname,
                      base=self.base, shape=self.shape )
 
     def _is_equal_to_atom(self, atom):
         """Is this object equal to the given `atom`?"""
+
         return False
 
     def _is_equal_to_enumatom(self, enumatom):
         """Is this object equal to the given `enumatom`?"""
+
         return ( self.enum == enumatom.enum and self.shape == enumatom.shape
                  and numpy.all(self.dflt == enumatom.dflt)
                  and self.base == enumatom.base )
@@ -948,27 +949,30 @@ class EnumAtom(Atom):
 
 
 class PseudoAtom(object):
-    """
-    Pseudo-atoms can only be used in ``VLArray`` nodes.
+    """Pseudo-atoms can only be used in ``VLArray`` nodes.
 
     They can be recognised because they also have `kind`, `type` and
     `shape` attributes, but no `size`, `itemsize` or `dflt` ones.
     Instead, they have a `base` atom which defines the elements used
     for storage.
     """
+
     def __repr__(self):
         return '%s()' % self.__class__.__name__
 
     def toarray(self, object_):
         """Convert an `object_` into an array of base atoms."""
+
         raise NotImplementedError
 
     def fromarray(self, array):
         """Convert an `array` of base atoms into an object."""
+
         raise NotImplementedError
 
 class _BufferedAtom(PseudoAtom):
     """Pseudo-atom which stores data as a buffer (flat array of uints)."""
+
     shape = ()
 
     def toarray(self, object_):
@@ -979,11 +983,11 @@ class _BufferedAtom(PseudoAtom):
 
     def _tobuffer(self, object_):
         """Convert an `object_` into a buffer."""
+
         raise NotImplementedError
 
 class VLStringAtom(_BufferedAtom):
-    """
-    Defines an atom of type ``vlstring``.
+    """Defines an atom of type ``vlstring``.
 
     This class describes a *row* of the VLArray class, rather than an atom. It
     differs from the StringAtom class in that you can only add *one instance of
@@ -1001,6 +1005,7 @@ class VLStringAtom(_BufferedAtom):
     reads of rows to always return Python strings.  You can regard vlstring
     atoms as an easy way to save generic variable length strings.
     """
+
     kind = 'vlstring'
     type = 'vlstring'
     base = UInt8Atom()
@@ -1014,8 +1019,7 @@ class VLStringAtom(_BufferedAtom):
         return array.tostring()
 
 class VLUnicodeAtom(_BufferedAtom):
-    """
-    Defines an atom of type vlunicode.
+    """Defines an atom of type vlunicode.
 
     This class describes a *row* of the VLArray class, rather than an atom.  It
     is very similar to VLStringAtom (see :ref:`VLStringAtom`), but it stores
@@ -1031,6 +1035,7 @@ class VLUnicodeAtom(_BufferedAtom):
     reads of rows to always return Python Unicode strings.  You can regard
     vlunicode atoms as an easy way to save variable length Unicode strings.
     """
+
     kind = 'vlunicode'
     type = 'vlunicode'
     base = UInt32Atom()
@@ -1064,8 +1069,7 @@ class VLUnicodeAtom(_BufferedAtom):
         return array.view('U%d' % length).item()
 
 class ObjectAtom(_BufferedAtom):
-    """
-    Defines an atom of type object.
+    """Defines an atom of type object.
 
     This class is meant to fit *any* kind of Python object in a row of a
     VLArray dataset by using cPickle behind the scenes. Due to the fact that
@@ -1078,6 +1082,7 @@ class ObjectAtom(_BufferedAtom):
     always return Python objects. You can regard object atoms as an easy way to
     save an arbitrary number of generic Python objects in a VLArray dataset.
     """
+
     kind = 'object'
     type = 'object'
     base = UInt8Atom()
@@ -1098,8 +1103,10 @@ class ObjectAtom(_BufferedAtom):
 # =========
 def _test():
     """Run ``doctest`` on this module."""
+
     import doctest
     doctest.testmod()
+
 
 if __name__ == '__main__':
     _test()

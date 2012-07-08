@@ -29,8 +29,7 @@ obversion = "1.0"    # Support for time & enumerated datatypes.
 
 
 class CArray(Array):
-    """
-    This class represents homogeneous datasets in an HDF5 file.
+    """This class represents homogeneous datasets in an HDF5 file.
 
     The difference between a CArray and a normal Array (see
     :ref:`ArrayClassDescr`), from which it inherits, is that a CArray has a
@@ -40,6 +39,36 @@ class CArray(Array):
 
     CArray includes all the instance variables and methods of Array.  Only those
     with different behavior are mentioned here.
+
+    Parameters
+    ----------
+    atom
+       An `Atom` instance representing the *type* and *shape* of
+       the atomic objects to be saved.
+
+    shape
+       The shape of the new array.
+
+    title
+       A description for this node (it sets the ``TITLE`` HDF5
+       attribute on disk).
+
+    filters
+       An instance of the `Filters` class that provides
+       information about the desired I/O filters to be applied
+       during the life of this object.
+
+    chunkshape
+       The shape of the data chunk to be read or written in a
+       single HDF5 I/O operation.  Filters are applied to those
+       chunks of data.  The dimensionality of `chunkshape` must
+       be the same as that of `shape`.  If ``None``, a sensible
+       value is calculated (which is recommended).
+
+    byteorder
+        The byteorder of the data *on disk*, specified as 'little'
+        or 'big'.  If this is not specified, the byteorder is that
+        of the platform.
 
     Examples
     --------
@@ -96,41 +125,9 @@ class CArray(Array):
                   title="", filters=None,
                   chunkshape=None, byteorder = None,
                   _log=True ):
-        """
-        Create a `CArray` instance.
-
-        `atom`
-            An `Atom` instance representing the *type* and *shape* of
-            the atomic objects to be saved.
-
-        `shape`
-            The shape of the new array.
-
-        `title`
-            A description for this node (it sets the ``TITLE`` HDF5
-            attribute on disk).
-
-        `filters`
-            An instance of the `Filters` class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        `chunkshape`
-            The shape of the data chunk to be read or written in a
-            single HDF5 I/O operation.  Filters are applied to those
-            chunks of data.  The dimensionality of `chunkshape` must
-            be the same as that of `shape`.  If ``None``, a sensible
-            value is calculated (which is recommended).
-
-        `byteorder`
-            The byteorder of the data *on disk*, specified as 'little'
-            or 'big'.  If this is not specified, the byteorder is that
-            of the platform.
-        """
 
         self.atom = atom
-        """
-        An `Atom` instance representing the shape, type of the atomic
+        """An `Atom` instance representing the shape, type of the atomic
         objects to be saved.
         """
         self.shape = None
@@ -245,7 +242,7 @@ class CArray(Array):
 
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, chunkshape, _log, **kwargs):
-        "Private part of Leaf.copy() for each kind of leaf"
+        """Private part of Leaf.copy() for each kind of leaf"""
         (start, stop, step) = self._processRangeRead(start, stop, step)
         maindim = self.maindim
         shape = list(self.shape)

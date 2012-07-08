@@ -1,15 +1,18 @@
-"""
-Utility functions and classes for supporting query conditions.
+########################################################################
+#
+# License: BSD
+# Created: 2006-09-19
+# Author:  Ivan Vilata i Balaguer -- ivan@selidor.net
+# :Notes:  Heavily modified by Francesc Alted for multi-index support.
+#          2008-04-09
+#          Combined common & pro version.
+#          2011-06-04
+#
+# $Id$
+#
+########################################################################
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2006-09-19
-:License:  BSD
-:Notes:    Heavily modified by Francesc Alted for multi-index support.
-           2008-04-09
-           Combined common & pro version.
-           2011-06-04
-:Revision: $Id$
+"""Utility functions and classes for supporting query conditions.
 
 Classes:
 
@@ -35,11 +38,11 @@ _no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")
 # E.g. "gt" and "bfc" from "couldn't find matching opcode for 'gt_bfc'".
 
 def _unsupported_operation_error(exception):
-    """
-    Make the \"no matching opcode\" Numexpr `exception` more clear.
+    """Make the \"no matching opcode\" Numexpr `exception` more clear.
 
     A new exception of the same kind is returned.
     """
+
     message = exception.args[0]
     op, types = _no_matching_opcode.search(message).groups()
     newmessage = "unsupported operand types for *%s*: " % op
@@ -47,12 +50,12 @@ def _unsupported_operation_error(exception):
     return exception.__class__(newmessage)
 
 def _check_indexable_cmp(getidxcmp):
-    """
-    Decorate `getidxcmp` to check the returned indexable comparison.
+    """Decorate `getidxcmp` to check the returned indexable comparison.
 
     This does some extra checking that Numexpr would perform later on
     the comparison if it was compiled within a complete condition.
     """
+
     def newfunc(exprnode, indexedcols):
         result = getidxcmp(exprnode, indexedcols)
         if result[0] is not None:
@@ -68,8 +71,7 @@ def _check_indexable_cmp(getidxcmp):
 
 @_check_indexable_cmp
 def _get_indexable_cmp(exprnode, indexedcols):
-    """
-    Get the indexable variable-constant comparison in `exprnode`.
+    """Get the indexable variable-constant comparison in `exprnode`.
 
     A tuple of (variable, operation, constant) is returned if
     `exprnode` is a variable-constant (or constant-variable)
@@ -79,6 +81,7 @@ def _get_indexable_cmp(exprnode, indexedcols):
 
     Otherwise, the values in the tuple are ``None``.
     """
+
     not_indexable = (None, None, None)
     turncmp = { 'lt': 'gt',
                 'le': 'ge',
@@ -141,6 +144,7 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     original wrapper.  If 'exprnode' is not indexable, it will return
     the tuple ([], ['']) so as to signal this.
     """
+
     not_indexable =  ([], [''])
     op_conv = { 'and': '&',
                 'or': '|',
@@ -212,6 +216,7 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
 
     def add_expr(expr, idxexprs, strexpr):
         """Add a single expression to the list."""
+
         if isinstance(expr, list):
             # expr is a single expression
             idxexprs.append(expr[0])
@@ -239,8 +244,7 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
 
 
 def _get_idx_expr(expr, indexedcols):
-    """
-    Extract an indexable expression out of `exprnode`.
+    """Extract an indexable expression out of `exprnode`.
 
     Looks for variable-constant comparisons in the expression node
     `exprnode` involving variables in `indexedcols`.
@@ -266,8 +270,8 @@ def _get_idx_expr(expr, indexedcols):
     * ``a != 1`` and  ``c_bool != False``
     * ``~((a > 0) & (c_bool))``
     """
-    return _get_idx_expr_recurse(expr, indexedcols, [], [''])
 
+    return _get_idx_expr_recurse(expr, indexedcols, [], [''])
 
 
 class CompiledCondition(object):
@@ -278,6 +282,7 @@ class CompiledCondition(object):
     @lazyattr
     def index_variables(self):
         """The columns participating in the index expression."""
+
         idxexprs = self.index_expressions
         idxvars = []
         for expr in idxexprs:
@@ -304,12 +309,12 @@ class CompiledCondition(object):
 
 
     def with_replaced_vars(self, condvars):
-        """
-        Replace index limit variables with their values in-place.
+        """Replace index limit variables with their values in-place.
 
         A new compiled condition is returned.  Values are taken from
         the `condvars` mapping and converted to Python scalars.
         """
+
         exprs = self.index_expressions
         exprs2 = []
         for expr in exprs:
@@ -331,6 +336,7 @@ class CompiledCondition(object):
 
 def _get_variable_names(expression):
     """Return the list of variable names in the Numexpr `expression`."""
+
     names = []
     stack = [expression]
     while stack:
@@ -343,8 +349,7 @@ def _get_variable_names(expression):
 
 
 def compile_condition(condition, typemap, indexedcols, copycols):
-    """
-    Compile a condition and extract usable index conditions.
+    """Compile a condition and extract usable index conditions.
 
     Looks for variable-constant comparisons in the `condition` string
     involving the indexed columns whose variable names appear in
@@ -399,14 +404,14 @@ def compile_condition(condition, typemap, indexedcols, copycols):
 
 
 def call_on_recarr(func, params, recarr, param2arg=None):
-    """
-    Call `func` with `params` over `recarr`.
+    """Call `func` with `params` over `recarr`.
 
     The `param2arg` function, when specified, is used to get an
     argument given a parameter name; otherwise, the parameter itself
     is used as an argument.  When the argument is a `Column` object,
     the proper column from `recarr` is used as its value.
     """
+
     args = []
     for param in params:
         if param2arg:

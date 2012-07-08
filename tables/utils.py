@@ -8,9 +8,7 @@
 #
 ########################################################################
 
-"""Utility functions
-
-"""
+"""Utility functions"""
 
 import os, os.path, subprocess
 import sys
@@ -33,7 +31,7 @@ SizeType = numpy.int64
 
 
 def correct_byteorder(ptype, byteorder):
-    "Fix the byteorder depending on the PyTables types."
+    """Fix the byteorder depending on the PyTables types."""
 
     if ptype in ['string', 'bool', 'int8', 'uint8']:
         return "irrelevant"
@@ -108,7 +106,8 @@ def convertToNPAtom(arr, atom, copy=False):
 # The next is used in Array, EArray and VLArray, and it is a bit more
 # high level than convertToNPAtom
 def convertToNPAtom2(object, atom):
-    "Convert a generic object into a NumPy object compliant with atom."
+    """Convert a generic object into a NumPy object compliant with atom."""
+
     # Check whether the object needs to be copied to make the operation
     # safe to in-place conversion.
     copy = atom.type in ['time64']
@@ -124,8 +123,7 @@ def convertToNPAtom2(object, atom):
 
 
 def checkFileAccess(filename, mode='r'):
-    """
-    Check for file access in the specified `mode`.
+    """Check for file access in the specified `mode`.
 
     `mode` is one of the modes supported by `File` objects.  If the file
     indicated by `filename` can be accessed using that `mode`, the
@@ -179,8 +177,7 @@ def checkFileAccess(filename, mode='r'):
 
 
 def lazyattr(fget):
-    """
-    Create a *lazy attribute* from the result of `fget`.
+    """Create a *lazy attribute* from the result of `fget`.
 
     This function is intended to be used as a *method decorator*.  It
     returns a *property* which caches the result of calling the `fget`
@@ -218,6 +215,7 @@ def lazyattr(fget):
         Please note that this decorator *changes the type of the
         decorated object* from an instance method into a property.
     """
+
     name = fget.__name__
     def newfget(self):
         mydict = self.__dict__
@@ -229,7 +227,8 @@ def lazyattr(fget):
 
 
 def show_stats(explain, tref):
-    "Show the used memory (only works for Linux 2.6.x)."
+    """Show the used memory (only works for Linux 2.6.x)."""
+
     # Build the command to obtain memory info
     cmd = "cat /proc/%s/status" % os.getpid()
     sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
@@ -306,9 +305,7 @@ def dumpLoggedInstances(classes, file=sys.stdout):
 # A class useful for cache usage
 #
 class CacheDict(dict):
-    """
-    A dictionary that prevents itself from growing too much.
-    """
+    """A dictionary that prevents itself from growing too much."""
 
     def __init__(self, maxentries):
         self.maxentries = maxentries
@@ -325,7 +322,6 @@ class CacheDict(dict):
 
 
 class NailedDict(object):
-
     """A dictionary which ignores its items when it has nails on it."""
 
     def __init__(self, maxentries):
@@ -378,9 +374,8 @@ class NailedDict(object):
 
 
 def detectNumberOfCores():
-    """
-    Detects the number of cores on a system. Cribbed from pp.
-    """
+    """Detects the number of cores on a system. Cribbed from pp."""
+
     # Linux, Unix and MacOS:
     if hasattr(os, "sysconf"):
         if "SC_NPROCESSORS_ONLN" in os.sysconf_names:
@@ -403,6 +398,7 @@ def detectNumberOfCores():
 # =========
 def _test():
     """Run ``doctest`` on this module."""
+
     import doctest
     doctest.testmod()
 

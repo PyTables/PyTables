@@ -30,6 +30,7 @@ __version__ = "$Revision$"
 
 def csformula(expectedsizeinMB):
     """Return the fitted chunksize for expectedsizeinMB."""
+
     # For a basesize of 8 KB, this will return:
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
@@ -39,6 +40,7 @@ def csformula(expectedsizeinMB):
 
 def limit_es(expectedsizeinMB):
     """Protection against creating too small or too large chunks."""
+
     if expectedsizeinMB < 1:        # < 1 MB
         expectedsizeinMB = 1
     elif expectedsizeinMB > 10**7:  # > 10 TB
@@ -70,10 +72,8 @@ def calc_chunksize(expectedsizeinMB):
                            # sequential access
 
 
-
 class Leaf(Node):
-    """
-    Abstract base class for all PyTables leaves.
+    """Abstract base class for all PyTables leaves.
 
     A leaf is a node (see the Node class in :class:`Node`) which hangs from a
     group (see the Group class in :class:`Group`) but, unlike a group, it can
@@ -156,8 +156,11 @@ class Leaf(Node):
     # `````````````````````````
     @lazyattr
     def filters(self):
-        """Filter properties for this leaf - see
-        Filters in :ref:`FiltersClassDescr`."""
+        """Filter properties for this leaf
+
+        .. seealso:: Filters in :ref:`FiltersClassDescr`
+        """
+
         return Filters._from_leaf(self)
 
     # Other properties
@@ -169,8 +172,7 @@ class Leaf(Node):
 
     maindim = property(
         _getmaindim, None, None,
-        """
-        The dimension along which iterators work.
+        """The dimension along which iterators work.
 
         Its value is 0 (i.e. the first dimension) when the dataset is not
         extendable, and self.extdim (where available) for extendable ones.
@@ -187,8 +189,7 @@ class Leaf(Node):
 
     flavor = property(
         lambda self: self._flavor, _setflavor, _delflavor,
-        """
-        The type of data object read from this leaf.
+        """The type of data object read from this leaf.
 
         It can be any of 'numpy', 'numarray', 'numeric' or 'python' (the set of
         supported flavors depends on which packages you have installed on your
@@ -203,7 +204,7 @@ class Leaf(Node):
             The 'numarray' and 'numeric' flavors are deprecated since
             version 2.3. Support for these flavors will be removed in
             future versions.
-        """ )
+        """)
 
     size_on_disk = property(lambda self: self._get_storage_size(), None, None,
         """
@@ -250,8 +251,7 @@ class Leaf(Node):
 
 
     def __len__(self):
-        """
-        Return the length of the main dimension of the leaf data.
+        """Return the length of the main dimension of the leaf data.
 
         Please note that this may raise an OverflowError on 32-bit platforms
         for datasets having more than 2**31-1 rows.  This is a limitation of
@@ -261,8 +261,8 @@ class Leaf(Node):
 
 
     def __str__(self):
-
-        """The string representation for this object is its pathname in
+        """
+        The string representation for this object is its pathname in
         the HDF5 object tree plus some additional metainfo.
         """
 
@@ -286,8 +286,7 @@ class Leaf(Node):
     # Private methods
     # ~~~~~~~~~~~~~~~
     def _g_postInitHook(self):
-        """
-        Code to be run after node creation and before creation logging.
+        """Code to be run after node creation and before creation logging.
 
         This method gets or sets the flavor of the leaf.
         """
@@ -555,19 +554,18 @@ very small/large chunksize, you may want to increase/decrease it."""
     # Tree manipulation
     # `````````````````
     def remove(self):
-        """
-        Remove this node from the hierarchy.
+        """Remove this node from the hierarchy.
 
         This method has the behavior described
         in :meth:`Node._f_remove`. Please note that there is no recursive flag
         since leaves do not have child nodes.
         """
+
         self._f_remove(False)
 
 
     def rename(self, newname):
-        """
-        Rename this node in place.
+        """Rename this node in place.
 
         This method has the behavior described in :meth:`Node._f_rename()`.
         """
@@ -576,18 +574,17 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def move( self, newparent=None, newname=None,
               overwrite=False, createparents=False ):
-        """
-        Move or rename this node.
+        """Move or rename this node.
 
         This method has the behavior described in :meth:`Node._f_move`
         """
+
         self._f_move(newparent, newname, overwrite, createparents)
 
 
     def copy( self, newparent=None, newname=None,
               overwrite=False, createparents=False, **kwargs ):
-        """
-        Copy this node and return the new one.
+        """Copy this node and return the new one.
 
         This method has the behavior described in :meth:`Node._f_copy`. Please
         note that there is no recursive flag since leaves do not have child
@@ -631,13 +628,13 @@ very small/large chunksize, you may want to increase/decrease it."""
             dimension.  Any other value should be an integer or a tuple
             matching the dimensions of the leaf.
         """
+
         return self._f_copy(
             newparent, newname, overwrite, createparents, **kwargs )
 
 
     def truncate(self, size):
-        """
-        Truncate the main dimension to be size rows.
+        """Truncate the main dimension to be size rows.
 
         If the main dimension previously was larger than this size, the extra
         data is lost.  If the main dimension previously was shorter, it is
@@ -646,6 +643,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         The truncation operation can only be applied to *enlargeable* datasets,
         else a TypeError will be raised.
         """
+
         # A non-enlargeable arrays (Array, CArray) cannot be truncated
         if self.extdim < 0:
             raise TypeError("non-enlargeable datasets cannot be truncated")
@@ -659,19 +657,18 @@ With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
 
 
     def isVisible(self):
-        """
-        Is this node visible?
+        """Is this node visible?
 
         This method has the behavior described in :meth:`Node._f_isVisible()`.
         """
+
         return self._f_isVisible()
 
 
     # Attribute handling
     # ``````````````````
     def getAttr(self, name):
-        """
-        Get a PyTables attribute from this node.
+        """Get a PyTables attribute from this node.
 
         This method has the behavior described in :meth:`Node._f_getAttr`.
         """
@@ -679,40 +676,39 @@ With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
 
 
     def setAttr(self, name, value):
-        """
-        Set a PyTables attribute for this node.
+        """Set a PyTables attribute for this node.
 
         This method has the behavior described in :meth:`Node._f_setAttr()`.
         """
+
         self._f_setAttr(name, value)
 
 
     def delAttr(self, name):
-        """
-        Delete a PyTables attribute from this node.
+        """Delete a PyTables attribute from this node.
 
         This method has the behavior described in :meth:`Node_f_delAttr`.
         """
+
         self._f_delAttr(name)
 
 
     # Data handling
     # `````````````
     def flush(self):
-        """
-        Flush pending data to disk.
+        """Flush pending data to disk.
 
         Saves whatever remaining buffered data to disk. It also releases I/O
         buffers, so if you are filling many datasets in the same PyTables
         session, please call flush() extensively so as to help PyTables to keep
         memory requirements low.
         """
+
         self._g_flush()
 
 
     def _f_close(self, flush=True):
-        """
-        Close this node in the tree.
+        """Close this node in the tree.
 
         This method has the behavior described in :meth:`Node._f_close`.
         Besides that, the optional argument flush tells whether to flush
@@ -737,8 +733,7 @@ With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
 
 
     def close(self, flush=True):
-        """
-        Close this node in the tree.
+        """Close this node in the tree.
 
         This method is completely equivalent to :meth:`Leaf._f_close`.
         """

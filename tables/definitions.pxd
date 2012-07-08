@@ -9,9 +9,7 @@
 #
 ########################################################################
 
-"""Here are some definitions for sharing between extensions.
-
-"""
+"""Here are some definitions for sharing between extensions."""
 
 import sys
 
@@ -71,10 +69,10 @@ cdef extern from "hdf5.h" nogil:
     H5F_SCOPE_DOWN      = 2     # for internal use only
 
   cdef enum H5O_type_t:
-      H5O_TYPE_UNKNOWN = -1     # Unknown object type
-      H5O_TYPE_GROUP            # Object is a group
-      H5O_TYPE_DATASET          # Object is a dataset
-      H5O_TYPE_NAMED_DATATYPE   # Object is a named data type
+    H5O_TYPE_UNKNOWN = -1       # Unknown object type
+    H5O_TYPE_GROUP              # Object is a group
+    H5O_TYPE_DATASET            # Object is a dataset
+    H5O_TYPE_NAMED_DATATYPE     # Object is a named data type
 
   cdef enum H5L_type_t:
     H5L_TYPE_ERROR    = -1      # Invalid link type id

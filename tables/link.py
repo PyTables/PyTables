@@ -37,12 +37,12 @@ __version__ = "$Revision$"
 
 def _g_getLinkClass(parent_id, name):
     """Guess the link class."""
+
     return linkExtension._getLinkClass(parent_id, name)
 
 
 class Link(Node):
-    """
-    Abstract base class for all PyTables links.
+    """Abstract base class for all PyTables links.
 
     A link is a node that refers to another node.  The Link class inherits from
     Node class and the links that inherits from Link are SoftLink and
@@ -78,6 +78,7 @@ class Link(Node):
         self._v_new = target is not None
         self.target = target
         """The path string to the pointed node."""
+
         super(Link, self).__init__(parentNode, name, _log)
 
 
@@ -85,13 +86,13 @@ class Link(Node):
 
     def copy(self, newparent=None, newname=None,
              overwrite=False, createparents=False):
-        """
-        Copy this link and return the new one.
+        """Copy this link and return the new one.
 
         See :meth:`Node._f_copy` for a complete explanation of the arguments.
         Please note that there is no recursive flag since links do not have
         child nodes.
         """
+
         newnode = self._f_copy(newparent=newparent, newname=newname,
                                overwrite=overwrite, createparents=createparents)
         # Insert references to a `newnode` via `newname`
@@ -104,13 +105,14 @@ class Link(Node):
 
         See :meth:`Node._f_move` for a complete explanation of the arguments.
         """
+
         return self._f_move(newparent=newparent, newname=newname,
                             overwrite=overwrite)
 
 
     def remove(self):
-        """Remove this link from the hierarchy.
-        """
+        """Remove this link from the hierarchy."""
+
         return self._f_remove()
 
 
@@ -138,8 +140,7 @@ class SoftLink(linkExtension.SoftLink, Link):
     _c_classId = 'SOFTLINK'
 
     def __call__(self):
-        """
-        Dereference `self.target` and return the object.
+        """Dereference `self.target` and return the object.
 
         Examples
         --------
@@ -152,6 +153,7 @@ class SoftLink(linkExtension.SoftLink, Link):
             >>> print f.root.link0()
             /another/path (Group) ''
         """
+
         target = self.target
         # Check for relative pathnames
         if not self.target.startswith('/'):
@@ -160,8 +162,7 @@ class SoftLink(linkExtension.SoftLink, Link):
 
 
     def __str__(self):
-        """
-        Return a short string representation of the link.
+        """Return a short string representation of the link.
 
         Examples
         --------
@@ -191,8 +192,7 @@ if are_extlinks_available:
 
     # Declare this only if the extension is available
     class ExternalLink(linkExtension.ExternalLink, Link):
-        """
-        Represents an external link.
+        """Represents an external link.
 
         An external link is a reference to a node in *another* file.  Getting
         access to the pointed node (this action is called *dereferrencing*) is
@@ -218,8 +218,7 @@ if are_extlinks_available:
 
 
         def __call__(self, **kwargs):
-            """
-            Dereference self.target and return the object.
+            """Dereference self.target and return the object.
 
             You can pass all the arguments supported by the :func:`openFile`
             function (except filename, of course) so as to open the referenced
@@ -259,6 +258,7 @@ if are_extlinks_available:
 
         def umount(self):
             """Safely unmount self.extfile, if opened."""
+
             extfile = self.extfile
             # Close external file, if open
             if extfile is not None and extfile.isopen:
@@ -268,13 +268,13 @@ if are_extlinks_available:
 
         def _f_close(self):
             """Especific close for external links."""
+
             self.umount()
             super(ExternalLink, self)._f_close()
 
 
         def __str__(self):
-            """
-            Return a short string representation of the link.
+            """Return a short string representation of the link.
 
             Examples
             --------

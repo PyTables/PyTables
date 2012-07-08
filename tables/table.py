@@ -150,8 +150,7 @@ def _table__getautoIndex(self):
 
 _table__autoIndex = property(
     _table__getautoIndex, _table__setautoIndex, None,
-    """
-    Automatically keep column indexes up to date?
+    """Automatically keep column indexes up to date?
 
     Setting this value states whether existing indexes should be
     automatically updated after an append operation or recomputed
@@ -164,7 +163,6 @@ _table__autoIndex = property(
     reindexing of invalidated indexes, use `Table.reIndexDirty()`.
 
     This value is persistent.
-
     """)
 
 
@@ -368,16 +366,16 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
 
 class _ColIndexes(dict):
     """Provides a nice representation of column indexes."""
+
     def __repr__(self):
-        """ Gives a detailed Description column representation.
-        """
+        """Gives a detailed Description column representation."""
+
         rep = [ '  \"%s\": %s' % (k, self[k]) for k in self.iterkeys()]
         return '{\n  %s}' % (',\n  '.join(rep))
 
 
 class Table(tableExtension.Table, Leaf):
-    """
-    This class represents heterogeneous datasets in an HDF5 file.
+    """This class represents heterogeneous datasets in an HDF5 file.
 
     Tables are leaves (see the Leaf class in :ref:`LeafClassDescr`) whose data
     consists of a unidimensional sequence of *rows*, where each row contains
@@ -467,11 +465,13 @@ class Table(tableExtension.Table, Leaf):
     @lazyattr
     def row(self):
         """The associated Row instance (see :ref:`RowClassDescr`)."""
+
         return tableExtension.Row(self)
 
     @lazyattr
     def dtype(self):
         """The NumPy ``dtype`` that most closely matches this table."""
+
         return self.description._v_dtype
 
     # Read-only shorthands
@@ -497,11 +497,13 @@ class Table(tableExtension.Table, Leaf):
     @lazyattr
     def _v_iobuf(self):
         """A buffer for doing I/O."""
+
         return self._get_container(self.nrowsinbuf)
 
     @lazyattr
     def _v_wdflts(self):
         """The defaults for writing in recarray format."""
+
         # First, do a check to see whether we need to set default values
         # different from 0 or not.
         for coldflt in self.coldflts.itervalues():
@@ -555,9 +557,7 @@ class Table(tableExtension.Table, Leaf):
           for _colpname in self.colpathnames
           if self.colindexed[_colpname] )),
         None, None,
-        """
-        A dictionary with the indexes of the indexed columns.
-        """ )
+        """A dictionary with the indexes of the indexed columns.""")
 
     _dirtyindexes = property(
         lambda self: self._conditionCache._nailcount > 0,
@@ -616,8 +616,7 @@ class Table(tableExtension.Table, Leaf):
         self.colnames = []
         """A list containing the names of *top-level* columns in the table."""
         self.colpathnames = []
-        """
-        A list containing the pathnames of *bottom-level* columns in the
+        """A list containing the pathnames of *bottom-level* columns in the
         table.
 
         These are the leaf columns obtained when walking the
@@ -963,8 +962,7 @@ class Table(tableExtension.Table, Leaf):
 
 
     def _cacheDescriptionData(self):
-        """
-        Cache some data which is already in the description.
+        """Cache some data which is already in the description.
 
         Some information is extracted from `self.description` to build
         some useful (but redundant) structures:
@@ -1007,8 +1005,7 @@ class Table(tableExtension.Table, Leaf):
 
 
     def _getColumnInstance(self, colpathname):
-        """
-        Get the instance of the column with the given `colpathname`.
+        """Get the instance of the column with the given `colpathname`.
 
         If the column does not exist in the table, a `KeyError` is
         raised.
@@ -1024,6 +1021,7 @@ class Table(tableExtension.Table, Leaf):
 
     def _disableIndexingInQueries(self):
         """Force queries not to use indexing.  *Use only for testing.*"""
+
         if not self._enabledIndexingInQueries:
             return  # already disabled
         # The nail avoids setting/getting compiled conditions in/from
@@ -1034,6 +1032,7 @@ class Table(tableExtension.Table, Leaf):
 
     def _enableIndexingInQueries(self):
         """Allow queries to use indexing.  *Use only for testing.*"""
+
         if self._enabledIndexingInQueries:
             return  # already enabled
         self._conditionCache.unnail()
@@ -1041,8 +1040,7 @@ class Table(tableExtension.Table, Leaf):
 
 
     def _requiredExprVars(self, expression, uservars, depth=1):
-        """
-        Get the variables required by the `expression`.
+        """Get the variables required by the `expression`.
 
         A new dictionary defining the variables used in the `expression`
         is returned.  Required variables are first looked up in the
@@ -1140,8 +1138,7 @@ class Table(tableExtension.Table, Leaf):
 
 
     def _getConditionKey(self, condition, condvars):
-        """
-        Get the condition cache key for `condition` with `condvars`.
+        """Get the condition cache key for `condition` with `condvars`.
 
         Currently, the key is a tuple of `condition`, column variables
         names, normal variables names, column paths and variable paths
@@ -1172,8 +1169,7 @@ class Table(tableExtension.Table, Leaf):
 
 
     def _compileCondition(self, condition, condvars):
-        """
-        Compile the `condition` and extract usable index conditions.
+        """Compile the `condition` and extract usable index conditions.
 
         This method returns an instance of ``CompiledCondition``.  See
         the ``compile_condition()`` function in the ``conditions``
@@ -1230,8 +1226,7 @@ class Table(tableExtension.Table, Leaf):
 
 
     def willQueryUseIndexing(self, condition, condvars=None):
-        """
-        Will a query for the condition use indexing?
+        """Will a query for the condition use indexing?
 
         The meaning of the condition and *condvars* arguments is the same as in
         the :meth:`Table.where` method. If condition can use indexing, this
@@ -1252,8 +1247,7 @@ class Table(tableExtension.Table, Leaf):
 
     def where( self, condition, condvars=None,
                start=None, stop=None, step=None ):
-        """
-        Iterate over values fulfilling a condition.
+        """Iterate over values fulfilling a condition.
 
         This method returns a Row iterator (see :ref:`RowClassDescr`) which
         only selects rows in the table that satisfy the given condition (an
@@ -1321,12 +1315,14 @@ class Table(tableExtension.Table, Leaf):
         the full code.
 
         """
+
         return self._where(condition, condvars, start, stop, step)
 
 
     def _where( self, condition, condvars,
                 start=None, stop=None, step=None ):
         """Low-level counterpart of `self.where()`."""
+
         if profile: tref = time()
         if profile: show_stats("Entering table._where", tref)
         # Adjust the slice to be used.
@@ -1363,6 +1359,7 @@ class Table(tableExtension.Table, Leaf):
 
     def _checkFieldIfNumeric(self, field):
         """Check that `field` has been selected with ``numeric`` flavor."""
+
         if self.flavor == 'numeric' and field is None:
             _numeric_deprecation()
             raise ValueError(
@@ -1372,8 +1369,7 @@ class Table(tableExtension.Table, Leaf):
 
     def readWhere( self, condition, condvars=None, field=None,
                    start=None, stop=None, step=None ):
-        """
-        Read table data fulfilling the given *condition*.
+        """Read table data fulfilling the given *condition*.
 
         This method is similar to :meth:`Table.read`, having their common
         arguments and return values the same meanings. However, only the rows
@@ -1382,6 +1378,7 @@ class Table(tableExtension.Table, Leaf):
         The meaning of the other arguments is the same as in the
         :meth:`Table.where` method.
         """
+
         self._checkFieldIfNumeric(field)
 
         coords = [ p.nrow for p in
@@ -1400,8 +1397,7 @@ class Table(tableExtension.Table, Leaf):
 
     def whereAppend( self, dstTable, condition, condvars=None,
                      start=None, stop=None, step=None ):
-        """
-        Append rows fulfilling the condition to the dstTable table.
+        """Append rows fulfilling the condition to the dstTable table.
 
         dstTable must be capable of taking the rows resulting from the query,
         i.e. it must have columns with the expected names and compatible
@@ -1410,6 +1406,7 @@ class Table(tableExtension.Table, Leaf):
 
         The number of rows appended to dstTable is returned as a result.
         """
+
         # Check that the destination file is not in read-only mode.
         dstTable._v_file._checkWritable()
 
@@ -1430,8 +1427,7 @@ class Table(tableExtension.Table, Leaf):
 
     def getWhereList( self, condition, condvars=None, sort=False,
                       start=None, stop=None, step=None ):
-        """
-        Get the row coordinates fulfilling the given condition.
+        """Get the row coordinates fulfilling the given condition.
 
         The coordinates are returned as a list of the current flavor.  sort
         means that you want to retrieve the coordinates ordered. The default is
@@ -1452,8 +1448,7 @@ class Table(tableExtension.Table, Leaf):
 
 
     def itersequence(self, sequence):
-        """
-        Iterate over a sequence of row coordinates.
+        """Iterate over a sequence of row coordinates.
 
         Notes
         -----
@@ -1505,8 +1500,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def itersorted(self, sortby, checkCSI=False,
                    start=None, stop=None, step=None):
-        """
-        Iterate table data following the order of the index of sortby column.
+        """Iterate table data following the order of the index of sortby
+        column.
 
         The sortby column must have associated a full index.  If you want to
         ensure a fully sorted order, the index must be a CSI one.  You may want
@@ -1518,6 +1513,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         supported, meaning that the results will be returned in reverse sorted
         order.
         """
+
         index = self._check_sortby_CSI(sortby, checkCSI)
         # Adjust the slice to be used.
         (start, stop, step) = index._processRange(start, stop, step)
@@ -1529,8 +1525,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def readSorted(self, sortby, checkCSI=False, field=None,
                    start=None, stop=None, step=None):
-        """
-        Read table data following the order of the index of sortby column.
+        """Read table data following the order of the index of sortby column.
 
         The sortby column must have associated a full index.  If you want to
         ensure a fully sorted order, the index must be a CSI one.  You may want
@@ -1548,6 +1543,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         supported, meaning that the results will be returned in reverse sorted
         order.
         """
+
         self._checkFieldIfNumeric(field)
         index = self._check_sortby_CSI(sortby, checkCSI)
         coords = index[start:stop:step]
@@ -1555,14 +1551,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def iterrows(self, start=None, stop=None, step=None):
-        """
-        Iterate over the table using a Row instance (see :ref:`RowClassDescr`).
+        """Iterate over the table using a Row instance.
 
         If a range is not supplied, *all the rows* in the table are iterated
         upon - you can also use the :meth:`Table.__iter__` special method for
         that purpose. If you want to iterate over a given *range of rows* in
         the table, you may use the start, stop and step parameters, which have
         the same meaning as in :meth:`Table.read`.
+
+        .. seealso:: :ref:`RowClassDescr`
 
         .. warning::
 
@@ -1576,12 +1573,14 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         ::
 
-            result = [ row['var2'] for row in table.iterrows(step=5) if row['var1'] <= 20 ]
+            result = [ row['var2'] for row in table.iterrows(step=5)
+                                                    if row['var1'] <= 20 ]
 
         Notes
         -----
         This iterator can be nested (see :meth:`Table.where` for an example).
         """
+
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
             row = tableExtension.Row(self)
@@ -1591,11 +1590,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def __iter__(self):
-        """
-        Iterate over the table using a Row instance (see :ref:`RowClassDescr`).
+        """Iterate over the table using a Row instance.
 
         This is equivalent to calling :meth:`Table.iterrows` with default
         arguments, i.e. it iterates over *all the rows* in the table.
+
+        .. seealso::  :ref:`RowClassDescr`
 
         Examples
         --------
@@ -1606,7 +1606,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         Which is equivalent to::
 
-            result = [ row['var2'] for row in table.iterrows() if row['var1'] <= 20 ]
+            result = [ row['var2'] for row in table.iterrows()
+                                                    if row['var1'] <= 20 ]
 
         Notes
         -----
@@ -1616,8 +1617,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def _read(self, start, stop, step, field=None):
-        """Read a range of rows and return an in-memory object.
-        """
+        """Read a range of rows and return an in-memory object."""
 
         select_field = None
         if field:
@@ -1672,8 +1672,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def read(self, start=None, stop=None, step=None, field=None):
-        """
-        Get data in the table as a (record) array.
+        """Get data in the table as a (record) array.
 
         The start, stop and step parameters can be used to select only a *range
         of rows* in the table. Their meanings are the same as in the built-in
@@ -1737,8 +1736,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def readCoordinates(self, coords, field=None):
-        """
-        Get a set of rows given their indexes as a (record) array.
+        """Get a set of rows given their indexes as a (record) array.
 
         This method works much like the :meth:`Table.read` method, but it uses
         a sequence (coords) of row indexes to select the wanted columns,
@@ -1747,14 +1745,14 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         The selected rows are returned in an array or structured array of the
         current flavor.
         """
+
         self._checkFieldIfNumeric(field)
         result = self._readCoordinates(coords, field)
         return internal_to_flavor(result, self.flavor)
 
 
     def getEnum(self, colname):
-        """
-        Get the enumerated type associated with the named column.
+        """Get the enumerated type associated with the named column.
 
         If the column named colname (a string) exists and is of an enumerated
         type, the corresponding Enum instance (see :ref:`EnumClassDescr`) is
@@ -1773,8 +1771,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def col(self, name):
-        """
-        Get a column from the table.
+        """Get a column from the table.
 
         If a column called name exists in the table, it is read and returned as
         a NumPy object, or as a numarray object (depending on the flavor of the
@@ -1794,12 +1791,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         Here you can see how this method can be used as a shorthand for the
         :meth:`Table.read` method.
         """
+
         return self.read(field=name)
 
 
     def __getitem__(self, key):
-        """
-        Get a row or a range of rows from the table.
+        """Get a row or a range of rows from the table.
 
         If key argument is an integer, the corresponding table row is returned
         as a record of the current flavor. If key is a slice, the range of rows
@@ -1856,8 +1853,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def __setitem__(self, key, value):
-        """
-        Set a row or a range of rows in the table.
+        """Set a row or a range of rows in the table.
 
         It takes different actions depending on the type of the key parameter:
         if it is an integer, the corresponding table row is set to value (a
@@ -1924,6 +1920,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def _saveBufferedRows(self, wbufRA, lenrows):
         """Update the indexes after a flushing of rows"""
+
         self._open_append(wbufRA)
         self._append_records(lenrows)
         self._close_append()
@@ -1940,8 +1937,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def append(self, rows):
-        """
-        Append a sequence of rows to the end of the table.
+        """Append a sequence of rows to the end of the table.
 
         The rows argument may be any object which can be converted to a record
         array compliant with the table structure (otherwise, a ValueError is
@@ -2000,6 +1996,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def _conv_to_recarr(self, obj):
         """Try to convert the object into a recarray."""
+
         try:
             iflavor = flavor_of(obj)
             if iflavor != 'python':
@@ -2024,8 +2021,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def modifyCoordinates(self, coords, rows):
-        """
-        Modify a series of rows in positions specified in coords
+        """Modify a series of rows in positions specified in coords
 
         The values in the selected rows will be modified with the data given in
         rows.  This method returns the number of rows modified.
@@ -2059,8 +2055,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
-        """
-        Modify a series of rows in the slice [start:stop:step].
+        """Modify a series of rows in the slice [start:stop:step].
 
         The values in the selected rows will be modified with the data given in
         rows.  This method returns the number of rows modified.  Should the
@@ -2113,8 +2108,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def modifyColumn(self, start=None, stop=None, step=1,
                      column=None, colname=None):
-        """
-        Modify one single column in the row slice [start:stop:step].
+        """Modify one single column in the row slice [start:stop:step].
 
         The colname argument specifies the name of the column in the table to
         be modified with the data given in column.  This method returns the
@@ -2194,8 +2188,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def modifyColumns(self, start=None, stop=None, step=1,
                       columns=None, names=None):
-        """
-        Modify a series of columns in the row slice [start:stop:step].
+        """Modify a series of columns in the row slice [start:stop:step].
 
         The names argument specifies the names of the columns in the table to
         be modified with the data given in columns.  This method returns the
@@ -2269,8 +2262,7 @@ The 'names' parameter must be a list of strings.""")
 
 
     def flushRowsToIndex(self, _lastrow=True):
-        """
-        Add remaining rows in buffers to non-dirty indexes.
+        """Add remaining rows in buffers to non-dirty indexes.
 
         This can be useful when you have chosen non-automatic indexing for the
         table (see the :attr:`Table.autoIndex` property in
@@ -2295,7 +2287,7 @@ The 'names' parameter must be a list of strings.""")
 
 
     def _addRowsToIndex(self, colname, start, nrows, lastrow, update):
-        """Add more elements to the existing index """
+        """Add more elements to the existing index"""
 
         # This method really belongs to Column, but since it makes extensive
         # use of the table, it gets dangerous when closing the file, since the
@@ -2325,8 +2317,7 @@ The 'names' parameter must be a list of strings.""")
 
 
     def removeRows(self, start, stop=None):
-        """
-        Remove a range of rows in the table.
+        """Remove a range of rows in the table.
 
         If only start is supplied, only this row is to be deleted.  If a range
         is supplied, i.e. both the start and stop parameters are passed, all
@@ -2372,8 +2363,7 @@ The 'names' parameter must be a list of strings.""")
 
 
     def _g_move(self, newParent, newName):
-        """
-        Move this node in the hierarchy.
+        """Move this node in the hierarchy.
 
         This overloads the Node._g_move() method.
         """
@@ -2425,6 +2415,7 @@ The 'names' parameter must be a list of strings.""")
 
     def _markColumnsAsDirty(self, colnames):
         """Mark column indexes in `colnames` as dirty."""
+
         assert len(colnames) > 0
         if self.indexed:
             colindexed, cols = self.colindexed, self.cols
@@ -2471,25 +2462,25 @@ The 'names' parameter must be a list of strings.""")
 
 
     def reIndex(self):
-        """
-        Recompute all the existing indexes in the table.
+        """Recompute all the existing indexes in the table.
 
         This can be useful when you suspect that, for any reason, the index
         information for columns is no longer valid and want to rebuild the
         indexes on it.
         """
+
         self._doReIndex(dirty=False)
 
 
     def reIndexDirty(self):
-        """
-        Recompute the existing indexes in table, *if* they are dirty.
+        """Recompute the existing indexes in table, *if* they are dirty.
 
         This can be useful when you have set :attr:`Table.autoIndex` (see
         :ref:`TableInstanceVariablesDescr`) to false for the table and you want
         to update the indexes after a invalidating index operation
         (:meth:`Table.removeRows`, for example).
         """
+
         self._doReIndex(dirty=True)
 
 
@@ -2518,7 +2509,8 @@ The 'names' parameter must be a list of strings.""")
 
 
     def _g_copyRows_optim(self, object, start, stop, step):
-        "Copy rows from self to object (optimized version)"
+        """Copy rows from self to object (optimized version)"""
+
         nrowsinbuf = self.nrowsinbuf
         object._open_append(self._v_iobuf)
         nrowsdest = object.nrows
@@ -2539,6 +2531,7 @@ The 'names' parameter must be a list of strings.""")
 
     def _g_propIndexes(self, other):
         """Generate index in `other` table for every indexed column here."""
+
         oldcols, newcols = self.colinstances, other.colinstances
         for colname in newcols:
             oldcolindexed = oldcols[colname].is_indexed
@@ -2552,7 +2545,8 @@ The 'names' parameter must be a list of strings.""")
 
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, chunkshape, _log, **kwargs):
-        "Private part of Leaf.copy() for each kind of leaf"
+        """Private part of Leaf.copy() for each kind of leaf"""
+
         # Get the private args for the Table flavor of copy()
         sortby = kwargs.pop('sortby', None)
         propindexes = kwargs.pop('propindexes', False)
@@ -2579,8 +2573,7 @@ The 'names' parameter must be a list of strings.""")
     # the additional keywords for the Table case.
     def copy( self, newparent=None, newname=None, overwrite=False,
               createparents=False, **kwargs ):
-        """
-        Copy this table and return the new one.
+        """Copy this table and return the new one.
 
         This method has the behavior and keywords described in
         :meth:`Leaf.copy`.  Moreover, it recognises the following additional
@@ -2718,8 +2711,7 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
 
 
 class Cols(object):
-    """
-    Container for columns in a table or nested column.
+    """Container for columns in a table or nested column.
 
     This class is used as an *accessor* to the columns in a table or nested
     column.  It supports the *natural naming* convention, so that you can
@@ -2794,12 +2786,12 @@ class Cols(object):
 
     def __len__(self):
         """Get the number of top level columns in table."""
+
         return len(self._v_colnames)
 
 
     def _f_col(self, colname):
-        """
-        Get an accessor to the column colname.
+        """Get an accessor to the column colname.
 
         This method returns a Column instance (see :ref:`ColumnClassDescr`) if
         the requested column is not nested, and a Cols instance (see
@@ -2826,6 +2818,7 @@ class Cols(object):
 
     def _g_col(self, colname):
         """Like `self._f_col()` but it does not check arguments."""
+
         # Get the Column or Description object
         inames = colname.split('/')
         cols = self
@@ -2835,8 +2828,7 @@ class Cols(object):
 
 
     def __getitem__(self, key):
-        """
-        Get a row or a range of rows from a table or nested column.
+        """Get a row or a range of rows from a table or nested column.
 
         If key argument is an integer, the corresponding nested type row is
         returned as a record of the current flavor. If key is a slice, the
@@ -2893,8 +2885,7 @@ class Cols(object):
 
 
     def __setitem__(self, key, value):
-        """
-        Set a row or a range of rows in a table or nested column.
+        """Set a row or a range of rows in a table or nested column.
 
         If key argument is an integer, the corresponding row is set to
         value. If key is a slice, the range of rows determined by it is set to
@@ -2959,6 +2950,7 @@ class Cols(object):
 
     def __str__(self):
         """The string representation for this object."""
+
         # The pathname
         tablepathname = self._v__tablePath
         descpathname = self._v_desc._v_pathname
@@ -2995,8 +2987,7 @@ class Cols(object):
 
 
 class Column(object):
-    """
-    Accessor for a non-nested column in a table.
+    """Accessor for a non-nested column in a table.
 
     Each instance of this class is associated with one *non-nested* column of a
     table. These instances are mainly used to read and write data from the
@@ -3019,11 +3010,13 @@ class Column(object):
     @lazyattr
     def dtype(self):
         """The NumPy dtype that most closely matches this column."""
+
         return self.descr._v_dtypes[self.name].base  # Get rid of shape info
 
     @lazyattr
     def type(self):
         """The PyTables type of the column (a string)."""
+
         return self.descr._v_types[self.name]
 
     # Properties
@@ -3083,7 +3076,6 @@ class Column(object):
         parent table or nested column."""
 
 
-
     def _g_updateTableLocation(self, table):
         """Updates the location information about the associated `table`."""
 
@@ -3092,17 +3084,16 @@ class Column(object):
 
 
     def __len__(self):
-        """
-        Get the number of elements in the column.
+        """Get the number of elements in the column.
 
         This matches the length in rows of the parent table.
         """
+
         return self.table.nrows
 
 
     def __getitem__(self, key):
-        """
-        Get a row or a range of rows from a column.
+        """Get a row or a range of rows from a column.
 
         If key argument is an integer, the corresponding element in the column
         is returned as an object of the current flavor.  If key is a slice, the
@@ -3169,8 +3160,7 @@ class Column(object):
 
 
     def __setitem__(self, key, value):
-        """
-        Set a row or a range of rows in a column.
+        """Set a row or a range of rows in a column.
 
         If key argument is an integer, the corresponding element is set to
         value.  If key is a slice, the range of elements determined by it is
@@ -3227,8 +3217,7 @@ class Column(object):
     def createIndex( self, optlevel=6, kind="medium", filters=None,
                      tmp_dir=None, _blocksizes=None, _testmode=False,
                      _verbose=False ):
-        """
-        Create an index for this column.
+        """Create an index for this column.
 
         .. warning::
 
@@ -3298,7 +3287,6 @@ class Column(object):
     def createCSIndex( self, filters=None, tmp_dir=None,
                        _blocksizes=None, _testmode=False, _verbose=False ):
         """Create a completely sorted index (CSI) for this column.
-        Create a completely sorted index (CSI) for this column.
 
         This method guarantees the creation of an index with zero entropy, that
         is, a completely sorted index (CSI) -- provided that the number of rows
@@ -3322,7 +3310,7 @@ class Column(object):
 
 
     def _doReIndex(self, dirty):
-        "Common code for reIndex() and reIndexDirty() codes."
+        """Common code for reIndex() and reIndexDirty() codes."""
 
         index = self.index
         dodirty = True
@@ -3346,8 +3334,7 @@ class Column(object):
 
 
     def reIndex(self):
-        """
-        Recompute the index associated with this column.
+        """Recompute the index associated with this column.
 
         This can be useful when you suspect that, for any reason,
         the index information is no longer valid and you want to rebuild it.
@@ -3359,8 +3346,7 @@ class Column(object):
 
 
     def reIndexDirty(self):
-        """
-        Recompute the associated index only if it is dirty.
+        """Recompute the associated index only if it is dirty.
 
         This can be useful when you have set :attr:`Table.autoIndex` to false
         for the table and you want to update the column's index after an
@@ -3373,8 +3359,7 @@ class Column(object):
 
 
     def removeIndex(self):
-        """
-        Remove the index associated with this column.
+        """Remove the index associated with this column.
 
         This method does nothing if the column is not indexed. The removed
         index can be created again by calling the :meth:`Column.createIndex`
@@ -3392,11 +3377,13 @@ class Column(object):
 
     def close(self):
         """Close this column"""
+
         self.__dict__.clear()
 
 
     def __str__(self):
         """The string representation for this object."""
+
         # The pathname
         tablepathname = self._tablePath
         pathname = self.pathname.replace('/', '.')
@@ -3412,6 +3399,7 @@ class Column(object):
 
     def __repr__(self):
         """A detailed string representation for this object."""
+
         return str(self)
 
 

@@ -78,12 +78,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     def __init__(self, parentNode, name,
                  atom=None, title="",
                  filters=None, byteorder=None):
-        """Create an IndexArray instance.
+        """Create an IndexArray instance."""
 
-        Keyword arguments:
-
-
-        """
         self._v_pathname = parentNode._g_join(name)
         if atom is not None:
             # The shape and chunkshape needs to be fixed here

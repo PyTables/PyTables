@@ -17,8 +17,6 @@ Classes (type extensions):
 
 Functions:
 
-
-
 Misc variables:
 
     __version__
@@ -115,8 +113,7 @@ import_array()
 
 # Private functions
 cdef getNestedFieldCache(recarray, fieldname, fieldcache):
-  """
-  Get the maybe nested field named `fieldname` from the `recarray`.
+  """Get the maybe nested field named `fieldname` from the `recarray`.
 
   The `fieldname` may be a simple field name or a nested field name with
   slah-separated components. It can also be an integer specifying the position
@@ -408,7 +405,8 @@ cdef class Table(Leaf):
 
     NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
     to NumPy conversion is performed.  The conversion is done in place,
-    i.e. 'recarr' is modified."""
+    i.e. 'recarr' is modified.
+    """
 
     # For reading, first swap the byteorder by hand
     # (this is not currently supported by HDF5)
@@ -636,8 +634,7 @@ cdef class Table(Leaf):
 
 
 cdef class Row:
-  """
-  Table row iterator and field accessor.
+  """Table row iterator and field accessor.
 
   Instances of this class are used to fetch and set the values
   of individual table fields.  It works very much like a dictionary,
@@ -681,12 +678,12 @@ cdef class Row:
 
   # The nrow() method has been converted into a property, which is handier
   property nrow:
-    """
-    The current row number.
+    """The current row number.
 
     This property is useful for knowing which row is being dealt with in the
     middle of a loop or iterator.
     """
+
     def __get__(self):
       return SizeType(self._nrow)
 
@@ -822,6 +819,7 @@ cdef class Row:
 
   def __next__(self):
     """next() method for __iter__() that is called on each iteration"""
+
     if not self._riterator:
       # The iterator is already exhausted!
       raise StopIteration
@@ -837,6 +835,7 @@ cdef class Row:
 
   cdef __next__indexed(self):
     """The version of next() for indexed columns and a chunkmap."""
+
     cdef long recout, j, cs, vlen, rowsize
     cdef hsize_t nchunksread
     cdef object tmp_range
@@ -941,6 +940,7 @@ cdef class Row:
 
   cdef __next__coords(self):
     """The version of next() for user-required coordinates"""
+
     cdef int recout
     cdef long long lenbuf, nextelement
     cdef object tmp
@@ -976,6 +976,7 @@ cdef class Row:
 
   cdef __next__inKernel(self):
     """The version of next() in case of in-kernel conditions"""
+
     cdef hsize_t recout, correct
     cdef object numexpr_locals, colvar, col
 
@@ -1032,6 +1033,7 @@ cdef class Row:
   # This is the most general __next__ version, simple, but effective
   cdef __next__general(self):
     """The version of next() for the general cases"""
+
     cdef int recout
 
     self.nextelement = self._nrow + self.step
@@ -1081,6 +1083,7 @@ cdef class Row:
 
   def _fillCol(self, result, start, stop, step, field):
     """Read a field from a table on disk and put the result in result"""
+
     cdef hsize_t startr, stopr, i, j, istartb, istopb
     cdef hsize_t istart, istop, istep, inrowsinbuf, inextelement, inrowsread
     cdef object fields
@@ -1232,6 +1235,7 @@ cdef class Row:
     which just updates the rows with values bigger than 3 in the first
     column.
     """
+
     cdef ndarray IObufcpy, IObuf
 
     if self.ro_filemode:
@@ -1287,6 +1291,7 @@ cdef class Row:
   # not a lookup in the local dictionary
   def __getitem__(self, key):
     """__getitem__(key)
+
     Get the row field specified by the `key`.
 
     The key can be a string (the name of the field), an integer (the
@@ -1319,6 +1324,7 @@ cdef class Row:
     which selects all the fields in even positions (in the form of a
     *tuple*) for all the rows in the slice [2:3000:3].
     """
+
     cdef long offset
     cdef ndarray field
     cdef object row, fields, fieldscache
@@ -1385,6 +1391,7 @@ cdef class Row:
 
     which modifies every tenth row in the table.
     """
+
     cdef int ret
     cdef long offset
     cdef ndarray field

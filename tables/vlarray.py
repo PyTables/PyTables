@@ -35,8 +35,7 @@ __version__ = "$Revision$"
 obversion = "1.3"     # Introduced 'PSEUDOATOM' attribute.
 
 class VLArray(hdf5Extension.VLArray, Leaf):
-    """
-    This class represents variable length (ragged) arrays in an HDF5 file.
+    """This class represents variable length (ragged) arrays in an HDF5 file.
 
     Instances of this class represent array objects in the object tree
     with the property that their rows can have a *variable* number of
@@ -190,7 +189,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             `ActiveState recipe
             <http://code.activestate.com/recipes/577504/>`_.
         """)
-
 
 
     # Other methods
@@ -368,7 +366,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
 
     def _getnobjects(self, nparr):
-        "Return the number of objects in a NumPy array."
+        """Return the number of objects in a NumPy array."""
 
         # Check for zero dimensionality array
         zerodims = numpy.sum(numpy.array(nparr.shape) == 0)
@@ -406,8 +404,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
 
     def getEnum(self):
-        """
-        Get the enumerated type associated with this array.
+        """Get the enumerated type associated with this array.
 
         If this array is of an enumerated type, the corresponding Enum instance
         (see :ref:`EnumClassDescr`) is returned. If it is not of an enumerated
@@ -422,8 +419,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
 
     def append(self, sequence):
-        """
-        Add a sequence of data to the end of the dataset.
+        """Add a sequence of data to the end of the dataset.
 
         This method appends the objects in the sequence to a *single row* in
         this array. The type and shape of individual objects must be compliant
@@ -460,8 +456,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
 
     def iterrows(self, start=None, stop=None, step=None):
-        """
-        Iterate over the rows of the array.
+        """Iterate over the rows of the array.
 
         This method returns an iterator yielding an object of the current
         flavor for each selected row in the array.
@@ -488,8 +483,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
 
     def __iter__(self):
-        """
-        Iterate over the rows of the array.
+        """Iterate over the rows of the array.
 
         This is equivalent to calling :meth:`VLArray.iterrows` with default
         arguments, i.e. it iterates over *all the rows* in the array.
@@ -527,8 +521,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
 
     def next(self):
-        """
-        Get the next element of the array during an iteration.
+        """Get the next element of the array during an iteration.
 
         The element is returned as a list of objects of the current flavor.
         """
@@ -549,8 +542,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
 
     def __getitem__(self, key):
-        """
-        Get a row or a range of rows from the array.
+        """Get a row or a range of rows from the array.
 
         If key argument is an integer, the corresponding array row is returned
         as an object of the current flavor.  If key is a slice, the range of
@@ -638,8 +630,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
 
     def __setitem__(self, key, value):
-        """
-        Set a row, or set of rows, in the array.
+        """Set a row, or set of rows, in the array.
 
         It takes different actions depending on the type of the key parameter:
         if it is an integer, the corresponding table row is set to value (a
@@ -703,8 +694,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=1):
-        """
-        Get data in the array as a list of objects of the current flavor.
+        """Get data in the array as a list of objects of the current flavor.
 
         Please note that, as the lengths of the different rows are variable,
         the returned value is a *Python list* (not an array of the current

@@ -131,9 +131,7 @@ def _checkfilters(filters):
 
 
 def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
-
-    """
-    An easy way of copying one PyTables file to another.
+    """An easy way of copying one PyTables file to another.
 
     This function allows you to copy an existing PyTables file named srcfilename
     to another file called dstfilename. The source file must exist and be
@@ -159,8 +157,7 @@ def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
 
 def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
              **kwargs):
-    """
-    Open a PyTables (or generic HDF5) file and return a File object.
+    """Open a PyTables (or generic HDF5) file and return a File object.
 
     Parameters
     ----------
@@ -243,7 +240,6 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
 
 
 class _AliveNodes(dict):
-
     """Stores strong or weak references to nodes in a transparent way."""
 
     def __init__(self, nodeCacheSlots):
@@ -284,6 +280,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 class _DeadNodes(lrucacheExtension.NodeCache):
     pass
 
+
 # A dumb class that doesn't keep nothing at all
 class _NoDeadNodes(object):
     def __len__(self):
@@ -295,9 +292,7 @@ class _NoDeadNodes(object):
 
 
 class _NodeDict(tables.misc.proxydict.ProxyDict):
-
-    """
-    A proxy dictionary which is able to delegate access to missing items
+    """A proxy dictionary which is able to delegate access to missing items
     to the container object (a `File`).
     """
 
@@ -315,9 +310,7 @@ class _NodeDict(tables.misc.proxydict.ProxyDict):
 
 
 class File(hdf5Extension.File, object):
-
-    """
-    The in-memory representation of a PyTables file.
+    """The in-memory representation of a PyTables file.
 
     An instance of this class is returned when a PyTables file is
     opened with the :func`tables.openFile` function. It offers methods to
@@ -364,16 +357,6 @@ class File(hdf5Extension.File, object):
 
         The UEP (user entry point) group name in the file (see
         the :func`tables.openFile` function).
-
-    .. method:: File.fileno()
-
-        Return the underlying OS integer file descriptor.
-
-        This is needed for lower-level file interfaces, such as the
-        fcntl module.
-
-        .. warning:: This method does not seem to exist.
-
     """
 
     ## <class variables>
@@ -542,8 +525,7 @@ class File(hdf5Extension.File, object):
 
 
     def _getOrCreatePath(self, path, create):
-        """
-        Get the given `path` or create it if `create` is true.
+        """Get the given `path` or create it if `create` is true.
 
         If `create` is true, `path` *must* be a string path and not a
         node, otherwise a `TypeError`will be raised.
@@ -554,8 +536,7 @@ class File(hdf5Extension.File, object):
             return self.getNode(path)
 
     def _createPath(self, path):
-        """
-        Create the groups needed for the `path` to exist.
+        """Create the groups needed for the `path` to exist.
 
         The group associated with the given `path` is returned.
         """
@@ -577,9 +558,7 @@ class File(hdf5Extension.File, object):
 
     def createGroup(self, where, name, title="", filters=None,
                     createparents=False):
-        """
-        Create a new group. See the Group Class
-        (in :ref:`GroupClassDescr`) for more information on groups.
+        """Create a new group.
 
         Parameters
         ----------
@@ -602,7 +581,14 @@ class File(hdf5Extension.File, object):
         createparents : bool
             Whether to create the needed groups for the parent
             path to exist (not done by default).
+
+        .. seealso::
+
+            the Group Class(in :ref:`GroupClassDescr`) for more information
+            on groups.
+
         """
+
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
         return Group(parentNode, name,
@@ -613,9 +599,7 @@ class File(hdf5Extension.File, object):
                     filters=None, expectedrows=10000,
                     chunkshape=None, byteorder=None,
                     createparents=False):
-        """
-        Create a new table with the given name in where location.  See the
-        Table (in :ref:`TableClassDescr`) class for more information on tables.
+        """Create a new table with the given name in where location.
 
         Parameters
         ----------
@@ -678,7 +662,14 @@ class File(hdf5Extension.File, object):
         createparents : bool
             Whether to create the needed groups for the parent path to exist
             (not done by default).
+
+        .. seealso::
+
+            see the Table (in :ref:`TableClassDescr`) class for more
+            information on tables.
+
         """
+
         parentNode = self._getOrCreatePath(where, createparents)
         if description is None:
             raise ValueError("invalid table description: None")
@@ -691,9 +682,7 @@ class File(hdf5Extension.File, object):
 
     def createArray(self, where, name, object, title="",
                     byteorder=None, createparents=False):
-        """
-        Create a new array. See the Array class (in :ref:`ArrayClassDescr`)
-        for more information on arrays.
+        """Create a new array.
 
         Parameters
         ----------
@@ -724,11 +713,17 @@ class File(hdf5Extension.File, object):
             Whether to create the needed groups for the parent path to exist
             (not done by default).
 
-        Notes
-        -----
-        See :meth:`File.createTable` for more
-        information on the rest of parameters.
+        ..seealso::
+
+            see :meth:`File.createTable` for more information on the rest
+            of parameters.
+
+        .. seealso::
+
+            see the Array class (in :ref:`ArrayClassDescr`) for more
+            information on arrays.
         """
+
         parentNode = self._getOrCreatePath(where, createparents)
         return Array(parentNode, name,
                      object=object, title=title, byteorder=byteorder)
@@ -737,9 +732,7 @@ class File(hdf5Extension.File, object):
     def createCArray(self, where, name, atom, shape, title="",
                      filters=None, chunkshape=None,
                      byteorder=None, createparents=False):
-        """
-        Create a new chunked array. See the CArray class
-        (in :ref:`CArrayClassDescr`) for more information on chunked arrays.
+        """Create a new chunked array.
 
         Parameters
         ----------
@@ -773,7 +766,13 @@ class File(hdf5Extension.File, object):
         createparents : bool, optional
             Whether to create the needed groups for the parent path to exist
             (not done by default).
+
+        .. seealso::
+
+            see the CArray class (in :ref:`CArrayClassDescr`) for more
+            information on chunked arrays.
         """
+
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
         return CArray(parentNode, name,
@@ -785,10 +784,7 @@ class File(hdf5Extension.File, object):
                      filters=None, expectedrows=1000,
                      chunkshape=None, byteorder=None,
                      createparents=False):
-        """
-        Create a new enlargeable array. See the EArray
-        (in :ref:`EArrayClassDescr`) class for more information on
-        enlargeable arrays.
+        """Create a new enlargeable array.
 
         Parameters
         ----------
@@ -830,7 +826,14 @@ class File(hdf5Extension.File, object):
         createparents : bool, optional
             Whether to create the needed groups for the parent path to exist
             (not done by default).
+
+        ..seealso::
+
+            See the EArray (in :ref:`EArrayClassDescr`) class for more
+            information on enlargeable arrays.
+
         """
+
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
         return EArray(parentNode, name,
@@ -843,10 +846,7 @@ class File(hdf5Extension.File, object):
                       filters=None, expectedsizeinMB=1.0,
                       chunkshape=None, byteorder=None,
                       createparents=False):
-        """
-        Create a new variable-length array. See the VLArray
-        (in :ref:`VLArrayClassDescr`) class for more information
-        on variable-length arrays.
+        """Create a new variable-length array.
 
         Parameters
         ----------
@@ -886,7 +886,14 @@ class File(hdf5Extension.File, object):
         createparents : bool, optional
             Whether to create the needed groups for the parent path to exist
             (not done by default).
+
+        .. seealso::
+
+            see the VLArray (in :ref:`VLArrayClassDescr`) class for more
+            informationon variable-length arrays.
+
         """
+
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
         return VLArray(parentNode, name,
@@ -905,6 +912,7 @@ class File(hdf5Extension.File, object):
 
         The returned node is a regular `Group` or `Leaf` instance.
         """
+
         targetNode = self.getNode(target)
         parentNode = self._getOrCreatePath(where, createparents)
         linkExtension._g_createHardLink(parentNode, name, targetNode)
@@ -925,6 +933,7 @@ class File(hdf5Extension.File, object):
         The returned node is a SoftLink instance.  See the SoftLink class
         (in :ref:`SoftLinkClassDescr') for more information on soft links.
         """
+
         if not isinstance(target, str):
             if hasattr(target, '_v_pathname'):   # quacks like a Node
                 target = target._v_pathname
@@ -940,21 +949,20 @@ class File(hdf5Extension.File, object):
     def createExternalLink(self, where, name, target, createparents=False,
                            warn16incompat=True):
         """
-        Create an external link to a target node with the given name in where
-        location.  target can be a node object in another file or a path string
-        in the form `file:/path/to/node`.  If createparents is true, the
-        intermediate groups required for reaching where are created (the
-        default is not doing so).
+        Create an external link to a *target* node with the given *name*
+        in *where* location.  *target* can be a node object in another
+        file or a path string in the form 'file:/path/to/node'.  If
+        *createparents* is true, the intermediate groups required for
+        reaching *where* are created (the default is not doing so).
 
-        The returned node is an ExternalLink instance.  See the ExternalLink
-        class (in :ref:`ExternalLinkClassDescr`) for more information on
-        external links.
+        The returned node is an :class:`ExternalLink` instance.
 
         .. note::
 
-            The warn16incompat argument is deprecated since version 2.4.
+            The *warn16incompat* argument is deprecated since version 2.4.
             It will be ignored.
         """
+
         if not are_extlinks_available:
             raise NotImplementedError(
                 "External links are not available when using HDF5 1.6.x")
@@ -1010,8 +1018,7 @@ class File(hdf5Extension.File, object):
 
 
     def getNode(self, where, name=None, classname=None):
-        """
-        Get the node under where with the given name.
+        """Get the node under where with the given name.
 
         where can be a Node instance (see :ref:`NodeClassDescr`) or a path
         string leading to a node. If no name is specified, that node is returned.
@@ -1081,8 +1088,7 @@ class File(hdf5Extension.File, object):
 
 
     def isVisibleNode(self, path):
-        """
-        Is the node under `path` visible?
+        """Is the node under `path` visible?
 
         If the node does not exist, a NoSuchNodeError is raised.
         """
@@ -1092,8 +1098,7 @@ class File(hdf5Extension.File, object):
 
 
     def renameNode(self, where, newname, name=None, overwrite=False):
-        """
-        Change the name of the node specified by where and name to newname.
+        """Change the name of the node specified by where and name to newname.
 
         Parameters
         ----------
@@ -1106,14 +1111,14 @@ class File(hdf5Extension.File, object):
             Whether to recursively remove a node with the same
             newname if it already exists (not done by default).
         """
+
         obj = self.getNode(where, name=name)
         obj._f_rename(newname, overwrite)
 
 
     def moveNode(self, where, newparent=None, newname=None, name=None,
                  overwrite=False, createparents=False):
-        """
-        Move the node specified by where and name to newparent/newname.
+        """Move the node specified by where and name to newparent/newname.
 
         Parameters
         ----------
@@ -1135,6 +1140,7 @@ class File(hdf5Extension.File, object):
         -----
         The other arguments work as in :meth:`Node._f_move`.
         """
+
         obj = self.getNode(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
 
@@ -1142,8 +1148,7 @@ class File(hdf5Extension.File, object):
     def copyNode(self, where, newparent=None, newname=None, name=None,
                  overwrite=False, recursive=False, createparents=False,
                  **kwargs):
-        """
-        Copy the node specified by where and name to newparent/newname.
+        """Copy the node specified by where and name to newparent/newname.
 
         Parameters
         ----------
@@ -1186,6 +1191,7 @@ class File(hdf5Extension.File, object):
             node).  See :meth:`.Node._f_copy` for further details on the
             semantics of copying nodes.
         """
+
         obj = self.getNode(where, name=name)
         if obj._v_depth == 0 and newparent and not newname:
             npobj = self.getNode(newparent)
@@ -1201,8 +1207,7 @@ class File(hdf5Extension.File, object):
 
 
     def removeNode(self, where, name=None, recursive=False):
-        """
-        Remove the object node *name* under *where* location.
+        """Remove the object node *name* under *where* location.
 
         Parameters
         ----------
@@ -1216,13 +1221,13 @@ class File(hdf5Extension.File, object):
             with a true value, the node and all its descendants will be
             completely removed.
         """
+
         obj = self.getNode(where, name=name)
         obj._f_remove(recursive)
 
 
     def getNodeAttr(self, where, attrname, name=None):
-        """
-        Get a PyTables attribute from the given node.
+        """Get a PyTables attribute from the given node.
 
         Parameters
         ----------
@@ -1233,13 +1238,13 @@ class File(hdf5Extension.File, object):
             The name of the attribute to retrieve.  If the named
             attribute does not exist, an AttributeError is raised.
         """
+
         obj = self.getNode(where, name=name)
         return obj._f_getAttr(attrname)
 
 
     def setNodeAttr(self, where, attrname, attrvalue, name=None):
-        """
-        Set a PyTables attribute for the given node.
+        """Set a PyTables attribute for the given node.
 
         Parameters
         ----------
@@ -1262,13 +1267,13 @@ class File(hdf5Extension.File, object):
         If the node already has a large number of attributes, a
         PerformanceWarning is issued.
         """
+
         obj = self.getNode(where, name=name)
         obj._f_setAttr(attrname, attrvalue)
 
 
     def delNodeAttr(self, where, attrname, name=None):
-        """
-        Delete a PyTables attribute from the given node.
+        """Delete a PyTables attribute from the given node.
 
         Parameters
         ----------
@@ -1279,13 +1284,13 @@ class File(hdf5Extension.File, object):
             The name of the attribute to delete.  If the named
             attribute does not exist, an AttributeError is raised.
         """
+
         obj = self.getNode(where, name=name)
         obj._f_delAttr(attrname)
 
 
     def copyNodeAttrs(self, where, dstnode, name=None):
-        """
-        Copy PyTables attributes from one node to another.
+        """Copy PyTables attributes from one node to another.
 
         Parameters
         ----------
@@ -1296,6 +1301,7 @@ class File(hdf5Extension.File, object):
             The destination node where the attributes will be copied to. It can
             be a path string or a Node instance (see :ref:`NodeClassDescr`).
         """
+
         srcObject = self.getNode(where, name=name)
         dstObject = self.getNode(dstnode)
         srcObject._v_attrs._f_copy(dstObject)
@@ -1304,8 +1310,7 @@ class File(hdf5Extension.File, object):
     def copyChildren(self, srcgroup, dstgroup,
                      overwrite=False, recursive=False,
                      createparents=False, **kwargs):
-        """
-        Copy the children of a group into another group.
+        """Copy the children of a group into another group.
 
         Parameters
         ----------
@@ -1336,8 +1341,7 @@ class File(hdf5Extension.File, object):
 
 
     def copyFile(self, dstfilename, overwrite=False, **kwargs):
-        """
-        Copy the contents of this file to dstfilename.
+        """Copy the contents of this file to dstfilename.
 
         Parameters
         ----------
@@ -1410,8 +1414,7 @@ class File(hdf5Extension.File, object):
 
 
     def listNodes(self, where, classname=None):
-        """
-        Return a *list* with children nodes hanging from where.
+        """Return a *list* with children nodes hanging from where.
 
         This is a list-returning version of :meth:`File.iterNodes`.
         """
@@ -1423,8 +1426,7 @@ class File(hdf5Extension.File, object):
 
 
     def iterNodes(self, where, classname=None):
-        """
-        Iterate over children nodes hanging from where.
+        """Iterate over children nodes hanging from where.
 
         Parameters
         ----------
@@ -1449,8 +1451,7 @@ class File(hdf5Extension.File, object):
 
 
     def __contains__(self, path):
-        """
-        Is there a node with that path?
+        """Is there a node with that path?
 
         Returns True if the file has a node with the given path (a
         string), False otherwise.
@@ -1465,8 +1466,7 @@ class File(hdf5Extension.File, object):
 
 
     def __iter__(self):
-        """
-        Recursively iterate over the nodes in the tree.
+        """Recursively iterate over the nodes in the tree.
 
         This is equivalent to calling :meth:`File.walkNodes` with no arguments.
 
@@ -1486,8 +1486,7 @@ class File(hdf5Extension.File, object):
 
 
     def walkNodes(self, where="/", classname=None):
-        """
-        Recursively iterate over nodes hanging from where.
+        """Recursively iterate over nodes hanging from where.
 
         Parameters
         ----------
@@ -1534,8 +1533,7 @@ class File(hdf5Extension.File, object):
 
 
     def walkGroups(self, where = "/"):
-        """
-        Recursively iterate over groups (not leaves) hanging from where.
+        """Recursively iterate over groups (not leaves) hanging from where.
 
         The where group itself is listed first (preorder), then each of its
         child groups (following an alphanumerical order) is also traversed,
@@ -1552,17 +1550,18 @@ class File(hdf5Extension.File, object):
 
 
     def _checkOpen(self):
-        """
-        Check the state of the file.
+        """Check the state of the file.
 
         If the file is closed, a `ClosedFileError` is raised.
         """
+
         if not self.isopen:
             raise ClosedFileError("the file object is closed")
 
 
     def _isWritable(self):
         """Is this file writable?"""
+
         return self.mode in ('w', 'a', 'r+')
 
 
@@ -1571,6 +1570,7 @@ class File(hdf5Extension.File, object):
 
         If the file is not writable, a `FileModeError` is raised.
         """
+
         if not self._isWritable():
             raise FileModeError("the file is not writable")
 
@@ -1584,8 +1584,7 @@ class File(hdf5Extension.File, object):
     # <Undo/Redo support>
 
     def isUndoEnabled(self):
-        """
-        Is the Undo/Redo mechanism enabled?
+        """Is the Undo/Redo mechanism enabled?
 
         Returns True if the Undo/Redo mechanism has been enabled for this file,
         False otherwise. Please note that this mechanism is persistent, so a
@@ -1623,8 +1622,7 @@ class File(hdf5Extension.File, object):
 
 
     def enableUndo(self, filters=Filters(complevel=1)):
-        """
-        Enable the Undo/Redo mechanism.
+        """Enable the Undo/Redo mechanism.
 
         This operation prepares the database for undoing and redoing
         modifications in the node hierarchy. This
@@ -1722,8 +1720,7 @@ class File(hdf5Extension.File, object):
 
 
     def disableUndo(self):
-        """
-        Disable the Undo/Redo mechanism.
+        """Disable the Undo/Redo mechanism.
 
         Disabling the Undo/Redo mechanism leaves the database in the
         current state and forgets past and future database states. This
@@ -1758,8 +1755,7 @@ class File(hdf5Extension.File, object):
 
 
     def mark(self, name=None):
-        """
-        Mark the state of the database.
+        """Mark the state of the database.
 
         Creates a mark for the current state of the database. A unique (and
         immutable) identifier for the mark is returned. An optional name (a
@@ -1802,8 +1798,7 @@ class File(hdf5Extension.File, object):
 
 
     def _log(self, action, *args):
-        """
-        Log an action.
+        """Log an action.
 
         The `action` must be an all-uppercase string identifying it.
         Arguments must also be strings.
@@ -1857,7 +1852,7 @@ class File(hdf5Extension.File, object):
 
 
     def _getMarkID(self, mark):
-        "Get an integer markid from a mark sequence number or name"
+        """Get an integer markid from a mark sequence number or name"""
 
         if isinstance(mark, int):
             markid = mark
@@ -1891,7 +1886,7 @@ class File(hdf5Extension.File, object):
 
 
     def _doundo(self, finalaction, direction):
-        "Undo/Redo actions up to final action in the specificed direction"
+        """Undo/Redo actions up to final action in the specificed direction"""
 
         if direction < 0:
             actionlog = self._actionlog[finalaction+1:self._curaction+1][::-1]
@@ -1940,8 +1935,7 @@ class File(hdf5Extension.File, object):
 
 
     def undo(self, mark=None):
-        """
-        Go to a past state of the database.
+        """Go to a past state of the database.
 
         Returns the database to the state associated with the specified mark.
         Both the identifier of a mark and its name can be used. If the mark is
@@ -1987,8 +1981,7 @@ class File(hdf5Extension.File, object):
 
 
     def redo(self, mark=None):
-        """
-        Go to a future state of the database.
+        """Go to a future state of the database.
 
         Returns the database to the state associated with the specified
         mark.  Both the identifier of a mark and its name can be used.
@@ -2039,8 +2032,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 
     def goto(self, mark):
-        """
-        Go to a specific mark of the database.
+        """Go to a specific mark of the database.
 
         Returns the database to the state associated with the specified mark.
         Both the identifier of a mark and its name can be used.
@@ -2064,8 +2056,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 
     def getCurrentMark(self):
-        """
-        Get the identifier of the current mark.
+        """Get the identifier of the current mark.
 
         Returns the identifier of the current mark. This can be used
         to know the state of a database after an application crash, or to
@@ -2083,8 +2074,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 
     def _shadowName(self):
-        """
-        Compute and return a shadow name.
+        """Compute and return a shadow name.
 
         Computes the current shadow name according to the current
         transaction, mark and action.  It returns a tuple with the
@@ -2168,18 +2158,19 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
     def __enter__(self):
         """Enter a context and return the same file."""
+
         return self
 
 
     def __exit__(self, *exc_info):
         """Exit a context and close the file."""
+
         self.close()
         return False  # do not hide exceptions
 
 
     def __str__(self):
-        """
-        Return a short string representation of the object tree.
+        """Return a short string representation of the object tree.
 
         Examples
         --------
@@ -2199,6 +2190,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
             /group0/group1/tuple2 (Table(100,)) 'This is the table title'
             /group0/group1/group2 (Group) ''
         """
+
         if not self.isopen:
             return "<closed File>"
 
@@ -2241,9 +2233,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 
     def _refNode(self, node, nodePath):
-        """
-        Register `node` as alive and insert references to it.
-        """
+        """Register `node` as alive and insert references to it."""
 
         if nodePath != '/':
             # The root group does not participate in alive/dead stuff.
@@ -2269,8 +2259,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 
     def _killNode(self, node):
-        """
-        Kill the `node`.
+        """Kill the `node`.
 
         Moves the `node` from the set of alive, referenced nodes to the
         set of dead, unreferenced ones.
@@ -2295,8 +2284,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 
     def _reviveNode(self, nodePath):
-        """
-        Revive the node under `nodePath` and return it.
+        """Revive the node under `nodePath` and return it.
 
         Moves the node under `nodePath` from the set of dead,
         unreferenced nodes to the set of alive, referenced ones.
@@ -2316,11 +2304,11 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 
     def _updateNodeLocations(self, oldPath, newPath):
-        """
-        Update location information of nodes under `oldPath`.
+        """Update location information of nodes under `oldPath`.
 
         This only affects *already loaded* nodes.
         """
+
         oldPrefix = oldPath + '/'  # root node can not be renamed, anyway
         oldPrefixLen = len(oldPrefix)
 

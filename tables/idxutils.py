@@ -26,6 +26,7 @@ import numpy
 
 def csformula(nrows):
     """Return the fitted chunksize (a float value) for nrows."""
+
     # This formula has been computed using two points:
     # 2**12 = m * 2**(n + log10(10**6))
     # 2**15 = m * 2**(n + log10(10**9))
@@ -37,6 +38,7 @@ def csformula(nrows):
 
 def limit_er(expectedrows):
     """Protection against creating too small or too large chunks or slices."""
+
     if expectedrows < 10**5:
         expectedrows = 10**5
     elif expectedrows > 10**12:
@@ -353,6 +355,7 @@ if hasattr(numpy, 'float16'):
 # Utility functions
 def infType(dtype, itemsize, sign=+1):
     """Return a superior limit for maximum representable data type"""
+
     assert sign in [-1, +1]
 
     if dtype.kind == "S":
@@ -459,7 +462,9 @@ def infType(dtype, itemsize, sign=+1):
 
 
 def StringNextAfter(x, direction, itemsize):
-    "Return the next representable neighbor of x in the appropriate direction."
+    """Return the next representable neighbor of x in the appropriate
+    direction."""
+
     assert direction in [-1, +1]
 
     # Pad the string with \x00 chars until itemsize completion
@@ -495,7 +500,9 @@ def StringNextAfter(x, direction, itemsize):
 
 
 def IntTypeNextAfter(x, direction, itemsize):
-    "Return the next representable neighbor of x in the appropriate direction."
+    """Return the next representable neighbor of x in the appropriate
+    direction."""
+
     assert direction in [-1, +1]
 
     # x is guaranteed to be either an int or a float
@@ -514,7 +521,9 @@ def IntTypeNextAfter(x, direction, itemsize):
 
 
 def BoolTypeNextAfter(x, direction, itemsize):
-    "Return the next representable neighbor of x in the appropriate direction."
+    """Return the next representable neighbor of x in the appropriate
+    direction."""
+
     assert direction in [-1, +1]
 
     # x is guaranteed to be either a boolean
@@ -525,7 +534,9 @@ def BoolTypeNextAfter(x, direction, itemsize):
 
 
 def nextafter(x, direction, dtype, itemsize):
-    "Return the next representable neighbor of x in the appropriate direction."
+    """Return the next representable neighbor of x in the appropriate
+    direction."""
+
     assert direction in [-1, 0, +1]
     assert dtype.kind == "S" or type(x) in (bool, int, long, float)
 

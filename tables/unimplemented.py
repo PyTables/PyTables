@@ -23,8 +23,7 @@ __version__ = "$Revision$"
 
 
 class UnImplemented(hdf5Extension.UnImplemented, Leaf):
-    """
-    This class represents datasets not supported by PyTables in an
+    """This class represents datasets not supported by PyTables in an
     HDF5 file.
 
     When reading a generic HDF5 file (i.e. one that has not been created with
@@ -62,9 +61,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         self.shape = (SizeType(0),)
         """The shape of the stored data."""
         self.byteorder = None
-        """
-        The endianness of data in memory ('big', 'little' or
-        'irrelevant').
+        """The endianness of data in memory ('big', 'little' or 'irrelevant').
         """
 
         super(UnImplemented, self).__init__(parentNode, name)
@@ -81,8 +78,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
 
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
-        """
-        Do nothing.
+        """Do nothing.
 
         This method does nothing, but a ``UserWarning`` is issued.
         Please note that this method *does not return a new node*, but
@@ -98,8 +94,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
     def _f_copy(self, newparent=None, newname=None,
                 overwrite=False, recursive=False, createparents=False,
                 **kwargs):
-        """
-        Do nothing.
+        """Do nothing.
 
         This method does nothing, since `UnImplemented` nodes can not
         be copied.  However, a ``UserWarning`` is issued.  Please note
@@ -123,9 +118,8 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
 
 # Classes reported as H5G_UNKNOWN by HDF5
 class Unknown(Node):
-    """
-    This class represents nodes reported as *unknown* by the underlying HDF5
-    library.
+    """This class represents nodes reported as *unknown* by the underlying
+    HDF5 library.
 
     This class does not have any public instance variables or methods, except
     those inherited from the Node class.

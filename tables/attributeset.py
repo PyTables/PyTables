@@ -68,9 +68,7 @@ def issysattrname(name):
 
 
 class AttributeSet(hdf5Extension.AttributeSet, object):
-    """
-    Container for the HDF5 attributes of a Node (see
-    :ref:`NodeClassDescr`).
+    """Container for the HDF5 attributes of a Node (see :ref:`NodeClassDescr`).
 
     This class provides methods to create new HDF5 node attributes,
     and to get, rename or delete existing ones.
@@ -259,8 +257,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
 
     def _f_list(self, attrset='user'):
-        """
-        Get a list of attribute names.
+        """Get a list of attribute names.
 
         The attrset string selects the attribute set to be used.  A
         'user' value returns only user attributes (this is the default).
@@ -348,8 +345,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
 
     def _g__setattr(self, name, value):
-        """
-        Set a PyTables attribute.
+        """Set a PyTables attribute.
 
         Sets a (maybe new) PyTables attribute with the specified `name`
         and `value`.  If the attribute already exists, it is simply
@@ -405,8 +401,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
 
     def __setattr__(self, name, value):
-        """
-        Set a PyTables attribute.
+        """Set a PyTables attribute.
 
         Sets a (maybe new) PyTables attribute with the specified `name`
         and `value`.  If the attribute already exists, it is simply
@@ -462,8 +457,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
     def _g__delattr(self, name):
-        """
-        Delete a PyTables attribute.
+        """Delete a PyTables attribute.
 
         Deletes the specified existing PyTables attribute.
 
@@ -486,8 +480,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
     def __delattr__(self, name):
-        """
-        Delete a PyTables attribute.
+        """Delete a PyTables attribute.
 
         Deletes the specified existing PyTables attribute from the
         attribute set.  If a nonexistent or system attribute is
@@ -513,6 +506,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
     def __getitem__(self, name):
         """The dictionary like interface for __getattr__()."""
+
         try:
             return self.__getattr__(name)
         except AttributeError:
@@ -524,11 +518,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
     def __setitem__(self, name, value):
         """The dictionary like interface for __setattr__()."""
+
         self.__setattr__(name, value)
 
 
     def __delitem__(self, name):
         """The dictionary like interface for __delattr__()."""
+
         try:
             self.__delattr__(name)
         except AttributeError:
@@ -539,12 +535,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
     def __contains__(self, name):
-        """
-        Is there an attribute with that `ame?
+        """Is there an attribute with that name?
 
         A true value is returned if the attribute set has an attribute
         with the given name, false otherwise.
         """
+
         return name in self._v_attrnames
 
 
@@ -566,8 +562,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
     def _g_copy(self, newSet, setAttr=None, copyClass=False):
-        """
-        Copy set attributes.
+        """Copy set attributes.
 
         Copies all user and allowed system PyTables attributes to the
         given attribute set, replacing the existing ones.
@@ -605,8 +600,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
     def _f_copy(self, where):
-        """
-        Copy attributes to the where node.
+        """Copy attributes to the where node.
 
         Copies all user and certain system attributes to the given where
         node (a Node instance - see :ref:`NodeClassDescr`), replacing
