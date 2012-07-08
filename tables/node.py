@@ -1,3 +1,15 @@
+########################################################################
+#
+# License: BSD
+# Created: 2005-02-11
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""PyTables nodes"""
+
 import warnings
 
 from tables.registry import classNameDict, classIdDict

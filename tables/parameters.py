@@ -8,16 +8,7 @@
 #
 ########################################################################
 
-"""
-Parameters for PyTables.
-
-Misc variables:
-
-`__docformat__`
-    The format of documentation strings in this module.
-`__version__`
-    Repository version of this file.
-"""
+"""Parameters for PyTables."""
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""

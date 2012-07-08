@@ -1,3 +1,14 @@
+########################################################################
+#
+# License: BSD
+# Created: December 16, 2004
+# Author: Ivan Vilata i Balaguer - ivan at selidor dot net
+#
+# $Id$
+#
+########################################################################
+
+"""Atom classes for describing dataset contents."""
 
 # Imports
 # =======

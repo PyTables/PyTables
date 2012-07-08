@@ -9,6 +9,8 @@
 #
 ########################################################################
 
+"""Here is defined the CArray class."""
+
 import sys
 
 import numpy

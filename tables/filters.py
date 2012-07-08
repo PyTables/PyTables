@@ -1,3 +1,14 @@
+########################################################################
+#
+# License: BSD
+# Created: 2007-02-23
+# Author: Ivan Vilata i Balaguer - ivan at selidor dot net
+#
+# $Id$
+#
+########################################################################
+
+"""Functionality related with filters in a PyTables file."""
 
 # Imports
 # =======

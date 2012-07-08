@@ -8,6 +8,14 @@
 #
 ########################################################################
 
+"""Create PyTables files and the object tree.
+
+This module support importing generic HDF5 files, on top of which
+PyTables files are created, read or extended. If a file exists, an
+object tree mirroring their hierarchical structure is created in
+memory. File class offer methods to traverse the tree, as well as to
+create new nodes.
+"""
 
 import warnings
 import time

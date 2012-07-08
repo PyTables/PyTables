@@ -8,6 +8,8 @@
 #
 ########################################################################
 
+"""Here is defined the Array class."""
+
 import numpy
 
 from tables import hdf5Extension

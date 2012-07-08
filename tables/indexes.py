@@ -9,22 +9,7 @@
 #
 ########################################################################
 
-"""Here is defined the IndexArray class.
-
-See IndexArray class docstring for more info.
-
-Classes:
-
-    IndexArray
-
-Functions:
-
-
-Misc variables:
-
-    __version__
-
-"""
+"""Here is defined the IndexArray class."""
 
 __version__ = "$Revision$"
 

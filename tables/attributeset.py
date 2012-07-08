@@ -8,6 +8,8 @@
 #
 ########################################################################
 
+"""Here is defined the AttributeSet class."""
+
 import re
 import warnings
 import cPickle

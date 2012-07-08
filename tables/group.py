@@ -8,6 +8,7 @@
 #
 ########################################################################
 
+"""Here is defined the Group class."""
 
 import warnings
 import weakref

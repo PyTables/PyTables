@@ -1,3 +1,31 @@
+########################################################################
+#
+# License: BSD
+# Created: May 4, 2005
+# Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
+#
+# $Id$
+#
+########################################################################
+
+"""
+Implementation of enumerated types.
+
+This module provides the `Enum` class, which can be used to construct
+enumerated types.  Those types are defined by providing an *exhaustive
+set or list* of possible, named values for a variable of that type.
+Enumerated variables of the same type are usually compared between them
+for equality and sometimes for order, but are not usually operated upon.
+
+Enumerated values have an associated *name* and *concrete value*.  Every
+name is unique and so are concrete values.  An enumerated variable
+always takes the concrete value, not its name.  Usually, the concrete
+value is not used directly, and frequently it is entirely irrelevant.
+For the same reason, an enumerated variable is not usually compared with
+concrete values out of its enumerated type.  For that kind of use,
+standard variables and constants are more adequate.
+"""
+
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""

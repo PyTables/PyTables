@@ -8,6 +8,8 @@
 #
 ########################################################################
 
+"""Here is defined the Leaf class."""
+
 import warnings
 import math
 

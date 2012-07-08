@@ -1,3 +1,14 @@
+########################################################################
+#
+# License: BSD
+# Created: September 21, 2002
+# Author: Francesc Alted
+#
+# $Id$
+#
+########################################################################
+
+"""Classes for describing columns for ``Table`` objects."""
 
 # Imports
 # =======

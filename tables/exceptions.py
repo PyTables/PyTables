@@ -1,12 +1,14 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: December 17, 2004
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: December 17, 2004
+# Author:  Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
+
+"""Declare exceptions and warnings that are specific to PyTables."""
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""

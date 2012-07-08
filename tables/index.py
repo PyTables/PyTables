@@ -8,6 +8,8 @@
 #
 ########################################################################
 
+"""Here is defined the Index class."""
+
 import sys
 from bisect import bisect_left, bisect_right
 from time import time, clock

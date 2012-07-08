@@ -8,6 +8,13 @@
 #
 ########################################################################
 
+"""Create links in the HDF5 file.
+
+This module implements containers for soft and external links.  Hard
+links doesn't need a container as such as they are the same as regular
+nodes (groups or leaves).
+"""
+
 import os
 import tables as t
 from tables import linkExtension

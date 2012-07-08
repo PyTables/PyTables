@@ -8,6 +8,8 @@
 #
 ########################################################################
 
+"""Here is defined the Table class."""
+
 import sys
 import math
 import warnings
