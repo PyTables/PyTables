@@ -2398,6 +2398,7 @@ class HDF5ErrorHandling(common.PyTablesTestCase):
     def test_silence_messages(self):
         code = """
 import tables
+tables.silenceHDF5Messages(False)
 tables.silenceHDF5Messages()
 try:
     tables.openFile('%s')
