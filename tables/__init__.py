@@ -1,52 +1,13 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: October 1, 2002
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: October 1, 2002
+# Author: Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
-"""
-PyTables, hierarchical datasets in Python
-
-:URL: http://www.pytables.org/
-
-PyTables is a package for managing hierarchical datasets and designed
-to efficiently cope with extremely large amounts of data.
-
-Most Important Classes
-======================
-
-Nodes
-~~~~~
-
-Group, Table, Array, CArray, EArray, VLArray, UnImplemented
-
-Declarative
-~~~~~~~~~~~
-
-IsDescription, {Type}Atom, {Type}Col
-
-Helpers
-~~~~~~~
-
-File, Filters, Cols, Column
-
-
-First Level Functions
-=====================
-
-openFile, copyFile, test,  print_versions, whichLibVersion,
-isPyTablesFile, isHDF5File
-
-Misc variables
-==============
-
-__version__, hdf5Version, is_pro
-
-"""
 
 import sys, os
 if os.name == 'nt':
@@ -76,17 +37,16 @@ hdf5Version = getHDF5Version()
 is_pro = True
 """True for PyTables Professional edition, false otherwise.
 
-.. note:: PyTables Professional edition has been released under open
-          source license. Starting with version 2.3, PyTables includes all
-          features of PyTables Pro.
+.. note::
 
-          In order to reflect the presence of advanced features *is_pro*
-          is always set to True.
+    PyTables Professional edition has been released under an open
+    source license. Starting with version 2.3, PyTables includes all
+    features of PyTables Pro.  In order to reflect the presence of
+    advanced features :data:`is_pro` is always set to True.
+    :data:`is_pro` should be considered *deprecated*.
+    It will be removed in the next major release.
 
-
-.. deprecated:: :data:`tables.is_pro` should be considered deprecated
-                and it will be removed in the next major release.
-
+.. deprecated:: 2.3
 """
 
 from tables.utilsExtension import (

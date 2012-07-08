@@ -9,9 +9,7 @@
 #
 ########################################################################
 
-"""Here are some definitions for sharing between extensions.
-
-"""
+"""Here are some definitions for sharing between extensions."""
 
 import sys
 

@@ -40,8 +40,7 @@ _pythonIdRE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 """Python identifier regular expression."""
 
 _reservedIdRE = re.compile('^_[cfgv]_')
-"""
-PyTables reserved identifier regular expression.
+"""PyTables reserved identifier regular expression.
 
 - c: class variables
 - f: class public methods
@@ -50,15 +49,13 @@ PyTables reserved identifier regular expression.
 """
 
 _hiddenNameRE = re.compile('^_[pi]_')
-"""
-Nodes with a name *matching* this expression are considered hidden.
+"""Nodes with a name *matching* this expression are considered hidden.
 
 For instance, ``name`` whould be visible while ``_i_name`` would not.
 """
 
 _hiddenPathRE = re.compile('/_[pi]_')
-"""
-Nodes with a path *containing* this expression are considered hidden.
+"""Nodes with a path *containing* this expression are considered hidden.
 
 For instance, a node with a pathname like ``/a/b/c`` would be visible
 while nodes with pathnames like ``/a/c/_i_x`` or ``/a/_p_x/y`` would
@@ -69,8 +66,7 @@ not.
 # Public functions
 # ================
 def checkNameValidity(name):
-    """
-    Check the validity of the `name` of an object.
+    """Check the validity of the `name` of an object.
 
     If the name is not valid, a ``ValueError`` is raised.  If it is
     valid but it can not be used with natural naming, a
@@ -120,8 +116,7 @@ def checkNameValidity(name):
 
 
 def joinPath(parentPath, name):
-    """
-    Join a *canonical* `parentPath` with a *non-empty* `name`.
+    """Join a *canonical* `parentPath` with a *non-empty* `name`.
 
     >>> joinPath('/', 'foo')
     '/foo'
@@ -147,8 +142,7 @@ def joinPath(parentPath, name):
 
 
 def splitPath(path):
-    """
-    Split a *canonical* `path` into a parent path and a node name.
+    """Split a *canonical* `path` into a parent path and a node name.
 
     The result is returned as a tuple.  The parent path does not
     include a trailing slash.
@@ -171,11 +165,13 @@ def splitPath(path):
 
 def isVisibleName(name):
     """Does this `name` make the named node a visible one?"""
+
     return _hiddenNameRE.match(name) is None
 
 
 def isVisiblePath(path):
     """Does this `path` make the named node a visible one?"""
+
     return _hiddenPathRE.search(path) is None
 
 
@@ -183,8 +179,10 @@ def isVisiblePath(path):
 # =========
 def _test():
     """Run ``doctest`` on this module."""
+
     import doctest
     doctest.testmod()
+
 
 if __name__ == '__main__':
     _test()

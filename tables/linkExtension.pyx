@@ -8,8 +8,7 @@
 #
 ########################################################################
 
-"""Pyrex functions and classes for supporting links in HDF5.
-"""
+"""Pyrex functions and classes for supporting links in HDF5."""
 
 from tables.exceptions import HDF5ExtError
 
@@ -85,6 +84,7 @@ cdef extern from "H5Lpublic.h" nogil:
 
 def _getLinkClass(parent_id, name):
     """Guess the link class."""
+
     cdef herr_t ret
     cdef H5L_info_t link_buff
     cdef H5L_type_t link_type
@@ -103,6 +103,7 @@ def _getLinkClass(parent_id, name):
 
 def _g_createHardLink(parentNode, name, targetNode):
   """Create a hard link in the file."""
+
   cdef herr_t ret
 
   ret = H5Lcreate_hard(targetNode._v_parent._v_objectID, targetNode._v_name,
@@ -121,6 +122,7 @@ cdef class Link(Node):
 
   def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
     """Private part for the _f_copy() method."""
+
     cdef herr_t ret
     cdef object stats
 
@@ -143,6 +145,7 @@ cdef class SoftLink(Link):
 
   def _g_create(self):
     """Create the link in file."""
+
     cdef herr_t ret
 
     ret = H5Lcreate_soft(self.target, self.parent_id, self.name,
@@ -155,6 +158,7 @@ cdef class SoftLink(Link):
 
   def _g_open(self):
     """Open the link in file."""
+
     cdef herr_t ret
     cdef H5L_info_t link_buff
     cdef size_t val_size
@@ -184,6 +188,7 @@ cdef class ExternalLink(Link):
 
   def _g_create(self):
     """Create the link in file."""
+
     cdef herr_t ret
 
     filename, target = self._get_filename_node()
@@ -197,6 +202,7 @@ cdef class ExternalLink(Link):
 
   def _g_open(self):
     """Open the link in file."""
+
     cdef herr_t ret
     cdef H5L_info_t link_buff
     cdef size_t val_size

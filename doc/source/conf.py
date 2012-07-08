@@ -17,6 +17,7 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../sphinxext'))
+sys.path.insert(0, os.path.abspath('../..'))
 
 
 # -- General configuration -----------------------------------------------------
@@ -28,8 +29,8 @@ sys.path.insert(0, os.path.abspath('../sphinxext'))
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.pngmath',
               'sphinx.ext.inheritance_diagram', 'sphinx.ext.extlinks',
-              'numpydoc', #'sphinx.ext.autosummary',
               'ipython_console_highlighting', 'sphinx.ext.todo',
+              'numpydoc', 'sphinx.ext.viewcode',
               ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -236,7 +237,7 @@ latex_elements = {
 
 # -- Options for autodocumentation ---------------------------------------------
 autodoc_member_order = "groupwise"
-autoclass_content = "both"
+autoclass_content = "class"
 autosummary_generate = []
 
 # -- Options for Epub output ---------------------------------------------------

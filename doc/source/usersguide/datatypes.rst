@@ -13,7 +13,8 @@ elements can be set through the use of the Atom class and its descendants
 (see :ref:`AtomClassDescr`).
 
 .. warning:: The use of numarray and Numeric in PyTables is now deprecated.
-   Support for these packages will be removed in future versions.
+
+    Support for these packages will be removed in future versions.
 
 PyTables uses ordinary strings to represent its *types*, with most of them
 matching the names of NumPy scalar types. Usually, a PyTables type consists

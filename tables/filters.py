@@ -1,26 +1,14 @@
-"""
-Functionality related with filters in a PyTables file.
+########################################################################
+#
+# License: BSD
+# Created: 2007-02-23
+# Author: Ivan Vilata i Balaguer - ivan at selidor dot net
+#
+# $Id$
+#
+########################################################################
 
-:Author: Ivan Vilata i Balaguer
-:Contact: ivan at selidor dot net
-:License: BSD
-:Created: 2007-02-23
-:Revision: $Id$
-
-Variables
-=========
-
-`__docformat`__
-    The format of documentation strings in this module.
-`__version__`
-    Repository version of this file.
-`all_complibs`
-    List of all compression libraries.
-`default_complib`
-    The default compression library.
-`foreign_complibs`
-    List of known but unsupported compression libraries.
-"""
+"""Functionality related with filters in a PyTables file."""
 
 # Imports
 # =======
@@ -58,32 +46,44 @@ _fletcher32_flag = 0x2
 # Classes
 # =======
 class Filters(object):
-    """
-    Container for filter properties.
+    """Container for filter properties.
 
-    This class is meant to serve as a container that keeps information
-    about the filter properties associated with the chunked leaves,
-    that is `Table`, `CArray`, `EArray` and `VLArray`.
+    This class is meant to serve as a container that keeps information about
+    the filter properties associated with the chunked leaves, that is Table,
+    CArray, EArray and VLArray.
 
     Instances of this class can be directly compared for equality.
 
-    Public instance variables
-    -------------------------
+    Parameters
+    ----------
+    complevel : int
+        Specifies a compression level for data. The allowed
+        range is 0-9. A value of 0 (the default) disables
+        compression.
+    complib : str
+        Specifies the compression library to be used. Right
+        now, 'zlib' (the default), 'lzo', 'bzip2'
+        and 'blosc' are supported.  Specifying a
+        compression library which is not available in the system
+        issues a FiltersWarning and sets the library to the default one.
+    shuffle : bool
+        Whether or not to use the *Shuffle*
+        filter in the HDF5 library. This is normally used to improve
+        the compression ratio. A false value disables shuffling and
+        a true one enables it. The default value depends on whether
+        compression is enabled or not; if compression is enabled,
+        shuffling defaults to be enabled, else shuffling is
+        disabled. Shuffling can only be used when compression is enabled.
+    fletcher32 : bool
+        Whether or not to use the
+        *Fletcher32* filter in the HDF5 library.
+        This is used to add a checksum on each data chunk. A false
+        value (the default) disables the checksum.
 
-    fletcher32
-        Whether the *Fletcher32* filter is active or not.
-    complevel
-        The compression level (0 disables compression).
-    complib
-        The compression filter used (irrelevant when compression is
-        not enabled).
-    shuffle
-        Whether the *Shuffle* filter is active or not.
+    Examples
+    --------
 
-    Example of use
-    --------------
-
-    This is a small example on using the `Filters` class::
+    This is a small example on using the Filters class::
 
         import numpy
         from tables import *
@@ -92,31 +92,30 @@ class Filters(object):
         atom = Float32Atom()
         filters = Filters(complevel=1, complib='blosc', fletcher32=True)
         arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2),
-                                 \"A growable array\", filters=filters)
+                                 "A growable array", filters=filters)
+
         # Append several rows in only one call
         arr.append(numpy.array([[1., 2.],
-                               [2., 3.],
-                               [3., 4.]], dtype=numpy.float32))
+                                [2., 3.],
+                                [3., 4.]], dtype=numpy.float32))
 
         # Print information on that enlargeable array
-        print \"Result Array:\"
+        print "Result Array:"
         print repr(arr)
-
         fileh.close()
 
-    This enforces the use of the Blosc library, a compression level of 1
-    and a Fletcher32 checksum filter as well.  See the output of this
-    example::
+    This enforces the use of the Blosc library, a compression level of 1 and a
+    Fletcher32 checksum filter as well. See the output of this example::
 
         Result Array:
         /earray (EArray(3, 2), fletcher32, shuffle, blosc(1)) 'A growable array'
-          type = float32
-          shape = (3, 2)
-          itemsize = 4
-          nrows = 3
-          extdim = 0
-          flavor = 'numpy'
-          byteorder = 'little'
+        type = float32
+        shape = (3, 2)
+        itemsize = 4
+        nrows = 3
+        extdim = 0
+        flavor = 'numpy'
+        byteorder = 'little'
     """
 
     @classmethod
@@ -151,8 +150,7 @@ class Filters(object):
 
     @classmethod
     def _unpack(class_, packed):
-        """
-        Create a new `Filters` object from a packed version.
+        """Create a new `Filters` object from a packed version.
 
         >>> Filters._unpack(0)
         Filters(complevel=0, shuffle=False, fletcher32=False)
@@ -169,6 +167,7 @@ class Filters(object):
           ...
         ValueError: invalid compression library id: 0
         """
+
         kwargs = {'_new': False}
         # Byte 0: compression level.
         kwargs['complevel'] = complevel = packed & 0xff
@@ -187,8 +186,7 @@ class Filters(object):
         return class_(**kwargs)
 
     def _pack(self):
-        """
-        Pack the `Filters` object into a 64-bit NumPy integer.
+        """Pack the `Filters` object into a 64-bit NumPy integer.
 
         >>> type(Filters()._pack())
         <type 'numpy.int64'>
@@ -200,6 +198,7 @@ class Filters(object):
         >>> hexl(Filters(9, 'zlib', shuffle=True, fletcher32=True)._pack())
         '0x30109L'
         """
+
         packed = numpy.int64(0)
         # Byte 2: parameterless filters.
         if self.shuffle:
@@ -218,36 +217,6 @@ class Filters(object):
     def __init__( self, complevel=0, complib=default_complib,
                   shuffle=True, fletcher32=False,
                   _new=True ):
-        """
-        Create a new `Filters` instance.
-
-        `complevel`
-            Specifies a compression level for data.  The allowed range
-            is 0-9.  A value of 0 (the default) disables compression.
-
-        `complib`
-            Specifies the compression library to be used.  Right now,
-            'zlib' (the default), 'lzo', 'bzip2' and 'blosc' are
-            supported.  Specifying a compression library which is not
-            available in the system issues a `FiltersWarning` and sets
-            the library to the default one.
-
-        `shuffle`
-            Whether or not to use the *Shuffle* filter in the HDF5
-            library.  This is normally used to improve the compression
-            ratio.  A false value disables shuffling and a true one
-            enables it.  The default value depends on whether
-            compression is enabled or not; if compression is enabled,
-            shuffling defaults to be enabled, else shuffling is
-            disabled.  Shuffling can only be used when compression is
-            enabled.
-
-        `fletcher32`
-            Whether or not to use the *Fletcher32* filter in the HDF5
-            library.  This is used to add a checksum on each data
-            chunk.  A false value (the default) disables the checksum.
-        """
-
         if not (0 <= complevel <= 9):
             raise ValueError("compression level must be between 0 and 9")
 
@@ -317,35 +286,34 @@ class Filters(object):
     #                 self.shuffle, self.fletcher32))
 
     def copy(self, **override):
-        """
-        Get a copy of the filters, possibly overriding some arguments.
+        """Get a copy of the filters, possibly overriding some arguments.
 
-        Constructor arguments to be overridden must be passed as
-        keyword arguments.
+        Constructor arguments to be overridden must be passed as keyword
+        arguments.
 
-        Using this method is recommended over replacing the attributes
-        of an instance, since instances of this class may become
-        immutable in the future.
+        Using this method is recommended over replacing the attributes of an
+        instance, since instances of this class may become immutable in the
+        future::
 
-        >>> filters1 = Filters()
-        >>> filters2 = filters1.copy()
-        >>> filters1 == filters2
-        True
-        >>> filters1 is filters2
-        False
-        >>> filters3 = filters1.copy(complevel=1)  #doctest: +ELLIPSIS
-        Traceback (most recent call last):
-          ...
-        ValueError: compression library ``None`` is not supported...
-        >>> filters3 = filters1.copy(complevel=1, complib='zlib')
-        >>> print filters1
-        Filters(complevel=0, shuffle=False, fletcher32=False)
-        >>> print filters3
-        Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
-        >>> filters1.copy(foobar=42)
-        Traceback (most recent call last):
-          ...
-        TypeError: __init__() got an unexpected keyword argument 'foobar'
+            >>> filters1 = Filters()
+            >>> filters2 = filters1.copy()
+            >>> filters1 == filters2
+            True
+            >>> filters1 is filters2
+            False
+            >>> filters3 = filters1.copy(complevel=1) #doctest: +ELLIPSIS
+            Traceback (most recent call last):
+            ...
+            ValueError: compression library ``None`` is not supported...
+            >>> filters3 = filters1.copy(complevel=1, complib='zlib')
+            >>> print filters1
+            Filters(complevel=0, shuffle=False, fletcher32=False)
+            >>> print filters3
+            Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
+            >>> filters1.copy(foobar=42)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() got an unexpected keyword argument 'foobar'
         """
         newargs = self.__dict__.copy()
         newargs.update(override)
@@ -356,8 +324,10 @@ class Filters(object):
 # =========
 def _test():
     """Run ``doctest`` on this module."""
+
     import doctest
     doctest.testmod()
+
 
 if __name__ == '__main__':
     _test()

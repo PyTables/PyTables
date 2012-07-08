@@ -1,31 +1,14 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: October 14, 2002
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: October 14, 2002
+# Author: Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
-"""Here is defined the Leaf class.
-
-See Leaf class docstring for more info.
-
-Classes:
-
-    Leaf
-
-Functions:
-
-    calc_chunksize
-
-Misc variables:
-
-    __version__
-
-
-"""
+"""Here is defined the Leaf class."""
 
 import warnings
 import math
@@ -47,6 +30,7 @@ __version__ = "$Revision$"
 
 def csformula(expectedsizeinMB):
     """Return the fitted chunksize for expectedsizeinMB."""
+
     # For a basesize of 8 KB, this will return:
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
@@ -56,6 +40,7 @@ def csformula(expectedsizeinMB):
 
 def limit_es(expectedsizeinMB):
     """Protection against creating too small or too large chunks."""
+
     if expectedsizeinMB < 1:        # < 1 MB
         expectedsizeinMB = 1
     elif expectedsizeinMB > 10**7:  # > 10 TB
@@ -87,106 +72,38 @@ def calc_chunksize(expectedsizeinMB):
                            # sequential access
 
 
-
 class Leaf(Node):
-    """
-    Abstract base class for all PyTables leaves.
+    """Abstract base class for all PyTables leaves.
 
-    A leaf is a node (see the `Node` class) which hangs from a group
-    (see the `Group` class) but, unlike a group, it can not have any
-    further children below it (i.e. it is an end node).
+    A leaf is a node (see the Node class in :class:`Node`) which hangs from a
+    group (see the Group class in :class:`Group`) but, unlike a group, it can
+    not have any further children below it (i.e. it is an end node).
 
-    This definition includes all nodes which contain actual data
-    (datasets handled by the `Table`, `Array`, `CArray`, `EArray` and
-    `VLArray` classes) and unsupported nodes (the `UnImplemented` class)
-    --these classes do in fact inherit from `Leaf`.
+    This definition includes all nodes which contain actual data (datasets
+    handled by the Table - see :ref:`TableClassDescr`, Array -
+    see :ref:`ArrayClassDescr`, CArray - see :ref:`CArrayClassDescr`, EArray -
+    see :ref:`EArrayClassDescr`, and VLArray - see :ref:`VLArrayClassDescr`
+    classes) and unsupported nodes (the UnImplemented
+    class - :ref:`UnImplementedClassDescr`) these classes do in fact inherit
+    from Leaf.
 
-    Public instance variables
-    -------------------------
-
-    The following instance variables are provided in addition to those
-    in `Node`:
-
-    byteorder
-        The byte ordering of the leaf data *on disk*.
-    chunkshape
+    Attributes
+    ----------
+    chunkshape : tuple
         The HDF5 chunk size for chunked leaves (a tuple).
 
-        This is read-only because you cannot change the chunk size of a
-        leaf once it has been created.
-    filters
-        Filter properties for this leaf --see `Filters`.
-    flavor
-        The type of the data object read from this leaf.
+        This is read-only because you cannot change the chunk
+        size of a leaf once it has been created.
 
-        It can be any of 'numpy', 'numarray', 'numeric' or 'python' (the
-        set of supported flavors depends on which packages you have
-        installed on your system).
-
-        You can (and are encouraged to) use this property to get, set
-        and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the
-        leaf has no such attribute, the default flavor is used.
-    maindim
-        The dimension along which iterators work.
-
-        Its value is 0 (i.e. the first dimension) when the dataset is
-        not extendable, and `Leaf.extdim` (where available) for
-        extendable ones.
-    ndim
-        The number of dimensions of the leaf data.
-    nrows
+    dtype : dtype
+        The NumPy dtype that most closely matches this leaf type.
+    extdim : int
+        The index of the enlargeable dimension (-1 if none).
+    nrows : int
         The length of the main dimension of the leaf data.
-    nrowsinbuf
-        The number of rows that fit in internal input buffers.
-
-        You can change this to fine-tune the speed or memory
-        requirements of your application.
-    shape
+    shape : tuple
         The shape of data in the leaf.
-    size_on_disk
-        The size of this leaf's data in bytes as it is stored on disk.  If the
-        data is compressed, this shows the compressed size.  In the case of
-        uncompressed, chunked data, this may be slightly larger than the
-        amount of data, due to partially filled chunks.
 
-    size_in_memory
-        The size of this leaf's data in bytes when it is fully loaded into
-        memory. This may be used in combination with size_on_disk to calculate
-        the compression ratio of the data.
-
-
-    Public instance variables -- aliases
-    ------------------------------------
-
-    The following instance variables are just easier-to-write aliases to
-    their `Node` counterparts (indicated between parentheses):
-
-    attrs
-        The associated `AttributeSet` instance (`Node._v_attrs`).
-    name
-        The name of this node in its parent group (`Node._v_name`).
-    objectID
-        A node identifier (may change from run to run).
-        (`Node._v_objectID`).
-    title
-        A description for this node (`Node._v_title`).
-
-    Public methods
-    --------------
-
-    * close([flush])
-    * copy([newparent][, newname][, overwrite][, createparents][, **kwargs])
-    * delAttr(name)
-    * flush()
-    * getAttr(name)
-    * isVisible()
-    * move([newparent][, newname][, overwrite])
-    * remove()
-    * rename(newname)
-    * truncate(size)
-    * setAttr(name, value)
-    * _f_close([flush])
-    * __len__()
     """
 
     # Properties
@@ -196,13 +113,18 @@ class Leaf(Node):
     # `````````````````````
     # These are a little hard to override, but so are properties.
     attrs = Node._v_attrs
+    """The associated AttributeSet instance - see :ref:`AttributeSetClassDescr`
+    (This is an easier-to-write alias of :attr:`Node._v_attrs`."""
     title = Node._v_title
+    """A description for this node
+    (This is an easier-to-write alias of :attr:`Node._v_title`)."""
 
     # Read-only node property aliases
     # ```````````````````````````````
     name = property(
         lambda self: self._v_name, None, None,
-        "The name of this node in its parent group (a string)." )
+        """The name of this node in its parent group
+        (This is an easier-to-write alias of :attr:`Node._v_name`).""" )
 
     chunkshape = property(
         lambda self: self._v_chunkshape, None, None,
@@ -215,17 +137,24 @@ class Leaf(Node):
 
     objectID = property(
         lambda self: self._v_objectID, None, None,
-        "A node identifier (may change from run to run)." )
+        """A node identifier, which may change from run to run.
+        (This is an easier-to-write alias of :attr:`Node._v_objectID`)""")
 
     ndim = property(
         lambda self: len(self.shape), None, None,
-        "The number of dimensions of the leaf data." )
+        """The number of dimensions of the leaf data.
+
+        .. versionadded: 2.4""" )
 
     # Lazy read-only attributes
     # `````````````````````````
     @lazyattr
     def filters(self):
-        """Filter properties for this leaf."""
+        """Filter properties for this leaf
+
+        .. seealso:: Filters in :ref:`FiltersClassDescr`
+        """
+
         return Filters._from_leaf(self)
 
     # Other properties
@@ -237,12 +166,10 @@ class Leaf(Node):
 
     maindim = property(
         _getmaindim, None, None,
-        """
-        The dimension along which iterators work.
+        """The dimension along which iterators work.
 
-        Its value is 0 (i.e. the first dimension) when the dataset is
-        not extendable, and `Leaf.extdim` (where available) for
-        extendable ones.
+        Its value is 0 (i.e. the first dimension) when the dataset is not
+        extendable, and self.extdim (where available) for extendable ones.
         """ )
 
     def _setflavor(self, flavor):
@@ -256,21 +183,29 @@ class Leaf(Node):
 
     flavor = property(
         lambda self: self._flavor, _setflavor, _delflavor,
-        """
-        The representation of data read from this leaf.
+        """The type of data object read from this leaf.
 
-        It can be any of 'numpy', 'numarray', 'numeric' or 'python' (the
-        set of supported flavors depends on which packages you have
-        installed on your system).
+        It can be any of 'numpy', 'numarray', 'numeric' or 'python' (the set of
+        supported flavors depends on which packages you have installed on your
+        system).
 
-        You can (and are encouraged to) use this property to get, set
-        and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the
-        leaf has no such attribute, the default flavor is used.
-        """ )
+        You can (and are encouraged to) use this property to get, set and
+        delete the FLAVOR HDF5 attribute of the leaf. When the leaf has no such
+        attribute, the default flavor is used.
+
+        .. warning::
+
+            The 'numarray' and 'numeric' flavors are deprecated since
+            version 2.3. Support for these flavors will be removed in
+            future versions.
+        """)
 
     size_on_disk = property(lambda self: self._get_storage_size(), None, None,
         """
-        Return the size of the data in bytes as it's stored on disk.
+        The size of this leaf's data in bytes as it is stored on disk.  If the
+        data is compressed, this shows the compressed size.  In the case of
+        uncompressed, chunked data, this may be slightly larger than the amount
+        of data, due to partially filled chunks.
         """)
 
     # Special methods
@@ -310,20 +245,18 @@ class Leaf(Node):
 
 
     def __len__(self):
-        """
-        Return the length of the main dimension of the leaf data.
+        """Return the length of the main dimension of the leaf data.
 
-        Please note that this may raise an ``OverflowError`` on 32-bit
-        platforms for datasets having more than 2**31-1 rows.  This is a
-        limitation of Python that you can work around by using the
-        ``nrows`` or ``shape`` attributes.
+        Please note that this may raise an OverflowError on 32-bit platforms
+        for datasets having more than 2**31-1 rows.  This is a limitation of
+        Python that you can work around by using the nrows or shape attributes.
         """
         return self.nrows
 
 
     def __str__(self):
-
-        """The string representation for this object is its pathname in
+        """
+        The string representation for this object is its pathname in
         the HDF5 object tree plus some additional metainfo.
         """
 
@@ -347,8 +280,7 @@ class Leaf(Node):
     # Private methods
     # ~~~~~~~~~~~~~~~
     def _g_postInitHook(self):
-        """
-        Code to be run after node creation and before creation logging.
+        """Code to be run after node creation and before creation logging.
 
         This method gets or sets the flavor of the leaf.
         """
@@ -616,97 +548,97 @@ very small/large chunksize, you may want to increase/decrease it."""
     # Tree manipulation
     # `````````````````
     def remove(self):
-        """
-        Remove this node from the hierarchy.
+        """Remove this node from the hierarchy.
 
-        This method has the behavior described in `Node._f_remove()`.
-        Please note that there is no ``recursive`` flag since leaves
-        do not have child nodes.
+        This method has the behavior described
+        in :meth:`Node._f_remove`. Please note that there is no recursive flag
+        since leaves do not have child nodes.
         """
+
         self._f_remove(False)
 
 
     def rename(self, newname):
-        """
-        Rename this node in place.
+        """Rename this node in place.
 
-        This method has the behavior described in `Node._f_rename()`.
+        This method has the behavior described in :meth:`Node._f_rename()`.
         """
         self._f_rename(newname)
 
 
     def move( self, newparent=None, newname=None,
               overwrite=False, createparents=False ):
-        """
-        Move or rename this node.
+        """Move or rename this node.
 
-        This method has the behavior described in `Node._f_move()`.
+        This method has the behavior described in :meth:`Node._f_move`
         """
+
         self._f_move(newparent, newname, overwrite, createparents)
 
 
     def copy( self, newparent=None, newname=None,
               overwrite=False, createparents=False, **kwargs ):
-        """
-        Copy this node and return the new one.
+        """Copy this node and return the new one.
 
-        This method has the behavior described in `Node._f_copy()`.
-        Please note that there is no ``recursive`` flag since leaves
-        do not have child nodes.  In addition, this method recognises
-        the following keyword arguments:
+        This method has the behavior described in :meth:`Node._f_copy`. Please
+        note that there is no recursive flag since leaves do not have child
+        nodes.
 
-        `title`
-            The new title for the destination.  If omitted or
-            ``None``, the original title is used.
-        `filters`
-            Specifying this parameter overrides the original filter
-            properties in the source node.  If specified, it must be
-            an instance of the `Filters` class.  The default is to
+        .. warning::
+
+            Note that unknown parameters passed to this method will be
+            ignored, so may want to double check the spelling of these
+            (i.e. if you write them incorrectly, they will most probably
+            be ignored).
+
+        Parameters
+        ----------
+        title
+            The new title for the destination. If omitted or None, the original
+            title is used.
+        filters : Filters
+            Specifying this parameter overrides the original filter properties
+            in the source node. If specified, it must be an instance of the
+            Filters class (see :ref:`FiltersClassDescr`). The default is to
             copy the filter properties from the source node.
-        `copyuserattrs`
-            You can prevent the user attributes from being copied by
-            setting this parameter to ``False``.  The default is to
-            copy them.
-        `start`, `stop`, `step`
-            Specify the range of rows to be copied; the default is to
-            copy all the rows.
-        `chunkshape`
-            The chunkshape of the new leaf.  It supports a couple of
-            special values.  A value of 'keep' means that the chunkshape
-            will be the same than original leaf (this is the default).
-            A value of 'auto' means that a new shape will be computed
-            automatically in order to ensure best performance when
-            accessing the dataset through the main dimension.  Any other
-            value should be an integer or a tuple matching the
-            dimensions of the leaf.
-        `stats`
-            This argument may be used to collect statistics on the
-            copy process.  When used, it should be a dictionary whith
-            keys ``'groups'``, ``'leaves'`` and ``'bytes'`` having a
-            numeric value.  Their values will be incremented to
-            reflect the number of groups, leaves and bytes,
+        copyuserattrs
+            You can prevent the user attributes from being copied by setting
+            this parameter to False. The default is to copy them.
+        start, stop, step : int
+            Specify the range of rows to be copied; the default is to copy all
+            the rows.
+        stats
+            This argument may be used to collect statistics on the copy
+            process. When used, it should be a dictionary with keys 'groups',
+            'leaves' and 'bytes' having a numeric value. Their values will be
+            incremented to reflect the number of groups, leaves and bytes,
             respectively, that have been copied during the operation.
-
-        .. Warning:: Note that unknown parameters passed to this method
-           will be ignored, so may want to double check the spell of
-           these (i.e. if you write them incorrectly, they will most
-           probably be ignored).
+        chunkshape
+            The chunkshape of the new leaf.  It supports a couple of special
+            values.  A value of keep means that the chunkshape will be the same
+            than original leaf (this is the default).  A value of auto means
+            that a new shape will be computed automatically in order to ensure
+            best performance when accessing the dataset through the main
+            dimension.  Any other value should be an integer or a tuple
+            matching the dimensions of the leaf.
         """
+
         return self._f_copy(
             newparent, newname, overwrite, createparents, **kwargs )
 
 
     def truncate(self, size):
-        """Truncate the main dimension to be `size` rows.
+        """Truncate the main dimension to be size rows.
 
-        If the main dimension previously was larger than this `size`,
-        the extra data is lost.  If the main dimension previously was
-        shorter, it is extended, and the extended part is filled with
-        the default values.
+        If the main dimension previously was larger than this size, the extra
+        data is lost.  If the main dimension previously was shorter, it is
+        extended, and the extended part is filled with the default values.
 
-        The truncation operation can only be applied to *enlargeable*
-        datasets, else a `TypeError` will be raised.
+        The truncation operation can only be applied to *enlargeable* datasets,
+        else a TypeError will be raised.
+
         """
+
         # A non-enlargeable arrays (Array, CArray) cannot be truncated
         if self.extdim < 0:
             raise TypeError("non-enlargeable datasets cannot be truncated")
@@ -714,64 +646,62 @@ very small/large chunksize, you may want to increase/decrease it."""
 
 
     def isVisible(self):
-        """
-        Is this node visible?
+        """Is this node visible?
 
-        This method has the behavior described in `Node._f_isVisible()`.
+        This method has the behavior described in :meth:`Node._f_isVisible()`.
         """
+
         return self._f_isVisible()
 
 
     # Attribute handling
     # ``````````````````
     def getAttr(self, name):
-        """
-        Get a PyTables attribute from this node.
+        """Get a PyTables attribute from this node.
 
-        This method has the behavior described in `Node._f_getAttr()`.
+        This method has the behavior described in :meth:`Node._f_getAttr`.
         """
         return self._f_getAttr(name)
 
 
     def setAttr(self, name, value):
-        """
-        Set a PyTables attribute for this node.
+        """Set a PyTables attribute for this node.
 
-        This method has the behavior described in `Node._f_setAttr()`.
+        This method has the behavior described in :meth:`Node._f_setAttr()`.
         """
+
         self._f_setAttr(name, value)
 
 
     def delAttr(self, name):
-        """
-        Delete a PyTables attribute from this node.
+        """Delete a PyTables attribute from this node.
 
-        This method has the behavior described in `Node._f_delAttr()`.
+        This method has the behavior described in :meth:`Node_f_delAttr`.
         """
+
         self._f_delAttr(name)
 
 
     # Data handling
     # `````````````
     def flush(self):
-        """
-        Flush pending data to disk.
+        """Flush pending data to disk.
 
-        Saves whatever remaining buffered data to disk.  It also
-        releases I/O buffers, so if you are filling many datasets in the
-        same PyTables session, please call ``flush()`` extensively so as
-        to help PyTables to keep memory requirements low.
+        Saves whatever remaining buffered data to disk. It also releases I/O
+        buffers, so if you are filling many datasets in the same PyTables
+        session, please call flush() extensively so as to help PyTables to keep
+        memory requirements low.
         """
+
         self._g_flush()
 
 
     def _f_close(self, flush=True):
-        """
-        Close this node in the tree.
+        """Close this node in the tree.
 
-        This method has the behavior described in `Node._f_close()`.
-        Besides that, the optional argument `flush` tells whether to
-        flush pending data to disk or not before closing.
+        This method has the behavior described in :meth:`Node._f_close`.
+        Besides that, the optional argument flush tells whether to flush
+        pending data to disk or not before closing.
         """
 
         if not self._v_isopen:
@@ -792,10 +722,9 @@ very small/large chunksize, you may want to increase/decrease it."""
 
 
     def close(self, flush=True):
-        """
-        Close this node in the tree.
+        """Close this node in the tree.
 
-        This method is completely equivalent to `Leaf._f_close()`.
+        This method is completely equivalent to :meth:`Leaf._f_close`.
         """
         self._f_close(flush)
 

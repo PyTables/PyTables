@@ -8,16 +8,7 @@
 #
 ########################################################################
 
-"""
-Parameters for PyTables.
-
-Misc variables:
-
-`__docformat__`
-    The format of documentation strings in this module.
-`__version__`
-    Repository version of this file.
-"""
+"""Parameters for PyTables."""
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
@@ -224,6 +215,7 @@ idea to set this to the number of cores in your machine or, when your
 machine has many of them (e.g. > 4), perhaps one less than this.
 
 .. note::
+
     currently MAX_THREADS is only used as a fall-back if
     :data:`tables.parameters.MAX_NUMEXPR_THREADS` or
     :data:`tables.parameters.MAX_BLOSC_THREADS` are not set.

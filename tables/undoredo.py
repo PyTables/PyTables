@@ -9,8 +9,7 @@
 #
 ########################################################################
 
-"""
-Support for undoing and redoing actions.
+"""Support for undoing and redoing actions.
 
 Functions:
 

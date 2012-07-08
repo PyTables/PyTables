@@ -128,6 +128,7 @@ def keysort(ndarray array1, ndarray array2):
   elements on any size.
 
   """
+
   cdef npy_intp size
   cdef int elsize1, elsize2
 
@@ -185,6 +186,7 @@ cdef class Index:
 
 cdef class CacheArray(Array):
   """Container for keeping index caches of 1st and 2nd level."""
+
   cdef hid_t mem_space_id
 
 
@@ -218,6 +220,7 @@ cdef class CacheArray(Array):
 
 cdef class IndexArray(Array):
   """Container for keeping sorted and indices values."""
+
   cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
   cdef hid_t   mem_space_id
   cdef int     l_chunksize, l_slicesize, nbounds, indsize
@@ -242,7 +245,8 @@ cdef class IndexArray(Array):
 
 
   def _initSortedSlice(self, index):
-    "Initialize the structures for doing a binary search."
+    """Initialize the structures for doing a binary search."""
+
     cdef long ndims
     cdef int  rank, buflen, cachesize
     cdef char *bname
@@ -314,7 +318,7 @@ cdef class IndexArray(Array):
 
   # This is callable from python
   def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
-    "Read the sorted part of an index."
+    """Read the sorted part of an index."""
 
     self._g_readSortedSlice(irow, start, stop)
     return self.bufferlb
@@ -332,6 +336,7 @@ cdef class IndexArray(Array):
     before the leftmost x already there.
 
     """
+
     cdef int lo, mid
 
     lo = 0
@@ -352,6 +357,7 @@ cdef class IndexArray(Array):
     beyond the rightmost x already there.
 
     """
+
     cdef int lo, mid
 
     lo = 0
@@ -366,6 +372,7 @@ cdef class IndexArray(Array):
 
   cdef void *getLRUbounds(self, int nrow, int nbounds):
     """Get the bounds from the cache, or read them."""
+
     cdef void *vpointer
     cdef long nslot
 
@@ -382,6 +389,7 @@ cdef class IndexArray(Array):
 
   cdef void *getLRUsorted(self, int nrow, int ncs, int nchunk, int cs):
     """Get the sorted row from the cache or read it."""
+
     cdef void *vpointer
     cdef npy_int64 nckey
     cdef long nslot
@@ -945,7 +953,7 @@ cdef class LastRowArray(Array):
   """
 
   def _readIndexSlice(self, hsize_t start, hsize_t stop, ndarray idx):
-    "Read the reverse index part of an LR index."
+    """Read the reverse index part of an LR index."""
 
     with nogil:
         ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
@@ -957,7 +965,8 @@ cdef class LastRowArray(Array):
 
 
   def _readSortedSlice(self, IndexArray sorted, hsize_t start, hsize_t stop):
-    "Read the sorted part of an LR index."
+    """Read the sorted part of an LR index."""
+
     cdef void  *rbuflb
 
     rbuflb = sorted.rbuflb  # direct access to rbuflb: very fast.

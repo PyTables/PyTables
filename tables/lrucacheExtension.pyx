@@ -63,13 +63,16 @@ import_array()
 
 cdef class NodeCache:
   """Least-Recently-Used (LRU) cache for PyTables nodes."""
+
   # This class variables are declared in utilsExtension.pxd
 
 
   def __init__(self, nslots):
     """Maximum nslots of the cache.
+
     If more than 'nslots' elements are added to the cache,
-    the least-recently-used ones will be discarded."""
+    the least-recently-used ones will be discarded.
+    """
 
     if nslots < 0:
       raise ValueError("Negative number (%s) of slots!" % nslots)
@@ -117,6 +120,7 @@ cdef class NodeCache:
 
   cdef long getslot(self, object path):
     """Checks whether path is in this cache or not."""
+
     cdef long i, nslot
 
     nslot = -1  # -1 means not found
@@ -153,14 +157,12 @@ cdef class NodeCache:
     return "<%s (%d elements)>" % (str(self.__class__), len(self.paths))
 
 
-
 ########################################################################
 # Common code for other LRU cache classes
 ########################################################################
 
 cdef class BaseCache:
-  """Base class that implements automatic probing/disabling of the cache.
-  """
+  """Base class that implements automatic probing/disabling of the cache."""
 
   def __init__(self, long nslots, object name):
 
@@ -292,11 +294,11 @@ cdef class ObjectNode:
 ########################################################################
 
 cdef class ObjectCache(BaseCache):
-  """Least-Recently-Used (LRU) cache specific for python objects.
-  """
+  """Least-Recently-Used (LRU) cache specific for python objects."""
 
   def __init__(self, long nslots, long maxcachesize, object name):
     """Maximum size of the cache.
+
     If more than 'nslots' elements are added to the cache,
     the least-recently-used ones will be discarded.
 
@@ -471,11 +473,11 @@ cdef class ObjectCache(BaseCache):
 #********************************************************************
 
 cdef class NumCache(BaseCache):
-  """Least-Recently-Used (LRU) cache specific for Numerical data.
-  """
+  """Least-Recently-Used (LRU) cache specific for Numerical data."""
 
   def __init__(self, object shape, object dtype, object name):
     """Maximum size of the cache.
+
     If more than 'nslots' elements are added to the cache,
     the least-recently-used ones will be discarded.
 

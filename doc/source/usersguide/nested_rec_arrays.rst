@@ -11,12 +11,13 @@ package. Basically, a nested record array is a record array that
 supports nested datatypes. It means that columns can contain not only
 regular datatypes but also nested datatypes.
 
-.. warning:: PyTables nested record arrays were implemented to overcome a
-   limitation of the record arrays in the numarray
-   package.  However, as this functionality is already present in
-   NumPy, current users should not need the package
-   tables.nra anymore and it will be deprecated
-   soon.
+.. warning::
+
+    PyTables nested record arrays were implemented to overcome a limitation
+    of the record arrays in the numarray package.
+    However, as this functionality is already present in NumPy, current users
+    should not need the package tables.nra anymore and it will be deprecated
+    soon.
 
 Each nested record array is a NestedRecArray
 object in the tables.nra package. Nested record

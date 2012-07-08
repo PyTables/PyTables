@@ -8,7 +8,7 @@ PYTHON = python
 GENERATED = ANNOUNCE.txt
 
 
-.PHONY:		all dist clean distclean
+.PHONY:		all dist clean distclean html
 
 all:		$(GENERATED)
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
@@ -29,6 +29,10 @@ distclean:	clean
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
 	rm -f tables/_comp_*.c tables/*Extension.c
 	#git clean -fdx
+
+html:
+	$(PYTHON) setup.py build_ext --inplace
+	make -C doc html
 
 %:		%.in VERSION
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"

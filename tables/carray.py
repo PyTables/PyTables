@@ -1,31 +1,15 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: June 15, 2005
-#       Author:  Antonio Valentino
-#       Modified by:  Francesc Alted
+# License: BSD
+# Created: June 15, 2005
+# Author: Antonio Valentino
+# Modified by: Francesc Alted
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
-"""Here is defined the CArray class.
-
-See CArray class docstring for more info.
-
-Classes:
-
-    CArray
-
-Functions:
-
-
-Misc variables:
-
-    __version__
-
-
-"""
+"""Here is defined the CArray class."""
 
 import sys
 
@@ -44,38 +28,53 @@ __version__ = "$Revision$"
 obversion = "1.0"    # Support for time & enumerated datatypes.
 
 
-
 class CArray(Array):
-    """
-    This class represents homogeneous datasets in an HDF5 file.
+    """This class represents homogeneous datasets in an HDF5 file.
 
-    The difference between a `CArray` and a normal `Array`, from which
-    it inherits, is that a `CArray` has a chunked layout and, as a
-    consequence, it supports compression.  You can use datasets of
-    this class to easily save or load arrays to or from disk, with
+    The difference between a CArray and a normal Array (see
+    :ref:`ArrayClassDescr`), from which it inherits, is that a CArray has a
+    chunked layout and, as a consequence, it supports compression.  You can use
+    datasets of this class to easily save or load arrays to or from disk, with
     compression support included.
 
     CArray includes all the instance variables and methods of Array.  Only those
     with different behavior are mentioned here.
 
-    Public methods
-    --------------
+    Parameters
+    ----------
+    atom
+       An `Atom` instance representing the *type* and *shape* of
+       the atomic objects to be saved.
 
-    size_on_disk
-        The size of this carray's data in bytes as it is stored on disk.  If the
-        data is compressed, this shows the compressed size.  In the case of
-        uncompressed, chunked data, this may be slightly larger than the amount
-        of data, due to partially filled chunks.
-    size_in_memory
-        The size of this carray's data in bytes when it is fully loaded into
-        memory. This may be used in combination with size_on_disk to calculate 
-        the compression ratio of the data.
-    
-    Example of use
-    --------------
+    shape
+       The shape of the new array.
 
-    See below a small example of the use of the `CArray` class.  The
-    code is available in ``examples/carray1.py``::
+    title
+       A description for this node (it sets the ``TITLE`` HDF5
+       attribute on disk).
+
+    filters
+       An instance of the `Filters` class that provides
+       information about the desired I/O filters to be applied
+       during the life of this object.
+
+    chunkshape
+       The shape of the data chunk to be read or written in a
+       single HDF5 I/O operation.  Filters are applied to those
+       chunks of data.  The dimensionality of `chunkshape` must
+       be the same as that of `shape`.  If ``None``, a sensible
+       value is calculated (which is recommended).
+
+    byteorder
+        The byteorder of the data *on disk*, specified as 'little'
+        or 'big'.  If this is not specified, the byteorder is that
+        of the platform.
+
+    Examples
+    --------
+
+    See below a small example of the use of the `CArray` class.  The code is
+    available in ``examples/carray1.py``::
 
         import numpy
         import tables
@@ -87,6 +86,7 @@ class CArray(Array):
 
         h5f = tables.openFile(fileName, 'w')
         ca = h5f.createCArray(h5f.root, 'carray', atom, shape, filters=filters)
+
         # Fill a hyperslab in ``ca``.
         ca[10:60, 20:70] = numpy.ones((50, 50))
         h5f.close()
@@ -125,41 +125,9 @@ class CArray(Array):
                   title="", filters=None,
                   chunkshape=None, byteorder = None,
                   _log=True ):
-        """
-        Create a `CArray` instance.
-
-        `atom`
-            An `Atom` instance representing the *type* and *shape* of
-            the atomic objects to be saved.
-
-        `shape`
-            The shape of the new array.
-
-        `title`
-            A description for this node (it sets the ``TITLE`` HDF5
-            attribute on disk).
-
-        `filters`
-            An instance of the `Filters` class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        `chunkshape`
-            The shape of the data chunk to be read or written in a
-            single HDF5 I/O operation.  Filters are applied to those
-            chunks of data.  The dimensionality of `chunkshape` must
-            be the same as that of `shape`.  If ``None``, a sensible
-            value is calculated (which is recommended).
-
-        `byteorder`
-            The byteorder of the data *on disk*, specified as 'little'
-            or 'big'.  If this is not specified, the byteorder is that
-            of the platform.
-        """
 
         self.atom = atom
-        """
-        An `Atom` instance representing the shape, type of the atomic
+        """An `Atom` instance representing the shape, type of the atomic
         objects to be saved.
         """
         self.shape = None
@@ -202,7 +170,7 @@ class CArray(Array):
         if new:
             if not isinstance(atom, Atom):
                 raise ValueError("atom parameter should be an instance of "
-                                 "tables.Atom and you passed a %s." % 
+                                 "tables.Atom and you passed a %s." %
                                                                   type(atom))
             if shape is None:
                 raise ValueError("you must specify a non-empty shape")
@@ -274,7 +242,7 @@ class CArray(Array):
 
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, chunkshape, _log, **kwargs):
-        "Private part of Leaf.copy() for each kind of leaf"
+        """Private part of Leaf.copy() for each kind of leaf"""
         (start, stop, step) = self._processRangeRead(start, stop, step)
         maindim = self.maindim
         shape = list(self.shape)

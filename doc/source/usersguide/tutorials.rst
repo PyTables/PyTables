@@ -1141,10 +1141,12 @@ iterators. Look at the next example::
      (512, 2, 4.0, 2, 8, 34359738368L, 'Particle:      2', 4.0)
      (768, 3, 6561.0, 3, 7, 51539607552L, 'Particle:      3', 9.0)]
 
-.. note:: The authors find this way of
-          updating tables (i.e. using Row.update()) to be
-          both convenient and efficient. Please make sure to use it
-          extensively.
+.. note::
+
+    The authors find this way of updating tables (i.e. using Row.update())
+    to be both convenient and efficient. Please make sure to use it
+    extensively.
+
 
 Modifying data in arrays
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2268,7 +2270,7 @@ hierarchy.
 Reading nested tables
 ~~~~~~~~~~~~~~~~~~~~~
 
-Now, what happens if we want to read the table? What kind of
+Now, what happens if we want to read the table? What kind oft
 data container will we get? Well, it's worth trying it::
 
     >>> nra = table[::4]
@@ -2286,12 +2288,13 @@ datatype* (its dtype is a list of
 name-datatype tuples). We read one row for each four in the table,
 giving a result of three rows.
 
-.. note:: When using the numarray flavor (deprecated), you will get an
-          instance of the NestedRecArray class that lives in the tables.nra
-          package.
-          NestedRecArray is actually a subclass of the RecArray object of the
-          numarray.records module. You can get more info about NestedRecArray
-          object in :ref:`NestedRecArrayClassDescr`.
+.. note::
+
+    When using the numarray flavor (deprecated), you will get an instance of
+    the NestedRecArray class that lives in the tables.nra package.
+    NestedRecArray is actually a subclass of the RecArray object of the
+    numarray.records module. You can get more info about NestedRecArray object
+    in :ref:`NestedRecArrayClassDescr`.
 
 You can make use of the above object in many different ways.
 For example, you can use it to append new data to the existing table

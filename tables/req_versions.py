@@ -6,9 +6,7 @@
 #
 ########################################################################
 
-"""Required versions for PyTables dependencies.
-
-"""
+"""Required versions for PyTables dependencies."""
 
 #***************************************************************
 #  Keep these in sync with setup.py and user's guide and README

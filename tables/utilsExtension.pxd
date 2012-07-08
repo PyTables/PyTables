@@ -9,8 +9,10 @@
 #
 ########################################################################
 
-""" These are declarations for functions in utilsExtension.pyx that
-have to be shared with other extensions.  """
+"""
+These are declarations for functions in utilsExtension.pyx that have to
+be shared with other extensions.
+"""
 
 from definitions cimport hsize_t, hid_t
 

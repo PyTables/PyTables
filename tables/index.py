@@ -1,32 +1,14 @@
 #######################################################################
 #
-#       License: BSD
-#       Created: June 08, 2004
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: June 08, 2004
+# Author: Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
-"""Here is defined the Index class.
-
-See Index class docstring for more info.
-
-Classes:
-
-    Index
-
-Functions:
-
-
-Misc variables:
-
-    __version__
-    defaultAutoIndex
-    defaultIndexFilters
-
-
-"""
+"""Here is defined the Index class."""
 
 import sys
 from bisect import bisect_left, bisect_right
@@ -111,34 +93,46 @@ def _tableColumnPathnameOfIndex(indexpathname):
 
 
 class Index(NotLoggedMixin, indexesExtension.Index, Group):
+    """Represents the index of a column in a table.
 
-    """
-    Represents the index of a column in a table.
+    This class is used to keep the indexing information for columns in a Table
+    dataset (see :ref:`TableClassDescr`). It is actually a descendant of the
+    Group class (see :ref:`GroupClassDescr`), with some added functionality. An
+    Index is always associated with one and only one column in the table.
 
-    This class is used to keep the indexing information for columns in a
-    `Table` dataset.  It is actually a descendant of the `Group` class,
-    with some added functionality.  An `Index` is always associated with
-    one and only one column in the table.
+    .. note::
 
-    This class is mainly intended for internal use, but some of its
-    attributes may be interesting for the programmer.
+        This class is mainly intended for internal use, but some of its
+        documented attributes and methods may be interesting for the
+        programmer.
 
-    Public instance variables
-    -------------------------
-
-    column
-        The `Column` instance for the indexed column.
-    dirty
-        Whether the index is dirty or not. Dirty indexes are out of sync
-        with column data, so are not usable.
+    Parameters
+    ----------
+    atom : Atom
+        An Atom object representing the shape and type of the atomic objects to
+        be saved. Only scalar atoms are supported.
+    title
+        Sets a TITLE attribute of the Index entity.
     kind
-        The kind of the index.
+        The desired kind for this index.  The 'full' kind specifies a complete
+        track of the row position (64-bit), while the 'medium', 'light' or
+        'ultralight' kinds only specify in which chunk the row is (using
+        32-bit, 16-bit and 8-bit respectively).
     optlevel
-        The optimization level during index creation.
-    filters
-        Filter properties for this index --see `Filters`.
-    nelements
-        The number of currently indexed rows for this column.
+        The desired optimization level for this index.
+    filters : Filters
+        An instance of the Filters class that provides information about the
+        desired I/O filters to be applied during the life of this object.
+    tmp_dir
+        The directory for the temporary files.
+    expectedrows
+        Represents an user estimate about the number of row slices that will be
+        added to the growable dimension in the IndexArray object.
+    byteorder
+        The byteorder of the index datasets *on-disk*.
+    blocksizes
+        The four main sizes of the compound blocks in index datasets (a low
+        level parameter).
     """
 
     _c_classId = 'INDEX'
@@ -153,8 +147,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         "The kind of this index.")
 
     filters = property(
-        lambda self: self._v_filters, None, None,
-        "The filters for this index.")
+        lambda self: self._v_filters, None, None, """
+        Filter properties for this index - see Filters in
+        :ref:`FiltersClassDescr`.""")
 
     def _getdirty(self):
         if 'DIRTY' not in self._v_attrs:
@@ -175,11 +170,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     dirty = property(
         _getdirty, _setdirty, None,
-        """
-        Whether the index is dirty or not.
+        """Whether the index is dirty or not.
 
-        Dirty indexes are out of sync with column data, so they exist
-        but they are not usable.
+        Dirty indexes are out of sync with column data, so they exist but they
+        are not usable.
         """ )
 
     def _getcolumn(self):
@@ -189,8 +183,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         return column
 
     column = property(
-        _getcolumn, None, None,
-        "Accessor for the `Column` object of this index.")
+        _getcolumn, None, None, """
+        The Column (see :ref:`ColumnClassDescr`) instance for the indexed
+        column.""")
 
     def _gettable(self):
         tablepath, columnpath = _tableColumnPathnameOfIndex(self._v_pathname)
@@ -279,11 +274,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     @lazyattr
     def nrowsinchunk(self):
         """The number of rows that fits in a *table* chunk."""
+
         return self.table.chunkshape[0]
 
     @lazyattr
     def lbucket(self):
         """Return the length of a bucket based index type."""
+
         # Avoid to set a too large lbucket size (mainly useful for tests)
         lbucket = min(self.nrowsinchunk, self.chunksize)
         if self.indsize == 1:
@@ -318,40 +315,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                  byteorder=None,
                  blocksizes=None,
                  new=True):
-        """Create an Index instance.
-
-        Keyword arguments:
-
-        atom -- An Atom object representing the shape and type of the
-            atomic objects to be saved. Only scalar atoms are
-            supported.
-
-        title -- Sets a TITLE attribute of the Index entity.
-
-        kind -- The desired kind for this index.  The 'full' kind
-            specifies a complete track of the row position (64-bit),
-            while the 'medium', 'light' or 'ultralight' kinds only
-            specify in which chunk the row is (using 32-bit, 16-bit and
-            8-bit respectively).
-
-        optlevel -- The desired optimization level for this index.
-
-        filters -- An instance of the Filters class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        tmp_dir -- The directory for the temporary files.
-
-        expectedrows -- Represents an user estimate about the number
-            of row slices that will be added to the growable dimension
-            in the IndexArray object.
-
-        byteorder -- The byteorder of the index datasets *on-disk*.
-
-        blocksizes -- The four main sizes of the compound blocks in
-            index datasets (a low level parameter).
-
-        """
 
         self._v_version = None
         """The object version of this index."""
@@ -384,7 +347,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.nrows = None
         """The total number of slices in the index."""
         self.nelements = None
-        """The number of currently indexed row for this column."""
+        """The number of currently indexed rows for this column."""
         self.blocksizes = blocksizes
         """The four main sizes of the compound blocks (if specified)."""
         self.dirtycache = True
@@ -570,6 +533,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def initial_append(self, xarr, nrow, reduction):
         """Compute an initial indices arrays for data to be indexed."""
+
         if profile: tref = time()
         if profile: show_stats("Entering initial_append", tref)
         arr = xarr.pop()
@@ -641,6 +605,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def final_idx32(self, idx, offset):
         """Perform final operations in 32-bit indices."""
+
         if profile: tref = time()
         if profile: show_stats("Entering final_idx32", tref)
         # Do an upcast first in order to add the offset.
@@ -760,7 +725,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def optimize(self, verbose=False):
         """Optimize an index so as to allow faster searches.
 
-        verbose -- If True, messages about the progress of the
+        verbose
+            If True, messages about the progress of the
             optimization process are printed out.
 
         """
@@ -1031,7 +997,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def create_temp2(self):
-        "Create some temporary objects for slice sorting purposes."
+        """Create some temporary objects for slice sorting purposes."""
 
         # The algorithms for doing the swap can be optimized so that
         # one should be necessary to create temporaries for keeping just
@@ -1068,7 +1034,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def cleanup_temp(self):
-        "Copy the data and delete the temporaries for sorting purposes."
+        """Copy the data and delete the temporaries for sorting purposes."""
 
         if self.verbose:
             print "Copying temporary data..."
@@ -1132,6 +1098,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def get_neworder(self, neworder, src_disk, tmp_disk,
                      lastrow, nslices, offset, dtype):
         """Get sorted & indices values in new order."""
+
         cs = self.chunksize
         ncs = ncs2 = self.nchunkslice
         self_nslices = self.nslices
@@ -1167,7 +1134,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def swap_chunks(self, mode="median"):
-        "Swap & reorder the different chunks in a block."
+        """Swap & reorder the different chunks in a block."""
 
         boundsnames = {'start':'abounds', 'stop':'zbounds', 'median':'mbounds'}
         tmp = self.tmp
@@ -1210,6 +1177,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def read_slice(self, where, nslice, buffer, start=0):
         """Read a slice from the `where` dataset and put it in `buffer`."""
+
         # Create the buffers for specifying the coordinates
         self.startl = numpy.array([nslice, start], numpy.uint64)
         self.stopl = numpy.array([nslice+1, start+buffer.size], numpy.uint64)
@@ -1219,6 +1187,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def write_slice(self, where, nslice, buffer, start=0):
         """Write a `slice` to the `where` dataset with the `buffer` data."""
+
         self.startl = numpy.array([nslice, start], numpy.uint64)
         self.stopl = numpy.array([nslice+1, start+buffer.size], numpy.uint64)
         self.stepl = numpy.ones(shape=2, dtype=numpy.uint64)
@@ -1229,6 +1198,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     # Read version for LastRow
     def read_sliceLR(self, where, buffer, start=0):
         """Read a slice from the `where` dataset and put it in `buffer`."""
+
         startl = numpy.array([start], dtype=numpy.uint64)
         stopl = numpy.array([start+buffer.size], dtype=numpy.uint64)
         stepl = numpy.array([1], dtype=numpy.uint64)
@@ -1238,6 +1208,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     # Write version for LastRow
     def write_sliceLR(self, where, buffer, start=0):
         """Write a slice from the `where` dataset with the `buffer` data."""
+
         startl = numpy.array([start], dtype=numpy.uint64)
         countl = numpy.array([start+buffer.size], dtype=numpy.uint64)
         stepl = numpy.array([1], dtype=numpy.uint64)
@@ -1247,6 +1218,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def reorder_slice(self, nslice, sorted, indices, ssorted, sindices,
                       tmp_sorted, tmp_indices):
         """Copy & reorder the slice in source to final destination."""
+
         ss = self.slicesize
         # Load the second part in buffers
         self.read_slice(tmp_sorted, nslice, ssorted[ss:])
@@ -1263,6 +1235,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def update_caches(self, nslice, ssorted):
         """Update the caches for faster lookups."""
+
         cs = self.chunksize
         ncs = self.nchunkslice
         tmp = self.tmp
@@ -1383,7 +1356,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def swap_slices(self, mode="median"):
-        "Swap slices in a superblock."
+        """Swap slices in a superblock."""
 
         tmp = self.tmp
         sorted = tmp.sorted
@@ -1455,6 +1428,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def search_item_lt(self, where, item, nslice, limits, start=0):
         """Search a single item in a specific sorted slice."""
+
         # This method will only works under the assumtion that item
         # *is to be found* in the nslice.
         assert limits[0] < item <= limits[1]
@@ -1491,12 +1465,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         It returns the following info:
 
-        noverlaps -- The total number of elements that overlaps in index (int).
-        multiplicity -- The number of times that a concrete slice overlaps
-            with any other (array of ints).
-        toverlap -- An ovelap index: the sum of the values in segment slices
-            that overlaps divided by the entire range of values (float).
-            This index is only computed for numerical types.
+        noverlaps : int
+            The total number of elements that overlaps in index.
+        multiplicity : array of int
+            The number of times that a concrete slice overlaps with any other.
+        toverlap : float
+            An ovelap index: the sum of the values in segment slices that
+            overlaps divided by the entire range of values.  This index is only
+            computed for numerical types.
         """
 
         ss = self.slicesize
@@ -1580,12 +1556,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         It returns the following info:
 
-        noverlaps -- The total number of slices that overlaps in index (int).
-        multiplicity -- The number of times that a concrete slice overlaps
-            with any other (array of ints).
-        toverlap -- An ovelap index: the sum of the values in segment slices
-            that overlaps divided by the entire range of values (float).
-            This index is only computed for numerical types.
+        noverlaps : int
+            The total number of slices that overlaps in index.
+        multiplicity : array of int
+            The number of times that a concrete slice overlaps with any other.
+        toverlap : float
+            An ovelap index: the sum of the values in segment slices that
+            overlaps divided by the entire range of values.  This index is only
+            computed for numerical types.
         """
 
         ranges = where.ranges[:]
@@ -1634,8 +1612,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def read_sorted_indices(self, what, start, stop, step):
-        """Return the sorted or indices values in the specified range.
-        """
+        """Return the sorted or indices values in the specified range."""
 
         (start, stop, step) = self._processRange(start, stop, step)
         if start >= stop:
@@ -1674,23 +1651,26 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def readSorted(self, start=None, stop=None, step=None):
         """Return the sorted values of index in the specified range.
 
-        The meaning of the `start`, `stop` and `step` arguments is the
-        same as in `Table.readSorted()`.
+        The meaning of the start, stop and step arguments is the same as in
+        :meth:`Table.readSorted`.
         """
+
         return self.read_sorted_indices('sorted', start, stop, step)
 
 
     def readIndices(self, start=None, stop=None, step=None):
         """Return the indices values of index in the specified range.
 
-        The meaning of the `start`, `stop` and `step` arguments is the
-        same as in `Table.readSorted()`.
+        The meaning of the start, stop and step arguments is the same as in
+        :meth:`Table.readSorted`.
         """
+
         return self.read_sorted_indices('indices', start, stop, step)
 
 
     def _processRange(self, start, stop, step):
         """Get a range specifc for the index usage."""
+
         if start is not None and stop is None:
             # Special case for the behaviour of PyTables iterators
             stop = idx2long(start+1)
@@ -1712,14 +1692,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def __getitem__(self, key):
         """Return the indices values of index in the specified range.
 
-        If the `key` argument is an integer, the corresponding index is
-        returned.  If `key` is a slice, the range of indices determined
-        by it is returned.  A negative value of `step` in slice is
-        supported, meaning that the results will be returned in reverse
-        order.
+        If key argument is an integer, the corresponding index is returned.  If
+        key is a slice, the range of indices determined by it is returned.  A
+        negative value of step in slice is supported, meaning that the results
+        will be returned in reverse order.
 
-        This method is equivalent to `Index.readIndices()`.
+        This method is equivalent to :meth:`Index.readIndices`.
         """
+
         if is_idx(key):
             if key < 0:
                 # To support negative values
@@ -1863,6 +1843,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     # This is an scalar version of search. It works with strings as well.
     def search_scalar(self, item, sorted):
         """Do a binary search in this index for an item."""
+
         tlen = 0
         # Do the lookup for values fullfilling the conditions
         for i in xrange(self.nslices):
@@ -2058,6 +2039,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def __str__(self):
         """This provides a more compact representation than __repr__"""
+
         # The filters
         filters = ""
         if self.filters.complevel:
@@ -2157,6 +2139,7 @@ class IndexesTableG(NotLoggedMixin, Group):
 
 class OldIndex(NotLoggedMixin, Group):
     """This is meant to hide indexes of PyTables 1.x files."""
+
     _c_classId = 'CINDEX'
 
 

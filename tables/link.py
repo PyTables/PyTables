@@ -1,10 +1,10 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: November 25, 2009
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: November 25, 2009
+# Author: Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
@@ -27,6 +27,7 @@ Misc variables:
     __version__
 
 """
+
 import os
 import tables as t
 from tables import linkExtension
@@ -42,29 +43,30 @@ __version__ = "$Revision$"
 
 def _g_getLinkClass(parent_id, name):
     """Guess the link class."""
+
     return linkExtension._getLinkClass(parent_id, name)
 
 
 class Link(Node):
     """Abstract base class for all PyTables links.
 
-    A link is a node that refers to another node.  The `Link` class
-    inherits from `Node` class and the links that inherits from `Link`
-    are `SoftLink` and `ExternalLink`.  There is not a `HardLink`
-    subclass because hard links behave like a regular `Group` or `Leaf`.
+    A link is a node that refers to another node.  The Link class inherits from
+    Node class and the links that inherits from Link are SoftLink and
+    ExternalLink.  There is not a HardLink subclass because hard links behave
+    like a regular Group or Leaf.  Contrarily to other nodes, links cannot have
+    HDF5 attributes.  This is an HDF5 library limitation that might be solved
+    in future releases.
 
-    Contrarily to other nodes, links cannot have HDF5 attributes.  This
-    is an HDF5 library limitation that might be solved in future
-    releases.
-
+    See :ref:`LinksTutorial` for a small tutorial on how to work with links.
     """
 
     # Properties
     @lazyattr
     def _v_attrs(self):
-        """A `NoAttrs` instance replacing the typical `AttributeSet`
-        instance of other node objects.  The purpose of `NoAttrs` is to
-        make clear that HDF5 attributes are not supported in link nodes.
+        """
+        A *NoAttrs* instance replacing the typical *AttributeSet* instance of
+        other node objects.  The purpose of *NoAttrs* is to make clear that
+        HDF5 attributes are not supported in link nodes.
         """
         class NoAttrs(AttributeSet):
             def __getattr__(self, name):
@@ -82,6 +84,7 @@ class Link(Node):
         self._v_new = target is not None
         self.target = target
         """The path string to the pointed node."""
+
         super(Link, self).__init__(parentNode, name, _log)
 
 
@@ -91,10 +94,11 @@ class Link(Node):
              overwrite=False, createparents=False):
         """Copy this link and return the new one.
 
-        See `Node._f_copy` for a complete explanation of the arguments.
-        Please note that there is no `recursive` flag since links do not
-        have child nodes.
+        See :meth:`Node._f_copy` for a complete explanation of the arguments.
+        Please note that there is no recursive flag since links do not have
+        child nodes.
         """
+
         newnode = self._f_copy(newparent=newparent, newname=newname,
                                overwrite=overwrite, createparents=createparents)
         # Insert references to a `newnode` via `newname`
@@ -105,22 +109,23 @@ class Link(Node):
     def move(self, newparent=None, newname=None, overwrite=False):
         """Move or rename this link.
 
-        See `Node._f_move` for a complete explanation of the arguments.
+        See :meth:`Node._f_move` for a complete explanation of the arguments.
         """
+
         return self._f_move(newparent=newparent, newname=newname,
                             overwrite=overwrite)
 
 
     def remove(self):
-        """Remove this link from the hierarchy.
-        """
+        """Remove this link from the hierarchy."""
+
         return self._f_remove()
 
 
     def rename(self, newname=None, overwrite=False):
         """Rename this link in place.
 
-        See `Node._f_rename` for a complete explanation of the arguments.
+        See :meth:`Node._f_rename` for a complete explanation of the arguments.
         """
         return self._f_rename(newname=newname, overwrite=overwrite)
 
@@ -129,24 +134,24 @@ class Link(Node):
         return str(self)
 
 
-
 class SoftLink(linkExtension.SoftLink, Link):
     """Represents a soft link (aka symbolic link).
 
-    A soft link is a reference to another node in the *same* file
-    hierarchy.  Getting access to the pointed node (this action is
-    called *dereferencing*) is done via the `__call__` special method (see
-    below).
+    A soft link is a reference to another node in the *same* file hierarchy.
+    Getting access to the pointed node (this action is called *dereferrencing*)
+    is done via the __call__ special method (see below).
     """
 
     # Class identifier.
     _c_classId = 'SOFTLINK'
 
     def __call__(self):
-        """
-        Dereference `self.target` and return the object.
+        """Dereference `self.target` and return the object.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             >>> f=tables.openFile('data/test.h5')
             >>> print f.root.link0
@@ -154,6 +159,7 @@ class SoftLink(linkExtension.SoftLink, Link):
             >>> print f.root.link0()
             /another/path (Group) ''
         """
+
         target = self.target
         # Check for relative pathnames
         if not self.target.startswith('/'):
@@ -162,10 +168,12 @@ class SoftLink(linkExtension.SoftLink, Link):
 
 
     def __str__(self):
-        """
-        Return a short string representation of the link.
+        """Return a short string representation of the link.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             >>> f=tables.openFile('data/test.h5')
             >>> print f.root.link0
@@ -190,8 +198,9 @@ class ExternalLink(linkExtension.ExternalLink, Link):
 
     An external link is a reference to a node in *another* file.
     Getting access to the pointed node (this action is called
-    *dereferencing*) is done via the `__call__` special method (see
-    below).
+    *dereferencing*) is done via the :meth:`__call__` special method
+    (see below).
+
     """
 
     # Class identifier.
@@ -199,28 +208,31 @@ class ExternalLink(linkExtension.ExternalLink, Link):
 
     def __init__(self, parentNode, name, target=None, _log = False):
         self.extfile = None
-        """The external file handler, if the link has been
-        dereferenced.  In case the link has not been dereferenced
-        yet, its value is None."""
+        """The external file handler, if the link has been dereferenced.
+        In case the link has not been dereferenced yet, its value is
+        None."""
         super(ExternalLink, self).__init__(parentNode, name, target, _log)
 
 
     def _get_filename_node(self):
         """Return the external filename and nodepath from `self.target`."""
+
         # This is needed for avoiding the 'C:\\file.h5' filepath notation
         filename, target = self.target.split(':/')
         return filename, '/'+target
 
 
     def __call__(self, **kwargs):
-        """
-        Dereference `self.target` and return the object.
+        """Dereference self.target and return the object.
 
-        You can pass all the arguments (except `filename`, of course)
-        supported by the `openFile()` function so as to open the
-        referenced external file.
+        You can pass all the arguments supported by the :func:`openFile`
+        function (except filename, of course) so as to open the referenced
+        external file.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             >>> f=tables.openFile('data1/test1.h5')
             >>> print f.root.link2
@@ -250,7 +262,8 @@ class ExternalLink(linkExtension.ExternalLink, Link):
 
 
     def umount(self):
-        """Safely unmount `self.extfile`, if opened."""
+        """Safely unmount self.extfile, if opened."""
+
         extfile = self.extfile
         # Close external file, if open
         if extfile is not None and extfile.isopen:
@@ -260,15 +273,18 @@ class ExternalLink(linkExtension.ExternalLink, Link):
 
     def _f_close(self):
         """Especific close for external links."""
+
         self.umount()
         super(ExternalLink, self)._f_close()
 
 
     def __str__(self):
-        """
-        Return a short string representation of the link.
+        """Return a short string representation of the link.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             >>> f=tables.openFile('data1/test1.h5')
             >>> print f.root.link2

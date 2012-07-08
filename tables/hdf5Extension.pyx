@@ -165,6 +165,7 @@ import_array()
 
 cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
   """Returns a malloced hsize_t dims from a npy_intp *pdims."""
+
   cdef int i
   cdef hsize_t *dims
 
@@ -178,6 +179,7 @@ cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
 
 cdef object getshape(int rank, hsize_t *dims):
   """Return a shape (tuple) from a dims C array of rank dimensions."""
+
   cdef int i
   cdef object shape
 
@@ -635,7 +637,8 @@ cdef class Group(Node):
 
 
   def _g_get_objinfo(self, object h5name):
-    """Check whether 'name' is a children of 'self' and return its type. """
+    """Check whether 'name' is a children of 'self' and return its type."""
+
     cdef int ret
     cdef object node_type
 
@@ -665,12 +668,12 @@ cdef class Group(Node):
 
   def _g_listGroup(self, parent):
     """Return a tuple with the groups and the leaves hanging from self."""
+
     return Giterate(parent._v_objectID, self._v_objectID, self.name)
 
 
   def _g_getGChildAttr(self, char *group_name, char *attr_name):
-    """
-    Return an attribute of a child `Group`.
+    """Return an attribute of a child `Group`.
 
     If the attribute does not exist, ``None`` is returned.
     """
@@ -692,8 +695,7 @@ cdef class Group(Node):
 
 
   def _g_getLChildAttr(self, char *leaf_name, char *attr_name):
-    """
-    Return an attribute of a child `Leaf`.
+    """Return an attribute of a child `Leaf`.
 
     If the attribute does not exist, ``None`` is returned.
     """
@@ -799,6 +801,7 @@ cdef class Leaf(Node):
 
   def _g_truncate(self, hsize_t size):
     """Truncate a Leaf to `size` nrows."""
+
     cdef hsize_t ret
 
     ret = truncate_dset(self.dataset_id, self.maindim, size)
@@ -1134,6 +1137,7 @@ cdef class Array(Leaf):
 
   def _g_readCoords(self, ndarray coords, ndarray nparr):
     """Read coordinates in an already created NumPy array."""
+
     cdef herr_t ret
     cdef hid_t space_id
     cdef hid_t mem_space_id
@@ -1187,6 +1191,7 @@ cdef class Array(Leaf):
 
     Note: This is a backport from the h5py project.
     """
+
     cdef int select_mode
     cdef ndarray start_, count_, step_
     cdef hsize_t *startp, *countp, *stepp
@@ -1221,6 +1226,7 @@ cdef class Array(Leaf):
 
   def _g_readSelection(self, object selection, ndarray nparr):
     """Read a selection in an already created NumPy array."""
+
     cdef herr_t ret
     cdef hid_t space_id
     cdef hid_t mem_space_id
@@ -1272,6 +1278,7 @@ cdef class Array(Leaf):
   def _g_writeSlice(self, ndarray startl, ndarray stepl, ndarray countl,
                     ndarray nparr):
     """Write a slice in an already created NumPy array."""
+
     cdef int ret
     cdef void *rbuf, *temp
     cdef hsize_t *start, *step, *count
@@ -1300,6 +1307,7 @@ cdef class Array(Leaf):
 
   def _g_writeCoords(self, ndarray coords, ndarray nparr):
     """Write a selection in an already created NumPy array."""
+
     cdef herr_t ret
     cdef hid_t space_id
     cdef hid_t mem_space_id
@@ -1342,6 +1350,7 @@ cdef class Array(Leaf):
 
   def _g_writeSelection(self, object selection, ndarray nparr):
     """Write a selection in an already created NumPy array."""
+
     cdef herr_t ret
     cdef hid_t space_id
     cdef hid_t mem_space_id
