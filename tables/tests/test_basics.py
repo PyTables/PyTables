@@ -2426,7 +2426,7 @@ import tables
 tables.silenceHDF5Messages()
 tables.silenceHDF5Messages(False)
 try:
-    tables.openFile('%s')
+    tables.openFile(r'%s')
 except tables.HDF5ExtError, e:
     pass
 """
@@ -2437,7 +2437,7 @@ except tables.HDF5ExtError, e:
             fp.write(code % fn)
             fp.close()
 
-            p = subprocess.Popen(["python", fn],
+            p = subprocess.Popen([sys.executable, fn],
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             (stdout, stderr) = p.communicate()
