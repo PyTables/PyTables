@@ -178,12 +178,15 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         The size of this array's data in bytes when it is fully loaded
         into memory.
 
-        .. note:: When data is stored in a VLArray using the ObjectAtom type,
-            it is first serialized using cPickle, and then converted to a NumPy
-            array suitable for storage in an HDF5 file.  This attribute will
-            return the size of that NumPy representation.  If you wish to know
-            the size of the Python objects after they are loaded from disk, you
-            can use this `ActiveState recipe
+        .. note::
+
+            When data is stored in a VLArray using the ObjectAtom type,
+            it is first serialized using cPickle, and then converted to
+            a NumPy array suitable for storage in an HDF5 file.
+            This attribute will return the size of that NumPy
+            representation.  If you wish to know the size of the Python
+            objects after they are loaded from disk, you can use this
+            `ActiveState recipe
             <http://code.activestate.com/recipes/577504/>`_.
         """)
 
@@ -651,14 +654,17 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         values from value.  Note that for the latter to work it is necessary
         that key list would contain exactly as many rows as the table has.
 
-        .. note:: When updating the rows of a VLArray object which uses a
-           pseudo-atom, there is a problem: you can only update values with
-           *exactly* the same size in bytes than the original row.  This is
-           very difficult to meet with object pseudo-atoms, because cPickle
-           applied on a Python object does not guarantee to return the same
-           number of bytes than over another object, even if they are of the
-           same class.  This effectively limits the kinds of objects than can
-           be updated in variable-length arrays.
+        .. note::
+
+            When updating the rows of a VLArray object which uses a
+            pseudo-atom, there is a problem: you can only update values
+            with *exactly* the same size in bytes than the original row.
+            This is very difficult to meet with object pseudo-atoms,
+            because :mod:`cPickle` applied on a Python object does not
+            guarantee to return the same number of bytes than over another
+            object, even if they are of the same class.
+            This effectively limits the kinds of objects than can be
+            updated in variable-length arrays.
 
         Examples
         --------

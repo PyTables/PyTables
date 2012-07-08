@@ -1121,8 +1121,7 @@ cdef class Row:
 
 
   def append(self):
-    """append()
-    Add a new row of data to the end of the dataset.
+    """Add a new row of data to the end of the dataset.
 
     Once you have filled the proper fields for the current
     row, calling this method actually appends the new data to the
@@ -1130,10 +1129,12 @@ cdef class Row:
     dumped to disk).  If you have not set the value of a field, the
     default value of the column will be used.
 
-    .. warning:: After completion of the loop in which :meth:`Row.append` has
-       been called, it is always convenient to make a call to
-       :meth:`Table.flush` in order to avoid losing the last rows that may
-       still remain in internal buffers.
+    .. warning::
+
+        After completion of the loop in which :meth:`Row.append` has
+        been called, it is always convenient to make a call to
+        :meth:`Table.flush` in order to avoid losing the last rows that
+        may still remain in internal buffers.
 
     Examples
     --------
@@ -1189,8 +1190,7 @@ cdef class Row:
 
 
   def update(self):
-    """update()
-    Change the data of the current row in the dataset.
+    """Change the data of the current row in the dataset.
 
     This method allows you to modify values in a table when you are in the
     middle of a table iterator like :meth:`Table.iterrows` or
@@ -1201,10 +1201,12 @@ cdef class Row:
     eventually be dumped to disk).  If you have not set the value of a
     field, its original value will be used.
 
-    .. warning:: After completion of the loop in which :meth:`Row.update` has
-       been called, it is always convenient to make a call to
-       :meth:`Table.flush` in order to avoid losing changed rows that may
-       still remain in internal buffers.
+    .. warning::
+
+        After completion of the loop in which :meth:`Row.update` has
+        been called, it is always convenient to make a call to
+        :meth:`Table.flush` in order to avoid losing changed rows that
+        may still remain in internal buffers.
 
     Examples
     --------
@@ -1274,7 +1276,6 @@ cdef class Row:
 
   def __contains__(self, item):
     """__contains__(item)
-    Is item in this row?
 
     A true value is returned if item is found in current row, false
     otherwise.
@@ -1362,6 +1363,7 @@ cdef class Row:
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, object key, object value):
     """__setitem__(key, value)
+
     Set the key row field to the specified value.
 
     Differently from its __getitem__() counterpart, in this case key can
@@ -1431,8 +1433,7 @@ cdef class Row:
 
 
   def fetch_all_fields(self):
-    """fetch_all_fields()
-    Retrieve all the fields in the current row.
+    """Retrieve all the fields in the current row.
 
     Contrarily to row[:] (see :ref:`RowSpecialMethods`), this returns row
     data as a NumPy void scalar.  For instance::
@@ -1456,7 +1457,7 @@ cdef class Row:
 
 
   def __str__(self):
-    """ represent the record as an string """
+    """Represent the record as an string"""
 
     # We need to do a cast for recognizing negative row numbers!
     if <signed long long>self._nrow < 0:
@@ -1472,7 +1473,7 @@ cdef class Row:
 
 
   def __repr__(self):
-    """ represent the record as an string """
+    """Represent the record as an string"""
     return str(self)
 
 

@@ -399,6 +399,7 @@ def encode_filename(object filename):
 
 def isHDF5File(object filename):
   """isHDF5File(filename)
+
   Determine whether a file is in the HDF5 format.
 
   When successful, it returns a true value if the file is an HDF5
@@ -457,6 +458,7 @@ def getPyTablesVersion():
 
 def whichLibVersion(char *name):
   """whichLibVersion(name)
+
   Get version information about a C library.
 
   If the library indicated by name is available, this function returns a
@@ -1038,6 +1040,7 @@ def createNestedType(object desc, char *byteorder):
 
 cdef class lrange:
   """lrange([start], stop[, step])
+
   Iterate over long ranges.
 
   This is similar to xrange(), but it allows 64-bit arguments on all platforms.

@@ -2,7 +2,9 @@ netcdf3 - a PyTables NetCDF3 emulation API (deprecated)
 =======================================================
 
 .. warning:: The tables.netcdf3 module is not actively maintained anymore.
+
    It is deprecated and will be removed in the future versions.
+
 
 .. currentmodule:: tables.netcdf3
 

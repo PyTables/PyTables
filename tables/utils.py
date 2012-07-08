@@ -213,8 +213,10 @@ def lazyattr(fget):
       ...
     AttributeError: can't delete attribute
 
-    .. Warning:: Please note that this decorator *changes the type of
-       the decorated object* from an instance method into a property.
+    .. warning::
+
+        Please note that this decorator *changes the type of the
+        decorated object* from an instance method into a property.
     """
     name = fget.__name__
     def newfget(self):

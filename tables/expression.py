@@ -524,9 +524,10 @@ value of dimensions that are orthogonal (and preferably close) to the
         already been called, the output is sent to this user-provided
         container.  If not, a fresh NumPy container is returned instead.
 
-        .. warning:: When dealing with large on-disk inputs, failing to
-           specify an on-disk container may consume all your available
-           memory.
+        .. warning::
+
+            When dealing with large on-disk inputs, failing to specify an
+            on-disk container may consume all your available memory.
         """
 
         values, shape, maindim = self.values, self.shape, self.maindim

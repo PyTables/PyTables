@@ -43,7 +43,8 @@ driver module will detect them and will run the tests for numarray and/or
 Numeric automatically.
 
 .. warning:: The use of numarray and Numeric in PyTables is now deprecated.
-   Support for these packages will be dropped in future versions.
+
+    Support for these packages will be dropped in future versions.
 
 Prerequisites
 ~~~~~~~~~~~~~
@@ -68,9 +69,10 @@ proceeding.
 
 .. note:: Users of Python 2.4.x also need to install ctypes_
 
-.. note:: Currently PyTables does not use setuptools_ so do not expect that
-          the setup.py script automatically install all packages PyTables
-          depends on.
+.. note::
+
+    Currently PyTables does not use setuptools_ so do not expect that the
+    setup.py script automatically install all packages PyTables depends on.
 
 .. _setuptools: http://pypi.python.org/pypi/setuptools
 .. _ctypes: http://pypi.python.org/pypi/ctypes
@@ -204,15 +206,17 @@ you can proceed with the PyTables package itself.
 
         $ env PYTHONPATH=. python -c "import tables; tables.test()"
 
-      .. note:: the syntax used above overrides original contents of
-                the :envvar:`PYTHONPATH` environment variable.
-                If this is not the desired behaviour and the user just wants
-                to add some path before existing ones, then the safest syntax
-                to use is the following::
+      .. note::
 
-                  $ env PYTHONPATH=.${PYTHONPATH:+:$PYTHONPATH} python tables/tests/test_all.py
+          the syntax used above overrides original contents of the
+          :envvar:`PYTHONPATH` environment variable.
+          If this is not the desired behaviour and the user just wants to add
+          some path before existing ones, then the safest syntax to use is
+          the following::
 
-                Please refer to your :program:`sh` documentation for details.
+            $ env PYTHONPATH=.${PYTHONPATH:+:$PYTHONPATH} python tables/tests/test_all.py
+
+          Please refer to your :program:`sh` documentation for details.
 
    **Windows**
 
@@ -319,9 +323,12 @@ This section is intended for installing precompiled binaries on Windows
 platforms. You may also find it useful for instructions on how to install
 *binary prerequisites* even if you want to compile PyTables itself on Windows.
 
-.. warning:: Since PyTables 2.2b3, Windows binaries are distributed with
-   SSE2 instructions enabled.  If your processor does not have support
-   for SSE2, then you will not be able to use these binaries.
+.. warning::
+
+    Since PyTables 2.2b3, Windows binaries are distributed with SSE2
+    instructions enabled.  If your processor does not have support for SSE2,
+    then you will not be able to use these binaries.
+
 
 .. _prerequisitesBinInst:
 

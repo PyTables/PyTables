@@ -196,9 +196,11 @@ class Leaf(Node):
         delete the FLAVOR HDF5 attribute of the leaf. When the leaf has no such
         attribute, the default flavor is used.
 
-        .. warning:: The 'numarray' and 'numeric' flavors are deprecated since
-               version 2.3. Support for these flavors will be removed in future
-               versions.
+        .. warning::
+
+            The 'numarray' and 'numeric' flavors are deprecated since
+            version 2.3. Support for these flavors will be removed in
+            future versions.
         """ )
 
     size_on_disk = property(lambda self: self._get_storage_size(), None, None,
@@ -589,9 +591,12 @@ very small/large chunksize, you may want to increase/decrease it."""
         note that there is no recursive flag since leaves do not have child
         nodes.
 
-        .. warning:: Note that unknown parameters passed to this method will be
-            ignored, so may want to double check the spelling of these (i.e. if
-            you write them incorrectly, they will most probably be ignored).
+        .. warning::
+
+            Note that unknown parameters passed to this method will be
+            ignored, so may want to double check the spelling of these
+            (i.e. if you write them incorrectly, they will most probably
+            be ignored).
 
         Parameters
         ----------

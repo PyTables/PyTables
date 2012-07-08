@@ -1288,11 +1288,12 @@ class Table(tableExtension.Table, Leaf):
         pass the most restrictive condition as the parameter to this method if
         you want to achieve maximum performance.
 
-        .. warning:: When in the middle of a table row iterator, you should not
-            use methods that can change the number of rows in the table (like
-            :meth:`Table.append` or :meth:`Table.removeRows`) or unexpected
-            errors will happen.
+        .. warning::
 
+            When in the middle of a table row iterator, you should not
+            use methods that can change the number of rows in the table
+            (like :meth:`Table.append` or :meth:`Table.removeRows`) or
+            unexpected errors will happen.
 
         Examples
         --------
@@ -1561,10 +1562,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         the table, you may use the start, stop and step parameters, which have
         the same meaning as in :meth:`Table.read`.
 
-        .. warning:: When in the middle of a table row iterator, you should not
-            use methods that can change the number of rows in the table (like
-            :meth:`Table.append` or :meth:`Table.removeRows`) or unexpected
-            errors will happen.
+        .. warning::
+
+            When in the middle of a table row iterator, you should not
+            use methods that can change the number of rows in the table
+            (like :meth:`Table.append` or :meth:`Table.removeRows`) or
+            unexpected errors will happen.
 
         Examples
         --------
@@ -3225,9 +3228,11 @@ class Column(object):
         """
         Create an index for this column.
 
-        .. warning:: In some situations it is useful to get a completely
-           sorted index (CSI).  For those cases, it is best to use
-           the :meth:`Column.createCSIndex` method instead.
+        .. warning::
+
+            In some situations it is useful to get a completely sorted
+            index (CSI).  For those cases, it is best to use the
+            :meth:`Column.createCSIndex` method instead.
 
         Parameters
         ----------

@@ -151,7 +151,6 @@ def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
 
 def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
              **kwargs):
-
     """
     Open a PyTables (or generic HDF5) file and return a File object.
 
@@ -198,9 +197,11 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
     arguments.  See :ref:`parameter_files` for a
     detailed info on the supported parameters.
 
-    .. note:: If you need to deal with a large number of nodes in an
-       efficient way, please see :ref:`LRUOptim` for more info and advices about
-       the integrated node cache engine.
+    .. note::
+
+        If you need to deal with a large number of nodes in an
+        efficient way, please see :ref:`LRUOptim` for more info and
+        advices about the integrated node cache engine.
     """
 
     # Get the list of already opened files
@@ -942,8 +943,9 @@ class File(hdf5Extension.File, object):
         external links.
 
         .. note::
-            The warn16incompat argument is deprecated since version 2.4. It
-            will be ignored.
+
+            The warn16incompat argument is deprecated since version 2.4.
+            It will be ignored.
         """
         if not are_extlinks_available:
             raise NotImplementedError(
