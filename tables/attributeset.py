@@ -167,21 +167,15 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     If an attribute is set on a target node that already has a large
     number of attributes, a PerformanceWarning will be issued.
 
-
-    .. attribute:: AttributeSet._v_attrnames
-
+    Attributes
+    ----------
+    _v_attrnames : str
         A list with all attribute names.
-
-    .. attribute:: AttributeSet._v_attrnamessys
-
+    _v_attrnamessys : list of strings
         A list with system attribute names.
-
-    .. attribute:: AttributeSet._v_attrnamesuser
-
+    _v_attrnamesuser : list of strings
         A list with user attribute names.
-
-    .. attribute:: AttributeSet._v_unimplemented
-
+    _v_unimplemented : list of strings
         A list of attribute names with unimplemented native HDF5 types.
 
     """
@@ -587,7 +581,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if copysysattrs:
             for attrname in self._v_attrnamessys:
                 if ((attrname not in SYS_ATTRS_NOTTOBECOPIED) and
-                    # Do not copy the FIELD_ atributes in tables as this can
+                    # Do not copy the FIELD_ attributes in tables as this can
                     # be really *slow* (don't know exactly the reason).
                     # See #304.
                     not attrname.startswith("FIELD_")):

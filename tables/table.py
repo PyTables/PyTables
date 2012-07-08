@@ -2727,25 +2727,21 @@ class Cols(object):
     Like the Column class (see :ref:`ColumnClassDescr`), Cols supports item
     access to read and write ranges of values in the table or nested column.
 
-
-    .. attribute:: Cols._v_colnames
-
+    Attributes
+    ----------
+    _v_colnames : list of strings
         A list of the names of the columns hanging directly
         from the associated table or nested column.  The order of
         the names matches the order of their respective columns in
         the containing table.
-
-    .. attribute:: Cols._v_colpathnames
-
+    _v_colpathnames : list of strings
         A list of the pathnames of all the columns under the
         associated table or nested column (in preorder).  If it does
         not contain nested columns, this is exactly the same as the
         :attr:`Cols._v_colnames` attribute.
-
-    .. attribute:: Cols._v_desc
-
-        The associated Description instance
-        (see :ref:`DescriptionClassDescr`).
+    _v_desc : Description
+        The associated Description instance (see
+        :ref:`DescriptionClassDescr`).
 
     """
 

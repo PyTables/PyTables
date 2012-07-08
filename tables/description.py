@@ -86,9 +86,9 @@ class Col(atom.Atom):
         Sets the position of column in table.  If unspecified, the position
         will be randomly selected.
 
-
-    .. attribute:: Col._v_pos
-
+    Attributes
+    ----------
+    _v_pos : int
         The *relative* position of this column with regard to its column
         siblings.
 
@@ -288,89 +288,62 @@ class Description(object):
     the names of members start with special prefixes, like in the Group class
     (see :ref:`GroupClassDescr`).
 
-    .. attribute:: Description._v_colObjects
-
+    Attributes
+    ----------
+    _v_colObjects : dict
         A dictionary mapping the names of the columns hanging
         directly from the associated table or nested column to their
         respective descriptions (Col - see :ref:`ColClassDescr` or
         Description - see :ref:`DescriptionClassDescr` instances).
-
-    .. attribute:: Description._v_dflts
-
+    _v_dflts : dict
         A dictionary mapping the names of non-nested columns
         hanging directly from the associated table or nested column
         to their respective default values.
-
-    .. attribute:: Description._v_dtype
-
+    _v_dtype : dtype
         The NumPy type which reflects the structure of this
         table or nested column.  You can use this as the
         dtype argument of NumPy array factories.
-
-    .. attribute:: Description._v_dtypes
-
+    _v_dtypes : dict
         A dictionary mapping the names of non-nested columns
         hanging directly from the associated table or nested column
         to their respective NumPy types.
-
-    .. attribute:: Description._v_is_nested
-
+    _v_is_nested : bool
         Whether the associated table or nested column contains
         further nested columns or not.
-
-    .. attribute:: Description._v_itemsize
-
+    _v_itemsize : int
         The size in bytes of an item in this table or nested column.
-
-    .. attribute:: Description._v_name
-
+    _v_name : str
         The name of this description group. The name of the
         root group is '/'.
-
-    .. attribute:: Description._v_names
-
+    _v_names : list of strings
         A list of the names of the columns hanging directly
         from the associated table or nested column. The order of the
         names matches the order of their respective columns in the
         containing table.
-
-    .. attribute:: Description._v_nestedDescr
-
+    _v_nestedDescr : list
         A nested list of pairs of (name, format) tuples for all the columns under
         this table or nested column. You can use this as the dtype and descr
         arguments of NumPy array and NestedRecArray (see
         :ref:`NestedRecArrayClassDescr`) factories, respectively.
-
-    .. attribute:: Description._v_nestedFormats
-
+    _v_nestedFormats : list
         A nested list of the NumPy string formats (and shapes) of all the
         columns under this table or nested column. You can use this as the
         formats argument of NumPy array and NestedRecArray (deprecated)
         factories.
-
-    .. attribute:: Description._v_nestedlvl
-
+    _v_nestedlvl : int
         The level of the associated table or nested column in
         the nested datatype.
-
-    .. attribute:: Description._v_nestedNames
-
+    _v_nestedNames : list of strings
         A nested list of the names of all the columns under this table or
         nested column. You can use this as the names argument of NumPy array
         and NestedRecArray (deprecated) factories.
-
-    .. attribute:: Description._v_pathname
-
+    _v_pathname : str
         Pathname of the table or nested column.
-
-    .. attribute:: Description._v_pathnames
-
+    _v_pathnames : list
         A list of the pathnames of all the columns under this table or nested
         column (in preorder).  If it does not contain nested columns, this is
         exactly the same as the :attr:`Description._v_names` attribute.
-
-    .. attribute:: Description._v_types
-
+    _v_types : dict
         A dictionary mapping the names of non-nested columns hanging directly
         from the associated table or nested column to their respective PyTables
         types.
@@ -686,14 +659,13 @@ class IsDescription(object):
     constructor, where all the information it contains will be used to define
     the table structure.
 
-    .. attribute:: _v_pos
-
+    Attributes
+    ----------
+    _v_pos : int
         Sets the position of a possible nested column description among its
         sibling columns.  This attribute can be specified *when declaring*
         an IsDescription subclass to complement its *metadata*.
-
-    .. attribute:: columns
-
+    columns : dict
         Maps the name of each column in the description to its own descriptive
         object. This attribute is *automatically created* when an IsDescription
         subclass is declared.  Please note that declared columns can no longer

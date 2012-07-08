@@ -87,27 +87,21 @@ class Leaf(Node):
     class - :ref:`UnImplementedClassDescr`) these classes do in fact inherit
     from Leaf.
 
-    .. attribute:: chunkshape
-
+    Attributes
+    ----------
+    chunkshape : tuple
         The HDF5 chunk size for chunked leaves (a tuple).
 
         This is read-only because you cannot change the chunk
         size of a leaf once it has been created.
 
-    .. attribute:: Leaf.dtype
-
+    dtype : dtype
         The NumPy dtype that most closely matches this leaf type.
-
-    .. attribute:: Leaf.extdim
-
+    extdim : int
         The index of the enlargeable dimension (-1 if none).
-
-    .. attribute:: Leaf.nrows
-
+    nrows : int
         The length of the main dimension of the leaf data.
-
-    .. attribute:: Leaf.shape
-
+    shape : tuple
         The shape of data in the leaf.
 
     """

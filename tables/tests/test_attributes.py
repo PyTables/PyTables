@@ -1,5 +1,4 @@
-""" This test unit checks node atributes that are persistent (AttributeSet).
-"""
+"""This test unit checks node attributes that are persistent (AttributeSet)."""
 
 import sys
 import unittest

@@ -353,8 +353,9 @@ class File(hdf5Extension.File, object):
     with statement introduced in Python 2.5.  When
     exiting a context, the file is automatically closed.
 
-    .. attribute:: File.rootUEP
-
+    Attributes
+    ----------
+    rootUEP : str
         The UEP (user entry point) group name in the file (see
         the :func`tables.openFile` function).
     """
@@ -931,7 +932,7 @@ class File(hdf5Extension.File, object):
         (the default is not doing so).
 
         The returned node is a SoftLink instance.  See the SoftLink class
-        (in :ref:`SoftLinkClassDescr') for more information on soft links.
+        (in :ref:`SoftLinkClassDescr`) for more information on soft links.
         """
 
         if not isinstance(target, str):
@@ -948,7 +949,8 @@ class File(hdf5Extension.File, object):
 
     def createExternalLink(self, where, name, target, createparents=False,
                            warn16incompat=True):
-        """
+        """Create an external link.
+
         Create an external link to a *target* node with the given *name*
         in *where* location.  *target* can be a node object in another
         file or a path string in the form 'file:/path/to/node'.  If
@@ -961,6 +963,7 @@ class File(hdf5Extension.File, object):
 
             The *warn16incompat* argument is deprecated since version 2.4.
             It will be ignored.
+
         """
 
         if not are_extlinks_available:

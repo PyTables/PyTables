@@ -100,9 +100,7 @@ class Group(hdf5Extension.Group, Node):
     getting *child nodes* by their name for the sake of easy interaction on the
     command line, as long as there is no Python attribute with the same
     name. Groups also allow the interactive completion (when using readline) of
-    the names of child nodes. For instance:
-
-    ::
+    the names of child nodes. For instance::
 
         # get a Python attribute
         nchild = group._v_nchildren
@@ -117,29 +115,19 @@ class Group(hdf5Extension.Group, Node):
         del group.table              # delete a Python attribute
         table = group.table          # get the table child instance again
 
-
-    .. attribute:: Group._v_children
-
+    Attributes
+    ----------
+    _v_children : dict
         Dictionary with all nodes hanging from this group.
-
-    .. attribute:: Group._v_groups
-
+    _v_groups : dict
         Dictionary with all groups hanging from this group.
-
-    .. attribute:: Group._v_hidden
-
+    _v_hidden : dict
         Dictionary with all hidden nodes hanging from this group.
-
-    .. attribute:: Group._v_leaves
-
+    _v_leaves : dict
         Dictionary with all leaves hanging from this group.
-
-    .. attribute:: Group._v_links
-
+    _v_links : dict
         Dictionary with all links hanging from this group.
-
-    .. attribute:: Group._v_unknown
-
+    _v_unknown : dict
         Dictionary with all unknown nodes hanging from this group.
 
     """

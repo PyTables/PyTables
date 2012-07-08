@@ -53,14 +53,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     inherits all the public attributes and methods that Leaf (see
     :ref:`LeafClassDescr`) already provides.
 
-    .. attribute:: VLArray.flavor
-
-        The type of data object read from this leaf.
-
-        Please note that when reading several rows of VLArray data,
-        the flavor only applies to the *components* of the returned
-        Python list, not to the list itself.
-
     Parameters
     ----------
     atom
@@ -86,6 +78,15 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     byteorder
         The byteorder of the data *on disk*, specified as 'little' or 'big'.
         If this is not specified, the byteorder is that of the platform.
+
+    Attributes
+    ----------
+    flavor : str
+        The type of data object read from this leaf.
+
+        Please note that when reading several rows of VLArray data,
+        the flavor only applies to the *components* of the returned
+        Python list, not to the list itself.
 
     Examples
     --------

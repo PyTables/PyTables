@@ -246,21 +246,15 @@ class Atom(object):
 
     The following are the public methods and attributes of the Atom class.
 
-    .. attribute:: Atom.itemsize
-
+    Attributes
+    ----------
+    itemsize : int
         Size in bytes of a single item in the atom.
-
         Specially useful for atoms of the string kind.
-
-
-    .. attribute:: Atom.kind
-
-        The PyTables kind of the atom (a string).
-
-
-    .. attribute:: Atom.type
-
-        The PyTables type of the atom (a string).
+    kind : str
+        The PyTables kind of the atom.
+    type : str
+        The PyTables type of the atom.
 
         Atoms can be compared with atoms and other objects for
         strict (in)equality without having to compare individual
