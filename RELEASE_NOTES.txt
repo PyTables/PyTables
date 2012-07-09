@@ -90,7 +90,7 @@ Documentation improvements
 
 - complete rework of the library reference.  Now the entire chapter is
   generated from docstrings using the sphinx autodoc extension.
-  A big thank you to Josh Ayes.  Closes :issue:`148`.
+  A big thank you to Josh Ayers.  Closes :issue:`148`.
 
 
 Bugs fixed
