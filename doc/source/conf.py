@@ -17,7 +17,7 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../sphinxext'))
-sys.path.insert(0, os.path.abspath('../..'))
+#sys.path.insert(0, os.path.abspath('../..'))
 
 
 # -- General configuration -----------------------------------------------------
@@ -105,13 +105,41 @@ pygments_style = 'tango'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #html_theme = 'default'
-html_theme = 'altered_nature'
+#html_theme = 'altered_nature'
+html_theme = 'cloud'
 #html_theme = 'sphinxdoc'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+linkcolor = '#9F1E1E'
+trimcolor = '#511755'
+trimcolor = '#000000'
+
+html_theme_options = {'sidebarbgcolor': 'rgba(213, 197, 229, 0.15)',
+                      'sidebartextcolor': '#280941',
+                      'sidebarlinkcolor': linkcolor,
+                      'sidebartrimcolor': trimcolor,
+                      'collapsiblesidebar': True,
+                      'relbarbgcolor': '#006FFF',
+                      'footerbgcolor': 'rgba(252, 255, 0, 0.125)',
+                      'footertextcolor': '#504A4B',
+                      'bodytrimcolor': trimcolor,
+                      'linkcolor': linkcolor,
+                      'textcolor': '#323039', 
+                      'sectionbgcolor': '#3CAD1C',
+                      #'sectiontextcolor': '#777777',
+                      #'sectiontrimcolor': trimcolor, 
+                      'codebgcolor': '#F1FFF0',
+                      'codetextcolor': '#000000', 
+                      'quotebgcolor': '#f6fcfc',
+                      'rubricbgcolor': '#D00000',
+                      #'min_height': 'bottom',
+                      }
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ["_theme"]
