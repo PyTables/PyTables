@@ -119,6 +119,8 @@ Bugs fixed
 - Fixed sorting of nested tables that caused AttributeError.
   Closes :issue:`156` and :issue:`157`.  Thanks to Uwe Mayer.
 
+- Fixed flavor deregistration (closes :issue:`163`)
+
 
 Deprecations
 ------------
