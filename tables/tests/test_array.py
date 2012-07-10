@@ -2224,7 +2224,9 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         for key in self.not_working_too_many:
             if common.verbose:
                 print "Selection to test:", key
-            self.assertRaises(ValueError, nparr.__getitem__, key)
+            # ValueError for numpy 1.6.x and earlier
+            # IndexError in numpy > 1.8.0
+            self.assertRaises((ValueError, IndexError), nparr.__getitem__, key)
             self.assertRaises(IndexError, tbarr.__getitem__, key)
 
     def test02a_write(self):
