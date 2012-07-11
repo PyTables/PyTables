@@ -14,6 +14,7 @@ except ImportError:
 import numpy
 
 import tables
+import tables.flavor
 from tables import *
 from tables.flavor import all_flavors, array_of_flavor
 from tables.tests import common
@@ -2255,6 +2256,26 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 self.assertEqual( node.flavor, tables.flavor.internal_flavor,
                                   "flavor of node ``%s`` is not internal: %r"
                                   % (node._v_pathname, node.flavor) )
+
+    def test07_restrict_flavors(self):
+        # regression test for gh-163
+
+        all_flavors = list(tables.flavor.all_flavors)
+        alias_map = tables.flavor.alias_map.copy()
+        converter_map = tables.flavor.converter_map.copy()
+        identifier_map = tables.flavor.identifier_map.copy()
+        description_map = tables.flavor.description_map.copy()
+
+        try:
+            tables.flavor.restrict_flavors(keep=[])
+            self.assertTrue(len(tables.flavor.alias_map) < len(alias_map))
+            self.assertTrue(len(tables.flavor.converter_map) < len(converter_map))
+        finally:
+            tables.flavor.all_flavors[:] = all_flavors[:]
+            tables.flavor.alias_map.update(alias_map)
+            tables.flavor.converter_map.update(converter_map)
+            tables.flavor.identifier_map.update(identifier_map)
+            tables.flavor.description_map.update(description_map)
 
 
 class UnicodeFilename(common.PyTablesTestCase):

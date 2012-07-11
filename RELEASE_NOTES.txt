@@ -90,7 +90,7 @@ Documentation improvements
 
 - complete rework of the library reference.  Now the entire chapter is
   generated from docstrings using the sphinx autodoc extension.
-  A big thank you to Josh Ayes.  Closes :issue:`148`.
+  A big thank you to Josh Ayers.  Closes :issue:`148`.
 
 
 Bugs fixed
@@ -118,6 +118,8 @@ Bugs fixed
 
 - Fixed sorting of nested tables that caused AttributeError.
   Closes :issue:`156` and :issue:`157`.  Thanks to Uwe Mayer.
+
+- Fixed flavor deregistration (closes :issue:`163`)
 
 
 Deprecations

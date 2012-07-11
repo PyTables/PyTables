@@ -315,6 +315,7 @@ def _register_all():
 
 def _deregister_aliases(flavor):
     """Deregister aliases of a given `flavor` (no checks)."""
+
     rm_aliases = []
     for (an_alias, a_flavor) in alias_map.iteritems():
         if a_flavor == flavor:
@@ -324,14 +325,17 @@ def _deregister_aliases(flavor):
 
 def _deregister_description(flavor):
     """Deregister description of a given `flavor` (no checks)."""
+
     del description_map[flavor]
 
 def _deregister_identifier(flavor):
     """Deregister identifier function of a given `flavor` (no checks)."""
+
     del identifier_map[flavor]
 
 def _deregister_converters(flavor):
     """Deregister converter functions of a given `flavor` (no checks)."""
+
     rm_flavor_pairs = []
     for flavor_pair in converter_map:
         if flavor in flavor_pair:
