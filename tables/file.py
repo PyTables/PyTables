@@ -187,17 +187,17 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
 
     Notes
     -----
-
-    In addition, it recognizes the names of parameters present
-    in :file:`tables/parameters.py` as additional keyword
-    arguments.  See :ref:`parameter_files` for a
-    detailed info on the supported parameters.
+    In addition, it recognizes the names of parameters present in
+    :file:`tables/parameters.py` as additional keyword arguments.
+    See :ref:`parameter_files` for a detailed info on the supported
+    parameters.
 
     .. note::
 
         If you need to deal with a large number of nodes in an
         efficient way, please see :ref:`LRUOptim` for more info and
         advices about the integrated node cache engine.
+
     """
 
     # Get the list of already opened files
@@ -344,11 +344,71 @@ class File(hdf5Extension.File, object):
     with statement introduced in Python 2.5.  When
     exiting a context, the file is automatically closed.
 
+    Parameters
+    ----------
+    filename : str
+        The name of the file (supports environment variable expansion). It is
+        suggested that file names have any of the .h5, .hdf or .hdf5
+        extensions, although this is not mandatory.
+    mode : str
+        The mode to open the file. It can be one of the
+        following:
+
+            * *'r'*: Read-only; no data can be modified.
+            * *'w'*: Write; a new file is created (an existing file with the
+              same name would be deleted).
+            * *'a'*: Append; an existing file is opened for reading and writing,
+              and if the file does not exist it is created.
+            * *'r+'*: It is similar to 'a', but the file must already exist.
+
+    title : str
+        If the file is to be created, a TITLE string attribute will be set on
+        the root group with the given value. Otherwise, the title will be read
+        from disk, and this will not have any effect.
+    rootUEP : str
+        The root User Entry Point. This is a group in the HDF5 hierarchy which
+        will be taken as the starting point to create the object tree. It can
+        be whatever existing group in the file, named by its HDF5 path. If it
+        does not exist, an HDF5ExtError is issued. Use this if you do not want
+        to build the *entire* object tree, but rather only a *subtree* of it.
+    filters : Filters
+        An instance of the Filters (see :ref:`FiltersClassDescr`) class that
+        provides information about the desired I/O filters applicable to the
+        leaves that hang directly from the *root group*, unless other filter
+        properties are specified for these leaves. Besides, if you do not
+        specify filter properties for child groups, they will inherit these
+        ones, which will in turn propagate to child nodes.
+
     Attributes
     ----------
+    filename : str
+        The name of the opened file.
+    filters : Filters
+        Default filter properties for the root group (see
+        :ref:`FiltersClassDescr`).
+    format_version : str
+        The PyTables version number of this file.
+    isopen : bool
+        True if the underlying file os open, False otherwise.
+    mode : str
+        The mode in which the file was opened.
+    open_count : int
+        The number of times this file has been opened currently.
+    root
+        The *root* of the object tree hierarchy (a Group instance).
     rootUEP : str
         The UEP (user entry point) group name in the file (see
         the :func`tables.openFile` function).
+    title
+        The title of the root group in the file.
+
+    Notes
+    -----
+    In addition, it recognizes the names of parameters present in
+    :file:`tables/parameters.py` as additional keyword arguments.
+    See :ref:`parameter_files` for a detailed info on the supported
+    parameters.
+
     """
 
     ## <class variables>
@@ -394,7 +454,7 @@ class File(hdf5Extension.File, object):
         self.filename = filename
         """The name of the opened file."""
         self.mode = mode
-        """The mode in which the file was opened"""
+        """The mode in which the file was opened."""
 
         # Expand the form '~user'
         path = os.path.expanduser(filename)
@@ -574,10 +634,9 @@ class File(hdf5Extension.File, object):
             Whether to create the needed groups for the parent
             path to exist (not done by default).
 
-        .. seealso::
-
-            the Group Class(in :ref:`GroupClassDescr`) for more information
-            on groups.
+        See Also
+        --------
+        Group : for more information on groups
 
         """
 
@@ -655,10 +714,9 @@ class File(hdf5Extension.File, object):
             Whether to create the needed groups for the parent path to exist
             (not done by default).
 
-        .. seealso::
-
-            see the Table (in :ref:`TableClassDescr`) class for more
-            information on tables.
+        See Also
+        --------
+        Table : for more information on tables
 
         """
 
@@ -705,15 +763,11 @@ class File(hdf5Extension.File, object):
             Whether to create the needed groups for the parent path to exist
             (not done by default).
 
-        ..seealso::
+        See Also
+        --------
+        Array : for more information on arrays
+        createTable : for more information on the rest of parameters
 
-            see :meth:`File.createTable` for more information on the rest
-            of parameters.
-
-        .. seealso::
-
-            see the Array class (in :ref:`ArrayClassDescr`) for more
-            information on arrays.
         """
 
         parentNode = self._getOrCreatePath(where, createparents)
@@ -759,10 +813,10 @@ class File(hdf5Extension.File, object):
             Whether to create the needed groups for the parent path to exist
             (not done by default).
 
-        .. seealso::
+        See Also
+        --------
+        CArray : for more information on chunked arrays
 
-            see the CArray class (in :ref:`CArrayClassDescr`) for more
-            information on chunked arrays.
         """
 
         parentNode = self._getOrCreatePath(where, createparents)
@@ -819,10 +873,9 @@ class File(hdf5Extension.File, object):
             Whether to create the needed groups for the parent path to exist
             (not done by default).
 
-        ..seealso::
-
-            See the EArray (in :ref:`EArrayClassDescr`) class for more
-            information on enlargeable arrays.
+        See Also
+        --------
+        EArray : for more information on enlargeable arrays
 
         """
 
@@ -879,10 +932,9 @@ class File(hdf5Extension.File, object):
             Whether to create the needed groups for the parent path to exist
             (not done by default).
 
-        .. seealso::
-
-            see the VLArray (in :ref:`VLArrayClassDescr`) class for more
-            informationon variable-length arrays.
+        See Also
+        --------
+        VLArray : for more informationon variable-length arrays
 
         """
 
@@ -895,7 +947,8 @@ class File(hdf5Extension.File, object):
 
 
     def createHardLink(self, where, name, target, createparents=False):
-        """
+        """Create a hard link
+
         Create a hard link to a `target` node with the given `name` in
         `where` location.  `target` can be a node object or a path
         string.  If `createparents` is true, the intermediate groups
@@ -1314,6 +1367,7 @@ class File(hdf5Extension.File, object):
            Additional keyword arguments can be used to customize the copying
            process.  See the documentation of :meth:`Group._f_copyChildren`
            for a description of those arguments.
+
         """
 
         srcGroup = self.getNode(srcgroup)  # Does the source node exist?
@@ -1348,14 +1402,15 @@ class File(hdf5Extension.File, object):
         nodes are simply ignored. Check the documentation for copying
         operations of nodes to see which options they support.
 
-        In addition, it recognizes the names of parameters present
-        in :file:`tables/parameters.py` as additional keyword
-        arguments.  See :ref:`parameter_files` for a
-        detailed info on the supported parameters.
+        In addition, it recognizes the names of parameters present in
+        :file:`tables/parameters.py` as additional keyword arguments.
+        See :ref:`parameter_files` for a detailed info on the supported
+        parameters.
 
         Copying a file usually has the beneficial side effect of
         creating a more compact and cleaner version of the original
         file.
+
         """
 
         self._checkOpen()
@@ -1400,6 +1455,7 @@ class File(hdf5Extension.File, object):
         """Return a *list* with children nodes hanging from where.
 
         This is a list-returning version of :meth:`File.iterNodes`.
+
         """
 
         group = self.getNode(where)  # Does the parent exist?
@@ -1423,8 +1479,9 @@ class File(hdf5Extension.File, object):
 
         Notes
         -----
-        The returned nodes are alphanumerically sorted by their
-        name.  This is an iterator version of :meth:`File.listNodes`.
+        The returned nodes are alphanumerically sorted by their name.
+        This is an iterator version of :meth:`File.listNodes`.
+
         """
 
         group = self.getNode(where)  # Does the parent exist?

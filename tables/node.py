@@ -137,8 +137,7 @@ class Node(object):
         return self._v_file._getNode(parentPath)
 
     _v_parent = property(
-        _g_getparent, None, None, ("The parent `Group` instance "
-                                   "(see :ref:`GroupClassDescr`)."))
+        _g_getparent, None, None, ("The parent :class:`Group` instance"))
 
 
     # '_v_attrs' is defined as a lazy read-only attribute.
@@ -147,7 +146,10 @@ class Node(object):
     def _v_attrs(self):
         """The associated `AttributeSet` instance.
 
-        .. seealso :ref:`AttributeSetClassDescr`
+        See Also
+        --------
+        tables.attributeset.AttributeSet : container for the HDF5 attributes
+
         """
 
         return self._AttributeSet(self)

@@ -117,7 +117,9 @@ class HDF5ExtError(RuntimeError):
 
         if self._h5bt_policy and self._dump_h5_backtrace is not None:
             self.h5backtrace = self._dump_h5_backtrace()
-            """Contains the HDF5 back trace as a (possibly empty) list of
+            """HDF5 back trace.
+
+            Contains the HDF5 back trace as a (possibly empty) list of
             tuples.  Each tuple has the following format::
 
                 (filename, line number, function name, text)
@@ -130,7 +132,11 @@ class HDF5ExtError(RuntimeError):
             trace retrieval.
 
             .. versionadded:: 2.4
-            .. seealso:: :func:`traceback.format_list`
+
+            See Also
+            --------
+            traceback.format_list : :func:`traceback.format_list`
+
             """
 
             # XXX: check _dump_h5_backtrace failures

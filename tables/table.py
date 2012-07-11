@@ -1559,14 +1559,16 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         the table, you may use the start, stop and step parameters, which have
         the same meaning as in :meth:`Table.read`.
 
-        .. seealso:: :ref:`RowClassDescr`
-
         .. warning::
 
             When in the middle of a table row iterator, you should not
             use methods that can change the number of rows in the table
             (like :meth:`Table.append` or :meth:`Table.removeRows`) or
             unexpected errors will happen.
+
+        See Also
+        --------
+        tableExtension.Row : the table row iterator and field accessor
 
         Examples
         --------
@@ -1579,6 +1581,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         Notes
         -----
         This iterator can be nested (see :meth:`Table.where` for an example).
+
         """
 
         (start, stop, step) = self._processRangeRead(start, stop, step)
@@ -1595,7 +1598,9 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         This is equivalent to calling :meth:`Table.iterrows` with default
         arguments, i.e. it iterates over *all the rows* in the table.
 
-        .. seealso::  :ref:`RowClassDescr`
+        See Also
+        --------
+        tableExtension.Row : the table row iterator and field accessor
 
         Examples
         --------

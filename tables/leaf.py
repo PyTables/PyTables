@@ -152,7 +152,10 @@ class Leaf(Node):
     def filters(self):
         """Filter properties for this leaf
 
-        .. seealso:: Filters in :ref:`FiltersClassDescr`
+        See Also
+        --------
+        Filters
+
         """
 
         return Filters._from_leaf(self)

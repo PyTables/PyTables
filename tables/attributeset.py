@@ -68,7 +68,7 @@ def issysattrname(name):
 
 
 class AttributeSet(hdf5Extension.AttributeSet, object):
-    """Container for the HDF5 attributes of a Node (see :ref:`NodeClassDescr`).
+    """Container for the HDF5 attributes of a Node
 
     This class provides methods to create new HDF5 node attributes,
     and to get, rename or delete existing ones.
@@ -178,14 +178,17 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     _v_unimplemented : list of strings
         A list of attribute names with unimplemented native HDF5 types.
 
+    See Also
+    --------
+    Node
+
     """
 
     def _g_getnode(self):
         return self._v__nodeFile._getNode(self._v__nodePath)
 
     _v_node = property(_g_getnode, None, None,
-                       """The Node instance (see :ref:`NodeClassDescr`) this
-                       attribute set is associated with.""")
+        "The :class:`Node` instance this attribute set is associated with.")
 
 
     def __init__(self, node):
@@ -193,7 +196,10 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         Reads all the HDF5 attributes (if any) on disk for the node "node".
 
-        node -- The parent node
+        Parameters
+        ----------
+        node
+            The parent node
 
         """
 
