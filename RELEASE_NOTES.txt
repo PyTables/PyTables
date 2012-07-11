@@ -92,6 +92,8 @@ Documentation improvements
   generated from docstrings using the sphinx autodoc extension.
   A big thank you to Josh Ayers.  Closes :issue:`148`.
 
+- new sphinx theme based on the cloud template
+
 
 Bugs fixed
 ----------
