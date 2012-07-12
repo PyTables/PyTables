@@ -87,22 +87,44 @@ class Leaf(Node):
     class - :ref:`UnImplementedClassDescr`) these classes do in fact inherit
     from Leaf.
 
-    Attributes
-    ----------
-    chunkshape : tuple
-        The HDF5 chunk size for chunked leaves (a tuple).
 
-        This is read-only because you cannot change the chunk
-        size of a leaf once it has been created.
+    .. rubric:: Leaf attributes
 
-    dtype : dtype
+    These instance variables are provided in addition to those in Node
+    (see :ref:`NodeClassDescr`):
+
+    .. attribute:: byteorder
+
+        The byte ordering of the leaf data *on disk*.
+
+    .. attribute:: dtype
+
         The NumPy dtype that most closely matches this leaf type.
-    extdim : int
+
+    .. attribute:: extdim
+
         The index of the enlargeable dimension (-1 if none).
-    nrows : int
+
+    .. attribute:: nrows
+
         The length of the main dimension of the leaf data.
-    shape : tuple
+
+    .. attribute:: nrowsinbuf
+
+        The number of rows that fit in internal input buffers.
+
+        You can change this to fine-tune the speed or memory
+        requirements of your application.
+
+    .. attribute:: shape
+
         The shape of data in the leaf.
+
+    .. attribute:: size_in_memory
+
+        The size of this leaf's data in bytes when it is fully loaded
+        into memory.  This may be used in combination with size_on_disk
+        to calculate the compression ratio of the data.
 
     """
 

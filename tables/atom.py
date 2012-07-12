@@ -227,12 +227,6 @@ class Atom(object):
     to scalar values, and they can be *fully multidimensional
     objects*.
 
-    A series of descendant classes are offered in order to make the
-    use of these element descriptions easier. You should use a
-    particular Atom descendant class whenever you know the exact type
-    you will need when writing your code. Otherwise, you may use one
-    of the Atom.from_*() factory Methods.
-
     Parameters
     ----------
     itemsize : int
@@ -246,15 +240,48 @@ class Atom(object):
 
     The following are the public methods and attributes of the Atom class.
 
-    Attributes
-    ----------
-    itemsize : int
+    Notes
+    -----
+    A series of descendant classes are offered in order to make the
+    use of these element descriptions easier. You should use a
+    particular Atom descendant class whenever you know the exact type
+    you will need when writing your code. Otherwise, you may use one
+    of the Atom.from_*() factory Methods.
+
+    .. rubric:: Arom attributes
+
+    .. attribute:: dflt
+
+        The default value of the atom.
+
+        If the user does not supply a value for an element while
+        filling a dataset, this default value will be written to disk.
+        If the user supplies a scalar value for a multidimensional
+        atom, this value is automatically *broadcast* to all the items
+        in the atom cell. If dflt is not supplied, an appropriate zero
+        value (or *null* string) will be chosen by default.  Please
+        note that default values are kept internally as NumPy objects.
+
+    .. attribute:: dtype
+
+        The NumPy dtype that most closely matches this atom.
+
+    .. attribute:: itemsize
+
         Size in bytes of a single item in the atom.
         Specially useful for atoms of the string kind.
-    kind : str
-        The PyTables kind of the atom.
-    type : str
-        The PyTables type of the atom.
+
+    .. attribute:: kind
+
+        The PyTables kind of the atom (a string).
+
+    .. attribute:: shape
+
+        The shape of the atom (a tuple for scalar atoms).
+
+    .. attribute:: type
+
+        The PyTables type of the atom (a string).
 
         Atoms can be compared with atoms and other objects for
         strict (in)equality without having to compare individual

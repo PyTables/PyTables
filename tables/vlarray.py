@@ -79,15 +79,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         The byteorder of the data *on disk*, specified as 'little' or 'big'.
         If this is not specified, the byteorder is that of the platform.
 
-    Attributes
-    ----------
-    flavor : str
-        The type of data object read from this leaf.
-
-        Please note that when reading several rows of VLArray data,
-        the flavor only applies to the *components* of the returned
-        Python list, not to the list itself.
-
     Examples
     --------
     See below a small example of the use of the VLArray class.  The code is
@@ -143,6 +134,37 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         vlarray2[0]--> ['5', '66']
         vlarray2[1]--> ['5', '6', '77']
         vlarray2[2]--> ['5', '6', '9', '88']
+
+
+    .. rubric:: VLArray attributes
+
+    .. attribute:: atom
+
+        An Atom (see :ref:`AtomClassDescr`)
+        instance representing the *type* and
+        *shape* of the atomic objects to be
+        saved. You may use a *pseudo-atom* for
+        storing a serialized object or variable length string per row.
+
+    .. attribute flavor
+
+        The type of data object read from this leaf.
+
+        Please note that when reading several rows of VLArray data,
+        the flavor only applies to the *components* of the returned
+        Python list, not to the list itself.
+
+    .. attribute:: nrow
+
+        On iterators, this is the index of the current row.
+
+    .. attribute:: nrows
+
+        The current number of rows in the array.
+
+    .. attribute:: extdim
+
+       The index of the enlargeable dimension (always 0 for vlarrays).
 
     """
 

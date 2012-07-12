@@ -167,20 +167,24 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     If an attribute is set on a target node that already has a large
     number of attributes, a PerformanceWarning will be issued.
 
-    Attributes
-    ----------
-    _v_attrnames : str
-        A list with all attribute names.
-    _v_attrnamessys : list of strings
-        A list with system attribute names.
-    _v_attrnamesuser : list of strings
-        A list with user attribute names.
-    _v_unimplemented : list of strings
-        A list of attribute names with unimplemented native HDF5 types.
 
-    See Also
-    --------
-    Node
+    .. rubric:: AttributeSet attributes
+
+    .. attribute:: _v_attrnames
+
+        A list with all attribute names.
+
+    .. attribute:: _v_attrnamessys
+
+        A list with system attribute names.
+
+    .. attribute:: _v_attrnamesuser
+
+        A list with user attribute names.
+
+    .. attribute:: _v_unimplemented
+
+        A list of attribute names with unimplemented native HDF5 types.
 
     """
 

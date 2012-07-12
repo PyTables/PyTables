@@ -109,19 +109,34 @@ class Group(hdf5Extension.Group, Node):
         del group.table              # delete a Python attribute
         table = group.table          # get the table child instance again
 
-    Attributes
-    ----------
-    _v_children : dict
+
+    .. rubric:: Group attributes
+
+    The following instance variables are provided in addition to those
+    in Node (see :ref:`NodeClassDescr`):
+
+    .. attribute:: _v_children
+
         Dictionary with all nodes hanging from this group.
-    _v_groups : dict
+
+    .. attribute:: _v_groups
+
         Dictionary with all groups hanging from this group.
-    _v_hidden : dict
+
+    .. attribute:: _v_hidden
+
         Dictionary with all hidden nodes hanging from this group.
-    _v_leaves : dict
+
+    .. attribute:: _v_leaves
+
         Dictionary with all leaves hanging from this group.
-    _v_links : dict
+
+    .. attribute:: _v_links
+
         Dictionary with all links hanging from this group.
-    _v_unknown : dict
+
+    .. attribute:: _v_unknown
+
         Dictionary with all unknown nodes hanging from this group.
 
     """

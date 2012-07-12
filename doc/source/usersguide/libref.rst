@@ -84,8 +84,8 @@ The File Class
     .. autoattribute:: File.rootUEP
 
 
-Properties
-~~~~~~~~~~
+File properties
+~~~~~~~~~~~~~~~
 .. autoattribute:: File.title
 
 .. autoattribute:: File.filters
@@ -257,13 +257,17 @@ The Group class
     (see :ref:`NodeClassDescr`):
 
     .. autoattribute:: Group._v_children
-    .. autoattribute:: Group._v_filters
     .. autoattribute:: Group._v_groups
     .. autoattribute:: Group._v_hidden
     .. autoattribute:: Group._v_leaves
     .. autoattribute:: Group._v_links
-    .. autoattribute:: Group._v_nchildren
     .. autoattribute:: Group._v_unknown
+
+Group properties
+~~~~~~~~~~~~~~~~
+.. autoattribute:: Group._v_nchildren
+
+.. autoattribute:: Group._v_filters
 
 
 Group methods
@@ -346,36 +350,49 @@ The Leaf class
 .. autoclass:: Leaf
 
 ..
+    .. _LeafInstanceVariables:
+
     Leaf instance variables
     ~~~~~~~~~~~~~~~~~~~~~~~
-
     These instance variables are provided in addition to those in Node
     (see :ref:`NodeClassDescr`):
 
     .. autoattribute:: Leaf.byteorder
-    .. autoattribute:: Leaf.chunkshape
     .. autoattribute:: Leaf.dtype
     .. autoattribute:: Leaf.extdim
-    .. autoattribute:: Leaf.filters
-    .. autoattribute:: Leaf.flavor
-    .. autoattribute:: Leaf.maindim
-    .. autoattribute:: Leaf.ndim
     .. autoattribute:: Leaf.nrows
     .. autoattribute:: Leaf.nrowsinbuf
     .. autoattribute:: Leaf.shape
-    .. autoattribute:: Leaf.size_on_disk
     .. autoattribute:: Leaf.size_in_memory
 
 
-    Leaf instance variables - aliases
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    The following are just easier-to-write aliases to their Node (see
-    :ref:`NodeClassDescr`) counterparts (indicated between parentheses):
+Leaf properties
+~~~~~~~~~~~~~~~
+.. autoattribute:: Leaf.chunkshape
 
-    .. autoattribute:: Leaf.attrs
-    .. autoattribute:: Leaf.name
-    .. autoattribute:: Leaf.objectID
-    .. autoattribute:: Leaf.title
+.. autoattribute:: Leaf.ndim
+
+.. autoattribute:: Leaf.filters
+
+.. autoattribute:: Leaf.maindim
+
+.. autoattribute:: Leaf.flavor
+
+.. autoattribute:: Leaf.size_on_disk
+
+
+Leaf instance variables - aliases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The following are just easier-to-write aliases to their Node (see
+:ref:`NodeClassDescr`) counterparts (indicated between parentheses):
+
+.. autoattribute:: Leaf.attrs
+
+.. autoattribute:: Leaf.name
+
+.. autoattribute:: Leaf.objectID
+
+.. autoattribute:: Leaf.title
 
 
 Leaf methods
@@ -414,6 +431,8 @@ The Table class
 .. autoclass:: Table
 
 ..
+    .. _TableInstanceVariablesDescr:
+
     Table instance variables
     ~~~~~~~~~~~~~~~~~~~~~~~~
     The following instance variables are provided in addition to those in Leaf
@@ -421,12 +440,10 @@ The Table class
     dictionaries to ease retrieving information about a column directly by its
     path name, avoiding the need to walk through Table.description or Table.cols.
 
-    .. autoattribute:: Table.autoIndex
     .. autoattribute:: Table.coldescrs
     .. autoattribute:: Table.coldflts
     .. autoattribute:: Table.coldtypes
     .. autoattribute:: Table.colindexed
-    .. autoattribute:: Table.colindexes
     .. autoattribute:: Table.colinstances
     .. autoattribute:: Table.colnames
     .. autoattribute:: Table.colpathnames
@@ -435,12 +452,23 @@ The Table class
     .. autoattribute:: Table.description
     .. autoattribute:: Table.extdim
     .. autoattribute:: Table.indexed
-    .. autoattribute:: Table.indexedcolpathnames
     .. autoattribute:: Table.nrows
-    .. autoattribute:: Table.row
-    .. autoattribute:: Table.rowsize
     .. autoattribute:: Table.size_on_disk
-    .. autoattribute:: Table.size_in_memory
+
+
+Table properties
+~~~~~~~~~~~~~~~~
+.. autoattribute:: Table.autoIndex
+
+.. autoattribute:: Table.colindexes
+
+.. autoattribute:: Table.indexedcolpathnames
+
+.. autoattribute:: Table.row
+
+.. autoattribute:: Table.rowsize
+
+.. autoattribute:: Table.size_in_memory
 
 
 Table methods - reading
@@ -513,7 +541,7 @@ Table methods - other
 
 The Description class
 ~~~~~~~~~~~~~~~~~~~~~
-.. class:: Description
+.. autoclass:: Description
 
 ..
     Description instance variables
@@ -537,7 +565,6 @@ The Description class
 
 Description methods
 ^^^^^^^^^^^^^^^^^^^
-
 .. automethod:: Description._f_walk
 
 
@@ -585,7 +612,11 @@ The Cols class
     .. autoattribute:: Cols._v_colnames
     .. autoattribute:: Cols._v_colpathnames
     .. autoattribute:: Cols._v_desc
-    .. autoattribute:: Cols._v_table
+
+
+Cols properties
+^^^^^^^^^^^^^^^
+.. autoattribute:: Cols._v_table
 
 
 Cols methods
@@ -726,8 +757,13 @@ The VLArray class
     .. autoattribute:: VLArray.nrow
     .. autoattribute:: VLArray.extdim
     .. autoattribute:: VLArray.nrows
-    .. autoattribute:: VLArray.size_on_disk
-    .. autoattribute:: VLArray.size_in_memory
+
+
+VLArray propertirs
+~~~~~~~~~~~~~~~~~~
+.. autoattribute:: VLArray.size_on_disk
+
+.. autoattribute:: VLArray.size_in_memory
 
 
 VLArray methods
@@ -851,8 +887,11 @@ The AttributeSet class
     .. autoattribute:: tables.attributeset.AttributeSet._v_attrnames
     .. autoattribute:: tables.attributeset.AttributeSet._v_attrnamessys
     .. autoattribute:: tables.attributeset.AttributeSet._v_attrnamesuser
-    .. autoattribute:: tables.attributeset.AttributeSet._v_node
     .. autoattribute:: tables.attributeset.AttributeSet._v_unimplemented
+
+AttributeSet propertirs
+~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: tables.attributeset.AttributeSet._v_node
 
 
 AttributeSet methods
@@ -886,11 +925,17 @@ The Atom class and its descendants
     .. autoattribute:: Atom.dtype
     .. autoattribute:: Atom.itemsize
     .. autoattribute:: Atom.kind
-    .. autoattribute:: Atom.ndim
-    .. autoattribute:: Atom.recarrtype
     .. autoattribute:: Atom.shape
-    .. autoattribute:: Atom.size
     .. autoattribute:: Atom.type
+
+
+Atom propertirs
+^^^^^^^^^^^^^^^
+.. autoattribute:: Atom.ndim
+
+.. autoattribute:: Atom.recarrtype
+
+.. autoattribute:: Atom.size
 
 
 Atom methods
@@ -1015,9 +1060,20 @@ The Col class and its descendants
 .. autoclass:: Col
 
 ..
-    Instance variables
-    ^^^^^^^^^^^^^^^^^^
+    Col instance variables
+    ^^^^^****^^^^^^^^^^^^^
    .. autoattribute:: _v_pos
+
+
+Col instance variables
+^^^^^^^^^^^^^^^^^^^^^^
+In addition to the variables that they inherit from the Atom class, Col
+instances have the following attributes.
+
+.. attribute:: _v_pos
+
+    The *relative* position of this column with regard to its column
+    siblings.
 
 
 Col factory methods

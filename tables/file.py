@@ -379,35 +379,40 @@ class File(hdf5Extension.File, object):
         specify filter properties for child groups, they will inherit these
         ones, which will in turn propagate to child nodes.
 
-    Attributes
-    ----------
-    filename : str
-        The name of the opened file.
-    filters : Filters
-        Default filter properties for the root group (see
-        :ref:`FiltersClassDescr`).
-    format_version : str
-        The PyTables version number of this file.
-    isopen : bool
-        True if the underlying file os open, False otherwise.
-    mode : str
-        The mode in which the file was opened.
-    open_count : int
-        The number of times this file has been opened currently.
-    root
-        The *root* of the object tree hierarchy (a Group instance).
-    rootUEP : str
-        The UEP (user entry point) group name in the file (see
-        the :func`tables.openFile` function).
-    title
-        The title of the root group in the file.
-
     Notes
     -----
     In addition, it recognizes the names of parameters present in
     :file:`tables/parameters.py` as additional keyword arguments.
     See :ref:`parameter_files` for a detailed info on the supported
     parameters.
+
+
+    .. rubric:: File attributes
+
+    .. attribute:: filename
+
+        The name of the opened file.
+
+    .. attribute:: format_version
+
+        The PyTables version number of this file.
+
+    .. attribute:: isopen
+
+        True if the underlying file is open, false otherwise.
+
+    .. attribute:: mode
+
+        The mode in which the file was opened.
+
+    .. attribute:: root
+
+        The *root* of the object tree hierarchy (a Group instance).
+
+    .. attribute:: rootUEP
+
+        The UEP (user entry point) group name in the file (see
+        the :func:`openFile` function).
 
     """
 

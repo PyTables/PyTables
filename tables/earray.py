@@ -33,9 +33,8 @@ class EArray(CArray):
     :ref:`CArrayClassDescr`), from which it inherits, is that the former
     can be enlarged along one of its dimensions, the *enlargeable
     dimension*.  That means that the :attr:`Leaf.extdim` attribute (see
-    :ref:`LeafInstanceVariables`) of any EArray instance will always be
-    non-negative.  Multiple enlargeable dimensions might be supported in
-    the future.
+    :class:`Leaf`) of any EArray instance will always be non-negative.
+    Multiple enlargeable dimensions might be supported in the future.
 
     New rows can be added to the end of an enlargeable array by using the
     :meth:`EArray.append` method.

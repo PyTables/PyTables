@@ -391,8 +391,7 @@ class Table(tableExtension.Table, Leaf):
     the table.
 
     The structure of a table is declared by its description, which is made
-    available in the Table.description attribute (see
-    :ref:`TableInstanceVariablesDescr`).
+    available in the Table.description attribute (see :class:`Table`).
 
     This class provides new methods to read, write and search table data
     efficiently.  It also provides special Python methods to allow accessing
@@ -413,16 +412,10 @@ class Table(tableExtension.Table, Leaf):
     syntax (at a much lower speed, of course).
 
     Objects of this class support access to individual columns via *natural
-    naming* through the Table.cols accessor (see
-    :ref:`TableInstanceVariablesDescr`).  Nested columns are mapped to Cols
-    instances, and non-nested ones to Column instances.  See the Column class
-    in :ref:`ColumnClassDescr` for examples of this feature.
-
-    The instance variables below are provided in addition to those in Leaf (see
-    :ref:`LeafClassDescr`).  Please note that there are several col*
-    dictionaries to ease retrieving information about a column directly by its
-    path name, avoiding the need to walk through Table.description or
-    Table.cols.
+    naming* through the :attr:`Table.cols` accessor.  Nested columns are
+    mapped to Cols instances, and non-nested ones to Column instances.
+    See the Column class in :ref:`ColumnClassDescr` for examples of this
+    feature.
 
     Parameters
     ----------
@@ -453,6 +446,88 @@ class Table(tableExtension.Table, Leaf):
         this is not specified, the byteorder is that of the platform, unless
         you passed a recarray as the `description`, in which case the recarray
         byteorder will be chosen.
+
+    Notes
+    -----
+    The instance variables below are provided in addition to those in
+    Leaf (see :ref:`LeafClassDescr`).  Please note that there are several
+    col* dictionaries to ease retrieving information about a column
+    directly by its path name, avoiding the need to walk through
+    Table.description or Table.cols.
+
+
+    .. rubric:: Table attributes
+
+    .. attribute:: coldescrs
+
+        Maps the name of a column to its Col description (see
+        :ref:`ColClassDescr`).
+
+    .. attribute:: coldflts
+
+        Maps the name of a column to its default value.
+
+    .. attribute:: coldtypes
+
+        Maps the name of a column to its NumPy data type.
+
+    .. attribute:: colindexed
+
+        Is the column which name is used as a key indexed?
+
+    .. attribute:: colinstances
+
+        Maps the name of a column to its Column (see
+        :ref:`ColumnClassDescr`) or Cols (see :ref:`ColsClassDescr`)
+        instance.
+
+    .. attribute:: colnames
+
+        A list containing the names of *top-level* columns in the table.
+
+    .. attribute:: colpathnames
+
+        A list containing the pathnames of *bottom-level* columns in
+        the table.
+
+        These are the leaf columns obtained when walking the table
+        description left-to-right, bottom-first. Columns inside a
+        nested column have slashes (/) separating name components in
+        their pathname.
+
+    .. attribute:: cols
+
+        A Cols instance that provides *natural naming* access to
+        non-nested (Column, see :ref:`ColumnClassDescr`) and nested
+        (Cols, see :ref:`ColsClassDescr`) columns.
+
+    .. attribute:: coltypes
+
+        Maps the name of a column to its PyTables data type.
+
+    .. attribute:: description
+
+        A Description instance (see :ref:`DescriptionClassDescr`)
+        reflecting the structure of the table.
+
+    .. attribute:: extdim
+
+        The index of the enlargeable dimension (always 0 for tables).
+
+    .. attribute:: indexed
+
+        Does this table have any indexed columns?
+
+    .. attribute:: nrows
+
+        The current number of rows in the table.
+
+    .. attribute:: size_on_disk
+
+        The size of this table's data in bytes as it is stored on disk.
+        If the data is compressed, this shows the compressed size.
+        In the case of uncompressed, chunked data, this may be slightly
+        larger than the amount of data, due to partially filled chunks.
 
     """
 
@@ -2269,10 +2344,9 @@ The 'names' parameter must be a list of strings.""")
     def flushRowsToIndex(self, _lastrow=True):
         """Add remaining rows in buffers to non-dirty indexes.
 
-        This can be useful when you have chosen non-automatic indexing for the
-        table (see the :attr:`Table.autoIndex` property in
-        :ref:`TableInstanceVariablesDescr`) and you want to update the indexes
-        on it.
+        This can be useful when you have chosen non-automatic indexing
+        for the table (see the :attr:`Table.autoIndex` property in
+        :class:`Table`) and you want to update the indexes on it.
         """
 
         rowsadded = 0
@@ -2480,9 +2554,9 @@ The 'names' parameter must be a list of strings.""")
     def reIndexDirty(self):
         """Recompute the existing indexes in table, *if* they are dirty.
 
-        This can be useful when you have set :attr:`Table.autoIndex` (see
-        :ref:`TableInstanceVariablesDescr`) to false for the table and you want
-        to update the indexes after a invalidating index operation
+        This can be useful when you have set :attr:`Table.autoIndex`
+        (see :class:`Table`) to false for the table and you want to
+        update the indexes after a invalidating index operation
         (:meth:`Table.removeRows`, for example).
         """
 
@@ -2733,19 +2807,25 @@ class Cols(object):
     Like the Column class (see :ref:`ColumnClassDescr`), Cols supports item
     access to read and write ranges of values in the table or nested column.
 
-    Attributes
-    ----------
-    _v_colnames : list of strings
+
+    .. rubric:: Cols attributes
+
+    .. attribute:: _v_colnames
+
         A list of the names of the columns hanging directly
         from the associated table or nested column.  The order of
         the names matches the order of their respective columns in
         the containing table.
-    _v_colpathnames : list of strings
+
+    .. attribute:: _v_colpathnames
+
         A list of the pathnames of all the columns under the
         associated table or nested column (in preorder).  If it does
         not contain nested columns, this is exactly the same as the
         :attr:`Cols._v_colnames` attribute.
-    _v_desc : Description
+
+    .. attribute:: _v_desc
+
         The associated Description instance (see
         :ref:`DescriptionClassDescr`).
 
