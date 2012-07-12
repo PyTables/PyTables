@@ -832,12 +832,9 @@ instance variables. Let's take a look at some examples::
     name := |S16, ()
     pressure := float32, ()
 
-Here, the name, title,
-nrows, colnames and
-coldtypes attributes (see :ref:`TableInstanceVariablesDescr`
-for a complete attribute list) of the Table
-object gives us quite a bit of information about the table
-data.
+Here, the name, title, nrows, colnames and coldtypes attributes (see
+:class:`Table` for a complete attribute list) of the Table object gives us
+quite a bit of information about the table data.
 
 You can interactively retrieve general information about the
 public objects in PyTables by asking for help::
@@ -932,13 +929,11 @@ natural naming and completion capabilities present in most Python
 consoles, and see how pleasant it is to browse the object tree
 (well, as pleasant as such an activity can be).
 
-If you look at the type attribute of the
-pressureObject object, you can verify that it is
-a "*float64*" array. By looking at its
-shape attribute, you can deduce that the array on
-disk is unidimensional and has 3 elements. See :ref:`ArrayClassInstanceVariables`
-or the internal doc strings for the complete
-Array attribute list.
+If you look at the type attribute of the pressureObject object, you can
+verify that it is a "*float64*" array. By looking at its shape attribute,
+you can deduce that the array on disk is unidimensional and has 3 elements.
+See :class:`Array` or the internal doc strings for the complete Array
+attribute list.
 
 Reading data from Array objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
