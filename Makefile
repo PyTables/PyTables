@@ -32,7 +32,7 @@ distclean:	clean
 
 html:
 	$(PYTHON) setup.py build_ext --inplace
-	make -C doc html
+	make -C doc PYTHONPATH=.. html
 
 %:		%.in VERSION
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
