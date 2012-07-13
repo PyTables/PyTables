@@ -138,6 +138,9 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
     .. rubric:: VLArray attributes
 
+    The instance variables below are provided in addition to those in
+    Leaf (see :ref:`LeafClassDescr`).
+
     .. attribute:: atom
 
         An Atom (see :ref:`AtomClassDescr`)
