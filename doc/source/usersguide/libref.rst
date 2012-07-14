@@ -73,7 +73,12 @@ The File Class
 --------------
 .. autoclass:: File
 
-..
+..  These are defined in the class docstring.
+    This is necessary because attributes created in a class's
+    __init__ method can't be documented with autoattribute.
+    See Sphinx bug #904.
+    https://bitbucket.org/birkenfeld/sphinx/issue/904
+
     Attributes
     ~~~~~~~~~~
     .. autoattribute:: File.filename
