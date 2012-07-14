@@ -70,7 +70,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
-  H5Tclose, H5Tis_variable_str, H5Tget_sign, H5Tget_size,
+  H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
   H5Pcreate, H5Pset_cache, H5Pclose,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
@@ -515,8 +515,7 @@ cdef class AttributeSet:
         stype_, shape_ = HDF5ToNPExtType(type_id, pure_numpy_types=True)
         dtype_ = numpy.dtype(stype_, shape_)
       except TypeError:
-        if (class_id == H5T_STRING and H5Tis_variable_str(type_id) and
-            H5Tget_size(type_id) == 8):
+        if class_id == H5T_STRING and H5Tis_variable_str(type_id):
           nelements = H5ATTRget_attribute_vlen_string_array(dset_id, attrname,
                                                             &str_values)
           if nelements < 0:
