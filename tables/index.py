@@ -138,9 +138,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         The four main sizes of the compound blocks in index datasets (a low
         level parameter).
 
-    Notes
-    -----
-
     """
 
     _c_classId = 'INDEX'
