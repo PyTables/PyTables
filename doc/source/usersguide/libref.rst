@@ -759,7 +759,7 @@ The VLArray class
     .. autoattribute:: VLArray.nrows
 
 
-VLArray propertirs
+VLArray properties
 ~~~~~~~~~~~~~~~~~~
 .. autoattribute:: VLArray.size_on_disk
 
@@ -889,7 +889,7 @@ The AttributeSet class
     .. autoattribute:: tables.attributeset.AttributeSet._v_attrnamesuser
     .. autoattribute:: tables.attributeset.AttributeSet._v_unimplemented
 
-AttributeSet propertirs
+AttributeSet properties
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. autoattribute:: tables.attributeset.AttributeSet._v_node
 
@@ -929,7 +929,7 @@ The Atom class and its descendants
     .. autoattribute:: Atom.type
 
 
-Atom propertirs
+Atom properties
 ^^^^^^^^^^^^^^^
 .. autoattribute:: Atom.ndim
 
