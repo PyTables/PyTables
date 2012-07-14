@@ -522,13 +522,6 @@ class Table(tableExtension.Table, Leaf):
 
         The current number of rows in the table.
 
-    .. attribute:: size_on_disk
-
-        The size of this table's data in bytes as it is stored on disk.
-        If the data is compressed, this shows the compressed size.
-        In the case of uncompressed, chunked data, this may be slightly
-        larger than the amount of data, due to partially filled chunks.
-
     """
 
     # Class identifier.
@@ -3077,6 +3070,22 @@ class Column(object):
     :ref:`ColsClassDescr`), but there are a few other associated methods to
     deal with indexes.
 
+    .. rubric:: Column attributes
+
+    .. attribute:: descr
+
+        The Description (see :ref:`DescriptionClassDescr`) instance of the
+        parent table or nested column.
+
+    .. attribute:: name
+
+        The name of the associated column.
+
+    .. attribute:: pathname
+
+        The complete pathname of the associated column (the same as
+        Column.name if the column is not inside a nested column).
+
     Parameters
     ----------
     table
@@ -3085,6 +3094,7 @@ class Column(object):
         The name of the column that is associated with this object
     descr
         The parent description object
+
     """
 
     # Lazy read-only attributes

@@ -198,7 +198,7 @@ The Node class
 --------------
 .. autoclass:: Node
 
-.. Defined in class docstring
+.. These are defined in class docstring
     .. autoattribute:: Node._v_depth
     .. autoattribute:: Node._v_file
     .. autoattribute:: Node._v_name
@@ -251,7 +251,7 @@ The Group class
 ---------------
 .. autoclass:: Group
 
-..
+..  These are defined in the class docstring
     Group instance variables
     ~~~~~~~~~~~~~~~~~~~~~~~~
     The following instance variables are provided in addition to those in Node
@@ -350,7 +350,7 @@ The Leaf class
 --------------
 .. autoclass:: Leaf
 
-..
+..  These are defined in the class docstring
     .. _LeafInstanceVariables:
 
     Leaf instance variables
@@ -364,7 +364,6 @@ The Leaf class
     .. autoattribute:: Leaf.nrows
     .. autoattribute:: Leaf.nrowsinbuf
     .. autoattribute:: Leaf.shape
-    .. autoattribute:: Leaf.size_in_memory
 
 
 Leaf properties
@@ -431,7 +430,7 @@ The Table class
 ---------------
 .. autoclass:: Table
 
-..
+.. These are defined in the class docstring
     .. _TableInstanceVariablesDescr:
 
     Table instance variables
@@ -454,7 +453,6 @@ The Table class
     .. autoattribute:: Table.extdim
     .. autoattribute:: Table.indexed
     .. autoattribute:: Table.nrows
-    .. autoattribute:: Table.size_on_disk
 
 
 Table properties
@@ -470,6 +468,8 @@ Table properties
 .. autoattribute:: Table.rowsize
 
 .. autoattribute:: Table.size_in_memory
+
+.. autoattribute:: Table.size_on_disk
 
 
 Table methods - reading
@@ -544,7 +544,7 @@ The Description class
 ~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: Description
 
-..
+..  These are defined in the class docstring
     Description instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     .. autoattribute:: Description._v_colObjects
@@ -575,7 +575,7 @@ The Row class
 ~~~~~~~~~~~~~
 .. autoclass:: tables.tableExtension.Row
 
-..
+..  These are defined in the class docstring
     Row instance variables
     ^^^^^^^^^^^^^^^^^^^^^^
     .. autoattribute:: tables.tableExtension.Row.nrow
@@ -607,7 +607,7 @@ The Cols class
 ~~~~~~~~~~~~~~
 .. autoclass:: Cols
 
-..
+..  These are defined in the class docstring
     Cols instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^
     .. autoattribute:: Cols._v_colnames
@@ -637,19 +637,21 @@ The Column class
 ~~~~~~~~~~~~~~~~
 .. autoclass:: Column
 
-..
-    Column instance variables
-    ^^^^^^^^^^^^^^^^^^^^^^^^^
+.. These are defined in the class docstring
+
     .. autoattribute:: Column.descr
-    .. autoattribute:: Column.dtype
-    .. autoattribute:: Column.index
-    .. autoattribute:: Column.is_indexed
-    .. autoattribute:: Column.maindim
     .. autoattribute:: Column.name
     .. autoattribute:: Column.pathname
-    .. autoattribute:: Column.shape
-    .. autoattribute:: Column.table
-    .. autoattribute:: Column.type
+
+Column instance variables
+^^^^^^^^^^^^^^^^^^^^^^^^^
+.. autoattribute:: Column.dtype
+.. autoattribute:: Column.index
+.. autoattribute:: Column.is_indexed
+.. autoattribute:: Column.maindim
+.. autoattribute:: Column.shape
+.. autoattribute:: Column.table
+.. autoattribute:: Column.type
 
 
 Column methods
@@ -680,15 +682,18 @@ The Array class
 ---------------
 .. autoclass:: Array
 
-..
-    Array instance variables
-    ~~~~~~~~~~~~~~~~~~~~~~~~
+.. These are defined in the class docstring
+
     .. autoattribute:: Array.atom
-    .. autoattribute:: Array.rowsize
-    .. autoattribute:: Array.nrows
     .. autoattribute:: Array.nrow
-    .. autoattribute:: Array.size_on_disk
-    .. autoattribute:: Array.size_in_memory
+
+
+Array instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: Array.rowsize
+.. autoattribute:: Array.nrows
+.. autoattribute:: Array.size_in_memory
+.. autoattribute:: Array.size_on_disk
 
 
 Array methods
@@ -705,9 +710,9 @@ Array methods
 Array special methods
 ~~~~~~~~~~~~~~~~~~~~~
 The following methods automatically trigger actions when an :class:`Array`
-instance is accessed in a special way (e.g. array[2:3,...,::2] will be
-equivalent to a call to array.__getitem__((slice(2, 3, None), Ellipsis,
-slice(None, None, 2)))).
+instance is accessed in a special way (e.g. ``array[2:3,...,::2]`` will be
+equivalent to a call to
+``array.__getitem__((slice(2, 3, None), Ellipsis, slice(None, None, 2))))``.
 
 .. automethod:: Array.__getitem__
 
@@ -722,11 +727,11 @@ The CArray class
 ----------------
 .. autoclass:: CArray
 
-..
-    CArray instance variables
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
-    .. autoattribute:: CArray.size_on_disk
-    .. autoattribute:: CArray.size_in_memory
+
+CArray instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: CArray.size_in_memory
+.. autoattribute:: CArray.size_on_disk
 
 
 .. _EArrayClassDescr:

@@ -52,6 +52,17 @@ class Array(hdf5Extension.Array, Leaf):
     to disk.  When a writing method call returns, all the data is already on
     disk.
 
+    .. rubric:: Array attributes
+
+    .. attribute:: atom
+
+        An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
+        and *shape* of the atomic objects to be saved.
+
+    .. attribute:: nrow
+
+        On iterators, this is the index of the current row.
+
     Parameters
     ----------
     object
@@ -105,8 +116,7 @@ class Array(hdf5Extension.Array, Leaf):
     size_in_memory = property(
         lambda self: self.nrows * self.rowsize, None, None,
         """The size of this array's data in bytes when it is fully loaded into
-        memory.  Since arrays do not support compression or chunking, this will
-        always equal size_on_disk.""")
+        memory.""")
 
     # Other methods
     # ~~~~~~~~~~~~~
