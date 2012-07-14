@@ -58,6 +58,13 @@ class Link(Node):
     in future releases.
 
     See :ref:`LinksTutorial` for a small tutorial on how to work with links.
+
+    .. rubric:: Link attributes
+
+    .. attribute:: target
+
+        The path string to the pointed node.
+
     """
 
     # Properties
@@ -200,6 +207,14 @@ class ExternalLink(linkExtension.ExternalLink, Link):
     Getting access to the pointed node (this action is called
     *dereferencing*) is done via the :meth:`__call__` special method
     (see below).
+
+    .. rubric:: ExternalLink attributes
+
+    .. attribute:: extfile
+
+        The external file handler, if the link has been dereferenced.
+        In case the link has not been dereferenced yet, its value is
+        None.
 
     """
 

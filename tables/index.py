@@ -100,11 +100,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     Group class (see :ref:`GroupClassDescr`), with some added functionality. An
     Index is always associated with one and only one column in the table.
 
-    .. note::
+    .. note:: This class is mainly intended for internal use, but some of its
+              documented attributes and methods may be interesting for the
+              programmer.
 
-        This class is mainly intended for internal use, but some of its
-        documented attributes and methods may be interesting for the
-        programmer.
+    .. rubric:: Index attributes
+
+    .. attribute:: nelements
+
+        The number of currently indexed rows for this column.
 
     Parameters
     ----------
@@ -133,6 +137,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     blocksizes
         The four main sizes of the compound blocks in index datasets (a low
         level parameter).
+
+    Notes
+    -----
+
     """
 
     _c_classId = 'INDEX'

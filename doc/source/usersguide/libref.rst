@@ -755,12 +755,13 @@ The VLArray class
 -----------------
 .. autoclass:: VLArray
 
-..
+..  These are defined in the class docstring
     VLArray instance variables
     ~~~~~~~~~~~~~~~~~~~~~~~~~~
     .. autoattribute:: VLArray.atom
     .. autoattribute:: VLArray.flavor
     .. autoattribute:: VLArray.nrow
+    .. autoattribute:: VLArray.nrows
     .. autoattribute:: VLArray.extdim
     .. autoattribute:: VLArray.nrows
 
@@ -804,11 +805,12 @@ The Link class
 --------------
 .. autoclass:: tables.link.Link
 
-..
-    Link instance variables
-    ~~~~~~~~~~~~~~~~~~~~~~~
-    .. autoattribute:: tables.link.Link._v_attrs
+..  These are defined in the class docstring
     .. autoattribute:: tables.link.Link.target
+
+Link instance variables
+~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: tables.link.Link._v_attrs
 
 
 Link methods
@@ -846,7 +848,7 @@ The ExternalLink class
 ----------------------
 .. autoclass:: tables.link.ExternalLink
 
-..
+..  This is defined in the class docstring
     ExternalLink instance variables
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     .. autoattribute:: tables.link.ExternalLink.extfile
@@ -887,7 +889,7 @@ The AttributeSet class
 ----------------------
 .. autoclass:: tables.attributeset.AttributeSet
 
-..
+..  These are defined in the class docstring
     AttributeSet attributes
     ~~~~~~~~~~~~~~~~~~~~~~~
     .. autoattribute:: tables.attributeset.AttributeSet._v_attrnames
@@ -924,7 +926,7 @@ The Atom class and its descendants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: Atom
 
-..
+..  These are defined in the class docstring
     Atom instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^
     .. autoattribute:: Atom.dflt
@@ -1067,7 +1069,7 @@ The Col class and its descendants
 
 ..
     Col instance variables
-    ^^^^^****^^^^^^^^^^^^^
+    ^^^^^^^^^^^^^^^^^^^^^^
    .. autoattribute:: _v_pos
 
 
@@ -1173,7 +1175,7 @@ The Filters class
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: Filters
 
-..
+..  These are defined in the class docstring.
     Filters instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^^^^
     .. autoattribute:: Filters.fletcher32
@@ -1193,14 +1195,15 @@ The Index class
 ~~~~~~~~~~~~~~~
 .. autoclass:: tables.index.Index
 
-..
-    Index instance variables
-    ^^^^^^^^^^^^^^^^^^^^^^^^
-    .. autoattribute:: tables.index.Index.column
-    .. autoattribute:: tables.index.Index.dirty
-    .. autoattribute:: tables.index.Index.filters
+..  This is defined in the class docstring
     .. autoattribute:: tables.index.Index.nelements
-    .. autoattribute:: tables.index.Index.is_CSI
+
+Index instance variables
+^^^^^^^^^^^^^^^^^^^^^^^^
+.. autoattribute:: tables.index.Index.column
+.. autoattribute:: tables.index.Index.dirty
+.. autoattribute:: tables.index.Index.filters
+.. autoattribute:: tables.index.Index.is_CSI
 
 
 Index methods
@@ -1252,7 +1255,7 @@ The Expr class - a general-purpose expression evaluator
 -------------------------------------------------------
 .. autoclass:: Expr
 
-..
+..  These are defined in the class docstring.
     Expr instance variables
     ~~~~~~~~~~~~~~~~~~~~~~~
     .. autoattribute:: Expr.append_mode
