@@ -198,26 +198,27 @@ The Node class
 --------------
 .. autoclass:: Node
 
-..
-    Node instance variables - location dependent
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. Defined in class docstring
     .. autoattribute:: Node._v_depth
     .. autoattribute:: Node._v_file
     .. autoattribute:: Node._v_name
-    .. autoattribute:: Node._v_parent
     .. autoattribute:: Node._v_pathname
-
-
-    Node instance variables - location independent
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    .. autoattribute:: Node._v_attrs
-    .. autoattribute:: Node._v_isopen
     .. autoattribute:: Node._v_objectID
 
+Node instance variables - location dependent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: Node._v_parent
 
-    Node instance variables - attribute shorthands
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    .. autoattribute:: Node._v_title
+
+Node instance variables - location independent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: Node._v_attrs
+.. autoattribute:: Node._v_isopen
+
+
+Node instance variables - attribute shorthands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: Node._v_title
 
 
 Node methods - hierarchy manipulation
