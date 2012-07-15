@@ -687,18 +687,25 @@ The Array class
 ---------------
 .. autoclass:: Array
 
-.. These are defined in the class docstring
-
-    .. autoattribute:: Array.atom
-    .. autoattribute:: Array.nrow
-
 
 Array instance variables
 ~~~~~~~~~~~~~~~~~~~~~~~~
+.. attribute:: atom
+
+    An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
+    and *shape* of the atomic objects to be saved.
+
 .. autoattribute:: Array.rowsize
+
+.. attribute:: nrow
+
+    On iterators, this is the index of the current row.
+
 .. autoattribute:: Array.nrows
 .. autoattribute:: Array.size_in_memory
 .. autoattribute:: Array.size_on_disk
+
+
 
 
 Array methods
@@ -1209,6 +1216,10 @@ Index instance variables
 .. autoattribute:: tables.index.Index.dirty
 .. autoattribute:: tables.index.Index.filters
 .. autoattribute:: tables.index.Index.is_CSI
+
+.. attribute:: nelements
+
+    The number of currently indexed rows for this column.
 
 
 Index methods

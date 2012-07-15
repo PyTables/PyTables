@@ -104,12 +104,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
               documented attributes and methods may be interesting for the
               programmer.
 
-    .. rubric:: Index attributes
-
-    .. attribute:: nelements
-
-        The number of currently indexed rows for this column.
-
     Parameters
     ----------
     atom : Atom

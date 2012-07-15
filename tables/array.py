@@ -52,17 +52,6 @@ class Array(hdf5Extension.Array, Leaf):
     to disk.  When a writing method call returns, all the data is already on
     disk.
 
-    .. rubric:: Array attributes
-
-    .. attribute:: atom
-
-        An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
-        and *shape* of the atomic objects to be saved.
-
-    .. attribute:: nrow
-
-        On iterators, this is the index of the current row.
-
     Parameters
     ----------
     object
