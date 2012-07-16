@@ -690,14 +690,14 @@ The Array class
 
 Array instance variables
 ~~~~~~~~~~~~~~~~~~~~~~~~
-.. attribute:: atom
+.. attribute:: Array.atom
 
     An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
     and *shape* of the atomic objects to be saved.
 
 .. autoattribute:: Array.rowsize
 
-.. attribute:: nrow
+.. attribute:: Array.nrow
 
     On iterators, this is the index of the current row.
 
@@ -1090,7 +1090,7 @@ Col instance variables
 In addition to the variables that they inherit from the Atom class, Col
 instances have the following attributes.
 
-.. attribute:: _v_pos
+.. attribute:: Col._v_pos
 
     The *relative* position of this column with regard to its column
     siblings.
@@ -1217,7 +1217,7 @@ Index instance variables
 .. autoattribute:: tables.index.Index.filters
 .. autoattribute:: tables.index.Index.is_CSI
 
-.. attribute:: nelements
+.. attribute:: tables.index.Index.nelements
 
     The number of currently indexed rows for this column.
 
