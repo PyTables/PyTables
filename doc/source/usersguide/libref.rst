@@ -208,7 +208,7 @@ The Node class
     .. autoattribute:: Node._v_file
     .. autoattribute:: Node._v_name
     .. autoattribute:: Node._v_pathname
-    .. autoattribute:: Node._v_objectID
+    .. autoattribute:: Node._v_objectID (location independent)
 
 Node instance variables - location dependent
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -218,6 +218,7 @@ Node instance variables - location dependent
 Node instance variables - location independent
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoattribute:: Node._v_attrs
+
 .. autoattribute:: Node._v_isopen
 
 
@@ -652,11 +653,17 @@ The Column class
 Column instance variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 .. autoattribute:: Column.dtype
+
 .. autoattribute:: Column.index
+
 .. autoattribute:: Column.is_indexed
+
 .. autoattribute:: Column.maindim
+
 .. autoattribute:: Column.shape
+
 .. autoattribute:: Column.table
+
 .. autoattribute:: Column.type
 
 
@@ -1204,8 +1211,11 @@ The Index class
 Index instance variables
 ^^^^^^^^^^^^^^^^^^^^^^^^
 .. autoattribute:: tables.index.Index.column
+
 .. autoattribute:: tables.index.Index.dirty
+
 .. autoattribute:: tables.index.Index.filters
+
 .. autoattribute:: tables.index.Index.is_CSI
 
 .. attribute:: tables.index.Index.nelements

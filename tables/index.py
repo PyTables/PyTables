@@ -100,9 +100,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     Group class (see :ref:`GroupClassDescr`), with some added functionality. An
     Index is always associated with one and only one column in the table.
 
-    .. note:: This class is mainly intended for internal use, but some of its
-              documented attributes and methods may be interesting for the
-              programmer.
+    .. note::
+
+        This class is mainly intended for internal use, but some of its
+        documented attributes and methods may be interesting for the
+        programmer.
 
     Parameters
     ----------
