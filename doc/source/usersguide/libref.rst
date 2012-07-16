@@ -383,6 +383,11 @@ Leaf properties
 
 .. autoattribute:: Leaf.flavor
 
+.. attribute:: Leaf.size_in_memory
+
+    The size of this leaf's data in bytes when it is fully loaded into
+    memory.
+
 .. autoattribute:: Leaf.size_on_disk
 
 
@@ -471,10 +476,6 @@ Table properties
 .. autoattribute:: Table.row
 
 .. autoattribute:: Table.rowsize
-
-.. autoattribute:: Table.size_in_memory
-
-.. autoattribute:: Table.size_on_disk
 
 
 Table methods - reading
@@ -702,10 +703,6 @@ Array instance variables
     On iterators, this is the index of the current row.
 
 .. autoattribute:: Array.nrows
-.. autoattribute:: Array.size_in_memory
-.. autoattribute:: Array.size_on_disk
-
-
 
 
 Array methods
@@ -738,12 +735,6 @@ equivalent to a call to
 The CArray class
 ----------------
 .. autoclass:: CArray
-
-
-CArray instance variables
-~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoattribute:: CArray.size_in_memory
-.. autoattribute:: CArray.size_on_disk
 
 
 .. _EArrayClassDescr:
