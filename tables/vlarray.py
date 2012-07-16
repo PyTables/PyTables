@@ -149,7 +149,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         saved. You may use a *pseudo-atom* for
         storing a serialized object or variable length string per row.
 
-    .. attribute flavor
+    .. attribute:: flavor
 
         The type of data object read from this leaf.
 

@@ -73,7 +73,12 @@ The File Class
 --------------
 .. autoclass:: File
 
-..
+..  These are defined in the class docstring.
+    This is necessary because attributes created in a class's
+    __init__ method can't be documented with autoattribute.
+    See Sphinx bug #904.
+    https://bitbucket.org/birkenfeld/sphinx/issue/904
+
     Attributes
     ~~~~~~~~~~
     .. autoattribute:: File.filename
@@ -198,26 +203,27 @@ The Node class
 --------------
 .. autoclass:: Node
 
-..
-    Node instance variables - location dependent
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. These are defined in class docstring
     .. autoattribute:: Node._v_depth
     .. autoattribute:: Node._v_file
     .. autoattribute:: Node._v_name
-    .. autoattribute:: Node._v_parent
     .. autoattribute:: Node._v_pathname
-
-
-    Node instance variables - location independent
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    .. autoattribute:: Node._v_attrs
-    .. autoattribute:: Node._v_isopen
     .. autoattribute:: Node._v_objectID
 
+Node instance variables - location dependent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: Node._v_parent
 
-    Node instance variables - attribute shorthands
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    .. autoattribute:: Node._v_title
+
+Node instance variables - location independent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: Node._v_attrs
+.. autoattribute:: Node._v_isopen
+
+
+Node instance variables - attribute shorthands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: Node._v_title
 
 
 Node methods - hierarchy manipulation
@@ -250,7 +256,7 @@ The Group class
 ---------------
 .. autoclass:: Group
 
-..
+..  These are defined in the class docstring
     Group instance variables
     ~~~~~~~~~~~~~~~~~~~~~~~~
     The following instance variables are provided in addition to those in Node
@@ -349,7 +355,7 @@ The Leaf class
 --------------
 .. autoclass:: Leaf
 
-..
+..  These are defined in the class docstring
     .. _LeafInstanceVariables:
 
     Leaf instance variables
@@ -363,7 +369,6 @@ The Leaf class
     .. autoattribute:: Leaf.nrows
     .. autoattribute:: Leaf.nrowsinbuf
     .. autoattribute:: Leaf.shape
-    .. autoattribute:: Leaf.size_in_memory
 
 
 Leaf properties
@@ -377,6 +382,11 @@ Leaf properties
 .. autoattribute:: Leaf.maindim
 
 .. autoattribute:: Leaf.flavor
+
+.. attribute:: Leaf.size_in_memory
+
+    The size of this leaf's data in bytes when it is fully loaded into
+    memory.
 
 .. autoattribute:: Leaf.size_on_disk
 
@@ -430,7 +440,7 @@ The Table class
 ---------------
 .. autoclass:: Table
 
-..
+.. These are defined in the class docstring
     .. _TableInstanceVariablesDescr:
 
     Table instance variables
@@ -453,7 +463,6 @@ The Table class
     .. autoattribute:: Table.extdim
     .. autoattribute:: Table.indexed
     .. autoattribute:: Table.nrows
-    .. autoattribute:: Table.size_on_disk
 
 
 Table properties
@@ -467,8 +476,6 @@ Table properties
 .. autoattribute:: Table.row
 
 .. autoattribute:: Table.rowsize
-
-.. autoattribute:: Table.size_in_memory
 
 
 Table methods - reading
@@ -543,7 +550,7 @@ The Description class
 ~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: Description
 
-..
+..  These are defined in the class docstring
     Description instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     .. autoattribute:: Description._v_colObjects
@@ -574,7 +581,7 @@ The Row class
 ~~~~~~~~~~~~~
 .. autoclass:: tables.tableExtension.Row
 
-..
+..  These are defined in the class docstring
     Row instance variables
     ^^^^^^^^^^^^^^^^^^^^^^
     .. autoattribute:: tables.tableExtension.Row.nrow
@@ -606,7 +613,7 @@ The Cols class
 ~~~~~~~~~~~~~~
 .. autoclass:: Cols
 
-..
+..  These are defined in the class docstring
     Cols instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^
     .. autoattribute:: Cols._v_colnames
@@ -636,19 +643,21 @@ The Column class
 ~~~~~~~~~~~~~~~~
 .. autoclass:: Column
 
-..
-    Column instance variables
-    ^^^^^^^^^^^^^^^^^^^^^^^^^
+.. These are defined in the class docstring
+
     .. autoattribute:: Column.descr
-    .. autoattribute:: Column.dtype
-    .. autoattribute:: Column.index
-    .. autoattribute:: Column.is_indexed
-    .. autoattribute:: Column.maindim
     .. autoattribute:: Column.name
     .. autoattribute:: Column.pathname
-    .. autoattribute:: Column.shape
-    .. autoattribute:: Column.table
-    .. autoattribute:: Column.type
+
+Column instance variables
+^^^^^^^^^^^^^^^^^^^^^^^^^
+.. autoattribute:: Column.dtype
+.. autoattribute:: Column.index
+.. autoattribute:: Column.is_indexed
+.. autoattribute:: Column.maindim
+.. autoattribute:: Column.shape
+.. autoattribute:: Column.table
+.. autoattribute:: Column.type
 
 
 Column methods
@@ -679,15 +688,21 @@ The Array class
 ---------------
 .. autoclass:: Array
 
-..
-    Array instance variables
-    ~~~~~~~~~~~~~~~~~~~~~~~~
-    .. autoattribute:: Array.atom
-    .. autoattribute:: Array.rowsize
-    .. autoattribute:: Array.nrows
-    .. autoattribute:: Array.nrow
-    .. autoattribute:: Array.size_on_disk
-    .. autoattribute:: Array.size_in_memory
+
+Array instance variables
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. attribute:: Array.atom
+
+    An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
+    and *shape* of the atomic objects to be saved.
+
+.. autoattribute:: Array.rowsize
+
+.. attribute:: Array.nrow
+
+    On iterators, this is the index of the current row.
+
+.. autoattribute:: Array.nrows
 
 
 Array methods
@@ -704,9 +719,9 @@ Array methods
 Array special methods
 ~~~~~~~~~~~~~~~~~~~~~
 The following methods automatically trigger actions when an :class:`Array`
-instance is accessed in a special way (e.g. array[2:3,...,::2] will be
-equivalent to a call to array.__getitem__((slice(2, 3, None), Ellipsis,
-slice(None, None, 2)))).
+instance is accessed in a special way (e.g. ``array[2:3,...,::2]`` will be
+equivalent to a call to
+``array.__getitem__((slice(2, 3, None), Ellipsis, slice(None, None, 2))))``.
 
 .. automethod:: Array.__getitem__
 
@@ -720,12 +735,6 @@ slice(None, None, 2)))).
 The CArray class
 ----------------
 .. autoclass:: CArray
-
-..
-    CArray instance variables
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
-    .. autoattribute:: CArray.size_on_disk
-    .. autoattribute:: CArray.size_in_memory
 
 
 .. _EArrayClassDescr:
@@ -749,17 +758,18 @@ The VLArray class
 -----------------
 .. autoclass:: VLArray
 
-..
+..  These are defined in the class docstring
     VLArray instance variables
     ~~~~~~~~~~~~~~~~~~~~~~~~~~
     .. autoattribute:: VLArray.atom
     .. autoattribute:: VLArray.flavor
     .. autoattribute:: VLArray.nrow
+    .. autoattribute:: VLArray.nrows
     .. autoattribute:: VLArray.extdim
     .. autoattribute:: VLArray.nrows
 
 
-VLArray propertirs
+VLArray properties
 ~~~~~~~~~~~~~~~~~~
 .. autoattribute:: VLArray.size_on_disk
 
@@ -798,11 +808,12 @@ The Link class
 --------------
 .. autoclass:: tables.link.Link
 
-..
-    Link instance variables
-    ~~~~~~~~~~~~~~~~~~~~~~~
-    .. autoattribute:: tables.link.Link._v_attrs
+..  These are defined in the class docstring
     .. autoattribute:: tables.link.Link.target
+
+Link instance variables
+~~~~~~~~~~~~~~~~~~~~~~~
+.. autoattribute:: tables.link.Link._v_attrs
 
 
 Link methods
@@ -840,7 +851,7 @@ The ExternalLink class
 ----------------------
 .. autoclass:: tables.link.ExternalLink
 
-..
+..  This is defined in the class docstring
     ExternalLink instance variables
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     .. autoattribute:: tables.link.ExternalLink.extfile
@@ -881,7 +892,7 @@ The AttributeSet class
 ----------------------
 .. autoclass:: tables.attributeset.AttributeSet
 
-..
+..  These are defined in the class docstring
     AttributeSet attributes
     ~~~~~~~~~~~~~~~~~~~~~~~
     .. autoattribute:: tables.attributeset.AttributeSet._v_attrnames
@@ -889,7 +900,7 @@ The AttributeSet class
     .. autoattribute:: tables.attributeset.AttributeSet._v_attrnamesuser
     .. autoattribute:: tables.attributeset.AttributeSet._v_unimplemented
 
-AttributeSet propertirs
+AttributeSet properties
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. autoattribute:: tables.attributeset.AttributeSet._v_node
 
@@ -918,7 +929,7 @@ The Atom class and its descendants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: Atom
 
-..
+..  These are defined in the class docstring
     Atom instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^
     .. autoattribute:: Atom.dflt
@@ -929,7 +940,7 @@ The Atom class and its descendants
     .. autoattribute:: Atom.type
 
 
-Atom propertirs
+Atom properties
 ^^^^^^^^^^^^^^^
 .. autoattribute:: Atom.ndim
 
@@ -1061,7 +1072,7 @@ The Col class and its descendants
 
 ..
     Col instance variables
-    ^^^^^****^^^^^^^^^^^^^
+    ^^^^^^^^^^^^^^^^^^^^^^
    .. autoattribute:: _v_pos
 
 
@@ -1070,7 +1081,7 @@ Col instance variables
 In addition to the variables that they inherit from the Atom class, Col
 instances have the following attributes.
 
-.. attribute:: _v_pos
+.. attribute:: Col._v_pos
 
     The *relative* position of this column with regard to its column
     siblings.
@@ -1167,7 +1178,7 @@ The Filters class
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: Filters
 
-..
+..  These are defined in the class docstring.
     Filters instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^^^^
     .. autoattribute:: Filters.fletcher32
@@ -1187,14 +1198,19 @@ The Index class
 ~~~~~~~~~~~~~~~
 .. autoclass:: tables.index.Index
 
-..
-    Index instance variables
-    ^^^^^^^^^^^^^^^^^^^^^^^^
-    .. autoattribute:: tables.index.Index.column
-    .. autoattribute:: tables.index.Index.dirty
-    .. autoattribute:: tables.index.Index.filters
+..  This is defined in the class docstring
     .. autoattribute:: tables.index.Index.nelements
-    .. autoattribute:: tables.index.Index.is_CSI
+
+Index instance variables
+^^^^^^^^^^^^^^^^^^^^^^^^
+.. autoattribute:: tables.index.Index.column
+.. autoattribute:: tables.index.Index.dirty
+.. autoattribute:: tables.index.Index.filters
+.. autoattribute:: tables.index.Index.is_CSI
+
+.. attribute:: tables.index.Index.nelements
+
+    The number of currently indexed rows for this column.
 
 
 Index methods
@@ -1246,7 +1262,7 @@ The Expr class - a general-purpose expression evaluator
 -------------------------------------------------------
 .. autoclass:: Expr
 
-..
+..  These are defined in the class docstring.
     Expr instance variables
     ~~~~~~~~~~~~~~~~~~~~~~~
     .. autoattribute:: Expr.append_mode

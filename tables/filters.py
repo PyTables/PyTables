@@ -116,6 +116,26 @@ class Filters(object):
         extdim = 0
         flavor = 'numpy'
         byteorder = 'little'
+
+    .. rubric:: Filters attributes
+
+    .. attribute:: fletcher32
+
+        Whether the *Fletcher32* filter is active or not.
+
+    .. attribute:: complevel
+
+        The compression level (0 disables compression).
+
+    .. attribute:: complib
+
+        The compression filter used (irrelevant when compression is not
+        enabled).
+
+    .. attribute:: shuffle
+
+        Whether the *Shuffle* filter is active or not.
+
     """
 
     @classmethod

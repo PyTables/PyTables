@@ -120,6 +120,28 @@ class Node(object):
     rename. However, the original methods and attributes should still be
     available.
 
+    .. rubric:: Node attributes
+
+    .. attribute:: _v_depth
+
+        The depth of this node in the tree (an non-negative integer value).
+
+    .. attribute:: _v_file
+
+        The hosting File instance (see :ref:`FileClassDescr`).
+
+    .. attribute:: _v_name
+
+        The name of this node in its parent group (a string).
+
+    .. attribute:: _v_pathname
+
+        The path of this node in the tree (a string).
+
+    .. attribute:: _v_object_ID
+
+        A node identifier (may change from run to run).
+
     """
 
     # This makes this class and all derived subclasses be handled by MetaNode.

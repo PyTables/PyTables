@@ -89,6 +89,44 @@ class Expr(object):
         >>> sum(expr)
         array([ 8, 12])
 
+    .. rubric:: Expr attributes
+
+    .. attribute:: append_mode
+
+        The append mode for user-provided output containers.
+
+    .. attribute:: maindim
+
+        Common main dimension for inputs in expression.
+
+    .. attribute:: names
+
+        The names of variables in expression (list).
+
+    .. attribute:: out
+
+        The user-provided container (if any) for the expression outcome.
+
+    .. attribute:: o_start
+
+        The start range selection for hte user-provided output.
+
+    .. attribute:: o_stop
+
+        The stop range selection for hte user-provided output.
+
+    .. attribute:: o_step
+
+        The step range selection for hte user-provided output.
+
+    .. attribute:: shape
+
+        Common shape for the arrays in expression.
+
+    .. attribute:: values
+
+        The values of variables in expression (list).
+
     """
 
     _exprvarsCache = {}

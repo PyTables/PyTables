@@ -105,8 +105,7 @@ class Array(hdf5Extension.Array, Leaf):
     size_in_memory = property(
         lambda self: self.nrows * self.rowsize, None, None,
         """The size of this array's data in bytes when it is fully loaded into
-        memory.  Since arrays do not support compression or chunking, this will
-        always equal size_on_disk.""")
+        memory.""")
 
     # Other methods
     # ~~~~~~~~~~~~~

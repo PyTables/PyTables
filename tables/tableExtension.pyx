@@ -646,6 +646,16 @@ cdef class Row:
   access successive table rows one after the other.  There are also
   some important methods that are useful for accessing, adding and
   modifying values in tables.
+
+  .. rubric:: Row attributes
+
+  .. attribute:: nrow
+
+      The current row number.
+
+      This property is useful for knowing which row is being dealt with in the
+      middle of a loop or iterator.
+
   """
 
   cdef long _row, _unsaved_nrows, _mod_nrows
