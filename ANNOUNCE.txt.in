@@ -22,6 +22,8 @@ Now PyTables only supports HDF5 v1.8.4+. All the code has been updated to
 the new HDF5 API.  Supporting only HDF5 1.8 series is beneficial for future
 development.
 
+Documentation has been improved.
+
 As always, a large amount of bugs have been addressed and squashed as well.
 
 In case you want to know more in detail what has changed in this
