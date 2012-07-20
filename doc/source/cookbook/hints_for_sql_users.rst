@@ -25,7 +25,7 @@ this::
 
     import tables
 
-.. contents:: Table Of Contents
+.. .. contents:: Table Of Contents
 
 
 Creating a new database
