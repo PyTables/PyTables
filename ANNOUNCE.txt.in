@@ -1,6 +1,6 @@
-===========================
+==========================
 Announcing PyTables @VERSION@
-===========================
+==========================
 
 We are happy to announce PyTables @VERSION@.
 
@@ -21,6 +21,8 @@ and attached to a proper Python exception.
 Now PyTables only supports HDF5 v1.8.4+. All the code has been updated to
 the new HDF5 API.  Supporting only HDF5 1.8 series is beneficial for future
 development.
+
+Documentation has been improved.
 
 As always, a large amount of bugs have been addressed and squashed as well.
 
