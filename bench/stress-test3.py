@@ -7,8 +7,7 @@ Issue "python stress-test3.py" without parameters for a help on usage.
 
 """
 
-import sys, time, random, gc
-import numarray
+import sys, time, gc
 from tables import *
 
 class Test(IsDescription):
@@ -26,7 +25,7 @@ def createFileArr(filename, ngroups, ntables, nrows):
 
     for k in range(ngroups):
         # Create the group
-        group = fileh.createGroup("/", 'group%04d'% k, "Group %d" % k)
+        fileh.createGroup("/", 'group%04d'% k, "Group %d" % k)
 
     fileh.close()
 
@@ -47,7 +46,6 @@ def readFileArr(filename, ngroups, recsize, verbose):
                 print "Array ==>", table
                 print "Rows in", table._v_pathname, ":", table.shape
 
-            nrow = 0
             arr = table.read()
 
             rowsread += len(arr)
@@ -154,7 +152,7 @@ def dump_garbage():
     for x in gc.garbage:
         s = str(x)
         #if len(s) > 80: s = s[:77] + "..."
-        print type(x),"\n   ", s
+        print type(x), "\n   ", s
 
 if __name__=="__main__":
     import getopt
@@ -186,7 +184,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1:
+    if len(pargs) != 1:
         sys.stderr.write(usage)
         sys.exit(0)
 

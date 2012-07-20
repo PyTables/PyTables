@@ -9,11 +9,11 @@ fileh = tables.openFile("tutorial3-1.h5", "w", title="Undo/Redo demo 1")
 fileh.enableUndo()
 
 # Create a new array
-one = fileh.createArray('/', 'anarray', [3,4], "An array")
+one = fileh.createArray('/', 'anarray', [3, 4], "An array")
 # Mark this point
 fileh.mark()
 # Create a new array
-another = fileh.createArray('/', 'anotherarray', [4,5], "Another array")
+another = fileh.createArray('/', 'anotherarray', [4, 5], "Another array")
 # Now undo the past operation
 fileh.undo()
 # Check that anotherarray does not exist in the object tree but anarray does
@@ -28,7 +28,7 @@ assert "/anotherarray" not in fileh
 fileh.redo()
 # Check that anarray has come back to life in a sane state
 assert "/anarray" in fileh
-assert fileh.root.anarray.read() == [3,4]
+assert fileh.root.anarray.read() == [3, 4]
 assert fileh.root.anarray.title == "An array"
 assert fileh.root.anarray == one
 # But anotherarray is not here yet
@@ -38,7 +38,7 @@ fileh.redo()
 assert "/anarray" in fileh
 # Check that anotherarray has come back to life in a sane state
 assert "/anotherarray" in fileh
-assert fileh.root.anotherarray.read() == [4,5]
+assert fileh.root.anotherarray.read() == [4, 5]
 assert fileh.root.anotherarray.title == "Another array"
 assert fileh.root.anotherarray == another
 

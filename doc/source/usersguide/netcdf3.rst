@@ -2,7 +2,9 @@ netcdf3 - a PyTables NetCDF3 emulation API (deprecated)
 =======================================================
 
 .. warning:: The tables.netcdf3 module is not actively maintained anymore.
+
    It is deprecated and will be removed in the future versions.
+
 
 .. currentmodule:: tables.netcdf3
 
@@ -501,7 +503,7 @@ NetCDFFile methods
     f as  short integers (of types) in the netCDF file. Since netCDF version 3
     does not provide automatic compression, packing as short
     integers is a commonly used way of saving disk space (see this
-    `page <http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml>`_
+    `page <http://www.esrl.noaa.gov/psd/data/gridded/conventions/cdc_netcdf_standard.shtml>`_
     for more details). The keys of these dictionaries are the
     variable names to pack, the values are the scale_factors and
     offsets to use in the packing. The data are packed so that the
@@ -612,7 +614,7 @@ The dictionaries scale_factor and
 add_offset are used to optionally pack the data as
 short integers in the netCDF file. Since netCDF version 3 does not
 provide automatic compression, packing as short integers is a commonly
-used way of saving disk space (see this `page <http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml>`_
+used way of saving disk space (see this `page <http://www.esrl.noaa.gov/psd/data/gridded/conventions/cdc_netcdf_standard.shtml>`_
 for more details). The keys of these dictionaries are the variable
 names to pack, the values are the scale_factors and offsets to use in
 the packing. The resulting netCDF file will have the
@@ -675,7 +677,7 @@ Sharing data in tables.netcdf3 files over the Internet with OPeNDAP
 -------------------------------------------------------------------
 tables.netcdf3 datasets can be shared over
 the Internet with the OPeNDAP protocol (http://opendap.org), via the python
-OPeNDAP module (http://opendap.oceanografia.org).
+OPeNDAP module.
 A plugin for the python opendap server is included with the pytables
 distribution (contrib/h5_dap_plugin.py). Simply
 copy that file into the plugins directory of the
@@ -722,7 +724,7 @@ Differences between the Scientific.IO.NetCDF API and the tables.netcdf3 API
    numpy.around(scale*data)/scale, where
    scale = 2**bits, and bits is determined so that
    a precision of 0.1 is retained (in this case
-   bits=4). From http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml::
+   bits=4). From http://www.esrl.noaa.gov/psd/data/gridded/conventions/cdc_netcdf_standard.shtml::
 
        "least_significant_digit -- power of ten of the smallest
         decimal place in unpacked data that is a reliable value."

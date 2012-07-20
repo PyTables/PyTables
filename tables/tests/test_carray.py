@@ -26,12 +26,12 @@ class BasicTestCase(unittest.TestCase):
     # Default values
     flavor = "numpy"
     type = 'int32'
-    shape = (2,2)
+    shape = (2, 2)
     start = 0
     stop = 10
     step = 1
     length = 1
-    chunkshape = (5,5)
+    chunkshape = (5, 5)
     compress = 0
     complib = "zlib"  # Default compression library
     shuffle = 0
@@ -101,10 +101,21 @@ class BasicTestCase(unittest.TestCase):
 
     #----------------------------------------
 
+    def test00_attributes(self):
+        if self.reopen:
+            self.fileh = openFile(self.file, "r")
+        obj = self.fileh.getNode("/carray1")
+
+        self.assertEqual(obj.flavor, self.flavor)
+        self.assertEqual(obj.shape, self.shape)
+        self.assertEqual(obj.ndim, len(self.shape))
+        self.assertEqual(obj.chunkshape, self.chunkshape)
+        self.assertEqual(obj.nrows, self.shape[0])
+        self.assertEqual(obj.atom.type, self.type)
+
     def test01_readCArray(self):
         """Checking read() of chunked layout arrays"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_readCArray..." % self.__class__.__name__
@@ -166,7 +177,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Read all the array
         try:
-            data = carray.read(self.start,stop,self.step)
+            data = carray.read(self.start, stop, self.step)
         except IndexError:
             if self.flavor == "numarray":
                 data = numarray.array(None, shape=self.shape, type=self.type)
@@ -192,7 +203,6 @@ class BasicTestCase(unittest.TestCase):
     def test02_getitemCArray(self):
         """Checking chunked layout array __getitem__ special method"""
 
-        rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_getitemCArray..." % self.__class__.__name__
@@ -220,7 +230,6 @@ class BasicTestCase(unittest.TestCase):
             object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
             object_.shape = self.shape
 
-        stop = self.stop
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
         object = object_.__getitem__(self.slices).copy()
@@ -261,7 +270,6 @@ class BasicTestCase(unittest.TestCase):
     def test03_setitemCArray(self):
         """Checking chunked layout array __setitem__ special method"""
 
-        rootgroup = self.rootgroup
         if self.__class__.__name__ == "Ellipsis6CArrayTestCase":
             # see test_earray.py BasicTestCase.test03_setitemEArray
             return
@@ -292,7 +300,6 @@ class BasicTestCase(unittest.TestCase):
             object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
             object_.shape = self.shape
 
-        stop = self.stop
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
         object = object_.__getitem__(self.slices).copy()
@@ -318,7 +325,7 @@ class BasicTestCase(unittest.TestCase):
                 carray[self.wslice] = carray[self.wslice] * 2 + 3
             elif sum(object[self.slices].shape) != 0:
                 object = object * 2 + 3
-                if reduce(lambda x,y:x*y, object.shape) > 0:
+                if numpy.prod(object.shape) > 0:
                     carray[self.slices] = carray[self.slices] * 2 + 3
             # Cast again object to its original type
             object = numpy.array(object, dtype=carray.atom.dtype)
@@ -361,7 +368,7 @@ class BasicWrite2TestCase(BasicTestCase):
     shape = (2,)
     chunkshape = (5,)
     step = 1
-    wslice = slice(shape[0]-2,shape[0],2)  # range of elements
+    wslice = slice(shape[0]-2, shape[0], 2)  # range of elements
     reopen = 0  # This case does not reopen files
 
 class EmptyCArrayTestCase(BasicTestCase):
@@ -387,14 +394,14 @@ class SlicesCArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 2)
     chunkshape = (5, 5)
-    slices = (slice(1,2,1), slice(1,3,1))
+    slices = (slice(1, 2, 1), slice(1, 3, 1))
 
 class EllipsisCArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 2)
     chunkshape = (5, 5)
     #slices = (slice(1,2,1), Ellipsis)
-    slices = (Ellipsis, slice(1,2,1))
+    slices = (Ellipsis, slice(1, 2, 1))
 
 class Slices2CArrayTestCase(BasicTestCase):
     compress = 1
@@ -402,13 +409,13 @@ class Slices2CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 2, 4)
     chunkshape = (5, 5, 5)
-    slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2))
+    slices = (slice(1, 2, 1), slice(None, None, None), slice(1, 4, 2))
 
 class Ellipsis2CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 2, 4)
     chunkshape = (5, 5, 5)
-    slices = (slice(1,2,1), Ellipsis, slice(1,4,2))
+    slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 class Slices3CArrayTestCase(BasicTestCase):
     compress = 1      # To show the chunks id DEBUG is on
@@ -416,42 +423,42 @@ class Slices3CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 2)
     chunkshape = (5, 5, 5, 5)
-    slices = (slice(1, 2, 1), slice(0, None, None), slice(1,4,2))  # Don't work
+    slices = (slice(1, 2, 1), slice(0, None, None), slice(1, 4, 2))  # Don't work
     #slices = (slice(None, None, None), slice(0, None, None), slice(1,4,1)) # W
     #slices = (slice(None, None, None), slice(None, None, None), slice(1,4,2)) # N
     #slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2)) # N
     # Disable the failing test temporarily with a working test case
-    slices = (slice(1,2,1), slice(1, 4, None), slice(1,4,2)) # Y
+    slices = (slice(1, 2, 1), slice(1, 4, None), slice(1, 4, 2)) # Y
     #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,1)) # Y
-    slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2)) # N
+    slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2)) # N
     #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), slice(0,100,1)) # N
 
 class Slices4CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 2, 5, 6)
-    chunkshape = (5,5, 5, 5, 5, 5)
-    slices = (slice(1, 2, 1), slice(0, None, None), slice(1,4,2),
-              slice(0,4,2), slice(3,5,2), slice(2,7,1))
+    chunkshape = (5, 5, 5, 5, 5, 5)
+    slices = (slice(1, 2, 1), slice(0, None, None), slice(1, 4, 2),
+              slice(0, 4, 2), slice(3, 5, 2), slice(2, 7, 1))
 
 class Ellipsis3CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 2)
     chunkshape = (5, 5, 5, 5)
-    slices = (Ellipsis, slice(0, 4, None), slice(1,4,2))
-    slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), Ellipsis)
+    slices = (Ellipsis, slice(0, 4, None), slice(1, 4, 2))
+    slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2), Ellipsis)
 
 class Ellipsis4CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 5)
     chunkshape = (5, 5, 5, 5)
-    slices = (Ellipsis, slice(0, 4, None), slice(1,4,2))
-    slices = (slice(1,2,1), Ellipsis, slice(1,4,2))
+    slices = (Ellipsis, slice(0, 4, None), slice(1, 4, 2))
+    slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 class Ellipsis5CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 5)
     chunkshape = (5, 5, 5, 5)
-    slices = (slice(1,2,1), slice(0, 4, None), Ellipsis)
+    slices = (slice(1, 2, 1), slice(0, 4, None), Ellipsis)
 
 class Ellipsis6CArrayTestCase(BasicTestCase):
     type = 'int32'
@@ -460,13 +467,13 @@ class Ellipsis6CArrayTestCase(BasicTestCase):
     # The next slices gives problems with setting values (test03)
     # This is a problem on the test design, not the Array.__setitem__
     # code, though. See # see test_earray.py Ellipsis6EArrayTestCase
-    slices = (slice(1,2,1), slice(0, 4, None), 2, Ellipsis)
+    slices = (slice(1, 2, 1), slice(0, 4, None), 2, Ellipsis)
 
 class Ellipsis7CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 5)
     chunkshape = (5, 5, 5, 5)
-    slices = (slice(1,2,1), slice(0, 4, None), slice(2,3), Ellipsis)
+    slices = (slice(1, 2, 1), slice(0, 4, None), slice(2, 3), Ellipsis)
 
 class MD3WriteTestCase(BasicTestCase):
     type = 'int32'
@@ -537,17 +544,17 @@ class ZlibShuffleTestCase(BasicTestCase):
 class BloscComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "blosc"
-    chunkshape = (10,10)
+    chunkshape = (10, 10)
     start = 3
     stop = 10
     step = 3
 
 class BloscShuffleTestCase(BasicTestCase):
-    shape = (20,30)
+    shape = (20, 30)
     compress = 1
     shuffle = 1
     complib = "blosc"
-    chunkshape = (100,100)
+    chunkshape = (100, 100)
     start = 3
     stop = 10
     step = 7
@@ -555,45 +562,45 @@ class BloscShuffleTestCase(BasicTestCase):
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
-    chunkshape = (10,10)
+    chunkshape = (10, 10)
     start = 3
     stop = 10
     step = 3
 
 class LZOShuffleTestCase(BasicTestCase):
-    shape = (20,30)
+    shape = (20, 30)
     compress = 1
     shuffle = 1
     complib = "lzo"
-    chunkshape = (100,100)
+    chunkshape = (100, 100)
     start = 3
     stop = 10
     step = 7
 
 class Bzip2ComprTestCase(BasicTestCase):
-    shape = (20,30)
+    shape = (20, 30)
     compress = 1
     complib = "bzip2"
-    chunkshape = (100,100)
+    chunkshape = (100, 100)
     start = 3
     stop = 10
     step = 8
 
 class Bzip2ShuffleTestCase(BasicTestCase):
-    shape = (20,30)
+    shape = (20, 30)
     compress = 1
     shuffle = 1
     complib = "bzip2"
-    chunkshape = (100,100)
+    chunkshape = (100, 100)
     start = 3
     stop = 10
     step = 6
 
 class Fletcher32TestCase(BasicTestCase):
-    shape = (60,50)
+    shape = (60, 50)
     compress = 0
     fletcher32 = 1
-    chunkshape = (50,50)
+    chunkshape = (50, 50)
     start = 4
     stop = 20
     step = 7
@@ -603,23 +610,23 @@ class AllFiltersTestCase(BasicTestCase):
     shuffle = 1
     fletcher32 = 1
     complib = "zlib"
-    chunkshape = (20,20)  # sss
+    chunkshape = (20, 20)  # sss
     start = 2
     stop = 99
     step = 6
 
 class FloatTypeTestCase(BasicTestCase):
     type = 'float64'
-    shape = (2,2)
-    chunkshape = (5,5)
+    shape = (2, 2)
+    chunkshape = (5, 5)
     start = 3
     stop = 10
     step = 20
 
 class ComplexTypeTestCase(BasicTestCase):
     type = 'complex128'
-    shape = (2,2)
-    chunkshape = (5,5)
+    shape = (2, 2)
+    chunkshape = (5, 5)
     start = 3
     stop = 10
     step = 20
@@ -629,17 +636,17 @@ class StringTestCase(BasicTestCase):
     length = 20
     shape = (2, 2)
     #shape = (2,2,20)
-    chunkshape = (5,5)
+    chunkshape = (5, 5)
     start = 3
     stop = 10
     step = 20
-    slices = (slice(0,1),slice(1,2))
+    slices = (slice(0, 1), slice(1, 2))
 
 class String2TestCase(BasicTestCase):
     type = "string"
     length = 20
     shape = (2, 20)
-    chunkshape = (5,5)
+    chunkshape = (5, 5)
     start = 1
     stop = 10
     step = 2
@@ -647,17 +654,17 @@ class String2TestCase(BasicTestCase):
 class StringComprTestCase(BasicTestCase):
     type = "string"
     length = 20
-    shape = (20,2,10)
+    shape = (20, 2, 10)
     #shape = (20,0,10,20)
     compr = 1
     #shuffle = 1  # this shouldn't do nothing on chars
-    chunkshape = (50,50,2)
+    chunkshape = (50, 50, 2)
     start = -1
     stop = 100
     step = 20
 
-class NumarrayInt8TestCase(BasicTestCase):
-    flavor = "numarray"
+
+class Int8TestCase(BasicTestCase):
     type = "int8"
     shape = (2,2)
     compress = 1
@@ -667,8 +674,7 @@ class NumarrayInt8TestCase(BasicTestCase):
     stop = 100
     step = 20
 
-class NumarrayInt16TestCase(BasicTestCase):
-    flavor = "numarray"
+class Int16TestCase(BasicTestCase):
     type = "int16"
     shape = (2,2)
     compress = 1
@@ -678,13 +684,106 @@ class NumarrayInt16TestCase(BasicTestCase):
     stop = 100
     step = 1
 
-class NumarrayInt32TestCase(BasicTestCase):
-    flavor = "numarray"
+class Int32TestCase(BasicTestCase):
     type = "int32"
     shape = (2,2)
     compress = 1
     shuffle = 1
     chunkshape = (50,50)
+    start = -1
+    stop = 100
+    step = 20
+
+class Float16TestCase(BasicTestCase):
+    type = "float16"
+    shape = (200,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (20,)
+    start = -1
+    stop = 100
+    step = 20
+
+class Float32TestCase(BasicTestCase):
+    type = "float32"
+    shape = (200,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (20,)
+    start = -1
+    stop = 100
+    step = 20
+
+class Float64TestCase(BasicTestCase):
+    type = "float64"
+    shape = (200,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (20,)
+    start = -1
+    stop = 100
+    step = 20
+
+class Complex64TestCase(BasicTestCase):
+    type = "complex64"
+    shape = (4,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (2,)
+    start = -1
+    stop = 100
+    step = 20
+
+class Complex128TestCase(BasicTestCase):
+    type = "complex128"
+    shape = (20,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (2,)
+    start = -1
+    stop = 100
+    step = 20
+
+class ComprTestCase(BasicTestCase):
+    type = "float64"
+    compress = 1
+    shuffle = 1
+    shape = (200,)
+    compr = 1
+    chunkshape = (21,)
+    start = 51
+    stop = 100
+    step = 7
+
+class NumarrayInt8TestCase(BasicTestCase):
+    flavor = "numarray"
+    type = "int8"
+    shape = (2, 2)
+    compress = 1
+    shuffle = 1
+    chunkshape = (50, 50)
+    start = -1
+    stop = 100
+    step = 20
+
+class NumarrayInt16TestCase(BasicTestCase):
+    flavor = "numarray"
+    type = "int16"
+    shape = (2, 2)
+    compress = 1
+    shuffle = 1
+    chunkshape = (50, 50)
+    start = 1
+    stop = 100
+    step = 1
+
+class NumarrayInt32TestCase(BasicTestCase):
+    flavor = "numarray"
+    type = "int32"
+    shape = (2, 2)
+    compress = 1
+    shuffle = 1
+    chunkshape = (50, 50)
     start = -1
     stop = 100
     step = 20
@@ -748,10 +847,10 @@ class NumarrayComprTestCase(BasicTestCase):
 class NumericInt8TestCase(BasicTestCase):
     flavor = "numeric"
     type = "int8"
-    shape = (2,2)
+    shape = (2, 2)
     compress = 1
     shuffle = 1
-    chunkshape = (50,50)
+    chunkshape = (50, 50)
     start = -1
     stop = 100
     step = 20
@@ -759,10 +858,10 @@ class NumericInt8TestCase(BasicTestCase):
 class NumericInt16TestCase(BasicTestCase):
     flavor = "numeric"
     type = "int16"
-    shape = (2,2)
+    shape = (2, 2)
     compress = 1
     shuffle = 1
-    chunkshape = (50,50)
+    chunkshape = (50, 50)
     start = 1
     stop = 100
     step = 1
@@ -770,10 +869,10 @@ class NumericInt16TestCase(BasicTestCase):
 class NumericInt32TestCase(BasicTestCase):
     flavor = "numeric"
     type = "int32"
-    shape = (2,2)
+    shape = (2, 2)
     compress = 1
     shuffle = 1
-    chunkshape = (50,50)
+    chunkshape = (50, 50)
     start = -1
     stop = 100
     step = 20
@@ -834,6 +933,74 @@ class NumericComprTestCase(BasicTestCase):
     stop = 100
     step = 7
 
+
+class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.array_size = (10000, 10)
+        # set chunkshape so it divides evenly into array_size, to avoid
+        # partially filled chunks
+        self.chunkshape = (1000, 10)
+        # approximate size (in bytes) of non-data portion of hdf5 file
+        self.hdf_overhead = 6000
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+
+    def tearDown(self):
+        self.fileh.close()
+        # Then, delete the file
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def create_array(self, complevel):
+        filters = Filters(complevel=complevel, complib='blosc')
+        self.array = self.fileh.createCArray('/', 'somearray', Int16Atom(),
+                                             self.array_size,
+                                             filters=filters,
+                                             chunkshape=self.chunkshape)
+
+    def test_no_data(self):
+        complevel = 0
+        self.create_array(complevel)
+        self.assertEqual(self.array.size_on_disk, 0)
+        self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
+
+    def test_data_no_compression(self):
+        complevel = 0
+        self.create_array(complevel)
+        self.array[:] = 1
+        self.assertEqual(self.array.size_on_disk, 10000 * 10 * 2)
+        self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
+
+    def test_highly_compressible_data(self):
+        complevel = 1
+        self.create_array(complevel)
+        self.array[:] = 1
+        self.fileh.flush()
+        file_size = os.stat(self.file).st_size
+        self.assertTrue(
+            abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
+        self.assertTrue(self.array.size_on_disk < self.array.size_in_memory)
+        self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
+
+    # XXX
+    def test_random_data(self):
+        complevel = 1
+        self.create_array(complevel)
+        self.array[:] = numpy.random.randint(0, 1e6, self.array_size)
+        self.fileh.flush()
+        file_size = os.stat(self.file).st_size
+        self.assertTrue(
+            abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
+
+        # XXX: check. The test fails if blosc is not available
+        if whichLibVersion('blosc') is not None:
+            self.assertAlmostEqual(self.array.size_on_disk, 10000 * 10 * 2)
+        else:
+            self.assertTrue(
+                abs(self.array.size_on_disk - 10000 * 10 * 2) < 200)
+
+
 # It remains a test of Numeric char types, but the code is getting too messy
 
 class OffsetStrideTestCase(unittest.TestCase):
@@ -863,16 +1030,16 @@ class OffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01a_String..." % self.__class__.__name__
 
-        shape = (3,2,2)
+        shape = (3, 2, 2)
         # Create an string atom
         carray = self.fileh.createCArray(root, 'strings',
                                          StringAtom(itemsize=3), shape,
                                          "Array of strings",
-                                         chunkshape=(1,2,2))
-        a = numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
-        carray[0] = a[0,1:]
-        a = numpy.array([[["s", "a"],["ab", "f"],["s", "abc"],["abc", "f"]]])
-        carray[1] = a[0,2:]
+                                         chunkshape=(1, 2, 2))
+        a = numpy.array([[["a", "b"], ["123", "45"], ["45", "123"]]], dtype="S3")
+        carray[0] = a[0, 1:]
+        a = numpy.array([[["s", "a"], ["ab", "f"], ["s", "abc"], ["abc", "f"]]])
+        carray[1] = a[0, 2:]
 
         # Read all the data:
         data = carray.read()
@@ -882,8 +1049,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Second row in carray ==>", data[1].tolist()
 
         self.assertEqual(carray.nrows, 3)
-        self.assertEqual(data[0].tolist(), [["123", "45"],["45", "123"]])
-        self.assertEqual(data[1].tolist(), [["s", "abc"],["abc", "f"]])
+        self.assertEqual(data[0].tolist(), [["123", "45"], ["45", "123"]])
+        self.assertEqual(data[1].tolist(), [["s", "abc"], ["abc", "f"]])
         self.assertEqual(len(data[0]), 2)
         self.assertEqual(len(data[1]), 2)
 
@@ -895,16 +1062,16 @@ class OffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01b_String..." % self.__class__.__name__
 
-        shape = (3,2,2)
+        shape = (3, 2, 2)
         # Create an string atom
         carray = self.fileh.createCArray(root, 'strings',
                                          StringAtom(itemsize=3), shape,
                                          "Array of strings",
-                                         chunkshape=(1,2,2))
-        a = numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
-        carray[0] = a[0,::2]
-        a = numpy.array([[["s", "a"],["ab", "f"],["s", "abc"],["abc", "f"]]])
-        carray[1] = a[0,::2]
+                                         chunkshape=(1, 2, 2))
+        a = numpy.array([[["a", "b"], ["123", "45"], ["45", "123"]]], dtype="S3")
+        carray[0] = a[0, ::2]
+        a = numpy.array([[["s", "a"], ["ab", "f"], ["s", "abc"], ["abc", "f"]]])
+        carray[1] = a[0, ::2]
 
         # Read all the rows:
         data = carray.read()
@@ -914,8 +1081,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Second row in carray ==>", data[1].tolist()
 
         self.assertEqual(carray.nrows, 3)
-        self.assertEqual(data[0].tolist(), [["a","b"],["45", "123"]])
-        self.assertEqual(data[1].tolist(), [["s", "a"],["s", "abc"]])
+        self.assertEqual(data[0].tolist(), [["a", "b"], ["45", "123"]])
+        self.assertEqual(data[1].tolist(), [["s", "a"], ["s", "abc"]])
         self.assertEqual(len(data[0]), 2)
         self.assertEqual(len(data[1]), 2)
 
@@ -927,15 +1094,15 @@ class OffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02a_int..." % self.__class__.__name__
 
-        shape = (3,3)
+        shape = (3, 3)
         # Create an string atom
         carray = self.fileh.createCArray(root, 'CAtom',
                                          Int32Atom(), shape,
                                          "array of ints",
-                                         chunkshape=(1,3))
-        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], dtype='int32')
+                                         chunkshape=(1, 3))
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], dtype='int32')
         carray[0:2] = a[2:]  # Introduce an offset
-        a = numpy.array([(1,1,1), (-1,0,0)], dtype='int32')
+        a = numpy.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
         carray[2:3] = a[1:]  # Introduce an offset
 
         # Read all the rows:
@@ -946,9 +1113,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Third row in carray ==>", data[2]
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([1,1,1], dtype='int32')))
-        self.assertTrue(allequal(data[1], numpy.array([0,0,0], dtype='int32')))
-        self.assertTrue(allequal(data[2], numpy.array([-1,0,0], dtype='int32')))
+        self.assertTrue(allequal(data[0], numpy.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(allequal(data[1], numpy.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(allequal(data[2], numpy.array([-1, 0, 0], dtype='int32')))
 
     def test02b_int(self):
         """Checking carray with strided NumPy ints appends"""
@@ -958,15 +1125,15 @@ class OffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02b_int..." % self.__class__.__name__
 
-        shape = (3,3)
+        shape = (3, 3)
         # Create an string atom
         carray = self.fileh.createCArray(root, 'CAtom',
                                          Int32Atom(), shape,
                                          "array of ints",
-                                         chunkshape=(1,3))
-        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='int32')
+                                         chunkshape=(1, 3))
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype='int32')
         carray[0:2] = a[::3]  # Create an offset
-        a = numpy.array([(1,1,1), (-1,0,0)], dtype='int32')
+        a = numpy.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
         carray[2:3] = a[::2]  # Create an offset
 
         # Read all the rows:
@@ -977,9 +1144,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Third row in carray ==>", data[2]
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([0,0,0], dtype='int32')))
-        self.assertTrue(allequal(data[1], numpy.array([3,3,3], dtype='int32')))
-        self.assertTrue(allequal(data[2], numpy.array([1,1,1], dtype='int32')))
+        self.assertTrue(allequal(data[0], numpy.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(allequal(data[1], numpy.array([3, 3, 3], dtype='int32')))
+        self.assertTrue(allequal(data[2], numpy.array([1, 1, 1], dtype='int32')))
 
 
 class NumarrayOffsetStrideTestCase(unittest.TestCase):
@@ -1009,15 +1176,15 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02a_int..." % self.__class__.__name__
 
-        shape = (3,3)
+        shape = (3, 3)
         # Create an string atom
         carray = self.fileh.createCArray(root, 'CAtom',
                                          Int32Atom(), shape,
                                          "array of ints",
-                                         chunkshape=(1,3))
-        a = numarray.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], type='Int32')
+                                         chunkshape=(1, 3))
+        a = numarray.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], type='Int32')
         carray[0:2] = a[2:]  # Introduce an offset
-        a = numarray.array([(1,1,1), (-1,0,0)], type='Int32')
+        a = numarray.array([(1, 1, 1), (-1, 0, 0)], type='Int32')
         carray[2:3] = a[1:]  # Introduce an offset
 
         # Read all the rows:
@@ -1028,9 +1195,9 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
             print "Third row in carray ==>", data[2]
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([1,1,1], dtype='i4')))
-        self.assertTrue(allequal(data[1], numpy.array([0,0,0], dtype='i4')))
-        self.assertTrue(allequal(data[2], numpy.array([-1,0,0], dtype='i4')))
+        self.assertTrue(allequal(data[0], numpy.array([1, 1, 1], dtype='i4')))
+        self.assertTrue(allequal(data[1], numpy.array([0, 0, 0], dtype='i4')))
+        self.assertTrue(allequal(data[2], numpy.array([-1, 0, 0], dtype='i4')))
 
     def test02b_int(self):
         """Checking carray with strided numarray ints appends"""
@@ -1040,15 +1207,15 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02b_int..." % self.__class__.__name__
 
-        shape = (3,3)
+        shape = (3, 3)
         # Create an string atom
         carray = self.fileh.createCArray(root, 'CAtom',
                                          Int32Atom(), shape,
                                          "array of ints",
-                                         chunkshape=(1,3))
-        a = numarray.array([(0,0,0), (1,0,3), (1,2,1), (3,2,3)], type='Int32')
+                                         chunkshape=(1, 3))
+        a = numarray.array([(0, 0, 0), (1, 0, 3), (1, 2, 1), (3, 2, 3)], type='Int32')
         carray[0:2] = a[::3]  # Create a strided object
-        a = numarray.array([(1,0,1), (-1,0,0)], type='Int32')
+        a = numarray.array([(1, 0, 1), (-1, 0, 0)], type='Int32')
         carray[2:3] = a[::2]  # Create a strided object
 
         # Read all the rows:
@@ -1059,9 +1226,9 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
             print "Third row in carray ==>", data[2]
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([0,0,0], dtype='i4')))
-        self.assertTrue(allequal(data[1], numpy.array([3,2,3], dtype='i4')))
-        self.assertTrue(allequal(data[2], numpy.array([1,0,1], dtype='i4')))
+        self.assertTrue(allequal(data[0], numpy.array([0, 0, 0], dtype='i4')))
+        self.assertTrue(allequal(data[1], numpy.array([3, 2, 3], dtype='i4')))
+        self.assertTrue(allequal(data[2], numpy.array([1, 0, 1], dtype='i4')))
 
 
 class NumericOffsetStrideTestCase(unittest.TestCase):
@@ -1091,15 +1258,15 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02a_int..." % self.__class__.__name__
 
-        shape = (3,3)
+        shape = (3, 3)
         # Create an string atom
         carray = self.fileh.createCArray(root, 'CAtom',
                                          Int32Atom(), shape,
                                          "array of ints",
-                                         chunkshape=(1,3))
-        a = Numeric.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], typecode='i')
+                                         chunkshape=(1, 3))
+        a = Numeric.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], typecode='i')
         carray[0:2] = a[2:]  # Introduce an offset
-        a = Numeric.array([(1,1,1), (-1,0,0)], typecode='i')
+        a = Numeric.array([(1, 1, 1), (-1, 0, 0)], typecode='i')
         carray[2:3] = a[1:]  # Introduce an offset
 
         # Read all the rows:
@@ -1110,9 +1277,9 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
             print "Third row in carray ==>", data[2]
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([1,1,1], dtype='i4')))
-        self.assertTrue(allequal(data[1], numpy.array([0,0,0], dtype='i4')))
-        self.assertTrue(allequal(data[2], numpy.array([-1,0,0], dtype='i4')))
+        self.assertTrue(allequal(data[0], numpy.array([1, 1, 1], dtype='i4')))
+        self.assertTrue(allequal(data[1], numpy.array([0, 0, 0], dtype='i4')))
+        self.assertTrue(allequal(data[2], numpy.array([-1, 0, 0], dtype='i4')))
 
     def test02b_int(self):
         """Checking carray with strided Numeric ints appends"""
@@ -1122,15 +1289,15 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02b_int..." % self.__class__.__name__
 
-        shape = (3,3)
+        shape = (3, 3)
         # Create an string atom
         carray = self.fileh.createCArray(root, 'CAtom',
                                          Int32Atom(), shape,
                                          "array of ints",
-                                         chunkshape=(1,3))
-        a=Numeric.array([(0,0,0), (1,0,3), (1,2,1), (3,2,3)], typecode='i')
+                                         chunkshape=(1, 3))
+        a=Numeric.array([(0, 0, 0), (1, 0, 3), (1, 2, 1), (3, 2, 3)], typecode='i')
         carray[0:2] = a[::3]  # Create a strided object
-        a=Numeric.array([(1,0,1), (-1,0,0)], typecode='i')
+        a=Numeric.array([(1, 0, 1), (-1, 0, 0)], typecode='i')
         carray[2:3] = a[::2]  # Create a strided object
 
         # Read all the rows:
@@ -1141,9 +1308,9 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
             print "Third row in carray ==>", data[2]
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([0,0,0], dtype='i')))
-        self.assertTrue(allequal(data[1], numpy.array([3,2,3], dtype='i')))
-        self.assertTrue(allequal(data[2], numpy.array([1,0,1], dtype='i')))
+        self.assertTrue(allequal(data[0], numpy.array([0, 0, 0], dtype='i')))
+        self.assertTrue(allequal(data[1], numpy.array([3, 2, 3], dtype='i')))
+        self.assertTrue(allequal(data[2], numpy.array([1, 0, 1], dtype='i')))
 
 
 class CopyTestCase(unittest.TestCase):
@@ -1160,11 +1327,11 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an CArray
-        shape = (2,2)
+        shape = (2, 2)
         arr = Int16Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
-        array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
+        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
@@ -1224,11 +1391,11 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an CArray
-        shape = (2,2)
+        shape = (2, 2)
         arr = Int16Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(5, 5))
-        array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
+        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
@@ -1286,11 +1453,11 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an CArray
-        shape = (5,5)
+        shape = (5, 5)
         arr = Int16Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
-        array1[:2,:2] = numpy.array([[456, 2],[3, 457]], dtype='int16')
+        array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
@@ -1350,11 +1517,11 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an CArray
-        shape = (5,5)
+        shape = (5, 5)
         arr = Int16Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
-        array1[:2,:2] = numpy.array([[456, 2],[3, 457]], dtype='int16')
+        array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
@@ -1421,11 +1588,11 @@ class CopyTestCase(unittest.TestCase):
             flavor="numpy"
 
         arr = Int16Atom()
-        shape = (2,2)
+        shape = (2, 2)
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
         array1.flavor = flavor
-        array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
+        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
@@ -1478,12 +1645,12 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        shape = (2,2)
+        shape = (2, 2)
         arr = Int16Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
         array1.flavor = "python"
-        array1[...] = [[456, 2],[3, 457]]
+        array1[...] = [[456, 2], [3, 457]]
 
         if self.close:
             if common.verbose:
@@ -1538,12 +1705,12 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        shape = (2,2)
+        shape = (2, 2)
         arr = StringAtom(itemsize=4)
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
         array1.flavor = "python"
-        array1[...] = [["456", "2"],["3", "457"]]
+        array1[...] = [["456", "2"], ["3", "457"]]
 
         if self.close:
             if common.verbose:
@@ -1601,11 +1768,11 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        shape = (2,2)
+        shape = (2, 2)
         arr = StringAtom(itemsize=4)
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
-        array1[...] = numpy.array([["456", "2"],["3", "457"]], dtype="S4")
+        array1[...] = numpy.array([["456", "2"], ["3", "457"]], dtype="S4")
 
         if self.close:
             if common.verbose:
@@ -1661,11 +1828,11 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an CArray
-        shape = (2,2)
+        shape = (2, 2)
         atom = Int16Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
-                                    "title array1", chunkshape=(2,2))
-        array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
+                                    "title array1", chunkshape=(2, 2))
+        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1709,11 +1876,11 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an CArray
-        shape = (2,2)
+        shape = (2, 2)
         atom = Int16Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
-                                    "title array1", chunkshape=(2,2))
-        array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
+                                    "title array1", chunkshape=(2, 2))
+        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1760,11 +1927,11 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an Array
-        shape = (2,2)
+        shape = (2, 2)
         atom = Int16Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
-                                    "title array1", chunkshape=(2,2))
-        array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
+                                    "title array1", chunkshape=(2, 2))
+        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1821,10 +1988,10 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an CArray
-        shape = (100,2)
+        shape = (100, 2)
         atom = Int32Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
-                                    "title array1", chunkshape=(2,2))
+                                    "title array1", chunkshape=(2, 2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
         array1[...] = r
@@ -1874,10 +2041,10 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an CArray
-        shape = (100,2)
+        shape = (100, 2)
         atom = Int32Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
-                                    "title array1", chunkshape=(2,2))
+                                    "title array1", chunkshape=(2, 2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
         array1[...] = r
@@ -2092,10 +2259,15 @@ class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         try:
             self.assertEqual(len(self.h5file.root.array), self.shape[0])
         except OverflowError:
-            # This can't be avoided in 32-bit platforms.
-            self.assertTrue(self.shape[0] > numpy.iinfo(int).max,
-                          "Array length overflowed but ``int`` "
-                          "is wide enough." )
+            # In python 2.4 calling "len(self.h5file.root.array)" raises
+            # an OverflowError also on 64bit platforms::
+            #   OverflowError: __len__() should return 0 <= outcome < 2**31
+            import sys
+            if sys.version_info[:2] > (2, 4):
+                # This can't be avoided in 32-bit platforms.
+                self.assertTrue(self.shape[0] > numpy.iinfo(int).max,
+                              "Array length overflowed but ``int`` "
+                              "is wide enough." )
 
     def test01_shape_reopen(self):
         """Check that the shape doesn't overflow after reopening."""
@@ -2111,7 +2283,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create a CArray with default values
         self.h5file.createCArray(
-            '/', 'bar', StringAtom(itemsize=5, dflt="abdef"), (10,10))
+            '/', 'bar', StringAtom(itemsize=5, dflt="abdef"), (10, 10))
 
         if self.reopen:
             self._reopen()
@@ -2121,13 +2293,13 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "Read values:", values
         self.assertTrue(allequal(values,
-                                 numpy.array(["abdef"]*100, "S5").reshape(10,10)))
+                                 numpy.array(["abdef"]*100, "S5").reshape(10, 10)))
 
     def test01_dflt(self):
         "Check that Atom.dflt is honored (int version)."
 
         # Create a CArray with default values
-        self.h5file.createCArray('/', 'bar', IntAtom(dflt=1), (10,10))
+        self.h5file.createCArray('/', 'bar', IntAtom(dflt=1), (10, 10))
 
         if self.reopen:
             self._reopen()
@@ -2136,13 +2308,13 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         values = self.h5file.root.bar[:]
         if common.verbose:
             print "Read values:", values
-        self.assertTrue(allequal(values, numpy.ones((10,10), "i4")))
+        self.assertTrue(allequal(values, numpy.ones((10, 10), "i4")))
 
     def test02_dflt(self):
         "Check that Atom.dflt is honored (float version)."
 
         # Create a CArray with default values
-        self.h5file.createCArray('/', 'bar', FloatAtom(dflt=1.134), (10,10))
+        self.h5file.createCArray('/', 'bar', FloatAtom(dflt=1.134), (10, 10))
 
         if self.reopen:
             self._reopen()
@@ -2151,7 +2323,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         values = self.h5file.root.bar[:]
         if common.verbose:
             print "Read values:", values
-        self.assertTrue(allequal(values, numpy.ones((10,10), "f8")*1.134))
+        self.assertTrue(allequal(values, numpy.ones((10, 10), "f8")*1.134))
 
 
 class DfltAtomNoReopen(DfltAtomTestCase):
@@ -2274,21 +2446,21 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01a_assign(self):
         "Assign a row to a (unidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,2)), (1,))
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2, 2)), (1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
         # Assign one row
-        ca[0] = [[1,3],[4,5]]
+        ca[0] = [[1, 3], [4, 5]]
         self.assertEqual(ca.nrows, 1)
         if common.verbose:
             print "First row-->", ca[0]
-        self.assertTrue(allequal(ca[0], numpy.array([[1,3],[4,5]], 'i4')))
+        self.assertTrue(allequal(ca[0], numpy.array([[1, 3], [4, 5]], 'i4')))
 
     def test01b_assign(self):
         "Assign several rows to a (unidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,2)), (3,))
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2, 2)), (3,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2297,49 +2469,49 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
             print "Third row-->", ca[2]
-        self.assertTrue(allequal(ca[2], numpy.array([[3,3],[3,3]], 'i4')))
+        self.assertTrue(allequal(ca[2], numpy.array([[3, 3], [3, 3]], 'i4')))
 
     def test02a_assign(self):
         "Assign a row to a (multidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,)), (1,3))
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,)), (1, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
         # Assign one row
-        ca[:] = [[[1,3],[4,5],[7,9]]]
+        ca[:] = [[[1, 3], [4, 5], [7, 9]]]
         self.assertEqual(ca.nrows, 1)
         if common.verbose:
             print "First row-->", ca[0]
-        self.assertTrue(allequal(ca[0], numpy.array([[1,3],[4,5],[7,9]], 'i4')))
+        self.assertTrue(allequal(ca[0], numpy.array([[1, 3], [4, 5], [7, 9]], 'i4')))
 
     def test02b_assign(self):
         "Assign several rows to a (multidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,)), (3,3))
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,)), (3, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
         # Assign three rows
-        ca[:] = [[[1,-3],[4,-5],[-7,9]],
-                 [[-1,3],[-4,5],[7,-8]],
-                 [[-2,3],[-5,5],[7,-9]]]
+        ca[:] = [[[1, -3], [4, -5], [-7, 9]],
+                 [[-1, 3], [-4, 5], [7, -8]],
+                 [[-2, 3], [-5, 5], [7, -9]]]
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
             print "Third row-->", ca[2]
         self.assertTrue(allequal(ca[2],
-                                 numpy.array([[-2,3],[-5,5],[7,-9]], 'i4')))
+                                 numpy.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
 
     def test03a_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,4)), (3,2,3))
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2, 4)), (3, 2, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
         # Assign values
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2,3,2,4))
+        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2, 3, 2, 4))
         ca[:] = [a*1, a*2, a*3]
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
@@ -2349,34 +2521,34 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03b_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom (II)."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,4)), (2,3,3))
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2, 4)), (2, 3, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
         # Assign values
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2*3*3*2*4, dtype='i4').reshape((2,3,3,2,4))
+        a = numpy.arange(2*3*3*2*4, dtype='i4').reshape((2, 3, 3, 2, 4))
         ca[:] = a
         self.assertEqual(ca.nrows, 2)
         if common.verbose:
-            print "Third row-->", ca[:,2,...]
-        self.assertTrue(allequal(ca[:,2,...], a[:,2,...]))
+            print "Third row-->", ca[:, 2, ...]
+        self.assertTrue(allequal(ca[:, 2, ...], a[:, 2, ...]))
 
     def test03c_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom (III)."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,4)), (3,1,2))
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2, 4)), (3, 1, 2))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
         # Assign values
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(3*1*2*2*4, dtype='i4').reshape((3,1,2,2,4))
+        a = numpy.arange(3*1*2*2*4, dtype='i4').reshape((3, 1, 2, 2, 4))
         ca[:] = a
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
-            print "Second row-->", ca[:,:,1,...]
-        self.assertTrue(allequal(ca[:,:,1,...], a[:,:,1,...]))
+            print "Second row-->", ca[:,:, 1, ...]
+        self.assertTrue(allequal(ca[:,:, 1, ...], a[:,:, 1, ...]))
 
 
 class MDAtomNoReopen(MDAtomTestCase):
@@ -2443,6 +2615,16 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StringTestCase))
         theSuite.addTest(unittest.makeSuite(String2TestCase))
         theSuite.addTest(unittest.makeSuite(StringComprTestCase))
+        theSuite.addTest(unittest.makeSuite(Int8TestCase))
+        theSuite.addTest(unittest.makeSuite(Int16TestCase))
+        theSuite.addTest(unittest.makeSuite(Int32TestCase))
+        if hasattr(numpy, 'float16'):
+            theSuite.addTest(unittest.makeSuite(Float16TestCase))
+        theSuite.addTest(unittest.makeSuite(Float32TestCase))
+        theSuite.addTest(unittest.makeSuite(Float64TestCase))
+        theSuite.addTest(unittest.makeSuite(Complex64TestCase))
+        theSuite.addTest(unittest.makeSuite(Complex128TestCase))
+        theSuite.addTest(unittest.makeSuite(ComprTestCase))
 
         # numarray is now deprecated
         #if numarray_imported:
@@ -2471,6 +2653,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
+        theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))

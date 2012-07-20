@@ -13,8 +13,8 @@ def read(file):
     fileh = openFile(file, "r")
 
     print "table (short)-->", fileh.root.table
-    print "table (long)-->", `fileh.root.table`
-    print "table (contents)-->", `fileh.root.table[:]`
+    print "table (long)-->", repr(fileh.root.table)
+    print "table (contents)-->", repr(fileh.root.table[:])
 
     fileh.close()
 
@@ -47,7 +47,7 @@ class Info(IsDescription):
 class Test(IsDescription):
     """A description that has several columns"""
     x = Int32Col(shape=2, dflt=0, pos=0)
-    y = Float64Col(dflt=1.2, shape=(2,3))
+    y = Float64Col(dflt=1.2, shape=(2, 3))
     z = UInt8Col(dflt=1)
     color = EnumCol(colors, 'red', base='uint32', shape=(2,))
     Info = Info()
@@ -55,17 +55,17 @@ class Test(IsDescription):
         _v_pos = 1
         name = StringCol(10)
         value = Float64Col(pos=0)
-        y2 = Float64Col(dflt=1, shape=(2,3), pos=1)
+        y2 = Float64Col(dflt=1, shape=(2, 3), pos=1)
         z2 = UInt8Col(dflt=1)
         class info2(IsDescription):
-            y3 = Float64Col(dflt=1, shape=(2,3))
+            y3 = Float64Col(dflt=1, shape=(2, 3))
             z3 = UInt8Col(dflt=1)
             name = StringCol(10)
             value = EnumCol(colors, 'blue', base='uint32', shape=(1,))
             class info3(IsDescription):
                 name = StringCol(10)
                 value = Time64Col()
-                y4 = Float64Col(dflt=1, shape=(2,3))
+                y4 = Float64Col(dflt=1, shape=(2, 3))
                 z4 = UInt8Col(dflt=1)
 
 # Write the file and read it

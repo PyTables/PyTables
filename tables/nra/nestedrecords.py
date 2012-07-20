@@ -21,7 +21,6 @@ in numarray instead of NumPy.
 """
 
 import sys
-import types
 import re
 
 import numarray
@@ -122,7 +121,7 @@ def _checkNames(names):
 
     # Names elements must be strings or 2-tuples
     # (flattenNames will issue a TypeError in case this is not true)
-    colnames = nriterators.flattenNames(names)
+    nriterators.flattenNames(names)
 
     # The names used in the names list should not contain the '/' string
     for item in nriterators.getSubNames(names):
@@ -239,8 +238,8 @@ def _matchFormats(seq1, seq2):
         dtype2 = dtype2.strip()
         if dtype1 in revfmt: dtype1 = revfmt[dtype1]
         if dtype2 in revfmt: dtype2 = revfmt[dtype2]
-        if repeat1 in ['','1']: dtype1 = '1'+dtype1
-        if repeat2 in ['','1']: dtype2 = '1'+dtype2
+        if repeat1 in ['', '1']: dtype1 = '1'+dtype1
+        if repeat2 in ['', '1']: dtype2 = '1'+dtype2
         if dtype1 != dtype2:
             raise ValueError("""buffer formats don't match those """
                 """provided by the format specification""")
@@ -433,9 +432,8 @@ def array(buffer=None, formats=None, shape=0, names=None,
             fmts = [item for item in nriterators.flattenFormats(makeFormats(descr))]
             # Check just the formats, not the names
             if _matchFormats(fmts, buffer._formats):
-                raise ValueError, \
-"""buffer structure doesn't match that provided by the format
-    specification."""
+                raise ValueError("buffer structure doesn't match that "
+                                 "provided by the format specification.")
             # New description is compatible. Assign it to the NRA
             buffer.descr = descr
             # Also the names (they may have been changed in new description)
@@ -456,9 +454,8 @@ def array(buffer=None, formats=None, shape=0, names=None,
 
         # Check that descriptions are consistent
         if formats is not None and _matchFormats(formats, buffer._formats):
-            raise ValueError, \
-"""buffer structure doesn't match that provided by the format
-    specification."""
+            raise ValueError("buffer structure doesn't match that provided "
+                             "by the format specification.")
         if names is not None:
             buffer._names = names
         # Also, the names may have been changed in new description
@@ -478,17 +475,17 @@ def array(buffer=None, formats=None, shape=0, names=None,
         try:
             nra = fromnumpy(buffer)
         except Exception, exc:  #XXX
-            raise ValueError, \
-"""buffer parameter of type numpy cannot be converted into a NestedRecArray
-object. The error was: <%s>""" % (exc,)
+            raise ValueError("buffer parameter of type numpy cannot be "
+                             "converted into a NestedRecArray object. "
+                             "The error was: <%s>" % (exc,))
 
         # Check that descriptions are consistent
         if descr is not None:
             fmt1 = [i for i in nriterators.flattenFormats(makeFormats(nra.descr))]
             fmt2 = [i for i in nriterators.flattenFormats(makeFormats(descr))]
             if _matchFormats(fmt1, fmt2):
-                raise ValueError, \
-"""buffer structure doesn't match that provided by the format specification."""
+                raise ValueError("buffer structure doesn't match that "
+                                 "provided by the format specification.")
         return nra
 
     # Check if a buffer structure is given. It must be given in order to
@@ -510,8 +507,8 @@ object. The error was: <%s>""" % (exc,)
     flatNames = [item for item in nriterators.flattenNames(names)]
 
     # Check the buffer structure (order matters!)
-    if (isinstance(buffer, types.ListType) or
-        isinstance(buffer, types.TupleType)):
+    if (isinstance(buffer, list) or
+        isinstance(buffer, tuple)):
         if (isinstance(buffer[0], numarray.NumArray) or
             isinstance(buffer[0], numarray.strings.CharArray)):
             return fromarrays(buffer, formats=formats,
@@ -691,8 +688,8 @@ def convertToAPDescr(descr, byteorder):
                 # parse the formats into repeats and formats
                 try:
                     (_repeat, _dtype) = format_re.match(item[1].strip()).groups()
-                except TypeError, AttributeError:
-                    raise ValueError('format %s is not recognized' %  _fmt[i])
+                except (TypeError, AttributeError):
+                    raise ValueError('format %s is not recognized' % item[i])
                 _dtype = _dtype.strip()
                 # String type needs special treatment
                 if _dtype[0] in ('a', 'S'):
@@ -706,10 +703,10 @@ def convertToAPDescr(descr, byteorder):
                         _dtype = cbyteorder[byteorder]+_dtype
                     else:
                         # This should never happen
-                        raise ValueError, \
-                              "Fatal error: format %s not recognized." % (_dtype)
+                        raise ValueError("Fatal error: format %s not "
+                                         "recognized." % (_dtype))
                 # Return the column
-                if _repeat in ['','1','()']:
+                if _repeat in ['', '1', '()']:
                     # scalar case
                     yield (item[0], _dtype)
                 else:
@@ -746,17 +743,17 @@ def convertFromAPDescr(array_descr):
                     # String type needs special treatment
                     _dtype = 'a'+_dtype[1:]
                 elif _dtype[0] == "V":
-                    raise NotImplementedError, """ \
-Padding fields are not supported yet. Try to provide objects without padding fields.
-"""
+                    raise NotImplementedError("Padding fields are not "
+                            "supported yet. Try to provide objects without "
+                            "padding fields.")
                 elif _dtype[0] == "U":
-                    raise NotImplementedError, """ \
-Unicode fields are not supported yet. Try to provide objects without unicode fields.
-"""
+                    raise NotImplementedError("Unicode fields are not "
+                            "supported yet. Try to provide objects without "
+                            "unicode fields.")
                 else:
                     # All the other fields are not supported
-                    raise ValueError, \
-                          "Fatal error: format %s not supported." % (_dtype)
+                    raise ValueError("Fatal error: format %s not supported." %
+                                                                    (_dtype))
                 # Return the column
                 if len(item) <= 2:
                     # scalar case

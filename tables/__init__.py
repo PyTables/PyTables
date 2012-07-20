@@ -1,52 +1,13 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: October 1, 2002
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: October 1, 2002
+# Author: Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
-"""
-PyTables, hierarchical datasets in Python
-
-:URL: http://www.pytables.org/
-
-PyTables is a package for managing hierarchical datasets and designed
-to efficiently cope with extremely large amounts of data.
-
-Most Important Classes
-======================
-
-Nodes
-~~~~~
-
-Group, Table, Array, CArray, EArray, VLArray, UnImplemented
-
-Declarative
-~~~~~~~~~~~
-
-IsDescription, {Type}Atom, {Type}Col
-
-Helpers
-~~~~~~~
-
-File, Filters, Cols, Column
-
-
-First Level Functions
-=====================
-
-openFile, copyFile, test,  print_versions, whichLibVersion,
-isPyTablesFile, isHDF5File
-
-Misc variables
-==============
-
-__version__, hdf5Version, is_pro
-
-"""
 
 import sys, os
 if os.name == 'nt':
@@ -54,9 +15,20 @@ if os.name == 'nt':
     os.environ['PATH'] = ';'.join((os.environ['PATH'], module_path))
     sys.path.append(module_path)
 
+# In order to improve diagnosis of a common Windows dependency
+# issue, we explicitly test that we can load the HDF5 dll before
+# loading tables.utilsExtensions.
+if os.name == 'nt':
+    import ctypes.util
+
+    if not ctypes.util.find_library('hdf5dll.dll'):
+        raise ImportError('Could not load "hdf5dll.dll", please ensure' +
+                ' that it can be found in the system path')
+
 
 # Necessary imports to get versions stored on the Pyrex extension
 from tables.utilsExtension import getPyTablesVersion, getHDF5Version
+
 
 __version__ = getPyTablesVersion()
 """The PyTables version number."""
@@ -65,22 +37,21 @@ hdf5Version = getHDF5Version()
 is_pro = True
 """True for PyTables Professional edition, false otherwise.
 
-.. note:: PyTables Professional edition has been released under open
-          source license. Starting with version 2.3, PyTables includes all
-          features of PyTables Pro.
+.. note::
 
-          In order to reflect the presence of advanced features *is_pro*
-          is always set to True.
+    PyTables Professional edition has been released under an open
+    source license. Starting with version 2.3, PyTables includes all
+    features of PyTables Pro.  In order to reflect the presence of
+    advanced features :data:`is_pro` is always set to True.
+    :data:`is_pro` should be considered *deprecated*.
+    It will be removed in the next major release.
 
-
-.. deprecated:: :data:`tables.is_pro` should be considered deprecated
-                and it will be removed in the next major release.
-
+.. deprecated:: 2.3
 """
 
 from tables.utilsExtension import (
     isHDF5File, isPyTablesFile, whichLibVersion, lrange,
-    setBloscMaxThreads )
+    setBloscMaxThreads, silenceHDF5Messages)
 
 from tables.misc.enum import Enum
 from tables.atom import *
@@ -117,7 +88,8 @@ __all__ = [
     # Functions:
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
     'copyFile', 'openFile', 'print_versions', 'test',
-    'split_type', 'restrict_flavors', 'lrange',
+    'split_type', 'restrict_flavors', 'lrange', 'setBloscMaxThreads',
+    'silenceHDF5Messages',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
     # Types:
@@ -141,14 +113,13 @@ __all__ = [
     'EnumCol',
     # Node classes:
     'Node', 'Group', 'Leaf', 'Table', 'Array', 'CArray', 'EArray', 'VLArray',
-    'UnImplemented',
+    'UnImplemented', 'Unknown',
     # The File class:
     'File',
     # Expr class
     'Expr',
     ]
 
-if hdf5Version < "1.8.0":
-    import warnings
-    warnings.warn("Support for HDF5 v1.6.x will be removed in future releases",
-                  DeprecationWarning)
+if 'Float16Atom' in locals():
+    # float16 is new in numpy 1.6.0
+    __all__.extend(('Float16Atom', 'Float16Col'))

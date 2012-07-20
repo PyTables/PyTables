@@ -28,10 +28,10 @@
  */
 
 void conv_float64_timeval32(void *base,
-			    unsigned long byteoffset,
-			    unsigned long bytestride,
-			    PY_LONG_LONG nrecords,
-			    unsigned long nelements,
-			    int sense);
+                            unsigned long byteoffset,
+                            unsigned long bytestride,
+                            PY_LONG_LONG nrecords,
+                            unsigned long nelements,
+                            int sense);
 
 #endif /* def __TYPECONV_H__ */

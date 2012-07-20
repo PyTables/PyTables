@@ -1,12 +1,11 @@
 """Plugin for HDF5 files created with using pytables (tables.netcdf3)"""
 
-__author__ = "Jeffrey Whitaker <jeffrey.s.whitaker@noaa.gov>"
-
 from __future__ import division
+
+__author__ = "Jeffrey Whitaker <jeffrey.s.whitaker@noaa.gov>"
 
 import os.path
 import re
-import types
 
 # Requires tables.netcdf3
 from tables.netcdf3 import NetCDFFile
@@ -39,7 +38,7 @@ class Handler(BaseHandler):
         try:
             self._file = NetCDFFile(filepath)
         except:
-            raise OpenFileError, 'Unable to open file %s.' % filepath
+            raise OpenFileError('Unable to open file %s.' % filepath)
 
     def _parseconstraints(self, constraints=None):
         # Build the dataset.
@@ -56,14 +55,14 @@ class Handler(BaseHandler):
                 # Instantiate the grid.
                 grid = self._file.variables[name]
                 data = arrayterator(grid, nrecs=BUFFER)
-                g = dataset[name] = dtypes.GridType(data=data, 
+                g = dataset[name] = dtypes.GridType(data=data,
                                                     name=name,
                                                     dimensions=grid.dimensions,
                                                     shape=grid.shape,
                                                     type=typecode_to_dap[grid.typecode()],
                                                     attributes=get_attributes(grid))
                 # Build maps.
-                for mapname,shape in zip(g.dimensions, g.shape):
+                for mapname, shape in zip(g.dimensions, g.shape):
                     if mapname in self._file.variables:
                         map_ = self._file.variables[mapname]
                         data = arrayterator(map_, nrecs=BUFFER)
@@ -97,7 +96,7 @@ class Handler(BaseHandler):
                 name = c['name']
 
                 #if name not in self._file.variables and name not in self._file.dimensions:
-                #    raise ConstraintExpressionError, 'Variable %s not in dataset.' % name
+                #    raise ConstraintExpressionError('Variable %s not in dataset.' % name)
 
                 # Check if var is grid or array.
                 if name not in self._file.dimensions and '.' not in name:
@@ -117,7 +116,7 @@ class Handler(BaseHandler):
                                                         attributes=get_attributes(grid))
                     # Build maps.
                     dimmap = zip(g.dimensions, start, shape, stride)
-                    for mapname,start_,shape_,stride_ in dimmap:
+                    for mapname, start_, shape_, stride_ in dimmap:
                         if mapname in self._file.variables:
                             map_ = self._file.variables[mapname]
                             data = arrayterator(map_, start=[start_], shape=[shape_], stride=[stride_], nrecs=BUFFER)
@@ -141,7 +140,8 @@ class Handler(BaseHandler):
                             assert grid in grids
                             assert name in self._file.variables[grid].dimensions or name == grid
                         except:
-                            raise ConstraintExpressionError, 'Invalid name in constraint expression: %s.' % c['name']
+                            raise ConstraintExpressionError('Invalid name in '
+                                    'constraint expression: %s.' % c['name'])
 
                         array_ = self._file.variables[name]
                         slice_ = getslice(c['shape'], array_.shape)
@@ -164,7 +164,7 @@ class Handler(BaseHandler):
                             start  = [i.start for i in slice_]
                             stride = [i.step for i in slice_]
                             shape  = [(i.stop - i.start) for i in slice_]
-                            
+
                             data = arrayterator(array_, start=start, shape=shape, stride=stride, nrecs=BUFFER)
                             dataset[name] = dtypes.ArrayType(data=data,
                                                              name=name,

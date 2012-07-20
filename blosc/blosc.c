@@ -534,7 +534,7 @@ int32_t compute_blocksize(int32_t clevel, uint32_t typesize, int32_t nbytes)
   uint32_t blocksize;
 
   /* Protection against very small buffers */
-  if (nbytes < typesize) {
+  if (nbytes < (int32_t)typesize) {
     return 1;
   }
 
@@ -577,6 +577,13 @@ int32_t compute_blocksize(int32_t clevel, uint32_t typesize, int32_t nbytes)
   /* blocksize must be a multiple of the typesize */
   if (blocksize > typesize) {
     blocksize = blocksize / typesize * typesize;
+  }
+
+  /* blocksize must not exceed (64 KB * typesize) in order to allow
+     BloscLZ to achieve better compression ratios (the ultimate reason
+     for this is that hash_log in BloscLZ cannot be larger than 15) */
+  if ((blocksize / typesize) > 64*KB) {
+    blocksize = 64 * KB * typesize;
   }
 
   return blocksize;
@@ -623,6 +630,12 @@ int blosc_compress(int clevel, int doshuffle, size_t typesize, size_t nbytes,
     return -10;
   }
 
+  /* Check typesize limits */
+  if (typesize > BLOSC_MAX_TYPESIZE) {
+    /* If typesize is too large, treat buffer as an 1-byte stream. */
+    typesize = 1;
+  }
+
   /* Get the blocksize */
   blocksize = compute_blocksize(clevel, (uint32_t)typesize, nbytes_);
 
@@ -630,12 +643,6 @@ int blosc_compress(int clevel, int doshuffle, size_t typesize, size_t nbytes,
   nblocks = nbytes_ / blocksize;
   leftover = nbytes_ % blocksize;
   nblocks = (leftover>0)? nblocks+1: nblocks;
-
-  /* Check typesize limits */
-  if (typesize > BLOSC_MAX_TYPESIZE) {
-    /* If typesize is too large, treat buffer as an 1-byte stream. */
-    typesize = 1;
-  }
 
   _dest = (uint8_t *)(dest);
   /* Write header for this block */

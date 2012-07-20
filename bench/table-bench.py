@@ -2,18 +2,17 @@
 
 import numpy as NP
 from tables import *
-import random
 
 # This class is accessible only for the examples
 class Small(IsDescription):
-    var1 = StringCol(itemsize=4 ,pos=2)
+    var1 = StringCol(itemsize=4, pos=2)
     var2 = Int32Col(pos=1)
     var3 = Float64Col(pos=0)
 
 # Define a user record to characterize some kind of particles
 class Medium(IsDescription):
     name        = StringCol(itemsize=16, pos=0)  # 16-character String
-    float1      = Float64Col(shape=2, dflt=NP.arange(2),pos=1)
+    float1      = Float64Col(shape=2, dflt=NP.arange(2), pos=1)
     #float1      = Float64Col(dflt=2.3)
     #float2      = Float64Col(dflt=2.3)
     #zADCcount    = Int16Col()    # signed short integer
@@ -55,19 +54,16 @@ def createFile(filename, totalrows, filters, recsize):
             table = fileh.createTable(group, 'tuple'+str(j), Big, title,
                                       None,
                                       totalrows)
-            arr = NP.array(NP.arange(32), dtype=NP.float64)
-            arr2 = NP.array(NP.arange(32), dtype=NP.float64)
         elif recsize == "medium":
             table = fileh.createTable(group, 'tuple'+str(j), Medium, title,
                                       None,
                                       totalrows)
-            arr = NP.array(NP.arange(2), dtype=NP.float64)
         elif recsize == "small":
             table = fileh.createTable(group, 'tuple'+str(j), Small, title,
                                       None,
                                       totalrows)
         else:
-            raise RuntimeError, "This should never happen"
+            raise RuntimeError("This should never happen")
 
         table.attrs.test = 2
         rowsize = table.rowsize
@@ -235,11 +231,10 @@ def readField(filename, field, rng, verbose):
     fileh = openFile(filename, mode = "r")
     rowsread = 0
     if rng is None:
-        rng = [0,-1,1]
+        rng = [0, -1, 1]
     if field == "all":
         field = None
     for groupobj in fileh.walkGroups(fileh.root):
-        row = 0
         for table in fileh.listNodes(groupobj, 'Table'):
             rowsize = table.rowsize
             #table.nrowsinbuf = 3 # For testing purposes
@@ -295,7 +290,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1:
+    if len(pargs) != 1:
         sys.stderr.write(usage)
         sys.exit(0)
 

@@ -2,7 +2,7 @@ import tables
 import sys
 import time
 
-if len(sys.argv) <> 3:
+if len(sys.argv) != 3:
     print "usage: %s source_file dest_file", sys.argv[0]
 filesrc = sys.argv[1]
 filedest = sys.argv[2]
@@ -27,6 +27,6 @@ tsizeMB = tsize / (1024*1024)
 ttime = round(time.time() - t1, 3)
 speed = round(tsizeMB/ttime, 2)
 print "Copied %s tables for a total of %s MB in %s seconds (%s MB/s)" % \
-      (ntables, tsizeMB , ttime, speed)
+      (ntables, tsizeMB, ttime, speed)
 filehsrc.close()
 filehdest.close()

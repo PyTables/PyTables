@@ -409,7 +409,7 @@ created in the same operation.
 nctoh5
 ------
 
-This tool is able to convert a file in `NetCDF <http://www.unidata.ucar.edu/packages/netcdf/>`_
+This tool is able to convert a file in `NetCDF <http://www.unidata.ucar.edu/software/netcdf/>`_
 format to a PyTables file (and hence, to a HDF5 file). However, for
 this to work, you will need the NetCDF interface for Python that comes
 with the excellent Scientific Python (see :ref:`[SCIPY1] <SCIPY1>`) package. This script was

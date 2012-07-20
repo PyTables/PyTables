@@ -48,7 +48,7 @@ class SphinxTraitsDoc(SphinxClassDoc):
         except ValueError:
             indent = 0
 
-        for n,line in enumerate(docstring):
+        for n, line in enumerate(docstring):
             docstring[n] = docstring[n][indent:]
 
         self._doc = docscrape.Reader(docstring)
@@ -87,14 +87,14 @@ class SphinxTraitsDoc(SphinxClassDoc):
         out += self._str_summary()
         out += self._str_extended_summary()
         for param_list in ('Parameters', 'Traits', 'Methods',
-                           'Returns','Raises'):
+                           'Returns', 'Raises'):
             out += self._str_param_list(param_list)
         out += self._str_see_also("obj")
         out += self._str_section('Notes')
         out += self._str_references()
         out += self._str_section('Example')
         out += self._str_section('Examples')
-        out = self._str_indent(out,indent)
+        out = self._str_indent(out, indent)
         return '\n'.join(out)
 
 def looks_like_issubclass(obj, classname):

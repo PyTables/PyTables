@@ -38,7 +38,7 @@ class TreeTestCase(unittest.TestCase):
     def populateFile(self):
         group = self.h5file.root
         maxshort = 1 << 15
-        maxint   = 2147483647   # (2 ** 31 - 1)
+        #maxint   = 2147483647   # (2 ** 31 - 1)
         for j in range(3):
             # Create a table
             table = self.h5file.createTable(group, 'table'+str(j), Record,
@@ -524,10 +524,10 @@ class DeepTreeTestCase(unittest.TestCase):
             if common.verbose:
                 print "%3d," % (depth),
             # Create a couple of arrays here
-            fileh.createArray(group, 'array', [1,1], "depth: %d" % depth)
-            fileh.createArray(group, 'array2', [1,1], "depth: %d" % depth)
+            fileh.createArray(group, 'array', [1, 1], "depth: %d" % depth)
+            fileh.createArray(group, 'array2', [1, 1], "depth: %d" % depth)
             # And also a group
-            group2 = fileh.createGroup(group, 'group2_' + str(depth))
+            fileh.createGroup(group, 'group2_' + str(depth))
             # Finally, iterate over a new group
             group = fileh.createGroup(group, 'group' + str(depth))
         # Close the file
@@ -762,21 +762,21 @@ class HiddenTreeTestCase(unittest.TestCase):
 
         # Create some visible nodes: a, g, g/a1, g/a2, g/g, g/g/a.
         h5f = self.h5file
-        a = h5f.createArray('/', 'a', [0]);
+        h5f.createArray('/', 'a', [0]);
         g = h5f.createGroup('/', 'g');
-        g_a1 = h5f.createArray(g, 'a1', [0]);
-        g_a2 = h5f.createArray(g, 'a2', [0]);
+        h5f.createArray(g, 'a1', [0]);
+        h5f.createArray(g, 'a2', [0]);
         g_g = h5f.createGroup(g, 'g');
-        g_g_a = h5f.createArray(g_g, 'a', [0]);
+        h5f.createArray(g_g, 'a', [0]);
 
         self.visible.extend(['/a', '/g', '/g/a1', '/g/a2', '/g/g', '/g/g/a'])
 
         # Create some hidden nodes: _p_a, _p_g, _p_g/a, _p_g/_p_a, g/_p_a.
-        ha = h5f.createArray('/', '_p_a', [0]);
+        h5f.createArray('/', '_p_a', [0]);
         hg = h5f.createGroup('/', '_p_g');
-        hg_a = h5f.createArray(hg, 'a', [0]);
-        hg_ha = h5f.createArray(hg, '_p_a', [0]);
-        g_ha = h5f.createArray(g, '_p_a', [0]);
+        h5f.createArray(hg, 'a', [0]);
+        h5f.createArray(hg, '_p_a', [0]);
+        h5f.createArray(g, '_p_a', [0]);
 
         self.hidden.extend(
             ['/_p_a', '/_p_g', '/_p_g/a', '/_p_g/_p_a', '/g/_p_a'])
@@ -845,9 +845,9 @@ class HiddenTreeTestCase(unittest.TestCase):
         h5f = self.h5file
 
         for vpath in self.visible:
-            node = h5f.getNode(vpath)
+            h5f.getNode(vpath)
         for hpath in self.hidden:
-            node = h5f.getNode(hpath)
+            h5f.getNode(hpath)
 
 
     def test02_walkGroups(self):

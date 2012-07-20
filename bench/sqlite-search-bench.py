@@ -167,12 +167,12 @@ CREATE INDEX ivar3 ON small(var3);
         rowseci = nrows/t2
         print "Index time:", t2, ", IKRows/s:", round((nrows/10.**3)/t2, 3),
         size2 = os.stat(dbfile)[6] - size1
-        print ", Final size with index:", round(size2/(1024.*1024),3), "MB"
+        print ", Final size with index:", round(size2/(1024.*1024), 3), "MB"
 
     conn.close()
 
     # Collect benchmark data
-    bf = openFile(bfile,"a")
+    bf = openFile(bfile, "a")
     recsize = "sqlite_small"
     if indexmode == "indexed":
         table = bf.getNode("/"+recsize+"/create_indexed")
@@ -215,9 +215,8 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     """
 
     # Open the benchmark database
-    bf = openFile(bfile,"a")
+    bf = openFile(bfile, "a")
     #default values for the case that columns are not indexed
-    rowselected = 0
     t2 = 0.
     tcpu2 = 0.
     # Some previous computations for the case of random values
@@ -267,7 +266,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         searchmodelist = ["int", "float"]
     else:
         searchmodelist = ["string", "int", "float"]
-        
+
     # Execute queries
     for atom in searchmodelist:
         time2 = 0
@@ -287,7 +286,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
                 #cursor.execute(SQL3 % (float(rnd), float(rnd+3)))
                 cursor.execute(SQL3 % (float(rnd), float(rnd+dselect)))
             else:
-                raise ValueError, "atom must take a value in ['string','int','float']"
+                raise ValueError("atom must take a value in ['string','int','float']")
             if i == 0:
                 t1 = time.time() - time1
                 tcpu1 = time.clock() - cpu1
@@ -311,7 +310,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
             tcpu2 = cpu2/(riter-correction)
 
         print "*** Query results for atom = %s, nrows = %s, indexmode = %s ***" % (atom, nrows, indexmode)
-        print "Query time:", round(t1,5), ", cached time:", round(t2, 5)
+        print "Query time:", round(t1, 5), ", cached time:", round(t2, 5)
         print "MRows/s:", round((nrows/10.**6)/t1, 3),
         if t2 > 0:
             print ", cached MRows/s:", round((nrows/10.**6)/t2, 3)
@@ -342,16 +341,12 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     return
 
 if __name__=="__main__":
-    import sys
-    import os.path
     import getopt
     try:
         import psyco
         psyco_imported = 1
     except:
         psyco_imported = 0
-
-    import time
 
     usage = """usage: %s [-v] [-p] [-R] [-h] [-t] [-r] [-w] [-n nrows] [-b file] [-k riter] [-m indexmode] [-N range] datafile
             -v verbose
@@ -374,7 +369,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1:
+    if len(pargs) != 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -388,7 +383,7 @@ if __name__=="__main__":
     usepsyco = 0
     nrows = 1000
     bfile = "sqlite-bench.h5"
-    supported_imodes = ["indexed","standard"]
+    supported_imodes = ["indexed", "standard"]
     indexmode = "indexed"
     riter = 2
 
@@ -415,7 +410,7 @@ if __name__=="__main__":
         elif option[0] == '-m':
             indexmode = option[1]
             if indexmode not in supported_imodes:
-                raise ValueError, "Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode)
+                raise ValueError("Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode))
         elif option[0] == '-n':
             nrows = int(float(option[1])*1000)
         elif option[0] == '-d':

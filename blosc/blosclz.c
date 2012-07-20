@@ -109,7 +109,7 @@ int blosclz_compress(int opt_level, const void* input,
   uint8_t* op = (uint8_t*) output;
 
   /* Hash table depends on the opt level.  Hash_log cannot be larger than 15. */
-  uint8_t hash_log_[10] = {-1, 8, 9, 9, 11, 11, 11, 12, 12, 13};
+  uint8_t hash_log_[10] = {-1, 8, 9, 9, 11, 11, 12, 13, 14, 15};
   uint8_t hash_log = hash_log_[opt_level];
   uint16_t hash_size = 1 << hash_log;
   uint16_t *htab;

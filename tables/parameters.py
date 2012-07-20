@@ -8,16 +8,7 @@
 #
 ########################################################################
 
-"""
-Parameters for PyTables.
-
-Misc variables:
-
-`__docformat__`
-    The format of documentation strings in this module.
-`__version__`
-    Repository version of this file.
-"""
+"""Parameters for PyTables."""
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
@@ -150,10 +141,9 @@ before other chunks."""
 CHUNK_CACHE_SIZE = 2*_MB
 """Size (in bytes) for HDF5 chunk cache."""
 
-# Size for new metadata cache system in HDF5 1.8.x
+# Size for new metadata cache system
 METADATA_CACHE_SIZE = 1*_MB  # 1 MB is the default for HDF5
-"""Size (in bytes) of the HDF5 metadata cache.  This only takes effect
-if using HDF5 1.8.x series."""
+"""Size (in bytes) of the HDF5 metadata cache."""
 
 
 # NODE_CACHE_SLOTS tells the number of nodes that fits in the cache.
@@ -222,7 +212,34 @@ MAX_THREADS = None
 (mainly in Blosc and Numexpr currently).  If `None`, it is automatically
 set to the number of cores in your machine. In general, it is a good
 idea to set this to the number of cores in your machine or, when your
-machine has many of them (e.g. > 4), perhaps one less than this."""
+machine has many of them (e.g. > 4), perhaps one less than this.
+
+.. note::
+
+    currently MAX_THREADS is only used as a fall-back if
+    :data:`tables.parameters.MAX_NUMEXPR_THREADS` or
+    :data:`tables.parameters.MAX_BLOSC_THREADS` are not set.
+
+.. deprecated:: 2.4
+
+    Use :data:`tables.parameters.MAX_NUMEXPR_THREADS` or
+    :data:`tables.parameters.MAX_BLOSC_THREADS` instead.
+
+"""
+
+MAX_NUMEXPR_THREADS = None
+"""The maximum number of threads that PyTables should use internally in
+Numexpr.  If `None`, it is automatically set to the number of cores in
+your machine. In general, it is a good idea to set this to the number of
+cores in your machine or, when your machine has many of them (e.g. > 4),
+perhaps one less than this."""
+
+MAX_BLOSC_THREADS = None
+"""The maximum number of threads that PyTables should use internally in
+Blosc.  If `None`, it is automatically set to the number of cores in
+your machine. In general, it is a good idea to set this to the number of
+cores in your machine or, when your machine has many of them (e.g. > 4),
+perhaps one less than this."""
 
 
 ## Local Variables:

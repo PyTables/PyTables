@@ -9,7 +9,7 @@ from tables.numexpr.necompiler import (
 from tables.utilsExtension import lrange
 
 
-shape = (1000,160000)
+shape = (1000, 160000)
 #shape = (10,1600)
 filters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
 ofilters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
@@ -60,8 +60,8 @@ def _compute(result, function, arguments,
         # Compute the slice to be filled in destination
         sl = []
         for i in range(maindim):
-            sl.append(slice(None,None,None))
-        sl.append(slice(start3,stop3,None))
+            sl.append(slice(None, None, None))
+        sl.append(slice(start3, stop3, None))
         # Get the values for computing the buffer
         values = [arg.__getitem__(tuple(slices)) for arg in arguments]
         result[tuple(sl)] = function(*values)
@@ -160,7 +160,7 @@ if __name__=="__main__":
         prof = Profile()
         prof.run('evaluate("a*b+c", out)')
         kcg = lsprofcalltree.KCacheGrind(prof)
-        ofile = open('evaluate.kcg','w')
+        ofile = open('evaluate.kcg', 'w')
         kcg.output(ofile)
         ofile.close()
     else:

@@ -133,8 +133,8 @@ def print_versions():
     if tinfo is not None:
         print "BZIP2 version:     %s (%s)" % (tinfo[1], tinfo[2])
     tinfo = tables.whichLibVersion("blosc")
-    blosc_date = tinfo[2].split()[1]
     if tinfo is not None:
+        blosc_date = tinfo[2].split()[1]
         print "Blosc version:     %s (%s)" % (tinfo[1], blosc_date)
     try:
         from Cython.Compiler.Main import Version as Cython_Version
@@ -165,17 +165,19 @@ modern CPU and around 512 MB of main memory."""
 
 
 def test(verbose=False, heavy=False):
-    """
-    Run all the tests in the test suite.
+    """Run all the tests in the test suite.
 
-    If `verbose` is set, the test suite will emit messages with full
+    If *verbose* is set, the test suite will emit messages with full
     verbosity (not recommended unless you are looking into a certain
     problem).
 
-    If `heavy` is set, the test suite will be run in *heavy* mode (you
+    If *heavy* is set, the test suite will be run in *heavy* mode (you
     should be careful with this because it can take a lot of time and
     resources from your computer).
+
+    Return 0 (os.EX_OK) if all tests pass, 1 in case of failure
     """
+
     print_versions()
     print_heavy(heavy)
 
@@ -183,7 +185,11 @@ def test(verbose=False, heavy=False):
     oldverbose, common.verbose = common.verbose, verbose
     oldheavy, common.heavy = common.heavy, heavy
     try:
-        unittest.TextTestRunner().run(suite())
+        result = unittest.TextTestRunner().run(suite())
+        if result.wasSuccessful():
+            return 0
+        else:
+            return 1
     finally:
         common.verbose = oldverbose
         common.heavy = oldheavy  # there are pretty young heavies, too ;)

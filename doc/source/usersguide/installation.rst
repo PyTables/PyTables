@@ -31,7 +31,7 @@ scratch if you have Cython installed, but this is not necessary, as the Cython
 compiled source is included in the source distribution.
 
 To compile PyTables you will need a recent version of Python, the HDF5 (C
-flavor) library from http://hdfgroup.org, and the NumPy (see
+flavor) library from http://www.hdfgroup.org, and the NumPy (see
 :ref:`[NUMPY] <NUMPY>`) and Numexpr (see  :ref:`[NUMEXPR] <NUMEXPR>`)
 packages.
 Although you won't need numarray (see :ref:`[NUMARRAY] <NUMARRAY>`) or Numeric
@@ -43,28 +43,39 @@ driver module will detect them and will run the tests for numarray and/or
 Numeric automatically.
 
 .. warning:: The use of numarray and Numeric in PyTables is now deprecated.
-   Support for these packages will be dropped in future versions.
+
+    Support for these packages will be dropped in future versions.
 
 Prerequisites
 ~~~~~~~~~~~~~
 
 First, make sure that you have
 
-* Python >= 2.4 (Python 3.x is not supported currently),
-* HDF5 >= 1.6.10,
-* NumPy >= 1.4.1,
-* Numexpr >= 1.4.1 and
-* Cython >= 0.13
+* Python_ >= 2.4 (Python 3.x is not supported currently),
+* HDF5_ >= 1.8.4,
+* NumPy_ >= 1.4.1,
+* Numexpr_ >= 1.4.1 and
+* Cython_ >= 0.13
 
-installed (for testing purposes, we are using HDF5 1.6.10/1.8.5, NumPy 1.5 and
-Numexpr 1.4.1 currently). If you don't, fetch and install them before
+installed (for testing purposes, we are using HDF5_ 1.8.9, NumPy_ 1.6.1
+and Numexpr_ 1.4.2 currently). If you don't, fetch and install them before
 proceeding.
 
-.. note:: Currently PyTables does not use setuptools_ so do not expect that
-          the setup.py script automatically install all packages PyTables
-          depends on.
+.. _Python: http://www.python.org
+.. _HDF5: http://www.hdfgroup.org/HDF5
+.. _NumPy: http://numpy.scipy.org
+.. _Numexpr: http://code.google.com/p/numexpr
+.. _Cython: http://cython.org
+
+.. note:: Users of Python 2.4.x also need to install ctypes_
+
+.. note::
+
+    Currently PyTables does not use setuptools_ so do not expect that the
+    setup.py script automatically install all packages PyTables depends on.
 
 .. _setuptools: http://pypi.python.org/pypi/setuptools
+.. _ctypes: http://pypi.python.org/pypi/ctypes
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
 instructions on how to install precompiled binaries if you are not willing to
@@ -93,7 +104,7 @@ PyTables, so you don't need to install it separately.
     locations of the resource root directories on the setup.py command line.
     For example::
 
-        --hdf5=/stuff/hdf5-1.8.5
+        --hdf5=/stuff/hdf5-1.8.9
         --lzo=/stuff/lzo-2.02
         --bzip2=/stuff/bzip2-1.0.5
 
@@ -101,7 +112,7 @@ PyTables, so you don't need to install it separately.
     path, then you can specify the additional linker flags needed to find the
     shared library on the command line as well. For example::
 
-        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.5/lib"
+        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.9/lib"
 
     You may also want to try setting the :envvar:`LD_LIBRARY_PATH`
     environment variable to point to the directory where the shared libraries
@@ -111,7 +122,7 @@ PyTables, so you don't need to install it separately.
     It is also possible to link with specific libraries by setting the
     :envvar:`LIBS` environment variable::
 
-        LIBS="hdf5-1.8.5 nsl"
+        LIBS="hdf5-1.8.9 nsl"
 
     Finally, you can give additional flags to your compiler by passing them to
     the :option:`--cflags` flag::
@@ -170,7 +181,7 @@ PyTables, so you don't need to install it separately.
        prerequisites.
 
 .. _`PyTables source repository`: https://github.com/PyTables/PyTables
-.. _GitHub: http://www.github.com
+.. _GitHub: https://github.com
 
 
 PyTables package installation
@@ -182,56 +193,73 @@ you can proceed with the PyTables package itself.
 #. Run this command from the main PyTables distribution directory, including
    any extra command line arguments as discussed above::
 
-      python setup.py build_ext --inplace
+      $ python setup.py build_ext --inplace
 
 #. To run the test suite, execute any of these commands.
 
    **Unix**
       In the sh shell and its variants::
 
-          PYTHONPATH=.:$PYTHONPATH  python tables/tests/test_all.py
+        $ env PYTHONPATH=. python tables/tests/test_all.py
 
       or, if you prefer::
 
-          PYTHONPATH=.:$PYTHONPATH  python -c "import tables; tables.test()"
+        $ env PYTHONPATH=. python -c "import tables; tables.test()"
+
+      .. note::
+
+          the syntax used above overrides original contents of the
+          :envvar:`PYTHONPATH` environment variable.
+          If this is not the desired behaviour and the user just wants to add
+          some path before existing ones, then the safest syntax to use is
+          the following::
+
+            $ env PYTHONPATH=.${PYTHONPATH:+:$PYTHONPATH} python tables/tests/test_all.py
+
+          Please refer to your :program:`sh` documentation for details.
 
    **Windows**
 
       Open the command prompt (cmd.exe or command.com) and type::
 
-          set PYTHONPATH=.;%PYTHONPATH%
-          python tables\\tests\\test_all.py
+        > set PYTHONPATH=.;%PYTHONPATH%
+        > python tables\\tests\\test_all.py
 
       or::
 
-          set PYTHONPATH=.;%PYTHONPATH%
-          python -c "import tables; tables.test()"
+        > set PYTHONPATH=.;%PYTHONPATH%
+        > python -c "import tables; tables.test()"
 
    Both commands do the same thing, but the latter still works on an already
-   installed PyTables (so, there is no need to set the PYTHONPATH variable for
-   this case).  However, before installation, the former is recommended
-   because it is more flexible, as you can see below.
+   installed PyTables (so, there is no need to set the :envvar:`PYTHONPATH`
+   variable for this case).
+   However, before installation, the former is recommended because it is
+   more flexible, as you can see below.
    If you would like to see verbose output from the tests simply add the
    :option:`-v` flag and/or the word verbose to the first of the command lines
    above. You can also run only the tests in a particular test module.
    For example, to execute just the test_types test suite, you only have to
    specify it::
 
-      python tables/tests/test_types.py -v  # change to backslashes for win
+      # change to backslashes for win
+      $ python tables/tests/test_types.py -v
 
    You have other options to pass to the :file:`test_all.py` driver::
 
-      python tables/tests/test_all.py --heavy  # change to backslashes for win
+      # change to backslashes for win
+      $ python tables/tests/test_all.py --heavy
 
    The command above runs every test in the test unit. Beware, it can take a
    lot of time, CPU and memory resources to complete::
 
-      python tables/tests/test_all.py --print-versions  # change to backslashes for win
+      # change to backslashes for win
+      $ python tables/tests/test_all.py --print-versions
 
    The command above shows the versions for all the packages that PyTables
    relies on. Please be sure to include this when reporting bugs::
 
-      python tables/tests/test_all.py --show-memory  # only under Linux 2.6.x
+      # only under Linux 2.6.x
+      $ python tables/tests/test_all.py --show-memory
 
    The command above prints out the evolution of the memory consumption after
    each test module completion. It's useful for locating memory leaks in
@@ -239,7 +267,7 @@ you can proceed with the PyTables package itself.
    And last, but not least, in case a test fails, please run the failing test
    module again and enable the verbose output::
 
-      python tables/tests/test_<module>.py -v verbose
+      $ python tables/tests/test_<module>.py -v verbose
 
    and, very important, obtain your PyTables version information by using the
    :option:`--print-versions` flag (see above) and send back both outputs to
@@ -264,13 +292,13 @@ you can proceed with the PyTables package itself.
    sufficient permissions to write to the directories where the PyTables files
    will be installed)::
 
-      python setup.py install
+      $ python setup.py install
 
    Of course, you will need super-user privileges if you want to install
    PyTables on a system-protected area. You can select, though, a different
    place to install the package using the :option:`--prefix` flag::
 
-      python setup.py install --prefix="/home/myuser/mystuff"
+      $ python setup.py install --prefix="/home/myuser/mystuff"
 
    Have in mind, however, that if you use the :option:`--prefix` flag to
    install in a non-standard place, you should properly setup your
@@ -279,7 +307,7 @@ you can proceed with the PyTables package itself.
    You have more installation options available in the Distutils package.
    Issue a::
 
-      python setup.py install --help
+      $ python setup.py install --help
 
    for more information on that subject.
 
@@ -295,9 +323,12 @@ This section is intended for installing precompiled binaries on Windows
 platforms. You may also find it useful for instructions on how to install
 *binary prerequisites* even if you want to compile PyTables itself on Windows.
 
-.. warning:: Since PyTables 2.2b3, Windows binaries are distributed with
-   SSE2 instructions enabled.  If your processor does not have support
-   for SSE2, then you will not be able to use these binaries.
+.. warning::
+
+    Since PyTables 2.2b3, Windows binaries are distributed with SSE2
+    instructions enabled.  If your processor does not have support for SSE2,
+    then you will not be able to use these binaries.
+
 
 .. _prerequisitesBinInst:
 
@@ -306,7 +337,7 @@ Windows prerequisites
 
 First, make sure that you have Python 2.4, NumPy 1.4.1 and Numexpr 1.4.1 or
 higher installed (PyTables binaries have been built using NumPy 1.5 and
-Numexpr 1.4.1).  The binaries already include DLLs for HDF5 (1.6.10, 1.8.5),
+Numexpr 1.4.1).  The binaries already include DLLs for HDF5 (1.8.4, 1.8.9),
 zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2 (1.0.5) for
 Windows (2.8.0).
 The LZO DLL can't be included because of license issues (but read below for

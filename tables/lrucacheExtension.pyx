@@ -27,12 +27,11 @@ Misc variables:
 import sys
 
 import numpy
-from definitions cimport \
-  memcpy, strcmp, \
-  import_array, ndarray
+from libc.string cimport memcpy, strcmp
+from numpy cimport import_array, ndarray
 
-from tables.parameters import \
-  DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
+from tables.parameters import (DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES,
+  LOWEST_HIT_RATIO)
 
 
 
@@ -64,16 +63,19 @@ import_array()
 
 cdef class NodeCache:
   """Least-Recently-Used (LRU) cache for PyTables nodes."""
+
   # This class variables are declared in utilsExtension.pxd
 
 
   def __init__(self, nslots):
     """Maximum nslots of the cache.
+
     If more than 'nslots' elements are added to the cache,
-    the least-recently-used ones will be discarded."""
+    the least-recently-used ones will be discarded.
+    """
 
     if nslots < 0:
-      raise ValueError, "Negative number (%s) of slots!" % nslots
+      raise ValueError("Negative number (%s) of slots!" % nslots)
     self.nslots = nslots;  self.nextslot = 0
     self.nodes = [];  self.paths = []
 
@@ -118,12 +120,13 @@ cdef class NodeCache:
 
   cdef long getslot(self, object path):
     """Checks whether path is in this cache or not."""
+
     cdef long i, nslot
 
     nslot = -1  # -1 means not found
     # Start looking from the trailing values (most recently used)
     for i from self.nextslot > i >= 0:
-      if strcmp(path, self.paths[i]) == 0:
+      if strcmp(<char *>path, <char *>self.paths[i]) == 0:
         nslot = i
         break
     return nslot
@@ -154,19 +157,17 @@ cdef class NodeCache:
     return "<%s (%d elements)>" % (str(self.__class__), len(self.paths))
 
 
-
 ########################################################################
 # Common code for other LRU cache classes
 ########################################################################
 
 cdef class BaseCache:
-  """Base class that implements automatic probing/disabling of the cache.
-  """
+  """Base class that implements automatic probing/disabling of the cache."""
 
   def __init__(self, long nslots, object name):
 
     if nslots < 0:
-      raise ValueError, "Negative number (%s) of slots!" % nslots
+      raise ValueError("Negative number (%s) of slots!" % nslots)
     self.setcount = 0;  self.getcount = 0;  self.containscount = 0
     self.enablecyclecount = 0;  self.disablecyclecount = 0
     self.iscachedisabled = False  # Cache is enabled by default
@@ -263,8 +264,8 @@ cdef class BaseCache:
 
 
   def __repr__(self):
-    return "<%s(%s) (%d elements)>" % \
-           (self.name, str(self.__class__), self.nslots)
+    return "<%s(%s) (%d elements)>" % (self.name, str(self.__class__),
+                                       self.nslots)
 
 
 
@@ -283,8 +284,8 @@ cdef class ObjectNode:
 
 
   def __repr__(self):
-    return "<%s %s (slot #%s) => %s>" % \
-           (self.__class__, self.key, self.nslot, self.object)
+    return "<%s %s (slot #%s) => %s>" % (self.__class__, self.key, self.nslot,
+                                         self.object)
 
 
 ########################################################################
@@ -293,11 +294,11 @@ cdef class ObjectNode:
 ########################################################################
 
 cdef class ObjectCache(BaseCache):
-  """Least-Recently-Used (LRU) cache specific for python objects.
-  """
+  """Least-Recently-Used (LRU) cache specific for python objects."""
 
   def __init__(self, long nslots, long maxcachesize, object name):
     """Maximum size of the cache.
+
     If more than 'nslots' elements are added to the cache,
     the least-recently-used ones will be discarded.
 
@@ -454,9 +455,8 @@ cdef class ObjectCache(BaseCache):
     return """<%s(%s)
   (%d maxslots, %d slots used, %.3f KB cachesize,
   hit ratio: %.3f, disabled? %s)>
-  """ % \
-           (self.name, str(self.__class__), self.nslots, self.nextslot,
-            self.cachesize / 1024., hitratio, self.iscachedisabled)
+  """ % (self.name, str(self.__class__), self.nslots, self.nextslot,
+         self.cachesize / 1024., hitratio, self.iscachedisabled)
 
 
 ###################################################################
@@ -473,11 +473,11 @@ cdef class ObjectCache(BaseCache):
 #********************************************************************
 
 cdef class NumCache(BaseCache):
-  """Least-Recently-Used (LRU) cache specific for Numerical data.
-  """
+  """Least-Recently-Used (LRU) cache specific for Numerical data."""
 
   def __init__(self, object shape, object dtype, object name):
     """Maximum size of the cache.
+
     If more than 'nslots' elements are added to the cache,
     the least-recently-used ones will be discarded.
 
@@ -628,9 +628,8 @@ cdef class NumCache(BaseCache):
     return """<%s(%s)
   (%d maxslots, %d slots used, %.3f KB cachesize,
   hit ratio: %.3f, disabled? %s)>
-  """ % \
-  (self.name, str(self.__class__), self.nslots, self.nextslot,
-   cachesize, hitratio, self.iscachedisabled)
+  """ % (self.name, str(self.__class__), self.nslots, self.nextslot,
+         cachesize, hitratio, self.iscachedisabled)
 
 
 

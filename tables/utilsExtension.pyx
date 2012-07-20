@@ -8,9 +8,7 @@
 #
 ########################################################################
 
-"""Pyrex utilities for PyTables and HDF5 library.
-
-"""
+"""Pyrex utilities for PyTables and HDF5 library."""
 
 import sys
 import warnings
@@ -30,29 +28,35 @@ from tables.atom import Atom, EnumAtom
 
 from tables.utils import checkFileAccess
 
-from definitions cimport import_array, ndarray, \
-     malloc, free, strchr, strcpy, strncpy, strcmp, strdup, \
-     PyString_AsString, PyString_FromString, \
-     H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
-     size_t, hid_t, herr_t, hsize_t, hssize_t, htri_t, \
-     H5T_class_t, H5D_layout_t, H5T_sign_t, \
-     H5Fopen, H5Fclose, H5Fis_hdf5, H5Gopen, H5Gclose, \
-     H5Dopen, H5Dclose, H5Dget_type, \
-     H5Tcreate, H5Tcopy, H5Tclose, \
-     H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, \
-     H5Tget_member_value, H5Tget_size, H5Tget_native_type, \
-     H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, \
-     H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tarray_create, \
-     H5Tget_array_ndims, H5Tget_array_dims, H5Tis_variable_str, \
-     H5Tset_size, H5Tset_precision, H5Tpack, \
-     H5ATTRget_attribute_string, H5ATTRfind_attribute, \
-     H5ARRAYget_ndims, H5ARRAYget_info, \
-     create_ieee_complex64, create_ieee_complex128, \
-     get_order, set_order, is_complex, \
-     get_len_of_range, NPY_INT64, npy_int64, dtype, \
-     PyArray_DescrFromType, PyArray_Scalar, \
-     register_blosc
+from libc.stdio cimport stderr
+from libc.stdlib cimport malloc, free
+from libc.string cimport strchr, strcmp
+from cpython cimport PyString_AsString
+from numpy cimport (import_array, ndarray, dtype,
+  NPY_INT64, npy_int64,
+  PyArray_DescrFromType)
 
+from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
+  H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
+  H5Fopen, H5Fclose, H5Fis_hdf5,
+  H5Gopen, H5Gclose,
+  H5E_auto_t, H5Eset_auto, H5Eprint, H5Eget_msg,
+  H5E_error_t, H5E_walk_t, H5Ewalk, H5E_WALK_DOWNWARD, H5E_DEFAULT,
+  H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
+  H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
+  H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
+  H5Tget_member_value, H5Tget_size, H5Tget_native_type,
+  H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, H5Tget_precision,
+  H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tvlen_create,
+  H5Tarray_create, H5Tget_array_ndims, H5Tget_array_dims,
+  H5Tis_variable_str, H5Tset_size, H5Tset_precision, H5Tpack,
+  H5ATTRget_attribute_string, H5ATTRfind_attribute,
+  H5ARRAYget_ndims, H5ARRAYget_info,
+  create_ieee_float16, create_ieee_complex64, create_ieee_complex128,
+  get_order, set_order, is_complex,
+  get_len_of_range,
+  PyArray_Scalar,
+  register_blosc)
 
 
 # Include conversion tables & type
@@ -60,6 +64,8 @@ include "convtypetables.pxi"
 
 __version__ = "$Revision$"
 
+from numpy import typeDict
+cdef int have_float16 = ("float16" in typeDict)
 
 #----------------------------------------------------------------------
 
@@ -69,14 +75,14 @@ __version__ = "$Revision$"
 # PyTables helper routines.
 cdef extern from "utils.h":
 
-  int getLibrary(char *libname)
+  int getLibrary(char *libname) nogil
   object _getTablesVersion()
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
   object get_filter_names( hid_t loc_id, char *dset_name)
 
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout,
-                             hid_t *type_id, hid_t *dataset_id)
+                             hid_t *type_id, hid_t *dataset_id) nogil
 
   # To access to the slice.indices functionality for long long ints
   hssize_t getIndicesExt(object s, hsize_t length,
@@ -85,7 +91,7 @@ cdef extern from "utils.h":
 
 
 # Functions from Blosc
-cdef extern from "blosc.h":
+cdef extern from "blosc.h" nogil:
   int blosc_set_nthreads(int nthreads)
 
 
@@ -106,21 +112,38 @@ cdef register_blosc_():
   free(version_date)
   return version
 
+# The version of the blosc compression library that is currently included in
+# PyTables relies on unaligned memory access, so it is not functional on some
+# platforms (see https://github.com/FrancescAlted/blosc/issues/3 and
+# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=661286).
+# This function detects if blosc can work correctly on the current platform.
+# This function has been written by Julian Taylor <jtaylor@ubuntu.com>.
+def _arch_without_blosc():
+    import platform
+    arch = platform.machine().lower()
+    for a in ["arm", "sparc", "mips"]:
+        if a in arch:
+            return True
+        return False
 
-# Blosc is always accessible
-blosc_version = register_blosc_()
-blosc_version_string, blosc_version_date = blosc_version
+# Only register bloc compressor on platforms that actually support it.
+if _arch_without_blosc():
+    blosc_version = None
+else:
+    blosc_version = register_blosc_()
 
 
 # Important: Blosc calls that modifies global variables in Blosc must be
 # called from the same extension where Blosc is registered in HDF5.
 def setBloscMaxThreads(nthreads):
-  """Set the maximum number of threads that Blosc can use.
+  """setBloscMaxThreads(nthreads)
 
-  This actually overrides the `MAX_THREADS` setting in
-  ``tables/parameters.py``, so the new value will be effective until this
-  function is called again or a new file with a different `MAX_THREADS` value
-  is specified.
+  Set the maximum number of threads that Blosc can use.
+
+  This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
+  setting in :mod:`tables.parameters`, so the new value will be effective until
+  this function is called again or a new file with a different
+  :data:`tables.parameters.MAX_BLOSC_THREADS` value is specified.
 
   Returns the previous setting for maximum threads.
   """
@@ -140,7 +163,7 @@ if sys.platform == "win32":
     lzo_version = None
 
   # Initialize & register bzip2
-  if getLibrary("bzip2") == 0:
+  if getLibrary("bzip2") == 0 or getLibrary("libbz2") == 0:
     import tables._comp_bzip2
     bzip2_version = tables._comp_bzip2.register_()
   else:
@@ -165,10 +188,83 @@ else:  # Unix systems
 # End of initialization code
 #---------------------------------------------------------------------
 
+# Error handling helpers
+# XXX: silence warning about incompatible pointer types
+#ctypedef H5E_error_t* const_H5E_error_t_ptr "const H5E_error_t*"
+cdef herr_t e_walk_cb(unsigned n, H5E_error_t *err, void *data) with gil:
+    cdef object bt = <object>data   # list
+    #cdef char major_msg[256]
+    #cdef char minor_msg[256]
+    #cdef ssize_t msg_len
+
+    if err == NULL:
+        return -1
+
+    #msg_len = H5Eget_msg(err.maj_num, NULL, major_msg, 256)
+    #if msg_len < 0:
+    #    major_msg[0] = '\0'
+
+    #msg_len = H5Eget_msg(err.min_num, NULL, minor_msg, 256)
+    #if msg_len < 0:
+    #    minor_msg[0] = '\0'
+
+    #msg = "%s (MAJOR: %s, MINOR: %s)" % (
+    #                bytes(<char*>err.desc).decode('utf-8'),
+    #                bytes(<char*>major_msg).decode('utf-8'),
+    #                bytes(<char*>minor_msg).decode('utf-8'))
+
+    msg = bytes(<char*>err.desc).decode('utf-8')
+
+    bt.append((
+        bytes(<char*>err.file_name).decode('utf-8'),
+        err.line,
+        bytes(<char*>err.func_name).decode('utf-8'),
+        msg,
+    ))
+
+    return 0
+
+def _dump_h5_backtrace():
+    cdef object bt = []
+
+    if H5Ewalk(H5E_DEFAULT, H5E_WALK_DOWNWARD, e_walk_cb, <void*>bt) < 0:
+        return None
+
+    return bt
+
+# Initialization of the _dump_h5_backtrace method of HDF5ExtError.
+# The unusual machinery is needed in order to avoid cirdular dependencies
+# between modules.
+HDF5ExtError._dump_h5_backtrace = _dump_h5_backtrace
+
+def silenceHDF5Messages(silence=True):
+    """silenceHDF5Messages(silence=True)
+
+    Silence (or re-enable) messages from the HDF5 C library.
+
+    The *silence* parameter can be used control the behaviour and reset
+    the standard HDF5 logging.
+
+    .. versionadded:: 2.4
+
+    """
+    cdef herr_t err
+    if silence:
+        err = H5Eset_auto(H5E_DEFAULT, NULL, NULL)
+    else:
+        err = H5Eset_auto(H5E_DEFAULT, <H5E_auto_t>H5Eprint, stderr)
+    if err < 0:
+        raise HDF5ExtError("unable to configure HDF5 internal error handling")
+
+# Disable automatic HDF5 error logging
+silenceHDF5Messages()
+
+
 # Helper functions
 
 cdef hsize_t *malloc_dims(object pdims):
   """Return a malloced hsize_t dims from a python pdims."""
+
   cdef int i, rank
   cdef hsize_t *dims
 
@@ -180,15 +276,32 @@ cdef hsize_t *malloc_dims(object pdims):
       dims[i] = pdims[i]
   return dims
 
+cdef hid_t get_native_float_type(hid_t type_id) nogil:
+  """Get a native type of an HDF5 float type.
+
+  This functionn also handles half precision (float16) data type."""
+  cdef hid_t  native_type_id
+  cdef size_t precision
+
+  precision = H5Tget_precision(type_id)
+
+  if precision == 16 and have_float16:
+    native_type_id = create_ieee_float16(NULL)
+  else:
+    native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
+
+  return native_type_id
 
 # This is a re-implementation of a working H5Tget_native_type for nested
 # compound types.  I should report the flaw to THG as soon as possible.
 # F. Alted 2009-08-19
-cdef hid_t get_nested_native_type(hid_t type_id):
+cdef hid_t get_nested_native_type(hid_t type_id) nogil:
   """Get a native nested type of an HDF5 type.
 
   In addition, it also recursively remove possible padding on type_id, i.e. it
-  acts as a combination of H5Tget_native_type and H5Tpack."""
+  acts as a combination of H5Tget_native_type and H5Tpack.
+  """
+
   cdef hid_t   tid, tid2
   cdef hid_t   member_type_id, native_type_id
   cdef hsize_t nfields
@@ -216,7 +329,10 @@ cdef hid_t get_nested_native_type(hid_t type_id):
     if class_id == H5T_COMPOUND:
       native_tid = get_nested_native_type(member_type_id)
     else:
-      native_tid = H5Tget_native_type(member_type_id, H5T_DIR_DEFAULT)
+      if class_id == H5T_FLOAT:
+        native_tid = get_native_float_type(member_type_id)
+      else:
+        native_tid = H5Tget_native_type(member_type_id, H5T_DIR_DEFAULT)
     H5Tinsert(tid, colname, offset, native_tid)
     itemsize = H5Tget_size(native_tid)
     offset = offset + itemsize
@@ -238,11 +354,13 @@ cdef hid_t get_nested_native_type(hid_t type_id):
 # not implement support for H5Tget_native_type with some types, like
 # H5T_BITFIELD and probably others.  When 1.8.x would be a requisite,
 # this can be simplified.
-cdef hid_t get_native_type(hid_t type_id):
+cdef hid_t get_native_type(hid_t type_id) nogil:
   """Get the native type of a HDF5 type."""
-  cdef H5T_class_t class_id
-  cdef hid_t native_type_id, super_type_id
-  cdef char *sys_byteorder
+
+  cdef H5T_class_t class_id, super_class_id
+  cdef hid_t native_type_id, super_type_id, native_super_type_id
+  cdef int rank
+  cdef hsize_t *dims
 
   class_id = H5Tget_class(type_id)
   if class_id == H5T_COMPOUND:
@@ -260,10 +378,31 @@ cdef hid_t get_native_type(hid_t type_id):
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
     # Get the class
-    class_id = H5Tget_class(super_type_id)
+    super_class_id = H5Tget_class(super_type_id)
+    if super_class_id == H5T_FLOAT:
+        # replicate the logic of H5Tget_native_type for H5T_ARRAY and
+        # H5T_VLEN taking into account extended floating point types
+        # XXX: HDF5 error check
+        native_super_type_id = get_native_float_type(super_type_id)
+        H5Tclose(super_type_id)
+        if class_id == H5T_ARRAY:
+            rank = H5Tget_array_ndims(type_id)
+            dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+            H5Tget_array_dims(type_id, dims)
+            native_type_id = H5Tarray_create(native_super_type_id, rank, dims)
+            free(dims)
+            H5Tclose(native_super_type_id)
+            return native_type_id
+        elif class_id == H5T_VLEN:
+            native_type_id = H5Tvlen_create(native_super_type_id)
+            H5Tclose(native_super_type_id)
+            return native_type_id
+    class_id = super_class_id
     H5Tclose(super_type_id)
 
-  if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_ENUM):
+  if class_id == H5T_FLOAT:
+    native_type_id = get_native_float_type(type_id)
+  elif class_id in (H5T_INTEGER, H5T_ENUM):
     native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
   else:
     # Fixing the byteorder for other types shouldn't be needed.
@@ -278,6 +417,7 @@ cdef hid_t get_native_type(hid_t type_id):
 
 def encode_filename(object filename):
   """Return the encoded filename in the filesystem encoding."""
+
   if type(filename) is unicode:
     encoding = sys.getfilesystemencoding()
     encname = filename.encode(encoding)
@@ -289,12 +429,13 @@ def encode_filename(object filename):
 # Main functions
 
 def isHDF5File(object filename):
-  """isHDF5File(filename) -> bool
+  """isHDF5File(filename)
+
   Determine whether a file is in the HDF5 format.
 
   When successful, it returns a true value if the file is an HDF5
   file, false otherwise.  If there were problems identifying the file,
-  an `HDF5ExtError` is raised.
+  an HDF5ExtError is raised.
   """
 
   # Encode the filename in case it is unicode
@@ -310,12 +451,13 @@ def isHDF5File(object filename):
 
 
 def isPyTablesFile(object filename):
-  """isPyTablesFile(filename) -> true or false value
+  """isPyTablesFile(filename)
+
   Determine whether a file is in the PyTables format.
 
   When successful, it returns the format version string if the file is a
-  PyTables file, `None` otherwise.  If there were problems identifying the
-  file, an `HDF5ExtError` is raised.
+  PyTables file, None otherwise.  If there were problems identifying the
+  file, an HDF5ExtError is raised.
   """
 
   cdef hid_t file_id
@@ -347,16 +489,17 @@ def getPyTablesVersion():
 
 
 def whichLibVersion(char *name):
-  """whichLibVersion(name) -> version info
+  """whichLibVersion(name)
+
   Get version information about a C library.
 
-  If the library indicated by `name` is available, this function returns a
+  If the library indicated by name is available, this function returns a
   3-tuple containing the major library version as an integer, its full version
-  as a string, and the version date as a string.  If the library is not
-  available, ``None`` is returned.
+  as a string, and the version date as a string. If the library is not
+  available, None is returned.
 
-  The currently supported library names are ``hdf5``, ``zlib``, ``lzo``, and
-  ``bzip2``.  If another name is given, a ``ValueError`` is raised.
+  The currently supported library names are hdf5, zlib, lzo and bzip2. If
+  another name is given, a ValueError is raised.
   """
 
   libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc')
@@ -376,19 +519,20 @@ def whichLibVersion(char *name):
       (bzip2_version_string, bzip2_version_date) = bzip2_version
       return (bzip2_version, bzip2_version_string, bzip2_version_date)
   elif strcmp(name, "blosc") == 0:
-    return (blosc_version, blosc_version_string, blosc_version_date)
+    if blosc_version:
+      (blosc_version_string, blosc_version_date) = blosc_version
+      return (blosc_version, blosc_version_string, blosc_version_date)
   else:
-    raise ValueError("""\
-asked version of unsupported library ``%s``; \
-supported library names are ``%s``""" % (name, libnames))
+    raise ValueError("asked version of unsupported library ``%s``; "
+                     "supported library names are ``%s``" % (name, libnames))
 
   # A supported library was specified, but no version is available.
   return None
 
 
 def whichClass(hid_t loc_id, char *name):
-  """Detects a class ID using heuristics.
-  """
+  """Detects a class ID using heuristics."""
+
   cdef H5T_class_t  class_id
   cdef H5D_layout_t layout
   cdef hsize_t      nfields
@@ -476,14 +620,13 @@ def whichClass(hid_t loc_id, char *name):
 
 
 def getNestedField(recarray, fieldname):
-  """
-  Get the maybe nested field named `fieldname` from the `recarray`.
+  """Get the maybe nested field named `fieldname` from the `recarray`.
 
   The `fieldname` may be a simple field name or a nested field name
   with slah-separated components.
   """
   try:
-    if strchr(fieldname, 47) != NULL:   # ord('/') == 47
+    if strchr(<char *>fieldname, 47) != NULL:   # ord('/') == 47
       # It may be convenient to implement this way of descending nested
       # fields into the ``__getitem__()`` method of a subclass of
       # ``numpy.ndarray``.  -- ivb
@@ -543,13 +686,14 @@ def read_f_attr(hid_t file_id, char *attr_name):
 
 
 def getFilters(parent_id, name):
-  "Get a dictionary with the filter names and cd_values"
+  """Get a dictionary with the filter names and cd_values"""
   return get_filter_names(parent_id, name)
 
 
 # This is used by several <Leaf>._convertTypes() methods.
 def getTypeEnum(hid_t h5type):
   """_getTypeEnum(h5type) -> hid_t
+
   Get the native HDF5 enumerated type of `h5type`.
 
   If `h5type` is an enumerated type, it is returned.  If it is a
@@ -581,6 +725,7 @@ def getTypeEnum(hid_t h5type):
 
 def enumFromHDF5(hid_t enumId, char *byteorder):
   """enumFromHDF5(enumId) -> (Enum, npType)
+
   Convert an HDF5 enumerated type to a PyTables one.
 
   This function takes an HDF5 enumerated type and returns an `Enum`
@@ -599,8 +744,8 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
   atom = AtomFromHDF5Type(baseId)
   H5Tclose(baseId)
   if atom.kind not in ('int', 'uint'):
-    raise NotImplementedError("""\
-sorry, only integer concrete values are supported at this moment""")
+    raise NotImplementedError("sorry, only integer concrete values are "
+                              "supported at this moment")
 
   dtype = atom.dtype
   npvalue = numpy.array((0,), dtype=dtype)
@@ -635,6 +780,7 @@ sorry, only integer concrete values are supported at this moment""")
 
 def enumToHDF5(object enumAtom, char *byteorder):
   """enumToHDF5(enumAtom, byteorder) -> hid_t
+
   Convert a PyTables enumerated type to an HDF5 one.
 
   This function creates an HDF5 enumerated type from the information
@@ -671,16 +817,17 @@ def enumToHDF5(object enumAtom, char *byteorder):
     name = PyString_AsString(npNames[i])
     rbuf = <void *>(<char *>rbuffer + bytestride * i)
     if H5Tenum_insert(enumId, name, rbuf) < 0:
+      e = HDF5ExtError("failed to insert value into HDF5 enumerated type")
       if H5Tclose(enumId) < 0:
         raise HDF5ExtError("failed to close HDF5 enumerated type")
-      raise HDF5ExtError("failed to insert value into HDF5 enumerated type")
+      raise e
 
   # Return the new, open HDF5 enumerated type.
   return enumId
 
 
 def AtomToHDF5Type(atom, char *byteorder):
-  cdef hid_t   tid
+  cdef hid_t   tid = -1
   cdef hsize_t *dims
 
   # Create the base HDF5 type
@@ -689,6 +836,8 @@ def AtomToHDF5Type(atom, char *byteorder):
     # Fix the byteorder
     if atom.kind != 'time':
       set_order(tid, byteorder)
+  elif atom.type == 'float16':
+    tid = create_ieee_float16(byteorder)
   elif atom.kind in PTSpecialKinds:
     # Special cases (the byteorder doesn't need to be fixed afterwards)
     if atom.type == 'complex64':
@@ -707,7 +856,7 @@ def AtomToHDF5Type(atom, char *byteorder):
   # Create an H5T_ARRAY in case of non-scalar atoms
   if atom.shape != ():
     dims = malloc_dims(atom.shape)
-    tid2 = H5Tarray_create(tid, len(atom.shape), dims, NULL)
+    tid2 = H5Tarray_create(tid, len(atom.shape), dims)
     free(dims)
     H5Tclose(tid)
     tid = tid2
@@ -717,6 +866,7 @@ def AtomToHDF5Type(atom, char *byteorder):
 
 def loadEnum(hid_t type_id):
   """loadEnum() -> (Enum, npType)
+
   Load the enumerated HDF5 type associated with this type_id.
 
   It returns an `Enum` instance built from that, and the
@@ -738,9 +888,9 @@ def loadEnum(hid_t type_id):
     if H5Tclose(enumId) < 0:
       raise HDF5ExtError("failed to close HDF5 enumerated type")
 
-
 def HDF5ToNPNestedType(hid_t type_id):
   """Given a HDF5 `type_id`, return a dtype string representation of it."""
+
   cdef hid_t   member_type_id
   cdef hsize_t nfields
   cdef int     i
@@ -786,10 +936,11 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
   Returns the string repr of type and its shape.  The exception is for
   compounds types, that returns a NumPy dtype and shape instead.
   """
+
   cdef H5T_sign_t  sign
   cdef hid_t       super_type_id, native_type_id
-  cdef H5T_class_t class_id, super_class_id
-  cdef size_t      itemsize, super_itemsize
+  cdef H5T_class_t class_id
+  cdef size_t      itemsize
   cdef object      stype, shape, shape2
   cdef hsize_t     *dims
 
@@ -819,9 +970,6 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
         raise TypeError("the HDF5 class ``%s`` is not supported yet"
                         % HDF5ClassToString[class_id])
       # Recursively remove possible padding on type_id.
-      # H5Tpack(type_id)
-      # H5Tpack has problems with nested compund types that were solved
-      # in HDF5 1.8.2 (or perhaps 1.8.3).  Use the next better.
       native_type_id = get_nested_native_type(type_id)
       desc = Description(HDF5ToNPNestedType(native_type_id))
       # stype here is not exactly a string, but the NumPy dtype factory
@@ -855,17 +1003,13 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
   elif class_id == H5T_ARRAY:
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
-    # Get the class
-    super_class_id = H5Tget_class(super_type_id)
-    # Get the itemsize
-    super_itemsize = H5Tget_size(super_type_id)
     # Find the super member format
     stype, shape2 = HDF5ToNPExtType(super_type_id, pure_numpy_types)
     # Get shape
     shape = []
     ndims = H5Tget_array_ndims(type_id)
     dims = <hsize_t *>malloc(ndims * sizeof(hsize_t))
-    H5Tget_array_dims(type_id, dims, NULL)
+    H5Tget_array_dims(type_id, dims)
     for i from 0 <= i < ndims:
       shape.append(<int>dims[i])  # cast to avoid long representation (i.e. 2L)
     shape = tuple(shape)
@@ -886,6 +1030,7 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
   See `HDF5ToNPExtType` for an explanation of the `pure_numpy_types`
   parameter.
   """
+
   cdef object stype, shape, atom_, sctype, tsize, kind
   cdef object dflt, base, enum, nptype
 
@@ -907,8 +1052,8 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
 
 def createNestedType(object desc, char *byteorder):
   """Create a nested type based on a description and return an HDF5 type."""
+
   cdef hid_t   tid, tid2
-  cdef herr_t  ret
   cdef size_t  offset
 
   tid = H5Tcreate(H5T_COMPOUND, desc._v_itemsize)
@@ -922,7 +1067,7 @@ def createNestedType(object desc, char *byteorder):
       tid2 = createNestedType(obj, byteorder)
     else:
       tid2 = AtomToHDF5Type(obj, byteorder)
-    ret = H5Tinsert(tid, k, offset, tid2)
+    H5Tinsert(tid, k, offset, tid2)
     offset = offset + desc._v_dtype[k].itemsize
     # Release resources
     H5Tclose(tid2)
@@ -931,32 +1076,33 @@ def createNestedType(object desc, char *byteorder):
 
 
 cdef class lrange:
-  """
+  """lrange([start], stop[, step])
+
   Iterate over long ranges.
 
-  This is similar to ``xrange()``, but it allows 64-bit arguments on all
-  platforms.  The results of the iteration are sequentially yielded in
-  the form of ``numpy.int64`` values, but getting random individual
-  items is not supported.
+  This is similar to xrange(), but it allows 64-bit arguments on all platforms.
+  The results of the iteration are sequentially yielded in the form of
+  numpy.int64 values, but getting random individual items is not supported.
 
-  Because of the Python 32-bit limitation on object lengths, the
-  ``length`` attribute (which is also a ``numpy.int64`` value) should be
-  used instead of the ``len()`` syntax.
+  Because of the Python 32-bit limitation on object lengths, the length
+  attribute (which is also a numpy.int64 value) should be used instead of the
+  len() syntax.
 
-  Default ``start`` and ``step`` arguments are supported in the same way
-  as in ``xrange()``.  When the standard ``[x]range()`` Python objects
-  support 64-bit arguments, this iterator will be deprecated.
+  Default start and step arguments are supported in the same way as in
+  xrange().  When the standard [x]range() Python objects support 64-bit
+  arguments, this iterator will be deprecated.
   """
+
   cdef npy_int64 start, stop, step, next
   cdef dtype int64  # caches the ``numpy.int64`` type
 
   property length:  # no __len__ since the result would get truncated
-    """
-    Get the number of elements in this iteration.
+    """Get the number of elements in this iteration.
 
-    This should be used instead of ``len()`` because the latter
-    truncates the real length to a 32-bit signed value.
+    This should be used instead of len() because the latter truncates the real
+    length to a 32-bit signed value.
     """
+
     def __get__(self):
       cdef npy_int64 rlen
       rlen = get_len_of_range(self.start, self.stop, self.step)

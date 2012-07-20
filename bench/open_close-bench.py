@@ -143,7 +143,7 @@ if __name__ == '__main__':
     args = sys.argv[1:]
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1:
+    if len(pargs) != 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     func = []
 
     # Checking options
-    options = ['-O','-o','-B','-b','-A','-a','-g','-l']
+    options = ['-O', '-o', '-B', '-b', '-A', '-a', '-g', '-l']
 
     # Dict to map options to checking functions
     option2func = {
@@ -176,7 +176,7 @@ if __name__ == '__main__':
             verbose = 1
         elif option[0] == '-p':
             profile = 1
-        elif option[0] in option2func.keys():
+        elif option[0] in option2func:
             func.append(option2func[option[0]])
         elif option[0] == '-E':
             all_checks = 1

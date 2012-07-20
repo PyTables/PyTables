@@ -23,8 +23,8 @@
 #define UFAIL           (unsigned)(-1)
 
 /*
- *  * HDF Boolean type.
- *  */
+ * HDF Boolean type.
+ */
 #ifndef FALSE
 #   define FALSE 0
 #endif
@@ -39,9 +39,9 @@
     if (ret == val) {                                                         \
         printf("*** UNEXPECTED RETURN from %s is %ld at line %4d "            \
                "in %s\n", where, (long)ret, (int)__LINE__, __FILE__);         \
-        H5Eprint (stdout);                                                    \
+        H5Eprint(H5E_DEFAULT, stdout);                                                    \
     }                                                                         \
-    H5Eclear();                                                               \
+    H5Eclear(H5E_DEFAULT);                                                               \
 } while(0)
 
 int getLibrary(char *libname);
@@ -60,23 +60,25 @@ PyObject *get_filter_names( hid_t loc_id, const char *dset_name);
 
 int get_objinfo(hid_t loc_id, const char *name);
 
+int get_linkinfo(hid_t loc_id, const char *name);
+
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name);
 
 PyObject *Aiterate(hid_t loc_id);
 
 H5T_class_t getHDF5ClassID(hid_t loc_id,
-			   const char *name,
-			   H5D_layout_t *layout,
-			   hid_t *type_id,
-			   hid_t *dataset_id);
+                           const char *name,
+                           H5D_layout_t *layout,
+                           hid_t *type_id,
+                           hid_t *dataset_id);
 
 PyObject *H5UIget_info( hid_t loc_id,
-			const char *dset_name,
-			char *byteorder);
+                        const char *dset_name,
+                        char *byteorder);
 
 hsize_t getIndicesExt(PyObject *s, hsize_t length,
-		      hssize_t *start, hssize_t *stop, hssize_t *step,
-		      hsize_t *slicelength);
+                      hssize_t *start, hssize_t *stop, hssize_t *step,
+                      hsize_t *slicelength);
 
 herr_t set_order(hid_t type_id, const char *byteorder);
 
@@ -85,6 +87,8 @@ int is_complex(hid_t type_id);
 size_t get_complex_precision(hid_t type_id);
 
 herr_t get_order(hid_t type_id, char *byteorder);
+
+hid_t create_ieee_float16(const char *byteorder);
 
 hid_t create_ieee_complex64(const char *byteorder);
 

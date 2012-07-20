@@ -28,71 +28,60 @@ Misc variables:
     __version__
 """
 
-import sys
 import os
 import warnings
 import cPickle
 
 import numpy
 
-from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError, DataTypeWarning
 
-from tables.utils import \
-     checkFileAccess, byteorders, correct_byteorder, SizeType
+from tables.utils import (checkFileAccess, byteorders, correct_byteorder,
+  SizeType)
 
 from tables.atom import Atom
 
-from tables.description import descr_from_dtype, Description
+from tables.description import descr_from_dtype
 
-from tables.utilsExtension import \
-     enumToHDF5, enumFromHDF5, getTypeEnum, \
-     encode_filename, isHDF5File, isPyTablesFile, \
-     AtomToHDF5Type, AtomFromHDF5Type, loadEnum, \
-     HDF5ToNPExtType, HDF5ToNPNestedType, createNestedType, \
-     setBloscMaxThreads
+from tables.utilsExtension import (encode_filename, setBloscMaxThreads,
+  AtomToHDF5Type, AtomFromHDF5Type,
+  HDF5ToNPExtType, createNestedType)
 
 
 from utilsExtension cimport malloc_dims, get_native_type
 
 
 # Types, constants, functions, classes & other objects from everywhere
-from definitions cimport  \
-     memcpy, strdup, malloc, free, \
-     Py_ssize_t, PyObject_AsReadBuffer, \
-     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
-     PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
-     Py_INCREF, Py_DECREF, \
-     import_array, ndarray, dtype, \
-     time_t, size_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
-     H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED, \
-     H5G_UNKNOWN, H5G_GROUP, H5G_DATASET, H5G_LINK, H5G_TYPE, \
-     H5T_class_t, H5T_sign_t, H5T_NATIVE_INT, \
-     H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
-     H5P_DEFAULT, H5P_FILE_ACCESS, \
-     H5T_SGN_NONE, H5T_SGN_2, H5T_DIR_DEFAULT, \
-     H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB, \
-     H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
-     H5Fflush, H5Fget_vfd_handle, \
-     H5Gcreate, H5Gopen, H5Gclose, H5Gunlink, H5Gmove, H5Gmove2, \
-     H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, \
-     H5Dget_space, H5Dvlen_reclaim, \
-     H5Tget_native_type, H5Tget_super, H5Tget_class, H5Tcopy, \
-     H5Tclose, H5Tis_variable_str, H5Tget_sign, \
-     H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
-     H5Aread, H5Aclose, H5Pcreate, H5Pclose, \
-     H5Pset_cache, H5Pset_sieve_buf_size, H5Pset_fapl_log, \
-     H5Pset_fapl_core, \
-     H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab, \
-     H5Screate_simple, H5Sget_simple_extent_ndims, \
-     H5Sget_simple_extent_dims, H5Sclose, \
-     H5ATTRset_attribute, H5ATTRset_attribute_string, \
-     H5ATTRget_attribute, H5ATTRget_attribute_string, \
-     H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims, \
-     H5ARRAYget_ndims, H5ARRAYget_info, \
-     set_cache_size, get_objinfo, Giterate, Aiterate, H5UIget_info, \
-     get_len_of_range, get_order, set_order, is_complex, \
-     conv_float64_timeval32, truncate_dset
+from libc.stdlib cimport malloc, free
+from libc.string cimport strdup
+from numpy cimport import_array, ndarray
+from cpython cimport PyString_AsString, PyString_FromStringAndSize
+
+
+from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
+  H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED,
+  H5O_TYPE_UNKNOWN, H5O_TYPE_GROUP, H5O_TYPE_DATASET, H5O_TYPE_NAMED_DATATYPE,
+  H5L_TYPE_ERROR, H5L_TYPE_HARD, H5L_TYPE_SOFT, H5L_TYPE_EXTERNAL,
+  H5T_class_t, H5T_sign_t, H5T_NATIVE_INT,
+  H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
+  H5P_DEFAULT, H5P_FILE_ACCESS,
+  H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
+  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle,
+  H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
+  H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
+  H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
+  H5Tclose, H5Tis_variable_str, H5Tget_sign,
+  H5Adelete,
+  H5Pcreate, H5Pset_cache, H5Pclose,
+  H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
+  H5Screate_simple, H5Sclose,
+  H5ATTRset_attribute, H5ATTRset_attribute_string,
+  H5ATTRget_attribute, H5ATTRget_attribute_string,
+  H5ATTRget_attribute_vlen_string_array,
+  H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims,
+  H5ARRAYget_ndims, H5ARRAYget_info,
+  set_cache_size, get_objinfo, get_linkinfo, Giterate, Aiterate, H5UIget_info,
+  get_len_of_range, conv_float64_timeval32, truncate_dset)
 
 
 # Include conversion tables
@@ -104,8 +93,9 @@ __version__ = "$Revision$"
 
 #-------------------------------------------------------------------
 
+
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
-cdef extern from "H5ARRAY.h":
+cdef extern from "H5ARRAY.h" nogil:
 
   herr_t H5ARRAYmake(hid_t loc_id, char *dset_name, char *obversion,
                      int rank, hsize_t *dims, int extdim,
@@ -140,7 +130,7 @@ cdef extern from "H5ARRAY.h":
 
 
 # Functions for dealing with VLArray objects
-cdef extern from "H5VLARRAY.h":
+cdef extern from "H5VLARRAY.h" nogil:
 
   herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *obversion,
                         int rank, hsize_t *dims, hid_t type_id,
@@ -175,6 +165,7 @@ import_array()
 
 cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
   """Returns a malloced hsize_t dims from a npy_intp *pdims."""
+
   cdef int i
   cdef hsize_t *dims
 
@@ -188,6 +179,7 @@ cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
 
 cdef object getshape(int rank, hsize_t *dims):
   """Return a shape (tuple) from a dims C array of rank dimensions."""
+
   cdef int i
   cdef object shape
 
@@ -280,14 +272,13 @@ cdef class File:
     # that the file or directory exists and permissions are right.
     checkFileAccess(name, pymode)
 
-    assert pymode in ('r', 'r+', 'a', 'w'), \
-           "an invalid mode string ``%s`` " \
-           "passed the ``checkFileAccess()`` test; " \
-           "please report this to the authors" % pymode
+    assert pymode in ('r', 'r+', 'a', 'w'), ("an invalid mode string ``%s`` "
+           "passed the ``checkFileAccess()`` test; "
+           "please report this to the authors" % pymode)
 
     # Should a new file be created?
     exists = os.path.exists(name)
-    self._v_new = new = not (
+    self._v_new = not (
       pymode in ('r', 'r+') or (pymode == 'a' and exists))
 
     access_plist = H5Pcreate(H5P_FILE_ACCESS)
@@ -320,11 +311,16 @@ cdef class File:
       self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
                                H5P_DEFAULT, access_plist)
 
-    # Set the cache size (only for HDF5 1.8.x)
+    if self.file_id < 0:
+        e = HDF5ExtError("Unable to open/create file '%s'" % name)
+        H5Pclose(access_plist)
+        raise e
+
+    # Set the cache size
     set_cache_size(self.file_id, params['METADATA_CACHE_SIZE'])
 
     # Set the maximum number of threads for Blosc
-    setBloscMaxThreads(params['MAX_THREADS'])
+    setBloscMaxThreads(params['MAX_BLOSC_THREADS'])
 
 
   # Accessor definitions
@@ -345,7 +341,7 @@ cdef class File:
     err = H5Fget_vfd_handle(self.file_id, H5P_DEFAULT, &file_handle)
     if err < 0:
       raise HDF5ExtError(
-        "Problems getting file descriptor for file ``%s``", self.name)
+        "Problems getting file descriptor for file ``%s``" % self.name)
     # Convert the 'void *file_handle' into an 'int *descriptor'
     descriptor = <uintptr_t *>file_handle
     return descriptor[0]
@@ -366,7 +362,7 @@ cdef class File:
   # the memory booked by this extension types
   def __dealloc__(self):
     cdef int ret
-    if self.file_id:
+    if self.file_id > 0:
       # Close the HDF5 file because user didn't do that!
       ret = H5Fclose(self.file_id)
       if ret < 0:
@@ -425,10 +421,10 @@ cdef class AttributeSet:
         type_id = AtomToHDF5Type(baseatom, byteorder)
       # Get dimensionality info
       ndv = <ndarray>value
-      dims = npy_malloc_dims(ndv.nd, ndv.dimensions)
+      dims = npy_malloc_dims(ndv.ndim, ndv.shape)
       # Actually write the attribute
       ret = H5ATTRset_attribute(dset_id, name, type_id,
-                                ndv.nd, dims, ndv.data)
+                                ndv.ndim, dims, ndv.data)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
                            (name, self._v_node))
@@ -459,15 +455,16 @@ cdef class AttributeSet:
     H5T_ARRAY types will be retrieved as ndarray NumPy objects.
     """
 
-    cdef hsize_t *dims, nelements
+    cdef hsize_t *dims
     cdef H5T_class_t class_id
     cdef size_t type_size
     cdef hid_t mem_type, dset_id, type_id, native_type
     cdef int rank, ret, enumtype
     cdef void *rbuf
-    cdef char *str_value
+    cdef char *str_value, **str_values = NULL
     cdef ndarray ndvalue
     cdef object shape, stype_atom, shape_atom, retvalue
+    cdef int i, nelements
 
     # The dataset id of the node
     dset_id = node._v_objectID
@@ -482,36 +479,26 @@ cdef class AttributeSet:
     # Call a fast function for scalar values and typical class types
     if (rank == 0 and class_id == H5T_STRING):
       ret = H5ATTRget_attribute_string(dset_id, attrname, &str_value)
+      if ret < 0:
+        raise HDF5ExtError("Can't read attribute %s in node %s." %
+                           (attrname, self.name))
       retvalue = numpy.string_(str_value)
       # Important to release attr_value, because it has been malloc'ed!
-      if str_value: free(str_value)
+      if str_value:
+        free(str_value)
       H5Tclose(type_id)
       return retvalue
     elif (rank == 0 and class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
-      dtype = get_dtype_scalar(type_id, class_id, type_size)
-      if dtype is None:
-        warnings.warn("""\
-Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
-                      % (attrname, self.name, class_id), DataTypeWarning)
+      dtype_ = get_dtype_scalar(type_id, class_id, type_size)
+      if dtype_ is None:
+        warnings.warn("Unsupported type for attribute '%s' in node '%s'. "
+                      "Offending HDF5 class: %d" % (attrname, self.name,
+                                                    class_id), DataTypeWarning)
         self._v_unimplemented.append(attrname)
         return None
       shape = ()
     else:
       # General case
-
-      # Get the NumPy dtype from the type_id
-      try:
-        stype_, shape_ = HDF5ToNPExtType(type_id, pure_numpy_types=True)
-        dtype = numpy.dtype(stype_, shape_)
-      except TypeError:
-        # This class is not supported. Instead of raising a TypeError, issue a
-        # warning explaining the problem. This will allow to continue browsing
-        # native HDF5 files, while informing the user about the problem.
-        warnings.warn("""\
-Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
-                      % (attrname, self.name, class_id), DataTypeWarning)
-        self._v_unimplemented.append(attrname)
-        return None
 
       # Get the dimensional info
       dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
@@ -523,19 +510,52 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
       # dims is not needed anymore
       free(<void *> dims)
 
+      # Get the NumPy dtype from the type_id
+      try:
+        stype_, shape_ = HDF5ToNPExtType(type_id, pure_numpy_types=True)
+        dtype_ = numpy.dtype(stype_, shape_)
+      except TypeError:
+        if class_id == H5T_STRING and H5Tis_variable_str(type_id):
+          nelements = H5ATTRget_attribute_vlen_string_array(dset_id, attrname,
+                                                            &str_values)
+          if nelements < 0:
+            raise HDF5ExtError("Can't read attribute %s in node %s." %
+                               (attrname, self.name))
+
+          #vl = [<char*>str_values[i] for i in range(nelements)]
+          retvalue = numpy.array(
+            [<char*>str_values[i] for i in range(nelements)], "O8")
+          retvalue.shape = shape
+
+          # Important to release attr_value, because it has been malloc'ed!
+          for i in range(nelements):
+            free(str_values[i]);
+          free(str_values)
+
+          return retvalue
+
+        # This class is not supported. Instead of raising a TypeError, issue a
+        # warning explaining the problem. This will allow to continue browsing
+        # native HDF5 files, while informing the user about the problem.
+        warnings.warn("Unsupported type for attribute '%s' in node '%s'. "
+                      "Offending HDF5 class: %d" % (attrname, self.name,
+                                                    class_id), DataTypeWarning)
+        self._v_unimplemented.append(attrname)
+        return None
+
     # Get the native type (so that it is HDF5 who is the responsible to deal
     # with non-native byteorders on-disk)
     native_type_id = get_native_type(type_id)
 
     # Get the container for data
-    ndvalue = numpy.empty(dtype=dtype, shape=shape)
+    ndvalue = numpy.empty(dtype=dtype_, shape=shape)
     # Get the pointer to the buffer data area
     rbuf = ndvalue.data
     # Actually read the attribute from disk
     ret = H5ATTRget_attribute(dset_id, attrname, native_type_id, rbuf)
     if ret < 0:
-      raise HDF5ExtError("Attribute %s exists in node %s, but can't get it."\
-                         % (attrname, self.name))
+      raise HDF5ExtError("Attribute %s exists in node %s, but can't get it." %
+                         (attrname, self.name))
     H5Tclose(native_type_id)
     H5Tclose(type_id)
 
@@ -556,8 +576,8 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
 
     ret = H5Adelete(dset_id, attrname)
     if ret < 0:
-      raise HDF5ExtError("Attribute '%s' exists in node '%s', but cannot be deleted." \
-                         % (attrname, self.name))
+      raise HDF5ExtError("Attribute '%s' exists in node '%s', but cannot be "
+                         "deleted." % (attrname, self.name))
 
 
 
@@ -567,7 +587,7 @@ cdef class Node:
 
 
   def _g_new(self, where, name, init):
-    self.name = strdup(name)
+    self.name = strdup(<char *>name)
     # """The name of this node in its parent group."""
     self.parent_id = where._v_objectID
     # """The identifier of the parent group."""
@@ -577,7 +597,7 @@ cdef class Node:
     cdef int ret
 
     # Delete this node
-    ret = H5Gunlink(parent._v_objectID, self.name)
+    ret = H5Ldelete(parent._v_objectID, self.name, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("problems deleting the node ``%s``" % self.name)
     return ret
@@ -597,7 +617,8 @@ cdef class Group(Node):
     cdef hid_t ret
 
     # Create a new group
-    ret = H5Gcreate(self.parent_id, self.name, 0)
+    ret = H5Gcreate(self.parent_id, self.name, H5P_DEFAULT, H5P_DEFAULT,
+                    H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("Can't create the group %s." % self.name)
     self.group_id = ret
@@ -607,7 +628,7 @@ cdef class Group(Node):
   def _g_open(self):
     cdef hid_t ret
 
-    ret = H5Gopen(self.parent_id, self.name)
+    ret = H5Gopen(self.parent_id, self.name, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("Can't open the group: '%s'." % self.name)
     self.group_id = ret
@@ -615,36 +636,43 @@ cdef class Group(Node):
 
 
   def _g_get_objinfo(self, object h5name):
-    """Check whether 'name' is a children of 'self' and return its type. """
+    """Check whether 'name' is a children of 'self' and return its type."""
+
     cdef int ret
     cdef object node_type
 
-    ret = get_objinfo(self.group_id, h5name)
-    if ret == -2:
+    ret = get_linkinfo(self.group_id, h5name)
+    if ret == -2 or ret == H5L_TYPE_ERROR:
       node_type = "NoSuchNode"
-    elif ret == H5G_UNKNOWN:
-      node_type = "Unknown"
-    elif ret == H5G_GROUP:
-      node_type = "Group"
-    elif ret == H5G_DATASET:
-      node_type = "Leaf"
-    elif ret == H5G_LINK:
+    elif ret == H5L_TYPE_SOFT:
       node_type = "SoftLink"
-    elif ret == H5G_TYPE:
-      node_type = "NamedType"              # Not supported yet
-    else:
+    elif ret == H5L_TYPE_EXTERNAL:
       node_type = "ExternalLink"
+    elif ret == H5L_TYPE_HARD:
+        ret = get_objinfo(self.group_id, h5name)
+        if ret == -2:
+          node_type = "NoSuchNode"
+        elif ret == H5O_TYPE_UNKNOWN:
+          node_type = "Unknown"
+        elif ret == H5O_TYPE_GROUP:
+          node_type = "Group"
+        elif ret == H5O_TYPE_DATASET:
+          node_type = "Leaf"
+        elif ret == H5O_TYPE_NAMED_DATATYPE:
+          node_type = "NamedType"              # Not supported yet
+        else:
+          node_type = "Unknown"
     return node_type
 
 
   def _g_listGroup(self, parent):
     """Return a tuple with the groups and the leaves hanging from self."""
+
     return Giterate(parent._v_objectID, self._v_objectID, self.name)
 
 
   def _g_getGChildAttr(self, char *group_name, char *attr_name):
-    """
-    Return an attribute of a child `Group`.
+    """Return an attribute of a child `Group`.
 
     If the attribute does not exist, ``None`` is returned.
     """
@@ -654,9 +682,9 @@ cdef class Group(Node):
 
     # Open the group
     retvalue = None  # Default value
-    gchild_id = H5Gopen(self.group_id, group_name)
+    gchild_id = H5Gopen(self.group_id, group_name, H5P_DEFAULT)
     if gchild_id < 0:
-      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (group_name, self._v_pathname))
     retvalue = get_attribute_string_or_none(gchild_id, attr_name)
     # Close child group
@@ -666,8 +694,7 @@ cdef class Group(Node):
 
 
   def _g_getLChildAttr(self, char *leaf_name, char *attr_name):
-    """
-    Return an attribute of a child `Leaf`.
+    """Return an attribute of a child `Leaf`.
 
     If the attribute does not exist, ``None`` is returned.
     """
@@ -676,9 +703,9 @@ cdef class Group(Node):
     cdef object retvalue
 
     # Open the dataset
-    leaf_id = H5Dopen(self.group_id, leaf_name)
+    leaf_id = H5Dopen(self.group_id, leaf_name, H5P_DEFAULT)
     if leaf_id < 0:
-      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (leaf_name, self._v_pathname))
     retvalue = get_attribute_string_or_none(leaf_id, attr_name)
     # Close the dataset
@@ -705,7 +732,8 @@ cdef class Group(Node):
                   char *oldpathname, char *newpathname):
     cdef int ret
 
-    ret = H5Gmove2(oldparent, oldname, newparent, newname)
+    ret = H5Lmove(oldparent, oldname, newparent, newname,
+                  H5P_DEFAULT, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("Problems moving the node %s to %s" %
                          (oldpathname, newpathname) )
@@ -715,6 +743,10 @@ cdef class Group(Node):
 
 cdef class Leaf(Node):
   # Instance variables declared in .pxd
+
+  def _get_storage_size(self):
+      return H5Dget_storage_size(self.dataset_id)
+
 
   def _g_new(self, where, name, init):
     if init:
@@ -752,14 +784,14 @@ cdef class Leaf(Node):
     cdef hsize_t nrecords
 
     byteoffset = 0   # NumPy objects doesn't have an offset
-    if nparr.shape == ():
+    if (<object>nparr).shape == ():
       # 0-dim array does contain *one* element
       nrecords = 1
       bytestride = 8
     else:
       nrecords = len(nparr)
       bytestride = nparr.strides[0]  # supports multi-dimensional recarray
-    nelements = nparr.size / nrecords
+    nelements = <size_t>nparr.size / nrecords
     t64buf = nparr.data
 
     conv_float64_timeval32(
@@ -768,6 +800,7 @@ cdef class Leaf(Node):
 
   def _g_truncate(self, hsize_t size):
     """Truncate a Leaf to `size` nrows."""
+
     cdef hsize_t ret
 
     ret = truncate_dset(self.dataset_id, self.maindim, size)
@@ -785,7 +818,7 @@ cdef class Leaf(Node):
     elif classname in ('Table', 'VLArray'):
       self.nrows = size
     else:
-      raise ValueError, "Unexpected classname:", classname
+      raise ValueError("Unexpected classname: %s" % classname)
 
 
   def _g_flush(self):
@@ -817,14 +850,14 @@ cdef class Array(Leaf):
     cdef herr_t ret
     cdef void *rbuf
     cdef char *complib, *version, *class_
-    cdef object dtype, atom, shape
+    cdef object dtype_, atom, shape
     cdef ndarray dims
 
     # Get the HDF5 type associated with this numpy type
-    shape = nparr.shape
+    shape = (<object>nparr).shape
     if _atom is None or _atom.shape == ():
-      dtype = nparr.dtype.base
-      atom = Atom.from_dtype(dtype)
+      dtype_ = nparr.dtype.base
+      atom = Atom.from_dtype(dtype_)
     else:
       atom = _atom
       shape = shape[:-len(atom.shape)]
@@ -868,14 +901,12 @@ cdef class Array(Leaf):
     cdef herr_t ret
     cdef void *rbuf
     cdef char *complib, *version, *class_
-    cdef int itemsize
     cdef ndarray dflts
     cdef void *fill_data
     cdef ndarray extdim
     cdef object atom
 
     atom = self.atom
-    itemsize = atom.itemsize
     self.disk_type_id = AtomToHDF5Type(atom, self.byteorder)
 
     self.rank = len(self.shape)
@@ -941,9 +972,9 @@ cdef class Array(Leaf):
     cdef void *fill_data
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name)
+    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
     if self.dataset_id < 0:
-      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()
@@ -1010,7 +1041,7 @@ cdef class Array(Leaf):
     cdef object shape
 
     # Allocate space for the dimension axis info
-    dims_arr = npy_malloc_dims(self.rank, nparr.dimensions)
+    dims_arr = npy_malloc_dims(self.rank, nparr.shape)
     # Get the pointer to the buffer data area
     rbuf = nparr.data
     # Convert some NumPy types to HDF5 before storing.
@@ -1019,10 +1050,10 @@ cdef class Array(Leaf):
 
     # Append the records
     extdim = self.extdim
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYappend_records(self.dataset_id, self.type_id, self.rank,
-                                self.dims, dims_arr, extdim, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYappend_records(self.dataset_id, self.type_id, self.rank,
+                                    self.dims, dims_arr, extdim, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems appending the elements")
 
@@ -1048,13 +1079,13 @@ cdef class Array(Leaf):
     if hasattr(self, "extdim"):
       extdim = self.extdim
     else:
-      exdim = -1
+      extdim = -1
 
     # Do the physical read
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYread(self.dataset_id, self.type_id, start, nrows, step,
-                      extdim, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYread(self.dataset_id, self.type_id, start, nrows, step,
+                          extdim, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -1084,10 +1115,10 @@ cdef class Array(Leaf):
     rbuf = nparr.data
 
     # Do the physical read
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYreadSlice(self.dataset_id, self.type_id,
-                           start, stop, step, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYreadSlice(self.dataset_id, self.type_id,
+                               start, stop, step, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -1105,6 +1136,7 @@ cdef class Array(Leaf):
 
   def _g_readCoords(self, ndarray coords, ndarray nparr):
     """Read coordinates in an already created NumPy array."""
+
     cdef herr_t ret
     cdef hid_t space_id
     cdef hid_t mem_space_id
@@ -1126,10 +1158,10 @@ cdef class Array(Leaf):
     rbuf = nparr.data
 
     # Do the actual read
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
-                  H5P_DEFAULT, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
+                      H5P_DEFAULT, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -1158,6 +1190,7 @@ cdef class Array(Leaf):
 
     Note: This is a backport from the h5py project.
     """
+
     cdef int select_mode
     cdef ndarray start_, count_, step_
     cdef hsize_t *startp, *countp, *stepp
@@ -1192,6 +1225,7 @@ cdef class Array(Leaf):
 
   def _g_readSelection(self, object selection, ndarray nparr):
     """Read a selection in an already created NumPy array."""
+
     cdef herr_t ret
     cdef hid_t space_id
     cdef hid_t mem_space_id
@@ -1216,10 +1250,10 @@ cdef class Array(Leaf):
     rbuf = nparr.data
 
     # Do the actual read
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
-                  H5P_DEFAULT, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
+                      H5P_DEFAULT, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -1243,6 +1277,7 @@ cdef class Array(Leaf):
   def _g_writeSlice(self, ndarray startl, ndarray stepl, ndarray countl,
                     ndarray nparr):
     """Write a slice in an already created NumPy array."""
+
     cdef int ret
     cdef void *rbuf, *temp
     cdef hsize_t *start, *step, *count
@@ -1259,10 +1294,10 @@ cdef class Array(Leaf):
       self._convertTime64(nparr, 0)
 
     # Modify the elements:
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYwrite_records(self.dataset_id, self.type_id, self.rank,
-                               start, step, count, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5ARRAYwrite_records(self.dataset_id, self.type_id, self.rank,
+                                   start, step, count, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Internal error modifying the elements (H5ARRAYwrite_records returned errorcode -%i)"%(-ret))
 
@@ -1271,6 +1306,7 @@ cdef class Array(Leaf):
 
   def _g_writeCoords(self, ndarray coords, ndarray nparr):
     """Write a selection in an already created NumPy array."""
+
     cdef herr_t ret
     cdef hid_t space_id
     cdef hid_t mem_space_id
@@ -1296,10 +1332,10 @@ cdef class Array(Leaf):
       self._convertTime64(nparr, 0)
 
     # Do the actual write
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5Dwrite(self.dataset_id, self.type_id, mem_space_id, space_id,
-                   H5P_DEFAULT, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5Dwrite(self.dataset_id, self.type_id, mem_space_id, space_id,
+                       H5P_DEFAULT, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems writing the array data.")
 
@@ -1313,6 +1349,7 @@ cdef class Array(Leaf):
 
   def _g_writeSelection(self, object selection, ndarray nparr):
     """Write a selection in an already created NumPy array."""
+
     cdef herr_t ret
     cdef hid_t space_id
     cdef hid_t mem_space_id
@@ -1341,10 +1378,10 @@ cdef class Array(Leaf):
       self._convertTime64(nparr, 0)
 
     # Do the actual write
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5Dwrite(self.dataset_id, self.type_id, mem_space_id, space_id,
-                   H5P_DEFAULT, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5Dwrite(self.dataset_id, self.type_id, mem_space_id, space_id,
+                       H5P_DEFAULT, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems writing the array data.")
 
@@ -1428,12 +1465,12 @@ cdef class VLArray(Leaf):
     cdef int rank
     cdef herr_t ret
     cdef hsize_t nrecords, chunksize
-    cdef object shape, dtype, type_
+    cdef object shape, type_
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name)
+    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
     if self.dataset_id < 0:
-      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()
@@ -1473,10 +1510,10 @@ cdef class VLArray(Leaf):
       rbuf = NULL
 
     # Append the records:
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5VLARRAYappend_records(self.dataset_id, self.type_id,
-                                  nobjects, self.nrecords, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5VLARRAYappend_records(self.dataset_id, self.type_id,
+                                      nobjects, self.nrecords, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems appending the records.")
 
@@ -1495,14 +1532,38 @@ cdef class VLArray(Leaf):
         self._convertTime64(nparr, 0)
 
     # Append the records:
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5VLARRAYmodify_records(self.dataset_id, self.type_id,
-                                  nrow, nobjects, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5VLARRAYmodify_records(self.dataset_id, self.type_id,
+                                      nrow, nobjects, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems modifying the record.")
 
     return nobjects
+
+
+  # Because the size of each "row" is unknown, there is no easy way to
+  # calculate this value
+  def _get_memory_size(self):
+    cdef hid_t space_id
+    cdef hsize_t size
+    cdef herr_t ret
+
+    if self.nrows == 0:
+      size = 0
+    else:
+      # Get the dataspace handle
+      space_id = H5Dget_space(self.dataset_id)
+      # Return the size of the entire dataset
+      ret = H5Dvlen_get_buf_size(self.dataset_id, self.type_id, space_id,
+                                 &size)
+      if ret < 0:
+        size = -1
+
+      # Terminate access to the dataspace
+      H5Sclose(space_id)
+
+    return size
 
 
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step):
@@ -1519,22 +1580,24 @@ cdef class VLArray(Leaf):
     nrows = get_len_of_range(start, stop, step)
     if start + nrows > self.nrows:
       raise HDF5ExtError(
-        "Asking for a range of rows exceeding the available ones!.")
+        "Asking for a range of rows exceeding the available ones!.",
+        h5bt=False)
 
     # Now, read the chunk of rows
-    Py_BEGIN_ALLOW_THREADS
-    # Allocate the necessary memory for keeping the row handlers
-    rdata = <hvl_t *>malloc(<size_t>nrows*sizeof(hvl_t))
-    # Get the dataspace handle
-    space_id = H5Dget_space(self.dataset_id)
-    # Create a memory dataspace handle
-    mem_space_id = H5Screate_simple(1, &nrows, NULL)
-    # Select the data to be read
-    H5Sselect_hyperslab(space_id, H5S_SELECT_SET, &start, &step, &nrows, NULL)
-    # Do the actual read
-    ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
-                  H5P_DEFAULT, rdata)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        # Allocate the necessary memory for keeping the row handlers
+        rdata = <hvl_t *>malloc(<size_t>nrows*sizeof(hvl_t))
+        # Get the dataspace handle
+        space_id = H5Dget_space(self.dataset_id)
+        # Create a memory dataspace handle
+        mem_space_id = H5Screate_simple(1, &nrows, NULL)
+        # Select the data to be read
+        H5Sselect_hyperslab(space_id, H5S_SELECT_SET, &start, &step, &nrows,
+                            NULL)
+        # Do the actual read
+        ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
+                      H5P_DEFAULT, rdata)
+
     if ret < 0:
       raise HDF5ExtError(
         "VLArray._readArray: Problems reading the array data.")
@@ -1596,7 +1659,7 @@ cdef class UnImplemented(Leaf):
     # Get info on dimensions
     shape = H5UIget_info(self.parent_id, self.name, byteorder)
     shape = tuple(map(SizeType, shape))
-    self.dataset_id = H5Dopen(self.parent_id, self.name)
+    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
     return (shape, byteorder, self.dataset_id)
 
 

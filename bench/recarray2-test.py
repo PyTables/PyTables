@@ -20,9 +20,9 @@ delta = 0.000001
 # Creation of recarrays objects for test
 x1=num.array(num.arange(reclen))
 x2=chararray.array(None, itemsize=7, shape=reclen)
-x3=num.array(num.arange(reclen,reclen*3,2), num.Float64)
-r1=recarray.fromarrays([x1,x2,x3],names='a,b,c')
-r2=recarray2.fromarrays([x1,x2,x3],names='a,b,c')
+x3=num.array(num.arange(reclen, reclen*3, 2), num.Float64)
+r1=recarray.fromarrays([x1, x2, x3], names='a,b,c')
+r2=recarray2.fromarrays([x1, x2, x3], names='a,b,c')
 
 print "recarray shape in test ==>", r2.shape
 
@@ -48,7 +48,7 @@ for row in xrange(reclen):
 t2 = time.clock()
 ttime = round(t2-t1, 3)
 print "Assign time:", ttime, " Rows/s:", int(reclen/(ttime+delta)),
-print " Speed-up:", round(origtime/ttime,3)
+print " Speed-up:", round(origtime/ttime, 3)
 #print "Field b on row 2 after re-assign:", r2.field("c")[2]
 print
 
@@ -74,12 +74,12 @@ for row in xrange(reclen):
 t2 = time.clock()
 ttime = round(t2-t1, 3)
 print "Select time:", ttime, " Rows/s:", int(reclen/(ttime+delta)),
-print " Speed-up:", round(origtime/ttime,3)
+print " Speed-up:", round(origtime/ttime, 3)
 print
 
 print "Printing in recarray original"
 print "------------------------------"
-f = open("test.out","w")
+f = open("test.out", "w")
 t1 = time.clock()
 f.write(str(r1))
 t2 = time.clock()
@@ -90,7 +90,7 @@ print "Print time:", origtime, " Rows/s:", int(reclen/(origtime+delta))
 print
 print "Printing in recarray modified"
 print "------------------------------"
-f = open("test2.out","w")
+f = open("test2.out", "w")
 t1 = time.clock()
 f.write(str(r2))
 t2 = time.clock()
@@ -98,5 +98,5 @@ ttime = round(t2-t1, 3)
 f.close()
 os.unlink("test2.out")
 print "Print time:", ttime, " Rows/s:", int(reclen/(ttime+delta)),
-print " Speed-up:", round(origtime/ttime,3)
+print " Speed-up:", round(origtime/ttime, 3)
 print

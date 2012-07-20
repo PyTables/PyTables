@@ -47,7 +47,7 @@ class TestTDescr(t.IsDescription):
     """A description that has several nested columns."""
 
     x = t.Int32Col(dflt=0, shape=2, pos=0) #0
-    y = t.Float64Col(dflt=1, shape=(2,2))
+    y = t.Float64Col(dflt=1, shape=(2, 2))
     z = t.UInt8Col(dflt=1)
     color = t.StringCol(itemsize=2, dflt=" ", pos=2)
     info = Info()
@@ -108,8 +108,8 @@ testABuffer = [
     # x     Info                                                color info        y                  z
     #       value y2 Info2                            name z2         Name Value
     #                name   value    y3       z3
-    ((3,2), (6j, 6., ('nn', (6j,4j), (6.,4.), (1,2)), 'NN', 8), 'cc', ('NN', 6j), ((6.,4.),(6.,4.)), 8),
-    ((4,3), (7j, 7., ('oo', (7j,5j), (7.,5.), (2,1)), 'OO', 9), 'dd', ('OO', 7j), ((7.,5.),(7.,5.)), 9),
+    ((3, 2), (6j, 6., ('nn', (6j, 4j), (6., 4.), (1, 2)), 'NN', 8), 'cc', ('NN', 6j), ((6., 4.), (6., 4.)), 8),
+    ((4, 3), (7j, 7., ('oo', (7j, 5j), (7., 5.), (2, 1)), 'OO', 9), 'dd', ('OO', 7j), ((7., 5.), (7., 5.)), 9),
     ]
 testAData = numpy.array(testABuffer, dtype=testADescr)
 # The name of the column to be searched:
@@ -272,7 +272,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         self.assertTrue(common.areArraysEqual(nrarr, self._testAData),
-                        "Can not create a compatible record array.")
+                        "Can not create a compatible structured array.")
 
 
     def test03_NRA(self):
@@ -489,6 +489,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         raColumn = raTable[nColumn]
         (raColumn[0], raColumn[-1]) = (raColumn[-1].copy(), raColumn[0].copy())
         newdtype = numpy.dtype([(nColumn, raTable.dtype.fields[nColumn][0])])
+        self.assertTrue(newdtype is not None)
 
         # Write the resulting column and re-read the whole table.
         tbl.modifyColumns(names=[nColumn], columns=raColumn)
@@ -519,7 +520,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         colnames = ['x', 'color']  # Get the first two columns
         raCols = numpy.rec.fromarrays([self._testAData['x'].copy(),
                                        self._testAData['color'].copy()],
-                                      dtype=[('x','(2,)i4'),('color', '1a2')])
+                                      dtype=[('x', '(2,)i4'), ('color', '1a2')])
                                #descr=tbl.description._v_nestedDescr[0:2])
                                # or...
                                # names=tbl.description._v_nestedNames[0:2],
@@ -586,6 +587,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.flush()
         coltoindex = tbl.cols._f_col(self._testCondCol)
         indexrows = coltoindex.createIndex()
+        self.assertTrue(indexrows is not None)
 
         if self.reopen:
             self._reopen()
@@ -801,7 +803,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "repr(tbl.cols)-->", repr(tbl.cols)
 
         self.assertEqual(str(tbl.cols), "/test.cols (Cols), 6 columns")
-        try: 
+        try:
             self.assertEqual(repr(tbl.cols),
 """/test.cols (Cols), 6 columns
   x (Column(0, 2), ('int32',(2,)))
@@ -1275,8 +1277,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row.append()
         tbl.flush()
 
-        cols = {'i1':tbl.cols.nested.i1,
-                'i2':tbl.cols.nested.i2,}
+        cols = {'i1': tbl.cols.nested.i1,
+                'i2': tbl.cols.nested.i2,}
         cols['i1'].createIndex()
         cols['i2'].createIndex()
 
@@ -1284,8 +1286,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
             # Redefine the cols dictionary
-            cols = {'i1':tbl.cols.nested.i1,
-                    'i2':tbl.cols.nested.i2,}
+            cols = {'i1': tbl.cols.nested.i1,
+                    'i2': tbl.cols.nested.i2,}
 
         i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
         i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
@@ -1324,8 +1326,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row.append()
         tbl.flush()
 
-        cols = {'i1':tbl.cols.nested1.nested2.nested3.i1,
-                'i2':tbl.cols.nested1.nested2.nested3.i2,}
+        cols = {'i1': tbl.cols.nested1.nested2.nested3.i1,
+                'i2': tbl.cols.nested1.nested2.nested3.i2,}
         cols['i1'].createIndex()
         cols['i2'].createIndex()
 
@@ -1333,8 +1335,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
             # Redefine the cols dictionary
-            cols = {'i1':tbl.cols.nested1.nested2.nested3.i1,
-                    'i2':tbl.cols.nested1.nested2.nested3.i2,}
+            cols = {'i1': tbl.cols.nested1.nested2.nested3.i1,
+                    'i2': tbl.cols.nested1.nested2.nested3.i2,}
 
         i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
         i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]

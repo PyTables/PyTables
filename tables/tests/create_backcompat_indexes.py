@@ -30,9 +30,9 @@ t1.flush()
 t1.copy(f.root, 'table2')
 
 # Create indexes of all kinds
-t1.cols.var1.createIndex(0,'ultralight',_blocksizes=small_blocksizes)
-t1.cols.var2.createIndex(3,'light',_blocksizes=small_blocksizes)
-t1.cols.var3.createIndex(6,'medium',_blocksizes=small_blocksizes)
-t1.cols.var4.createIndex(9,'full',_blocksizes=small_blocksizes)
+t1.cols.var1.createIndex(0, 'ultralight', _blocksizes=small_blocksizes)
+t1.cols.var2.createIndex(3, 'light', _blocksizes=small_blocksizes)
+t1.cols.var3.createIndex(6, 'medium', _blocksizes=small_blocksizes)
+t1.cols.var4.createIndex(9, 'full', _blocksizes=small_blocksizes)
 
 f.close()

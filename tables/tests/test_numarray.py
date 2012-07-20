@@ -7,7 +7,6 @@ from numarray import strings
 from numarray import records
 from numarray import *
 
-import tables
 from tables import *
 from tables import nra
 from tables.tests import common
@@ -34,7 +33,7 @@ class BasicTestCase(unittest.TestCase):
     def WriteRead(self, testArray):
         if common.verbose:
             print '\n', '-=' * 30
-            if type(testArray) == NumArray:
+            if isinstance(testArray, NumArray):
                 type_ = testArray.type()
             else:
                 type_ = "String"
@@ -65,7 +64,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Compare them. They should be equal.
         #if not allequal(a,b, "numarray") and common.verbose:
-        if common.verbose and type(a) == NumArray:
+        if common.verbose and isinstance(a, NumArray):
             print "Array written:", a
             print "Array written shape:", a.shape
             print "Array written itemsize:", a.itemsize
@@ -80,7 +79,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(type(a), type(b))
         self.assertEqual(a.shape, b.shape)
         self.assertEqual(a.shape, self.root.somearray.shape)
-        if type(a) == strings.CharArray:
+        if isinstance(a, strings.CharArray):
             self.assertEqual(type_, "string")
         else:
             self.assertEqual(a.type(), b.type())
@@ -92,7 +91,7 @@ class BasicTestCase(unittest.TestCase):
                 else:
                     self.assertEqual(str(a.type()), "Complex64")
 
-        self.assertTrue(allequal(a,b, "numarray"))
+        self.assertTrue(allequal(a, b, "numarray"))
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
@@ -188,7 +187,7 @@ class Basic2DTestCase(BasicTestCase):
     title = "Rank-2 case 1"
     #tupleInt = reshape(array(arange((4)**2)), (4,)*2)
     tupleInt = ones((4,)*2)
-    tupleChar = [["aaa","ddddd"],["d","ss"],["s","tt"]]
+    tupleChar = [["aaa", "ddddd"], ["d", "ss"], ["s", "tt"]]
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
@@ -230,7 +229,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             dsetname = 'array_' + type_
             if common.verbose:
                 print "Creating dataset:", group._g_join(dsetname)
-            hdfarray = fileh.createArray(group, dsetname, a, "Large array")
+            fileh.createArray(group, dsetname, a, "Large array")
             # Create a new group
             group = fileh.createGroup(group, 'group' + str(i))
             # increment the range for next iteration
@@ -245,14 +244,14 @@ class GroupsArrayTestCase(unittest.TestCase):
         group = fileh.root
 
         # Get the metadata on the previosly saved arrays
-        for i in range(1,len(types)):
+        for i in range(1, len(types)):
             # Create an array for later comparison
             a = ones((2,) * i, types[i - 1])
             # Get the dset object hanging from group
             dset = getattr(group, 'array_' + types[i-1])
             # Get the actual array
             b = dset.read()
-            if not allequal(a,b, "numarray") and common.verbose:
+            if not allequal(a, b, "numarray") and common.verbose:
                 print "Array a original. Shape: ==>", a.shape
                 print "Array a original. Data: ==>", a
                 print "Info from dataset:", dset._v_pathname
@@ -262,7 +261,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print ". Type ==> %s" % b.type()
 
             self.assertEqual(a.shape, b.shape)
-            self.assertTrue(allequal(a,b, "numarray"))
+            self.assertTrue(allequal(a, b, "numarray"))
 
             # Iterate over the next group
             group = getattr(group, 'group' + str(i))
@@ -423,7 +422,7 @@ class TableReadTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         table.flavor = "numarray"
-        coords = (1,2,3)
+        coords = (1, 2, 3)
         self.nrows = len(coords)
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname)
@@ -447,7 +446,7 @@ class TableReadTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         table.flavor="numarray"
-        coords = (1,2,3)
+        coords = (1, 2, 3)
         self.nrows = len(coords)
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname)
@@ -467,7 +466,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Getting table rows specifyied as numarray scalar integers."""
 
         table = self.fileh.root.table
-        coords = array([1,2,3], type='Int8')
+        coords = array([1, 2, 3], type='Int8')
         for colname in table.colnames:
             numcol = [ table[coord][colname].item() for coord in coords ]
             typecol = table.coltypes[colname]
@@ -490,12 +489,12 @@ class TableReadTestCase(common.PyTablesTestCase):
         self.fileh = openFile(self.file, "a")
         table = self.fileh.root.table
         table.flavor = "numarray"
-        coords = array([1,2,3], dtype='int8')
+        coords = array([1, 2, 3], dtype='int8')
         # Modify row 1
         # From PyTables 2.0 on, assignments to records can be done
         # only as tuples (see http://projects.scipy.org/scipy/numarray/ticket/315)
         #table[coords[0]] = ["aasa","x"]+[232]*12
-        table[coords[0]] = tuple(["aasa","x"]+[232]*12)
+        table[coords[0]] = tuple(["aasa", "x"]+[232]*12)
         #record = list(table[coords[0]])
         record = table.read(coords[0])[0]
         if common.verbose:
@@ -521,7 +520,7 @@ class TestTDescr(IsDescription):
     """A description that has several nested columns."""
 
     x = Int32Col(dflt=0, shape=2, pos=0) #0
-    y = Float64Col(dflt=1, shape=(2,2))
+    y = Float64Col(dflt=1, shape=(2, 2))
     z = UInt8Col(dflt=1)
     z3 = EnumCol({'r':4, 'g':2, 'b':1}, dflt='r', base='int32', shape=2)
     color = StringCol(itemsize=4, dflt="ab", pos=2)
@@ -606,7 +605,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # A flat column
         col = table.cols.x[:3]
         self.assertTrue(isinstance(col, NumArray))
-        npcol = zeros((3,2), type="Int32")
+        npcol = zeros((3, 2), type="Int32")
         if common.verbose:
             print "Plain column:"
             print "read column-->", col
@@ -641,7 +640,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # A flat column
         col = table.cols.x[:9:3]
         self.assertTrue(isinstance(col, NumArray))
-        npcol = zeros((3,2), dtype="Int32")
+        npcol = zeros((3, 2), dtype="Int32")
         if common.verbose:
             print "Plain column:"
             print "read column-->", col
@@ -786,8 +785,8 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         """Checking modifying several columns at once."""
 
         table = self.fileh.root.table
-        xcol = ones((3,2), 'Int32')
-        ycol = ones((3,2,2), 'Float64')
+        xcol = ones((3, 2), 'Int32')
+        ycol = ones((3, 2, 2), 'Float64')
         zcol = zeros((3,), 'UInt8')
         table.modifyColumns(3, 6, 1, [xcol, ycol, zcol], ['x', 'y', 'z'])
         if self.close:
@@ -901,7 +900,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
-        ycol = zeros((3,2,2), 'Float64')-1
+        ycol = zeros((3, 2, 2), 'Float64')-1
         data = table.cols.y[3:6]
         if common.verbose:
             print "Type of read:", type(data)
@@ -930,7 +929,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         # Check that some column has been actually modified
-        ycol = zeros((3,2,2), 'Float64')-1
+        ycol = zeros((3, 2, 2), 'Float64')-1
         data = table.cols.y[3:6]
         if common.verbose:
             print "Type of read:", type(data)
@@ -959,7 +958,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         # Check that some column has been actually modified
-        ycol = zeros((2,2), 'Float64')-1
+        ycol = zeros((2, 2), 'Float64')-1
         data = table.cols.y[6]
         if common.verbose:
             print "Type of read:", type(data)
@@ -988,7 +987,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         # Check that some column has been actually modified
-        ycol = zeros((2,2), 'Float64')-1
+        ycol = zeros((2, 2), 'Float64')-1
         data = table.cols.y[6]
         if common.verbose:
             print "Type of read:", type(data)

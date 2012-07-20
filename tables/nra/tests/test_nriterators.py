@@ -48,26 +48,26 @@ class NRIteratorsTests(unittest.TestCase):
             'coord', 'x', 'y', 'z']
 
         # Formats description of the nested/flat table structure
-        self.formats = ['Int64', [['a5', 'a5'],['Float32', 'f4', 'f4']]]
+        self.formats = ['Int64', [['a5', 'a5'], ['Float32', 'f4', 'f4']]]
 
         self.flat_formats = ['Int64', 'a5', 'a5', 'Float32', 'f4', 'f4']
 
         # descr description of the nested/flat table structure
         self.descr = [('position', 'Int64'), ('info', [
-            ('name', [('first','a5'), ('second','a5')]),
-           ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
+            ('name', [('first', 'a5'), ('second', 'a5')]),
+           ('coord', [('x', 'Float32'), ('y', 'f4'), ('z', 'f4')])])]
 
-        self.flat_descr = [('position', 'Int64'), ('first','a5'),
-            ('second','a5'), ('x','Float32'), ('y', 'f4'), ('z', 'f4')]
+        self.flat_descr = [('position', 'Int64'), ('first', 'a5'),
+            ('second', 'a5'), ('x', 'Float32'), ('y', 'f4'), ('z', 'f4')]
 
         # descr description of the table structure using automatic names
         self.autoNamedDescr = [('c1', 'Int64'), ('c2', [
-            ('c1', [('c1','a5'), ('c2','a5')]),
-           ('c2', [('c1','Float32'), ('c2', 'f4'), ('c3', 'f4')])])]
+            ('c1', [('c1', 'a5'), ('c2', 'a5')]),
+           ('c2', [('c1', 'Float32'), ('c2', 'f4'), ('c3', 'f4')])])]
 
         self.infoDescr = \
-            [('info', [('name', [('first','a5'), ('second','a5')]),
-           ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
+            [('info', [('name', [('first', 'a5'), ('second', 'a5')]),
+           ('coord', [('x', 'Float32'), ('y', 'f4'), ('z', 'f4')])])]
 
 
     #

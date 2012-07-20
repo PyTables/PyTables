@@ -12,7 +12,7 @@ random_array.seed(19, 20)
 
 def flatten(l):
     """Flattens list of tuples l."""
-    return map(lambda x: x[0], l)
+    return [x[0] for x in l]
 
 def fill_arrays(start, stop):
     col_i = numarray.arange(start, stop, type=numarray.Int32)
@@ -141,8 +141,7 @@ def query_db(filename, rng):
     if verbose:
         print "query time:", round(qtime, 5)
         print "Mrows/s:", round((nrows/1000.)/qtime, 5)
-        results = flatten(results)
-        results.sort()
+        results = sorted(flatten(results))
         print results
     close_db(con, cur)
 
@@ -185,7 +184,7 @@ if __name__=="__main__":
     createindex = 0
     doquery = 0
     sqlite_version = "3"
-    rng = [0,10]
+    rng = [0, 10]
     nrows = 1
 
     # Get the options

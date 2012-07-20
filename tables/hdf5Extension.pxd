@@ -1,4 +1,5 @@
-from definitions cimport hid_t, hsize_t, ndarray
+from numpy cimport ndarray
+from definitions cimport hid_t, hsize_t
 
 
 # Declaration of instance variables for shared classes

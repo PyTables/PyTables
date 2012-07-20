@@ -159,7 +159,7 @@ if __name__=="__main__":
     complib = "zlib"
     doquery = 0
     doqueryidx = 0
-    rng = [0,10]
+    rng = [0, 10]
     nrows = 1
 
     # Get the options

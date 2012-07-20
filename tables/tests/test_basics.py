@@ -3,17 +3,65 @@ import unittest
 import os
 import tempfile
 import warnings
+import subprocess
+
+try:
+    import multiprocessing as mp
+    multiprocessing_imported = True
+except ImportError:
+    multiprocessing_imported = False
 
 import numpy
 
 import tables
+import tables.flavor
 from tables import *
 from tables.flavor import all_flavors, array_of_flavor
 from tables.tests import common
 from tables.parameters import NODE_CACHE_SLOTS
+from tables.description import descr_from_dtype, dtype_from_descr
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
+
+
+class OpenFileFailureTestCase(common.PyTablesTestCase):
+    def setUp(self):
+        import tables.file
+
+        self.N = len(tables.file._open_files)
+        self.open_files = tables.file._open_files
+
+    def test01_openFile(self):
+        """Checking opening of a non existing file"""
+
+        filename = tempfile.mktemp(".h5")
+        try:
+            fileh = openFile(filename)
+            fileh.close()
+        except IOError:
+            self.assertEqual(self.N, len(self.open_files))
+        else:
+            self.fail("IOError exception not raised")
+
+    def test02_openFile(self):
+        """Checking opening of an existing non HDF5 file"""
+
+        # create a dummy file
+        filename = tempfile.mktemp(".h5")
+        file(filename, 'wb').close()
+
+        # Try to open the dummy file
+        try:
+            try:
+                fileh = tables.openFile(filename)
+                fileh.close()
+            except HDF5ExtError:
+                self.assertEqual(self.N, len(self.open_files))
+            else:
+                self.fail("HDF5ExtError exception not raised")
+        finally:
+            os.remove(filename)
 
 
 class OpenFileTestCase(common.PyTablesTestCase):
@@ -25,43 +73,40 @@ class OpenFileTestCase(common.PyTablesTestCase):
                          NODE_CACHE_SLOTS=self.nodeCacheSlots)
         root = fileh.root
         # Create an array
-        fileh.createArray(root, 'array', [1,2],
+        fileh.createArray(root, 'array', [1, 2],
                           title = "Array example")
-        table = fileh.createTable(root, 'table', {'var1':IntCol()},
-                                   "Table example")
+        fileh.createTable(root, 'table', {'var1':IntCol()}, "Table example")
         root._v_attrs.testattr = 41
+
         # Create another array object
-        array = fileh.createArray(root, 'anarray',
-                                  [1], "Array title")
-        table = fileh.createTable(root, 'atable', {'var1':IntCol()},
-                                   "Table title")
+        fileh.createArray(root, 'anarray', [1], "Array title")
+        fileh.createTable(root, 'atable', {'var1':IntCol()}, "Table title")
+
         # Create a group object
         group = fileh.createGroup(root, 'agroup',
                                   "Group title")
         group._v_attrs.testattr = 42
+
         # Create a some objects there
         array1 = fileh.createArray(group, 'anarray1',
-                                   [1,2,3,4,5,6,7], "Array title 1")
+                                   [1, 2, 3, 4, 5, 6, 7], "Array title 1")
         array1.attrs.testattr = 42
-        array2 = fileh.createArray(group, 'anarray2',
-                                   [2], "Array title 2")
-        table1 = fileh.createTable(group, 'atable1', {'var1':IntCol()},
-                                   "Table title 1")
-        ra = numpy.rec.array([(1,11,'a')],formats='u1,f4,a1')
-        table2 = fileh.createTable(group, 'atable2', ra,
-                                   "Table title 2")
+        fileh.createArray(group, 'anarray2', [2], "Array title 2")
+        fileh.createTable(group, 'atable1', {'var1':IntCol()}, "Table title 1")
+        ra = numpy.rec.array([(1, 11, 'a')], formats='u1,f4,a1')
+        fileh.createTable(group, 'atable2', ra, "Table title 2")
+
         # Create a lonely group in first level
-        group2 = fileh.createGroup(root, 'agroup2',
-                                  "Group title 2")
+        fileh.createGroup(root, 'agroup2', "Group title 2")
+
         # Create a new group in the second level
-        group3 = fileh.createGroup(group, 'agroup3',
-                                   "Group title 3")
+        group3 = fileh.createGroup(group, 'agroup3', "Group title 3")
+
         # Create a new group in the third level
-        group4 = fileh.createGroup(group3, 'agroup4',
-                                   "Group title 4")
+        fileh.createGroup(group3, 'agroup4', "Group title 4")
 
         # Create an array in the root with the same name as one in 'agroup'
-        fileh.createArray(root, 'anarray1', [1,2],
+        fileh.createArray(root, 'anarray1', [1, 2],
                           title = "Array example")
 
         fileh.close()
@@ -78,8 +123,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(
             file, mode = "w", NODE_CACHE_SLOTS=self.nodeCacheSlots)
-        arr = fileh.createArray(fileh.root, 'array', [1,2],
-                                title = "Array example")
+        fileh.createArray(fileh.root, 'array', [1, 2], title = "Array example")
         # Get the CLASS attribute of the arr object
         class_ = fileh.root.array.attrs.CLASS
 
@@ -107,7 +151,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Append a new array to the existing file
         fileh = openFile(
             self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
-        fileh.createArray(fileh.root, 'array2', [3,4],
+        fileh.createArray(fileh.root, 'array2', [3, 4],
                           title = "Title example 2")
         fileh.close()
 
@@ -126,7 +170,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Append a new array to the existing file
         fileh = openFile(
             self.file, mode = "a", NODE_CACHE_SLOTS=self.nodeCacheSlots)
-        fileh.createArray(fileh.root, 'array2', [3,4],
+        fileh.createArray(fileh.root, 'array2', [3, 4],
                           title = "Title example 2")
         fileh.close()
 
@@ -148,7 +192,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # so, the existing file should be deleted!
         fileh = openFile(
             self.file, mode = "w", NODE_CACHE_SLOTS=self.nodeCacheSlots)
-        fileh.createArray(fileh.root, 'array2', [3,4],
+        fileh.createArray(fileh.root, 'array2', [3, 4],
                           title = "Title example 2")
         fileh.close()
 
@@ -158,7 +202,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         try:
             # Try to get the 'array' object in the old existing file
-            arr = fileh.root.array
+            fileh.root.array
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -172,8 +216,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking opening a non-existing file for reading"""
 
         try:
-            fileh = openFile(
-                "nonexistent.h5", mode = "r", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+            openFile("nonexistent.h5", mode = "r",
+                     NODE_CACHE_SLOTS=self.nodeCacheSlots)
         except IOError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -194,6 +238,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         title = fileh.root.anarray1.getAttr("TITLE")
         # Get the node again, as this can trigger errors in some situations
         anarray1 = fileh.root.anarray1
+        self.assertTrue(anarray1 is not None)
 
         self.assertEqual(title, "Array title 1")
         fileh.close()
@@ -204,8 +249,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking non-existent alternate root access to the object tree"""
 
         try:
-            fileh = openFile(self.file, mode = "r", rootUEP="/nonexistent",
-                             NODE_CACHE_SLOTS=self.nodeCacheSlots)
+            openFile(self.file, mode = "r", rootUEP="/nonexistent",
+                     NODE_CACHE_SLOTS=self.nodeCacheSlots)
         except RuntimeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -241,7 +286,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, mode = "r", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         # Try to get the removed object
         try:
-            object = fileh.root.agroup
+            fileh.root.agroup
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -251,7 +296,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.fail("expected an LookupError")
         # Try to get a child of the removed object
         try:
-            object = fileh.getNode("/agroup/agroup3")
+            fileh.getNode("/agroup/agroup3")
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -287,7 +332,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Try to get the removed object
         try:
-            object = fileh.root.agroup
+            fileh.root.agroup
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -297,7 +342,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.fail("expected an LookupError")
         # Try to get a child of the removed object
         try:
-            object = fileh.getNode("/agroup/agroup3")
+            fileh.getNode("/agroup/agroup3")
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -340,7 +385,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, mode = "r", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         # Try to get the removed object
         try:
-            object = fileh.root.agroup2
+            fileh.root.agroup2
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -363,7 +408,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, mode = "r", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         # Try to get the removed object
         try:
-            object = fileh.root.anarray
+            fileh.root.anarray
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -382,7 +427,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Try to get the removed object
         try:
-            object = fileh.root.anarray
+            fileh.root.anarray
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -423,7 +468,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, mode = "r", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         # Try to get the removed object
         try:
-            object = fileh.root.atable
+            fileh.root.atable
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -451,7 +496,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(array_._v_depth, 1)
         # Try to get the previous object with the old name
         try:
-            object = fileh.root.anarray
+            fileh.root.anarray
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -475,7 +520,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(array_._v_depth, 1)
         # Try to get the previous object with the old name
         try:
-            object = fileh.root.anarray
+            fileh.root.anarray
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -576,7 +621,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(group2._v_pathname, "/agroup3/agroup3")
         # Try to get the previous object with the old name
         try:
-            object = fileh.root.agroup
+            fileh.root.agroup
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -586,7 +631,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.fail("expected an LookupError")
         # Try to get a child with the old pathname
         try:
-            object = fileh.getNode("/agroup/agroup3")
+            fileh.getNode("/agroup/agroup3")
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -614,7 +659,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(group2._v_pathname, "/agroup3/agroup3")
         # Try to get the previous object with the old name
         try:
-            object = fileh.root.agroup
+            fileh.root.agroup
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -624,7 +669,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.fail("expected an LookupError")
         # Try to get a child with the old pathname
         try:
-            object = fileh.getNode("/agroup/agroup3")
+            fileh.getNode("/agroup/agroup3")
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -668,6 +713,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         # Load intermediate groups and keep a nested one alive.
         g = fileh.root.agroup.agroup3.agroup4
+        self.assertTrue(g is not None)
         fileh.renameNode('/', name='agroup', newname='agroup_')
         self.assertTrue('/agroup_/agroup4' not in fileh)  # see ticket #126
         self.assertTrue('/agroup' not in fileh)
@@ -696,7 +742,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(array_._v_depth, 2)
         # Try to get the previous object with the old name
         try:
-            object = fileh.root.anarray
+            fileh.root.anarray
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -721,7 +767,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(array_._v_depth, 2)
         # Try to get the previous object with the old name
         try:
-            object = fileh.root.anarray
+            fileh.root.anarray
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -782,7 +828,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(table_._v_depth, 2)
         # Try to get the previous object with the old name
         try:
-            object = fileh.root.atable
+            fileh.root.atable
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -807,7 +853,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(table_._v_depth, 2)
         # Try to get the previous object with the old name
         try:
-            object = fileh.root.atable
+            fileh.root.atable
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -912,7 +958,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(group2._v_depth, 3)
         # Try to get the previous object with the old name
         try:
-            object = fileh.root.agroup
+            fileh.root.agroup
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -922,7 +968,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.fail("expected an LookupError")
         # Try to get a child with the old pathname
         try:
-            object = fileh.getNode("/agroup/agroup3")
+            fileh.getNode("/agroup/agroup3")
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -952,7 +998,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(group2._v_depth, 3)
         # Try to get the previous object with the old name
         try:
-            object = fileh.root.agroup
+            fileh.root.agroup
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -962,7 +1008,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.fail("expected an LookupError")
         # Try to get a child with the old pathname
         try:
-            object = fileh.getNode("/agroup/agroup3")
+            fileh.getNode("/agroup/agroup3")
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -1105,8 +1151,11 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         self.assertTrue(newNode is dstNode)
         dstChild1 = dstNode.anarray1
+        self.assertTrue(dstChild1 is not None)
         dstChild2 = dstNode.anarray2
+        self.assertTrue(dstChild2 is not None)
         dstChild3 = dstNode.agroup3
+        self.assertTrue(dstChild3 is not None)
         fileh.close()
 
     def test13e_copyRootRecursive(self):
@@ -1140,7 +1189,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         file2 = tempfile.mktemp(".h5")
         fileh2 = openFile(
             file2, mode = "w", NODE_CACHE_SLOTS=self.nodeCacheSlots)
-        agroup2 = fileh2.createGroup('/', 'agroup2')
+        fileh2.createGroup('/', 'agroup2')
 
         # fileh.root => fileh2.root.agroup2
         newNode = fileh.copyNode(
@@ -1162,6 +1211,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh = openFile(
             self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
         agroup2 = fileh.root
+        self.assertTrue(agroup2 is not None)
 
         # fileh.root => fileh.root
         self.assertRaises(IOError, fileh.copyNode,
@@ -1450,8 +1500,8 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # Create a PyTables file (and by so, an HDF5 file)
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
-        arr = fileh.createArray(fileh.root, 'array', [1,2],
-                                    title = "Title example")
+        fileh.createArray(fileh.root, 'array', [1, 2], title = "Title example")
+
         # For this method to run, it needs a closed file
         fileh.close()
 
@@ -1505,8 +1555,8 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # Create a PyTables file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
-        arr = fileh.createArray(fileh.root, 'array', [1,2],
-                                    title = "Title example")
+        fileh.createArray(fileh.root, 'array', [1, 2], title = "Title example")
+
         # For this method to run, it needs a closed file
         fileh.close()
 
@@ -1535,7 +1585,11 @@ class CheckFileTestCase(common.PyTablesTestCase):
         version = isPyTablesFile(file)
         # When file is not a PyTables format, always returns 0 or
         # negative value
-        self.assertTrue(version <= 0)
+        if common.verbose:
+            print
+            print "\nPyTables format version number ==> %s" % \
+              version
+        self.assertTrue(version is None)
 
         # Then, delete the file
         os.remove(file)
@@ -1562,7 +1616,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         ui = fileh.getNode(columns, "pressure", classname="Array")
         self.assertEqual(ui._v_name, "pressure")
         if common.verbose:
-            print "Array object with type H5T_ARRAY -->",repr(ui)
+            print "Array object with type H5T_ARRAY -->", repr(ui)
             print "Array contents -->", ui[:]
 
         # A Table
@@ -1609,7 +1663,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
             UserWarning, fileh.getNode, '/CompoundChunked')
         self.assertEqual(ui._v_name, 'CompoundChunked')
         if common.verbose:
-            print "UnImplement object -->",repr(ui)
+            print "UnImplement object -->", repr(ui)
 
         # Check that it cannot be copied to another file
         file2 = tempfile.mktemp(".h5")
@@ -1653,7 +1707,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         ui = fileh.getNode(fileh.root.columns, "pressure")
         self.assertEqual(ui._v_name, "pressure")
         if common.verbose:
-            print "UnImplement object -->",repr(ui)
+            print "UnImplement object -->", repr(ui)
 
         # Check that it cannot be copied to another file
         file2 = tempfile.mktemp(".h5")
@@ -2014,8 +2068,8 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Test getting a node that does not start with a slash ('/')."""
 
         # Create an array in the root
-        arr = self.h5file.createArray('/', 'array', [1,2],
-                                      title = "Title example")
+        self.h5file.createArray('/', 'array', [1, 2], title = "Title example")
+
         # Get the array without specifying a leading slash
         self.assertRaises(NameError, self.h5file.getNode, "array")
 
@@ -2086,7 +2140,7 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test23_reopenFile(self):
         """Testing reopening a file and closing it several times."""
 
-        node = self.h5file.createArray('/', 'test', [1,2,3])
+        self.h5file.createArray('/', 'test', [1, 2, 3])
         self.h5file.close()
 
         file1 = openFile(self.h5fname, "r")
@@ -2203,6 +2257,26 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                   "flavor of node ``%s`` is not internal: %r"
                                   % (node._v_pathname, node.flavor) )
 
+    def test07_restrict_flavors(self):
+        # regression test for gh-163
+
+        all_flavors = list(tables.flavor.all_flavors)
+        alias_map = tables.flavor.alias_map.copy()
+        converter_map = tables.flavor.converter_map.copy()
+        identifier_map = tables.flavor.identifier_map.copy()
+        description_map = tables.flavor.description_map.copy()
+
+        try:
+            tables.flavor.restrict_flavors(keep=[])
+            self.assertTrue(len(tables.flavor.alias_map) < len(alias_map))
+            self.assertTrue(len(tables.flavor.converter_map) < len(converter_map))
+        finally:
+            tables.flavor.all_flavors[:] = all_flavors[:]
+            tables.flavor.alias_map.update(alias_map)
+            tables.flavor.converter_map.update(converter_map)
+            tables.flavor.identifier_map.update(identifier_map)
+            tables.flavor.description_map.update(description_map)
+
 
 class UnicodeFilename(common.PyTablesTestCase):
     unicode_prefix = u'para\u0140lel'
@@ -2211,7 +2285,7 @@ class UnicodeFilename(common.PyTablesTestCase):
         self.h5fname = tempfile.mktemp(prefix=self.unicode_prefix,
                                        suffix=".h5")
         self.h5file = tables.openFile(self.h5fname, "w")
-        self.test = self.h5file.createArray('/', 'test', [1,2])
+        self.test = self.h5file.createArray('/', 'test', [1, 2])
         # So as to check the reading
         self.h5file.close()
         self.h5file = tables.openFile(self.h5fname, "r")
@@ -2227,8 +2301,8 @@ class UnicodeFilename(common.PyTablesTestCase):
         if common.verbose:
             print "Filename:", self.h5fname
             print "Array:", test[:]
-            print "Should look like:", [1,2]
-        self.assertEqual(test[:], [1,2], "Values does not match.")
+            print "Should look like:", [1, 2]
+        self.assertEqual(test[:], [1, 2], "Values does not match.")
 
     def test02(self):
         """Checking isHDF5File with a Unicode filename."""
@@ -2283,7 +2357,7 @@ def _worker(fn, qout = None):
     rows = fp.root.table.where('(f0 < 10)')
     if common.verbose:
         print "Got the iterator, about to iterate"
-    row = next(rows)
+    next(rows)
     if common.verbose:
         print "Succeeded in one iteration\n"
     fp.close()
@@ -2293,12 +2367,23 @@ def _worker(fn, qout = None):
 
 class BloscSubprocess(common.PyTablesTestCase):
     def test_multiprocess(self):
-        import multiprocessing as mp
+        #From: Yaroslav Halchenko <debian@onerussian.com>
+        #Subject: Skip the unittest on kFreeBSD and Hurd -- locking seems to
+        #         be N/A
+        #
+        #  on kfreebsd /dev/shm is N/A
+        #  on Hurd -- inter-process semaphore locking is N/A
+        import platform
+
+        if platform.system().lower() in ('gnu', 'gnu/kfreebsd'):
+            raise common.SkipTest("multiprocessing module is not supported "
+                                  "on Hurd/kFreeBSD")
 
         # Create a relatively large table with Blosc level 9 (large blocks)
         fn = tempfile.mktemp(prefix="multiproc-blosc9-", suffix=".h5")
         size = int(3e5)
-        sa = numpy.fromiter(((i, i**2, i/3) for i in xrange(size)), 'i4,i8,f8')
+        sa = numpy.fromiter(((i, i**2, i//3)
+                                        for i in xrange(size)), 'i4,i8,f8')
         fp = openFile(fn, 'w')
         fp.createTable(fp.root, 'table', sa,
                        filters=Filters(complevel=9, complib="blosc"),
@@ -2323,12 +2408,265 @@ class BloscSubprocess(common.PyTablesTestCase):
         os.remove(fn)
 
 
+class HDF5ErrorHandling(common.PyTablesTestCase):
+
+    def setUp(self):
+        self._old_policy = tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY
+
+    def tearDown(self):
+        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = self._old_policy
+
+    def test_silence_messages(self):
+        code = """
+import tables
+tables.silenceHDF5Messages(False)
+tables.silenceHDF5Messages()
+try:
+    tables.openFile(r'%s')
+except tables.HDF5ExtError, e:
+    pass
+"""
+
+        fn = tempfile.mktemp(prefix="hdf5-error-handling-", suffix=".py")
+        fp = open(fn, 'w')
+        try:
+            fp.write(code % fn)
+            fp.close()
+
+            p = subprocess.Popen([sys.executable, fn],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            (stdout, stderr) = p.communicate()
+
+            self.assertFalse("HDF5-DIAG" in stderr)
+        finally:
+            os.remove(fn)
+
+    def test_enable_messages(self):
+        code = """
+import tables
+tables.silenceHDF5Messages()
+tables.silenceHDF5Messages(False)
+try:
+    tables.openFile(r'%s')
+except tables.HDF5ExtError, e:
+    pass
+"""
+
+        fn = tempfile.mktemp(prefix="hdf5-error-handling-", suffix=".py")
+        fp = open(fn, 'w')
+        try:
+            fp.write(code % fn)
+            fp.close()
+
+            p = subprocess.Popen([sys.executable, fn],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            (stdout, stderr) = p.communicate()
+
+            self.assertTrue("HDF5-DIAG" in stderr)
+        finally:
+            os.remove(fn)
+
+    def _raise_exterror(self):
+        filename = tempfile.mktemp(".h5")
+        file(filename, 'wb').close()
+
+        try:
+            f = tables.openFile(filename)
+            f.close()
+        finally:
+            os.remove(filename)
+
+    def test_h5_backtrace_quiet(self):
+        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = True
+
+        try:
+            self._raise_exterror()
+        except tables.HDF5ExtError, e:
+            self.assertFalse(e.h5backtrace is None)
+        else:
+            self.fail("HDF5ExtError exception not raised")
+
+    def test_h5_backtrace_verbose(self):
+        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
+
+        try:
+            self._raise_exterror()
+        except tables.HDF5ExtError, e:
+            self.assertFalse(e.h5backtrace is None)
+            msg = str(e)
+            self.assertTrue(e.h5backtrace[-1][-1] in msg)
+        else:
+            self.fail("HDF5ExtError exception not raised")
+
+    def test_h5_backtrace_ignore(self):
+        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = False
+
+        try:
+            self._raise_exterror()
+        except tables.HDF5ExtError, e:
+            self.assertTrue(e.h5backtrace is None)
+        else:
+            self.fail("HDF5ExtError exception not raised")
+
+
+class TestIsDescription(common.PyTablesTestCase):
+    def test_inheritance(self):
+        # Regression test for gh-65
+        class TestDescParent(IsDescription):
+            c = Int32Col()
+
+        class TestDesc(TestDescParent):
+            pass
+
+        self.assertTrue('c' in TestDesc.columns)
+
+    def test_descr_from_dtype(self):
+        t = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        descr, byteorder = descr_from_dtype(t)
+
+        self.assertTrue('col1' in descr._v_colObjects)
+        self.assertTrue('col2' in descr._v_colObjects)
+        self.assertEqual(len(descr._v_colObjects), 2)
+        self.assertTrue(isinstance(descr._v_colObjects['col1'], Col))
+        self.assertTrue(isinstance(descr._v_colObjects['col2'], Col))
+        self.assertEqual(descr._v_colObjects['col1'].dtype, numpy.int16)
+        self.assertEqual(descr._v_colObjects['col2'].dtype, float)
+
+    def test_descr_from_dtype_rich_dtype(self):
+        header = [(('timestamp', 't'), 'u4'),
+                  (('unit (cluster) id', 'unit'),'u2')]
+        t = numpy.dtype(header)
+
+        descr, byteorder = descr_from_dtype(t)
+        self.assertEqual(len(descr._v_names), 2)
+        self.assertEqual(sorted(descr._v_names), ['t', 'unit'])
+
+    def test_dtype_from_descr_is_description(self):
+        # See gh-152
+        class TestDescParent(IsDescription):
+            col1 = Int16Col()
+            col2 = FloatCol()
+
+        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        t = dtype_from_descr(TestDescParent)
+
+        self.assertEqual(t, dtype)
+
+    def test_dtype_from_descr_is_description_instance(self):
+        # See gh-152
+        class TestDescParent(IsDescription):
+            col1 = Int16Col()
+            col2 = FloatCol()
+
+        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        t = dtype_from_descr(TestDescParent())
+
+        self.assertEqual(t, dtype)
+
+    def test_dtype_from_descr_description_instance(self):
+        # See gh-152
+        class TestDescParent(IsDescription):
+            col1 = Int16Col()
+            col2 = FloatCol()
+
+        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        desctiption = Description(TestDescParent().columns)
+        t = dtype_from_descr(desctiption)
+
+        self.assertEqual(t, dtype)
+
+    def test_dtype_from_descr_dict(self):
+        # See gh-152
+        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        t = dtype_from_descr({'col1': Int16Col(), 'col2': FloatCol()})
+
+        self.assertEqual(t, dtype)
+
+    def test_dtype_from_descr_invalid_type(self):
+        # See gh-152
+        self.assertRaises(ValueError, dtype_from_descr, [])
+
+    def test_dtype_from_descr_byteorder(self):
+        # See gh-152
+        class TestDescParent(IsDescription):
+            col1 = Int16Col()
+            col2 = FloatCol()
+
+        t = dtype_from_descr(TestDescParent, byteorder='>')
+
+        self.assertEqual(t['col1'].byteorder, '>')
+        self.assertEqual(t['col2'].byteorder, '>')
+
+
+class TestAtom(common.PyTablesTestCase):
+    def test_atom_attributes01(self):
+        shape = (10, 10)
+        a = Float64Atom(shape=shape)
+
+        self.assertEqual(a.dflt, 0.)
+        self.assertEqual(a.dtype, numpy.dtype((numpy.float64, shape)))
+        self.assertEqual(a.itemsize, a.dtype.base.itemsize)
+        self.assertEqual(a.kind, 'float')
+        self.assertEqual(a.ndim, len(shape))
+        #self.assertEqual(a.recarrtype, )
+        self.assertEqual(a.shape, shape)
+        self.assertEqual(a.size, a.itemsize * numpy.prod(shape))
+        self.assertEqual(a.type, 'float64')
+
+    def test_atom_copy01(self):
+        shape = (10, 10)
+        a = Float64Atom(shape=shape)
+        aa = a.copy()
+        self.assertEqual(aa.shape, shape)
+
+    def test_atom_copy02(self):
+        dflt = 2.0
+        a = Float64Atom(dflt=dflt)
+        aa = a.copy()
+        self.assertEqual(aa.dflt, dflt)
+
+    def test_atom_copy_override(self):
+        shape = (10, 10)
+        dflt = 2.0
+        a = Float64Atom(shape=shape, dflt=dflt)
+        aa = a.copy(dflt=-dflt)
+        self.assertEqual(aa.shape, shape)
+        self.assertNotEqual(aa.dflt, dflt)
+        self.assertEqual(aa.dflt, -dflt)
+
+
+class TestCol(common.PyTablesTestCase):
+    def test_col_copy01(self):
+        shape = (10, 10)
+        c = Float64Col(shape=shape)
+        cc = c.copy()
+        self.assertEqual(cc.shape, shape)
+
+    def test_col_copy02(self):
+        dflt = 2.0
+        c = Float64Col(dflt=dflt)
+        cc = c.copy()
+        self.assertEqual(cc.dflt, dflt)
+
+    def test_col_copy_override(self):
+        shape = (10, 10)
+        dflt = 2.0
+        pos = 3
+        c = Float64Col(shape=shape, dflt=dflt, pos=pos)
+        cc = c.copy(pos=2)
+        self.assertEqual(cc.shape, shape)
+        self.assertEqual(cc.dflt, dflt)
+        self.assertNotEqual(cc._v_pos, pos)
+        self.assertEqual(cc._v_pos, 2)
 
 #----------------------------------------------------------------------
 
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
+    blosc_avail = whichLibVersion("blosc") is not None
 
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(NodeCacheOpenFile))
@@ -2338,8 +2676,14 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscBigEndian))
-        theSuite.addTest(unittest.makeSuite(BloscSubprocess))
+        if blosc_avail:
+            theSuite.addTest(unittest.makeSuite(BloscBigEndian))
+        if multiprocessing_imported:
+            theSuite.addTest(unittest.makeSuite(BloscSubprocess))
+        theSuite.addTest(unittest.makeSuite(HDF5ErrorHandling))
+        theSuite.addTest(unittest.makeSuite(TestIsDescription))
+        theSuite.addTest(unittest.makeSuite(TestAtom))
+        theSuite.addTest(unittest.makeSuite(TestCol))
 
     return theSuite
 

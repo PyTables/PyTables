@@ -19,22 +19,28 @@
 #include "../blosc/blosc.h"
 #include "blosc_filter.h"
 
-
-/* The conditional below is necessary because the THG team has decided
-  to fix an API inconsistency in the definition of the H5Z_class_t
-  structure in version 1.8.3 */
-#if H5_VERS_MAJOR == 1 && H5_VERS_MINOR == 8 && (H5_VERS_RELEASE < 3 || !H5_USE_16_API)
-/* 1.8.x where x >= 3 */
-#define H5Z_16API 0
-#define PUSH_ERR(func, minor, str) H5Epush1(__FILE__, func, __LINE__, H5E_PLINE, minor, str)
-#define GET_FILTER(a,b,c,d,e,f,g) H5Pget_filter_by_id2(a,b,c,d,e,f,g,NULL)
-
+#if H5Epush_vers == 2
+/* 1.8.x */
+#define PUSH_ERR(func, minor, str) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str)
 #else
 /* 1.6.x */
-#define H5Z_16API 1
 #define PUSH_ERR(func, minor, str) H5Epush(__FILE__, func, __LINE__, H5E_PLINE, minor, str)
-#define GET_FILTER H5Pget_filter_by_id
+#endif
 
+#if H5Pget_filter_by_id_vers == 2
+/* 1.8.x */
+#define GET_FILTER(a,b,c,d,e,f,g) H5Pget_filter_by_id(a,b,c,d,e,f,g,NULL)
+#else
+/* 1.6.x */
+#define GET_FILTER H5Pget_filter_by_id
+#endif
+
+#if H5Z_class_t_vers == 2
+/* 1.8.x where x >= 3 */
+#define H5Z_16API 0
+#else
+/* 1.6.x and 1.8.x with x < 3*/
+#define H5Z_16API 1
 #endif
 
 size_t blosc_filter(unsigned flags, size_t cd_nelmts,

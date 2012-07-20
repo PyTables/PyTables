@@ -49,7 +49,7 @@ for c in collections:
     energy_this_collection = t['energy'][cond]
     sener = energy_this_collection.sum()
     coll1.append(sener)
-    print c,' : ', sener
+    print c, ' : ', sener
 del collections, energy_this_collection
 print "Time for first solution: %.3f" % (time()-t1)
 
@@ -71,7 +71,7 @@ for c in sorted(collections):
     energy_this_collection = np.array(collections[c])
     sener = energy_this_collection.sum()
     coll2.append(sener)
-    print c,' : ', sener
+    print c, ' : ', sener
 del collections, energy_this_collection
 print "Time for second solution: %.3f" % (time()-t1)
 
@@ -89,7 +89,7 @@ for c in np.unique(table.col('collection')) :
     energy_this_collection = table.readWhere('collection == c', field='energy')
     sener = energy_this_collection.sum()
     coll3.append(sener)
-    print c,' : ', sener
+    print c, ' : ', sener
 del energy_this_collection
 print "Time for third solution: %.3f" % (time()-t1)
 
@@ -109,7 +109,7 @@ for c in np.unique(table2.col('collection')) :
         'collection == c', field='energy')
     sener = energy_this_collection.sum()
     coll4.append(sener)
-    print c,' : ', sener
+    print c, ' : ', sener
     del energy_this_collection
 print "Time for fourth solution: %.3f" % (time()-t1)
 

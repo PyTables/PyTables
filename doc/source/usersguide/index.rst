@@ -6,14 +6,14 @@ Hierarchical datasets in Python
 -------------------------------
 
 :Authors: **Francesc Alted, Ivan Vilata, Scott Prater, Vicent Mas, Tom Hedley,
-          Antonio Valentino, Jeffrey Whitaker, Anthony Scopatz**
+          Antonio Valentino, Jeffrey Whitaker, Anthony Scopatz, Josh Moore**
 :Copyright: |copy| 2002, 2003, 2004 - Francesc Alted
 
             |copy| 2005, 2006, 2007 - Cárabos Coop. V.
 
             |copy| 2008, 2009, 2010 - Francesc Alted
 
-            |copy| 2011 - PyTables maintainers
+            |copy| 2011-2012 - PyTables maintainers
 
 --------
 Contents

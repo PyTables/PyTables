@@ -1,6 +1,6 @@
 import random
 import tables
-print 'tables.__version__',tables.__version__
+print 'tables.__version__', tables.__version__
 
 nrows=10000-1
 
@@ -14,7 +14,7 @@ table = h5file.createTable(h5file.root, 'distance_table', Distance,
 r = table.row
 for i in range(nrows):
     #r['frame'] = nrows-i
-    r['frame'] = random.randint(0,nrows)
+    r['frame'] = random.randint(0, nrows)
     r['distance'] = float(i**2)
     r.append()
 table.flush()

@@ -2,6 +2,8 @@ import sys
 import unittest
 import os
 
+import numpy
+
 from tables import *
 from tables.tests import common
 
@@ -15,6 +17,10 @@ class Record(IsDescription):
     var3 = Col.from_kind('int', itemsize=2) # short integer
     var4 = Col.from_kind('float') # double (double-precision)
     var5 = Col.from_kind('float', itemsize=4) # float  (single-precision)
+    var6 = Col.from_kind('complex') # double-precision
+    var7 = Col.from_kind('complex', itemsize=8) # single-precision
+    if hasattr(numpy, "float16"):
+        var8 = Col.from_kind('float', itemsize=2) # half-precision
 
 
 class RangeTestCase(unittest.TestCase):
@@ -51,6 +57,10 @@ class RangeTestCase(unittest.TestCase):
         rec['var3'] = i
         rec['var4'] = float(i)
         rec['var5'] = float(i)
+        rec['var6'] = float(i)
+        rec['var7'] = complex(i, i)
+        if hasattr(numpy, "float16"):
+            rec['var8'] = float(i)
         try:
             rec.append()
         except ValueError:
@@ -83,6 +93,10 @@ class RangeTestCase(unittest.TestCase):
         else:
             print rec
             self.fail("expected a TypeError")
+        rec['var6'] = float(i)
+        rec['var7'] = complex(i, i)
+        if hasattr(numpy, "float16"):
+            rec['var8'] = float(i)
 
 
 # Check the dtype read-only attribute
@@ -101,17 +115,17 @@ class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test01_array(self):
         """Check dtype accessor for Array objects"""
-        a = self.h5file.createArray('/', 'array', [1,2])
+        a = self.h5file.createArray('/', 'array', [1, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test02_carray(self):
         """Check dtype accessor for CArray objects"""
-        a = self.h5file.createCArray('/', 'array', FloatAtom(), [1,2])
+        a = self.h5file.createCArray('/', 'array', FloatAtom(), [1, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test03_carray(self):
         """Check dtype accessor for EArray objects"""
-        a = self.h5file.createEArray('/', 'array', FloatAtom(), [0,2])
+        a = self.h5file.createEArray('/', 'array', FloatAtom(), [0, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test04_vlarray(self):
@@ -119,6 +133,52 @@ class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         a = self.h5file.createVLArray('/', 'array', FloatAtom())
         self.assertEqual(a.dtype, a.atom.dtype)
 
+
+class ReadFloatTestCase(common.PyTablesTestCase):
+    filename = "float.h5"
+    nrows = 6
+    ncols = 5
+
+    def setUp(self):
+        self.fileh = openFile(self._testFilename(self.filename), mode="r")
+        x = numpy.arange(self.ncols)
+        y = numpy.arange(self.nrows)
+        y.shape = (self.nrows, 1)
+        self.values = x + y
+
+    def tearDown(self):
+        self.fileh.close()
+
+    def test01_read_float16(self):
+        dtype = "float16"
+        if hasattr(numpy, dtype):
+            ds = getattr(self.fileh.root, dtype)
+            self.assertFalse(isinstance(ds, UnImplemented))
+            self.assertEqual(ds.shape, (self.ncols, self.nrows))
+            self.assertEqual(ds.dtype, dtype)
+            data = ds.read()
+            common.allequal(data, self.values)
+        else:
+            ds = self.assertWarns(UserWarning, getattr, self.fileh.root, dtype)
+            self.assertTrue(isinstance(ds, UnImplemented))
+
+    def test02_read_float32(self):
+        dtype = "float32"
+        ds = getattr(self.fileh.root, dtype)
+        self.assertFalse(isinstance(ds, UnImplemented))
+        self.assertEqual(ds.shape, (self.ncols, self.nrows))
+        self.assertEqual(ds.dtype, dtype)
+        data = ds.read()
+        common.allequal(data, self.values)
+
+    def test03_read_float64(self):
+        dtype = "float64"
+        ds = getattr(self.fileh.root, dtype)
+        self.assertFalse(isinstance(ds, UnImplemented))
+        self.assertEqual(ds.shape, (self.ncols, self.nrows))
+        self.assertEqual(ds.dtype, dtype)
+        data = ds.read()
+        common.allequal(data, self.values)
 
 #----------------------------------------------------------------------
 
@@ -132,6 +192,7 @@ def suite():
         theSuite.addTest(doctest.DocTestSuite(tables.atom))
         theSuite.addTest(unittest.makeSuite(RangeTestCase))
         theSuite.addTest(unittest.makeSuite(DtypeTestCase))
+        theSuite.addTest(unittest.makeSuite(ReadFloatTestCase))
 
     return theSuite
 

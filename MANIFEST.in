@@ -3,7 +3,6 @@ include *.txt THANKS
 include setup.py setup.cfg VERSION Makefile
 
 recursive-include tables *.py *.pyx *.pxd *.pxi *.c
-exclude tables/linkExtension.pyx   # depends on the HDF5 version
 recursive-include tables/tests *.h5
 recursive-include tables/nodes/tests *.h5 *.dat *.xbm
 recursive-include src *.c *.h Makefile
@@ -11,14 +10,10 @@ recursive-include blosc *.c *.h
 
 recursive-include LICENSES *
 recursive-include utils *
-recursive-include doc *.txt *.pdf *.html *.css *.png Makefile make.bat
+recursive-include doc *.rst *.pdf *.html *.js *.css *.*_t *.png *.ico *.conf *.py Makefile make.bat
 recursive-include doc/scripts *.py
 recursive-include doc/sphinxext *
 recursive-exclude doc/build *
 recursive-include examples *.py *.sh
-recursive-include bench *.sh *.py *.txt
+recursive-include bench *.sh *.py *.txt *.h5 *.gnuplot
 recursive-include contrib README *.py
-# Including the debian/ directory is considered bad practice.  See:
-# http://newpeople.debian.org/~mpalmer/debian-mentors_FAQ.html
-# recursive-include debian *
-# recursive-exclude debian *.in

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #export LD_LIBRARY_PATH=$HOME/computacio/hdf5-1.8.2/hdf5/lib
-export PYTHONPATH=..:$PYTHONPATH
+export PYTHONPATH=..${PYTHONPATH:+:$PYTHONPATH}
 
 bench="python2.7 -O -u indexed_search.py"
 flags="-T -m -v "

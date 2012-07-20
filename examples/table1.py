@@ -41,12 +41,12 @@ table.append([("Particle:     10", 10, 0, 10*10, 10**2),
               ("Particle:     12", 12, -2, 12*12, 12**2)])
 
 group = fileh.root.newgroup
-print "Nodes under group", group,":"
+print "Nodes under group", group, ":"
 for node in fileh.listNodes(group):
     print node
 print
 
-print "Leaves everywhere in file", fileh.filename,":"
+print "Leaves everywhere in file", fileh.filename, ":"
 for leaf in fileh.walkNodes(classname="Leaf"):
     print leaf
 print

@@ -470,7 +470,7 @@ You can pass the :option:`-v` or
 want more verbosity. Try them out!
 
 Also, in :ref:`Figure 1 <tutorial1-1-tableview>`, you can admire how the
-tutorial1.h5 looks like using the `ViTables <http://www.vitables.org>`_ graphical interface.
+tutorial1.h5 looks like using the `ViTables <http://vitables.org>`_ graphical interface.
 
 .. _tutorial1-1-tableview:
 
@@ -832,12 +832,9 @@ instance variables. Let's take a look at some examples::
     name := |S16, ()
     pressure := float32, ()
 
-Here, the name, title,
-nrows, colnames and
-coldtypes attributes (see :ref:`TableInstanceVariablesDescr`
-for a complete attribute list) of the Table
-object gives us quite a bit of information about the table
-data.
+Here, the name, title, nrows, colnames and coldtypes attributes (see
+:class:`Table` for a complete attribute list) of the Table object gives us
+quite a bit of information about the table data.
 
 You can interactively retrieve general information about the
 public objects in PyTables by asking for help::
@@ -932,13 +929,11 @@ natural naming and completion capabilities present in most Python
 consoles, and see how pleasant it is to browse the object tree
 (well, as pleasant as such an activity can be).
 
-If you look at the type attribute of the
-pressureObject object, you can verify that it is
-a "*float64*" array. By looking at its
-shape attribute, you can deduce that the array on
-disk is unidimensional and has 3 elements. See :ref:`ArrayClassInstanceVariables`
-or the internal doc strings for the complete
-Array attribute list.
+If you look at the type attribute of the pressureObject object, you can
+verify that it is a "*float64*" array. By looking at its shape attribute,
+you can deduce that the array on disk is unidimensional and has 3 elements.
+See :class:`Array` or the internal doc strings for the complete Array
+attribute list.
 
 Reading data from Array objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1141,10 +1136,12 @@ iterators. Look at the next example::
      (512, 2, 4.0, 2, 8, 34359738368L, 'Particle:      2', 4.0)
      (768, 3, 6561.0, 3, 7, 51539607552L, 'Particle:      3', 9.0)]
 
-.. note:: The authors find this way of
-          updating tables (i.e. using Row.update()) to be
-          both convenient and efficient. Please make sure to use it
-          extensively.
+.. note::
+
+    The authors find this way of updating tables (i.e. using Row.update())
+    to be both convenient and efficient. Please make sure to use it
+    extensively.
+
 
 Modifying data in arrays
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1478,10 +1475,9 @@ In particular, note the multidimensional column cells in table
 Using links for more convenient access to nodes
 -----------------------------------------------
 
-Links are special nodes that can be used to create additional
-paths to your existing nodes.  PyTables supports three kinds of links:
-hard links, soft links (aka symbolic links) and, if using HDF5 1.8.x,
-external links.
+Links are special nodes that can be used to create additional paths to your
+existing nodes.  PyTables supports three kinds of links:
+hard links, soft links (aka symbolic links) and external links.
 
 Hard links let the user create additional paths to access
 another node in the same file, and once created, they are
@@ -1618,33 +1614,11 @@ the a1 array into a different file::
     >>> new_a1 = a1.copy(f2.root, 'a1')
     >>> f2.close()  # close the other file
 
-And now, we can remove the existing soft link and create the
-external link in its place::
+And now, we can remove the existing soft link and create the external link
+in its place::
 
     >>> la1.remove()
     >>> la1 = f1.createExternalLink(gl, 'la1', 'links2.h5:/a1')
-    /home/faltet/PyTables/pytables/branches/links/tables/file.py:971:
-    Incompat16Warning: external links are only supported when PyTables is compiled
-    against HDF5 1.8.x series and they, and their parent groups, are unreadable
-    with HDF5 1.6.x series.  You can set `warn16incompat` argument to false to
-    disable this warning.
-      Incompat16Warning)
-
-First, you should notice the warning when creating the
-external link: due to the need to change the format of the group
-containing an external link (introduced in HDF5 1.8), the parent
-groups (and hence, *all* its children) of
-external links are not readable with applications linked with HDF5
-1.6.x.  You should have this in mind if interoperability is
-important to you.  At any rate, you can disable the warning by
-setting the warn16incompat argument to true.
-See :meth:`File.createExternalLink`
-for more info.
-
-But, when using HDF5 1.8.x (I'm supposing that you are using
-it for exercising this part of the tutorial), the external link is
-completely functional::
-
     >>> print "``%s`` is an external link to: ``%s``" % (la1, la1.target)
     ``/gl/la1 (ExternalLink) -> links2.h5:/a1`` is an external link to: ``links2.h5:/a1``
 
@@ -2291,7 +2265,7 @@ hierarchy.
 Reading nested tables
 ~~~~~~~~~~~~~~~~~~~~~
 
-Now, what happens if we want to read the table? What kind of
+Now, what happens if we want to read the table? What kind oft
 data container will we get? Well, it's worth trying it::
 
     >>> nra = table[::4]
@@ -2309,12 +2283,13 @@ datatype* (its dtype is a list of
 name-datatype tuples). We read one row for each four in the table,
 giving a result of three rows.
 
-.. note:: When using the numarray flavor (deprecated), you will get an
-          instance of the NestedRecArray class that lives in the tables.nra
-          package.
-          NestedRecArray is actually a subclass of the RecArray object of the
-          numarray.records module. You can get more info about NestedRecArray
-          object in :ref:`NestedRecArrayClassDescr`.
+.. note::
+
+    When using the numarray flavor (deprecated), you will get an instance of
+    the NestedRecArray class that lives in the tables.nra package.
+    NestedRecArray is actually a subclass of the RecArray object of the
+    numarray.records module. You can get more info about NestedRecArray object
+    in :ref:`NestedRecArrayClassDescr`.
 
 You can make use of the above object in many different ways.
 For example, you can use it to append new data to the existing table
@@ -2446,9 +2421,8 @@ Description object, because the levels are
 *also* Description objects
 themselves.
 
-There is a special attribute, called
-_v_nestedDescr, that can be useful to create
-nested record arrays that imitate the structure of the table (or a
+There is a special attribute, called _v_nestedDescr, that can be useful to
+create nested structured arrays that imitate the structure of the table (or a
 subtable thereof)::
 
     >>> import numpy

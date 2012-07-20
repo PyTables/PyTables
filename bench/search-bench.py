@@ -18,9 +18,9 @@ randomvalues = 0
 worst=0
 
 Small = {
-    "var1" : StringCol(itemsize=4, dflt="Hi!", pos=2),
-    "var2" : Int32Col(pos=1),
-    "var3" : Float64Col(pos=0),
+    "var1": StringCol(itemsize=4, dflt="Hi!", pos=2),
+    "var2": Int32Col(pos=1),
+    "var3": Float64Col(pos=0),
     #"var4" : BoolCol(),
     }
 
@@ -63,7 +63,7 @@ def createNewBenchFile(bfile, verbose):
         # Create a Table for writing bench
         bf.createTable(group, "create_best", Create, "best case")
         bf.createTable(group, "create_worst", Create, "worst case")
-        for case in ["best","worst"]:
+        for case in ["best", "worst"]:
             # create a group for searching bench (best case)
             groupS = bf.createGroup(group, "search_"+case, "Search Group")
             # Create Tables for searching
@@ -111,8 +111,8 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     rowswritten += nrows
     time1 = time.time()-t1
     tcpu1 = time.clock()-cpu1
-    print "Time for filling:", round(time1,3),\
-          "Krows/s:", round(nrows/1000./time1,3),
+    print "Time for filling:", round(time1, 3),\
+          "Krows/s:", round(nrows/1000./time1, 3),
     fileh.close()
     size1 = os.stat(filename)[6]
     print ", File size:", round(size1/(1024.*1024.), 3), "MB"
@@ -130,8 +130,8 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
             table.colinstances[colname].createIndex(filters=filters)
         time2 = time.time()-t1
         tcpu2 = time.clock()-cpu1
-        print "Time for indexing:", round(time2,3), \
-              "iKrows/s:", round(indexrows/1000./time2,3),
+        print "Time for indexing:", round(time2, 3), \
+              "iKrows/s:", round(indexrows/1000./time2, 3),
     else:
         indexrows = 0
         time2 = 0.0000000001  # an ugly hack
@@ -156,7 +156,7 @@ def benchCreate(file, nrows, filters, index, bfile, heavy,
                 psyco, noise, verbose):
 
     # Open the benchfile in append mode
-    bf = openFile(bfile,"a")
+    bf = openFile(bfile, "a")
     recsize = "small"
     if worst:
         table = bf.getNode("/"+recsize+"/create_worst")
@@ -192,7 +192,7 @@ def benchCreate(file, nrows, filters, index, bfile, heavy,
     tpercent = int(round(cpuidxrows/tidxrows, 2)*100)
     print "Rows indexed:", irows, " (IMRows):", irows / float(10**6)
     print "Time indexing rows: %s s (real) %s s (cpu)  %s%%" % \
-          (round(tidxrows,3), cpuidxrows, tpercent)
+          (round(tidxrows, 3), cpuidxrows, tpercent)
     rowseci = irows / tidxrows
     table.row["rowseci"] = rowseci
     table.row.append()
@@ -268,7 +268,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
                 results = [p.nrow for p in table
                            if float(rnd) <= p["var3"] < float(val)]
         else:
-            raise ValueError, "Value for atom '%s' not supported." % atom
+            raise ValueError("Value for atom '%s' not supported." % atom)
         rowselected += len(results)
         #print "selected values-->", results
         if i == 0:
@@ -309,7 +309,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
 def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
 
     # Open the benchfile in append mode
-    bf = openFile(bfile,"a")
+    bf = openFile(bfile, "a")
     recsize = "small"
     if worst:
         tableparent = "/"+recsize+"/search_worst/"+indexmode+"/"
@@ -349,7 +349,7 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
         sKrows = rowsel / 1000.
         if atom == "string": # just to print once
             print "Rows read:", rowsr, "Mread:", round(tMrows, 6), "Mrows"
-        print "Rows selected:", rowsel, "Ksel:", round(sKrows,6), "Krows"
+        print "Rows selected:", rowsel, "Ksel:", round(sKrows, 6), "Krows"
         print "Time selecting (1st time): %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)
         if riter > 1:
@@ -411,7 +411,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1:
+    if len(pargs) != 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -466,7 +466,7 @@ if __name__=="__main__":
         elif option[0] == '-m':
             indexmode = option[1]
             if indexmode not in supported_imodes:
-                raise ValueError, "Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode)
+                raise ValueError("Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode))
         elif option[0] == '-n':
             nrows = int(float(option[1])*1000)
         elif option[0] == '-N':

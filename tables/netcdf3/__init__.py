@@ -93,6 +93,7 @@ Version: 20051110
 """
 __version__ = '20051110'
 
+import math
 import warnings
 warnings.warn('The tables.netcdf3 is not actively maintained anymore. '
               'This module is deprecated and will be removed in the future '
@@ -121,14 +122,14 @@ else:
 import tables
 
 # dictionary that maps pytables types to single-character Numeric typecodes.
-_typecode_dict = {'float64':'d',
-                  'float32':'f',
-                  'int32':'i',
-                  'int16':'s',
-                  'int8':'1',
-                  'string':'c',
-                  'complex64':'F',
-                  'complex128':'D',
+_typecode_dict = {'float64': 'd',
+                  'float32': 'f',
+                  'int32': 'i',
+                  'int16': 's',
+                  'int8': '1',
+                  'string': 'c',
+                  'complex64': 'F',
+                  'complex128': 'D',
                   }
 
 # The reverse typecode dict
@@ -155,19 +156,19 @@ _fillvalue_dict = {'f': 9.9692099683868690e+36,
                    '1': -127,   # (signed char)-127
                    'c': chr(0)} # (char)0
 
-def quantize(data,least_significant_digit):
+def quantize(data, least_significant_digit):
     """quantize data to improve compression.
     data is quantized using around(scale*data)/scale,
     where scale is 2**bits, and bits is determined from
     the least_significant_digit.
     For example, if least_significant_digit=1, bits will be 4."""
     precision = 10.**-least_significant_digit
-    exp = math.log(precision,10)
+    exp = math.log(precision, 10)
     if exp < 0:
         exp = int(math.floor(exp))
     else:
         exp = int(math.ceil(exp))
-    bits = math.ceil(math.log(10.**-exp,2))
+    bits = math.ceil(math.log(10.**-exp, 2))
     scale = 2.**bits
     return numpy.around(scale*data)/scale
 
@@ -209,34 +210,36 @@ class NetCDFFile:
             self.dimensions = {}
             self.variables = {}
             for var in self._NetCDF_h5file.root:
-                if not isinstance(var,tables.CArray) and not isinstance(var,tables.EArray):
-                    print 'object',var,'is not a EArray or CArray, skipping ..'
+                if not isinstance(var, tables.CArray) and not isinstance(var, tables.EArray):
+                    print 'object', var, 'is not a EArray or CArray, skipping ..'
                     continue
-                if var.atom.type not in _typecode_dict.keys():
-                    print 'object',var.name,'is not a supported datatype (',var.atom.type,'), skipping ..'
+                if var.atom.type not in _typecode_dict:
+                    print 'object', var.name, 'is not a supported datatype (', var.atom.type, '), skipping ..'
                     continue
-                if var.attrs.__dict__.has_key('dimensions'):
+                if 'dimensions' in var.attrs.__dict__:
                     n = 0
                     for dim in var.attrs.__dict__['dimensions']:
                         if var.extdim >= 0 and n == var.extdim:
                             val=None
                         else:
                             val=int(var.shape[n])
-                        if not self.dimensions.has_key(dim):
+                        if dim not in self.dimensions:
                             self.dimensions[dim] = val
                         else:
                             # raise an exception of a dimension of that
                             # name has already been encountered with a
                             # different value.
                             if self.dimensions[dim] != val:
-                                raise KeyError,'dimension lengths not consistent'
+                                raise KeyError(
+                                        'dimension lengths not consistent')
                         n = n + 1
                 else:
-                    print 'object',var.name,'does not have a dimensions attribute, skipping ..'
+                    print 'object', var.name, 'does not have a dimensions attribute, skipping ..'
                     continue
-                self.variables[var.name]=_NetCDFVariable(var,self)
+                self.variables[var.name]=_NetCDFVariable(var, self)
             if len(self.variables.keys()) == 0:
-                raise IOError, 'file does not contain any objects compatible with tables.netcdf3'
+                raise IOError('file does not contain any objects compatible '
+                              'with tables.netcdf3')
         else:
         # initialize dimension and variable dictionaries for a new file.
             self.dimensions = {}
@@ -246,7 +249,7 @@ class NetCDFFile:
             if history != None:
                 self.history = history
 
-    def createDimension(self,dimname,size):
+    def createDimension(self, dimname, size):
         """Creates a new dimension with the given "dimname" and
         "size". "size" must be a positive integer or 'None',
         which stands for the unlimited dimension. There can
@@ -254,7 +257,7 @@ class NetCDFFile:
         self.dimensions[dimname] = size
         # make sure there is only one unlimited dimension.
         if self.dimensions.values().count(None) > 1:
-            raise ValueError, 'only one unlimited dimension allowed!'
+            raise ValueError('only one unlimited dimension allowed!')
 
     def createVariable(self,varname,datatype,dimensions,least_significant_digit=None,expectedsize=1000,filters=None):
         """Creates a new variable with the given "varname", "datatype", and
@@ -294,7 +297,7 @@ class NetCDFFile:
         The return value is the NetCDFVariable object describing the
         new variable."""
         # create NetCDFVariable instance.
-        var = NetCDFVariable(varname,self,datatype,dimensions,least_significant_digit=least_significant_digit,expectedsize=expectedsize,filters=filters)
+        var = NetCDFVariable(varname, self, datatype, dimensions, least_significant_digit=least_significant_digit, expectedsize=expectedsize, filters=filters)
         # update shelf variable dictionary, global variable
         # info dict.
         self.variables[varname] = var
@@ -315,7 +318,7 @@ class NetCDFFile:
         # find max length of unlimited dimension.
         len_unlim_dims = []
         hasunlimdim = False
-        for varname,var in self.variables.iteritems():
+        for varname, var in self.variables.iteritems():
             if var.extdim >= 0:
                 hasunlimdim = True
                 len_unlim_dims.append(var.shape[var.extdim])
@@ -327,7 +330,7 @@ class NetCDFFile:
         # fill in variables that have an unlimited
         # dimension with _FillValue if they have fewer
         # entries along unlimited dimension than the max.
-        for varname,var in self.variables.iteritems():
+        for varname, var in self.variables.iteritems():
             len_var = var.shape[var.extdim]
             if var.extdim >= 0 and len_var < len_max:
                 shp = list(var.shape)
@@ -343,7 +346,7 @@ class NetCDFFile:
         info.append('dimensions:\n')
         n = 0
         len_unlim = int(self.sync())
-        for key,val in self.dimensions.iteritems():
+        for key, val in self.dimensions.iteritems():
             if val == None:
                 size = len_unlim
                 info.append('    '+key+' = UNLIMITED ; // ('+repr(size)+' currently)\n')
@@ -357,31 +360,31 @@ class NetCDFFile:
             type = _reprtype_dict[var.typecode()]
             info.append('    '+type+' '+varname+str(dim)+' ;\n')
             for key in var.ncattrs():
-                val = getattr(var,key)
+                val = getattr(var, key)
                 info.append('        '+varname+':'+key+' = '+repr(val)+' ;\n')
         info.append('// global attributes:\n')
         for key in self.ncattrs():
-            val = getattr(self,key)
+            val = getattr(self, key)
             info.append('        :'+key+' = '+repr(val)+' ;\n')
         info.append('}')
         return ''.join(info)
 
-    def __setattr__(self,name,value):
+    def __setattr__(self, name, value):
         # if name = 'dimensions', 'variables', or begins with
         # '_NetCDF_', it is a temporary at the python level
         # (not stored in the hdf5 file).
-        if not name.startswith('_') and name not in ['dimensions','variables']:
-            setattr(self._NetCDF_h5file.root._v_attrs,name,value)
+        if not name.startswith('_') and name not in ['dimensions', 'variables']:
+            setattr(self._NetCDF_h5file.root._v_attrs, name, value)
         elif not name.endswith('__'):
             self.__dict__[name]=value
 
-    def __getattr__(self,name):
+    def __getattr__(self, name):
         if name.startswith('__') and name.endswith('__'):
             raise AttributeError
-        elif name.startswith('_NetCDF_') or name in ['dimensions','variables']:
+        elif name.startswith('_NetCDF_') or name in ['dimensions', 'variables']:
             return self.__dict__[name]
         else:
-            if self.__dict__.has_key(name):
+            if name in self.__dict__:
                 return self.__dict__[name]
             else:
                 return self._NetCDF_h5file.root._v_attrs.__dict__[name]
@@ -402,42 +405,46 @@ class NetCDFFile:
         if not ScientificIONetCDF_imported or not Numeric_imported:
             print 'Scientific.IO.NetCDF and Numeric must be installed to convert to NetCDF'
             return
-        ncfile = RealNetCDF.NetCDFFile(filename,'w')
+        ncfile = RealNetCDF.NetCDFFile(filename, 'w')
         # create dimensions.
-        for dimname,size in self.dimensions.iteritems():
-            ncfile.createDimension(dimname,size)
+        for dimname, size in self.dimensions.iteritems():
+            ncfile.createDimension(dimname, size)
         # create global attributes.
         for key in self.ncattrs():
-            setattr(ncfile,key,getattr(self,key))
+            setattr(ncfile, key, getattr(self, key))
         # create variables.
-        for varname,varin in self.variables.iteritems():
+        for varname, varin in self.variables.iteritems():
             packvar = False
             dims = varin.dimensions
             dimsizes = [self.dimensions[dim] for dim in dims]
             if None in dimsizes:
                 if dimsizes.index(None) != 0:
-                    raise ValueError,'unlimited or enlargeable dimension must be most significant (slowest changing, or first) one in order to convert to a true netCDF file'
-            if packshort and scale_factor.has_key(varname) and add_offset.has_key(varname):
+                    raise ValueError('unlimited or enlargeable dimension must '
+                                     'be most significant (slowest changing, '
+                                     'or first) one in order to convert to a '
+                                     'true netCDF file')
+            if packshort and varname in scale_factor and varname in add_offset:
                 print 'packing %s as short integers ...'%(varname)
                 datatype = 's'
                 packvar = True
             else:
                 datatype = varin.typecode()
             if not _netcdftype_dict[datatype]:
-                raise ValueError,'datatype not supported in netCDF, cannot convert to a true netCDF file'
+                raise ValueError('datatype not supported in netCDF, cannot '
+                                 'convert to a true netCDF file')
 
-            varout = ncfile.createVariable(varname,datatype,dims)
+            varout = ncfile.createVariable(varname, datatype, dims)
             for key in varin.ncattrs():
-                setattr(varout,key,getattr(varin,key))
+                setattr(varout, key, getattr(varin, key))
                 if packvar:
-                    setattr(varout,'scale_factor',scale_factor[varname])
-                    setattr(varout,'add_offset',add_offset[varname])
+                    setattr(varout, 'scale_factor', scale_factor[varname])
+                    setattr(varout, 'add_offset', add_offset[varname])
             for n in range(varin.shape[0]):
                 if packvar:
                     varout[n] = ((1./scale_factor[varname])*(varin[n] - add_offset[varname])).astype('s')
                 else:
                     if datatype == 'c':
-                        tmp = Numeric.array(varin[n].flatten(),'c')
+                        tmp = Numeric.array(varin[n].flatten(), 'c')
                         varout[n] = Numeric.reshape(tmp, varin.shape[1:])
                     else:
                         varout[n] = varin[n]
@@ -458,44 +465,43 @@ class NetCDFFile:
         if not ScientificIONetCDF_imported or not Numeric_imported:
             print 'Scientific.IO.NetCDF and Numeric must be installed to convert from NetCDF'
             return
-        ncfile = RealNetCDF.NetCDFFile(filename,'r')
+        ncfile = RealNetCDF.NetCDFFile(filename, 'r')
         # create dimensions.
         hasunlimdim = False
-        for dimname,size in ncfile.dimensions.iteritems():
-            self.createDimension(dimname,size)
+        for dimname, size in ncfile.dimensions.iteritems():
+            self.createDimension(dimname, size)
             if size == None:
                 hasunlimdim = True
-                unlimdim = dimname
         # create variables.
-        for varname,ncvar in ncfile.variables.iteritems():
-            if hasattr(ncvar,'least_significant_digit'):
+        for varname, ncvar in ncfile.variables.iteritems():
+            if hasattr(ncvar, 'least_significant_digit'):
                 lsd = ncvar.least_significant_digit
             else:
                 lsd = None
-            if unpackshort and hasattr(ncvar,'scale_factor') and hasattr(ncvar,'add_offset'):
+            if unpackshort and hasattr(ncvar, 'scale_factor') and hasattr(ncvar, 'add_offset'):
                 dounpackshort = True
                 datatype = 'f'
             else:
                 dounpackshort = False
                 datatype = ncvar.typecode()
-            var = self.createVariable(varname,datatype,ncvar.dimensions,least_significant_digit=lsd,filters=filters)
-            for key,val in ncvar.__dict__.iteritems():
-                if dounpackshort and key in ['add_offset','scale_factor']: continue
+            var = self.createVariable(varname, datatype, ncvar.dimensions, least_significant_digit=lsd, filters=filters)
+            for key, val in ncvar.__dict__.iteritems():
+                if dounpackshort and key in ['add_offset', 'scale_factor']: continue
                 if dounpackshort and key == 'missing_value': val=1.e30
                 # convert rank-0 Numeric array.to python float/int/string
-                if isinstance(val,type(Numeric.array([1]))) and len(val)==1:
+                if isinstance(val, type(Numeric.array([1]))) and len(val)==1:
                     val = val[0]
-                setattr(var,key,val)
+                setattr(var, key, val)
         # fill variables with data.
         nobjects = 0; nbytes = 0  # Initialize counters
-        for varname,ncvar in ncfile.variables.iteritems():
+        for varname, ncvar in ncfile.variables.iteritems():
             var = self.variables[varname]
             extdim = var._NetCDF_varobj.extdim
             if extdim >= 0:
                 hasunlimdim = True
             else:
                 hasunlimdim = False
-            if unpackshort and hasattr(ncvar,'scale_factor') and hasattr(ncvar,'add_offset'):
+            if unpackshort and hasattr(ncvar, 'scale_factor') and hasattr(ncvar, 'add_offset'):
                 dounpackshort = True
             else:
                 dounpackshort = False
@@ -521,7 +527,7 @@ class NetCDFFile:
                         tmpdata = (ncvar.scale_factor*idata+ncvar.add_offset).astype('f')
                     else:
                         tmpdata = idata
-                    if hasattr(ncvar,'missing_value'):
+                    if hasattr(ncvar, 'missing_value'):
                         tmpdata = Numeric.where(idata >= ncvar.missing_value, 1.e30, tmpdata)
                     var.append(tmpdata)
             else:
@@ -530,7 +536,7 @@ class NetCDFFile:
                     tmpdata = (ncvar.scale_factor*idata+ncvar.add_offset).astype('f')
                 else:
                     tmpdata = idata
-                if hasattr(ncvar,'missing_value'):
+                if hasattr(ncvar, 'missing_value'):
                     tmpdata = Numeric.where(idata >= ncvar.missing_value, 1.e30, tmpdata)
                 if ncvar.typecode() == 'c':
                     # numpy string arrays with itemsize=1 used for netCDF char arrays.
@@ -541,16 +547,16 @@ class NetCDFFile:
                     var[:] = tmpdata
             # Increment the counters
             nobjects += 1
-            nbytes += reduce(lambda x,y:x*y, var._NetCDF_varobj.shape) * var._NetCDF_varobj.atom.itemsize
+            nbytes += reduce(lambda x, y:x*y, var._NetCDF_varobj.shape) * var._NetCDF_varobj.atom.itemsize
         # create global attributes.
-        for key,val in ncfile.__dict__.iteritems():
+        for key, val in ncfile.__dict__.iteritems():
             # convert Numeric rank-0 array to a python float/int/string
-            if isinstance(val,type(Numeric.array([1]))) and len(val)==1:
+            if isinstance(val, type(Numeric.array([1]))) and len(val)==1:
                 val = val[0]
             # if attribute is a Numeric array, convert to python list.
-            if isinstance(val,type(Numeric.array([1]))) and len(val)>1:
+            if isinstance(val, type(Numeric.array([1]))) and len(val)>1:
                 val = val.tolist()
-            setattr(self,key,val)
+            setattr(self, key, val)
         # close file.
         ncfile.close()
         self.sync()
@@ -580,8 +586,9 @@ class NetCDFVariable:
     """
 
     def __init__(self, varname, NetCDFFile, datatype, dimensions, least_significant_digit=None,expectedsize=1000,filters=None):
-        if datatype not in _netcdftype_dict.keys():
-            raise ValueError, 'datatype must be one of %s'%_netcdftype_dict.keys()
+        if datatype not in _netcdftype_dict:
+            raise ValueError('datatype must be one of %s' %
+                                                _netcdftype_dict.keys())
         self._NetCDF_parent = NetCDFFile
         _NetCDF_FillValue = _fillvalue_dict[datatype]
         vardimsizes = []
@@ -605,7 +612,7 @@ class NetCDFVariable:
             atom = tables.Atom.from_type(type_)
         if filters is None:
             # default filters instance.
-            filters = tables.Filters(complevel=6,complib='zlib',shuffle=1)
+            filters = tables.Filters(complevel=6, complib='zlib', shuffle=1)
         if extdim >= 0:
             # check that unlimited dimension is first (extdim=0).
             #if extdim != 0:
@@ -613,15 +620,15 @@ class NetCDFVariable:
             # enlargeable dimension, use EArray
             self._NetCDF_varobj = NetCDFFile._NetCDF_h5file.createEArray(
                            where=NetCDFFile._NetCDF_h5file.root,
-                           name=varname,atom=atom,shape=tuple(vardimsizes),
-                           title=varname,filters=filters,
+                           name=varname, atom=atom, shape=tuple(vardimsizes),
+                           title=varname, filters=filters,
                            expectedrows=expectedsize)
         else:
             # no enlargeable dimension, use CArray
             self._NetCDF_varobj = NetCDFFile._NetCDF_h5file.createCArray(
                            where=NetCDFFile._NetCDF_h5file.root,
-                           name=varname,atom=atom,shape=tuple(vardimsizes),
-                           title=varname,filters=filters)
+                           name=varname, atom=atom, shape=tuple(vardimsizes),
+                           title=varname, filters=filters)
             # fill with _FillValue
             if datatype == 'c':
                 # numpy string arrays with itemsize=1 used for char arrays.
@@ -635,39 +642,40 @@ class NetCDFVariable:
         if least_significant_digit != None:
             setattr(self._NetCDF_varobj.attrs, 'least_significant_digit',
                     least_significant_digit)
-        setattr(self._NetCDF_varobj.attrs,'dimensions',dimensions)
+        setattr(self._NetCDF_varobj.attrs, 'dimensions', dimensions)
         self._NetCDF_FillValue = _NetCDF_FillValue
 
-    def __setitem__(self,key,data):
-        if hasattr(self,'least_significant_digit'):
-            self._NetCDF_varobj[key] = quantize(data,self.least_significant_digit)
+    def __setitem__(self, key, data):
+        if hasattr(self, 'least_significant_digit'):
+            self._NetCDF_varobj[key] = quantize(data, self.least_significant_digit)
         else:
             self._NetCDF_varobj[key] = data
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         return self._NetCDF_varobj[key]
 
     def __len__(self):
         return int(self._NetCDF_varobj.shape[0])
 
-    def __setattr__(self,name,value):
+    def __setattr__(self, name, value):
         # if name begins with '_NetCDF_', it is a temporary at the python level
         # (not stored in the hdf5 file).
         # dimensions is a read only attribute
         if name in ['dimensions']:
-            raise KeyError, '"dimensions" is a  read-only attribute - cannot modify'
+            raise KeyError('"dimensions" is a  read-only attribute - cannot '
+                           'modify')
         if not name.startswith('_NetCDF_'):
-            setattr(self._NetCDF_varobj.attrs,name,value)
+            setattr(self._NetCDF_varobj.attrs, name, value)
         elif not name.endswith('__'):
             self.__dict__[name]=value
 
-    def __getattr__(self,name):
+    def __getattr__(self, name):
         if name.startswith('__') and name.endswith('__'):
             raise AttributeError
         elif name.startswith('_NetCDF_'):
             return self.__dict__[name]
         else:
-            if self._NetCDF_varobj.__dict__.has_key(name):
+            if name in self._NetCDF_varobj.__dict__:
                 return self._NetCDF_varobj.__dict__[name]
             else:
                 return self._NetCDF_varobj.attrs.__dict__[name]
@@ -689,7 +697,7 @@ class NetCDFVariable:
         """return attributes corresponding to netCDF variable attributes"""
         return [attr for attr in self._NetCDF_varobj.attrs._v_attrnamesuser if attr != 'dimensions']
 
-    def append(self,data):
+    def append(self, data):
         """
  Append data along unlimited dimension of a NetCDFVariable.
 
@@ -702,25 +710,24 @@ class NetCDFVariable:
  the data is truncated (quantized) to improve compression.
         """
         if self._NetCDF_parent._NetCDF_mode == 'r':
-            raise IOError, 'file is read only'
+            raise IOError('file is read only')
         # if data is not an array, try to make it so.
         try:
-            datashp = data.shape
+            data.shape
         except:
             data = numpy.array(data, _rev_typecode_dict[self.typecode()])
         # check to make sure there is an unlimited dimension.
         # (i.e. data is in an EArray).
         extdim = self._NetCDF_varobj.extdim
         if extdim < 0:
-            raise IndexError, 'variable has no unlimited dimension'
-        # name of unlimited dimension.
-        extdim_name = self.dimensions[extdim]
+            raise IndexError('variable has no unlimited dimension')
+
         # special case that data array is same
         # shape as EArray, minus the enlargeable dimension.
         # if so, add an extra singleton dimension.
         if len(data.shape) != len(self._NetCDF_varobj.shape):
             shapem1 = ()
-            for n,dim in enumerate(self._NetCDF_varobj.shape):
+            for n, dim in enumerate(self._NetCDF_varobj.shape):
                 if n != extdim:
                     shapem1 = shapem1+(dim,)
             if data.shape == shapem1:
@@ -728,15 +735,17 @@ class NetCDFVariable:
                 shapenew[extdim]=1
                 data = numpy.reshape(data, shapenew)
             else:
-                raise IndexError,'data must either have same number of dimensions as variable, or one less (excluding unlimited dimension)'
+                raise IndexError('data must either have same number of '
+                                 'dimensions as variable, or one less '
+                                 '(excluding unlimited dimension)')
         # append the data to the variable object.
-        if hasattr(self,'least_significant_digit'):
-            self._NetCDF_varobj.append(quantize(data,self.least_significant_digit))
+        if hasattr(self, 'least_significant_digit'):
+            self._NetCDF_varobj.append(quantize(data, self.least_significant_digit))
         else:
             self._NetCDF_varobj.append(data)
 
 
-    def assignValue(self,value):
+    def assignValue(self, value):
         """
  Assigns value to the variable.
         """

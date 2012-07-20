@@ -1,39 +1,19 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: December 15, 2003
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: December 15, 2003
+# Author: Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
-"""Here is defined the EArray class.
-
-See EArray class docstring for more info.
-
-Classes:
-
-    EArray
-
-Functions:
-
-
-Misc variables:
-
-    __version__
-
-
-"""
-
-import sys
+"""Here is defined the EArray class."""
 
 import numpy
 
 from tables.utilsExtension import lrange
-from tables.utils import convertToNPAtom, convertToNPAtom2, SizeType
-from tables.atom import Atom, EnumAtom, split_type
-from tables.leaf import Leaf
+from tables.utils import convertToNPAtom2, SizeType
 from tables.carray import CArray
 
 __version__ = "$Revision$"
@@ -46,31 +26,65 @@ __version__ = "$Revision$"
 obversion = "1.3"    # This adds support for enumerated datatypes.
 
 
-
 class EArray(CArray):
-    """
-    This class represents extendible, homogeneous datasets in an HDF5 file.
+    """This class represents extendable, homogeneous datasets in an HDF5 file.
 
-    The main difference between an `EArray` and a `CArray`, from which
-    it inherits, is that the former can be enlarged along one of its
-    dimensions, the *enlargeable dimension*.  That means that the
-    `Leaf.extdim` attribute of any `EArray` instance will always be
-    non-negative.  Multiple enlargeable dimensions might be supported
-    in the future.
+    The main difference between an EArray and a CArray (see
+    :ref:`CArrayClassDescr`), from which it inherits, is that the former
+    can be enlarged along one of its dimensions, the *enlargeable
+    dimension*.  That means that the :attr:`Leaf.extdim` attribute (see
+    :class:`Leaf`) of any EArray instance will always be non-negative.
+    Multiple enlargeable dimensions might be supported in the future.
 
-    New rows can be added to the end of an enlargeable array by using
-    the `EArray.append()` method.  The array can also be shrunken
-    along its enlargeable dimension using the `EArray.truncate()`
-    method.
+    New rows can be added to the end of an enlargeable array by using the
+    :meth:`EArray.append` method.
 
-    Public methods
-    --------------
+    Parameters
+    ----------
+    atom
+        An `Atom` instance representing the *type* and *shape*
+        of the atomic objects to be saved.
 
-    append(sequence)
-        Add a ``sequence`` of data to the end of the dataset.
+    shape
+        The shape of the new array.  One (and only one) of
+        the shape dimensions *must* be 0.  The dimension being 0
+        means that the resulting `EArray` object can be extended
+        along it.  Multiple enlargeable dimensions are not supported
+        right now.
 
-    Example of use
-    --------------
+    title
+        A description for this node (it sets the ``TITLE``
+        HDF5 attribute on disk).
+
+    filters
+        An instance of the `Filters` class that provides information
+        about the desired I/O filters to be applied during the life
+        of this object.
+
+    expectedrows
+        A user estimate about the number of row elements that will
+        be added to the growable dimension in the `EArray` node.
+        If not provided, the default value is ``EXPECTED_ROWS_EARRAY``
+        (see ``tables/parameters.py``).  If you plan to create either
+        a much smaller or a much bigger `EArray` try providing a guess;
+        this will optimize the HDF5 B-Tree creation and management
+        process time and the amount of memory used.
+
+    chunkshape
+        The shape of the data chunk to be read or written in a single
+        HDF5 I/O operation.  Filters are applied to those chunks of data.
+        The dimensionality of `chunkshape` must be the same as that of
+        `shape` (beware: no dimension should be 0 this time!).
+        If ``None``, a sensible value is calculated based on the
+        `expectedrows` parameter (which is recommended).
+
+    byteorder
+        The byteorder of the data *on disk*, specified as 'little' or
+        'big'. If this is not specified, the byteorder is that of the
+        platform.
+
+    Examples
+    --------
 
     See below a small example of the use of the `EArray` class.  The
     code is available in ``examples/earray1.py``::
@@ -80,6 +94,7 @@ class EArray(CArray):
 
         fileh = tables.openFile('earray1.h5', mode='w')
         a = tables.StringAtom(itemsize=8)
+
         # Use ``a`` as the object type for the enlargeable array.
         array_c = fileh.createEArray(fileh.root, 'array_c', a, (0,), \"Chars\")
         array_c.append(numpy.array(['a'*2, 'b'*4], dtype='S8'))
@@ -111,46 +126,7 @@ class EArray(CArray):
                   filters=None, expectedrows=None,
                   chunkshape=None, byteorder=None,
                   _log=True ):
-        """
-        Create an `EArray` instance.
 
-        `atom` -- An `Atom` instance representing the *type* and *shape*
-            of the atomic objects to be saved.
-
-        `shape` -- The shape of the new array.  One (and only one) of
-            the shape dimensions *must* be 0.  The dimension being 0
-            means that the resulting `EArray` object can be extended
-            along it.  Multiple enlargeable dimensions are not supported
-            right now.
-
-        `title` -- A description for this node (it sets the ``TITLE``
-            HDF5 attribute on disk).
-
-        `filters` -- An instance of the `Filters` class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        `expectedrows` -- A user estimate about the number of row
-            elements that will be added to the growable dimension in the
-            `EArray` node.  If not provided, the default value is
-            ``EXPECTED_ROWS_EARRAY`` (see ``tables/parameters.py``).  If
-            you plan to create either a much smaller or a much bigger
-            `EArray` try providing a guess; this will optimize the HDF5
-            B-Tree creation and management process time and the amount
-            of memory used.
-
-        `chunkshape` -- The shape of the data chunk to be read or
-            written in a single HDF5 I/O operation.  Filters are applied
-            to those chunks of data.  The dimensionality of `chunkshape`
-            must be the same as that of `shape` (beware: no dimension
-            should be 0 this time!).  If ``None``, a sensible value is
-            calculated based on the `expectedrows` parameter (which is
-            recommended).
-
-        `byteorder` -- The byteorder of the data *on disk*, specified as
-            'little' or 'big'. If this is not specified, the byteorder
-            is that of the platform.
-        """
         # Specific of EArray
         if expectedrows is None:
             expectedrows = parentNode._v_file.params['EXPECTED_ROWS_EARRAY']
@@ -203,16 +179,14 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
 
     def append(self, sequence):
-        """
-        Add a `sequence` of data to the end of the dataset.
+        """Add a sequence of data to the end of the dataset.
 
         The sequence must have the same type as the array; otherwise a
-        ``TypeError`` is raised.  In the same way, the dimensions of
-        the `sequence` must conform to the shape of the array, that
-        is, all dimensions must match, with the exception of the
-        enlargeable dimension, which can be of any length (even 0!).
-        If the shape of the `sequence` is invalid, a ``ValueError`` is
-        raised.
+        TypeError is raised. In the same way, the dimensions of the
+        sequence must conform to the shape of the array, that is, all
+        dimensions must match, with the exception of the enlargeable
+        dimension, which can be of any length (even 0!).  If the shape
+        of the sequence is invalid, a ValueError is raised.
         """
 
         self._v_file._checkWritable()
@@ -228,7 +202,8 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, chunkshape, _log, **kwargs):
-        "Private part of Leaf.copy() for each kind of leaf."
+        """Private part of Leaf.copy() for each kind of leaf."""
+
         (start, stop, step) = self._processRangeRead(start, stop, step)
         # Build the new EArray object
         maindim = self.maindim

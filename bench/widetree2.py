@@ -1,7 +1,4 @@
-import sys
 import unittest
-import os
-import tempfile
 
 from tables import *
 # Next imports are only necessary for this test suite
@@ -18,7 +15,6 @@ class Test(IsDescription):
 class WideTreeTestCase(unittest.TestCase):
     def test00_Leafs(self):
 
-        import time
         # Open a new empty HDF5 file
         filename = "test_widetree.h5"
         ngroups = 10
@@ -76,8 +72,6 @@ class WideTreeTestCase(unittest.TestCase):
             if verbose:
                 print "Group ==>", group
             for table in fileh.listNodes(group, 'Table'):
-                rowsize = table.rowsize
-                buffersize=table.rowsize * table.nrowsinbuf
                 if verbose > 1:
                     print "Table ==>", table
                     print "Max rows in buf:", table.nrowsinbuf

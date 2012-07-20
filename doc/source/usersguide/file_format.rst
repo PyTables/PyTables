@@ -380,11 +380,12 @@ The next attributes are optional for *leaves*:
   dataset is read, it will be converted to the indicated flavor.
   It can take one the next string values:
 
-    * *"numpy"*: Read data (record arrays, arrays, records, scalars)
+    * *"numpy"*: Read data (structures arrays, arrays, records, scalars)
       will be returned as NumPy objects.
     * *"numarray"*: Read data will be returned as
       numarray objects (deprecated).
     * *"numeric"*: Read data will be returned as
       Numeric objects (deprecated).
-    * *"python"*: Read data will be returned as Python lists, tuples, or scalars.
+    * *"python"*: Read data will be returned as Python lists, tuples, or
+      scalars.
 

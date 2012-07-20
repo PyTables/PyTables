@@ -132,7 +132,7 @@ def getDescr(names, formats):
     if not names:
         names = [item for item in makeNamesFromFormats(formats)]
 
-    if type(formats) == str and type(names) == str:
+    if isinstance(formats, str) and isinstance(names, str):
         yield (names, formats)
         raise StopIteration
 
@@ -152,7 +152,7 @@ def getDescr(names, formats):
             else:
                 l = []
                 for (a, b) in getDescr(name[1], fmt):
-                    l.append((a,b))
+                    l.append((a, b))
                 yield (name[0], l)
             (name, fmt) = i.next()
     except StopIteration:

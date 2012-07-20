@@ -15,27 +15,27 @@ def create_junk():
     fileh.close()
 
 def modify_junk_LRU():
-    fileh = tables.openFile(filename,'a')
+    fileh = tables.openFile(filename, 'a')
     group = fileh.root
     for j in range(5):
         print "iter -->", j
         for tt in fileh.walkNodes(group):
-            if isinstance(tt,tables.Array):
+            if isinstance(tt, tables.Array):
 #                 d = tt.read()
                 pass
 
     fileh.close()
 
 def modify_junk_LRU2():
-    fileh = tables.openFile(filename,'a')
+    fileh = tables.openFile(filename, 'a')
     group = fileh.root
     for j in range(5):
         t1 = time()
         for i in range(100):  # The number
 #              print "table-->", tt._v_name
-            tt = getattr(group,"array"+str(i))
+            tt = getattr(group, "array"+str(i))
 #                 d = tt.read()
-        print "iter and time -->", j+1, round(time()-t1,3)
+        print "iter and time -->", j+1, round(time()-t1, 3)
     fileh.close()
 
 if 1:

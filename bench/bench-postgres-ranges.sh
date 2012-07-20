@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export PYTHONPATH=..:$PYTHONPATH
+export PYTHONPATH=..${PYTHONPATH:+:$PYTHONPATH}
 
 pyopt="-O -u"
 #qlvl="-Q8 -x"

@@ -18,7 +18,7 @@ print "Chunkshape for original array:", a.chunkshape
 
 # Fill the EArray
 t1 = time()
-zeros = numpy.zeros((dim1,1), dtype="float64")
+zeros = numpy.zeros((dim1, 1), dtype="float64")
 for i in xrange(dim2):
     a.append(zeros)
 tcre = round(time()-t1, 3)

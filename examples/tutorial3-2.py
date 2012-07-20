@@ -14,19 +14,19 @@ fileh = tables.openFile('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
 fileh.enableUndo()
 
 # Start undoable operations
-fileh.createArray('/', 'otherarray1', [3,4], 'Another array 1')
+fileh.createArray('/', 'otherarray1', [3, 4], 'Another array 1')
 fileh.createGroup('/', 'agroup', 'Group 1')
 # Create a 'first' mark
 fileh.mark('first')
-fileh.createArray('/agroup', 'otherarray2', [4,5], 'Another array 2')
+fileh.createArray('/agroup', 'otherarray2', [4, 5], 'Another array 2')
 fileh.createGroup('/agroup', 'agroup2', 'Group 2')
 # Create a 'second' mark
 fileh.mark('second')
-fileh.createArray('/agroup/agroup2', 'otherarray3', [5,6], 'Another array 3')
+fileh.createArray('/agroup/agroup2', 'otherarray3', [5, 6], 'Another array 3')
 # Create a 'third' mark
 fileh.mark('third')
-fileh.createArray('/', 'otherarray4', [6,7], 'Another array 4')
-fileh.createArray('/agroup', 'otherarray5', [7,8], 'Another array 5')
+fileh.createArray('/', 'otherarray4', [6, 7], 'Another array 4')
+fileh.createArray('/agroup', 'otherarray5', [7, 8], 'Another array 5')
 
 # Now go to mark 'first'
 fileh.goto('first')
@@ -65,11 +65,11 @@ assert '/agroup/agroup2/otherarray3' in fileh
 assert '/otherarray4' in fileh
 assert '/agroup/otherarray5' in fileh
 # Check that objects have come back to life in a sane state
-assert fileh.root.otherarray1.read() == [3,4]
-assert fileh.root.agroup.otherarray2.read() == [4,5]
-assert fileh.root.agroup.agroup2.otherarray3.read() == [5,6]
-assert fileh.root.otherarray4.read() == [6,7]
-assert fileh.root.agroup.otherarray5.read() == [7,8]
+assert fileh.root.otherarray1.read() == [3, 4]
+assert fileh.root.agroup.otherarray2.read() == [4, 5]
+assert fileh.root.agroup.agroup2.otherarray3.read() == [5, 6]
+assert fileh.root.otherarray4.read() == [6, 7]
+assert fileh.root.agroup.otherarray5.read() == [7, 8]
 
 
          #'-**-**-**-**-**-**- disable undo/redo log  -**-**-**-**-**-**-**-'

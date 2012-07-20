@@ -123,11 +123,11 @@ print repr(nra.array(None, names=table.description._v_nestedNames,
 print
 print "**** and some iteration over descriptions, too ****"
 for coldescr in table.description._f_walk():
-    print "column-->",coldescr
+    print "column-->", coldescr
 print
 print "**** info2 sub-structure description:\n", table.description.info2
 print
-print "**** table representation (long form):\n", `table`
+print "**** table representation (long form):\n", repr(table)
 
 # Remember to always close the file
 fileh.close()

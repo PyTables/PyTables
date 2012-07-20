@@ -9,34 +9,11 @@
 #
 ########################################################################
 
-"""Here is defined the IndexArray class.
-
-See IndexArray class docstring for more info.
-
-Classes:
-
-    IndexArray
-
-Functions:
-
-
-Misc variables:
-
-    __version__
-
-
-"""
+"""Here is defined the IndexArray class."""
 
 __version__ = "$Revision$"
 
-import types
-import warnings
-import sys
 from bisect import bisect_left, bisect_right
-from time import time
-import math
-
-import numpy
 
 from tables.node import NotLoggedMixin
 from tables.carray import CArray
@@ -62,6 +39,23 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
     All NumPy typecodes are supported except for complex datatypes.
+
+    Parameters
+    ----------
+    parentNode
+        The Index class from which this object will hang off.
+    name : str
+        The name of this node in its parent group.
+    atom
+        An Atom object representing the shape and type of the atomic objects to
+        be saved. Only scalar atoms are supported.
+    title
+        Sets a TITLE attribute on the array entity.
+    filters : Filters
+        An instance of the Filters class that provides information about the
+        desired I/O filters to be applied during the life of this object.
+    byteorder
+        The byteroder of the data on-disk.
     """
 
     # Class identifier.
@@ -84,34 +78,15 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     def __init__(self, parentNode, name,
                  atom=None, title="",
                  filters=None, byteorder=None):
-        """Create an IndexArray instance.
+        """Create an IndexArray instance."""
 
-        Keyword arguments:
-
-        parentNode -- The Index class from which this object will hang off.
-
-        name -- The name of this node in its parent group (a string).
-
-        atom -- An Atom object representing the shape and type of the
-            atomic objects to be saved. Only scalar atoms are
-            supported.
-
-        title -- Sets a TITLE attribute on the array entity.
-
-        filters -- An instance of the Filters class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        byteorder -- The byteroder of the data on-disk.
-
-        """
         self._v_pathname = parentNode._g_join(name)
         if atom is not None:
             # The shape and chunkshape needs to be fixed here
             if name == "sorted":
                 reduction = parentNode.reduction
-                shape = (0, parentNode.slicesize/reduction)
-                chunkshape = (1, parentNode.chunksize/reduction)
+                shape = (0, parentNode.slicesize//reduction)
+                chunkshape = (1, parentNode.chunksize//reduction)
             else:
                 shape = (0, parentNode.slicesize)
                 chunkshape = (1, parentNode.chunksize)
@@ -136,7 +111,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         ranges = self._v_parent.rvcache
         boundscache = self.boundscache
         # First, look at the beginning of the slice
-        begin = ranges[nrow,0]
+        begin = ranges[nrow, 0]
         # Look for items at the beginning of sorted slices
         if item1 <= begin:
             result1 = 0
@@ -145,7 +120,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         if result1 >=0 and result2 >= 0:
             return (result1, result2)
         # Then, look for items at the end of the sorted slice
-        end = ranges[nrow,1]
+        end = ranges[nrow, 1]
         if result1 < 0:
             if item1 > end:
                 result1 = hi

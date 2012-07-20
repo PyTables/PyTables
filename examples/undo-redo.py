@@ -8,7 +8,7 @@ def setUp(filename):
     # Create some nodes in there
     fileh.createGroup("/", "agroup", "Group 1")
     fileh.createGroup("/agroup", "agroup2", "Group 2")
-    fileh.createArray("/", "anarray", [1,2], "Array 1")
+    fileh.createArray("/", "anarray", [1, 2], "Array 1")
     # Enable undo/redo.
     fileh.enableUndo()
     return fileh
@@ -26,16 +26,16 @@ def demo_6times3marks():
     fileh = setUp("undo-redo-6times3marks.h5")
 
     # Create a new array
-    fileh.createArray('/', 'otherarray1', [3,4], "Another array 1")
-    fileh.createArray('/', 'otherarray2', [4,5], "Another array 2")
+    fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
+    fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
     # Put a mark
     fileh.mark()
-    fileh.createArray('/', 'otherarray3', [5,6], "Another array 3")
-    fileh.createArray('/', 'otherarray4', [6,7], "Another array 4")
+    fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
+    fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
     # Put a mark
     fileh.mark()
-    fileh.createArray('/', 'otherarray5', [7,8], "Another array 5")
-    fileh.createArray('/', 'otherarray6', [8,9], "Another array 6")
+    fileh.createArray('/', 'otherarray5', [7, 8], "Another array 5")
+    fileh.createArray('/', 'otherarray6', [8, 9], "Another array 6")
     # Unwind just one mark
     fileh.undo()
     assert "/otherarray1" in fileh
@@ -95,16 +95,14 @@ def demo_manyops():
     fileh = setUp("undo-redo-manyops.h5")
 
     # Create an array
-    array2 = fileh.createArray(fileh.root, 'anarray3',
-                                    [3], "Array title 3")
+    fileh.createArray(fileh.root, 'anarray3', [3], "Array title 3")
     # Create a group
-    array2 = fileh.createGroup(fileh.root, 'agroup3',
-                                    "Group title 3")
+    fileh.createGroup(fileh.root, 'agroup3', "Group title 3")
     # /anarray => /agroup/agroup3/
     newNode = fileh.copyNode('/anarray3', '/agroup/agroup2')
     newNode = fileh.copyChildren('/agroup', '/agroup3', recursive=1)
     # rename anarray
-    array4 = fileh.renameNode('/anarray', 'anarray4')
+    fileh.renameNode('/anarray', 'anarray4')
     # Move anarray
     newNode = fileh.copyNode('/anarray3', '/agroup')
     # Remove anarray4

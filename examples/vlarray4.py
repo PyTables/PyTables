@@ -7,7 +7,7 @@ import numpy
 import tables
 
 N = 100
-shape = (3,3)
+shape = (3, 3)
 
 numpy.random.seed(10)  # For reproductible results
 f = tables.openFile("vlarray4.h5", mode = "w")

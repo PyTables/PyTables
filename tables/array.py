@@ -1,33 +1,14 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: October 10, 2002
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: October 10, 2002
+# Author: Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
-"""Here is defined the Array class.
-
-See Array class docstring for more info.
-
-Classes:
-
-    Array
-    ImageArray
-
-Functions:
-
-
-Misc variables:
-
-    __version__
-
-
-"""
-
-import types, warnings, sys
+"""Here is defined the Array class."""
 
 import numpy
 
@@ -36,7 +17,6 @@ from tables.utilsExtension import lrange
 from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, convertToNPAtom2, SizeType, lazyattr
-from tables.atom import split_type
 from tables.leaf import Leaf
 
 
@@ -52,66 +32,40 @@ obversion = "2.3"    # This adds support for enumerated datatypes.
 
 
 class Array(hdf5Extension.Array, Leaf):
-    """
-    This class represents homogeneous datasets in an HDF5 file.
+    """This class represents homogeneous datasets in an HDF5 file.
 
-    This class provides methods to write or read data to or from array
-    objects in the file.  This class does not allow you to enlarge the
-    datasets on disk; use the `EArray` class if you want enlargeable
-    dataset support or compression features, or `CArray` if you just
-    want compression.
+    This class provides methods to write or read data to or from array objects
+    in the file. This class does not allow you neither to enlarge nor compress
+    the datasets on disk; use the EArray class (see :ref:`EArrayClassDescr`) if
+    you want enlargeable dataset support or compression features, or CArray
+    (see :ref:`CArrayClassDescr`) if you just want compression.
 
-    An interesting property of the `Array` class is that it remembers
-    the *flavor* of the object that has been saved so that if you
-    saved, for example, a ``list``, you will get a ``list`` during
-    readings afterwards; if you saved a NumPy array, you will get a
-    NumPy object, and so forth.
+    An interesting property of the Array class is that it remembers the
+    *flavor* of the object that has been saved so that if you saved, for
+    example, a list, you will get a list during readings afterwards; if you
+    saved a NumPy array, you will get a NumPy object, and so forth.
 
-    Note that this class inherits all the public attributes and
-    methods that `Leaf` already provides.  However, as `Array`
-    instances have no internal I/O buffers, it is not necessary to use
-    the ``flush()`` method they inherit from `Leaf` in order to save
-    their internal state to disk.  When a writing method call returns,
-    all the data is already on disk.
+    Note that this class inherits all the public attributes and methods that
+    Leaf (see :ref:`LeafClassDescr`) already provides. However, as Array
+    instances have no internal I/O buffers, it is not necessary to use the
+    flush() method they inherit from Leaf in order to save their internal state
+    to disk.  When a writing method call returns, all the data is already on
+    disk.
 
-    Public instance variables
-    -------------------------
-
-    atom
-        An `Atom` instance representing the *type* and *shape* of the
-        atomic objects to be saved.
-    rowsize
-        The size of the rows in dimensions orthogonal to ``maindim``.
-    nrow
-        On iterators, this is the index of the current row.
-
-    Public methods
-    --------------
-
-    getEnum()
-        Get the enumerated type associated with this array.
-    iterrows([start][, stop][, step])
-        Iterate over the rows of the array.
-    next()
-        Get the next element of the array during an iteration.
-    read([start][, stop][, step])
-        Get data in the array as an object of the current flavor.
-
-    Special methods
-    ---------------
-
-    The following methods automatically trigger actions when an
-    `Array` instance is accessed in a special way
-    (e.g. ``array[2:3,...,::2]`` will be equivalent to a call to
-    ``array.__getitem__((slice(2, 3, None), Ellipsis, slice(None,
-    None, 2)))``).
-
-    __getitem__(key)
-        Get a row, a range of rows or a slice from the array.
-    __iter__()
-        Iterate over the rows of the array.
-    __setitem__(key, value)
-        Set a row, a range of rows or a slice in the array.
+    Parameters
+    ----------
+    object
+        The array or scalar to be saved.  Accepted types are NumPy arrays and
+        scalars, ``numarray`` arrays and string arrays, Numeric arrays and
+        scalars, as well as native Python sequences and scalars, provided that
+        values are regular (i.e. they are not like ``[[1,2],2]``) and
+        homogeneous (i.e. all the elements are of the same type).
+    title
+        A description for this node (it sets the ``TITLE`` HDF5 attribute on
+        disk).
+    byteorder
+        The byteorder of the data *on disk*, specified as 'little' or 'big'.
+        If this is not specified, the byteorder is that of the given `object`.
     """
 
     # Class identifier.
@@ -123,6 +77,7 @@ class Array(hdf5Extension.Array, Leaf):
     @lazyattr
     def dtype(self):
         """The NumPy ``dtype`` that most closely matches this array."""
+
         return self.atom.dtype
 
     # Properties
@@ -134,7 +89,7 @@ class Array(hdf5Extension.Array, Leaf):
             return self.shape[self.maindim]
     nrows = property(
         _getnrows, None, None,
-        "The length of the main dimension of the array.")
+        "The number of rows in the array.")
 
     def _getrowsize(self):
         maindim = self.maindim
@@ -145,33 +100,18 @@ class Array(hdf5Extension.Array, Leaf):
         return rowsize
     rowsize = property(
         _getrowsize, None, None,
-        "The size of the rows in dimensions orthogonal to maindim.")
+        "The size of the rows in bytes in dimensions orthogonal to *maindim*.")
+
+    size_in_memory = property(
+        lambda self: self.nrows * self.rowsize, None, None,
+        """The size of this array's data in bytes when it is fully loaded into
+        memory.""")
 
     # Other methods
     # ~~~~~~~~~~~~~
     def __init__(self, parentNode, name,
                  object=None, title="",
                  byteorder=None, _log=True, _atom=None):
-        """
-        Create an `Array` instance.
-
-        `object`
-            The array or scalar to be saved.  Accepted types are NumPy
-            arrays and scalars, ``numarray`` arrays and string arrays,
-            Numeric arrays and scalars, as well as native Python
-            sequences and scalars, provided that values are regular
-            (i.e. they are not like ``[[1,2],2]``) and homogeneous
-            (i.e. all the elements are of the same type).
-
-        `title`
-            A description for this node (it sets the ``TITLE`` HDF5
-            attribute on disk).
-
-        `byteorder`
-            The byteorder of the data *on disk*, specified as 'little'
-            or 'big'.  If this is not specified, the byteorder is that
-            of the given `object`.
-        """
 
         self._v_version = None
         """The object version of this array."""
@@ -212,8 +152,8 @@ class Array(hdf5Extension.Array, Leaf):
         # Documented (*public*) attributes.
         self.atom = _atom
         """
-        An `Atom` instance representing the *type* and *shape* of the
-        atomic objects to be saved.
+        An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
+        and *shape* of the atomic objects to be saved.
         """
         self.shape = None
         """The shape of the stored array."""
@@ -242,8 +182,8 @@ class Array(hdf5Extension.Array, Leaf):
 
         # Raise an error in case of unsupported object
         if nparr.dtype.kind in ['V', 'U', 'O']:  # in void, unicode, object
-            raise TypeError, \
-"Array objects cannot currently deal with void, unicode or object arrays"
+            raise TypeError("Array objects cannot currently deal with void, "
+                            "unicode or object arrays")
 
         # Decrease the number of references to the object
         self._object = None
@@ -264,8 +204,6 @@ class Array(hdf5Extension.Array, Leaf):
             raise
 
         # Compute the optimal buffer size
-        chunkshape = self._calc_chunkshape(
-            self.nrows, self.rowsize, self.atom.size)
         self.nrowsinbuf = self._calc_nrowsinbuf()
         # Arrays don't have chunkshapes (so, set it to None)
         self._v_chunkshape = None
@@ -278,25 +216,17 @@ class Array(hdf5Extension.Array, Leaf):
 
         (oid, self.atom, self.shape, self._v_chunkshape) = self._openArray()
 
-        # Compute the optimal buffer size
-        if not self._v_chunkshape:  # non-chunked case
-            # Compute a sensible chunkshape
-            chunkshape = self._calc_chunkshape(
-                self.nrows, self.rowsize, self.atom.size)
-        else:
-            chunkshape = self._v_chunkshape
         self.nrowsinbuf = self._calc_nrowsinbuf()
 
         return oid
 
 
     def getEnum(self):
-        """
-        Get the enumerated type associated with this array.
+        """Get the enumerated type associated with this array.
 
-        If this array is of an enumerated type, the corresponding `Enum`
-        instance is returned.  If it is not of an enumerated type, a
-        ``TypeError`` is raised.
+        If this array is of an enumerated type, the corresponding Enum instance
+        (see :ref:`EnumClassDescr`) is returned. If it is not of an enumerated
+        type, a TypeError is raised.
         """
 
         if self.atom.kind != 'enum':
@@ -307,21 +237,22 @@ class Array(hdf5Extension.Array, Leaf):
 
 
     def iterrows(self, start=None, stop=None, step=None):
-        """
-        Iterate over the rows of the array.
+        """Iterate over the rows of the array.
 
-        This method returns an iterator yielding an object of the
-        current flavor for each selected row in the array.  The
-        returned rows are taken from the *main dimension*.
+        This method returns an iterator yielding an object of the current
+        flavor for each selected row in the array.  The returned rows are taken
+        from the *main dimension*.
 
-        If a range is not supplied, *all the rows* in the array are
-        iterated upon --you can also use the `Array.__iter__()`
-        special method for that purpose.  If you only want to iterate
-        over a given *range of rows* in the array, you may use the
-        `start`, `stop` and `step` parameters, which have the same
-        meaning as in `Array.read()`.
+        If a range is not supplied, *all the rows* in the array are iterated
+        upon - you can also use the :meth:`Array.__iter__` special method for
+        that purpose.  If you only want to iterate over a given *range of rows*
+        in the array, you may use the start, stop and step parameters, which
+        have the same meaning as in :meth:`Array.read`.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             result = [row for row in arrayInstance.iterrows(step=4)]
         """
@@ -337,13 +268,15 @@ class Array(hdf5Extension.Array, Leaf):
 
 
     def __iter__(self):
-        """
-        Iterate over the rows of the array.
+        """Iterate over the rows of the array.
 
-        This is equivalent to calling `Array.iterrows()` with default
+        This is equivalent to calling :meth:`Array.iterrows` with default
         arguments, i.e. it iterates over *all the rows* in the array.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             result = [row[2] for row in array]
 
@@ -373,11 +306,11 @@ class Array(hdf5Extension.Array, Leaf):
 
 
     def next(self):
-        """
-        Get the next element of the array during an iteration.
+        """Get the next element of the array during an iteration.
 
         The element is returned as an object of the current flavor.
         """
+
         if self._nrowsread >= self._stop:
             self._init = False
             raise StopIteration        # end of iteration
@@ -423,7 +356,7 @@ class Array(hdf5Extension.Array, Leaf):
         # but this is a bit weird way to pass parameters anyway
         for key in keys:
             ellipsis = 0  # Sentinel
-            if isinstance(key, types.EllipsisType):
+            if isinstance(key, type(Ellipsis)):
                 ellipsis = 1
                 for diml in xrange(dim, len(self.shape) - (nkeys - dim) + 1):
                     startl[dim] = 0
@@ -431,12 +364,12 @@ class Array(hdf5Extension.Array, Leaf):
                     stepl[dim] = 1
                     dim += 1
             elif dim >= maxlen:
-                raise IndexError, "Too many indices for object '%s'" % \
-                      self._v_pathname
+                raise IndexError("Too many indices for object '%s'" %
+                                 self._v_pathname)
             elif is_idx(key):
                 # Protection for index out of range
                 if key >= self.shape[dim]:
-                    raise IndexError, "Index out of range"
+                    raise IndexError("Index out of range")
                 if key < 0:
                     # To support negative values (Fixes bug #968149)
                     key += self.shape[dim]
@@ -447,8 +380,7 @@ class Array(hdf5Extension.Array, Leaf):
                 start, stop, step = self._processRange(
                     key.start, key.stop, key.step, dim=dim )
             else:
-                raise TypeError, "Non-valid index or slice: %s" % \
-                      key
+                raise TypeError("Non-valid index or slice: %s" % key)
             if not ellipsis:
                 startl[dim] = start
                 stopl[dim] = stop
@@ -497,8 +429,8 @@ class Array(hdf5Extension.Array, Leaf):
         # Internal functions
 
         def validate_number(num, length):
-            """ Validate a list member for the given axis length
-            """
+            """Validate a list member for the given axis length"""
+
             try:
                 num = long(num)
             except TypeError:
@@ -508,8 +440,8 @@ class Array(hdf5Extension.Array, Leaf):
 
 
         def expand_ellipsis(args, rank):
-            """ Expand ellipsis objects and fill in missing axes.
-            """
+            """Expand ellipsis objects and fill in missing axes."""
+
             n_el = sum(1 for arg in args if arg is Ellipsis)
             if n_el > 1:
                 raise IndexError("Only one ellipsis may be used.")
@@ -531,10 +463,11 @@ class Array(hdf5Extension.Array, Leaf):
 
 
         def translate_slice(exp, length):
-            """ Given a slice object, return a 3-tuple
-                (start, count, step)
-                for use with the hyperslab selection routines
             """
+            Given a slice object, return a 3-tuple (start, count, step)
+            for use with the hyperslab selection routines
+            """
+
             start, stop, step = exp.start, exp.stop, exp.step
             if start is None:
                 start = 0
@@ -574,7 +507,7 @@ class Array(hdf5Extension.Array, Leaf):
             if start+count > length:
                 raise IndexError(
                     "Selection out of bounds (%d; axis has %d)" % \
-                    (start+count,length))
+                    (start+count, length))
 
             return start, count, step
 
@@ -654,22 +587,22 @@ class Array(hdf5Extension.Array, Leaf):
 
 
     def __getitem__(self, key):
-        """
-        Get a row, a range of rows or a slice from the array.
+        """Get a row, a range of rows or a slice from the array.
 
-        The set of tokens allowed for the `key` is the same as that
-        for extended slicing in Python (including the ``Ellipsis`` or
-        ``...`` token).  The result is an object of the current
-        flavor; its shape depends on the kind of slice used as `key`
-        and the shape of the array itself.
+        The set of tokens allowed for the key is the same as that for extended
+        slicing in Python (including the Ellipsis or ... token).  The result is
+        an object of the current flavor; its shape depends on the kind of slice
+        used as key and the shape of the array itself.
 
-        Furthermore, NumPy-style fancy indexing, where a list of
-        indices in a certain axis is specified, is also supported.
-        Note that only one list per selection is supported right now.
-        Finally, NumPy-style point and boolean selections are
-        supported as well.
+        Furthermore, NumPy-style fancy indexing, where a list of indices in a
+        certain axis is specified, is also supported.  Note that only one list
+        per selection is supported right now.  Finally, NumPy-style point and
+        boolean selections are supported as well.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             array1 = array[4]                       # simple selection
             array2 = array[4:1000:2]                # slice selection
@@ -678,6 +611,7 @@ class Array(hdf5Extension.Array, Leaf):
             array5 = array[np.where(array[:] > 4)]  # point selection
             array6 = array[array[:] > 4]            # boolean selection
         """
+
         try:
             # First, try with a regular selection
             startl, stopl, stepl, shape = self._interpret_indexing(key)
@@ -699,33 +633,34 @@ class Array(hdf5Extension.Array, Leaf):
 
 
     def __setitem__(self, key, value):
-        """
-        Set a row, a range of rows or a slice in the array.
+        """Set a row, a range of rows or a slice in the array.
 
-        It takes different actions depending on the type of the `key`
-        parameter: if it is an integer, the corresponding array row is
-        set to `value` (the value is broadcast when needed).  If `key`
-        is a slice, the row slice determined by it is set to `value`
-        (as usual, if the slice to be updated exceeds the actual shape
-        of the array, only the values in the existing range are
-        updated).
+        It takes different actions depending on the type of the key parameter:
+        if it is an integer, the corresponding array row is set to value (the
+        value is broadcast when needed).  If key is a slice, the row slice
+        determined by it is set to value (as usual, if the slice to be updated
+        exceeds the actual shape of the array, only the values in the existing
+        range are updated).
 
-        If `value` is a multidimensional object, then its shape must
-        be compatible with the shape determined by `key`, otherwise, a
-        ``ValueError`` will be raised.
+        If value is a multidimensional object, then its shape must be
+        compatible with the shape determined by key, otherwise, a ValueError
+        will be raised.
 
-        Furthermore, NumPy-style fancy indexing, where a list of
-        indices in a certain axis is specified, is also supported.
-        Note that only one list per selection is supported right now.
-        Finally, NumPy-style point and boolean selections are
-        supported as well.
+        Furthermore, NumPy-style fancy indexing, where a list of indices in a
+        certain axis is specified, is also supported.  Note that only one list
+        per selection is supported right now.  Finally, NumPy-style point and
+        boolean selections are supported as well.
 
-        Example of use::
+        Examples
+        --------
+
+        ::
 
             a1[0] = 333        # assign an integer to a Integer Array row
             a2[0] = 'b'        # assign a string to a string Array row
             a3[1:4] = 5        # broadcast 5 to slice 1:4
             a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
+
             # General slice update (a5.shape = (4,3,2,8,5,10).
             a5[1, ..., ::2, 1:4, 4:] = numpy.arange(1728, shape=(4,3,2,4,3,6))
             a6[1, [1,5,10], ..., -1] = arr    # fancy selection
@@ -757,6 +692,7 @@ class Array(hdf5Extension.Array, Leaf):
         If not, try creating a new nparr object, using broadcasting if
         necessary.
         """
+
         if nparr.shape != slice_shape:
             # Create an array compliant with the specified shape
             narr = numpy.empty(shape=slice_shape, dtype=self.atom.dtype)
@@ -764,16 +700,17 @@ class Array(hdf5Extension.Array, Leaf):
             try:
                 narr[...] = nparr
             except Exception, exc:  #XXX
-                raise ValueError, \
-"""value parameter '%s' cannot be converted into an array object
-compliant with %s: '%r' The error was: <%s>""" % \
-            (nparr, self.__class__.__name__, self, exc)
+                raise ValueError("value parameter '%s' cannot be converted "
+                                 "into an array object compliant with %s: "
+                                 "'%r' The error was: <%s>" % (nparr,
+                                        self.__class__.__name__, self, exc))
             return narr
         return nparr
 
 
     def _readSlice(self, startl, stopl, stepl, shape):
         """Read a slice based on `startl`, `stopl` and `stepl`."""
+
         nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
         # Protection against reading empty arrays
         if 0 not in shape:
@@ -787,6 +724,7 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
     def _readCoords(self, coords):
         """Read a set of points defined by `coords`."""
+
         nparr = numpy.empty(dtype=self.atom.dtype, shape=len(coords))
         if len(coords) > 0:
             self._g_readCoords(coords, nparr)
@@ -798,6 +736,7 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
     def _readSelection(self, selection, reorder, shape):
         """Read a `selection`.  Reorder if necessary."""
+
         # Create the container for the slice
         nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
         # Arrays that have non-zero dimensionality
@@ -818,6 +757,7 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
     def _writeSlice(self, startl, stopl, stepl, shape, nparr):
         """Write `nparr` in a slice based on `startl`, `stopl` and `stepl`."""
+
         nparr = self._checkShape(nparr, tuple(shape))
         countl = ((stopl - startl - 1) / stepl) + 1
         self._g_writeSlice(startl, stepl, countl, nparr)
@@ -825,6 +765,7 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
     def _writeCoords(self, coords, nparr):
         """Write `nparr` values in points defined by `coords` coordinates."""
+
         if len(coords) > 0:
             nparr = self._checkShape(nparr, (len(coords),))
             self._g_writeCoords(coords, nparr)
@@ -832,6 +773,7 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
     def _writeSelection(self, selection, reorder, shape, nparr):
         """Write `nparr` in `selection`.  Reorder if necessary."""
+
         nparr = self._checkShape(nparr, tuple(shape))
         # Check whether we should reorder the array
         if reorder is not None:
@@ -861,17 +803,16 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
 
     def read(self, start=None, stop=None, step=None):
-        """
-        Get data in the array as an object of the current flavor.
+        """Get data in the array as an object of the current flavor.
 
-        The `start`, `stop` and `step` parameters can be used to
-        select only a *range of rows* in the array.  Their meanings
-        are the same as in the built-in ``range()`` Python function,
-        except that negative values of `step` are not allowed yet.
-        Moreover, if only `start` is specified, then `stop` will be
-        set to ``start+1``.  If you do not specify neither `start` nor
-        `stop`, then *all the rows* in the array are selected.
+        The start, stop and step parameters can be used to select only a *range
+        of rows* in the array.  Their meanings are the same as in the built-in
+        range() Python function, except that negative values of step are not
+        allowed yet. Moreover, if only start is specified, then stop will be
+        set to start+1. If you do not specify neither start nor stop, then *all
+        the rows* in the array are selected.
         """
+
         (start, stop, step) = self._processRangeRead(start, stop, step)
         arr = self._read(start, stop, step)
         return internal_to_flavor(arr, self.flavor)
@@ -879,7 +820,8 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, chunkshape, _log, **kwargs):
-        "Private part of Leaf.copy() for each kind of leaf"
+        """Private part of Leaf.copy() for each kind of leaf"""
+
         # Compute the correct indices.
         (start, stop, step) = self._processRangeRead(start, stop, step)
         # Get the slice of the array
@@ -913,9 +855,7 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
 
 class ImageArray(Array):
-
-    """
-    Array containing an image.
+    """Array containing an image.
 
     This class has no additional behaviour or functionality compared
     to that of an ordinary array.  It simply enables the user to open

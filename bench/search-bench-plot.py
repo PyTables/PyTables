@@ -22,7 +22,7 @@ def get_values(filename, complib=''):
 def show_plot(plots, yaxis, legends, gtitle):
     xlabel('Number of rows')
     ylabel(yaxis)
-    xlim(10**3,10**8)
+    xlim(10**3, 10**8)
     title(gtitle)
     grid(True)
 

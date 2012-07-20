@@ -21,6 +21,7 @@ else:
 from distutils.core     import Extension
 from distutils.dep_util import newer
 from distutils.util     import convert_path
+from distutils.ccompiler import new_compiler
 
 # The minimum required versions
 # (keep these in sync with tables.req_versions and user's guide and README)
@@ -241,12 +242,14 @@ class PosixPackage(Package):
 
     _component_dirs = ['include', 'lib']
 
-    def __init__(self, name, tag, header_name, library_name):
+    def __init__(self, name, tag, header_name, library_name,
+                 target_function=None):
         self.name = name
         self.tag = tag
         self.header_name = header_name
         self.library_name = library_name
         self.runtime_name = library_name
+        self.target_function = target_function
 
 class WindowsPackage(Package):
     _library_prefixes = ['']
@@ -257,12 +260,14 @@ class WindowsPackage(Package):
     # lookup in '.' seems necessary for LZO2
     _component_dirs = ['include', 'lib', 'dll', '.']
 
-    def __init__(self, name, tag, header_name, library_name, runtime_name):
+    def __init__(self, name, tag, header_name, library_name, runtime_name,
+                 target_function=None):
         self.name = name
         self.tag = tag
         self.header_name = header_name
         self.library_name = library_name
         self.runtime_name = runtime_name
+        self.target_function = target_function
 
     def find_runtime_path(self, locations=default_runtime_dirs):
         # An explicit path can not be provided for runtime libraries.
@@ -320,9 +325,13 @@ elif os.name == 'nt':
         _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
 
 hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
+hdf5_package.target_function = 'H5close'
 lzo2_package = _Package("LZO 2", 'LZO2', _cp('lzo/lzo1x'), *_platdep['LZO2'])
+lzo2_package.target_function = 'lzo_version_date'
 lzo1_package = _Package("LZO 1", 'LZO', 'lzo1x', *_platdep['LZO'])
+lzo1_package.target_function = 'lzo_version_date'
 bzip2_package = _Package("bzip2", 'BZ2', 'bzlib', *_platdep['BZ2'])
+bzip2_package.target_function = 'BZ2_bzlibVersion'
 
 
 #-----------------------------------------------------------------
@@ -375,14 +384,56 @@ for arg in args:
         # when adding more flags later on
         #sys.argv.remove(arg)
 
+# For windows, search for the hdf5 dll in the path and use it if found.
+# This is much more convenient than having to manually set an environment
+# variable to rebuild pytables
+if not HDF5_DIR and os.name == 'nt':
+    import ctypes.util
+    libdir = ctypes.util.find_library('hdf5dll.dll')
+    # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.8.8\\bin\\hdf5dll.dll'
+    if libdir:
+        # Strip off the filename
+        libdir = os.path.dirname(libdir)
+        # Strip off the 'bin' directory
+        HDF5_DIR = os.path.dirname(libdir)
+        print "* Found HDF5 using system PATH ('%s')" % libdir
+
 # The next flag for the C compiler is needed for finding the C headers for
 # the Cython extensions
 CFLAGS.append("-Isrc")
-# The next flag for the C compiler is needed when using the HDF5 1.8.x series
-CFLAGS.append("-DH5_USE_16_API")
+
+# Force the 1.8.x HDF5 API even if the library as been compiled to use the
+# 1.6.x API by default
+CFLAGS.extend([
+    "-DH5Acreate_vers=2",
+    "-DH5Aiterate_vers=2",
+    "-DH5Dcreate_vers=2",
+    "-DH5Dopen_vers=2",
+    "-DH5Eclear_vers=2",
+    "-DH5Eprint_vers=2",
+    "-DH5Epush_vers=2",
+    "-DH5Eset_auto_vers=2",
+    "-DH5Eget_auto_vers=2",
+    "-DH5Ewalk_vers=2",
+    "-DH5E_auto_t_vers=2",
+    "-DH5Gcreate_vers=2",
+    "-DH5Gopen_vers=2",
+    "-DH5Pget_filter_vers=2",
+    "-DH5Pget_filter_by_id_vers=2",
+    #"-DH5Pinsert_vers=2",
+    #"-DH5Pregister_vers=2",
+    #"-DH5Rget_obj_type_vers=2",
+    "-DH5Tarray_create_vers=2",
+    #"-DH5Tcommit_vers=2",
+    "-DH5Tget_array_dims_vers=2",
+    #"-DH5Topen_vers=2",
+    "-DH5Z_class_t_vers=2",
+])
+CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
 
 # Try to locate the compulsory and optional libraries.
 lzo2_enabled = False
+c = new_compiler()
 for (package, location) in [
     (hdf5_package, HDF5_DIR),
     (lzo2_package, LZO_DIR),
@@ -396,6 +447,11 @@ for (package, location) in [
         continue  # do not use LZO 1 if LZO 2 is available
 
     (hdrdir, libdir, rundir) = package.find_directories(location)
+
+    # check if the library is in the standard compiler paths
+    if not libdir and package.target_function:
+        libdir = c.has_function(package.target_function,
+                                libraries=(package.library_name,))
 
     if not (hdrdir and libdir):
         if package.tag in ['HDF5']:  # these are compulsory!
@@ -411,19 +467,22 @@ for (package, location) in [
                 "disabling support for it."  % package.name)
         continue  # look for the next library
 
-    print ( "* Found %s headers at ``%s``, library at ``%s``."
-            % (package.name, hdrdir, libdir) )
+    if libdir in ("", True):
+        print ( "* Found %s headers at ``%s``, the library is located in the "
+                "standard system search dirs." % (package.name, hdrdir) )
+    else:
+        print ( "* Found %s headers at ``%s``, library at ``%s``."
+                % (package.name, hdrdir, libdir) )
 
     if package.tag in ['HDF5']:
         hdf5_header = os.path.join(hdrdir, "H5public.h")
         hdf5_version = get_hdf5_version(hdf5_header)
-        if hdf5_version < (1, 8, 0):
-            warnings.warn("Support for HDF5 v1.6.x will be removed in future "
-                          "releases")
+        if hdf5_version < (1, 8, 4):
+            exit_with_error("Unsupported HDF5 version!")
 
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
-    if libdir not in default_library_dirs:
+    if libdir not in default_library_dirs and libdir not in ("", True):
         # save library directory if needed
         if os.name == "nt":
             # Important to quote the libdir for Windows (Vista) systems
@@ -484,15 +543,6 @@ def get_cython_extfiles(extnames):
         extfile = os.path.join(extdir, extname)
         extpfile = '%s.pyx' % extfile
         extcfile = '%s.c' % extfile
-
-        # Copy extensions that depends on the HDF5 version
-        hdf5_maj_version, hdf5_min_version = hdf5_version[:2]
-        hdf5_majmin = "%d%d" % (hdf5_maj_version, hdf5_min_version)
-        if not hdf5_majmin in ("16", "18"):
-            exit_with_error("Unsupported HDF5 version!")
-        specific_ext = os.path.join(extdir, extname + hdf5_majmin + ".pyx")
-        if exists(specific_ext):
-            shutil.copy(specific_ext, extpfile)
 
         if not exists(extcfile) or newer(extpfile, extcfile):
             # For some reason, setup in setuptools does not compile
@@ -581,7 +631,7 @@ def find_name(base='tables'):
     append "-pyX.Y" to the base name'''
     name = base
     if '--name-with-python-version' in sys.argv:
-        name += '-py%i.%i'%(sys.version_info[0],sys.version_info[1])
+        name += '-py%i.%i'%(sys.version_info[0], sys.version_info[1])
         sys.argv.remove('--name-with-python-version')
     return name
 
@@ -742,7 +792,7 @@ makes of it a fast, yet extremely easy to use tool for
 interactively save and retrieve large amounts of data.
 
 """,
-      classifiers = filter(None, classifiers.split("\n")),
+      classifiers = [c for c in classifiers.split("\n") if c],
       author = 'Francesc Alted, Ivan Vilata, et al.',
       author_email = 'pytables@pytables.org',
       maintainer = 'Francesc Alted',

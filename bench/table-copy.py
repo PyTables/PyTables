@@ -102,8 +102,6 @@ def copy5(input_path, output_path, complib='zlib', complevel=0):
 
 
 if __name__ == '__main__':
-    import sys
-
     timed(create_table, 'tmp.h5')
 #    timed(copy1, 'tmp.h5', 'test1.h5')
     timed(copy2, 'tmp.h5', 'test2.h5')

@@ -1,11 +1,14 @@
-"""
-Utilities for handling different array flavors in PyTables.
+########################################################################
+#
+# License: BSD
+# Created: December 30, 2006
+# Author: Ivan Vilata i Balaguer - ivan at selidor dot net
+#
+# $Id$
+#
+########################################################################
 
-:Author: Ivan Vilata i Balaguer
-:Contact: ivan at selidor dot net
-:License: BSD
-:Created: December 30, 2006
-:Revision: $Id$
+"""Utilities for handling different array flavors in PyTables.
 
 Variables
 =========
@@ -74,8 +77,7 @@ description_map = {}  # filled as flavors are registered
 """Maps flavors to short descriptions of their supported objects."""
 
 identifier_map = {}  # filled as flavors are registered
-"""
-Maps flavors to functions that can identify their objects.
+"""Maps flavors to functions that can identify their objects.
 
 The function associated with a given flavor will return a true value
 if the object passed to it can be identified as being of that flavor.
@@ -85,8 +87,7 @@ identification.
 """
 
 converter_map = {}  # filled as flavors are registered
-"""
-Maps (source, destination) flavor pairs to converter functions.
+"""Maps (source, destination) flavor pairs to converter functions.
 
 Converter functions get an array of the source flavor and return an
 array of the destination flavor.
@@ -100,6 +101,7 @@ friendlier interfaces to flavor conversion.
 # ================
 def check_flavor(flavor):
     """Raise a ``FlavorError`` if the `flavor` is not valid."""
+
     if flavor == 'numarray':
         _numarray_deprecation()
     elif flavor == 'numeric':
@@ -113,8 +115,7 @@ def check_flavor(flavor):
             % (flavor, available_flavs) )
 
 def array_of_flavor2(array, src_flavor, dst_flavor):
-    """
-    Get a version of the given `array` in a different flavor.
+    """Get a version of the given `array` in a different flavor.
 
     The input `array` must be of the given `src_flavor`, and the
     returned array will be of the indicated `dst_flavor`.  Both
@@ -124,6 +125,7 @@ def array_of_flavor2(array, src_flavor, dst_flavor):
 
     If the conversion is not supported, a ``FlavorError`` is raised.
     """
+
     convkey = (src_flavor, dst_flavor)
     if convkey not in converter_map:
         raise FlavorError( "conversion from flavor ``%s`` to flavor ``%s`` "
@@ -139,8 +141,7 @@ def array_of_flavor2(array, src_flavor, dst_flavor):
     return convfunc(array)
 
 def flavor_to_flavor(array, src_flavor, dst_flavor):
-    """
-    Get a version of the given `array` in a different flavor.
+    """Get a version of the given `array` in a different flavor.
 
     The input `array` must be of the given `src_flavor`, and the
     returned array will be of the indicated `dst_flavor` (see below
@@ -151,6 +152,7 @@ def flavor_to_flavor(array, src_flavor, dst_flavor):
     If the conversion is not supported, a `FlavorWarning` is issued
     and the input `array` is returned as is.
     """
+
     try:
         return array_of_flavor2(array, src_flavor, dst_flavor)
     except FlavorError, fe:
@@ -159,33 +161,33 @@ def flavor_to_flavor(array, src_flavor, dst_flavor):
         return array
 
 def internal_to_flavor(array, dst_flavor):
-    """
-    Get a version of the given `array` in a different `dst_flavor`.
+    """Get a version of the given `array` in a different `dst_flavor`.
 
     The input `array` must be of the internal flavor, and the returned
     array will be of the given `dst_flavor`.  See `flavor_to_flavor()`
     for more information.
     """
+
     return flavor_to_flavor(array, internal_flavor, dst_flavor)
 
 def array_as_internal(array, src_flavor):
-    """
-    Get a version of the given `array` in the internal flavor.
+    """Get a version of the given `array` in the internal flavor.
 
     The input `array` must be of the given `src_flavor`, and the
     returned array will be of the internal flavor.
 
     If the conversion is not supported, a ``FlavorError`` is raised.
     """
+
     return array_of_flavor2(array, src_flavor, internal_flavor)
 
 def flavor_of(array):
-    """
-    Identify the flavor of a given `array`.
+    """Identify the flavor of a given `array`.
 
     If the `array` can not be matched with any flavor, a ``TypeError``
     is raised.
     """
+
     for flavor in all_flavors:
         if identifier_map[flavor](array):
             if flavor == 'numeric':
@@ -200,27 +202,26 @@ def flavor_of(array):
         "supported objects are: %s" % (type_name, supported_descs) )
 
 def array_of_flavor(array, dst_flavor):
-    """
-    Get a version of the given `array` in a different `dst_flavor`.
+    """Get a version of the given `array` in a different `dst_flavor`.
 
     The flavor of the input `array` is guessed, and the returned array
     will be of the given `dst_flavor`.
 
     If the conversion is not supported, a ``FlavorError`` is raised.
     """
+
     return array_of_flavor2(array, flavor_of(array), dst_flavor)
 
 def restrict_flavors(keep=['python']):
-    """
-    Disable all flavors except those in `keep`.
+    """Disable all flavors except those in keep.
 
-    Providing an empty `keep` sequence implies disabling all flavors
-    (but the internal one).  If the sequence is not specified, only
-    optional flavors are disabled.
+    Providing an empty keep sequence implies disabling all flavors (but the
+    internal one).  If the sequence is not specified, only optional flavors are
+    disabled.
 
-    .. Important::
-       Once you disable a flavor, it can not be enabled again.
+    .. important:: Once you disable a flavor, it can not be enabled again.
     """
+
     keep = set(keep).union([internal_flavor])
     remove = set(all_flavors).difference(keep)
     for flavor in remove:
@@ -267,6 +268,7 @@ else:
 
 def _register_aliases():
     """Register aliases of *available* flavors."""
+
     for flavor in all_flavors:
         aliases = eval('_%s_aliases' % flavor)
         for alias in aliases:
@@ -279,11 +281,13 @@ def _register_descriptions():
 
 def _register_identifiers():
     """Register identifier functions of *available* flavors."""
+
     for flavor in all_flavors:
         identifier_map[flavor] = eval('_is_%s' % flavor)
 
 def _register_converters():
     """Register converter functions between *available* flavors."""
+
     def identity(array):
         return array
     for src_flavor in all_flavors:
@@ -303,6 +307,7 @@ def _register_converters():
 
 def _register_all():
     """Register all *available* flavors."""
+
     _register_aliases()
     _register_descriptions()
     _register_identifiers()
@@ -310,26 +315,37 @@ def _register_all():
 
 def _deregister_aliases(flavor):
     """Deregister aliases of a given `flavor` (no checks)."""
-    for (an_alias, a_flavor) in alias_map.items():
+
+    rm_aliases = []
+    for (an_alias, a_flavor) in alias_map.iteritems():
         if a_flavor == flavor:
-            del alias_map[an_alias]
+            rm_aliases.append(an_alias)
+    for an_alias in rm_aliases:
+        del alias_map[an_alias]
 
 def _deregister_description(flavor):
     """Deregister description of a given `flavor` (no checks)."""
+
     del description_map[flavor]
 
 def _deregister_identifier(flavor):
     """Deregister identifier function of a given `flavor` (no checks)."""
+
     del identifier_map[flavor]
 
 def _deregister_converters(flavor):
     """Deregister converter functions of a given `flavor` (no checks)."""
-    for flavor_pair in converter_map.keys():
+
+    rm_flavor_pairs = []
+    for flavor_pair in converter_map:
         if flavor in flavor_pair:
-            del converter_map[flavor_pair]
+            rm_flavor_pairs.append(flavor_pair)
+    for flavor_pair in rm_flavor_pairs:
+        del converter_map[flavor_pair]
 
 def _disable_flavor(flavor):
     """Completely disable the given `flavor` (no checks)."""
+
     _deregister_aliases(flavor)
     _deregister_description(flavor)
     _deregister_identifier(flavor)
@@ -372,6 +388,7 @@ def _is_numeric(array):
 
 def _numpy_contiguous(convfunc):
     """Decorate `convfunc` to return a *contiguous* NumPy array."""
+
     def conv_to_numpy(array):
         nparr = convfunc(array)
         if hasattr(nparr, 'flags') and not nparr.flags.contiguous:
@@ -401,7 +418,7 @@ def _conv_numarray_to_numpy(array):
         record = array
         row = record.row
         array = record.array[row:row+1]
-    if type(array) is numarray.records.RecArray:
+    if isinstance(array, numarray.records.RecArray):
         # Create a NestedRecArray array from the RecArray to easy the
         # conversion. This is sub-optimal and should be replaced by a
         # faster way to convert a plain RecArray into a numpy recarray.
@@ -514,8 +531,10 @@ _register_all()
 # =========
 def _test():
     """Run ``doctest`` on this module."""
+
     import doctest
     doctest.testmod()
+
 
 if __name__ == '__main__':
     _test()

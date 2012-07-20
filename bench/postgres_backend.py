@@ -68,7 +68,7 @@ class Postgres_DB(DB):
 
     def flatten(self, l):
         """Flattens list of tuples l."""
-        return map(lambda x: x[0], l)
+        return [x[0] for x in l]
         #return map(lambda x: x[col], l)
 
     # Overloads the method in DB class

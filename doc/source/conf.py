@@ -17,6 +17,7 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../sphinxext'))
+#sys.path.insert(0, os.path.abspath('../..'))
 
 
 # -- General configuration -----------------------------------------------------
@@ -27,8 +28,9 @@ sys.path.insert(0, os.path.abspath('../sphinxext'))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.pngmath',
-              'sphinx.ext.inheritance_diagram', 'numpydoc', #'sphinx.ext.autosummary',
-              'ipython_console_highlighting', 'sphinx.ext.todo',
+              'sphinx.ext.inheritance_diagram', 'sphinx.ext.extlinks',
+              'sphinx.ext.todo', 'sphinx.ext.viewcode',
+              'ipython_console_highlighting', 'numpydoc',
               ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -45,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PyTables'
-copyright = u'2011, The PyTables Governance Team'
+copyright = u'2011-2012, The PyTables Governance Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -103,13 +105,41 @@ pygments_style = 'tango'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #html_theme = 'default'
-html_theme = 'altered_nature'
+#html_theme = 'altered_nature'
+html_theme = 'cloud'
 #html_theme = 'sphinxdoc'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+linkcolor = '#9F1E1E'
+trimcolor = '#511755'
+trimcolor = '#000000'
+
+html_theme_options = {'sidebarbgcolor': 'rgba(213, 197, 229, 0.15)',
+                      'sidebartextcolor': '#280941',
+                      'sidebarlinkcolor': linkcolor,
+                      'sidebartrimcolor': trimcolor,
+                      'collapsiblesidebar': True,
+                      'relbarbgcolor': '#006FFF',
+                      'footerbgcolor': 'rgba(252, 255, 0, 0.125)',
+                      'footertextcolor': '#504A4B',
+                      'bodytrimcolor': trimcolor,
+                      'linkcolor': linkcolor,
+                      'textcolor': '#323039', 
+                      'sectionbgcolor': '#3CAD1C',
+                      #'sectiontextcolor': '#777777',
+                      #'sectiontrimcolor': trimcolor, 
+                      'codebgcolor': '#F1FFF0',
+                      'codetextcolor': '#000000', 
+                      'quotebgcolor': '#f6fcfc',
+                      'rubricbgcolor': '#D00000',
+                      #'min_height': 'bottom',
+                      }
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ["_theme"]
@@ -128,7 +158,7 @@ html_logo = '_static/logo-pytables-small.png'
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = None
+html_favicon = 'images/favicon.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -233,9 +263,9 @@ latex_elements = {
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-# -- Options for autodocumentation -----------------------------------------------------
+# -- Options for autodocumentation ---------------------------------------------
 autodoc_member_order = "groupwise"
-autoclass_content = "both"
+autoclass_content = "class"
 autosummary_generate = []
 
 # -- Options for Epub output ---------------------------------------------------
@@ -244,4 +274,10 @@ autosummary_generate = []
 epub_title = u'PyTables'
 epub_author = u'The PyTables Governance Team'
 epub_publisher = u'The PyTables Governance Team'
-epub_copyright = u'2011, The PyTables Governance Team'
+epub_copyright = u'2011-2012, The PyTables Governance Team'
+
+# -- External link oOptions ----------------------------------------------------
+extlinks = {
+    'issue': ('https://github.com/PyTables/PyTables/issues/%s', 'gh-'),
+    'irc': ('http://pytables.github.com/irc/%s.html', ''),
+}

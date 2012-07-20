@@ -22,10 +22,10 @@ vlarray.append([5, 6, 9, 8])
 # Test with lists of bidimensional vectors
 vlarray = fileh.createVLArray(root, 'vlarray2', Int64Atom(shape=(2,)),
                               "Ragged array of vectors")
-a = array([[1,2],[1, 2]], dtype=int64)
+a = array([[1, 2], [1, 2]], dtype=int64)
 vlarray.append(a)
-vlarray.append(array([[1,2],[3, 4]], dtype=int64))
-vlarray.append(zeros(dtype=int64, shape=(0,2)))
+vlarray.append(array([[1, 2], [3, 4]], dtype=int64))
+vlarray.append(zeros(dtype=int64, shape=(0, 2)))
 vlarray.append(array([[5, 6]], dtype=int64))
 # This makes an error (shape)
 #vlarray.append(array([[5], [6]], dtype=int64))
@@ -62,8 +62,8 @@ vlarray.append([["123", "456"], "3"])
 vlarray = fileh.createVLArray(root, 'vlarray6', BoolAtom(),
                                "Boolean atoms")
 # The next lines are equivalent...
-vlarray.append([1,0])
-vlarray.append([1,0,3,0])  # This will be converted to a boolean
+vlarray.append([1, 0])
+vlarray.append([1, 0, 3, 0])  # This will be converted to a boolean
 # This gives a TypeError
 #vlarray.append([1,0,1])
 

@@ -17,6 +17,15 @@ import warnings
 import sys
 import time
 
+try:
+    # collections.Callable is new in python 2.6
+    from collections import Callable
+except ImportError:
+    is_callable = callable
+else:
+    def is_callable(x):
+        return isinstance(x, Callable)
+
 import numpy
 
 # numarray and Numeric has serious problems with Python2.5 and 64-bit
@@ -101,7 +110,7 @@ def verbosePrint(string, nonl=False):
 def cleanup(klass):
     #klass.__dict__.clear()     # This is too hard. Don't do that
 #    print "Class attributes deleted"
-    for key in klass.__dict__.keys():
+    for key in klass.__dict__:
         if not klass.__dict__[key].__class__.__name__ in ('instancemethod'):
             klass.__dict__[key] = None
 
@@ -187,9 +196,9 @@ def areArraysEqual(arr1, arr2):
     """
     Are both `arr1` and `arr2` equal arrays?
 
-    Arguments can be regular NumPy arrays, chararray arrays or record
-    arrays (including nested record arrays).  They are checked for type
-    and value equality.
+    Arguments can be regular NumPy arrays, chararray arrays or
+    structured arrays (including structured record arrays).
+    They are checked for type and value equality.
     """
 
     t1 = type(arr1)
@@ -284,7 +293,7 @@ class MetaPyTablesTestCase(type):
     def __new__(class_, name, bases, dict_):
         newdict = {}
         for (aname, avalue) in dict_.iteritems():
-            if callable(avalue) and aname.startswith('test'):
+            if is_callable(avalue) and aname.startswith('test'):
                 avalue = pyTablesTest(avalue)
             newdict[aname] = avalue
         return type.__new__(class_, name, bases, newdict)

@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
-import copy
-
 import time
-import numarray as NA
 from tables import *
-import random
 
 class Small(IsDescription):
     var1 = StringCol(itemsize=4)
@@ -62,7 +58,7 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
         elif atom == "float":
             indexrows = table.cols.var3.createIndex()
         else:
-            raise ValueError, "Index type not supported yet"
+            raise ValueError("Index type not supported yet")
         if verbose:
             print "Number of indexed rows:", indexrows
     # Close the file (eventually destroy the extended type)
@@ -130,7 +126,7 @@ def readFile(filename, atom, niter, verbose):
 #                         if (1000.-i <= p["var3"] < 1000.+i) ]
             rowselected += len(results)
         else:
-            raise ValueError, "Unsuported atom value"
+            raise ValueError("Unsuported atom value")
     if verbose and 1:
         print "Values that fullfill the conditions:"
         print results
@@ -151,13 +147,12 @@ def searchFile(filename, atom, verbose, item):
     rowsread = 0
     uncomprBytes = 0
     table = fileh.root.table
-    rowsize = table.rowsize
     if atom == "int":
         idxcol = table.cols.var2.index
     elif atom == "float":
         idxcol = table.cols.var3.index
     else:
-        raise ValueError, "Unsuported atom value"
+        raise ValueError("Unsuported atom value")
     print "Searching", table, "..."
     if verbose:
         print "Chunk size:", idxcol.sorted.chunksize
@@ -166,7 +161,7 @@ def searchFile(filename, atom, verbose, item):
 
     (positions, niter) = idxcol.search(item)
     if verbose:
-        print "Positions for item",item,"==>",positions
+        print "Positions for item", item, "==>", positions
         print "Total iterations in search:", niter
 
     rowsread += table.nrows
@@ -192,8 +187,6 @@ if __name__=="__main__":
         psyco_imported = 1
     except:
         psyco_imported = 0
-
-    import time
 
     usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize ] [-a
     atom] [-c level] [-l complib] [-S] [-F] [-i item] [-n nrows] [-x]
@@ -221,7 +214,7 @@ if __name__=="__main__":
         sys.exit(0)
 
     # if we pass too much parameters, abort
-    if len(pargs) <> 1:
+    if len(pargs) != 1:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -328,7 +321,7 @@ if __name__=="__main__":
         tMrows = rowsr/(1000*1000.)
         sKrows = rowsel/1000.
         print "Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows"
-        print "Rows selected:", rowsel, "Ksel:", round(sKrows,3), "Krows"
+        print "Rows selected:", rowsel, "Ksel:", round(sKrows, 3), "Krows"
         print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)
         print "Read Mrows/sec: ", round(tMrows / float(treadrows), 3)

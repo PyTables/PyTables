@@ -259,7 +259,7 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
         tbl = self.h5file.getNode('/test_var/structure variable')
         # Try to add rows to a non-chunked table (this should raise an error)
         self.assertRaises(tables.HDF5ExtError, tbl.append,
-                          [(4.0,5.0,[2.0,3.0],'d')])
+                          [(4.0, 5.0, [2.0, 3.0], 'd')])
         # Appending using the Row interface
         self.assertRaises(tables.HDF5ExtError, tbl.row.append)
         # Remove the file copy

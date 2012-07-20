@@ -2,8 +2,8 @@
 #include "utils.h"
 /* #include <string.h> */
 #include "version.h"
-#include "H5Zlzo.h"  		       /* Import FILTER_LZO */
-#include "H5Zbzip2.h"  		       /* Import FILTER_BZIP2 */
+#include "H5Zlzo.h"                /* Import FILTER_LZO */
+#include "H5Zbzip2.h"              /* Import FILTER_BZIP2 */
 
 
 /* ---------------------------------------------------------------- */
@@ -103,7 +103,7 @@ PyObject *getHDF5VersionInfo(void) {
   /* A string number */
   if (strcmp(H5_VERS_SUBRELEASE, "")) {
     snprintf(strver, 16, "%d.%d.%d-%s", majnum, minnum, relnum,
-	     H5_VERS_SUBRELEASE);
+             H5_VERS_SUBRELEASE);
   }
   else {
     snprintf(strver, 16, "%d.%d.%d", majnum, minnum, relnum);
@@ -172,7 +172,7 @@ PyObject *createNamesList(char *buffer[], int nelements)
  */
 
 PyObject *get_filter_names( hid_t loc_id,
-			    const char *dset_name)
+                            const char *dset_name)
 {
  hid_t    dset;
  hid_t    dcpl;           /* dataset creation property list */
@@ -180,7 +180,6 @@ PyObject *get_filter_names( hid_t loc_id,
  int      i, j;
  int      nf;             /* number of filters */
  unsigned filt_flags;     /* filter flags */
- H5Z_filter_t filt_id;       /* filter identification number */
  size_t   cd_nelmts;      /* filter client number of values */
  unsigned cd_values[20];  /* filter client data values */
  char     f_name[256];    /* filter name */
@@ -188,7 +187,7 @@ PyObject *get_filter_names( hid_t loc_id,
  PyObject *filter_values;
 
  /* Open the dataset. */
- if ( (dset = H5Dopen( loc_id, dset_name )) < 0 ) {
+ if ( (dset = H5Dopen( loc_id, dset_name, H5P_DEFAULT )) < 0 ) {
    goto out;
  }
 
@@ -201,19 +200,11 @@ PyObject *get_filter_names( hid_t loc_id,
    if ((nf = H5Pget_nfilters(dcpl))>0) {
      for (i=0; i<nf; i++) {
        cd_nelmts = 20;
-#if H5_USE_16_API || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7)
-       /* 1.6.x */
-       filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
-			       cd_values, sizeof(f_name), f_name);
-#else
-       /* 1.7.x */
-       filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
-			       cd_values, sizeof(f_name), f_name, NULL);
-#endif /* if H5_VERSION < "1.7" */
-
+       H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
+                     cd_values, sizeof(f_name), f_name, NULL);
        filter_values = PyTuple_New(cd_nelmts);
        for (j=0;j<(long)cd_nelmts;j++) {
-	 PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
+         PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
        }
        PyMapping_SetItemString (filters, f_name, filter_values);
      }
@@ -222,7 +213,7 @@ PyObject *get_filter_names( hid_t loc_id,
  else {
    /* http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52309 */
    Py_INCREF(Py_None);
-   filters = Py_None;  	/* Not chunked, so return None */
+   filters = Py_None;   /* Not chunked, so return None */
  }
 
  H5Pclose(dcpl);
@@ -233,7 +224,7 @@ return filters;
 out:
  H5Dclose(dset);
  Py_INCREF(Py_None);
- return Py_None;  	/* Not chunked, so return None */
+ return Py_None;        /* Not chunked, so return None */
 
 }
 
@@ -244,58 +235,91 @@ out:
 ****************************************************************/
 int get_objinfo(hid_t loc_id, const char *name) {
   herr_t     ret;            /* Generic return value         */
-  H5G_stat_t statbuf;
+  H5O_info_t oinfo;
 
   /* Get type of the object, without emiting an error in case the
      node does not exist. */
   H5E_BEGIN_TRY {
-    ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
+    ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);
   } H5E_END_TRY;
   if (ret < 0)
     return -2;
-  return statbuf.type;
+  return oinfo.type;
 }
 
 /****************************************************************
 **
-**  gitercb(): Custom group iteration callback routine.
+**  get_linkinfo(): Get information about the type of a link.
 **
 ****************************************************************/
-herr_t gitercb(hid_t loc_id, const char *name, void *data) {
+int get_linkinfo(hid_t loc_id, const char *name) {
+  herr_t     ret;            /* Generic return value         */
+  H5L_info_t linfo;
+
+  /* Get type of the link, without emiting an error in case the
+     node does not exist. */
+  H5E_BEGIN_TRY {
+    ret = H5Lget_info(loc_id, name, &linfo, H5P_DEFAULT);
+  } H5E_END_TRY;
+  if (ret < 0)
+    return -2;
+  return linfo.type;
+}
+
+/****************************************************************
+**
+**  litercb(): Custom link iteration callback routine.
+**
+****************************************************************/
+herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
+               void *data) {
   PyObject   **out_info=(PyObject **)data;
   PyObject   *strname;
-  herr_t     ret;            /* Generic return value         */
-  H5G_stat_t statbuf;
+  herr_t     ret;
+  H5O_info_t oinfo;
   int        namedtypes = 0;
 
-    /*
-     * Get type of the object and check it.
-     */
-    ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
-/*     CHECK(ret, FAIL, "H5Gget_objinfo"); */
+  strname = PyString_FromString(name);
 
-    strname = PyString_FromString(name);
-    if (statbuf.type == H5G_GROUP) {
-      PyList_Append(out_info[0], strname);
-    }
-    else if (statbuf.type == H5G_DATASET) {
-      PyList_Append(out_info[1], strname);
-    }
-    else if (statbuf.type == H5G_LINK) {
+  switch(info->type) {
+    case H5L_TYPE_SOFT:
+    case H5L_TYPE_EXTERNAL:
       PyList_Append(out_info[2], strname);
-    }
-    else if (statbuf.type == H5G_TYPE) {
-      namedtypes++;
-    }
-    else if (statbuf.type == H5G_UNKNOWN) {
+      break;
+    case H5L_TYPE_ERROR:  /* XXX: check */
       PyList_Append(out_info[3], strname);
-    }
-    else {                      /* Must be an external link */
-      PyList_Append(out_info[2], strname);
-    }
-    Py_DECREF(strname);
+      break;
+    case H5L_TYPE_HARD:
+      /* Get type of the object and check it */
+      ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);
+      if (ret < 0)
+          return -1;
 
-    return(0);  /* Loop until no more objects remain in directory */
+      switch(oinfo.type) {
+        case H5O_TYPE_GROUP:
+          PyList_Append(out_info[0], strname);
+          break;
+        case H5O_TYPE_DATASET:
+          PyList_Append(out_info[1], strname);
+          break;
+        case H5O_TYPE_NAMED_DATATYPE:
+          ++namedtypes;
+          break;
+        case H5O_TYPE_UNKNOWN:
+          PyList_Append(out_info[3], strname);
+          break;
+        default:
+          /* should not happen */
+          PyList_Append(out_info[3], strname);
+      }
+      break;
+    default:
+      /* should not happen */
+      PyList_Append(out_info[3], strname);
+  }
+  Py_DECREF(strname);
+
+  return 0 ;  /* Loop until no more objects remain in directory */
 }
 
 /****************************************************************
@@ -304,7 +328,7 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
 **
 ****************************************************************/
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
-  int i=0, ret;
+  hsize_t i=0;
   PyObject  *t, *tgroup, *tleave, *tlink, *tunknown;
   PyObject *info[4];
 
@@ -313,8 +337,11 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
   info[2] = tlink = PyList_New(0);
   info[3] = tunknown = PyList_New(0);
 
-  /* Iterate over all the childs behind loc_id (parent_id+loc_id) */
-  ret = H5Giterate(parent_id, name, &i, gitercb, info);
+  /* Iterate over all the childs behind loc_id (parent_id+loc_id).
+   * NOTE: using H5_INDEX_CRT_ORDER instead of H5_INDEX_NAME causes failures
+   * in the test suite */
+  H5Literate_by_name(parent_id, name, H5_INDEX_NAME, H5_ITER_NATIVE,
+                     &i, litercb, info, H5P_DEFAULT);
 
   /* Create the tuple with the list of Groups and Datasets */
   t = PyTuple_New(4);
@@ -331,7 +358,8 @@ PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
 **  aitercb(): Custom attribute iteration callback routine.
 **
 ****************************************************************/
-static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
+static herr_t aitercb( hid_t loc_id, const char *name,
+                       const H5A_info_t *ainfo, void *op_data) {
   PyObject *strname;
 
   strname = PyString_FromString(name);
@@ -348,12 +376,12 @@ static herr_t aitercb( hid_t loc_id, const char *name, void *op_data) {
 **
 ****************************************************************/
 PyObject *Aiterate(hid_t loc_id) {
-  unsigned int i = 0;
-  int ret;
+  hsize_t i = 0;
   PyObject *attrlist;                  /* List where the attrnames are put */
 
   attrlist = PyList_New(0);
-  ret = H5Aiterate(loc_id, &i, (H5A_operator_t)aitercb, (void *)attrlist);
+  H5Aiterate(loc_id, H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, &i,
+             (H5A_operator_t)aitercb, (void *)attrlist);
 
   return attrlist;
 }
@@ -365,15 +393,15 @@ PyObject *Aiterate(hid_t loc_id) {
 **
 ****************************************************************/
 H5T_class_t getHDF5ClassID(hid_t loc_id,
-			   const char *name,
-			   H5D_layout_t *layout,
-			   hid_t *type_id,
-			   hid_t *dataset_id) {
+                           const char *name,
+                           H5D_layout_t *layout,
+                           hid_t *type_id,
+                           hid_t *dataset_id) {
    H5T_class_t  class_id;
    hid_t        plist;
 
    /* Open the dataset. */
-   if ( (*dataset_id = H5Dopen( loc_id, name )) < 0 )
+   if ( (*dataset_id = H5Dopen( loc_id, name, H5P_DEFAULT )) < 0 )
      return -1;
 
    /* Get an identifier for the datatype. */
@@ -397,8 +425,8 @@ H5T_class_t getHDF5ClassID(hid_t loc_id,
 */
 
 PyObject *H5UIget_info( hid_t loc_id,
-			const char *dset_name,
-			char *byteorder)
+                        const char *dset_name,
+                        char *byteorder)
 {
   hid_t       dataset_id;
   int         rank;
@@ -411,9 +439,9 @@ PyObject *H5UIget_info( hid_t loc_id,
   int         i;
 
   /* Open the dataset. */
-  if ( (dataset_id = H5Dopen( loc_id, dset_name )) < 0 ) {
+  if ( (dataset_id = H5Dopen( loc_id, dset_name, H5P_DEFAULT )) < 0 ) {
     Py_INCREF(Py_None);
-    return Py_None;  	/* Not chunked, so return None */
+    return Py_None;     /* Not chunked, so return None */
   }
 
   /* Get an identifier for the datatype. */
@@ -480,7 +508,7 @@ out:
  H5Tclose( type_id );
  H5Dclose( dataset_id );
  Py_INCREF(Py_None);
- return Py_None;  	/* Not chunked, so return None */
+ return Py_None;    /* Not chunked, so return None */
 
 }
 
@@ -520,7 +548,7 @@ hsize_t _PyEval_SliceIndex_modif(PyObject *v, hssize_t *pi)
       x = PyLong_AsLongLong(v);
     } else {
       PyErr_SetString(PyExc_TypeError,
-		      "PyTables slice indices must be integers");
+                      "PyTables slice indices must be integers");
       return 0;
     }
     /* Truncate -- very long indices are truncated anyway */
@@ -541,8 +569,8 @@ hsize_t _PyEval_SliceIndex_modif(PyObject *v, hssize_t *pi)
 /* F. Alted 2005-05-08 */
 
 hsize_t getIndicesExt(PyObject *s, hsize_t length,
-		      hssize_t *start, hssize_t *stop, hssize_t *step,
-		      hsize_t *slicelength)
+                      hssize_t *start, hssize_t *stop, hssize_t *step,
+                      hsize_t *slicelength)
 {
         /* this is harder to get right than you might think */
 
@@ -629,10 +657,10 @@ int is_complex(hid_t type_id) {
       colname1 = H5Tget_member_name(type_id, 0);
       colname2 = H5Tget_member_name(type_id, 1);
       if ((strcmp(colname1, "r") == 0) && (strcmp(colname2, "i") == 0)) {
-	class1 = H5Tget_member_class(type_id, 0);
-	class2 = H5Tget_member_class(type_id, 1);
-	if (class1 == H5T_FLOAT && class2 == H5T_FLOAT)
-	  result = 1;
+        class1 = H5Tget_member_class(type_id, 0);
+        class2 = H5Tget_member_class(type_id, 1);
+        if (class1 == H5T_FLOAT && class2 == H5T_FLOAT)
+          result = 1;
       }
       free(colname1);
       free(colname2);
@@ -679,10 +707,12 @@ static H5T_order_t get_complex_order(hid_t type_id) {
 /* Return the byteorder of a HDF5 data type */
 /* This is actually an extension of H5Tget_order to handle complex types */
 herr_t get_order(hid_t type_id, char *byteorder) {
-  hid_t class_id;
   H5T_order_t h5byteorder;
+  /*
+  hid_t class_id;
 
   class_id = H5Tget_class(type_id);
+  */
 
   if (is_complex(type_id)) {
     h5byteorder = get_complex_order(type_id);
@@ -736,13 +766,43 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
 }
 
 
+/* Create a HDF5 atomic datatype that represents half precision floatting
+   point numbers defined by numpy as float16. */
+hid_t create_ieee_float16(const char *byteorder) {
+  hid_t float_id;
+
+  if (byteorder == NULL)
+    float_id = H5Tcopy(H5T_NATIVE_FLOAT);
+  else if (strcmp(byteorder, "little") == 0)
+    float_id = H5Tcopy(H5T_IEEE_F32LE);
+  else
+    float_id = H5Tcopy(H5T_IEEE_F32BE);
+
+  if (float_id < 0)
+    return float_id;
+
+  if (H5Tset_fields(float_id, 15, 10, 5, 0, 10) < 0)
+    return -1;
+
+  if (H5Tset_size(float_id, 2) < 0)
+    return -1;
+
+  if (H5Tset_ebias(float_id, 15) < 0)
+    return -1;
+
+  return float_id;
+}
+
+
 /* Create a HDF5 compound datatype that represents complex numbers
    defined by numpy as complex64. */
 hid_t create_ieee_complex64(const char *byteorder) {
   hid_t float_id, complex_id;
 
   complex_id = H5Tcreate(H5T_COMPOUND, sizeof(npy_complex64));
-  if (strcmp(byteorder, "little") == 0)
+  if (byteorder == NULL)
+    float_id = H5Tcopy(H5T_NATIVE_FLOAT);
+  else if (strcmp(byteorder, "little") == 0)
     float_id = H5Tcopy(H5T_IEEE_F32LE);
   else
     float_id = H5Tcopy(H5T_IEEE_F32BE);
@@ -758,7 +818,9 @@ hid_t create_ieee_complex128(const char *byteorder) {
   hid_t float_id, complex_id;
 
   complex_id = H5Tcreate(H5T_COMPOUND, sizeof(npy_complex128));
-  if (strcmp(byteorder, "little") == 0)
+  if (byteorder == NULL)
+    float_id = H5Tcopy(H5T_NATIVE_DOUBLE);
+  else if (strcmp(byteorder, "little") == 0)
     float_id = H5Tcopy(H5T_IEEE_F64LE);
   else
     float_id = H5Tcopy(H5T_IEEE_F64BE);
@@ -833,7 +895,7 @@ herr_t truncate_dset( hid_t dataset_id,
  if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
    goto out;
 
- if (rank) {  			/* multidimensional case */
+ if (rank) {    /* multidimensional case */
    /* Book some memory for the selections */
    dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
 
@@ -849,7 +911,7 @@ herr_t truncate_dset( hid_t dataset_id,
    /* Release resources */
    free(dims);
  }
- else {     			/* scalar case (should never enter here) */
+ else {         /* scalar case (should never enter here) */
      printf("A scalar Array cannot be truncated!.\n");
      goto out;
  }
@@ -863,7 +925,4 @@ herr_t truncate_dset( hid_t dataset_id,
 out:
  if (dims) free(dims);
  return -1;
-
 }
-
-

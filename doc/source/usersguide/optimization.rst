@@ -82,9 +82,11 @@ warned!
 
 Fine-tuning the chunksize
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-.. warning:: This section is mostly meant for experts.  If you are
-   a beginner, you must know that setting manually the chunksize is a
-   potentially dangerous action.
+.. warning::
+
+    This section is mostly meant for experts.  If you are a beginner, you
+    must know that setting manually the chunksize is a potentially dangerous
+    action.
 
 Most of the time, informing PyTables about the extent of your
 dataset is enough.  However, for more sophisticated applications,
@@ -179,13 +181,14 @@ application into production is your best ally.
 Accelerating your searches
 --------------------------
 
-.. note:: Many of the explanations and plots in this section and the
-   forthcoming ones still need to be updated to include Blosc (see
-   ), the new and powerful compressor
-   added in PyTables 2.2 series.  You should expect it to be the
-   fastest compressor among all the described here, and its use is
-   strongly recommended whenever you need extreme speed and not a
-   very high compression ratio.
+.. note::
+
+    Many of the explanations and plots in this section and the forthcoming
+    ones still need to be updated to include Blosc (see
+    :ref:`[BLOSC] <BLOSC>`), the new and powerful compressor added in
+    PyTables 2.2 series.  You should expect it to be the fastest compressor
+    among all the described here, and its use is strongly recommended
+    whenever you need extreme speed and not a very high compression ratio.
 
 Searching in tables is one of the most common and time consuming
 operations that a typical user faces in the process of mining through
@@ -406,12 +409,13 @@ be used:
 
 - ~(("bar" <= var1) & (var1 < "foo")) & (var4 > 0.0) (negation of a complex boolean expression)
 
-.. note:: From PyTables 2.3 on, several indexes can be used in a
-   single query.
+.. note:: From PyTables 2.3 on, several indexes can be used in a single query.
 
-.. note:: If you want to know for sure whether a particular query will
-   use indexing or not (without actually running it), you are advised
-   to use the :meth:`Table.willQueryUseIndexing` method.
+.. note::
+
+    If you want to know for sure whether a particular query will use indexing
+    or not (without actually running it), you are advised to use the
+    :meth:`Table.willQueryUseIndexing` method.
 
 One important aspect of the new indexing in PyTables (>= 2.3)
 is that it has been designed from the ground up with the goal of
@@ -547,9 +551,11 @@ selectivity queries) and 10x (for high selectivity queries).
 Achieving ultimate speed: sorted tables and beyond
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. warning:: Sorting a large table is a costly operation.  The next
-   procedure should only be performed when your dataset is mainly
-   read-only and meant to be queried many times.
+.. warning::
+
+    Sorting a large table is a costly operation.  The next procedure should
+    only be performed when your dataset is mainly read-only and meant to be
+    queried many times.
 
 When querying large tables, most of the query time is spent in
 locating the interesting rows to be read from disk.  In some
@@ -1144,9 +1150,11 @@ there is no replacement for setting your own experiments up in order
 to proceed to fine-tune the NODE_CACHE_SLOTS
 parameter.
 
-.. note:: PyTables >= 2.3 sports an optimized LRU cache node written
-   in C, so you should expect significantly faster LRU cache
-   operations when working with it.
+.. note::
+
+    PyTables >= 2.3 sports an optimized LRU cache node written in C, so
+    you should expect significantly faster LRU cache operations when
+    working with it.
 
 
 Compacting your PyTables files

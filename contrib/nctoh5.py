@@ -11,7 +11,7 @@ http://starship.python.net/~hinsen/ScientificPython
 from Scientific.IO import NetCDF
 import tables, sys
 # open netCDF file
-ncfile = NetCDF.NetCDFFile(sys.argv[1],mode = "r")
+ncfile = NetCDF.NetCDFFile(sys.argv[1], mode = "r")
 # open h5 file.
 h5file = tables.openFile(sys.argv[2], mode = "w")
 # loop over variables in netCDF file.
@@ -20,7 +20,7 @@ for varname in ncfile.variables.keys():
     vardims = list(var.dimensions)
     vardimsizes = [ncfile.dimensions[vardim] for vardim in vardims]
     # use long_name for title.
-    if hasattr(var,'long_name'):
+    if hasattr(var, 'long_name'):
        title = var.long_name
     else: # or, just use some bogus title.
        title = varname + ' array'
@@ -29,22 +29,22 @@ for varname in ncfile.variables.keys():
     if vardimsizes[0] == None or len(vardimsizes) > 1:
         vardimsizes[0] = 0
         vardata = h5file.createEArray(h5file.root, varname,
-        tables.Atom(shape=tuple(vardimsizes),dtype=var.typecode(),),
-        title,filters=tables.Filters(complevel=6,complib='zlib'))
+        tables.Atom(shape=tuple(vardimsizes), dtype=var.typecode(),),
+        title, filters=tables.Filters(complevel=6, complib='zlib'))
     # write data to enlargeable array on record at a time.
     # (so the whole array doesn't have to be kept in memory).
         for n in range(var.shape[0]):
             vardata.append(var[n:n+1])
     # or else, create regular array write data to it all at once.
     else:
-        vardata=h5file.createArray(h5file.root,varname,var[:],title)
+        vardata=h5file.createArray(h5file.root, varname, var[:], title)
     # set variable attributes.
-    for key,val in var.__dict__.iteritems():
-        setattr(vardata.attrs,key,val)
-    setattr(vardata.attrs,'dimensions',tuple(vardims))
+    for key, val in var.__dict__.iteritems():
+        setattr(vardata.attrs, key, val)
+    setattr(vardata.attrs, 'dimensions', tuple(vardims))
 # set global (file) attributes.
-for key,val in ncfile.__dict__.iteritems():
-    setattr(h5file.root._v_attrs,key,val)
+for key, val in ncfile.__dict__.iteritems():
+    setattr(h5file.root._v_attrs, key, val)
 # Close the file
 h5file.close()
 

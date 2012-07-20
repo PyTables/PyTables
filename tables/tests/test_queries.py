@@ -10,7 +10,7 @@ Test module for queries on datasets
 """
 
 import re
-import new
+import types
 import unittest
 
 import numpy
@@ -18,7 +18,7 @@ import numpy
 import tables
 from tables.utils import SizeType
 from tables.tests import common
-from common import verbosePrint as vprint
+from tables.tests.common import verbosePrint as vprint
 
 
 # Data parameters
@@ -43,17 +43,27 @@ small_blocksizes = (300, 60, 20, 5)
 # ----------------
 type_info = {
     'bool': (numpy.bool_, bool),
-    'int8': (numpy.int8, int), 'uint8': (numpy.uint8, int),
-    'int16': (numpy.int16, int), 'uint16': (numpy.uint16, int),
-    'int32': (numpy.int32, int), 'uint32': (numpy.uint32, long),
-    'int64': (numpy.int64, long), 'uint64': (numpy.uint64, long),
-    'float32': (numpy.float32, float), 'float64': (numpy.float32, float),
+    'int8': (numpy.int8, int),
+    'uint8': (numpy.uint8, int),
+    'int16': (numpy.int16, int),
+    'uint16': (numpy.uint16, int),
+    'int32': (numpy.int32, int),
+    'uint32': (numpy.uint32, long),
+    'int64': (numpy.int64, long),
+    'uint64': (numpy.uint64, long),
+    'float32': (numpy.float32, float),
+    'float64': (numpy.float64, float),
     'complex64': (numpy.complex64, complex),
     'complex128': (numpy.complex128, complex),
-    'time32': (numpy.int32, int), 'time64': (numpy.float64, float),
+    'time32': (numpy.int32, int),
+    'time64': (numpy.float64, float),
     'enum': (numpy.uint8, int),  # just for these tests
-    'string': ('S%s' % _strlen, str) }  # just for these tests
+    'string': ('S%s' % _strlen, str),  # just for these tests
+}
 """NumPy and Numexpr type for each PyTables type that will be tested."""
+
+if hasattr(numpy, 'float16'):
+    type_info['float16'] = (numpy.float16, float)
 
 sctype_from_type = dict( (type_, info[0])
                          for (type_, info) in type_info.iteritems() )
@@ -105,7 +115,7 @@ def nested_description(classname, pos, shape=()):
     classdict = {}
     append_columns(classdict, shape=shape)
     classdict['_v_pos'] = pos
-    return new.classobj(classname, (tables.IsDescription,), classdict)
+    return types.ClassType(classname, (tables.IsDescription,), classdict)
 
 def table_description(classname, nclassname, shape=()):
     """
@@ -134,7 +144,7 @@ def table_description(classname, nclassname, shape=()):
     classdict['c_idxextra'] = idxextracol
     colpos += 1
 
-    return new.classobj(classname, (tables.IsDescription,), classdict)
+    return types.ClassType(classname, (tables.IsDescription,), classdict)
 
 TableDescription = table_description(
     'TableDescription', 'NestedDescription' )
@@ -181,15 +191,15 @@ def fill_table(table, shape, nrows):
             colname = 'c_%s' % type_
             ncolname = 'c_nested/%s' % colname
             if type_ == 'bool':
-                coldata = data > (row_period / 2)
+                coldata = data > (row_period // 2)
             elif type_ == 'string':
                 sdata = [str_format % x for x in range(value, value + size)]
                 coldata = numpy.array(sdata, dtype=sctype).reshape(shape)
             else:
                 coldata = numpy.asarray(data, dtype=sctype)
             row[ncolname] = row[colname] = coldata
-            row['c_extra'] = data - (row_period / 2)
-            row['c_idxextra'] = data - (row_period / 2)
+            row['c_extra'] = data - (row_period // 2)
+            row['c_idxextra'] = data - (row_period // 2)
         row.append()
         value += 1
         if value == row_period:
@@ -278,9 +288,9 @@ operators = [
 """Comparison operators to check with different types."""
 heavy_operators = frozenset(['~', '<=', '>=', '>', ('>', '>=')])
 """Comparison operators to be tested only in heavy mode."""
-left_bound = row_period / 4
+left_bound = row_period // 4
 """Operand of left side operator in comparisons with operator pairs."""
-right_bound = row_period * 3 / 4
+right_bound = row_period * 3 // 4
 """Operand of right side operator in comparisons with operator pairs."""
 extra_conditions = [
     '',                     # uses one index
@@ -309,7 +319,7 @@ def create_test_method(type_, op, extracond):
     condvars = { 'bound': right_bound,
                  'lbound': left_bound,
                  'rbound': right_bound }
-    for (bname, bvalue) in condvars.items():
+    for (bname, bvalue) in condvars.iteritems():
         if type_ == 'string':
             bvalue = str_format % bvalue
         bvalue = nxtype_from_type[type_](bvalue)
@@ -326,7 +336,7 @@ def create_test_method(type_, op, extracond):
         cond = '~(%s)' % colname
     elif op == '<':  # binary variable-constant
         cond = '%s %s %s' % (colname, op, repr(condvars['bound']))
-    elif type(op) is tuple: # double binary variable-constant
+    elif isinstance(op, tuple): # double binary variable-constant
         cond = ( '(lbound %s %s) & (%s %s rbound)'
                  % (op[0], colname, colname, op[1]) )
     else:  # binary variable-variable
@@ -432,7 +442,7 @@ for type_ in type_info:  # for type_ in ['string']:
             #tmethod.__doc__ += numfmt % testn
             tmethod.__doc__ += testfmt % testn
             ptmethod = common.pyTablesTest(tmethod)
-            imethod = new.instancemethod(ptmethod, None, TableDataTestCase)
+            imethod = types.MethodType(ptmethod, None, TableDataTestCase)
             setattr(TableDataTestCase, tmethod.__name__, imethod)
             testn += 1
 
@@ -526,7 +536,7 @@ def iclassdata():
 for cdatafunc in [niclassdata, iclassdata]:
     for (cname, cbasenames, cdict) in cdatafunc():
         cbases = tuple(eval(cbase) for cbase in cbasenames)
-        class_ = new.classobj(cname, cbases, cdict)
+        class_ = types.ClassType(cname, cbases, cdict)
         exec '%s = class_' % cname
 
 
@@ -602,6 +612,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         # External variables do not override implicit columns.
         def where_with_locals():
             c_int32 = self.table.cols.c_bool  # this wouldn't cause an error
+            self.assertTrue(c_int32 is not None)
             self.table.where('c_int32')
         self.assertRaises(TypeError, where_with_locals)
 
@@ -639,6 +650,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         # Second scope: local variables.
         def where_whith_locals():
             col = self.table.cols.c_int32
+            self.assertTrue(col is not None)
             self.table.where('col')
         self.assertRaises(TypeError, where_whith_locals)
 
@@ -732,7 +744,7 @@ class IndexedTableUsage2(IndexedTableUsage):
         '(c_int32 > 0) & (c_int32 < 5) & ((c_bool == True) | (c_extra > 0))',
         '(c_int32 > 0) & (c_int32 < 5) & ((c_extra > 0) | (c_bool == True))',
         ]
-    idx_expr = [ ( 'c_int32', ('gt','lt'), (0,5) ) ]
+    idx_expr = [ ( 'c_int32', ('gt', 'lt'), (0, 5) ) ]
     str_expr = 'e0'
 
 class IndexedTableUsage3(IndexedTableUsage):
@@ -763,7 +775,7 @@ class IndexedTableUsage5(IndexedTableUsage):
         '(c_int32 >= 1) & (c_int32 < 2) & (c_bool == True)'+
         ' & (c_extra > 0)',
         ]
-    idx_expr = [ ( 'c_int32', ('ge','lt'), (1,2) ),
+    idx_expr = [ ( 'c_int32', ('ge', 'lt'), (1, 2) ),
                  ( 'c_bool', ('eq',), (True,) ),
                  ]
     str_expr = '(e0 & e1)'
@@ -774,7 +786,7 @@ class IndexedTableUsage6(IndexedTableUsage):
         '(c_int32 >= 1) & (c_int32 < 2) & (c_int32 > 0) & (c_int32 < 5)'+
         ' & (c_extra > 0)',
         ]
-    idx_expr = [ ( 'c_int32', ('ge','lt'), (1,2) ),
+    idx_expr = [ ( 'c_int32', ('ge', 'lt'), (1, 2) ),
                  ( 'c_int32', ('gt',), (0,) ),
                  ( 'c_int32', ('lt',), (5,) ),
                  ]
@@ -787,8 +799,8 @@ class IndexedTableUsage7(IndexedTableUsage):
         '((c_int32 >= 1) & (c_int32 < 2)) & ((c_int32 > 0) & (c_int32 < 5))'+
         ' & (c_extra > 0)',
         ]
-    idx_expr = [ ( 'c_int32', ('ge','lt'), (1,2) ),
-                 ( 'c_int32', ('gt','lt'), (0,5) ),
+    idx_expr = [ ( 'c_int32', ('ge', 'lt'), (1, 2) ),
+                 ( 'c_int32', ('gt', 'lt'), (0, 5) ),
                  ]
     str_expr = '(e0 & e1)'
 
@@ -796,7 +808,7 @@ class IndexedTableUsage8(IndexedTableUsage):
     conditions = [
         '(c_extra > 0) & ((c_int32 > 0) & (c_int32 < 5))',
         ]
-    idx_expr = [ ( 'c_int32', ('gt','lt'), (0,5) ),
+    idx_expr = [ ( 'c_int32', ('gt', 'lt'), (0, 5) ),
                  ]
     str_expr = 'e0'
 

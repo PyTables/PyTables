@@ -36,9 +36,11 @@ defaults stated here may change from release to release, please check
 with your actual parameter files so as to know your actual default
 values.
 
-.. warning:: Changing the next parameters may have a very bad effect
-   in the resource consumption and performance of your PyTables scripts.
-   Please be careful when touching these!
+.. warning::
+
+    Changing the next parameters may have a very bad effect in the resource
+    consumption and performance of your PyTables scripts.
+    Please be careful when touching these!
 
 
 .. currentmodule:: tables.parameters
@@ -100,8 +102,7 @@ Cache limits
 
 .. data:: METADATA_CACHE_SIZE
 
-    Size (in bytes) of the HDF5 metadata cache.  This only
-    takes effect if using HDF5 1.8.x series.
+    Size (in bytes) of the HDF5 metadata cache.
 
 
 .. data:: NODE_CACHE_SLOTS
@@ -191,11 +192,12 @@ Parameters for the different internal caches
 
 Parameters for general cache behaviour
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. warning:: The next parameters will not take any effect if passed to
-   the openFile() function, so they can only be
-   changed in a *global* way.  You can change
-   them in the file, but this is strongly discouraged unless you know
-   well what you are doing.
+.. warning::
+
+    The next parameters will not take any effect if passed to the openFile()
+    function, so they can only be changed in a *global* way.  You can change
+    them in the file, but this is strongly discouraged unless you know well
+    what you are doing.
 
 .. data:: DISABLE_EVERY_CYCLES
 
@@ -260,11 +262,38 @@ Miscellaneous
 
 .. data:: MAX_THREADS
 
-    The maximum number of threads that PyTables should use
-    internally (mainly in Blosc and Numexpr currently).  If
-    None, it is automatically set to the
-    number of cores in your machine. In general, it is a good
-    idea to set this to the number of cores in your machine or,
-    when your machine has many of them (e.g. > 4), perhaps one
-    less than this.
+    The maximum number of threads that PyTables should use internally (mainly
+    in Blosc and Numexpr currently).  If None, it is automatically set to the
+    number of cores in your machine. In general, it is a good idea to set
+    this to the number of cores in your machine or, when your machine has
+    many of them (e.g. > 4), perhaps one less than this.
+
+    .. note::
+
+        currently MAX_THREADS is only used as a fall-back if
+        :data:`tables.parameters.MAX_NUMEXPR_THREADS` or
+        :data:`tables.parameters.MAX_BLOSC_THREADS` are not set.
+
+    .. deprecated:: 2.4
+
+        Use :data:`tables.parameters.MAX_NUMEXPR_THREADS` or
+        :data:`tables.parameters.MAX_BLOSC_THREADS` instead.
+
+
+.. data:: MAX_NUMEXPR_THREADS
+
+    The maximum number of threads that PyTables should use internally in
+    Numexpr.  If None, it is automatically set to the number of cores in your
+    machine. In general, it is a good idea to set this to the number of cores
+    in your machine or, when your machine has many of them (e.g. > 4),
+    perhaps one less than this.
+
+
+.. data:: MAX_BLOSC_THREADS
+
+    The maximum number of threads that PyTables should use internally in
+    Blosc.  If None, it is automatically set to the number of cores in your
+    machine. In general, it is a good idea to set this to the number of cores
+    in your machine or, when your machine has many of them (e.g. > 4),
+    perhaps one less than this.
 

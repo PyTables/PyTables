@@ -6,19 +6,19 @@ Bibliography
 :ref:`[HDFG1] <HDFG1>`
     The HDF Group. What is HDF5?. Concise description about HDF5 capabilities
     and its differences from earlier versions (HDF4).
-    `<http://hdfgroup.org/whatishdf5.html>`_.
+    `<http://www.hdfgroup.org/whatishdf5.html>`_.
 
 .. _HDFG2:
 
 :ref:`[HDFG2] <HDFG2>`
     The HDF Group. Introduction to HDF5. Introduction to the HDF5 data model
-    and programming model. `<http://hdfgroup.org/HDF5/doc/H5.intro.html>`_.
+    and programming model. `<http://www.hdfgroup.org/HDF5/doc/H5.intro.html>`_.
 
 .. _HDFG3:
 
 :ref:`[HDFG3] <HDFG3>`
     The HDF Group. The HDF5 table programming model. Examples on using HDF5
-    tables with the C API. `<http://hdfgroup.org/HDF5/Tutor/h5table.html>`_.
+    tables with the C API. `<http://www.hdfgroup.org/HDF5/Tutor/h5table.html>`_.
 
 .. _MERTZ:
 
@@ -27,7 +27,7 @@ Bibliography
     objects(II). Article describing XML Objectify, a Python module that
     allows working with XML documents as Python objects.
     Some of the ideas presented here are used in PyTables.
-    `<http://www-106.ibm.com/developerworks/xml/library/xml-matters2/index.html>`_.
+    `<http://www.ibm.com/developerworks/xml/library/xml-matters2/index.html>`_.
 
 .. _CYTHON:
 
@@ -42,14 +42,14 @@ Bibliography
     Glenn Davis, Russ Rew, Steve Emmerson, John Caron, and Harvey Davies.
     NetCDF. Network Common Data Form. An interface for array-oriented data
     access and a library that provides an implementation of the interface.
-    `<http://www.unidata.ucar.edu/packages/netcdf/>`_.
+    `<http://www.unidata.ucar.edu/software/netcdf/>`_.
 
 .. _NETCDF2:
 
 :ref:`[NETCDF2] <NETCDF2>`
     Russ Rew, Mike Folk, and et al. NetCDF-4. Network Common Data Form
     version 4. Merging the NetCDF and HDF5 Libraries.
-    `<http://www.unidata.ucar.edu/software/netcdf/netcdf-4/>`_.
+    `<http://www.unidata.ucar.edu/software/netcdf/index.html>`_.
 
 .. _NUMPY:
 
@@ -59,7 +59,7 @@ Bibliography
     date.
     It implements all the features that can be found in Numeric and numarray,
     plus a bunch of new others. In general, it is more efficient as well.
-    `<http://numeric.scipy.org/>`_.
+    `<http://numpy.scipy.org/>`_.
 
 .. _NUMERIC:
 
@@ -171,7 +171,7 @@ Bibliography
     Vicent Mas. ViTables. A GUI for PyTables/HDF5 files.
     It is a graphical tool for browsing and editing files in both PyTables
     and HDF5 formats.
-    `<http://www.vitables.org>`_.
+    `<http://vitables.org>`_.
 
 .. _GIT:
 
@@ -188,3 +188,6 @@ Bibliography
     `<http://sphinx.pocoo.org/>`_.
 
 .. |Kuepper| unicode:: K U+00FC pper .. Kuepper
+
+.. todo:: remove the above substitution. It is no more needed with sphinx
+          1.0.8

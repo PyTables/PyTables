@@ -103,15 +103,15 @@ class Basic1DTwoTestCase(BasicTestCase):
 class Basic2DTestCase(BasicTestCase):
     # 2D case
     title = "Rank-2 case 1"
-    numericalList = [[1,2]]*5
-    charList = [["qq","zz"]]*5
+    numericalList = [[1, 2]]*5
+    charList = [["qq", "zz"]]*5
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 case 1"
-    numericalList = [[[[[[[[[[1,2],[3,4]]]]]]]]]]*5
+    numericalList = [[[[[[[[[[1, 2], [3, 4]]]]]]]]]]*5
     # Dimensions greather than 6 in strings gives some warnings
-    charList = [[[[[[[[[["a","b"],["qq","zz"]]]]]]]]]]*5
+    charList = [[[[[[[[[["a", "b"], ["qq", "zz"]]]]]]]]]]*5
 
 
 class ExceptionTestCase(unittest.TestCase):
@@ -383,27 +383,27 @@ class GetItemTestCase(unittest.TestCase):
 class GI1ListTestCase(GetItemTestCase):
     title = "Rank-1 case 1 (lists)"
     numericalList = [3]
-    numericalListME = [3,2,1,0,4,5,6]
+    numericalListME = [3, 2, 1, 0, 4, 5, 6]
     charList = ["3"]
-    charListME = ["321","221","121","021","421","521","621"]
+    charListME = ["321", "221", "121", "021", "421", "521", "621"]
 
 class GI2ListTestCase(GetItemTestCase):
     # A more complex example
     title = "Rank-1,2 case 2 (lists)"
-    numericalList = [3,4]
-    numericalListME = [[3,2,1,0,4,5,6],
-                       [2,1,0,4,5,6,7],
-                       [4,3,2,1,0,4,5],
-                       [3,2,1,0,4,5,6],
-                       [3,2,1,0,4,5,6]]
+    numericalList = [3, 4]
+    numericalListME = [[3, 2, 1, 0, 4, 5, 6],
+                       [2, 1, 0, 4, 5, 6, 7],
+                       [4, 3, 2, 1, 0, 4, 5],
+                       [3, 2, 1, 0, 4, 5, 6],
+                       [3, 2, 1, 0, 4, 5, 6]]
 
-    charList = ["a","b"]
-    charListME = [["321","221","121","021","421","521","621"],
-                  ["21","21","11","02","42","21","61"],
-                  ["31","21","12","21","41","51","621"],
-                  ["321","221","121","021","421","521","621"],
-                  ["3241","2321","13216","0621","4421","5421","a621"],
-                  ["a321","s221","d121","g021","b421","5vvv21","6zxzxs21"]]
+    charList = ["a", "b"]
+    charListME = [["321", "221", "121", "021", "421", "521", "621"],
+                  ["21", "21", "11", "02", "42", "21", "61"],
+                  ["31", "21", "12", "21", "41", "51", "621"],
+                  ["321", "221", "121", "021", "421", "521", "621"],
+                  ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
+                  ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]]
 
 
 class GeneratorTestCase(unittest.TestCase):
@@ -441,7 +441,7 @@ class GeneratorTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if type(a[0]) == tuple:
+        if isinstance(a[0], tuple):
             ga = [list(i) for i in a]
         else:
             ga = [i for i in a]
@@ -490,7 +490,7 @@ class GeneratorTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if type(a[0]) == tuple:
+        if isinstance(a[0], tuple):
             ga = [list(i) for i in a]
         else:
             ga = [i for i in a]
@@ -510,27 +510,27 @@ class GE1ListTestCase(GeneratorTestCase):
     # Scalar case
     title = "Rank-1 case 1 (lists)"
     numericalList = [3]
-    numericalListME = [3,2,1,0,4,5,6]
+    numericalListME = [3, 2, 1, 0, 4, 5, 6]
     charList = ["3"]
-    charListME = ["321","221","121","021","421","521","621"]
+    charListME = ["321", "221", "121", "021", "421", "521", "621"]
 
 class GE2ListTestCase(GeneratorTestCase):
     # Scalar case
     title = "Rank-1,2 case 2 (lists)"
-    numericalList = [3,4]
-    numericalListME = [[3,2,1,0,4,5,6],
-                       [2,1,0,4,5,6,7],
-                       [4,3,2,1,0,4,5],
-                       [3,2,1,0,4,5,6],
-                       [3,2,1,0,4,5,6]]
+    numericalList = [3, 4]
+    numericalListME = [[3, 2, 1, 0, 4, 5, 6],
+                       [2, 1, 0, 4, 5, 6, 7],
+                       [4, 3, 2, 1, 0, 4, 5],
+                       [3, 2, 1, 0, 4, 5, 6],
+                       [3, 2, 1, 0, 4, 5, 6]]
 
-    charList = ["a","b"]
-    charListME = [["321","221","121","021","421","521","621"],
-                  ["21","21","11","02","42","21","61"],
-                  ["31","21","12","21","41","51","621"],
-                  ["321","221","121","021","421","521","621"],
-                  ["3241","2321","13216","0621","4421","5421","a621"],
-                  ["a321","s221","d121","g021","b421","5vvv21","6zxzxs21"]]
+    charList = ["a", "b"]
+    charListME = [["321", "221", "121", "021", "421", "521", "621"],
+                  ["21", "21", "11", "02", "42", "21", "61"],
+                  ["31", "21", "12", "21", "41", "51", "621"],
+                  ["321", "221", "121", "021", "421", "521", "621"],
+                  ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
+                  ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]]
 
 
 def suite():

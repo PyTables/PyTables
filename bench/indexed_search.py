@@ -33,7 +33,7 @@ def get_nrows(nrows_str):
     elif nrows_str.endswith("g"):
         return int(float(nrows_str[:-1])*1000*1000*1000)
     else:
-        raise ValueError, "value of nrows must end with either 'k', 'm' or 'g' suffixes."
+        raise ValueError("value of nrows must end with either 'k', 'm' or 'g' suffixes.")
 
 class DB(object):
 
@@ -404,7 +404,7 @@ if __name__=="__main__":
             prof = Profile()
             prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose, inkernel)')
             kcg = lsprofcalltree.KCacheGrind(prof)
-            ofile = open('indexed_search.kcg','w')
+            ofile = open('indexed_search.kcg', 'w')
             kcg.output(ofile)
             ofile.close()
         elif doprofile:

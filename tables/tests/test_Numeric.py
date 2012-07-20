@@ -46,7 +46,7 @@ class BasicTestCase(unittest.TestCase):
             b = array(b, typecode=a.typecode())
 
         # Compare them. They should be equal.
-        if not allequal(a,b, "numeric") and common.verbose:
+        if not allequal(a, b, "numeric") and common.verbose:
             print "Write and read arrays differ!"
             print "Array written:", a
             print "Array written shape:", a.shape
@@ -76,7 +76,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(a.typecode(),
                              typecode[self.root.somearray.atom.type])
 
-        self.assertTrue(allequal(a,b, "numeric"))
+        self.assertTrue(allequal(a, b, "numeric"))
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
@@ -85,7 +85,7 @@ class BasicTestCase(unittest.TestCase):
     def test00_char(self):
         "Data integrity during recovery (character objects)"
 
-        a = array(self.tupleChar,'c')
+        a = array(self.tupleChar, 'c')
         self.WriteRead(a)
         return
 
@@ -166,21 +166,21 @@ class Basic2DTestCase(BasicTestCase):
     title = "Rank-2 case 1"
     #tupleInt = reshape(array(arange((4)**2)), (4,)*2)
     tupleInt = ones((4,)*2)
-    tupleChar = [["aa","dd"],["dd","ss"],["ss","tt"]]
+    tupleChar = [["aa", "dd"], ["dd", "ss"], ["ss", "tt"]]
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 case 1"
     #tupleInt = reshape(array(arange((2)**10)), (2,)*10)
     tupleInt = ones((2,)*10)
-    tupleChar = ones((2,)*8,'c')
+    tupleChar = ones((2,)*8, 'c')
 
 class Basic32DTestCase(BasicTestCase):
     # 32D case (maximum)
     tupleInt = reshape(array((32,)), (1,)*32)
     # Strings seems to cause some problems with somewhat large dimensions
     # Reverting to 2D case
-    tupleChar = [["aa","dd"],["dd","ss"]]
+    tupleChar = [["aa", "dd"], ["dd", "ss"]]
 
 
 class GroupsArrayTestCase(unittest.TestCase):
@@ -214,7 +214,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             dsetname = 'array_' + typecode
             if common.verbose:
                 print "Creating dataset:", group._g_join(dsetname)
-            hdfarray = fileh.createArray(group, dsetname, a, "Large array")
+            fileh.createArray(group, dsetname, a, "Large array")
             # Create a new group
             group = fileh.createGroup(group, 'group' + str(i))
             # increment the range for next iteration
@@ -229,14 +229,14 @@ class GroupsArrayTestCase(unittest.TestCase):
         group = fileh.root
 
         # Get the metadata on the previosly saved arrays
-        for i in range(1,len(typecodes)):
+        for i in range(1, len(typecodes)):
             # Create an array for later comparison
             a = ones((2,) * i, typecodes[i - 1])
             # Get the dset object hanging from group
             dset = getattr(group, 'array_' + typecodes[i-1])
             # Get the actual array
             b = dset.read()
-            if not allequal(a,b, "numeric") and common.verbose:
+            if not allequal(a, b, "numeric") and common.verbose:
                 print "Array a original. Shape: ==>", a.shape
                 print "Array a original. Data: ==>", a
                 print "Info from dataset:", dset._v_pathname
@@ -253,7 +253,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 self.assertTrue(b.typecode() == "l" or b.typecode() == "i")
             else:
                 self.assertEqual(a.typecode(), b.typecode())
-            self.assertTrue(allequal(a,b, "numeric"))
+            self.assertTrue(allequal(a, b, "numeric"))
 
             # Iterate over the next group
             group = getattr(group, 'group' + str(i))
@@ -451,7 +451,7 @@ class TableReadTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         table.flavor = "numeric"
-        coords = (1,2,3)
+        coords = (1, 2, 3)
         self.nrows = len(coords)
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname)
@@ -479,7 +479,7 @@ class TableReadTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         table.flavor = "numeric"
-        coords = (1,2,3)
+        coords = (1, 2, 3)
         self.nrows = len(coords)
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname)

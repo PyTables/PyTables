@@ -17,8 +17,6 @@ Classes (type extensions):
 
 Functions:
 
-
-
 Misc variables:
 
     __version__
@@ -31,31 +29,31 @@ from time import time
 from tables.description import Col
 from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
-from tables.utilsExtension import \
-     getNestedField, AtomFromHDF5Type, createNestedType
+from tables.utilsExtension import (getNestedField, AtomFromHDF5Type,
+  createNestedType)
 from tables.utils import SizeType
 
 from utilsExtension cimport get_native_type
 
 # numpy functions & objects
 from hdf5Extension cimport Leaf
-from definitions cimport import_array, ndarray, \
-     malloc, free, memcpy, strdup, strcmp, \
-     PyString_AsString, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
-     PyArray_GETITEM, PyArray_SETITEM, \
-     H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
-     H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, \
-     size_t, hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, H5T_class_t, \
-     H5Gunlink, H5Fflush, H5Dopen, H5Dclose, H5Dread, H5Dget_type,\
-     H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pget_chunk, \
-     H5Pclose, H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, \
-     H5Sclose, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose, \
-     H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, \
-     H5Tget_native_type, H5Tget_member_value, H5Tinsert, \
-     H5Tget_class, H5Tget_super, H5Tget_offset, \
-     H5ATTRset_attribute_string, H5ATTRset_attribute, \
-     get_len_of_range, get_order, set_order, is_complex, \
-     conv_float64_timeval32, truncate_dset
+from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy, strdup, strcmp
+from numpy cimport import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM
+from cpython cimport PyString_AsString
+from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
+  H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
+  H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL,
+  H5Fflush, H5Dget_create_plist,
+  H5D_layout_t, H5Dopen, H5Dclose, H5Dread, H5Dget_type, H5Dget_space,
+  H5Pget_layout, H5Pget_chunk, H5Pclose,
+  H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose,
+  H5T_class_t, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose,
+  H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, H5Tget_native_type,
+  H5Tget_member_value, H5Tinsert, H5Tget_class, H5Tget_super, H5Tget_offset,
+  H5ATTRset_attribute_string, H5ATTRset_attribute,
+  get_len_of_range, get_order, set_order, is_complex,
+  conv_float64_timeval32, truncate_dset)
 
 from lrucacheExtension cimport ObjectCache, NumCache
 
@@ -70,7 +68,7 @@ __version__ = "$Revision$"
 #-----------------------------------------------------------------
 
 # Optimized HDF5 API for PyTables
-cdef extern from "H5TB-opt.h":
+cdef extern from "H5TB-opt.h" nogil:
 
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
                           char *version, char *class_,
@@ -115,8 +113,7 @@ import_array()
 
 # Private functions
 cdef getNestedFieldCache(recarray, fieldname, fieldcache):
-  """
-  Get the maybe nested field named `fieldname` from the `recarray`.
+  """Get the maybe nested field named `fieldname` from the `recarray`.
 
   The `fieldname` may be a simple field name or a nested field name with
   slah-separated components. It can also be an integer specifying the position
@@ -246,7 +243,6 @@ cdef class Table(Leaf):
     cdef H5T_class_t class_id
     cdef char    byteorder2[11]  # "irrelevant" fits easily here
     cdef char    *sys_byteorder
-    cdef herr_t  ret
     cdef object  desc, colobj, colpath2, typeclassname, typeclass
     cdef object  byteorder
 
@@ -293,7 +289,7 @@ cdef class Table(Leaf):
             field_byteorders.append("big")
         elif colobj.kind in ['int', 'uint', 'float', 'complex', 'enum']:
           # Keep track of the byteorder for this column
-          ret = get_order(member_type_id, byteorder2)
+          get_order(member_type_id, byteorder2)
           if str(byteorder2) in ["little", "big"]:
             field_byteorders.append(byteorder2)
 
@@ -341,15 +337,15 @@ cdef class Table(Leaf):
     cdef H5D_layout_t layout
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name)
+    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
     if self.dataset_id < 0:
-      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
 
     # Get the datatype on disk
     self.disk_type_id = H5Dget_type(self.dataset_id)
     if H5Tget_class(self.disk_type_id) != H5T_COMPOUND:
-        raise ValueError("Node ``%s`` is not a Table object" % \
+        raise ValueError("Node ``%s`` is not a Table object" %
                          (self._v_parent._v_leaves[self.name]._v_pathname))
     # Get the number of rows
     space_id = H5Dget_space(self.dataset_id)
@@ -397,7 +393,7 @@ cdef class Table(Leaf):
     byteoffset = 0   # NumPy objects doesn't have an offset
     bytestride = nparr.strides[0]  # supports multi-dimensional recarray
     # Compute the number of elements in the multidimensional cell
-    nelements = nparr.size / len(nparr)
+    nelements = nparr.size // len(nparr)
     t64buf = nparr.data
 
     conv_float64_timeval32(
@@ -409,7 +405,8 @@ cdef class Table(Leaf):
 
     NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
     to NumPy conversion is performed.  The conversion is done in place,
-    i.e. 'recarr' is modified."""
+    i.e. 'recarr' is modified.
+    """
 
     # For reading, first swap the byteorder by hand
     # (this is not currently supported by HDF5)
@@ -444,12 +441,11 @@ cdef class Table(Leaf):
 
     nrows = self.nrows
     # release GIL (allow other threads to use the Python interpreter)
-    Py_BEGIN_ALLOW_THREADS
-    # Append the records:
-    ret = H5TBOappend_records(self.dataset_id, self.type_id,
-                              nrecords, nrows, self.wbuf)
-    # acquire GIL (disallow other threads from using the Python interpreter)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        # Append the records:
+        ret = H5TBOappend_records(self.dataset_id, self.type_id,
+                                  nrecords, nrows, self.wbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems appending the records.")
 
@@ -491,10 +487,10 @@ cdef class Table(Leaf):
     # Convert some NumPy types to HDF5 before storing.
     self._convertTypes(recarr, nrecords, 0)
     # Update the records:
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5TBOwrite_records(self.dataset_id, self.type_id,
-                             start, nrecords, step, rbuf )
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5TBOwrite_records(self.dataset_id, self.type_id,
+                                 start, nrecords, step, rbuf )
+
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
 
@@ -517,10 +513,10 @@ cdef class Table(Leaf):
     self._convertTypes(recarr, nrecords, 0)
 
     # Update the records:
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5TBOwrite_elements(self.dataset_id, self.type_id,
-                              nrecords, rcoords, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5TBOwrite_elements(self.dataset_id, self.type_id,
+                                  nrecords, rcoords, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
 
@@ -540,10 +536,10 @@ cdef class Table(Leaf):
     rbuf = recarr.data
 
     # Read the records from disk
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5TBOread_records(self.dataset_id, self.type_id, start,
-                            nrecords, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5TBOread_records(self.dataset_id, self.type_id, start,
+                                nrecords, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading records.")
 
@@ -574,10 +570,10 @@ cdef class Table(Leaf):
       chunkcache.getitem_(nslot, rbuf, 0)
     else:
       # Chunk is not in cache. Read it and put it in the LRU cache.
-      Py_BEGIN_ALLOW_THREADS
-      ret = H5TBOread_records(self.dataset_id, self.type_id,
-                              start, nrecords, rbuf)
-      Py_END_ALLOW_THREADS
+      with nogil:
+          ret = H5TBOread_records(self.dataset_id, self.type_id,
+                                  start, nrecords, rbuf)
+
       if ret < 0:
         raise HDF5ExtError("Problems reading chunk records.")
       nslot = chunkcache.setitem_(nchunk, rbuf, 0)
@@ -596,10 +592,10 @@ cdef class Table(Leaf):
     # Get the pointer to the buffer coords area
     rbuf2 = coords.data
 
-    Py_BEGIN_ALLOW_THREADS
-    ret = H5TBOread_elements(self.dataset_id, self.type_id,
-                             nrecords, rbuf2, rbuf)
-    Py_END_ALLOW_THREADS
+    with nogil:
+        ret = H5TBOread_elements(self.dataset_id, self.type_id,
+                                 nrecords, rbuf2, rbuf)
+
     if ret < 0:
       raise HDF5ExtError("Problems reading records.")
 
@@ -623,8 +619,7 @@ cdef class Table(Leaf):
                             self.nrows, rowsize, nrow, nrecords,
                             self.nrowsinbuf) < 0):
       raise HDF5ExtError("Problems deleting records.")
-      # Return no removed records
-      return 0
+
     self.nrows = self.nrows - nrecords
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
       # Attach the NROWS attribute
@@ -639,45 +634,28 @@ cdef class Table(Leaf):
 
 
 cdef class Row:
-  """
-  Table row iterator and field accessor.
+  """Table row iterator and field accessor.
 
-  Instances of this class are used to fetch and set the values of individual
-  table fields.  It works very much like a dictionary, where keys are the
-  pathnames or positions (extended slicing is supported) of the fields in the
-  associated table in a specific row.
+  Instances of this class are used to fetch and set the values
+  of individual table fields.  It works very much like a dictionary,
+  where keys are the pathnames or positions (extended slicing is
+  supported) of the fields in the associated table in a specific row.
 
-  This class provides an *iterator interface* so that you can use the same
-  ``Row`` instance to access successive table rows one after the other.  There
-  are also some important methods that are useful for acessing, adding and
+  This class provides an *iterator interface*
+  so that you can use the same Row instance to
+  access successive table rows one after the other.  There are also
+  some important methods that are useful for accessing, adding and
   modifying values in tables.
 
-  Public instance variables
-  -------------------------
+  .. rubric:: Row attributes
 
-  nrow
+  .. attribute:: nrow
+
       The current row number.
 
-      This poperty is useful for knowing which row is being dealt with in the
+      This property is useful for knowing which row is being dealt with in the
       middle of a loop or iterator.
 
-  Public methods
-  --------------
-
-  append()
-      Add a new row of data to the end of the dataset.
-  fetch_all_fields()
-      Retrieve all the fields in the current row.
-  update()
-      Change the data of the current row in the dataset.
-
-  Special methods
-  ---------------
-
-  __getitem__(key)
-      Get the row field specified by the ``key``.
-  __setitem__(key, value)
-      Set the ``key`` row field to the specified ``value``.
   """
 
   cdef long _row, _unsaved_nrows, _mod_nrows
@@ -710,12 +688,12 @@ cdef class Row:
 
   # The nrow() method has been converted into a property, which is handier
   property nrow:
-    """
-    The current row number.
+    """The current row number.
 
     This property is useful for knowing which row is being dealt with in the
     middle of a loop or iterator.
     """
+
     def __get__(self):
       return SizeType(self._nrow)
 
@@ -851,6 +829,7 @@ cdef class Row:
 
   def __next__(self):
     """next() method for __iter__() that is called on each iteration"""
+
     if not self._riterator:
       # The iterator is already exhausted!
       raise StopIteration
@@ -866,6 +845,7 @@ cdef class Row:
 
   cdef __next__indexed(self):
     """The version of next() for indexed columns and a chunkmap."""
+
     cdef long recout, j, cs, vlen, rowsize
     cdef hsize_t nchunksread
     cdef object tmp_range
@@ -970,6 +950,7 @@ cdef class Row:
 
   cdef __next__coords(self):
     """The version of next() for user-required coordinates"""
+
     cdef int recout
     cdef long long lenbuf, nextelement
     cdef object tmp
@@ -1005,6 +986,7 @@ cdef class Row:
 
   cdef __next__inKernel(self):
     """The version of next() in case of in-kernel conditions"""
+
     cdef hsize_t recout, correct
     cdef object numexpr_locals, colvar, col
 
@@ -1061,6 +1043,7 @@ cdef class Row:
   # This is the most general __next__ version, simple, but effective
   cdef __next__general(self):
     """The version of next() for the general cases"""
+
     cdef int recout
 
     self.nextelement = self._nrow + self.step
@@ -1110,6 +1093,7 @@ cdef class Row:
 
   def _fillCol(self, result, start, stop, step, field):
     """Read a field from a table on disk and put the result in result"""
+
     cdef hsize_t startr, stopr, i, j, istartb, istopb
     cdef hsize_t istart, istop, istep, inrowsinbuf, inextelement, inrowsread
     cdef object fields
@@ -1150,15 +1134,25 @@ cdef class Row:
 
 
   def append(self):
-    """append(self) -> None
-    Add a new row of data to the end of the dataset.
+    """Add a new row of data to the end of the dataset.
 
-    Once you have filled the proper fields for the current row, calling this
-    method actually appends the new data to the *output buffer* (which will
-    eventually be dumped to disk).  If you have not set the value of a field,
-    the default value of the column will be used.
+    Once you have filled the proper fields for the current
+    row, calling this method actually appends the new data to the
+    *output buffer* (which will eventually be
+    dumped to disk).  If you have not set the value of a field, the
+    default value of the column will be used.
 
-    Example of use::
+    .. warning::
+
+        After completion of the loop in which :meth:`Row.append` has
+        been called, it is always convenient to make a call to
+        :meth:`Table.flush` in order to avoid losing the last rows that
+        may still remain in internal buffers.
+
+    Examples
+    --------
+
+    ::
 
         row = table.row
         for i in xrange(nrows):
@@ -1167,11 +1161,6 @@ cdef class Row:
             row['col3'] = -1.0
             row.append()
         table.flush()
-
-    .. Warning:: After completion of the loop in which `Row.append()` has been
-       called, it is always convenient to make a call to `Table.flush()` in
-       order to avoid losing the last rows that may still remain in internal
-       buffers.
     """
     cdef ndarray IObuf, wrec, wreccpy
 
@@ -1179,7 +1168,8 @@ cdef class Row:
       raise IOError("Attempt to write over a file opened in read-only mode")
 
     if not self.chunked:
-      raise HDF5ExtError("You cannot append rows to a non-chunked table.")
+      raise HDF5ExtError("You cannot append rows to a non-chunked table.",
+                         h5tb=False)
 
     if self._riterator:
       raise NotImplementedError("You cannot append rows when in middle of a table iterator. If what you want is to update records, use Row.update() instead.")
@@ -1213,18 +1203,28 @@ cdef class Row:
 
 
   def update(self):
-    """update(self) -> None
-    Change the data of the current row in the dataset.
+    """Change the data of the current row in the dataset.
 
     This method allows you to modify values in a table when you are in the
-    middle of a table iterator like `Table.iterrows()` or `Table.where()`.
+    middle of a table iterator like :meth:`Table.iterrows` or
+    :meth:`Table.where`.
 
-    Once you have filled the proper fields for the current row, calling this
-    method actually changes data in the *output buffer* (which will eventually
-    be dumped to disk).  If you have not set the value of a field, its
-    original value will be used.
+    Once you have filled the proper fields for the current row, calling
+    this method actually changes data in the *output buffer* (which will
+    eventually be dumped to disk).  If you have not set the value of a
+    field, its original value will be used.
 
-    Examples of use::
+    .. warning::
+
+        After completion of the loop in which :meth:`Row.update` has
+        been called, it is always convenient to make a call to
+        :meth:`Table.flush` in order to avoid losing changed rows that
+        may still remain in internal buffers.
+
+    Examples
+    --------
+
+    ::
 
         for row in table.iterrows(step=10):
             row['col1'] = row.nrow
@@ -1235,20 +1235,17 @@ cdef class Row:
 
     which modifies every tenth row in table.  Or::
 
-        for row in table.where('col1 &gt; 3'):
+        for row in table.where('col1 > 3'):
             row['col1'] = row.nrow
             row['col2'] = 'b'
             row['col3'] = 0.0
             row.update()
         table.flush()
 
-    which just updates the rows with values bigger than 3 in the first column.
-
-    .. Warning:: After completion of the loop in which `Row.update()` has been
-       called, it is always convenient to make a call to `Table.flush()` in
-       order to avoid losing changed rows that may still remain in internal
-       buffers.
+    which just updates the rows with values bigger than 3 in the first
+    column.
     """
+
     cdef ndarray IObufcpy, IObuf
 
     if self.ro_filemode:
@@ -1292,11 +1289,10 @@ cdef class Row:
 
 
   def __contains__(self, item):
-    """Is `item` in this row?
+    """__contains__(item)
 
-    A true value is returned if `item` is found in current row, false
+    A true value is returned if item is found in current row, false
     otherwise.
-
     """
     return item in self.fetch_all_fields()
 
@@ -1304,36 +1300,41 @@ cdef class Row:
   # This method is twice as faster than __getattr__ because there is
   # not a lookup in the local dictionary
   def __getitem__(self, key):
-    """__getitem__(self, key) -> fields
+    """__getitem__(key)
+
     Get the row field specified by the `key`.
 
-    The `key` can be a string (the name of the field), an integer (the
-    position of the field) or a slice (the range of field positions).  When
-    `key` is a slice, the returned value is a *tuple* containing the values of
-    the specified fields.
+    The key can be a string (the name of the field), an integer (the
+    position of the field) or a slice (the range of field positions). When
+    key is a slice, the returned value is a *tuple* containing the values
+    of the specified fields.
 
-    Examples of use::
+    Examples
+    --------
+
+    ::
 
         res = [row['var3'] for row in table.where('var2 < 20')]
 
-    which selects the ``var3`` field for all the rows that fullfill the
-    condition.  Or::
+    which selects the var3 field for all the rows that fulfil the
+    condition. Or::
 
         res = [row[4] for row in table if row[1] < 20]
 
     which selects the field in the *4th* position for all the rows that
-    fullfill the condition. Or:
+    fulfil the condition. Or::
 
         res = [row[:] for row in table if row['var2'] < 20]
 
     which selects the all the fields (in the form of a *tuple*) for all the
-    rows that fullfill the condition.  Or::
+    rows that fulfil the condition. Or::
 
         res = [row[1::2] for row in table.iterrows(2, 3000, 3)]
 
-    which selects all the fields in even positions (in the form of a *tuple*)
-    for all the rows in the slice ``[2:3000:3]``.
+    which selects all the fields in even positions (in the form of a
+    *tuple*) for all the rows in the slice [2:3000:3].
     """
+
     cdef long offset
     cdef ndarray field
     cdef object row, fields, fieldscache
@@ -1366,7 +1367,7 @@ cdef class Row:
         # Try with __getitem__()
         return row[key]
 
-    if field.nd == 1:
+    if field.ndim == 1:
       # For an scalar it is not needed a copy (immutable object)
       return PyArray_GETITEM(field, field.data + offset * self._stride)
     else:
@@ -1377,15 +1378,19 @@ cdef class Row:
 
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, object key, object value):
-    """__setitem__(self, key, value) -> None
-    Set the `key` row field to the specified `value`.
+    """__setitem__(key, value)
 
-    Differently from its ``__getitem__()`` counterpart, in this case `key` can
-    only be a string (the name of the field).  The changes done via
-    ``__setitem__()`` will not take effect on the data on disk until any of
-    the `Row.append()` or `Row.update()` methods are called.
+    Set the key row field to the specified value.
 
-    Example of use:
+    Differently from its __getitem__() counterpart, in this case key can
+    only be a string (the name of the field). The changes done via
+    __setitem__() will not take effect on the data on disk until any of the
+    :meth:`Row.append` or :meth:`Row.update` methods are called.
+
+    Examples
+    --------
+
+    ::
 
         for row in table.iterrows(step=10):
             row['col1'] = row.nrow
@@ -1396,6 +1401,7 @@ cdef class Row:
 
     which modifies every tenth row in the table.
     """
+
     cdef int ret
     cdef long offset
     cdef ndarray field
@@ -1431,7 +1437,7 @@ cdef class Row:
     try:
       # Optimization for scalar values. This can optimize the writes
       # between a 10% and 100%, depending on the number of columns modified
-      if field.nd == 1:
+      if field.ndim == 1:
         ret = PyArray_SETITEM(field, field.data + offset * self._stride, value)
         if ret < 0:
           raise TypeError
@@ -1444,23 +1450,23 @@ cdef class Row:
 
 
   def fetch_all_fields(self):
-    """fetch_all_fields(self) -> record
-    Retrieve all the fields in the current row.
+    """Retrieve all the fields in the current row.
 
-    Contrarily to ``row[:]``, this returns row data as a NumPy void scalar.
-    For instance::
+    Contrarily to row[:] (see :ref:`RowSpecialMethods`), this returns row
+    data as a NumPy void scalar.  For instance::
 
         [row.fetch_all_fields() for row in table.where('col1 < 3')]
 
-    will select all the rows that fullfill the given condition as a list of
-    NumPy records.
+    will select all the rows that fulfill the given condition
+    as a list of NumPy records.
     """
 
     # We need to do a cast for recognizing negative row numbers!
     if <signed long long>self._nrow < 0:
-      return "Warning: Row iterator has not been initialized for table:\n  %s\n %s" % \
-             (self.table, \
-    "You will normally want to use this method in iterator contexts.")
+      return ("Warning: Row iterator has not been initialized for table:\n"
+              "  %s\n"
+              " You will normally want to use this method in iterator "
+              "contexts." % self.table)
 
     # Always return a copy of the row so that new data that is written
     # in self.IObuf doesn't overwrite the original returned data.
@@ -1468,22 +1474,23 @@ cdef class Row:
 
 
   def __str__(self):
-    """ represent the record as an string """
+    """Represent the record as an string"""
 
     # We need to do a cast for recognizing negative row numbers!
     if <signed long long>self._nrow < 0:
-      return "Warning: Row iterator has not been initialized for table:\n  %s\n %s" % \
-             (self.table, \
-    "You will normally want to use this object in iterator contexts.")
+      return ("Warning: Row iterator has not been initialized for table:\n"
+              "  %s\n"
+              " You will normally want to use this object in iterator "
+              "contexts." % self.table)
 
     tablepathname = self.table._v_pathname
     classname = self.__class__.__name__
-    return "%s.row (%s), pointing to row #%d" % \
-           (tablepathname, classname, self._nrow)
+    return "%s.row (%s), pointing to row #%d" %  (tablepathname, classname,
+                                                  self._nrow)
 
 
   def __repr__(self):
-    """ represent the record as an string """
+    """Represent the record as an string"""
     return str(self)
 
 

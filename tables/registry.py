@@ -9,8 +9,7 @@
 #
 ########################################################################
 
-"""
-Miscellaneous mappings used to avoid circular imports.
+"""Miscellaneous mappings used to avoid circular imports.
 
 Variables:
 
@@ -39,8 +38,7 @@ __version__ = '$Revision$'
 
 
 classNameDict = {}
-"""
-Node class name to class object mapping.
+"""Node class name to class object mapping.
 
 This dictionary maps class names (e.g. ``'Group'``) to actual class
 objects (e.g. `Group`).  Classes are registered here when they are
@@ -49,8 +47,7 @@ can be replaced when the module that defines them is reloaded.
 """
 
 classIdDict = {}
-"""
-Class identifier to class object mapping.
+"""Class identifier to class object mapping.
 
 This dictionary maps class identifiers (e.g. ``'GROUP'``) to actual
 class objects (e.g. `Group`).  Classes defining a new ``_c_classId``
@@ -60,8 +57,7 @@ module that defines them is reloaded.
 """
 
 def getClassByName(className):
-    """
-    Get the node class matching the `className`.
+    """Get the node class matching the `className`.
 
     If the name is not registered, a ``TypeError`` is raised.  The empty
     string and ``None`` are also accepted, and mean the ``Node`` class.
