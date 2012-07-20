@@ -7,6 +7,12 @@
 
 .. py:currentmodule:: tables
 
+Changes from 2.4 to X.Y.Z (in development)
+==========================================
+
+@TBW
+
+
 Changes from 2.3.1 to 2.4
 =========================
 
