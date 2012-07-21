@@ -1,10 +1,10 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: May 20, 2005
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: May 20, 2005
+# Author:  Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
@@ -62,7 +62,6 @@ from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
 # Include conversion tables & type
 include "convtypetables.pxi"
 
-__version__ = "$Revision$"
 
 from numpy import typeDict
 cdef int have_float16 = ("float16" in typeDict)

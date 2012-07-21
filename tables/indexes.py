@@ -1,17 +1,15 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: June 02, 2004
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: June 02, 2004
+# Author:  Francesc Alted - faltet@pytables.com
 #
-#       $Source: /cvsroot/pytables/pytables/tables/indexes.py $
-#       $Id$
+# $Source: /cvsroot/pytables/pytables/tables/indexes.py $
+# $Id$
 #
 ########################################################################
 
 """Here is defined the IndexArray class."""
-
-__version__ = "$Revision$"
 
 from bisect import bisect_left, bisect_right
 

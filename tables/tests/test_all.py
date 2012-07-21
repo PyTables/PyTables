@@ -1,6 +1,4 @@
-"""
-Run all test cases.
-"""
+"""Run all test cases."""
 
 import sys
 import os

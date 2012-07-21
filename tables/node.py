@@ -21,12 +21,8 @@ from tables.undoredo import moveToShadow
 from tables.attributeset import AttributeSet, NotLoggedAttributeSet
 
 
-
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
-
-__version__ = '$Revision$'
-"""Repository version of this file."""
 
 
 def _closedrepr(oldmethod):

@@ -18,10 +18,6 @@ from tables.node import Node
 from tables.leaf import Leaf
 
 
-__version__ = "$Revision$"
-
-
-
 class UnImplemented(hdf5Extension.UnImplemented, Leaf):
     """This class represents datasets not supported by PyTables in an
     HDF5 file.

@@ -1,11 +1,11 @@
 #  Ei!, emacs, this is -*-Python-*- mode
 ########################################################################
 #
-#       License: BSD
-#       Created: May 18, 2006
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: May 18, 2006
+# Author:  Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
@@ -20,8 +20,6 @@ Classes (type extensions):
 Functions:
 
 Misc variables:
-
-    __version__
 """
 
 import numpy
@@ -44,8 +42,6 @@ ctypedef npy_uint16 npy_float16
 from definitions cimport hid_t, herr_t, hsize_t, H5Screate_simple, H5Sclose
 from lrucacheExtension cimport NumCache
 
-
-__version__ = "$Revision$"
 
 #-------------------------------------------------------------------
 

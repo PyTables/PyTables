@@ -1,10 +1,10 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: September 21, 2002
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: September 21, 2002
+# Author:  Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
@@ -24,8 +24,6 @@ Classes (type extensions):
 Functions:
 
 Misc variables:
-
-    __version__
 """
 
 import os
@@ -86,10 +84,6 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
 
 # Include conversion tables
 include "convtypetables.pxi"
-
-
-__version__ = "$Revision$"
-
 
 #-------------------------------------------------------------------
 

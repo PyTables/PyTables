@@ -51,8 +51,6 @@ profile = False
 if profile:
     from tables.utils import show_stats
 
-__version__ = "$Revision$"
-
 
 # 2.2: Added support for complex types. Introduced in version 0.9.
 # 2.2.1: Added suport for time types.

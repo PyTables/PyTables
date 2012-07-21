@@ -26,9 +26,6 @@ from tables.path import checkNameValidity
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
-__version__ = '$Revision$'
-"""Repository version of this file."""
-
 
 # Private functions
 # =================

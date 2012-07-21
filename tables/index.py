@@ -38,9 +38,6 @@ from tables.utils import is_idx, idx2long, lazyattr
 from tables.lrucacheExtension import ObjectCache
 
 
-__version__ = "$Revision: 1236 $"
-
-
 # default version for INDEX objects
 #obversion = "1.0"    # Version of indexes in PyTables 1.x series
 #obversion = "2.0"    # Version of indexes in PyTables Pro 2.0 series

@@ -16,9 +16,6 @@ from tables.utilsExtension import lrange
 from tables.utils import convertToNPAtom2, SizeType
 from tables.carray import CArray
 
-__version__ = "$Revision$"
-
-
 # default version for EARRAY objects
 #obversion = "1.0"    # initial version
 #obversion = "1.1"    # support for complex datatypes

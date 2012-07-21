@@ -25,9 +25,6 @@ from tables.exceptions import PerformanceWarning
 from tables import utilsExtension
 
 
-__version__ = "$Revision$"
-
-
 def csformula(expectedsizeinMB):
     """Return the fitted chunksize for expectedsizeinMB."""
 

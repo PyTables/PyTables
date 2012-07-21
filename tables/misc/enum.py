@@ -8,8 +8,7 @@
 #
 ########################################################################
 
-"""
-Implementation of enumerated types.
+"""Implementation of enumerated types.
 
 This module provides the `Enum` class, which can be used to construct
 enumerated types.  Those types are defined by providing an *exhaustive
@@ -29,10 +28,6 @@ standard variables and constants are more adequate.
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
-
-__version__ = '$Revision$'
-"""Repository version of this file."""
-
 
 
 class Enum(object):

@@ -24,9 +24,6 @@ from tables.undoredo import attrToShadow
 from tables.filters import Filters
 
 
-
-__version__ = "$Revision$"
-
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
              "ENCODING", "PYTABLES_FORMAT_VERSION",

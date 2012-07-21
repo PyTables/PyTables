@@ -1,11 +1,11 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: March 18, 2005
-#       Author:  Ivan Vilata - reverse:net.selidor@ivan
+# License: BSD
+# Created: March 18, 2005
+# Author:  Ivan Vilata - reverse:net.selidor@ivan
 #
-#       $Source$
-#       $Id$
+# $Source$
+# $Id$
 #
 ########################################################################
 
@@ -22,8 +22,6 @@ Misc variables:
 
 `__docformat__`
     The format of documentation strings in this module.
-`__version__`
-    Repository version of this file.
 """
 
 # Important: no modules from PyTables should be imported here
@@ -32,10 +30,6 @@ Misc variables:
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
-
-__version__ = '$Revision$'
-"""Repository version of this file."""
-
 
 classNameDict = {}
 """Node class name to class object mapping.

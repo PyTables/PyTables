@@ -20,9 +20,6 @@ from tables.utils import is_idx, convertToNPAtom2, SizeType, lazyattr
 from tables.leaf import Leaf
 
 
-__version__ = "$Revision$"
-
-
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
 #obversion = "2.0"    # Added an optional EXTDIM attribute

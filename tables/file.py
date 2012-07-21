@@ -52,9 +52,6 @@ from tables import lrucacheExtension
 from tables.link import SoftLink, ExternalLink
 
 
-__version__ = "$Revision$"
-
-
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 #format_version = "1.2"  # Support for enlargeable arrays and VLA's

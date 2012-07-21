@@ -28,9 +28,6 @@ from tables.misc.enum import Enum
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
-__version__ = '$Revision$'
-"""Repository version of this file."""
-
 all_types = set()  # filled as atom classes are created
 """Set of all PyTables types."""
 

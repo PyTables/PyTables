@@ -21,9 +21,6 @@ from tables.array import Array
 from tables.utils import correct_byteorder, SizeType
 
 
-__version__ = "$Revision$"
-
-
 # default version for CARRAY objects
 obversion = "1.0"    # Support for time & enumerated datatypes.
 

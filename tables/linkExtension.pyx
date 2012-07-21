@@ -1,10 +1,10 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: November 25, 2009
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: November 25, 2009
+# Author:  Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
@@ -17,9 +17,6 @@ from hdf5Extension cimport Node
 from libc.stdlib cimport malloc, free
 from definitions cimport (H5P_DEFAULT,
   const_char, hid_t, herr_t, hbool_t, int64_t, H5T_cset_t, haddr_t)
-
-
-__version__ = "$Revision$"
 
 
 #----------------------------------------------------------------------

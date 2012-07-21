@@ -15,8 +15,6 @@ Variables
 
 `__docformat`__
     The format of documentation strings in this module.
-`__version__`
-    Repository version of this file.
 `internal_flavor`
     The flavor used internally by PyTables.
 `all_flavors`
@@ -56,9 +54,6 @@ from tables.exceptions import FlavorError, FlavorWarning
 # ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
-
-__version__ = '$Revision$'
-"""Repository version of this file."""
 
 internal_flavor = 'numpy'
 """The flavor used internally by PyTables."""

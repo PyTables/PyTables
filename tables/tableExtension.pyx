@@ -1,10 +1,10 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: June 17, 2005
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: June 17, 2005
+# Author:  Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
@@ -18,8 +18,6 @@ Classes (type extensions):
 Functions:
 
 Misc variables:
-
-    __version__
 """
 
 import sys
@@ -59,10 +57,6 @@ from lrucacheExtension cimport ObjectCache, NumCache
 
 # Include conversion tables & type
 include "convtypetables.pxi"
-
-
-__version__ = "$Revision$"
-
 
 
 #-----------------------------------------------------------------

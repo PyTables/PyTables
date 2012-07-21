@@ -21,11 +21,7 @@ Classes:
 
 Functions:
 
-
 Misc variables:
-
-    __version__
-
 """
 
 import os
@@ -35,10 +31,6 @@ from tables.node import Node
 from tables.utils import lazyattr
 from tables.attributeset import AttributeSet
 import tables.file
-
-
-__version__ = "$Revision$"
-
 
 
 def _g_getLinkClass(parent_id, name):

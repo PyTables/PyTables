@@ -25,8 +25,6 @@ from tables.flavor import internal_to_flavor
 from tables.leaf import Leaf, calc_chunksize
 
 
-__version__ = "$Revision$"
-
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
 #obversion = "1.0"    # add support for complex datatypes

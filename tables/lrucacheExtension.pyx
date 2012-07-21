@@ -1,11 +1,11 @@
 #  Ei!, emacs, this is -*-Python-*- mode
 ########################################################################
 #
-#       License: BSD
-#       Created: Aug 13, 2006
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: Aug 13, 2006
+# Author:  Francesc Alted - faltet@pytables.com
 #
-#       $Id: indexesExtension.pyx 1756 2006-08-13 10:19:29Z faltet $
+# $Id: $
 #
 ########################################################################
 
@@ -20,8 +20,6 @@ Classes (type extensions):
 Functions:
 
 Misc variables:
-
-    __version__
 """
 
 import sys

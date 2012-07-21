@@ -29,8 +29,6 @@ from tables.unimplemented import UnImplemented, Unknown
 from tables.link import Link, SoftLink, ExternalLink
 
 
-__version__ = "$Revision$"
-
 obversion = "1.0"
 
 

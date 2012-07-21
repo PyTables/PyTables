@@ -1,19 +1,20 @@
-"""
-Functionality related with node paths in a PyTables file.
+########################################################################
+#
+# License: BSD
+# Created: January 15, 2007
+# Author:  Ivan Vilata i Balaguer - ivan at selidor dot net
+#
+# $Id$
+#
+########################################################################
 
-:Author: Ivan Vilata i Balaguer
-:Contact: ivan at selidor dot net
-:License: BSD
-:Created: January 15, 2007
-:Revision: $Id$
+"""Functionality related with node paths in a PyTables file.
 
 Variables
 =========
 
 `__docformat`__
     The format of documentation strings in this module.
-`__version__`
-    Repository version of this file.
 """
 
 # Imports
@@ -29,9 +30,6 @@ from tables.exceptions import NaturalNameWarning
 # ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
-
-__version__ = '$Revision$'
-"""Repository version of this file."""
 
 
 # Private variables

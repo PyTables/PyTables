@@ -24,9 +24,6 @@ from tables.exceptions import FiltersWarning
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
-__version__ = '$Revision$'
-"""Repository version of this file."""
-
 all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc']
 """List of all compression libraries."""
 

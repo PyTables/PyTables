@@ -1,11 +1,11 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: February 15, 2005
-#       Author:  Ivan Vilata - reverse:net.selidor@ivan
+# License: BSD
+# Created: February 15, 2005
+# Author:  Ivan Vilata - reverse:net.selidor@ivan
 #
-#       $Source$
-#       $Id$
+# $Source$
+# $Id$
 #
 ########################################################################
 
@@ -24,8 +24,6 @@ Misc variables:
 
 `__docformat__`
     The format of documentation strings in this module.
-`__version__`
-    Repository version of this file.
 """
 
 from tables.path import splitPath
@@ -34,10 +32,6 @@ from tables.path import splitPath
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
-
-__version__ = '$Revision$'
-"""Repository version of this file."""
-
 
 
 def undo(file_, operation, *args):

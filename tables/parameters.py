@@ -1,10 +1,10 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: February 25, 2005
-#       Author:  Ivan Vilata - reverse:net.selidor@ivan
+# License: BSD
+# Created: February 25, 2005
+# Author:  Ivan Vilata - reverse:net.selidor@ivan
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
@@ -12,9 +12,6 @@
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
-
-__version__ = '$Revision$'
-"""Repository version of this file."""
 
 _KB = 1024
 """The size of a Kilobyte in bytes"""

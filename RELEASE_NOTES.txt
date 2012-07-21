@@ -29,6 +29,11 @@ Many deprecated features and support for obsolete modules has been dropped:
   in favour of :data:`parameters.MAX_BLOSC_THREADS` and
   :data:`parameters.MAX_NUMEXPR_THREADS` (closes :issue:`147`).
 
+- The `__version__` module constants has been removed from almost all the
+  modules (it was no ore used after the switch to Git).
+  Of coures the package level constant (:data:`tables.__version__`) still
+  remains.  Closes :issue:`112`.
+
 
 Changes from 2.3.1 to 2.4
 =========================
