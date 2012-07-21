@@ -474,16 +474,8 @@ class File(hdf5Extension.File, object):
         # If MAX_*_THREADS is not set yet, set it to the number of cores
         # on this machine.
 
-        # XXX: drop this lines when the MAX_THREADS will be rempved
-        if params['MAX_NUMEXPR_THREADS'] is None:
-            params['MAX_NUMEXPR_THREADS'] = params['MAX_THREADS']
-
         if params['MAX_NUMEXPR_THREADS'] is None:
             params['MAX_NUMEXPR_THREADS'] = detectNumberOfCores()
-
-        # XXX: drop this lines when the MAX_THREADS will be rempved
-        if params['MAX_BLOSC_THREADS'] is None:
-            params['MAX_BLOSC_THREADS'] = params['MAX_THREADS']
 
         if params['MAX_BLOSC_THREADS'] is None:
             params['MAX_BLOSC_THREADS'] = detectNumberOfCores()
