@@ -269,10 +269,7 @@ class Description(object):
     An instance of this class is automatically bound to Table (see
     :ref:`TableClassDescr`) objects when they are created.  It provides a
     browseable representation of the structure of the table, made of non-nested
-    (Col - see :ref:`ColClassDescr`) and nested (Description) columns. It also
-    contains information that will allow you to build NestedRecArray
-    (deprecated) objects suited for the different columns in a table (be they
-    nested or not).
+    (Col - see :ref:`ColClassDescr`) and nested (Description) columns.
 
     Column definitions under a description can be accessed as attributes of it
     (*natural naming*). For instance, if table.description is a Description
@@ -333,28 +330,26 @@ class Description(object):
 
     .. attribute:: _v_nestedDescr
 
-        A nested list of pairs of (name, format) tuples for all the columns under
-        this table or nested column. You can use this as the dtype and descr
-        arguments of NumPy array and NestedRecArray (see
-        :ref:`NestedRecArrayClassDescr`) factories, respectively.
+        A nested list of pairs of (name, format) tuples for all the columns
+        under this table or nested column. You can use this as the dtype and
+        descr arguments of NumPy array factories.
 
     .. attribute:: _v_nestedFormats
 
         A nested list of the NumPy string formats (and shapes) of all the
         columns under this table or nested column. You can use this as the
-        formats argument of NumPy array and NestedRecArray (deprecated)
-        factories.
+        formats argument of NumPy array factories.
 
     .. attribute:: _v_nestedlvl
 
-        The level of the associated table or nested column in
-        the nested datatype.
+        The level of the associated table or nested column in the nested
+        datatype.
 
     .. attribute:: _v_nestedNames
 
         A nested list of the names of all the columns under this table or
         nested column. You can use this as the names argument of NumPy array
-        and NestedRecArray (deprecated) factories.
+        factories.
 
     .. attribute:: _v_pathname
 
