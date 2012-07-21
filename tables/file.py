@@ -1293,7 +1293,7 @@ class File(hdf5Extension.File, object):
             small NumPy objects ...) can be stored as an attribute.
             However, if necessary, cPickle is automatically used so as
             to serialize objects that you might want to save.
-            See the :class:``AttributeSet` class for details.
+            See the :class:`AttributeSet` class for details.
 
         Notes
         -----
