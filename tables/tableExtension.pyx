@@ -301,7 +301,7 @@ cdef class Table(Leaf):
       # Compute a byteorder for the entire table
       if len(field_byteorders) > 0:
         field_byteorders = numpy.array(field_byteorders)
-        # Pyrex doesn't interpret well the extended comparison
+        # Cython doesn't interpret well the extended comparison
         # operators so this: field_byteorders == "little" doesn't work
         # as expected
         if numpy.alltrue(field_byteorders.__eq__("little")):

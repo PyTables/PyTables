@@ -9,7 +9,7 @@
 #
 ########################################################################
 
-"""Pyrex interface for keeping indexes classes.
+"""cython interface for keeping indexes classes.
 
 Classes (type extensions):
 

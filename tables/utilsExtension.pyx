@@ -8,7 +8,7 @@
 #
 ########################################################################
 
-"""Pyrex utilities for PyTables and HDF5 library."""
+"""Cython utilities for PyTables and HDF5 library."""
 
 import sys
 import warnings

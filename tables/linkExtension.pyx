@@ -8,7 +8,7 @@
 #
 ########################################################################
 
-"""Pyrex functions and classes for supporting links in HDF5."""
+"""Cython functions and classes for supporting links in HDF5."""
 
 from tables.exceptions import HDF5ExtError
 

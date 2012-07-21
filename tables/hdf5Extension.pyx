@@ -8,7 +8,7 @@
 #
 ########################################################################
 
-"""Pyrex interface between several PyTables classes and HDF5 library.
+"""Cython interface between several PyTables classes and HDF5 library.
 
 Classes (type extensions):
 

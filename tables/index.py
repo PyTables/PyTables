@@ -69,7 +69,7 @@ defaultAutoIndex = True
 defaultIndexFilters = Filters( complevel=1, complib='zlib',
                                shuffle=True, fletcher32=False )
 
-# The list of types for which an optimised search in Pyrex and C has
+# The list of types for which an optimised search in cython and C has
 # been implemented. Always add here the name of a new optimised type.
 opt_search_types = ("int8", "int16", "int32", "int64",
                     "uint8", "uint16", "uint32", "uint64",

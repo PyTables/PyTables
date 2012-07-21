@@ -1012,7 +1012,7 @@ class File(hdf5Extension.File, object):
         return elink
 
 
-    # There is another version of _getNode in Pyrex space, but only
+    # There is another version of _getNode in cython space, but only
     # marginally faster (5% or less, but sometimes slower!) than this one.
     # So I think it is worth to use this one instead (much easier to debug).
     def _getNode(self, nodePath):

@@ -35,7 +35,7 @@ if os.name == 'nt':
                 ' that it can be found in the system path')
 
 
-# Necessary imports to get versions stored on the Pyrex extension
+# Necessary imports to get versions stored on the cython extension
 from tables.utilsExtension import getPyTablesVersion, getHDF5Version
 
 

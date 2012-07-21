@@ -9,7 +9,7 @@
 #
 ########################################################################
 
-"""Pyrex interface for several LRU cache systems.
+"""Cython interface for several LRU cache systems.
 
 Classes (type extensions):
 
@@ -378,7 +378,7 @@ cdef class ObjectCache(BaseCache):
     return self.setitem_(key, value, size)
 
 
-  # Put the object in cache (for Pyrex calls)
+  # Put the object in cache (for cython calls)
   # size can be the exact size of the value object or an estimation.
   cdef long setitem_(self, object key, object value, long size):
     cdef long nslot
@@ -434,7 +434,7 @@ cdef class ObjectCache(BaseCache):
     return self.getitem_(nslot)
 
 
-  # Return the object to the data in cache (for Pyrex calls)
+  # Return the object to the data in cache (for cython calls)
   cdef object getitem_(self, long nslot):
     cdef ObjectNode node
 
@@ -489,7 +489,7 @@ cdef class NumCache(BaseCache):
     nslots = shape[0];  self.slotsize = shape[1]
     if nslots >= 1<<16:
       # nslots can't be higher than 2**16. Will silently trunk the number.
-      nslots = <long>((1<<16)-1)  # Cast makes Pyrex happy here
+      nslots = <long>((1<<16)-1)  # Cast makes cython happy here
     super(NumCache, self).__init__(nslots, name)
     self.itemsize = dtype.itemsize
     self.__dict = {}
