@@ -294,10 +294,6 @@ Does PyTables have a client-server interface?
 Not by itself, but you may be interested in using PyTables through pydap_,
 a Python implementation of the OPeNDAP_ protocol.
 Have a look at the `PyTables plugin` of pydap_.
-PyTables also comes with its own plug-in for the DAP protocol (see the NetCDF
-section in the manual__).
-
-__ `PyTables Manual`_
 
 
 How does PyTables compare with the h5py project?

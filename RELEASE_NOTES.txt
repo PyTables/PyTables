@@ -18,6 +18,7 @@ API changes
   The *numarry* flavor is no more supported as well (closes :issue:`107`).
 - Support for the obsolete Numeric module has been removed.
   The *numeric* flavor is no more available (closes :issue:`108`).
+- The tables.netcdf3 module has been removed (closes :issue:`68`).
 
 
 Changes from 2.3.1 to 2.4

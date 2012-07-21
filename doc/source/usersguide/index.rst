@@ -27,7 +27,6 @@ Contents
     libref
     optimization
     filenode
-    netcdf3
     datatypes
     condition_syntax
     parameter_files

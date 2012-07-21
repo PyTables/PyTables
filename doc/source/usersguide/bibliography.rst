@@ -36,21 +36,6 @@ Bibliography
     Cython. A language that makes writing C extensions for the Python
     language as easy as Python itself. `<http://cython.org>`_.
 
-.. _NETCDF1:
-
-:ref:`[NETCDF1] <NETCDF1>`
-    Glenn Davis, Russ Rew, Steve Emmerson, John Caron, and Harvey Davies.
-    NetCDF. Network Common Data Form. An interface for array-oriented data
-    access and a library that provides an implementation of the interface.
-    `<http://www.unidata.ucar.edu/software/netcdf/>`_.
-
-.. _NETCDF2:
-
-:ref:`[NETCDF2] <NETCDF2>`
-    Russ Rew, Mike Folk, and et al. NetCDF-4. Network Common Data Form
-    version 4. Merging the NetCDF and HDF5 Libraries.
-    `<http://www.unidata.ucar.edu/software/netcdf/index.html>`_.
-
 .. _NUMPY:
 
 :ref:`[NUMPY] <NUMPY>`
