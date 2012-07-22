@@ -18,7 +18,7 @@ Many deprecated features and support for obsolete modules has been dropped:
 - The deprecated :data:`is_pro` module constant has been removed
 
 - The nra module and support for the obsolete numarray module has been removed.
-  The *numarry* flavor is no more supported as well (closes :issue:`107`).
+  The *numarray* flavor is no more supported as well (closes :issue:`107`).
 
 - Support for the obsolete Numeric module has been removed.
   The *numeric* flavor is no more available (closes :issue:`108`).
@@ -31,7 +31,7 @@ Many deprecated features and support for obsolete modules has been dropped:
 
 - The `__version__` module constants has been removed from almost all the
   modules (it was no ore used after the switch to Git).
-  Of coures the package level constant (:data:`tables.__version__`) still
+  Of course the package level constant (:data:`tables.__version__`) still
   remains.  Closes :issue:`112`.
 
 
