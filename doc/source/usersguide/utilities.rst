@@ -1,31 +1,28 @@
 Utilities
 =========
-PyTables comes with a couple of utilities that make the life
-easier to the user. One is called ptdump and lets you
-see the contents of a PyTables file (or generic HDF5 file, if
-supported). The other one is named ptrepack that
-allows to (recursively) copy sub-hierarchies of objects present in a
-file into another one, changing, if desired, some of the filters applied
-to the leaves during the copy process.
+PyTables comes with a couple of utilities that make the life easier to the
+user. One is called ptdump and lets you see the contents of a PyTables file
+(or generic HDF5 file, if supported). The other one is named ptrepack that
+allows to (recursively) copy sub-hierarchies of objects present in a file
+into another one, changing, if desired, some of the filters applied to the
+leaves during the copy process.
 
-Normally, these utilities will be installed somewhere in your PATH
-during the process of installation of the PyTables package, so that you
-can invoke them from any place in your file system after the
-installation has successfully finished.
+Normally, these utilities will be installed somewhere in your PATH during the
+process of installation of the PyTables package, so that you can invoke them
+from any place in your file system after the installation has successfully
+finished.
 
 
 ptdump
 ------
-As has been said before, ptdump utility
-allows you look into the contents of your PyTables files. It lets you
-see not only the data but also the metadata (that is, the
-*structure* and additional information in the form
-of *attributes*).
+As has been said before, ptdump utility allows you look into the contents of
+your PyTables files. It lets you see not only the data but also the metadata
+(that is, the *structure* and additional information in the form of
+*attributes*).
 
 Usage
 ~~~~~
-For instructions on how to use it, just pass the
--h flag to the command:
+For instructions on how to use it, just pass the -h flag to the command:
 
 .. code-block:: bash
 
@@ -49,9 +46,8 @@ Read on for a brief introduction to this utility.
 
 A small tutorial on ptdump
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-Let's suppose that we want to know only the
-*structure* of a file. In order to do that, just
-don't pass any flag, just the file as parameter.
+Let's suppose that we want to know only the *structure* of a file. In order
+to do that, just don't pass any flag, just the file as parameter.
 
 .. code-block:: bash
 
@@ -60,14 +56,11 @@ don't pass any flag, just the file as parameter.
     /vlarray1 (VLArray(3,), shuffle, zlib(1)) 'ragged array of ints'
     /vlarray2 (VLArray(3,), shuffle, zlib(1)) 'ragged array of strings'
 
-we can see that the file contains just a leaf object called
-vlarray1, that is an instance of
-VLArray, has 4 rows, and two filters has been
-used in order to create it: shuffle and
-zlib (with a compression level of 1).
+we can see that the file contains just a leaf object called vlarray1, that is
+an instance of VLArray, has 4 rows, and two filters has been used in order to
+create it: shuffle and zlib (with a compression level of 1).
 
-Let's say we want more meta-information. Just add the
--v (verbose) flag:
+Let's say we want more meta-information. Just add the -v (verbose) flag:
 
 .. code-block:: bash
 
@@ -84,13 +77,12 @@ Let's say we want more meta-information. Just add the
       nrows = 3
       flavor = 'python'
 
-so we can see more info about the atoms that are
-the components of the vlarray1 dataset, i.e. they
-are scalars of type Int32 and with
-NumPy *flavor*.
+so we can see more info about the atoms that are the components of the
+vlarray1 dataset, i.e. they are scalars of type Int32 and with NumPy
+*flavor*.
 
-If we want information about the attributes on the nodes, we
-must add the -a flag:
+If we want information about the attributes on the nodes, we must add the -a
+flag:
 
 .. code-block:: bash
 
@@ -139,13 +131,12 @@ Let's have a look at the real data:
     [1] ['5', '6', '77']
     [2] ['5', '6', '9', '88']
 
-We see here a data dump of the 4 rows in
-vlarray1 object, in the form of a list. Because
-the object is a VLA, we see a different number of integers on each
-row.
+We see here a data dump of the 4 rows in vlarray1 object, in the form of a
+list. Because the object is a VLA, we see a different number of integers on
+each row.
 
-Say that we are interested only on a specific *row
-range* of the /vlarray1 object:
+Say that we are interested only on a specific *row range* of the /vlarray1
+object:
 
 .. code-block:: bash
 
@@ -154,10 +145,9 @@ range* of the /vlarray1 object:
       Data dump:
     [2] [5 6 9 8]
 
-Here, we have specified the range of rows between 2 and
-4 (the upper limit excluded, as usual in Python). See how we have
-selected only the /vlarray1 object for doing the
-dump (vlarray1.h5:/vlarray1).
+Here, we have specified the range of rows between 2 and 4 (the upper limit
+excluded, as usual in Python). See how we have selected only the /vlarray1
+object for doing the dump (vlarray1.h5:/vlarray1).
 
 Finally, you can mix several information at once:
 
@@ -181,23 +171,20 @@ Finally, you can mix several information at once:
 
 ptrepack
 --------
-This utility is a very powerful one and lets you copy any leaf,
-group or complete subtree into another file. During the copy process
-you are allowed to change the filter properties if you want so. Also,
-in the case of duplicated pathnames, you can decide if you want to
-overwrite already existing nodes on the destination file. Generally
-speaking, ptrepack can be useful in may situations,
-like replicating a subtree in another file, change the filters in
-objects and see how affect this to the compression degree or I/O
-performance, consolidating specific data in repositories or even
-*importing* generic HDF5 files and create true
-PyTables counterparts.
+This utility is a very powerful one and lets you copy any leaf, group or
+complete subtree into another file. During the copy process you are allowed
+to change the filter properties if you want so. Also, in the case of
+duplicated pathnames, you can decide if you want to overwrite already
+existing nodes on the destination file. Generally speaking, ptrepack can be
+useful in may situations, like replicating a subtree in another file, change
+the filters in objects and see how affect this to the compression degree or
+I/O performance, consolidating specific data in repositories or even
+*importing* generic HDF5 files and create true PyTables counterparts.
 
 
 Usage
 ~~~~~
-For instructions on how to use it, just pass the
--h flag to the command:
+For instructions on how to use it, just pass the -h flag to the command:
 
 .. code-block:: bash
 
@@ -253,11 +240,9 @@ Read on for a brief introduction to this utility.
 A small tutorial on ptrepack
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Imagine that we have ended the tutorial 1 (see the output of
-examples/tutorial1-1.py), and we want to copy our
-reduced data (i.e. those datasets that hangs from the
-/column group) to another file. First, let's
-remember the content of the
-examples/tutorial1.h5:
+examples/tutorial1-1.py), and we want to copy our reduced data (i.e. those
+datasets that hangs from the /column group) to another file. First, let's
+remember the content of the examples/tutorial1.h5:
 
 .. code-block:: bash
 
@@ -284,12 +269,12 @@ That's all. Let's see the contents of the newly created reduced.h5 file:
     /name (Array(3,)) 'Name column selection'
     /pressure (Array(3,)) 'Pressure column selection'
 
-so, you have copied the children of /columns group into the
-*root* of the reduced.h5 file.
+so, you have copied the children of /columns group into the *root* of the
+reduced.h5 file.
 
-Now, you suddenly realized that what you intended to do was to
-copy all the hierarchy, the group /columns itself
-included. You can do that by just specifying the destination group:
+Now, you suddenly realized that what you intended to do was to copy all the
+hierarchy, the group /columns itself included. You can do that by just
+specifying the destination group:
 
 .. code-block:: bash
 
@@ -314,11 +299,11 @@ file. You can achieve this by adding the -o flag:
     /columns/name (Array(3,)) 'Name column selection'
     /columns/pressure (Array(3,)) 'Pressure column selection'
 
-where you can see how the old contents of the reduced.h5
-file has been overwritten.
+where you can see how the old contents of the reduced.h5 file has been
+overwritten.
 
-You can copy just one single node in the repacking operation
-and change its name in destination:
+You can copy just one single node in the repacking operation and change its
+name in destination:
 
 .. code-block:: bash
 
@@ -357,10 +342,9 @@ We can change the filter properties as well:
     RuntimeError: Please check that the node names are not duplicated in
     destination, and if so, add the --overwrite-nodes flag if desired.
 
-Ooops! We ran into problems: we forgot that the
-/rawdata pathname already existed in destination
-file. Let's add the --overwrite-nodes, as the
-verbose error suggested:
+Ooops! We ran into problems: we forgot that the /rawdata pathname already
+existed in destination file. Let's add the --overwrite-nodes, as the verbose
+error suggested:
 
 .. code-block:: bash
 
@@ -373,13 +357,11 @@ verbose error suggested:
     /columns/name (Array(3,)) 'Name column selection'
     /columns/pressure (Array(3,)) 'Pressure column selection'
 
-you can check how the filter properties has been changed for the
-/rawdata table. Check as the other nodes still exists.
+you can check how the filter properties has been changed for the /rawdata
+table. Check as the other nodes still exists.
 
-Finally, let's copy a *slice* of the
-readout table in origin to destination, under a
-new group called /slices and with the name, for
-example, aslice:
+Finally, let's copy a *slice* of the readout table in origin to destination,
+under a new group called /slices and with the name, for example, aslice:
 
 .. code-block:: bash
 
@@ -393,7 +375,7 @@ example, aslice:
     /slices (Group) ''
     /slices/aslice (Table(3,)) 'Readout example'
 
-note how only 3 rows of the original readout table has been copied to the
-new aslice destination. Note as well how the
-previously nonexistent slices group has been
-created in the same operation.
+note how only 3 rows of the original readout table has been copied to the new
+aslice destination. Note as well how the previously nonexistent slices group
+has been created in the same operation.
+
