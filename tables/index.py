@@ -20,9 +20,8 @@ import warnings
 
 import numpy
 
-from tables.idxutils import (
-    calcChunksize, calcoptlevels, get_reduction_level,
-    nextafter, infType )
+from tables.idxutils import (calcChunksize, calcoptlevels,
+    get_reduction_level, nextafter, infType)
 
 from tables import indexesExtension
 from tables.node import NotLoggedMixin

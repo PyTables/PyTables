@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created:
+# Author:  Francesc Alted - faltet@pytables.com
+#
+# $Id$
+#
+########################################################################
+
 from numpy cimport ndarray
 
 # Declaration of instance variables for shared classes

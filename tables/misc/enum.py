@@ -31,9 +31,7 @@ __docformat__ = 'reStructuredText'
 
 
 class Enum(object):
-
-    """
-    Enumerated type.
+    """Enumerated type.
 
     Each instance of this class represents an enumerated type. The
     values of the type must be declared

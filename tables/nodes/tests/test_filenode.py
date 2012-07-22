@@ -1,14 +1,14 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: October 2, 2004
-#       Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
+# License: BSD
+# Created: October 2, 2004
+# Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
-"Unit test for the filenode module."
+"""Unit test for the filenode module."""
 
 import unittest, tempfile, os
 import warnings
@@ -16,10 +16,6 @@ import warnings
 import tables
 from tables.nodes import filenode
 from tables.tests import common
-
-
-__revision__ = '$Id$'
-
 
 
 class NewFileTestCase(common.TempFileMixin, common.PyTablesTestCase):

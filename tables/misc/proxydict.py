@@ -1,20 +1,19 @@
-"""
-Proxy dictionary for objects stored in a container
-==================================================
+########################################################################
+#
+#	License: BSD
+#	Created: 2005-07-07
+#	Author:  Ivan Vilata i Balaguer - ivan@selidor.net
+#
+#	$Id$
+#
+########################################################################
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2005-07-07
-:License:  BSD
-:Revision: $Id$
-"""
+"""Proxy dictionary for objects stored in a container"""
 
 import weakref
 
 
-
 class ProxyDict(dict):
-
     """A dictionary which uses a container object to store its values."""
 
     def __init__(self, container):

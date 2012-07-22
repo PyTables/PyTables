@@ -15,8 +15,7 @@ import warnings
 
 import numpy as np
 import tables as tb
-from numexpr.necompiler import (
-    getContext, getExprNames, getType, NumExpr)
+from numexpr.necompiler import getContext, getExprNames, getType, NumExpr
 from numexpr.expressions import functions as numexpr_functions
 from tables.utilsExtension import lrange, getIndices
 from tables.exceptions import PerformanceWarning

@@ -15,8 +15,8 @@ import math
 
 import numpy
 
-from tables.flavor import ( check_flavor, internal_flavor,
-                            alias_map as flavor_alias_map )
+from tables.flavor import (check_flavor, internal_flavor,
+    alias_map as flavor_alias_map)
 from tables.node import Node
 from tables.filters import Filters
 from tables.utils import byteorders, lazyattr, SizeType

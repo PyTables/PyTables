@@ -37,8 +37,8 @@ from tables.utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
 from tables.leaf import Leaf
 from tables.description import (
     IsDescription, Description, Col, descr_from_dtype)
-from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
-     OldIndexWarning, NoSuchNodeError
+from tables.exceptions import (NodeError, HDF5ExtError, PerformanceWarning,
+    OldIndexWarning, NoSuchNodeError)
 from tables.utilsExtension import getNestedField
 
 from tables.path import joinPath, splitPath

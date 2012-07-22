@@ -16,8 +16,8 @@ import numpy
 
 from tables import hdf5Extension
 from tables.utilsExtension import lrange
-from tables.utils import convertToNPAtom, convertToNPAtom2, idx2long, \
-     correct_byteorder, SizeType, is_idx, lazyattr
+from tables.utils import (convertToNPAtom, convertToNPAtom2, idx2long,
+    correct_byteorder, SizeType, is_idx, lazyattr)
 
 
 from tables.atom import ObjectAtom, VLStringAtom, VLUnicodeAtom

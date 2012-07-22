@@ -1,15 +1,14 @@
 ########################################################################
 #
-#       License: BSD
-#       Created: December 15, 2004
-#       Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
+# License: BSD
+# Created: December 15, 2004
+# Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
-#       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_timetype.py,v $
-#       $Id$
+# $Id$
 #
 ########################################################################
 
-"Unit test for the Time datatypes."
+"""Unit test for the Time datatypes."""
 
 import unittest
 import tempfile
@@ -23,10 +22,6 @@ from tables.tests.common import allequal
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
-
-
-__revision__ = '$Id$'
-
 
 
 class LeafCreationTestCase(common.PyTablesTestCase):

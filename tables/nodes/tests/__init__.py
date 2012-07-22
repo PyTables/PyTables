@@ -1,10 +1,11 @@
-"""
-Unit tests for special node behaviours
-======================================
+########################################################################
+#
+# License: BSD
+# Created: 2007-01-18
+# Author:  Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2007-01-18
-:License:  BSD
-:Revision: $Id$
-"""
+"""Unit tests for special node behaviours"""

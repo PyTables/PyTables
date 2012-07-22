@@ -13,8 +13,8 @@
 import warnings
 
 from tables.registry import classNameDict, classIdDict
-from tables.exceptions import \
-     ClosedNodeError, NodeError, UndoRedoWarning, PerformanceWarning
+from tables.exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
+    PerformanceWarning)
 from tables.path import joinPath, splitPath, isVisiblePath
 from tables.utils import lazyattr
 from tables.undoredo import moveToShadow

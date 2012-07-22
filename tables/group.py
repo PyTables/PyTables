@@ -32,7 +32,6 @@ from tables.link import Link, SoftLink, ExternalLink
 obversion = "1.0"
 
 
-
 class _ChildrenDict(tables.misc.proxydict.ProxyDict):
     def _getValueFromContainer(self, container, key):
         return container._f_getChild(key)
