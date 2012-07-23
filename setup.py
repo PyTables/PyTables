@@ -731,32 +731,27 @@ extensions = [
                extra_link_args=LFLAGS,
                extra_compile_args=CFLAGS ),
 
-    ]
+    Extension( "tables.lrucacheExtension",
+               include_dirs=inc_dirs,
+               define_macros=def_macros,
+               sources=[cython_extfiles['lrucacheExtension']],
+               library_dirs=lib_dirs,
+               libraries=lrucacheExtension_libs,
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
 
+    Extension( "tables.indexesExtension",
+               include_dirs=inc_dirs,
+               define_macros=def_macros,
+               sources = [ cython_extfiles['indexesExtension'],
+                           "src/H5ARRAY-opt.c",
+                           "src/idx-opt.c" ],
+               library_dirs=lib_dirs,
+               libraries=indexesExtension_libs,
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
 
-if 'lrucacheExtension' in cython_extnames:
-    extensions.append(
-        Extension( "tables.lrucacheExtension",
-                   include_dirs=inc_dirs,
-                   define_macros=def_macros,
-                   sources=[cython_extfiles['lrucacheExtension']],
-                   library_dirs=lib_dirs,
-                   libraries=lrucacheExtension_libs,
-                   extra_link_args=LFLAGS,
-                   extra_compile_args=CFLAGS ) )
-
-if 'indexesExtension' in cython_extnames:
-    extensions.append(
-        Extension( "tables.indexesExtension",
-                   include_dirs=inc_dirs,
-                   define_macros=def_macros,
-                   sources = [ cython_extfiles['indexesExtension'],
-                               "src/H5ARRAY-opt.c",
-                               "src/idx-opt.c" ],
-                   library_dirs=lib_dirs,
-                   libraries=indexesExtension_libs,
-                   extra_link_args=LFLAGS,
-                   extra_compile_args=CFLAGS ) )
+]
 
 
 classifiers = """\
