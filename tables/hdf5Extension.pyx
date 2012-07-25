@@ -55,7 +55,7 @@ from utilsExtension cimport malloc_dims, get_native_type
 from libc.stdlib cimport malloc, free
 from libc.string cimport strdup
 from numpy cimport import_array, ndarray
-from cpython cimport PyString_AsString, PyString_FromStringAndSize
+from cpython cimport PyString_AsString, PyString_FromStringAndSize, PyString_Check, PyString_Size, PyString_AsString
 
 
 from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
@@ -80,6 +80,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5ATTRget_attribute_vlen_string_array,
   H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims,
   H5ARRAYget_ndims, H5ARRAYget_info,
+  H5LTopen_file_image,
   set_cache_size, get_objinfo, get_linkinfo, Giterate, Aiterate, H5UIget_info,
   get_len_of_range, conv_float64_timeval32, truncate_dset)
 
@@ -292,9 +293,15 @@ cdef class File:
 
     if params['DRIVER']=='HDFD_CORE_INMEMORY':
       if pymode == 'r' or pymode == 'r+':
-        self.file_id = H5Fcreate_inmemory(&self.mem_data);
+        if (not PyString_Check(params['MEMORY_IMAGE'])):
+          raise TypeError("HDFD_CORE_INMEMORY driver needs a string passed as MEMORY_IMAGE argument");
+        self.mem_data.len = PyString_Size(params['MEMORY_IMAGE'])
+        self.mem_data.p = <void *>PyString_AsString(params['MEMORY_IMAGE'])
+        self.file_id = H5LTopen_file_image(self.mem_data.p, self.mem_data.len, 0)
       elif pymode == 'a' or pymode == 'w':
-        pass # TODO: Not implemented 
+        self.mem_data.len = 0
+        self.mem_data.p = <void *>0
+        self.file_id = H5Fcreate_inmemory(&self.mem_data);
     else:
       # Set parameters for chunk cache
       H5Pset_cache(access_plist, 0,

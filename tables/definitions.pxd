@@ -27,6 +27,9 @@ from libc.stdio cimport FILE
 # Python C API stuff
 cdef extern from "Python.h":
     object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+    cdef int PyString_Check(object o)
+    Py_ssize_t PyString_Size(object string)
+    char* PyString_AsString(object string)
 
 
 #-----------------------------------------------------------------------------
@@ -410,6 +413,9 @@ cdef extern from "H5ARRAY.h" nogil:
 cdef extern from "H5PCORE-mem.h" nogil:
   hid_t H5Fcreate_inmemory(hvl_t *udata)
 
+# Structs and types from HDF5 HL
+cdef extern from "hdf5_hl.h" nogil:
+  hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
 
 
 # Some utilities
