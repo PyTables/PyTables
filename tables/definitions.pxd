@@ -24,6 +24,10 @@ cdef extern from "time.h":
 
 from libc.stdio cimport FILE
 
+# Python C API stuff
+cdef extern from "Python.h":
+    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+
 
 #-----------------------------------------------------------------------------
 
@@ -401,6 +405,11 @@ cdef extern from "H5ARRAY.h" nogil:
   herr_t H5ARRAYget_info(hid_t dataset_id, hid_t type_id, hsize_t *dims,
                          hsize_t *maxdims, H5T_class_t *super_class_id,
                          char *byteorder)
+
+# Functions for operations with ARRAY
+cdef extern from "H5PCORE-mem.h" nogil:
+  hid_t H5Fcreate_inmemory(hvl_t *udata)
+
 
 
 # Some utilities
