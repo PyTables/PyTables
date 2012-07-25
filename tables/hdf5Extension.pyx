@@ -66,7 +66,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
   H5P_DEFAULT, H5P_FILE_ACCESS,
   H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
-  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle,
+  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle, H5Fcreate_inmemory,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
@@ -253,6 +253,7 @@ cdef class File:
   cdef hid_t   file_id
   cdef hid_t   access_plist
   cdef object  name
+  cdef hvl_t   mem_data # Used only in case of memory write
 
 
   def _g_new(self, name, pymode, **params):
@@ -288,27 +289,33 @@ cdef class File:
     # resources.
     # F. Alted 2010-04-15
     #H5Pset_fapl_core(access_plist, 1024, 1)
-    # Set parameters for chunk cache
-    H5Pset_cache(access_plist, 0,
-                 params['CHUNK_CACHE_NELMTS'],
-                 params['CHUNK_CACHE_SIZE'],
-                 params['CHUNK_CACHE_PREEMPT'])
 
-    if pymode == 'r':
-      self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)
-    elif pymode == 'r+':
-      self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
-    elif pymode == 'a':
-      if exists:
-        # A test for logging.
-        ## H5Pset_sieve_buf_size(access_plist, 0)
-        ## H5Pset_fapl_log (access_plist, "test.log", H5FD_LOG_LOC_WRITE, 0)
+    if params['DRIVER']=='HDFD_CORE_INMEMORY':
+      if pymode == 'r' or pymode == 'r+':
+        self.file_id = H5Fcreate_inmemory(&self.mem_data);
+      elif pymode == 'a' or pymode == 'w':
+        pass # TODO: Not implemented 
+    else:
+      # Set parameters for chunk cache
+      H5Pset_cache(access_plist, 0,
+                   params['CHUNK_CACHE_NELMTS'],
+                   params['CHUNK_CACHE_SIZE'],
+                   params['CHUNK_CACHE_PREEMPT'])
+      if pymode == 'r':
+        self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)
+      elif pymode == 'r+':
         self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
-      else:
+      elif pymode == 'a':
+        if exists:
+          # A test for logging.
+          ## H5Pset_sieve_buf_size(access_plist, 0)
+          ## H5Pset_fapl_log (access_plist, "test.log", H5FD_LOG_LOC_WRITE, 0)
+          self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
+        else:
+          self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
+                                   H5P_DEFAULT, access_plist)
+      elif pymode == 'w':
         self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
-                                 H5P_DEFAULT, access_plist)
-    elif pymode == 'w':
-      self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
                                H5P_DEFAULT, access_plist)
 
     if self.file_id < 0:
@@ -322,6 +329,8 @@ cdef class File:
     # Set the maximum number of threads for Blosc
     setBloscMaxThreads(params['MAX_BLOSC_THREADS'])
 
+  def getInMemoryFileContents(self):
+    return PyString_FromStringAndSize(<char *>self.mem_data.p, self.mem_data.len)
 
   # Accessor definitions
   def _getFileId(self):
