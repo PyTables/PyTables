@@ -1,8 +1,7 @@
 /* 
- * File:   h5f_core_mem.h
- * Author: af1n
- *
+ * Author: Michal Slonina <michal.slonina@gmail.com>
  * Created on July 19, 2012, 11:41 AM
+ * Work on PyTables in-memory hdf5 file images file was kindly sponsored by DeltaMethod.
  */
 
 #ifndef H5F_CORE_MEM_H
