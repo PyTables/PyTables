@@ -241,6 +241,24 @@ your machine. In general, it is a good idea to set this to the number of
 cores in your machine or, when your machine has many of them (e.g. > 4),
 perhaps one less than this."""
 
+DRIVER = 'CORE'
+"""The libhdf5 driver that should be used for reading/writing to the file.
+Following drivers are implemented:
+	H5FD_SEC2 - This is the default driver which uses Posix file-system functions like read and write to perform I/O to a single file.
+	H5FD_STDIO - This driver uses functions from 'stdio.h' to perform buffered I/O to a single file.
+	H5FD_CORE - This driver performs I/O directly to memory and can be used to create small temporary files that never exist on permanent storage. If the provided filename is set to None, an in memory only file will be created. Additionaly if filename is set to None and MEMORY_IMAGE parameter is provided, the HDF5 will be read from the data provided in the MEMORY_IMAGE.	
+	HDFD_CORE_INMEMORY - This is a pseudodriver. It makes it possible to read and write in-memory only images of HDF5 files. 
+The following drivers may be implemented in the future.
+	H5FD_MPIIO - This driver is used with Parallel HDF5, and is only pre-defined if the library is compiled with parallel I/O support. Refer to the Parallel HDF5 Tutorial for more information on using Parallel HDF5.
+	H5FD_MULTI- This driver enables different types of HDF5 data and metadata to be written to separate files. The H5FD_SPLIT driver is an example of what the H5FD_MULTI driver can do.
+	H5FD_FAMILY - This driver partitions a large format address space into smaller chunks (separate storage of a user's choice).
+	H5FD_SPLIT - This driver splits the meta data and raw data into separate storage of a user's choice.
+see http://www.hdfgroup.org/HDF5/Tutor/filedrvr.html for more information
+"""
+
+MEMORY_IMAGE = None
+"""Passing an memory image as a single dimensional numpy array will force
+in-memory mode."""
 
 ## Local Variables:
 ## mode: python
