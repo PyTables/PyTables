@@ -272,7 +272,9 @@ cdef class File:
 
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
-    checkFileAccess(name, pymode)
+    # But only if we are using file backed storage.
+    if params['DRIVER'] != 'HDFD_CORE_INMEMORY':
+      checkFileAccess(name, pymode) 
 
     assert pymode in ('r', 'r+', 'a', 'w'), ("an invalid mode string ``%s`` "
            "passed the ``checkFileAccess()`` test; "
