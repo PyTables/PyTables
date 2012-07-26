@@ -72,7 +72,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
-  H5Pcreate, H5Pset_cache, H5Pclose,
+  H5Pcreate, H5Pset_cache, H5Pclose, H5Pset_fapl_core, H5Pset_fapl_sec2, H5Pset_fapl_stdio,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
@@ -256,8 +256,15 @@ cdef class File:
   cdef object  name
   cdef hvl_t   mem_data # Used only in case of memory write
 
+  def __get_supported_drivers(self):
+    return ["H5FD_SEC2", "H5FD_STDIO", "H5FD_CORE", "H5FD_CORE_INMEMORY", "H5FD_DIRECT", None]
 
   def _g_new(self, name, pymode, **params):
+    # Check if we can handle the driver
+    driver = params['DRIVER']
+    if driver!=None and not driver in self.__get_supported_drivers():
+      raise NotImplementedError("File driver "+str(driver)+" is not implemented. Please choose one of the following drivers: "+str(self.__get_supported_drivers()))
+
     # Create a new file using default properties
     self.name = name
 
@@ -273,7 +280,7 @@ cdef class File:
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
     # But only if we are using file backed storage.
-    if params['DRIVER'] != 'HDFD_CORE_INMEMORY':
+    if driver != 'H5FD_CORE_INMEMORY':
       checkFileAccess(name, pymode) 
 
     assert pymode in ('r', 'r+', 'a', 'w'), ("an invalid mode string ``%s`` "
@@ -281,11 +288,10 @@ cdef class File:
            "please report this to the authors" % pymode)
 
     # Should a new file be created?
-    exists = os.path.exists(name)
+    exists = os.path.exists(name) if driver != 'H5FD_CORE_INMEMORY' else PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])
     self._v_new = not (
       pymode in ('r', 'r+') or (pymode == 'a' and exists))
 
-    access_plist = H5Pcreate(H5P_FILE_ACCESS)
     # The line below uses the CORE driver for doing I/O from memory, not disk
     # In general it is a bad idea to do this because HDF5 will have to load
     # the contents of the file on disk prior to operate, which takes time and
@@ -293,18 +299,26 @@ cdef class File:
     # F. Alted 2010-04-15
     #H5Pset_fapl_core(access_plist, 1024, 1)
 
-    if params['DRIVER']=='HDFD_CORE_INMEMORY':
+    if driver=='H5FD_CORE_INMEMORY':
       if pymode == 'r' or pymode == 'r+':
-        if (not PyString_Check(params['MEMORY_IMAGE'])):
-          raise TypeError("HDFD_CORE_INMEMORY driver needs a string passed as MEMORY_IMAGE argument");
-        self.mem_data.len = PyString_Size(params['MEMORY_IMAGE'])
-        self.mem_data.p = <void *>PyString_AsString(params['MEMORY_IMAGE'])
+        if (not PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])):
+          raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as H5FD_CORE_INMEMORY_IMAGE  argument");
+        self.mem_data.len = PyString_Size(params['H5FD_CORE_INMEMORY_IMAGE'])
+        self.mem_data.p = <void *>PyString_AsString(params['H5FD_CORE_INMEMORY_IMAGE'])
         self.file_id = H5LTopen_file_image(self.mem_data.p, self.mem_data.len, 0)
       elif pymode == 'a' or pymode == 'w':
         self.mem_data.len = 0
         self.mem_data.p = <void *>0
         self.file_id = H5Fcreate_inmemory(&self.mem_data);
     else:
+      access_plist = H5Pcreate(H5P_FILE_ACCESS)
+      if driver == 'H5FD_STDIO':
+        H5Pset_fapl_stdio(access_plist)
+      elif driver == 'H5FD_SEC2':
+        H5Pset_fapl_sec2(access_plist)
+      elif driver == 'H5FD_CORE':
+        H5Pset_fapl_core(access_plist, params['H5FD_CORE_INCREMENT'], params['H5FD_CORE_BACKING_STORE'])
+
       # Set parameters for chunk cache
       H5Pset_cache(access_plist, 0,
                    params['CHUNK_CACHE_NELMTS'],
@@ -339,6 +353,8 @@ cdef class File:
     setBloscMaxThreads(params['MAX_BLOSC_THREADS'])
 
   def getInMemoryFileContents(self):
+    #if (self.mem_data.len==0):
+    #  raise RuntimeError("No data available in memory. Please make sure that the H5FD_CORE_INMEMORY driver is used and that the file is closed before calling this function.")
     return PyString_FromStringAndSize(<char *>self.mem_data.p, self.mem_data.len)
 
   # Accessor definitions

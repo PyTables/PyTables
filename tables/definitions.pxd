@@ -365,9 +365,12 @@ cdef extern from "hdf5.h" nogil:
                          unsigned int flags, size_t buf_size)
   H5D_layout_t H5Pget_layout(hid_t plist)
   int H5Pget_chunk(hid_t plist, int max_ndims, hsize_t *dims)
-  herr_t H5Pset_fapl_core(hid_t fapl_id, size_t increment,
-                          hbool_t backing_store)
-
+  herr_t H5Pset_fapl_core(hid_t fapl_id, size_t increment, hbool_t backing_store)
+#  herr_t H5Pset_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size, size_t cbuf_size)
+#  herr_t H5Pset_fapl_log(hid_t fapl_id, const char *logfile, unsigned long long flags, size_t buf_size)
+  herr_t H5Pset_fapl_sec2(hid_t fapl_id)
+  herr_t H5Pset_fapl_stdio(hid_t fapl_id)
+  
   # Error Handling Interface
   #herr_t H5Eget_auto(hid_t estack_id, H5E_auto_t *func, void** data)
   herr_t H5Eset_auto(hid_t estack_id, H5E_auto_t func, void *data)
