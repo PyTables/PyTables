@@ -460,11 +460,11 @@ class File(hdf5Extension.File, object):
         """The name of the opened file."""
         self.mode = mode
         """The mode in which the file was opened."""
-
-        # Expand the form '~user'
-        path = os.path.expanduser(filename)
-        # Expand the environment variables
-        path = os.path.expandvars(path)
+	if kwargs['DRIVER']!="H5FD_CORE_INMEMORY":
+	  # Expand the form '~user'
+          path = os.path.expanduser(filename)
+          # Expand the environment variables
+          path = os.path.expandvars(path)
 
         # Get all the parameters in parameter file(s)
         params = dict([(k, v) for k, v in parameters.__dict__.iteritems()
