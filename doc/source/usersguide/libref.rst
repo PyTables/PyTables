@@ -33,3 +33,4 @@ run the complete test suite from a Python console interactively.
     libref/declarative_classes
     libref/helper_classes
     libref/expr_class
+    libref/filenode_classes

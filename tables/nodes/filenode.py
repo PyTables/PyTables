@@ -33,20 +33,20 @@ import tables
 
 
 NodeType         = 'file'
-NodeTypeVersions = [1, 2]
+"""Value for NODE_TYPE node system attribute."""
 
+NodeTypeVersions = [1, 2]
+"""Supported values for NODE_TYPE_VERSION node system attribute."""
 
 
 def newNode(h5file, **kwargs):
-    """newNode(file, ...) -> file node object.  Creates a new file node.
+    """Creates a new file node object in the specified PyTables file object.
+    Additional named arguments where and name must be passed to specify where
+    the file node is to be created. Other named arguments such as title and
+    filters may also be passed.
 
-    Creates a new file node object in the specified PyTables file object.
-    Additional named arguments 'where' and 'name' must be passed
-    to specify where the file node is to be created.
-    Other named arguments such as 'title' and 'filters' may also be passed.
-
-    The special named argument 'expectedsize', indicating an estimate
-    of the file size in bytes, may also be passed.
+    The special named argument expectedsize, indicating an estimate of the file
+    size in bytes, may also be passed. It returns the file node object.
     """
 
     return RAFileNode(None, h5file, **kwargs)
@@ -54,13 +54,11 @@ def newNode(h5file, **kwargs):
 
 
 def openNode(node, mode = 'r'):
-    """openNode(node[, mode]) -> file node object.  Opens an existing file node.
-
-    Returns a file node object from the existing specified PyTables node.
-    If mode is not specified or it is 'r', the file can only be read,
-    and the pointer is positioned at the beginning of the file.
-    If mode is 'a+', the file can be read and appended,
-    and the pointer is positioned at the end of the file.
+    """Opens an existing file node. Returns a file node object from the existing
+    specified PyTables node. If mode is not specified or it is 'r', the file
+    can only be read, and the pointer is positioned at the beginning of the
+    file. If mode is 'a+', the file can be read and appended, and the pointer
+    is positioned at the end of the file.
     """
 
     if mode == 'r':
@@ -94,7 +92,7 @@ class ReadableMixin:
 
     # The line separator string property methods.
     def getLineSeparator(self):
-        "getLineSeparator() -> string.  Gets the line separator string."
+        """Returns the line separator string."""
 
         return self._lineSeparator
 
@@ -495,33 +493,31 @@ class AppendableMixin:
 
 
 class FileNode(object):
-    """FileNode() -> file node object
+    """This is the ancestor of ROFileNode and RAFileNode (see below). Instances
+    of these classes are returned when newNode() or openNode() are called. It
+    represents a new file node associated with a PyTables node, providing a
+    standard Python file interface to it.
 
-    Creates a new file node associated with a PyTables node,
-    providing a standard Python file interface to it.
+    This abstract class provides only an implementation of the reading methods
+    needed to implement a file-like object over a PyTables node. The attribute
+    set of the node becomes available via the attrs property. You can add
+    attributes there, but try to avoid attribute names in all caps or starting
+    with '_', since they may clash with internal attributes.
 
-    This abstract class only provides attribute handling
-    and file operations which do not depend on the file mode.
+    The node used as storage is also made available via the read-only attribute
+    node. Please do not tamper with this object unless unavoidably, since you
+    may break the operation of the file node object.
 
-    The attribute set of the node becomes available via
-    the 'attrs' property.
-    You can add attributes there, but try to avoid
-    attribute names in all caps or starting with '_',
-    since they may clash with internal attributes.
+    The lineSeparator property contains the string used as a line separator,
+    and defaults to os.linesep. It can be set to any reasonably-sized string
+    you want.
 
-    The node used as storage is also made available via
-    the read-only attribute 'node'.
-    Please do not tamper with this object unless unavoidably,
-    since you may break the operation of the file node object.
+    The constructor sets the closed, softspace and _lineSeparator attributes to
+    their initial values, as well as the node attribute to None.  Sub-classes
+    should set the node, mode and offset attributes.
 
-    The constructor sets the 'closed' and 'softspace' attributes
-    to their initial values, as well as the 'node' attribute to None.
-    Sub-classes should set the 'node', 'mode', 'offset'
-    and '_version' attributes,
-    as well as define mode-dependent methods.
-
-    Version 1 implements the file storage as an UInt8 Nx1 matrix EArray;
-    version 2 uses an UInt8 N vector EArray.
+    Version 1 implements the file storage as a UInt8 uni-dimensional EArray.
+    Version 2 uses an UInt8 N vector EArray.
     """
 
     # The atom representing a byte in the array, for each version.
@@ -539,7 +535,7 @@ class FileNode(object):
 
     # The attribute set property methods.
     def getAttrs(self):
-        "getAttrs() -> AttributeSet.  Gets the attribute set of the file node."
+        """Returns the attribute set of the file node."""
 
         return self.node.attrs
 
@@ -629,12 +625,8 @@ class FileNode(object):
 
 
     def close(self):
-        """close() -> None.  Closes the file node.
-
-        Flushes the file and closes it.
-        The 'node' attribute becomes None
-        and the 'attrs' property becomes no longer available.
-        See file.close.__doc__ for more information.
+        """Flushes the file and closes it. The node attribute becomes None and
+        the attrs property becomes no longer available.
         """
 
         # Only flush the first time the file is closed,
@@ -698,15 +690,13 @@ class FileNode(object):
 
 
 class ROFileNode(ReadableMixin, NotWritableMixin, FileNode):
-    """ROFileNode(node) -> read-only file node object
-
-    Creates a new read-only file node associated with the specified
+    """Creates a new read-only file node associated with the specified
     PyTables node, providing a standard Python file interface to it.
     The node has to have been created on a previous occasion
     using the newNode() function.
 
     This constructor is not intended to be used directly.
-    Use the openNode() function instead.
+    Use the openNode() function in read-only mode ('r') instead.
     """
 
     # Since FileNode provides all methods for read-only access,
@@ -737,21 +727,18 @@ class ROFileNode(ReadableMixin, NotWritableMixin, FileNode):
 
 
 class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
-    """__init__(node, None), __init__(None, file, ...) -> writable file node object
-
-    Creates a new read-write file node.
-    The first syntax opens the specified PyTables node,
-    while the second one creates a new node in the specified PyTables file.
-    In the second case, additional named arguments 'where' and 'name'
-    must be passed to specify where the file node is to be created.
-    Other named arguments such as 'title' and 'filters' may also be passed.
-    The special named argument 'expectedsize', indicating an estimate
+    """Creates a new read-write file node.  The first syntax opens the
+    specified PyTables node, while the second one creates a new node in the
+    specified PyTables file.  In the second case, additional named arguments
+    'where' and 'name' must be passed to specify where the file node is to be
+    created.  Other named arguments such as 'title' and 'filters' may also be
+    passed.  The special named argument 'expectedsize', indicating an estimate
     of the file size in bytes, may also be passed.
 
     Write access means reading as well as appending data is allowed.
 
-    This constructor is not intended to be used directly.
-    Use the newNode() or openNode() functions instead.
+    This constructor is not intended to be used directly.  Use the newNode() or
+    openNode() functions instead.
     """
 
     __allowedInitKwArgs = ['where', 'name', 'title', 'filters', 'expectedsize']
@@ -812,7 +799,7 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 
 
     def flush(self):
-        """flush() -> None.  Flushes the file node.
+        """Flushes the file node.
 
         See file.flush.__doc__ for more information.
         """
