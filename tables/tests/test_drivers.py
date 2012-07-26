@@ -56,8 +56,6 @@ class STDIODriverTestCase(FileDriverTestCase):
     DRIVER="H5FD_STDIO"
 class COREDriverTestCase(FileDriverTestCase):
     DRIVER="H5FD_CORE"
-class COREDriverTestCase(FileDriverTestCase):
-    DRIVER="H5FD_CORE"
 class CORE_INMEMORYDriverTestCase(FileDriverTestCase):
     DRIVER="H5FD_CORE_INMEMORY"
     def test00_newFile(self):
