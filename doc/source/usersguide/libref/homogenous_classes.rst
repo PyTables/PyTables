@@ -1,8 +1,7 @@
 .. currentmodule:: tables
 
-Homogenous dataset routines
+Homogenous dataset classes
 ===========================
-
 
 .. _ArrayClassDescr:
 
