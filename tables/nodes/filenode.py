@@ -18,11 +18,7 @@ with newNode()) node for read-only or read-write access.  Read acces
 is always available.  Write access (enabled on new files and files
 opened with mode 'a+') only allows appending data to a file node.
 
-
-Constants:
-    NodeType         -- Value for 'NODE_TYPE' node system attribute.
-    NodeTypeVersions -- Supported values for 'NODE_TYPE_VERSION'
-                        node system attribute.
+See :ref:`filenode_usersguide` for instructions on use.
 """
 
 import os, warnings
@@ -73,10 +69,9 @@ def openNode(node, mode = 'r'):
 class ReadableMixin:
     """Mix-in class which provides reading methods for readable file nodes.
 
-    It also defines the 'lineSeparator' property,
-    which contains the string used as a line separator,
-    and defaults to os.linesep.
-    It can be set to any reasonably-sized string you want.
+    It also defines the 'lineSeparator' property, which contains the string
+    used as a line separator, and defaults to os.linesep.  It can be set to any
+    reasonably-sized string you want.
 
     This class requires support for:
         * 'offset' and 'node' attributes
@@ -97,7 +92,7 @@ class ReadableMixin:
         return self._lineSeparator
 
     def setLineSeparator(self, value):
-        """setLineSeparator(string) -> None.  Sets the line separator string.
+        """Sets the line separator string.
 
         Raises ValueError if the string is empty or too long.
         """
@@ -110,14 +105,14 @@ class ReadableMixin:
             self._lineSeparator = value
 
     def delLineSeparator(self):
-        "delLineSeparator() -> None.  Deletes the 'lineSeparator' property."
+        "Deletes the 'lineSeparator' property."
 
         del self._lineSeparator
 
     # The line separator string property.
     lineSeparator = property(
         getLineSeparator, setLineSeparator, delLineSeparator,
-        "A property containing the line separator string.")
+        """A property containing the line separator string.""")
 
 
     def __iter__(self):
@@ -125,7 +120,7 @@ class ReadableMixin:
 
 
     def next(self):
-        """next() -> string.  Gets the next line of text.
+        """Gets the next line of text.
 
         Raises StopIteration when finished.
         See file.next.__doc__ for more information.
@@ -139,7 +134,7 @@ class ReadableMixin:
 
 
     def read(self, size = None):
-        """read([size]) -> string.  Reads at most 'size' bytes.
+        """Reads at most 'size' bytes.
 
         See file.read.__doc__ for more information.
         """
@@ -167,7 +162,7 @@ class ReadableMixin:
 
 
     def readline(self, size = -1):
-        """readline([size]) -> string.  Reads the next text line.
+        """Reads the next text line.
 
         See file.readline.__doc__ for more information.
         """
@@ -237,7 +232,7 @@ class ReadableMixin:
 
 
     def readlines(self, sizehint = -1):
-        """readlines([sizehint]) -> list of strings.  Reads the text lines.
+        """Reads the text lines into a list.
 
         See file.readlines.__doc__ for more information.
         """
@@ -272,7 +267,7 @@ class ReadableMixin:
 
 
     def xreadlines(self):
-        """xreadlines() -> self.  For backward compatibility.
+        """For backward compatibility.
 
         See file.xreadlines.__doc__ for more information.
         """
@@ -377,9 +372,9 @@ class NotWritableMixin:
 
 
     def truncate(self, size = None):
-        """truncate([size]) -> None.  Truncates the file node to at most 'size' bytes.
+        """Truncates the file node to at most 'size' bytes.  This raises an
+        IOError when called on read-only nodes.
 
-        Raises IOError.
         See file.truncate.__doc__ for more information.
         """
 
@@ -388,9 +383,9 @@ class NotWritableMixin:
 
 
     def write(self, string):
-        """write(string) -> None.  Writes the string to the file.
+        """Writes the string to the file.  This raises an IOError when called
+        on read-only nodes.
 
-        Raises IOError.
         See file.write.__doc__ for more information.
         """
 
@@ -399,9 +394,9 @@ class NotWritableMixin:
 
 
     def writelines(self, sequence):
-        """writelines(sequence_of_strings) -> None.  Writes the strings to the file.
+        """Writes the strings to the file.  This raises an IOError when called
+        on read-only nodes.
 
-        Raises IOError.
         See file.writelines.__doc__ for more information.
         """
 
@@ -433,7 +428,7 @@ class AppendableMixin:
 
 
     def truncate(self, size = None):
-        """truncate([size]) -> None.  Truncates the file node to at most 'size' bytes.
+        """Truncates the file node to at most 'size' bytes.
 
         Currently, this method only makes sense to grow the file node,
         since data can not be rewritten nor deleted.
@@ -450,7 +445,7 @@ class AppendableMixin:
 
 
     def write(self, string):
-        """write(string) -> None.  Writes the string to the file.
+        """Writes the string to the file.
 
         Writing an empty string does nothing, but requires the file to be open.
         See file.write.__doc__ for more information.
@@ -482,7 +477,7 @@ class AppendableMixin:
 
 
     def writelines(self, sequence):
-        """writelines(sequence_of_strings) -> None.  Writes the strings to the file.
+        """Writes the sequence of strings to the file.
 
         See file.writelines.__doc__ for more information.
         """
@@ -505,7 +500,7 @@ class FileNode(object):
     with '_', since they may clash with internal attributes.
 
     The node used as storage is also made available via the read-only attribute
-    node. Please do not tamper with this object unless unavoidably, since you
+    node. Please do not tamper with this object if it's avoidable, since you
     may break the operation of the file node object.
 
     The lineSeparator property contains the string used as a line separator,
@@ -530,7 +525,7 @@ class FileNode(object):
     _sizeToShape = [
         None,
         lambda l: (l, 1),
-        lambda l: (l,)]
+        lambda l: (l, )]
 
 
     # The attribute set property methods.
@@ -625,8 +620,8 @@ class FileNode(object):
 
 
     def close(self):
-        """Flushes the file and closes it. The node attribute becomes None and
-        the attrs property becomes no longer available.
+        """Flushes the file and closes it. After calling this method the node
+        attribute becomes None and the attrs property is no longer available.
         """
 
         # Only flush the first time the file is closed,
@@ -654,7 +649,7 @@ class FileNode(object):
 
 
     def seek(self, offset, whence = 0):
-        """seek(offset[, whence]) -> None.  Moves to a new file position.
+        """Moves to a new file position.
 
         See file.seek.__doc__ for more information.
         """
@@ -679,7 +674,7 @@ class FileNode(object):
 
 
     def tell(self):
-        """tell() -> long integer.  Gets the current file position.
+        """Gets the current file position.
 
         See file.tell.__doc__ for more information.
         """
@@ -716,7 +711,7 @@ class ROFileNode(ReadableMixin, NotWritableMixin, FileNode):
 
 
     def flush(self):
-        """flush() -> None.  Flushes the file node.
+        """Flushes the file node.
 
         See file.flush.__doc__ for more information.
         """

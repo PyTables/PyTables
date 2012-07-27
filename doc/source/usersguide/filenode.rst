@@ -1,3 +1,5 @@
+.. _filenode_usersguide:
+
 filenode - simulating a filesystem with PyTables
 ================================================
 
@@ -283,65 +285,6 @@ This is a list of known current limitations:
 These limitations still make filenode entirely adequate to work with most
 binary and text files. Of course, suggestions and patches are welcome.
 
-.. FileNode
-
-.. method:: FileNode.setLineSeparator()
-
-    Sets the line separator string.
-
-
-.. method:: FileNode.next()
-
-    Returns the next line of text. Raises StopIteration when lines are
-    exhausted. See file.next.__doc__ for more information.
-
-.. method:: FileNode.read(size=None)
-
-    Reads at most size bytes. See file.read.__doc__ for more information.
-
-.. method:: FileNode.readline(size=-1)
-
-    Reads the next text line. See file.readline.__doc__ for more information.
-
-
-.. method:: FileNode.readlines(sizehint=-1)
-
-    Reads the text lines. See file.readlines.__doc__ for more information.
-
-.. method:: FileNode.seek(offset, whence=0)
-
-    Moves to a new file position. See file.seek.__doc__ for more information.
-
-.. method:: FileNode.tell()
-
-    Gets the current file position. See file.tell.__doc__ for more
-    information.
-
-.. method:: FileNode.xreadlines()
-
-    For backward compatibility. See file.xreadlines.__doc__ for more
-    information.
-
-
-
-The RAFileNode class
-~~~~~~~~~~~~~~~~~~~~
-
-
-.. method:: RAFileNode.truncate(size=None)
-
-    Truncates the file node to at most size bytes. Currently, this method
-    only makes sense to grow the file node, since data can not be rewritten
-    nor deleted. See file.truncate.__doc__ for more information.
-
-.. method:: RAFileNode.write(string)
-
-    Writes the string to the file. Writing an empty string does nothing, but
-    requires the file to be open. See file.write.__doc__ for more
-    information.
-
-.. method:: RAFileNode.writelines(sequence)
-
-    Writes the sequence of strings to the file. See file.writelines.__doc__
-    for more information.
+See :ref:`filenode_classes` for detailed documentation on the filenode
+interface.
 
