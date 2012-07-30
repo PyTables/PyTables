@@ -99,9 +99,9 @@ freeing) it."""
 # enough resources.
 
 MAX_COLUMNS = 512
-"""Maximum number of columns in ``Table`` objects before a
-``PerformanceWarning`` is issued.  This limit is somewhat arbitrary and
-can be increased.
+"""Maximum number of columns in :class:`tables.Table` objects before a
+:exc:`tables.PerformanceWarning` is issued.  This limit is somewhat
+arbitrary and can be increased.
 """
 
 MAX_NODE_ATTRS = 4096
@@ -121,8 +121,7 @@ MAX_UNDO_PATH_LENGTH = 10240
 # ------------
 
 COND_CACHE_SLOTS = 128
-"""Maximum number of conditions for table queries to be kept in memory.
-"""
+"""Maximum number of conditions for table queries to be kept in memory."""
 
 CHUNK_CACHE_NELMTS = 521
 """Number of elements for HDF5 chunk cache."""
@@ -185,17 +184,17 @@ exceed the amount of highest level cache size in your CPU."""
 
 BUFFER_TIMES = 100
 """The maximum buffersize/rowsize ratio before issuing a
-``PerformanceWarning``."""
+:exc:`tables.PerformanceWarning`."""
 
 
 # Miscellaneous
 # -------------
 
 EXPECTED_ROWS_EARRAY = 1000
-"""Default expected number of rows for ``EArray`` objects."""
+"""Default expected number of rows for :class:`EArray` objects."""
 
 EXPECTED_ROWS_TABLE = 10000
-"""Default expected number of rows for ``Table`` objects."""
+"""Default expected number of rows for :class:`Table` objects."""
 
 PYTABLES_SYS_ATTRS = True
 """Set this to ``False`` if you don't want to create PyTables system
