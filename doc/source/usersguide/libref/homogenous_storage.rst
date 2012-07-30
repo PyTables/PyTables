@@ -1,7 +1,7 @@
 .. currentmodule:: tables
 
-Homogenous dataset classes
-===========================
+Homogenous storage classes
+==========================
 
 .. _ArrayClassDescr:
 

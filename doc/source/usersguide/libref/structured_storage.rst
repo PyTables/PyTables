@@ -1,7 +1,7 @@
 .. currentmodule:: tables
 
-Heterogenous dataset classes
-============================
+Structured storage classes
+==========================
 
 .. _TableClassDescr:
 

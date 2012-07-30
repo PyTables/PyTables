@@ -27,8 +27,8 @@ run the complete test suite from a Python console interactively.
     libref/top_level
     libref/file_class
     libref/hierarchy_classes
-    libref/heterogenous_classes
-    libref/homogenous_classes
+    libref/structured_storage
+    libref/homogenous_storage
     libref/link_classes
     libref/declarative_classes
     libref/helper_classes
