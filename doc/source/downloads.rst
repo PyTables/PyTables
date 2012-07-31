@@ -6,7 +6,9 @@ Stable Versions
 ---------------
 
 The stable versions of PyTables can be downloaded from the file `download
-area`_ on SourceForge.net.
+area`_ on SourceForge.net.  The full distribution contains a copy of this
+documentation in html and pdf formats.  Both forms of the documentation can
+also be downloaded separately from this link.
 
 Windows binaries can be obtained from many different distributions, like
 `Python(x,y)`_, ActiveState_, or Enthought_.
