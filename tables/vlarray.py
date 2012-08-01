@@ -452,6 +452,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         sequence.
         """
 
+        self._g_checkOpen()
         self._v_file._checkWritable()
 
         # Prepare the sequence to convert it into a NumPy object
@@ -592,6 +593,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools
         """
 
+        self._g_checkOpen()
         if is_idx(key):
             # Index out of range protection
             if key >= self.nrows:
@@ -696,6 +698,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             vlarray[[1,3]] = new_1_and_3_rows
         """
 
+        self._g_checkOpen()
         self._v_file._checkWritable()
 
         if is_idx(key):
@@ -733,6 +736,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         the rows* in the array are selected.
         """
 
+        self._g_checkOpen()
         start, stop, step = self._processRangeRead(start, stop, step)
         if start == stop:
             listarr = []

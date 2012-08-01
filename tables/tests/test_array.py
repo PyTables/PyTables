@@ -2262,6 +2262,25 @@ class CopyNativeHDF5MDAtom(common.PyTablesTestCase):
         self.assertEqual(self.arr.shape, self.arr2.shape)
 
 
+class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def setUp(self):
+        super(AccessClosedTestCase, self).setUp()
+
+        a = numpy.zeros((10, 10))
+        self.array = self.h5file.createArray(self.h5file.root, 'array', a)
+
+    def test_read(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.read)
+
+    def test_getitem(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.__getitem__, 0)
+
+    def test_setitem(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
 
 
 #----------------------------------------------------------------------
@@ -2327,6 +2346,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PointSelection3))
         theSuite.addTest(unittest.makeSuite(PointSelection4))
         theSuite.addTest(unittest.makeSuite(CopyNativeHDF5MDAtom))
+        theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
 
     return theSuite
 

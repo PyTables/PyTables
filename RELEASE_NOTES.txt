@@ -35,6 +35,12 @@ Many deprecated features and support for obsolete modules has been dropped:
   remains.  Closes :issue:`112`.
 
 
+Bugs fixed
+----------
+
+- Better check access on closed files (closes: _issue:`62`)
+
+
 Changes from 2.3.1 to 2.4
 =========================
 

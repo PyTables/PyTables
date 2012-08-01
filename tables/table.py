@@ -1433,6 +1433,7 @@ class Table(tableExtension.Table, Leaf):
         :meth:`Table.where` method.
         """
 
+        self._g_checkOpen()
         coords = [ p.nrow for p in
                    self._where(condition, condvars, start, stop, step) ]
         self._whereCondition = None  # reset the conditions
@@ -1458,6 +1459,8 @@ class Table(tableExtension.Table, Leaf):
 
         The number of rows appended to dstTable is returned as a result.
         """
+
+        self._g_checkOpen()
 
         # Check that the destination file is not in read-only mode.
         dstTable._v_file._checkWritable()
@@ -1488,6 +1491,8 @@ class Table(tableExtension.Table, Leaf):
         The meaning of the other arguments is the same as in the
         :meth:`Table.where` method.
         """
+
+        self._g_checkOpen()
 
         coords = [ p.nrow for p in
                    self._where(condition, condvars, start, stop, step) ]
@@ -1596,6 +1601,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         order.
         """
 
+        self._g_checkOpen()
         index = self._check_sortby_CSI(sortby, checkCSI)
         coords = index[start:stop:step]
         return self.readCoordinates(coords, field)
@@ -1747,6 +1753,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         using a slash character (/) as a separator (e.g. 'position/x').
         """
 
+        self._g_checkOpen()
+
         if field:
             self._checkColumn(field)
 
@@ -1800,6 +1808,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         current flavor.
         """
 
+        self._g_checkOpen()
         result = self._readCoordinates(coords, field)
         return internal_to_flavor(result, self.flavor)
 
@@ -1883,6 +1892,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         :meth:`Table.read` and :meth:`Table.readCoordinates` methods.
         """
 
+        self._g_checkOpen()
+
         if is_idx(key):
             # Index out of range protection
             if key >= self.nrows:
@@ -1949,6 +1960,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         :meth:`Table.modifyRows` and :meth:`Table.modifyCoordinates` methods.
         """
 
+        self._g_checkOpen()
         self._v_file._checkWritable()
 
         if is_idx(key):
@@ -2021,6 +2033,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             fileh.close()
         """
 
+        self._g_checkOpen()
         self._v_file._checkWritable()
 
         if not self._chunked:

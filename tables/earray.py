@@ -186,6 +186,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         of the sequence is invalid, a ValueError is raised.
         """
 
+        self._g_checkOpen()
         self._v_file._checkWritable()
 
         # Convert the sequence into a NumPy object

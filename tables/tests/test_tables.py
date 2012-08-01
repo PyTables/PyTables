@@ -5602,6 +5602,60 @@ class RowContainsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(4 not in row)
 
 
+class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def setUp(self):
+        super(AccessClosedTestCase, self).setUp()
+        self.table = self.h5file.createTable(self.h5file.root, 'table', Record)
+
+        row = self.table.row
+        for i in range(10):
+            row['var1'] = '%04d' % i
+            row['var2'] = i
+            row['var3'] = i % 3
+            row.append()
+        self.table.flush()
+
+    def test_read(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.table.read)
+
+    def test_getitem(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.table.__getitem__, 0)
+
+    def test_setitem(self):
+        data = self.table[0]
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.table.__setitem__, 0, data)
+
+    def test_append(self):
+        data = self.table[0]
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.table.append, data)
+
+    def test_readWhere(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.table.readWhere, 'var2 > 3')
+
+    def test_whereAppend(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.table.whereAppend, self.table,
+                          'var2 > 3')
+
+    def test_getWhereList(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.table.getWhereList, 'var2 > 3')
+
+    def test_readSorted(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.table.readSorted, 'var2')
+
+    def test_readCoordinates(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.table.readCoordinates, [2, 5])
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -5671,6 +5725,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ExhaustedIter))
         theSuite.addTest(unittest.makeSuite(SpecialColnamesTestCase))
         theSuite.addTest(unittest.makeSuite(RowContainsTestCase))
+        theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
 
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressBzip2TablesTestCase))

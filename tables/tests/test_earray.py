@@ -2290,6 +2290,31 @@ class MDAtomReopen(MDAtomTestCase):
     reopen = True
 
 
+class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def setUp(self):
+        super(AccessClosedTestCase, self).setUp()
+        self.array = self.h5file.createEArray(self.h5file.root, 'array',
+                                              Int32Atom(), (0, 10))
+        self.array.append(numpy.zeros((10, 10)))
+
+    def test_read(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.read)
+
+    def test_getitem(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.__getitem__, 0)
+
+    def test_setitem(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
+
+    def test_append(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.append,
+                          numpy.zeros((10, 10)))
+
 
 #----------------------------------------------------------------------
 
@@ -2340,6 +2365,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ZeroSizedTestCase))
         theSuite.addTest(unittest.makeSuite(MDAtomNoReopen))
         theSuite.addTest(unittest.makeSuite(MDAtomReopen))
+        theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4EArrayTestCase))

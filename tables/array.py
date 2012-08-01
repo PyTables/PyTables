@@ -608,6 +608,8 @@ class Array(hdf5Extension.Array, Leaf):
             array6 = array[array[:] > 4]            # boolean selection
         """
 
+        self._g_checkOpen()
+
         try:
             # First, try with a regular selection
             startl, stopl, stepl, shape = self._interpret_indexing(key)
@@ -663,6 +665,8 @@ class Array(hdf5Extension.Array, Leaf):
             a7[np.where(a6[:] > 4)] = 4       # point selection + broadcast
             a8[arr > 4] = arr2                # boolean selection
         """
+
+        self._g_checkOpen()
 
         # Create an array compliant with the specified slice
         nparr = convertToNPAtom2(value, self.atom)
@@ -809,6 +813,7 @@ class Array(hdf5Extension.Array, Leaf):
         the rows* in the array are selected.
         """
 
+        self._g_checkOpen()
         (start, stop, step) = self._processRangeRead(start, stop, step)
         arr = self._read(start, stop, step)
         return internal_to_flavor(arr, self.flavor)

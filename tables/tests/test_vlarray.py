@@ -4162,6 +4162,31 @@ class SizeOnDiskPropertyTestCase(unittest.TestCase):
                           'size_on_disk')
 
 
+class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def setUp(self):
+        super(AccessClosedTestCase, self).setUp()
+        self.array = self.h5file.createVLArray(self.h5file.root, 'array',
+                                               StringAtom(8))
+        self.array.append([str(i) for i in range(5, 5005, 100)])
+
+    def test_read(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.read)
+
+    def test_getitem(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.__getitem__, 0)
+
+    def test_setitem(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, '0')
+
+    def test_append(self):
+        self.h5file.close()
+        self.assertRaises(ClosedNodeError, self.array.append, 'xxxxxxxxx')
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -4210,6 +4235,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PointSelectionTestCase))
         theSuite.addTest(unittest.makeSuite(SizeInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(SizeOnDiskPropertyTestCase))
+        theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
 
     return theSuite
 
