@@ -1219,7 +1219,7 @@ class TypesTestCase(unittest.TestCase):
         """Checking setting unicode attributes (scalar case)"""
 
         self.array.attrs.pq = u'para\u0140lel'
-        self.array.attrs.qr = u''                 # check #213
+        self.array.attrs.qr = u''                 # check #213 or gh-64
         self.array.attrs.rs = u'baz'
 
         # Check the results
