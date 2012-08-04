@@ -1,9 +1,14 @@
-""" This test unit checks object creation funtions, like openFile, createTable,
-createArray or createGroup.
+# -*- coding: utf-8 -*-
+
+"""This test unit checks object creation funtions, like openFile,
+createTable, createArray or createGroup.
+
 It also checks:
+
 - name identifiers in tree objects
 - title character limit for objects (255)
 - limit in number in table fields (255)
+
 """
 
 import sys

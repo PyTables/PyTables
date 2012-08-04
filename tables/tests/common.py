@@ -1,13 +1,16 @@
-"""
-Utilities for PyTables' test suites
-===================================
+# -*- coding: utf-8 -*-
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2005-05-24
-:License:  BSD
-:Revision: $Id$
-"""
+########################################################################
+#
+# License: BSD
+# Created: 2005-05-24
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""Utilities for PyTables' test suites"""
 
 import unittest
 import tempfile

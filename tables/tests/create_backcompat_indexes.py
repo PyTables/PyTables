@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Script for creating different kind of indexes in a small space as possible.
 # This is intended for testing purposes.
 

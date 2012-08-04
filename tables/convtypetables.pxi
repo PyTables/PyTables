@@ -1,4 +1,5 @@
-#  Ei!, emacs, this is -*-Python-*- mode
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 #       License: BSD
@@ -18,7 +19,7 @@ from numpy cimport (npy_intp,
      NPY_BOOL, NPY_STRING,
      NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64,
      NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64,
-     NPY_FLOAT16, NPY_FLOAT32, NPY_FLOAT64, 
+     NPY_FLOAT16, NPY_FLOAT32, NPY_FLOAT64,
      NPY_COMPLEX64, NPY_COMPLEX128)
 
 from definitions cimport (H5T_C_S1,

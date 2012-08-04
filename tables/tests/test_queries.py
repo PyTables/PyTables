@@ -1,13 +1,16 @@
-"""
-Test module for queries on datasets
-===================================
+# -*- coding: utf-8 -*-
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2006-10-19
-:License:  BSD
-:Revision: $Id$
-"""
+########################################################################
+#
+# License: BSD
+# Created: 2006-10-19
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""Test module for queries on datasets"""
 
 import re
 import types

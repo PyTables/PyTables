@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
-#       License: BSD
-#       Created: February 10, 2004
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: February 10, 2004
+# Author:  Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 

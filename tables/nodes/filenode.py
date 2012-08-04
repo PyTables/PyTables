@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
-#	License: BSD
-#	Created: October 2, 2004
-#	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
+# License: BSD
+# Created: October 2, 2004
+# Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
-#	$Id$
+# $Id$
 #
 ########################################################################
 

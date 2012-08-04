@@ -1,5 +1,4 @@
-# Eh! python!, We are going to include isolatin characters here
-# -*- coding: latin-1 -*-
+# -*- coding: utf-8 -*-
 
 import unittest
 import os

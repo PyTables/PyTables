@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """This test unit checks node attributes that are persistent (AttributeSet)."""
 
 import sys

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Run all test cases."""
 
 import sys

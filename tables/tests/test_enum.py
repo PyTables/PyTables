@@ -1,13 +1,16 @@
-"""
-Test module for enumerated types under PyTables
-===============================================
+# -*- coding: utf-8 -*-
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2005-05-09
-:License:  BSD
-:Revision: $Id$
-"""
+########################################################################
+#
+# License: BSD
+# Created: 2005-05-09
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""Test module for enumerated types under PyTables"""
 
 import unittest
 import operator

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os, popen2, time
 import tables
 

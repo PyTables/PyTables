@@ -1,16 +1,21 @@
-"""
-Test module for detecting uncollectable garbage in PyTables
-===========================================================
+# -*- coding: utf-8 -*-
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2005-09-20
-:License:  BSD
-:Revision: $Id$
+########################################################################
+#
+# License: BSD
+# Created: 2005-09-20
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""Test module for detecting uncollectable garbage in PyTables
 
 This test module *must* be loaded in the last place.  It just checks for
 the existence of uncollectable garbage in ``gc.garbage`` after running
 all the tests.
+
 """
 
 import unittest

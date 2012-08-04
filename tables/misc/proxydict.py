@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
-#	License: BSD
-#	Created: 2005-07-07
-#	Author:  Ivan Vilata i Balaguer - ivan@selidor.net
+# License: BSD
+# Created: 2005-07-07
+# Author:  Ivan Vilata i Balaguer - ivan@selidor.net
 #
-#	$Id$
+# $Id$
 #
 ########################################################################
 

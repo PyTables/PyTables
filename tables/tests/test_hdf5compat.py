@@ -1,13 +1,16 @@
-"""
-Test module for compatibility with plain HDF files
-==================================================
+# -*- coding: utf-8 -*-
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2005-09-29
-:License:  BSD
-:Revision: $Id$
-"""
+########################################################################
+#
+# License: BSD
+# Created: 2005-09-29
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""Test module for compatibility with plain HDF files"""
 
 import unittest
 import tempfile, shutil, os

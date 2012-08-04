@@ -1,14 +1,17 @@
-"""
-Test module for nested types under PyTables
-===========================================
+# -*- coding: utf-8 -*-
 
-:Author:   Ivan Vilata
-:Author:   Francesc Alted
-:Contact:  ivan@selidor.net
-:Created:  2005-05-18
-:License:  BSD
-:Revision: $Id$
-"""
+########################################################################
+#
+# License: BSD
+# Created: 2005-05-18
+# Author: Francesc Alted - faltet@pytables.org
+# Author: Ivan Vilata - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""Test module for nested types under PyTables"""
 
 import unittest
 

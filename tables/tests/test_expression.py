@@ -1,13 +1,16 @@
-"""
-Test module for evaluating expressions under PyTables
-=====================================================
+# -*- coding: utf-8 -*-
 
-:Author:   Francesc Alted
-:Contact:  faltet@pytables.org
-:Created:  2009-06-14
-:License:  BSD
-:Revision: $Id$
-"""
+########################################################################
+#
+# License: BSD
+# Created: 2009-06-14
+# Author: Francesc Alted - faltet@pytables.org
+#
+# $Id$
+#
+########################################################################
+
+"""Test module for evaluating expressions under PyTables"""
 
 import unittest
 
