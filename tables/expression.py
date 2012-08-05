@@ -108,15 +108,15 @@ class Expr(object):
 
     .. attribute:: o_start
 
-        The start range selection for hte user-provided output.
+        The start range selection for the user-provided output.
 
     .. attribute:: o_stop
 
-        The stop range selection for hte user-provided output.
+        The stop range selection for the user-provided output.
 
     .. attribute:: o_step
 
-        The step range selection for hte user-provided output.
+        The step range selection for the user-provided output.
 
     .. attribute:: shape
 
