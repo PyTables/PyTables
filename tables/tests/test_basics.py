@@ -2509,8 +2509,8 @@ except tables.HDF5ExtError, e:
             self.fail("HDF5ExtError exception not raised")
 
 
-class TestIsDescription(common.PyTablesTestCase):
-    def test_inheritance(self):
+class TestDescription(common.PyTablesTestCase):
+    def test_isdescription_inheritance(self):
         # Regression test for gh-65
         class TestDescParent(IsDescription):
             c = Int32Col()
@@ -2597,6 +2597,45 @@ class TestIsDescription(common.PyTablesTestCase):
         self.assertEqual(t['col1'].byteorder, '>')
         self.assertEqual(t['col2'].byteorder, '>')
 
+    def test_str_names(self):
+        # see gh-42
+        d = {'name': tables.Int16Col()}
+        descr = Description(d)
+        self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
+        self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
+        self.assertTrue(sorted(descr._v_dtype.fields.keys()),
+                        sorted(d.keys()))
+
+    if sys.version_info[0] < 3:
+        def test_unicode_names(self):
+            # see gh-42
+            # the name used is a valid ASCII identifier passed as unicode
+            # string
+            d = {unicode('name'): tables.Int16Col()}
+            descr = Description(d)
+            self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
+            self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
+            keys = []
+            for key in d.keys():
+                if isinstance(key, unicode):
+                    keys.append(key.encode())
+                else:
+                    keys.append(key)
+            self.assertTrue(sorted(descr._v_dtype.fields.keys()), sorted(keys))
+    else:
+        def test_byte_names(self):
+            # see gh-42
+            d = {bytes('name', 'ascii'): tables.Int16Col()}
+            descr = Description(d)
+            self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
+            self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
+            for key in d.keys():
+                if isinstance(key, unicode):
+                    keys.append(key.encode())
+                else:
+                    keys.append(key)
+            self.assertTrue(sorted(descr._v_dtype.fields.keys()), sorted(keys))
+
 
 class TestAtom(common.PyTablesTestCase):
     def test_atom_attributes01(self):
@@ -2679,7 +2718,7 @@ def suite():
         if multiprocessing_imported:
             theSuite.addTest(unittest.makeSuite(BloscSubprocess))
         theSuite.addTest(unittest.makeSuite(HDF5ErrorHandling))
-        theSuite.addTest(unittest.makeSuite(TestIsDescription))
+        theSuite.addTest(unittest.makeSuite(TestDescription))
         theSuite.addTest(unittest.makeSuite(TestAtom))
         theSuite.addTest(unittest.makeSuite(TestCol))
 

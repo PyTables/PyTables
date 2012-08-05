@@ -14,8 +14,9 @@
 
 # Imports
 # =======
-import warnings
+import sys
 import copy
+import warnings
 
 import numpy
 
@@ -461,6 +462,18 @@ class Description(object):
             newdict['_v_colObjects'][k] = object
             newdict['_v_names'].append(k)
             object.__dict__['_v_name'] = k
+
+            if not isinstance(k, str):
+                # numpy only accepts "str" for field names
+                if sys.version_info[0] < 3:
+                    # Python 2.x: unicode --> str
+                    kk = k.encode()  # use the default encoding
+                else:
+                    # Python 3.x: bytes --> str (unicode)
+                    kk = k.decode()
+            else:
+                kk = k
+
             if isinstance(object, Col):
                 dtype = object.dtype
                 newdict['_v_dtypes'][k] = dtype
@@ -468,10 +481,10 @@ class Description(object):
                 newdict['_v_dflts'][k] = object.dflt
                 nestedFormats.append(object.recarrtype)
                 baserecarrtype = dtype.base.str[1:]
-                nestedDType.append((k, baserecarrtype, dtype.shape))
+                nestedDType.append((kk, baserecarrtype, dtype.shape))
             else:  # A description
                 nestedFormats.append(object._v_nestedFormats)
-                nestedDType.append((k, object._v_dtype))
+                nestedDType.append((kk, object._v_dtype))
 
         # Assign the format list to _v_nestedFormats
         newdict['_v_nestedFormats'] = nestedFormats
