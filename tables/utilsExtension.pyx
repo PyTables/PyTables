@@ -1059,7 +1059,7 @@ def createNestedType(object desc, char *byteorder):
 
   tid = H5Tcreate(H5T_COMPOUND, desc._v_itemsize)
   if tid < 0:
-    return -1;
+    return -1
 
   offset = 0
   for k in desc._v_names:

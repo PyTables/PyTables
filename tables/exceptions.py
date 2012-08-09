@@ -40,7 +40,7 @@ class HDF5ExtError(RuntimeError):
         error message
     h5bt
         This parameter (keyword only) controls the HDF5 back trace
-        handling. Any keyword arguments other than h5bt are ignored.
+        handling. Any keyword arguments other than h5bt is ignored.
 
         * if set to False the HDF5 back trace is ignored and the
           :attr:`HDF5ExtError.h5backtrace` attribute is set to None

@@ -231,6 +231,7 @@ cdef class Table(Leaf):
   cdef getNestedType(self, hid_t type_id, hid_t native_type_id,
                      object colpath, object field_byteorders):
     """Open a nested type and return a nested dictionary as description."""
+
     cdef hid_t   member_type_id, native_member_type_id
     cdef hsize_t nfields, dims[1]
     cdef size_t  itemsize
@@ -326,7 +327,8 @@ cdef class Table(Leaf):
 
 
   def _getInfo(self):
-    "Get info from a table on disk."
+    """Get info from a table on disk."""
+
     cdef hid_t   space_id, plist
     cdef size_t  type_size, size2
     cdef hsize_t dims[1], chunksize[1]  # enough for unidimensional tables
