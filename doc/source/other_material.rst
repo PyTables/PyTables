@@ -9,6 +9,8 @@ These are the videos of a series dedicated to introduce the main features of
 PyTables in a visual and easy to grasp manner.
 More videos will be made available with the time:
 
+* `HDF5 is for Lovers, SciPy 2012 Tutorial <http://www.youtube.com/watch?v=Nzx0HAd3FiI>`_: 
+  a beginer's introduction to PyTables and HDF5.
 * `PyTables, part I: Introduction
   <http://showmedo.com/videos/video?name=1780000&fromSeriesID=178>`_:
   HDF5 file creation, the object tree, homogeneous array storage, natural
@@ -25,6 +27,12 @@ Presentations
 Here are the slides of some presentations about PyTables that you may find
 useful:
 
+* HDF5 is for Lovers, SciPy 2012 Tutorial, July 2012, Austin, TX, USA, 
+  `slides (pdf) <https://raw.github.com/scopatz/scipy2012/master/hdf5/scopatz_scipy2012_hdf5.pdf>`_,
+  `video <http://www.youtube.com/watch?v=Nzx0HAd3FiI>`_,
+  `exercises <https://github.com/scopatz/scipy2012/tree/master/hdf5/exer>`_,
+  `solutions <https://github.com/scopatz/scipy2012/tree/master/hdf5/sol>`_, and
+  `repository <https://github.com/scopatz/scipy2012>`_.
 * `An on-disk binary data container <http://www.pytables.org/docs/PUG-Austin-2012-v3.pdf>`_.
   Talk given at the `Austin Python Meetup <http://www.meetup.com/austinpython>`_,
   Austin, TX, USA (May 2012).
