@@ -415,11 +415,8 @@ cdef extern from "H5ARRAY.h" nogil:
 # Functions for operations with ARRAY
 cdef extern from "H5PCORE-mem.h" nogil:
   hid_t H5Fcreate_inmemory(hvl_t *udata)
-
-# Structs and types from HDF5 HL
-cdef extern from "hdf5_hl.h" nogil:
-  hid_t H5LTopen_file_image(void *buf_ptr, size_t buf_size, unsigned flags)
-
+  int H5PCOREhasHDF5HL()
+  hid_t H5LTopen_file_image_proxy(void *buf_ptr, size_t buf_size, unsigned flags)
 
 # Some utilities
 cdef extern from "utils.h":

@@ -73,6 +73,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pset_fapl_core, H5Pset_fapl_sec2, H5Pset_fapl_stdio,
+  H5PCOREhasHDF5HL,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
@@ -80,7 +81,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5ATTRget_attribute_vlen_string_array,
   H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims,
   H5ARRAYget_ndims, H5ARRAYget_info,
-  H5LTopen_file_image,
+  H5LTopen_file_image_proxy,
   set_cache_size, get_objinfo, get_linkinfo, Giterate, Aiterate, H5UIget_info,
   get_len_of_range, conv_float64_timeval32, truncate_dset)
 
@@ -300,15 +301,22 @@ cdef class File:
 
     if driver=='H5FD_CORE_INMEMORY':
       if pymode == 'r' or pymode == 'r+':
+        if not H5PCOREhasHDF5HL():
+          raise RuntimeError("PyTables was compiled without HDF5HL library, H5FD_CORE_INMEMORY driver cannot be used for reading.")
         if (not PyString_Check(memory_image)):
           raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as memory_image argument");
         self.mem_data.len = PyString_Size(memory_image)
         self.mem_data.p = <void *>PyString_AsString(memory_image)
-        self.file_id = H5LTopen_file_image(self.mem_data.p, self.mem_data.len, 0)
+        self.file_id = H5LTopen_file_image_proxy(self.mem_data.p, self.mem_data.len, 0)
+        if self.file_id == -1:
+          raise RuntimeError("Can't open in-memory file for reading.");
       elif pymode == 'a' or pymode == 'w':
         self.mem_data.len = 0
         self.mem_data.p = <void *>0
         self.file_id = H5Fcreate_inmemory(&self.mem_data);
+      if self.file_id == -1:
+          raise RuntimeError("Can't create in-memory file.");
+
     else:
       access_plist = H5Pcreate(H5P_FILE_ACCESS)
       if driver == 'H5FD_STDIO':
