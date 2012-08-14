@@ -8,13 +8,12 @@
 hvl_t udata = {NULL, 0};
 
 void *image_malloc(size_t size, H5FD_file_image_op_t file_image_op, void *udata) {
-    ((hvl_t *) udata)->p = size;
+    ((hvl_t *) udata)->len = size;
     return (malloc(size));
 }
 
 void *image_memcpy(void *dest, const void *src, size_t size,
         H5FD_file_image_op_t file_image_op, void *udata) {
-    assert(false); /* Should never be invoked in this scenario. */
     return (NULL); /* always fails */
 }
 
@@ -25,7 +24,6 @@ void *image_realloc(void *ptr, size_t size, H5FD_file_image_op_t file_image_op,
 }
 
 herr_t image_free(void *ptr, H5FD_file_image_op_t file_image_op, void *udata) {
-    assert(file_image_op == H5FD_FILE_IMAGE_OP_FILE_CLOSE);
     ((hvl_t *) udata)->p = ptr;
     return (0); /* if we get here, we must have been successful */
 }
