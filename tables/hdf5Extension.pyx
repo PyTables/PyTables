@@ -259,9 +259,8 @@ cdef class File:
   def __get_supported_drivers(self):
     return ["H5FD_SEC2", "H5FD_STDIO", "H5FD_CORE", "H5FD_CORE_INMEMORY", "H5FD_DIRECT", None]
 
-  def _g_new(self, name, pymode, **params):
+  def _g_new(self, name, pymode, driver, memory_image, **params):
     # Check if we can handle the driver
-    driver = params['DRIVER']
     if driver!=None and not driver in self.__get_supported_drivers():
       raise NotImplementedError("File driver "+str(driver)+" is not implemented. Please choose one of the following drivers: "+str(self.__get_supported_drivers()))
 
@@ -288,7 +287,7 @@ cdef class File:
            "please report this to the authors" % pymode)
 
     # Should a new file be created?
-    exists = os.path.exists(name) if driver != 'H5FD_CORE_INMEMORY' else PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])
+    exists = os.path.exists(name) if driver != 'H5FD_CORE_INMEMORY' else PyString_Check(memory_image)
     self._v_new = not (
       pymode in ('r', 'r+') or (pymode == 'a' and exists))
 
@@ -301,10 +300,10 @@ cdef class File:
 
     if driver=='H5FD_CORE_INMEMORY':
       if pymode == 'r' or pymode == 'r+':
-        if (not PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])):
-          raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as H5FD_CORE_INMEMORY_IMAGE  argument");
-        self.mem_data.len = PyString_Size(params['H5FD_CORE_INMEMORY_IMAGE'])
-        self.mem_data.p = <void *>PyString_AsString(params['H5FD_CORE_INMEMORY_IMAGE'])
+        if (not PyString_Check(memory_image)):
+          raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as memory_image argument");
+        self.mem_data.len = PyString_Size(memory_image)
+        self.mem_data.p = <void *>PyString_AsString(memory_image)
         self.file_id = H5LTopen_file_image(self.mem_data.p, self.mem_data.len, 0)
       elif pymode == 'a' or pymode == 'w':
         self.mem_data.len = 0

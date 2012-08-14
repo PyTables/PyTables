@@ -59,7 +59,7 @@ class COREDriverTestCase(FileDriverTestCase):
 class CORE_INMEMORYDriverTestCase(FileDriverTestCase):
     DRIVER="H5FD_CORE_INMEMORY"
     def test00_newFile(self):
-        fileh = openFile("in-memory", mode = "w", title="File title", DRIVER=self.DRIVER)
+        fileh = openFile("in-memory", mode = "w", title="File title", driver=self.DRIVER)
         # Create an HDF5 file
         root = fileh.root
         # Create an array
@@ -74,7 +74,7 @@ class CORE_INMEMORYDriverTestCase(FileDriverTestCase):
 	try:
             """Checking opening of an existing file"""
             # Open the old HDF5 file
-            fileh = openFile(None, mode = "r", title="File title", DRIVER=self.DRIVER, H5FD_CORE_INMEMORY_IMAGE=image)
+            fileh = openFile(None, driver=self.DRIVER, memory_image=image, mode = "r", title="File title" )
             # Get the CLASS attribute of the arr object
             title = fileh.root.array.getAttr("TITLE")
 

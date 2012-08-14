@@ -147,7 +147,7 @@ def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
 
 
 def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
-             **kwargs):
+             driver=None, memory_image=None, **kwargs):
     """Open a PyTables (or generic HDF5) file and return a File object.
 
     Parameters
@@ -184,6 +184,23 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
         properties are specified for these leaves. Besides, if you do not
         specify filter properties for child groups, they will inherit these
         ones, which will in turn propagate to child nodes.
+    driver : str
+        The libhdf5 driver that should be used for reading/writing to the file.
+        Following drivers are implemented:
+	   H5FD_SEC2 - This is the default driver which uses Posix file-system functions like read and write to perform I/O to a single file.
+	   H5FD_STDIO - This driver uses functions from 'stdio.h' to perform buffered I/O to a single file.
+	   H5FD_CORE - This driver performs I/O directly to memory and can be used to create small temporary files that never exist on permanent storage. If the provided filename is set to None, an in memory only file will be created. Additionaly if filename is set to None and MEMORY_IMAGE parameter is provided, the HDF5 will be read from the data provided in the MEMORY_IMAGE.	
+	   H5FD_CORE_INMEMORY - This is a pseudodriver. It makes it possible to read and write in-memory only images of HDF5 files. Use inmemory_image argument to pass the file image to this driver.
+	   H5FD_DIRECT - With this driver, data is written to or read from the file synchronously without being cached by the system.
+        The following drivers may be implemented in the future.
+	   H5FD_MPIIO - This driver is used with Parallel HDF5, and is only pre-defined if the library is compiled with parallel I/O support. Refer to the Parallel HDF5 Tutorial for more information on using Parallel HDF5.
+	   H5FD_MULTI- This driver enables different types of HDF5 data and metadata to be written to separate files. The H5FD_SPLIT driver is an example of what the H5FD_MULTI driver can do.
+	   H5FD_FAMILY - This driver partitions a large format address space into smaller chunks (separate storage of a user's choice).
+	   H5FD_SPLIT - This driver splits the meta data and raw data into separate storage of a user's choice.
+           see http://www.hdfgroup.org/HDF5/Tutor/filedrvr.html for more information
+    memory_image : str
+        A string containing memory image of the HDF5 file to read when using H5FD_CORE_INMEMORY driver.
+
 
     Notes
     -----
@@ -227,7 +244,7 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
             filehandle._open_count += 1
             return filehandle
     # Finally, create the File instance, and return it
-    return File(filename, mode, title, rootUEP, filters, **kwargs)
+    return File(filename, mode, title, rootUEP, filters, driver, memory_image, **kwargs)
 
 
 class _AliveNodes(dict):
@@ -378,6 +395,23 @@ class File(hdf5Extension.File, object):
         properties are specified for these leaves. Besides, if you do not
         specify filter properties for child groups, they will inherit these
         ones, which will in turn propagate to child nodes.
+    driver : str
+        The libhdf5 driver that should be used for reading/writing to the file.
+        Following drivers are implemented:
+	   H5FD_SEC2 - This is the default driver which uses Posix file-system functions like read and write to perform I/O to a single file.
+	   H5FD_STDIO - This driver uses functions from 'stdio.h' to perform buffered I/O to a single file.
+	   H5FD_CORE - This driver performs I/O directly to memory and can be used to create small temporary files that never exist on permanent storage. If the provided filename is set to None, an in memory only file will be created. Additionaly if filename is set to None and MEMORY_IMAGE parameter is provided, the HDF5 will be read from the data provided in the MEMORY_IMAGE.	
+	   H5FD_CORE_INMEMORY - This is a pseudodriver. It makes it possible to read and write in-memory only images of HDF5 files. Use inmemory_image argument to pass the file image to this driver.
+	   H5FD_DIRECT - With this driver, data is written to or read from the file synchronously without being cached by the system.
+        The following drivers may be implemented in the future.
+	   H5FD_MPIIO - This driver is used with Parallel HDF5, and is only pre-defined if the library is compiled with parallel I/O support. Refer to the Parallel HDF5 Tutorial for more information on using Parallel HDF5.
+	   H5FD_MULTI- This driver enables different types of HDF5 data and metadata to be written to separate files. The H5FD_SPLIT driver is an example of what the H5FD_MULTI driver can do.
+	   H5FD_FAMILY - This driver partitions a large format address space into smaller chunks (separate storage of a user's choice).
+	   H5FD_SPLIT - This driver splits the meta data and raw data into separate storage of a user's choice.
+           see http://www.hdfgroup.org/HDF5/Tutor/filedrvr.html for more information.
+    memory_image : str
+        A string containing memory image of the HDF5 file to read when using H5FD_CORE_INMEMORY driver.
+    	
 
     Notes
     -----
@@ -413,6 +447,17 @@ class File(hdf5Extension.File, object):
 
         The UEP (user entry point) group name in the file (see
         the :func:`openFile` function).
+
+    .. attribute:: driver
+
+        The libhdf5 driver that should be used for reading/writing to the file
+        (see the :func:`openFile` function) for list of available drivers.
+
+    .. attribute:: memory_image
+
+        A string containing memory image of the HDF5 file to read when using H5FD_CORE_INMEMORY driver.
+
+
 
     """
 
@@ -454,13 +499,13 @@ class File(hdf5Extension.File, object):
     ## </properties>
 
     def __init__(self, filename, mode="r", title="",
-                 rootUEP="/", filters=None, **kwargs):
+                 rootUEP="/", filters=None, driver=None, memory_image=None, **kwargs):
 
         self.filename = filename
         """The name of the opened file."""
         self.mode = mode
         """The mode in which the file was opened."""
-	if kwargs['DRIVER']!="H5FD_CORE_INMEMORY":
+	if driver!="H5FD_CORE_INMEMORY":
 	  # Expand the form '~user'
           path = os.path.expanduser(filename)
           # Expand the environment variables
@@ -492,7 +537,7 @@ class File(hdf5Extension.File, object):
         self.params = params
 
         # Now, it is time to initialize the File extension
-        self._g_new(filename, mode, **params)
+        self._g_new(filename, mode, driver, memory_image, **params)
 
         # Check filters and set PyTables format version for new files.
         new = self._v_new
