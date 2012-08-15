@@ -260,8 +260,9 @@ cdef class File:
   def __get_supported_drivers(self):
     return ["H5FD_SEC2", "H5FD_STDIO", "H5FD_CORE", "H5FD_CORE_INMEMORY", "H5FD_DIRECT", None]
 
-  def _g_new(self, name, pymode, driver, memory_image, **params):
+  def _g_new(self, name, pymode, **params):
     # Check if we can handle the driver
+    driver = params['DRIVER']
     if driver!=None and not driver in self.__get_supported_drivers():
       raise NotImplementedError("File driver "+str(driver)+" is not implemented. Please choose one of the following drivers: "+str(self.__get_supported_drivers()))
 
@@ -288,7 +289,7 @@ cdef class File:
            "please report this to the authors" % pymode)
 
     # Should a new file be created?
-    exists = os.path.exists(name) if driver != 'H5FD_CORE_INMEMORY' else PyString_Check(memory_image)
+    exists = os.path.exists(name) if driver != 'H5FD_CORE_INMEMORY' else PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])
     self._v_new = not (
       pymode in ('r', 'r+') or (pymode == 'a' and exists))
 
@@ -303,10 +304,10 @@ cdef class File:
       if pymode == 'r' or pymode == 'r+':
         if not H5PCOREhasHDF5HL():
           raise RuntimeError("PyTables was compiled without HDF5HL library, H5FD_CORE_INMEMORY driver cannot be used for reading.")
-        if (not PyString_Check(memory_image)):
-          raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as memory_image argument");
-        self.mem_data.len = PyString_Size(memory_image)
-        self.mem_data.p = <void *>PyString_AsString(memory_image)
+        if (not PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])):
+          raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as H5FD_CORE_INMEMORY_IMAGE  argument");
+        self.mem_data.len = PyString_Size(params['H5FD_CORE_INMEMORY_IMAGE'])
+        self.mem_data.p = <void *>PyString_AsString(params['H5FD_CORE_INMEMORY_IMAGE'])
         self.file_id = H5LTopen_file_image_proxy(self.mem_data.p, self.mem_data.len, 0)
         if self.file_id == -1:
           raise RuntimeError("Can't open in-memory file for reading.");
@@ -314,9 +315,8 @@ cdef class File:
         self.mem_data.len = 0
         self.mem_data.p = <void *>0
         self.file_id = H5Fcreate_inmemory(&self.mem_data);
-      if self.file_id == -1:
+        if self.file_id == -1:
           raise RuntimeError("Can't create in-memory file.");
-
     else:
       access_plist = H5Pcreate(H5P_FILE_ACCESS)
       if driver == 'H5FD_STDIO':
