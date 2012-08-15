@@ -40,6 +40,14 @@ H5FD_file_image_callbacks_t callbacks = {image_malloc, image_memcpy,
     udata_copy, udata_free,
     (void *) (&udata)};
 
+hid_t H5Pset_file_inmemory_callbacks(hid_t fapl, hvl_t *udata)
+{
+    callbacks.udata=udata;
+    H5Pset_file_image_callbacks(fapl, &callbacks);
+    return file;
+}
+
+/*
 hid_t H5Fcreate_inmemory(hvl_t *udata)
 {
     hid_t fapl = H5Pcreate(H5P_FILE_ACCESS);
@@ -50,6 +58,7 @@ hid_t H5Fcreate_inmemory(hvl_t *udata)
     H5Pclose(fapl);
     return file;
 }
+*/
 
 
 #if HAVE_HDF5HL_LIB

@@ -66,13 +66,13 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
   H5P_DEFAULT, H5P_FILE_ACCESS,
   H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
-  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle, H5Fcreate_inmemory,
+  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
-  H5Pcreate, H5Pset_cache, H5Pclose, H5Pset_fapl_core, H5Pset_fapl_sec2, H5Pset_fapl_stdio,
+  H5Pcreate, H5Pset_cache, H5Pclose, H5Pset_fapl_core, H5Pset_fapl_sec2, H5Pset_fapl_stdio, H5Pset_file_inmemory_callbacks,
   H5PCOREhasHDF5HL,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
@@ -300,23 +300,16 @@ cdef class File:
     # F. Alted 2010-04-15
     #H5Pset_fapl_core(access_plist, 1024, 1)
 
-    if driver=='H5FD_CORE_INMEMORY':
-      if pymode == 'r' or pymode == 'r+':
-        if not H5PCOREhasHDF5HL():
-          raise RuntimeError("PyTables was compiled without HDF5HL library, H5FD_CORE_INMEMORY driver cannot be used for reading.")
-        if (not PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])):
-          raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as H5FD_CORE_INMEMORY_IMAGE  argument");
-        self.mem_data.len = PyString_Size(params['H5FD_CORE_INMEMORY_IMAGE'])
-        self.mem_data.p = <void *>PyString_AsString(params['H5FD_CORE_INMEMORY_IMAGE'])
-        self.file_id = H5LTopen_file_image_proxy(self.mem_data.p, self.mem_data.len, 0)
-        if self.file_id == -1:
-          raise RuntimeError("Can't open in-memory file for reading.");
-      elif pymode == 'a' or pymode == 'w':
-        self.mem_data.len = 0
-        self.mem_data.p = <void *>0
-        self.file_id = H5Fcreate_inmemory(&self.mem_data);
-        if self.file_id == -1:
-          raise RuntimeError("Can't create in-memory file.");
+    if driver=='H5FD_CORE_INMEMORY' and ( pymode == 'r' or pymode == 'r+' ):
+      if not H5PCOREhasHDF5HL():
+        raise RuntimeError("PyTables was compiled without HDF5HL library, H5FD_CORE_INMEMORY driver cannot be used for reading.")
+      if (not PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])):
+        raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as H5FD_CORE_INMEMORY_IMAGE  argument");
+      self.mem_data.len = PyString_Size(params['H5FD_CORE_INMEMORY_IMAGE'])
+      self.mem_data.p = <void *>PyString_AsString(params['H5FD_CORE_INMEMORY_IMAGE'])
+      self.file_id = H5LTopen_file_image_proxy(self.mem_data.p, self.mem_data.len, 0)
+      if self.file_id == -1:
+        raise RuntimeError("Can't open in-memory file for reading.");
     else:
       access_plist = H5Pcreate(H5P_FILE_ACCESS)
       if driver == 'H5FD_STDIO':
@@ -325,6 +318,11 @@ cdef class File:
         H5Pset_fapl_sec2(access_plist)
       elif driver == 'H5FD_CORE':
         H5Pset_fapl_core(access_plist, params['H5FD_CORE_INCREMENT'], params['H5FD_CORE_BACKING_STORE'])
+      elif driver == 'H5FD_CORE_INMEMORY':
+        H5Pset_fapl_core(access_plist, params['H5FD_CORE_INCREMENT'], params['H5FD_CORE_BACKING_STORE'])
+        self.mem_data.len = 0
+        self.mem_data.p = <void *>0
+        H5Pset_file_inmemory_callbacks(access_plist, &self.mem_data)
 
       # Set parameters for chunk cache
       H5Pset_cache(access_plist, 0,
