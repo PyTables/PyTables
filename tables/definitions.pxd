@@ -24,6 +24,13 @@ cdef extern from "time.h":
 
 from libc.stdio cimport FILE
 
+# Python C API stuff
+cdef extern from "Python.h":
+    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+    cdef int PyString_Check(object o)
+    Py_ssize_t PyString_Size(object string)
+    char* PyString_AsString(object string)
+
 
 #-----------------------------------------------------------------------------
 
@@ -358,9 +365,12 @@ cdef extern from "hdf5.h" nogil:
                          unsigned int flags, size_t buf_size)
   H5D_layout_t H5Pget_layout(hid_t plist)
   int H5Pget_chunk(hid_t plist, int max_ndims, hsize_t *dims)
-  herr_t H5Pset_fapl_core(hid_t fapl_id, size_t increment,
-                          hbool_t backing_store)
-
+  herr_t H5Pset_fapl_core(hid_t fapl_id, size_t increment, hbool_t backing_store)
+#  herr_t H5Pset_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size, size_t cbuf_size)
+#  herr_t H5Pset_fapl_log(hid_t fapl_id, const char *logfile, unsigned long long flags, size_t buf_size)
+  herr_t H5Pset_fapl_sec2(hid_t fapl_id)
+  herr_t H5Pset_fapl_stdio(hid_t fapl_id)
+  
   # Error Handling Interface
   #herr_t H5Eget_auto(hid_t estack_id, H5E_auto_t *func, void** data)
   herr_t H5Eset_auto(hid_t estack_id, H5E_auto_t func, void *data)
@@ -402,6 +412,11 @@ cdef extern from "H5ARRAY.h" nogil:
                          hsize_t *maxdims, H5T_class_t *super_class_id,
                          char *byteorder)
 
+# Functions for operations with ARRAY
+cdef extern from "H5PCORE-mem.h" nogil:
+  hid_t H5Pset_file_inmemory_callbacks(hid_t fapl, hvl_t *udata)	
+  int H5PCOREhasHDF5HL()
+  hid_t H5LTopen_file_image_proxy(void *buf_ptr, size_t buf_size, unsigned flags)
 
 # Some utilities
 cdef extern from "utils.h":

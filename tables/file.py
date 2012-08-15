@@ -456,21 +456,21 @@ class File(hdf5Extension.File, object):
     def __init__(self, filename, mode="r", title="",
                  rootUEP="/", filters=None, **kwargs):
 
-        self.filename = filename
-        """The name of the opened file."""
-        self.mode = mode
-        """The mode in which the file was opened."""
-
-        # Expand the form '~user'
-        path = os.path.expanduser(filename)
-        # Expand the environment variables
-        path = os.path.expandvars(path)
-
         # Get all the parameters in parameter file(s)
         params = dict([(k, v) for k, v in parameters.__dict__.iteritems()
                        if k.isupper() and not k.startswith('_')])
         # Update them with possible keyword arguments
         params.update(kwargs)
+
+        self.filename = filename
+        """The name of the opened file."""
+        self.mode = mode
+        """The mode in which the file was opened."""
+	if params['DRIVER']!="H5FD_CORE_INMEMORY":
+	  # Expand the form '~user'
+          path = os.path.expanduser(filename)
+          # Expand the environment variables
+          path = os.path.expandvars(path)
 
         # If MAX_*_THREADS is not set yet, set it to the number of cores
         # on this machine.

@@ -55,7 +55,7 @@ from utilsExtension cimport malloc_dims, get_native_type
 from libc.stdlib cimport malloc, free
 from libc.string cimport strdup
 from numpy cimport import_array, ndarray
-from cpython cimport PyString_AsString, PyString_FromStringAndSize
+from cpython cimport PyString_AsString, PyString_FromStringAndSize, PyString_Check, PyString_Size, PyString_AsString
 
 
 from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
@@ -72,7 +72,8 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
-  H5Pcreate, H5Pset_cache, H5Pclose,
+  H5Pcreate, H5Pset_cache, H5Pclose, H5Pset_fapl_core, H5Pset_fapl_sec2, H5Pset_fapl_stdio, H5Pset_file_inmemory_callbacks,
+  H5PCOREhasHDF5HL,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
@@ -80,6 +81,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5ATTRget_attribute_vlen_string_array,
   H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims,
   H5ARRAYget_ndims, H5ARRAYget_info,
+  H5LTopen_file_image_proxy,
   set_cache_size, get_objinfo, get_linkinfo, Giterate, Aiterate, H5UIget_info,
   get_len_of_range, conv_float64_timeval32, truncate_dset)
 
@@ -253,9 +255,17 @@ cdef class File:
   cdef hid_t   file_id
   cdef hid_t   access_plist
   cdef object  name
+  cdef hvl_t   mem_data # Used only in case of memory write
 
+  def __get_supported_drivers(self):
+    return ["H5FD_SEC2", "H5FD_STDIO", "H5FD_CORE", "H5FD_CORE_INMEMORY", "H5FD_DIRECT", None]
 
   def _g_new(self, name, pymode, **params):
+    # Check if we can handle the driver
+    driver = params['DRIVER']
+    if driver!=None and not driver in self.__get_supported_drivers():
+      raise NotImplementedError("File driver "+str(driver)+" is not implemented. Please choose one of the following drivers: "+str(self.__get_supported_drivers()))
+
     # Create a new file using default properties
     self.name = name
 
@@ -270,45 +280,70 @@ cdef class File:
 
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
-    checkFileAccess(name, pymode)
+    # But only if we are using file backed storage.
+    if driver != 'H5FD_CORE_INMEMORY':
+      checkFileAccess(name, pymode) 
 
     assert pymode in ('r', 'r+', 'a', 'w'), ("an invalid mode string ``%s`` "
            "passed the ``checkFileAccess()`` test; "
            "please report this to the authors" % pymode)
 
     # Should a new file be created?
-    exists = os.path.exists(name)
+    exists = os.path.exists(name) if driver != 'H5FD_CORE_INMEMORY' else PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])
     self._v_new = not (
       pymode in ('r', 'r+') or (pymode == 'a' and exists))
 
-    access_plist = H5Pcreate(H5P_FILE_ACCESS)
     # The line below uses the CORE driver for doing I/O from memory, not disk
     # In general it is a bad idea to do this because HDF5 will have to load
     # the contents of the file on disk prior to operate, which takes time and
     # resources.
     # F. Alted 2010-04-15
     #H5Pset_fapl_core(access_plist, 1024, 1)
-    # Set parameters for chunk cache
-    H5Pset_cache(access_plist, 0,
-                 params['CHUNK_CACHE_NELMTS'],
-                 params['CHUNK_CACHE_SIZE'],
-                 params['CHUNK_CACHE_PREEMPT'])
 
-    if pymode == 'r':
-      self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)
-    elif pymode == 'r+':
-      self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
-    elif pymode == 'a':
-      if exists:
-        # A test for logging.
-        ## H5Pset_sieve_buf_size(access_plist, 0)
-        ## H5Pset_fapl_log (access_plist, "test.log", H5FD_LOG_LOC_WRITE, 0)
+    if driver=='H5FD_CORE_INMEMORY' and ( pymode == 'r' or pymode == 'r+' ):
+      if not H5PCOREhasHDF5HL():
+        raise RuntimeError("PyTables was compiled without HDF5HL library, H5FD_CORE_INMEMORY driver cannot be used for reading.")
+      if (not PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])):
+        raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as H5FD_CORE_INMEMORY_IMAGE  argument");
+      self.mem_data.len = PyString_Size(params['H5FD_CORE_INMEMORY_IMAGE'])
+      self.mem_data.p = <void *>PyString_AsString(params['H5FD_CORE_INMEMORY_IMAGE'])
+      self.file_id = H5LTopen_file_image_proxy(self.mem_data.p, self.mem_data.len, 0)
+      if self.file_id == -1:
+        raise RuntimeError("Can't open in-memory file for reading.");
+    else:
+      access_plist = H5Pcreate(H5P_FILE_ACCESS)
+      if driver == 'H5FD_STDIO':
+        H5Pset_fapl_stdio(access_plist)
+      elif driver == 'H5FD_SEC2':
+        H5Pset_fapl_sec2(access_plist)
+      elif driver == 'H5FD_CORE':
+        H5Pset_fapl_core(access_plist, params['H5FD_CORE_INCREMENT'], params['H5FD_CORE_BACKING_STORE'])
+      elif driver == 'H5FD_CORE_INMEMORY':
+        H5Pset_fapl_core(access_plist, params['H5FD_CORE_INCREMENT'], params['H5FD_CORE_BACKING_STORE'])
+        self.mem_data.len = 0
+        self.mem_data.p = <void *>0
+        H5Pset_file_inmemory_callbacks(access_plist, &self.mem_data)
+
+      # Set parameters for chunk cache
+      H5Pset_cache(access_plist, 0,
+                   params['CHUNK_CACHE_NELMTS'],
+                   params['CHUNK_CACHE_SIZE'],
+                   params['CHUNK_CACHE_PREEMPT'])
+      if pymode == 'r':
+        self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)
+      elif pymode == 'r+':
         self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
-      else:
+      elif pymode == 'a':
+        if exists:
+          # A test for logging.
+          ## H5Pset_sieve_buf_size(access_plist, 0)
+          ## H5Pset_fapl_log (access_plist, "test.log", H5FD_LOG_LOC_WRITE, 0)
+          self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
+        else:
+          self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
+                                   H5P_DEFAULT, access_plist)
+      elif pymode == 'w':
         self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
-                                 H5P_DEFAULT, access_plist)
-    elif pymode == 'w':
-      self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
                                H5P_DEFAULT, access_plist)
 
     if self.file_id < 0:
@@ -322,6 +357,10 @@ cdef class File:
     # Set the maximum number of threads for Blosc
     setBloscMaxThreads(params['MAX_BLOSC_THREADS'])
 
+  def getInMemoryFileContents(self):
+    #if (self.mem_data.len==0):
+    #  raise RuntimeError("No data available in memory. Please make sure that the H5FD_CORE_INMEMORY driver is used and that the file is closed before calling this function.")
+    return PyString_FromStringAndSize(<char *>self.mem_data.p, self.mem_data.len)
 
   # Accessor definitions
   def _getFileId(self):
