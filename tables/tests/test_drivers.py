@@ -50,6 +50,8 @@ class FileDriverTestCase(common.PyTablesTestCase):
 		    pass
 	        self.fileh=None
 
+class DefaultDriverTestCase(FileDriverTestCase):
+    DRIVER=None
 class SEC2DriverTestCase(FileDriverTestCase):
     DRIVER="H5FD_SEC2"
 class STDIODriverTestCase(FileDriverTestCase):
@@ -70,7 +72,6 @@ class CORE_INMEMORYDriverTestCase(FileDriverTestCase):
         fileh.close()
         
 	image=fileh.getInMemoryFileContents()
-	print len(image)
 	try:
             """Checking opening of an existing file"""
             # Open the old HDF5 file

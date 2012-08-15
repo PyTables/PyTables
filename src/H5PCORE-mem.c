@@ -43,8 +43,7 @@ H5FD_file_image_callbacks_t callbacks = {image_malloc, image_memcpy,
 hid_t H5Pset_file_inmemory_callbacks(hid_t fapl, hvl_t *udata)
 {
     callbacks.udata=udata;
-    H5Pset_file_image_callbacks(fapl, &callbacks);
-    return file;
+    return H5Pset_file_image_callbacks(fapl, &callbacks);
 }
 
 /*
