@@ -246,7 +246,7 @@ DRIVER = None
 Following drivers are implemented:
 	H5FD_SEC2 - This is the default driver which uses Posix file-system functions like read and write to perform I/O to a single file.
 	H5FD_STDIO - This driver uses functions from 'stdio.h' to perform buffered I/O to a single file.
-	H5FD_CORE - This driver performs I/O directly to memory and can be used to create small temporary files that never exist on permanent storage. If the provided filename is set to None, an in memory only file will be created. Additionaly if filename is set to None and MEMORY_IMAGE parameter is provided, the HDF5 will be read from the data provided in the MEMORY_IMAGE.	
+	H5FD_CORE - This driver performs I/O directly to memory and can be used to create small temporary files that never exist on permanent storage. If the provided filename is set to None, an in memory only file will be created. Additionaly if filename is set to None and H5FD_CORE_INMEMORY_IMAGE parameter is provided the HDF5 will be read from the data provided as a stromg in the H5FD_CORE_INMEMORY_IMAGE.
 	H5FD_CORE_INMEMORY - This is a pseudodriver. It makes it possible to read and write in-memory only images of HDF5 files. 
 	H5FD_DIRECT - With this driver, data is written to or read from the file synchronously without being cached by the system.
 The following drivers may be implemented in the future.
@@ -258,8 +258,7 @@ see http://www.hdfgroup.org/HDF5/Tutor/filedrvr.html for more information
 """
 
 H5FD_CORE_INMEMORY_IMAGE = None
-"""Passing an memory image as a single dimensional numpy array will force
-in-memory mode."""
+"""String containing an HDF5 formated file to be read when using H5FD_CORE_INMEMORY driver."""
 
 H5FD_CORE_INCREMENT=65536
 H5FD_CORE_BACKING_STORE=1
