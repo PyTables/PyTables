@@ -2,13 +2,14 @@
 #----------------------------------------------------------------------
 # Setup script for the tables package
 
-import ctypes
-import sys, os, shutil
-import textwrap
-from os.path import exists, expanduser
+import os
 import re
-import warnings
+import sys
+import ctypes
+import textwrap
 import subprocess
+from os.path import exists, expanduser
+
 
 # Using ``setuptools`` enables lots of goodies, such as building eggs.
 if 'FORCE_SETUPTOOLS' in os.environ:
@@ -18,9 +19,9 @@ else:
     from distutils.core import setup
     has_setuptools = False
 
-from distutils.core     import Extension
+from distutils.core import Extension
 from distutils.dep_util import newer
-from distutils.util     import convert_path
+from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
 
 # The minimum required versions
@@ -54,9 +55,9 @@ def check_import(pkgname, pkgver):
     try:
         mod = __import__(pkgname)
     except ImportError:
-            exit_with_error(
-                "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
-                % {'pkgname': pkgname, 'pkgver': pkgver} )
+        exit_with_error(
+            "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
+            % {'pkgname': pkgname, 'pkgver': pkgver} )
     else:
         if mod.__version__ < pkgver:
             exit_with_error(
@@ -77,7 +78,7 @@ try:
     from Cython.Distutils import build_ext
     from Cython.Compiler.Main import Version
     cmdclass = {'build_ext': build_ext}
-except:
+except ImportError:
     exit_with_error(
         "You need %(pkgname)s %(pkgver)s or greater to compile PyTables!"
         % {'pkgname': 'Cython', 'pkgver': min_cython_version} )
@@ -163,6 +164,15 @@ def _find_file_path(name, locations, prefixes=[''], suffixes=['']):
 
 
 class Package(object):
+    def __init__(self, name, tag, header_name, library_name,
+                 target_function=None):
+        self.name = name
+        self.tag = tag
+        self.header_name = header_name
+        self.library_name = library_name
+        self.runtime_name = library_name
+        self.target_function = target_function
+
     def find_header_path(self, locations=default_header_dirs):
         return _find_file_path(
             self.header_name, locations, suffixes=['.h'] )
@@ -234,6 +244,7 @@ class Package(object):
 
         return tuple(directories)
 
+
 class PosixPackage(Package):
     _library_prefixes = ['lib']
     _library_suffixes = ['.so', '.dylib', '.a']
@@ -242,14 +253,6 @@ class PosixPackage(Package):
 
     _component_dirs = ['include', 'lib']
 
-    def __init__(self, name, tag, header_name, library_name,
-                 target_function=None):
-        self.name = name
-        self.tag = tag
-        self.header_name = header_name
-        self.library_name = library_name
-        self.runtime_name = library_name
-        self.target_function = target_function
 
 class WindowsPackage(Package):
     _library_prefixes = ['']
@@ -259,15 +262,6 @@ class WindowsPackage(Package):
 
     # lookup in '.' seems necessary for LZO2
     _component_dirs = ['include', 'lib', 'dll', '.']
-
-    def __init__(self, name, tag, header_name, library_name, runtime_name,
-                 target_function=None):
-        self.name = name
-        self.tag = tag
-        self.header_name = header_name
-        self.library_name = library_name
-        self.runtime_name = runtime_name
-        self.target_function = target_function
 
     def find_runtime_path(self, locations=default_runtime_dirs):
         # An explicit path can not be provided for runtime libraries.
