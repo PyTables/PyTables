@@ -1434,6 +1434,190 @@ class setBloscMaxThreads(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
 
 
+class FileDriverTestCase(common.PyTablesTestCase):
+    DRIVER = None
+    DRIVER_PARAMS = {}
+
+    def setUp(self):
+        self.h5fname = tempfile.mktemp(suffix=".h5")
+        self.h5file = tables.openFile(self.h5fname, mode="w",
+                                      DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+
+        # Create an HDF5 file and contents
+        root = self.h5file.root
+        self.h5file.setNodeAttr(root, "testattr", 41)
+        self.h5file.createArray(root, "array", [1, 2], title="array")
+        self.h5file.createTable(root, "table", {"var1": tables.IntCol()},
+                                title="table")
+
+    def tearDown(self):
+        if self.h5file:
+            self.h5file.close()
+        self.h5file = None
+        os.remove(self.h5fname)
+
+    def test_newFile(self):
+        self.assertTrue(isinstance(self.h5file, tables.File))
+
+    def test_readFile(self):
+        self.h5file.close()
+        self.h5file = None
+
+        # Open an existing HDF5 file
+        self.h5file = tables.openFile(self.h5fname, mode="r",
+                                      DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+
+        # check contents
+        root = self.h5file.root
+
+        self.assertEqual(self.h5file.getNodeAttr(root, "testattr"), 41)
+
+        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertEqual(root.array._v_title, "array")
+
+        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertEqual(root.table._v_title, "table")
+        self.assertTrue("var1" in root.table.colnames)
+        self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
+
+    def test_openFileA(self):
+        self.h5file.close()
+        self.h5file = None
+
+        # Open an existing HDF5 file in append mode
+        self.h5file = tables.openFile(self.h5fname, mode="a",
+                                      DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+        root = self.h5file.root
+        self.h5file.setNodeAttr(root, "testattr2", 42)
+        self.h5file.createArray(root, "array2", [1, 2], title="array2")
+        self.h5file.createTable(root, "table2", {"var2": tables.FloatCol()},
+                                title="table2")
+
+        # check contents
+        self.assertEqual(self.h5file.getNodeAttr(root, "testattr"), 41)
+        self.assertEqual(self.h5file.getNodeAttr(root, "testattr2"), 42)
+
+        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertEqual(root.array._v_title, "array")
+
+        self.assertTrue(isinstance(root.array2, tables.Array))
+        self.assertEqual(root.array2._v_title, "array2")
+
+        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertEqual(root.table._v_title, "table")
+        self.assertTrue("var1" in root.table.colnames)
+        self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
+
+        self.assertTrue(isinstance(root.table2, tables.Table))
+        self.assertEqual(root.table2._v_title, "table2")
+        self.assertTrue("var2" in root.table2.colnames)
+        self.assertEqual(root.table2.cols.var2.dtype, tables.FloatCol().dtype)
+
+
+class FileDriverSec2TestCase(FileDriverTestCase):
+    DRIVER = "H5FD_SEC2"
+
+
+#class FileDriverLogTestCase(FileDriverTestCase):
+#    DRIVER = "H5FD_LOG"
+#
+#    def setUp(self):
+#        # local binding
+#        self.DRIVER_PARAMS = {
+#            "DRIVER_LOG_FILE": tempfile.mktemp(suffix=".log")
+#        }
+#
+#        super(FileDriverLogTestCase, self).setUp()
+#
+#    def tearDown(self):
+#        super(FileDriverLogTestCase, self).tearDown()
+#        if os.path.exists(self.DRIVER_PARAMS["DRIVER_LOG_FILE"]):
+#            os.remove(self.DRIVER_PARAMS["DRIVER_LOG_FILE"])
+#
+#
+#class FileDriverDirectTestCase(FileDriverTestCase):
+#    DRIVER = "H5FD_DIRECT"
+#
+#
+#class FileDriverWindowsTestCase(FileDriverTestCase):
+#    DRIVER = "H5FD_WINDOWS"
+
+
+class FileDriverStdioTestCase(FileDriverTestCase):
+    DRIVER = "H5FD_STDIO"
+
+
+class FileDriverCoreTestCase(FileDriverTestCase):
+    DRIVER = "H5FD_CORE"
+
+
+class NotSpportedDriverTestCase(common.PyTablesTestCase):
+    DRIVER = None
+    DRIVER_PARAMS = {}
+
+    def setUp(self):
+        self.h5fname = tempfile.mktemp(suffix=".h5")
+
+    def tearDown(self):
+        if self.h5fname in tables.file._open_files:
+            h5file = tables.file._open_files[self.h5fname]
+            h5file.close()
+        if os.path.exists(self.h5fname):
+            os.remove(self.h5fname)
+
+    def test_newFile(self):
+        self.assertRaises(ValueError, tables.openFile, self.h5fname, mode="w",
+                          DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+
+
+class FileDriverLogTestCase(NotSpportedDriverTestCase):
+    DRIVER = "H5FD_LOG"
+
+    def setUp(self):
+        # local binding
+        self.DRIVER_PARAMS = {
+            "DRIVER_LOG_FILE": tempfile.mktemp(suffix=".log")
+        }
+
+        super(FileDriverLogTestCase, self).setUp()
+
+    def tearDown(self):
+        super(FileDriverLogTestCase, self).tearDown()
+        if os.path.exists(self.DRIVER_PARAMS["DRIVER_LOG_FILE"]):
+            os.remove(self.DRIVER_PARAMS["DRIVER_LOG_FILE"])
+
+
+class FileDriverDirectTestCase(NotSpportedDriverTestCase):
+    DRIVER = "H5FD_DIRECT"
+
+
+class FileDriverWindowsTestCase(NotSpportedDriverTestCase):
+    DRIVER = "H5FD_WINDOWS"
+
+
+class FileDriverFamilyTestCase(NotSpportedDriverTestCase):
+    DRIVER = "H5FD_FAMILY"
+
+
+class FileDriverMultiTestCase(NotSpportedDriverTestCase):
+    DRIVER = "H5FD_MULTI"
+
+
+class FileDriverSplitTestCase(NotSpportedDriverTestCase):
+    DRIVER = "H5FD_SPLIT"
+
+
+class FileDriverMpioTestCase(NotSpportedDriverTestCase):
+    DRIVER = "H5FD_MPIO"
+
+
+class FileDriverMpiPosixTestCase(NotSpportedDriverTestCase):
+    DRIVER = "H5FD_MPIPOSIX"
+
+
+class FileDriverStreamTestCase(NotSpportedDriverTestCase):
+    DRIVER = "H5FD_STREAM"
+
 
 #----------------------------------------------------------------------
 
@@ -1456,6 +1640,23 @@ def suite():
         theSuite.addTest(unittest.makeSuite(GroupFiltersTestCase))
         theSuite.addTest(unittest.makeSuite(setBloscMaxThreads))
         theSuite.addTest(doctest.DocTestSuite(tables.filters))
+
+        theSuite.addTest(unittest.makeSuite(FileDriverTestCase))
+        theSuite.addTest(unittest.makeSuite(FileDriverSec2TestCase))
+        theSuite.addTest(unittest.makeSuite(FileDriverStdioTestCase))
+        theSuite.addTest(unittest.makeSuite(FileDriverCoreTestCase))
+
+        theSuite.addTest(unittest.makeSuite(FileDriverLogTestCase))
+        theSuite.addTest(unittest.makeSuite(FileDriverDirectTestCase))
+        theSuite.addTest(unittest.makeSuite(FileDriverWindowsTestCase))
+
+        theSuite.addTest(unittest.makeSuite(FileDriverFamilyTestCase))
+        theSuite.addTest(unittest.makeSuite(FileDriverMultiTestCase))
+        theSuite.addTest(unittest.makeSuite(FileDriverSplitTestCase))
+        theSuite.addTest(unittest.makeSuite(FileDriverMpioTestCase))
+        theSuite.addTest(unittest.makeSuite(FileDriverMpiPosixTestCase))
+        theSuite.addTest(unittest.makeSuite(FileDriverStreamTestCase))
+
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(createTestCase))
         theSuite.addTest(unittest.makeSuite(FiltersCase3))

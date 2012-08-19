@@ -58,7 +58,7 @@ from numpy cimport import_array, ndarray
 from cpython cimport PyString_AsString, PyString_FromStringAndSize
 
 
-from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
+from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED,
   H5O_TYPE_UNKNOWN, H5O_TYPE_GROUP, H5O_TYPE_DATASET, H5O_TYPE_NAMED_DATATYPE,
   H5L_TYPE_ERROR, H5L_TYPE_HARD, H5L_TYPE_SOFT, H5L_TYPE_EXTERNAL,
@@ -73,6 +73,8 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
   H5Pcreate, H5Pset_cache, H5Pclose,
+  H5Pset_fapl_sec2, H5Pset_fapl_log,  #H5Pset_fapl_direct, H5Pset_fapl_windows,
+  H5Pset_fapl_stdio, H5Pset_fapl_core,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
@@ -144,7 +146,6 @@ cdef extern from "H5VLARRAY.h" nogil:
 
   herr_t H5VLARRAYget_info( hid_t dataset_id, hid_t type_id,
                             hsize_t *nrecords, char *base_byteorder)
-
 
 
 #----------------------------------------------------------------------------
@@ -240,6 +241,20 @@ cdef object get_dtype_scalar(hid_t type_id, H5T_class_t class_id,
     ntype = None
   return ntype
 
+_suppoetrd_drivers = (
+    "H5FD_SEC2",
+    #"H5FD_DIRECT",
+    #"H5FD_LOG",
+    #"H5FD_WINDOWS",
+    "H5FD_STDIO",
+    "H5FD_CORE",
+    #"H5FD_FAMILY",
+    #"H5FD_MULTI",
+    #"H5FD_SPLIT",
+    #"H5FD_MPIO",
+    #"H5FD_MPIPOSIX",
+    #"H5FD_STREAM",
+)
 
 
 # Type extensions declarations (these are subclassed by PyTables
@@ -252,6 +267,14 @@ cdef class File:
 
 
   def _g_new(self, name, pymode, **params):
+    cdef herr_t err
+    cdef bytes logfile_name
+
+    # Check if we can handle the driver
+    driver = params["DRIVER"]
+    if driver is not None and driver not in _suppoetrd_drivers:
+      raise ValueError("Invalid or not supported driver: '%s'" % driver)
+
     # Create a new file using default properties
     self.name = name
 
@@ -261,12 +284,15 @@ cdef class File:
     # These fields can be seen from Python.
     self._v_new = None  # this will be computed later
     # """Is this file going to be created from scratch?"""
+
     self._isPTFile = True  # assume a PyTables file by default
     # """Does this HDF5 file have a PyTables format?"""
 
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
-    checkFileAccess(name, pymode)
+    # But only if we are using file backed storage.
+    if driver != "H5FD_CORE" or params.get("DRIVER_CORE_BACKING_STORE", True):
+      checkFileAccess(name, pymode)
 
     assert pymode in ('r', 'r+', 'a', 'w'), ("an invalid mode string ``%s`` "
            "passed the ``checkFileAccess()`` test; "
@@ -274,21 +300,57 @@ cdef class File:
 
     # Should a new file be created?
     exists = os.path.exists(name)
-    self._v_new = not (
-      pymode in ('r', 'r+') or (pymode == 'a' and exists))
+    self._v_new = not (pymode in ('r', 'r+') or (pymode == 'a' and exists))
 
+    # File access property list
     access_plist = H5Pcreate(H5P_FILE_ACCESS)
-    # The line below uses the CORE driver for doing I/O from memory, not disk
-    # In general it is a bad idea to do this because HDF5 will have to load
-    # the contents of the file on disk prior to operate, which takes time and
-    # resources.
-    # F. Alted 2010-04-15
-    #H5Pset_fapl_core(access_plist, 1024, 1)
+
+    # Set the I/O driver
+    if driver == "H5FD_SEC2":
+      err = H5Pset_fapl_sec2(access_plist)
+    #elif driver == "H5FD_DIRECT":
+    #  err = H5Pset_fapl_direct(access_plist,
+    #                           params["DRIVER_DIRECT_ALIGNMENT"],
+    #                           params["DRIVER_DIRECT_BLOCK_SIZE"],
+    #                           params["DRIVER_DIRECT_CBUF_SIZE"])
+    #elif driver == "H5FD_LOG":
+    #  if "DRIVER_LOG_FILE" not in params:
+    #    H5Pclose(access_plist)
+    #    raise ValueError("The DRIVER_LOG_FILE parameter is required for "
+    #                     "the H5FD_LOG driver")
+    #  logfile_name = encode_filename(params["DRIVER_LOG_FILE"])
+    #  err = H5Pset_fapl_log(access_plist,
+    #                        <char*>logfile_name,
+    #                        params["DRIVER_LOG_FLAGS"],
+    #                        params["DRIVER_LOG_BUF_SIZE"])
+    #elif driver == "H5FD_WINDOWS":
+    #  err = H5Pset_fapl_windows(access_plist)
+    elif driver == "H5FD_STDIO":
+      err = H5Pset_fapl_stdio(access_plist)
+    elif driver == "H5FD_CORE":
+      err = H5Pset_fapl_core(access_plist,
+                             params["DRIVER_CORE_INCREMENT"],
+                             params["DRIVER_CORE_BACKING_STORE"])
+    #elif driver == "H5FD_FAMILY":
+    #  H5Pset_fapl_family(access_plist,
+    #                     params["DRIVER_FAMILY_MEMB_SIZE"],
+    #                     fapl_id)
+    #elif driver == "H5FD_MULTI":
+    #  err = H5Pset_fapl_multi(access_plist, memb_map, memb_fapl, memb_name,
+    #                          memb_addr, relax)
+    #elif driver == "H5FD_SPLIT":
+    #  err = H5Pset_fapl_split(access_plist, meta_ext, meta_plist_id, raw_ext,
+    #                          raw_plist_id)
+    if err < 0:
+      e = HDF5ExtError("Unable to set the file access property list")
+      H5Pclose(access_plist)
+      raise e
+
     # Set parameters for chunk cache
     H5Pset_cache(access_plist, 0,
-                 params['CHUNK_CACHE_NELMTS'],
-                 params['CHUNK_CACHE_SIZE'],
-                 params['CHUNK_CACHE_PREEMPT'])
+                 params["CHUNK_CACHE_NELMTS"],
+                 params["CHUNK_CACHE_SIZE"],
+                 params["CHUNK_CACHE_PREEMPT"])
 
     if pymode == 'r':
       self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)
@@ -312,11 +374,13 @@ cdef class File:
         H5Pclose(access_plist)
         raise e
 
+    H5Pclose(access_plist)
+
     # Set the cache size
-    set_cache_size(self.file_id, params['METADATA_CACHE_SIZE'])
+    set_cache_size(self.file_id, params["METADATA_CACHE_SIZE"])
 
     # Set the maximum number of threads for Blosc
-    setBloscMaxThreads(params['MAX_BLOSC_THREADS'])
+    setBloscMaxThreads(params["MAX_BLOSC_THREADS"])
 
 
   # Accessor definitions
