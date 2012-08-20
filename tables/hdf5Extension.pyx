@@ -273,7 +273,7 @@ cdef class File:
 
   def _g_new(self, name, pymode, **params):
     cdef herr_t err = 0
-    cdef bytes logfile_name
+    #cdef bytes logfile_name
 
     # Check if we can handle the driver
     driver = params["DRIVER"]

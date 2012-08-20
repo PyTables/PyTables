@@ -10,6 +10,14 @@
 Changes from 2.4 to X.Y.Z (in development)
 ==========================================
 
+New features
+------------
+
+- Basic support for HDF5 drivers.  Now it is possible to open/create an
+  HDF5 file using one of the SEC2, DIRECT, LOG, WINDOWS, STDIO or CORE
+  drivers and also set the main parameters (closes :issue:`166`).
+  Thanks to Michal Slonina.
+
 API changes
 -----------
 

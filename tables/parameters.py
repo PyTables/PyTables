@@ -236,8 +236,6 @@ Following drivers are available:
       to or read from the file synchronously without being cached by
       the system.
 
-    * H5FD_LOG: this is the H5FD_SEC2 driver with logging capabilities.
-
     * H5FD_WINDOWS: this driver was modified in HDF5-1.8.8 to be a
       wrapper of the POSIX driver, H5FD_SEC2. This change should not
       affect user applications.
@@ -252,6 +250,8 @@ Following drivers are available:
       of the file can be written back to disk or abandoned.
 
 The following drivers are not currently suèported:
+
+    * H5FD_LOG: this is the H5FD_SEC2 driver with logging capabilities.
 
     * H5FD_FAMILY: with this driver, the HDF5 file’s address space is
       partitioned into pieces and sent to separate storage files using
@@ -302,23 +302,23 @@ DRIVER_DIRECT_CBUF_SIZE = 0
 
 A value of 0 (zero) means to use HDF5 Library’s default value."""
 
-DRIVER_LOG_FLAGS = 0x0001ffff
-"""Flags specifying the types of logging activity.
-
-.. seeealso::
-    http://www.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetFaplLog
-
-"""
-
-DRIVER_LOG_BUF_SIZE = 4 * _KB
-"""The size of the logging buffers, in bytes.
-
-One buffer of size DRIVER_LOG_BUF_SIZE will be created for each of
-H5FD_LOG_FILE_READ, H5FD_LOG_FILE_WRITE and H5FD_LOG_FLAVOR when those
-flags are set; these buffers will not grow as the file increases in
-size.
-
-"""
+#DRIVER_LOG_FLAGS = 0x0001ffff
+#"""Flags specifying the types of logging activity.
+#
+#.. seeealso::
+#    http://www.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetFaplLog
+#
+#"""
+#
+#DRIVER_LOG_BUF_SIZE = 4 * _KB
+#"""The size of the logging buffers, in bytes.
+#
+#One buffer of size DRIVER_LOG_BUF_SIZE will be created for each of
+#H5FD_LOG_FILE_READ, H5FD_LOG_FILE_WRITE and H5FD_LOG_FLAVOR when those
+#flags are set; these buffers will not grow as the file increases in
+#size.
+#
+#"""
 
 DRIVER_CORE_INCREMENT = 64 * _KB
 """Specifies the increment by which allocated memory is to be increased
