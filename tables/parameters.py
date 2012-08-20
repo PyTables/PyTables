@@ -251,6 +251,8 @@ Following drivers are available:
       memory until the file is closed. At closing, the memory version
       of the file can be written back to disk or abandoned.
 
+The following drivers are not currently suèported:
+
     * H5FD_FAMILY: with this driver, the HDF5 file’s address space is
       partitioned into pieces and sent to separate storage files using
       an underlying driver of the user’s choice.
@@ -266,8 +268,6 @@ Following drivers are available:
       One part stores metadata, and the other part stores raw data.
       This splitting a file into two parts is a limited case of the
       Multi driver.
-
-The following drivers are not currently suèported:
 
     * H5FD_MPIO: this is the standard HDF5 file driver for parallel
       file systems. This driver uses the MPI standard for both
@@ -287,20 +287,20 @@ The following drivers are not currently suèported:
 
 """
 
-#DRIVER_DIRECT_ALIGNMENT = 0
-#"""Specifies the required alignment boundary in memory.
-#
-#A value of 0 (zero) means to use HDF5 Library’s default value."""
-#
-#DRIVER_DIRECT_BLOCK_SIZE = 0
-#"""Specifies the file system block size.
-#
-#A value of 0 (zero) means to use HDF5 Library’s default value of 4KB."""
-#
-#DRIVER_DIRECT_CBUF_SIZE = 0
-#"""Specifies the copy buffer size.
-#
-#A value of 0 (zero) means to use HDF5 Library’s default value."""
+DRIVER_DIRECT_ALIGNMENT = 0
+"""Specifies the required alignment boundary in memory.
+
+A value of 0 (zero) means to use HDF5 Library’s default value."""
+
+DRIVER_DIRECT_BLOCK_SIZE = 0
+"""Specifies the file system block size.
+
+A value of 0 (zero) means to use HDF5 Library’s default value of 4KB."""
+
+DRIVER_DIRECT_CBUF_SIZE = 0
+"""Specifies the copy buffer size.
+
+A value of 0 (zero) means to use HDF5 Library’s default value."""
 
 DRIVER_LOG_FLAGS = 0x0001ffff
 """Flags specifying the types of logging activity.

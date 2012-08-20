@@ -73,7 +73,7 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
   H5Pcreate, H5Pset_cache, H5Pclose,
-  H5Pset_fapl_sec2, H5Pset_fapl_log,  #H5Pset_fapl_direct, H5Pset_fapl_windows,
+  H5Pset_fapl_sec2, H5Pset_fapl_log,
   H5Pset_fapl_stdio, H5Pset_fapl_core,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
@@ -84,7 +84,8 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5ARRAYget_ndims, H5ARRAYget_info,
   set_cache_size, get_objinfo, get_linkinfo, Giterate, Aiterate, H5UIget_info,
   get_len_of_range, conv_float64_timeval32, truncate_dset,
-  H5FD_DIRECT, set_fapl_direct)
+  H5_HAVE_DIRECT_DRIVER, set_fapl_direct,
+  H5_HAVE_WINDOWS_DRIVER, set_fapl_windows)
 
 
 # Include conversion tables
@@ -247,7 +248,7 @@ _suppoetrd_drivers = (
     "H5FD_SEC2",
     "H5FD_DIRECT",
     #"H5FD_LOG",
-    #"H5FD_WINDOWS",
+    "H5FD_WINDOWS",
     "H5FD_STDIO",
     "H5FD_CORE",
     #"H5FD_FAMILY",
@@ -258,7 +259,8 @@ _suppoetrd_drivers = (
     #"H5FD_STREAM",
 )
 
-H5_HAVE_DIRECT = bool(H5FD_DIRECT > 0)
+HAVE_DIRECT_DRIVER = bool(H5_HAVE_DIRECT_DRIVER)
+HAVE_WINDOWS_DRIVER = bool(H5_HAVE_WINDOWS_DRIVER)
 
 # Type extensions declarations (these are subclassed by PyTables
 # Python classes)
@@ -270,7 +272,7 @@ cdef class File:
 
 
   def _g_new(self, name, pymode, **params):
-    cdef herr_t err
+    cdef herr_t err = 0
     cdef bytes logfile_name
 
     # Check if we can handle the driver
@@ -312,7 +314,7 @@ cdef class File:
     if driver == "H5FD_SEC2":
       err = H5Pset_fapl_sec2(access_plist)
     elif driver == "H5FD_DIRECT":
-      if H5FD_DIRECT < 0:
+      if H5_HAVE_DIRECT_DRIVER:
         H5Pclose(access_plist)
         raise RuntimeError("The H5FD_DIRECT driver is not available")
       err = set_fapl_direct(access_plist,
@@ -329,8 +331,11 @@ cdef class File:
     #                        <char*>logfile_name,
     #                        params["DRIVER_LOG_FLAGS"],
     #                        params["DRIVER_LOG_BUF_SIZE"])
-    #elif driver == "H5FD_WINDOWS":
-    #  err = H5Pset_fapl_windows(access_plist)
+    elif driver == "H5FD_WINDOWS":
+      if H5_HAVE_WINDOWS_DRIVER:
+        H5Pclose(access_plist)
+        raise RuntimeError("The H5FD_WINDOWS driver is not available")
+      err = set_fapl_windows(access_plist)
     elif driver == "H5FD_STDIO":
       err = H5Pset_fapl_stdio(access_plist)
     elif driver == "H5FD_CORE":

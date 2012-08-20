@@ -32,6 +32,17 @@
 #   define TRUE (!FALSE)
 #endif
 
+#ifdef H5_HAVE_WINDOWS
+#define H5_HAVE_WINDOWS_DRIVER 1
+#else
+#define H5_HAVE_WINDOWS_DRIVER 0
+#endif
+
+#ifdef H5_HAVE_DIRECT
+#define H5_HAVE_DIRECT_DRIVER 1
+#else
+#define H5_HAVE_DIRECT_DRIVER 0
+#endif
 
 /* Use %ld to print the value because long should cover most cases. */
 /* Used to make certain a return value _is_not_ a value */
@@ -100,3 +111,5 @@ herr_t truncate_dset( hid_t dataset_id, const int maindim, const hsize_t size);
 
 herr_t set_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size,
                        size_t cbuf_size);
+
+herr_t set_fapl_windows(hid_t fapl_id);

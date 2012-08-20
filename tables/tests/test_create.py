@@ -22,7 +22,7 @@ from tables import *
 from tables import Group, Leaf, Table, Array
 from tables.tests import common
 from tables.parameters import MAX_COLUMNS
-from tables.hdf5Extension import H5_HAVE_DIRECT
+from tables.hdf5Extension import HAVE_DIRECT_DRIVER, HAVE_WINDOWS_DRIVER
 
 import tables
 
@@ -1534,10 +1534,6 @@ class FileDriverSec2TestCase(FileDriverTestCase):
 #        super(FileDriverLogTestCase, self).tearDown()
 #        if os.path.exists(self.DRIVER_PARAMS["DRIVER_LOG_FILE"]):
 #            os.remove(self.DRIVER_PARAMS["DRIVER_LOG_FILE"])
-#
-#
-#class FileDriverWindowsTestCase(FileDriverTestCase):
-#    DRIVER = "H5FD_WINDOWS"
 
 
 class FileDriverStdioTestCase(FileDriverTestCase):
@@ -1585,7 +1581,7 @@ class FileDriverLogTestCase(NotSpportedDriverTestCase):
             os.remove(self.DRIVER_PARAMS["DRIVER_LOG_FILE"])
 
 
-if H5_HAVE_DIRECT:
+if HAVE_DIRECT_DRIVER:
     class FileDriverDirectTestCase(FileDriverTestCase):
         DRIVER = "H5FD_DIRECT"
 
@@ -1595,8 +1591,14 @@ else:
         EXCEPTION = RuntimeError
 
 
-class FileDriverWindowsTestCase(NotSpportedDriverTestCase):
-    DRIVER = "H5FD_WINDOWS"
+if HAVE_WINDOWS_DRIVER:
+    class FileDriverWindowsTestCase(FileDriverTestCase):
+        DRIVER = "H5FD_WINDOWS"
+
+else:
+    class FileDriverWindowsTestCase(NotSpportedDriverTestCase):
+        DRIVER = "H5FD_WINDOWS"
+        EXCEPTION = RuntimeError
 
 
 class FileDriverFamilyTestCase(NotSpportedDriverTestCase):

@@ -930,16 +930,40 @@ out:
 /*
  * Helpers for management of HDF5 drivers
  */
+
+/* DIRECT driver */
 #ifdef H5_HAVE_DIRECT
+
 herr_t set_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size,
                        size_t cbuf_size)
 {
  return H5Pset_fapl_direct(fapl_id, alignment, block_size, cbuf_size);
 }
-#else
+
+#else /* H5_HAVE_DIRECT */
+
 herr_t set_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size,
                        size_t cbuf_size)
 {
  return -1;
 }
-#endif
+
+#endif /* H5_HAVE_DIRECT */
+
+
+/* WINDOWS driver */
+#ifdef H5_HAVE_WINDOWS
+
+herr_t set_fapl_windows(hid_t fapl_id)
+{
+ return H5Pset_fapl_windows(fapl_id);
+}
+
+#else /* H5_HAVE_WINDOWS */
+
+herr_t set_fapl_windows(hid_t fapl_id)
+{
+ return -1;
+}
+
+#endif /* H5_HAVE_WINDOWS */
