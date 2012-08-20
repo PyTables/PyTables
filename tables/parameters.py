@@ -241,27 +241,98 @@ your machine. In general, it is a good idea to set this to the number of
 cores in your machine or, when your machine has many of them (e.g. > 4),
 perhaps one less than this."""
 
+# HDF5 driver management
+# ----------------------
 DRIVER = None
-"""The libhdf5 driver that should be used for reading/writing to the file.
-Following drivers are implemented:
-	H5FD_SEC2 - This is the default driver which uses Posix file-system functions like read and write to perform I/O to a single file.
-	H5FD_STDIO - This driver uses functions from 'stdio.h' to perform buffered I/O to a single file.
-	H5FD_CORE - This driver performs I/O directly to memory and can be used to create small temporary files that never exist on permanent storage. If the provided filename is set to None, an in memory only file will be created. Additionaly if filename is set to None and H5FD_CORE_INMEMORY_IMAGE parameter is provided the HDF5 will be read from the data provided as a stromg in the H5FD_CORE_INMEMORY_IMAGE.
-	H5FD_CORE_INMEMORY - This is a pseudodriver. It makes it possible to read and write in-memory only images of HDF5 files. 
-	H5FD_DIRECT - With this driver, data is written to or read from the file synchronously without being cached by the system.
-The following drivers may be implemented in the future.
-	H5FD_MPIIO - This driver is used with Parallel HDF5, and is only pre-defined if the library is compiled with parallel I/O support. Refer to the Parallel HDF5 Tutorial for more information on using Parallel HDF5.
-	H5FD_MULTI- This driver enables different types of HDF5 data and metadata to be written to separate files. The H5FD_SPLIT driver is an example of what the H5FD_MULTI driver can do.
-	H5FD_FAMILY - This driver partitions a large format address space into smaller chunks (separate storage of a user's choice).
-	H5FD_SPLIT - This driver splits the meta data and raw data into separate storage of a user's choice.
-see http://www.hdfgroup.org/HDF5/Tutor/filedrvr.html for more information
+"""The HDF5 driver that should be used for reading/writing to the file.
+
+Following drivers are available:
+
+    * H5FD_SEC2: this driver uses POSIX file-system functions like read
+      and write to perform I/O to a single, permanent file on local
+      disk with no system buffering.
+      This driver is POSIX-compliant and is the default file driver for
+      all systems.
+
+    * H5FD_STDIO: this driver uses functions from the standard C
+      stdio.h to perform I/O to a single, permanent file on local disk
+      with additional system buffering.
+
+    * H5FD_CORE: with this driver, an application can work with a file
+      in memory for faster reads and writes. File contents are kept in
+      memory until the file is closed. At closing, the memory version
+      of the file can be written back to disk or abandoned.
+
+The following drivers are not currently supported:
+
+    * H5FD_DIRECT: this is the H5FD_SEC2 driver except data is written
+      to or read from the file synchronously without being cached by
+      the system.
+
+    * H5FD_LOG: this is the H5FD_SEC2 driver with logging capabilities.
+
+    * H5FD_WINDOWS: this driver was modified in HDF5-1.8.8 to be a
+      wrapper of the POSIX driver, H5FD_SEC2. This change should not
+      affect user applications.
+
+    * H5FD_FAMILY: with this driver, the HDF5 file's address space is
+      partitioned into pieces and sent to separate storage files using
+      an underlying driver of the user's choice.
+      This driver is for systems that do not support files larger than
+      2 gigabytes.
+
+    * H5FD_MULTI: with this driver, data can be stored in multiple
+      files according to the type of the data. I/O might work better if
+      data is stored in separate files based on the type of data.
+      The Split driver is a special case of this driver.
+
+    * H5FD_SPLIT: this file driver splits a file into two parts.
+      One part stores metadata, and the other part stores raw data.
+      This splitting a file into two parts is a limited case of the
+      Multi driver.
+
+    * H5FD_MPIO: this is the standard HDF5 file driver for parallel
+      file systems. This driver uses the MPI standard for both
+      communication and file I/O.
+
+    * H5FD_MPIPOSIX: this parallel file system driver uses MPI for
+      communication and POSIX file-system calls for file I/O.
+
+    * H5FD_STREAM: this driver is no longer available.
+
+.. seealso:: the `Drivers section`_ of the `HDF5 User's Guide`_ for
+   more information.
+
+.. _`Drivers section`:
+    http://www.hdfgroup.org/HDF5/doc/UG/08_TheFile.html#Drivers
+.. _`HDF5 User's Guide`: http://www.hdfgroup.org/HDF5/doc/UG/index.html
+
 """
 
 H5FD_CORE_INMEMORY_IMAGE = None
 """String containing an HDF5 formated file to be read when using H5FD_CORE_INMEMORY driver."""
 
-H5FD_CORE_INCREMENT=65536
-H5FD_CORE_BACKING_STORE=1
+H5FD_CORE_INCREMENT = 64 * _KB
+"""Specifies the increment by which allocated memory is to be increased
+each time more memory is required."""
+
+H5FD_CORE_BACKING_STORE = 1
+"""With the H5FD_CORE driver, if the DRIVER_CORE_BACKING_STORE is set
+to 1 (True), the file contents are flushed to a file with the same name
+as this core file when the file is closed or access to the file is
+terminated in memory.
+
+The application is allowed to open an existing file with H5FD_CORE
+driver. In that case, if the DRIVER_CORE_BACKING_STORE is set to 1 and
+the flags for :func:`tables.openFile` is set to H5F_ACC_RDWR, any change
+to the file contents are saved to the file when the file is closed.
+If backing_store is set to 0 and the flags for :func:`tables.openFile`
+is set to H5F_ACC_RDWR, any change to the file contents will be lost
+when the file is closed. If the flags for :func:`tables.openFile` is
+set to H5F_ACC_RDONLY, no change to the file is allowed either in
+memory or on file.
+
+"""
 
 
 ## Local Variables:

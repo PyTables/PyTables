@@ -1,5 +1,4 @@
 #include "hdf5.h"
-#include <assert.h>
 #include "H5PCORE-mem.h"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -7,18 +6,19 @@
 
 hvl_t udata = {NULL, 0};
 
-void *image_malloc(size_t size, H5FD_file_image_op_t file_image_op, void *udata) {
+void *image_malloc(size_t size, H5FD_file_image_op_t file_image_op,
+                   void *udata) {
     ((hvl_t *) udata)->len = size;
     return (malloc(size));
 }
 
 void *image_memcpy(void *dest, const void *src, size_t size,
-        H5FD_file_image_op_t file_image_op, void *udata) {
+                   H5FD_file_image_op_t file_image_op, void *udata) {
     return (NULL); /* always fails */
 }
 
 void *image_realloc(void *ptr, size_t size, H5FD_file_image_op_t file_image_op,
-        void *udata) {
+                    void *udata) {
     ((hvl_t *) udata)->len = size;
     return (realloc(ptr, size));
 }
@@ -35,6 +35,7 @@ void *udata_copy(void *udata) {
 herr_t udata_free(void *udata) {
     return 0;
 }
+
 H5FD_file_image_callbacks_t callbacks = {image_malloc, image_memcpy,
     image_realloc, image_free,
     udata_copy, udata_free,
@@ -61,22 +62,27 @@ hid_t H5Fcreate_inmemory(hvl_t *udata)
 
 
 #if HAVE_HDF5HL_LIB
+
 #include "hdf5_hl.h"
+
 int H5PCOREhasHDF5HL() {
-	return true;
+    return true;
 }
 
 hid_t H5LTopen_file_image_proxy(void *buf_ptr, size_t buf_size, unsigned flags)
 {
-	return H5LTopen_file_image(buf_ptr, buf_size, flags);
+    return H5LTopen_file_image(buf_ptr, buf_size, flags);
 }
+
 #else
+
 int H5PCOREhasHDF5HL() {
-	return false;
+    return false;
 }
+
 hid_t H5LTopen_file_image_proxy(void *buf_ptr, size_t buf_size, unsigned flags)
 {
-	return -1;
+    return -1;
 }
 
 #endif

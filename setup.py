@@ -312,9 +312,8 @@ if os.name == 'posix':
 elif os.name == 'nt':
     _Package = WindowsPackage
     _platdep = {  # package tag -> platform-dependent components
-        # TODO check if this is working
-        'HDF5HL': ['hdf5_hldll', 'hdf5_hldll'],
         'HDF5': ['hdf5dll', 'hdf5dll'],
+        'HDF5HL': ['hdf5_hldll', 'hdf5_hldll'],
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'],
@@ -326,6 +325,7 @@ elif os.name == 'nt':
                  ]
     if '--debug' in sys.argv:
         _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
+        _platdep['HDF5HL'] = ['hdf5_hlddll', 'hdf5_hldddll']
 
 hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
 hdf5_package.target_function = 'H5close'
@@ -665,7 +665,7 @@ for (package, complibs) in [
     (bzip2_package, _comp_bzip2_libs), ]:
 
     if package.tag in optional_libs:
-        complibs.extend([hdf5_package.library_name, hdf5hl_package.library_name, package.library_name])
+        complibs.extend([hdf5_package.library_name, package.library_name])
 
 # List of Blosc file dependencies
 blosc_files = ["blosc/blosc.c", "blosc/blosclz.c", "blosc/shuffle.c",

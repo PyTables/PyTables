@@ -464,13 +464,9 @@ class File(hdf5Extension.File, object):
 
         self.filename = filename
         """The name of the opened file."""
+
         self.mode = mode
         """The mode in which the file was opened."""
-	if params['DRIVER']!="H5FD_CORE_INMEMORY":
-	  # Expand the form '~user'
-          path = os.path.expanduser(filename)
-          # Expand the environment variables
-          path = os.path.expandvars(path)
 
         # If MAX_*_THREADS is not set yet, set it to the number of cores
         # on this machine.
