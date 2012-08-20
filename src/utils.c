@@ -926,3 +926,20 @@ out:
  if (dims) free(dims);
  return -1;
 }
+
+/*
+ * Helpers for management of HDF5 drivers
+ */
+#ifdef H5_HAVE_DIRECT
+herr_t set_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size,
+                       size_t cbuf_size)
+{
+ return H5Pset_fapl_direct(fapl_id, alignment, block_size, cbuf_size);
+}
+#else
+herr_t set_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size,
+                       size_t cbuf_size)
+{
+ return -1;
+}
+#endif

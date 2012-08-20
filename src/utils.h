@@ -98,3 +98,5 @@ hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step);
 
 herr_t truncate_dset( hid_t dataset_id, const int maindim, const hsize_t size);
 
+herr_t set_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size,
+                       size_t cbuf_size);

@@ -83,7 +83,8 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims,
   H5ARRAYget_ndims, H5ARRAYget_info,
   set_cache_size, get_objinfo, get_linkinfo, Giterate, Aiterate, H5UIget_info,
-  get_len_of_range, conv_float64_timeval32, truncate_dset)
+  get_len_of_range, conv_float64_timeval32, truncate_dset,
+  H5FD_DIRECT, set_fapl_direct)
 
 
 # Include conversion tables
@@ -241,9 +242,10 @@ cdef object get_dtype_scalar(hid_t type_id, H5T_class_t class_id,
     ntype = None
   return ntype
 
+
 _suppoetrd_drivers = (
     "H5FD_SEC2",
-    #"H5FD_DIRECT",
+    "H5FD_DIRECT",
     #"H5FD_LOG",
     #"H5FD_WINDOWS",
     "H5FD_STDIO",
@@ -256,6 +258,7 @@ _suppoetrd_drivers = (
     #"H5FD_STREAM",
 )
 
+H5_HAVE_DIRECT = bool(H5FD_DIRECT > 0)
 
 # Type extensions declarations (these are subclassed by PyTables
 # Python classes)
@@ -308,11 +311,14 @@ cdef class File:
     # Set the I/O driver
     if driver == "H5FD_SEC2":
       err = H5Pset_fapl_sec2(access_plist)
-    #elif driver == "H5FD_DIRECT":
-    #  err = H5Pset_fapl_direct(access_plist,
-    #                           params["DRIVER_DIRECT_ALIGNMENT"],
-    #                           params["DRIVER_DIRECT_BLOCK_SIZE"],
-    #                           params["DRIVER_DIRECT_CBUF_SIZE"])
+    elif driver == "H5FD_DIRECT":
+      if H5FD_DIRECT < 0:
+        H5Pclose(access_plist)
+        raise RuntimeError("The H5FD_DIRECT driver is not available")
+      err = set_fapl_direct(access_plist,
+                            params["DRIVER_DIRECT_ALIGNMENT"],
+                            params["DRIVER_DIRECT_BLOCK_SIZE"],
+                            params["DRIVER_DIRECT_CBUF_SIZE"])
     #elif driver == "H5FD_LOG":
     #  if "DRIVER_LOG_FILE" not in params:
     #    H5Pclose(access_plist)

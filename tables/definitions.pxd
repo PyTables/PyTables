@@ -63,6 +63,8 @@ cdef extern from "hdf5.h" nogil:
   int H5I_INVALID_HID
   int H5E_DEFAULT
 
+  hid_t H5FD_DIRECT
+
   # The difference between a single file and a set of mounted files
   cdef enum H5F_scope_t:
     H5F_SCOPE_LOCAL     = 0     # specified file handle only
@@ -466,6 +468,8 @@ cdef extern from "utils.h":
   herr_t get_order(hid_t type_id, char *byteorder) nogil
   int    is_complex(hid_t type_id) nogil
   herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size) nogil
+  herr_t set_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size,
+                       size_t cbuf_size)
 
 # Type conversion routines
 cdef extern from "typeconv.h" nogil:
