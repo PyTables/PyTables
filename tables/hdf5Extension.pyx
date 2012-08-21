@@ -293,15 +293,15 @@ cdef class File:
     self._isPTFile = True  # assume a PyTables file by default
     # """Does this HDF5 file have a PyTables format?"""
 
+    assert pymode in ('r', 'r+', 'a', 'w'), ("an invalid mode string ``%s`` "
+           "passed the ``checkFileAccess()`` test; "
+           "please report this to the authors" % pymode)
+
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
     # But only if we are using file backed storage.
     if driver != "H5FD_CORE" or params.get("DRIVER_CORE_BACKING_STORE", True):
       checkFileAccess(name, pymode)
-
-    assert pymode in ('r', 'r+', 'a', 'w'), ("an invalid mode string ``%s`` "
-           "passed the ``checkFileAccess()`` test; "
-           "please report this to the authors" % pymode)
 
     # Should a new file be created?
     exists = os.path.exists(name)
