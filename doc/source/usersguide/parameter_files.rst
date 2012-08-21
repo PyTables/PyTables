@@ -131,3 +131,20 @@ Miscellaneous
 .. autodata:: MAX_NUMEXPR_THREADS
 
 .. autodata:: MAX_BLOSC_THREADS
+
+
+HDF5 driver management
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autodata:: DRIVER
+
+.. autodata:: DRIVER_DIRECT_ALIGNMENT
+
+.. autodata:: DRIVER_DIRECT_BLOCK_SIZE
+
+.. autodata:: DRIVER_DIRECT_CBUF_SIZE
+
+.. autodata:: DRIVER_CORE_INCREMENT
+
+.. autodata:: DRIVER_CORE_BACKING_STORE
+

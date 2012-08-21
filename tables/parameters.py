@@ -224,7 +224,7 @@ perhaps one less than this."""
 DRIVER = None
 """The HDF5 driver that should be used for reading/writing to the file.
 
-Following drivers are available:
+Following drivers are supported:
 
     * H5FD_SEC2: this driver uses POSIX file-system functions like read
       and write to perform I/O to a single, permanent file on local
@@ -249,7 +249,7 @@ Following drivers are available:
       memory until the file is closed. At closing, the memory version
       of the file can be written back to disk or abandoned.
 
-The following drivers are not currently suèported:
+The following drivers are not currently supported:
 
     * H5FD_LOG: this is the H5FD_SEC2 driver with logging capabilities.
 
@@ -280,6 +280,14 @@ The following drivers are not currently suèported:
 
 .. seealso:: the `Drivers section`_ of the `HDF5 User's Guide`_ for
    more information.
+
+.. note::
+
+    not all supported drivers are always available. For example the
+    H5FD_WINDOWS driver is not available on non Windows platforms.
+
+    If the user try to use a driver that is not available on the target
+    platform a :exc:`RuntimeError` is raised.
 
 .. _`Drivers section`:
     http://www.hdfgroup.org/HDF5/doc/UG/08_TheFile.html#Drivers
