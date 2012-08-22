@@ -244,7 +244,7 @@ cdef object get_dtype_scalar(hid_t type_id, H5T_class_t class_id,
   return ntype
 
 
-_suppoetrd_drivers = (
+_supported_drivers = (
     "H5FD_SEC2",
     "H5FD_DIRECT",
     #"H5FD_LOG",
@@ -277,7 +277,7 @@ cdef class File:
 
     # Check if we can handle the driver
     driver = params["DRIVER"]
-    if driver is not None and driver not in _suppoetrd_drivers:
+    if driver is not None and driver not in _supported_drivers:
       raise ValueError("Invalid or not supported driver: '%s'" % driver)
 
     # Create a new file using default properties
