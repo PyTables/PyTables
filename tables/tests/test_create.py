@@ -1602,23 +1602,6 @@ class Sec2DriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_SEC2"
 
 
-#class LogDriverTestCase(DefaultDriverTestCase):
-#    DRIVER = "H5FD_LOG"
-#
-#    def setUp(self):
-#        # local binding
-#        self.DRIVER_PARAMS = {
-#            "DRIVER_LOG_FILE": tempfile.mktemp(suffix=".log")
-#        }
-#
-#        super(LogDriverTestCase, self).setUp()
-#
-#    def tearDown(self):
-#        super(LogDriverTestCase, self).tearDown()
-#        if os.path.exists(self.DRIVER_PARAMS["DRIVER_LOG_FILE"]):
-#            os.remove(self.DRIVER_PARAMS["DRIVER_LOG_FILE"])
-
-
 class StdioDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_STDIO"
 
@@ -1868,7 +1851,14 @@ class NotSpportedDriverTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.isfile(self.h5fname))
 
 
-class LogDriverTestCase(NotSpportedDriverTestCase):
+if "H5FD_LOG" in tables.hdf5Extension._supported_drivers:
+    BaseLogDriverTestCase = DefaultDriverTestCase
+
+else:
+    BaseLogDriverTestCase = NotSpportedDriverTestCase
+
+
+class LogDriverTestCase(BaseLogDriverTestCase):
     DRIVER = "H5FD_LOG"
 
     def setUp(self):
