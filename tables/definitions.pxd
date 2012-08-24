@@ -277,6 +277,7 @@ cdef extern from "hdf5.h" nogil:
   htri_t H5Fis_hdf5(char *name)
   herr_t H5Fflush(hid_t object_id, H5F_scope_t scope)
   herr_t H5Fget_vfd_handle(hid_t file_id, hid_t fapl_id, void **file_handle)
+  ssize_t H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
 
   # Operations with groups
   hid_t  H5Gcreate(hid_t loc_id, char *name, hid_t lcpl_id, hid_t gcpl_id,
@@ -407,6 +408,7 @@ cdef extern from "hdf5.h" nogil:
   #                            hbool_t *use_gpfs_hints)
   #herr_t H5Pset_fapl_mpiposix(hid_t fapl_id, MPI_Comm comm,
   #                            hbool_t use_gpfs_hints)
+  herr_t H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
 
   # Error Handling Interface
   #herr_t H5Eget_auto(hid_t estack_id, H5E_auto_t *func, void** data)
@@ -470,6 +472,9 @@ cdef extern from "utils.h":
                        size_t cbuf_size)
   herr_t set_fapl_windows(hid_t fapl_id)
   hid_t H5_HAVE_DIRECT_DRIVER, H5_HAVE_WINDOWS_DRIVER
+  herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) nogil
+  ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len) nogil
+  int HAVE_IMAGE_FILE
 
 # Type conversion routines
 cdef extern from "typeconv.h" nogil:

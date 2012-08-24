@@ -44,6 +44,14 @@
 #define H5_HAVE_DIRECT_DRIVER 0
 #endif
 
+#if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR == 8 && H5_VERS_RELEASE >= 9) || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR > 8)
+/* HDF5 version >= 1.8.9 */
+#define HAVE_IMAGE_FILE 1
+#else
+/* HDF5 version < 1.8.9 */
+#define HAVE_IMAGE_FILE 0
+#endif
+
 /* Use %ld to print the value because long should cover most cases. */
 /* Used to make certain a return value _is_not_ a value */
 #define CHECK(ret, val, where) do {                                           \
@@ -113,3 +121,7 @@ herr_t set_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size,
                        size_t cbuf_size);
 
 herr_t set_fapl_windows(hid_t fapl_id);
+
+herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len);
+
+ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len);

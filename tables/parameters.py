@@ -350,6 +350,12 @@ memory or on file.
 
 """
 
+H5FD_CORE_INMEMORY_IMAGE = None
+"""String containing an HDF5 formated file to be read when using
+H5FD_CORE_INMEMORY driver.
+
+"""
+
 
 ## Local Variables:
 ## mode: python
