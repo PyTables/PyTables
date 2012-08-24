@@ -29,8 +29,8 @@ Misc variables:
 """
 
 import os
-import warnings
 import cPickle
+import warnings
 
 import numpy
 
@@ -298,7 +298,10 @@ cdef class File:
     if driver != 'H5FD_CORE_INMEMORY':
       exists = os.path.exists(name)
     else:
-      PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])
+      if PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE']):
+        exists = True
+      else:
+        exists = False
 
     self._v_new = not (pymode in ('r', 'r+') or (pymode == 'a' and exists))
 
@@ -310,25 +313,44 @@ cdef class File:
     # the contents of the file on disk prior to operate, which takes time and
     # resources.
     # F. Alted 2010-04-15
-    #H5Pset_fapl_core(access_plist, 1024, 1)
 
-    if driver=='H5FD_CORE_INMEMORY' and (pymode == 'r' or pymode == 'r+'):
+    image = params.get('H5FD_CORE_INMEMORY_IMAGE')
+    if image is not None and driver == "H5FD_CORE_INMEMORY":
+      warnings.warn("the H5FD_CORE_INMEMORY_IMAGE parameter will be "
+                    "ignored by the '%s' driver" % driver)
+
+    if (driver == "H5FD_CORE_INMEMORY" and pymode in ('r', 'r+') and
+        image is None):
+      raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as "
+                      "H5FD_CORE_INMEMORY_IMAGE argument")
+
+    if (driver == "H5FD_CORE_INMEMORY" and pymode in ('r', 'r+', 'a') and
+        image is not None):
+
       if not H5PCOREhasHDF5HL():
         raise RuntimeError("PyTables was compiled without HDF5HL library, "
                            "H5FD_CORE_INMEMORY driver cannot be used for "
                            "reading.")
 
-      if (not PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE'])):
+      if (not PyString_Check(image)):
         raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as "
                         "H5FD_CORE_INMEMORY_IMAGE  argument")
 
       self.mem_data.len = PyString_Size(params['H5FD_CORE_INMEMORY_IMAGE'])
       self.mem_data.p = <void *>PyString_AsString(
                                             params['H5FD_CORE_INMEMORY_IMAGE'])
+
+      # XXX: import the H5LT_FILE_IMAGE_OPEN_RW from hdf5_hl.h
+      H5LT_FILE_IMAGE_OPEN_RW = 0x0001
+      if pymode in ('r+', 'a'):
+        flags = H5LT_FILE_IMAGE_OPEN_RW
+      else:
+        flags = 0
       self.file_id = H5LTopen_file_image_proxy(self.mem_data.p,
-                                               self.mem_data.len, 0)
+                                               self.mem_data.len,
+                                               flags)
       if self.file_id == -1:
-        raise RuntimeError("Can't open in-memory file for reading.");
+        raise HDF5ExtError("Can't open in-memory file.");
     else:
       if driver == 'H5FD_STDIO':
         H5Pset_fapl_stdio(access_plist)
