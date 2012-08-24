@@ -73,9 +73,11 @@ class CORE_INMEMORYDriverTestCase(common.PyTablesTestCase):
         fileh.createTable(fileh.root, 'table', {'var1': IntCol()}, "Table")
         fileh.root._v_attrs.testattr = 41
 
+        image = fileh.get_file_image()
+
         fileh.close()
 
-        return fileh.getInMemoryFileContents()
+        return image
 
     def test_newFileW(self):
         filename = tempfile.mktemp(".h5")
@@ -170,11 +172,11 @@ class CORE_INMEMORYDriverTestCase(common.PyTablesTestCase):
         fileh.createArray(fileh.root, 'array2', data, title="Array2")
         fileh.root._v_attrs.testattr2 = 42
 
+        image2 = fileh.get_file_image()
+
         fileh.close()
 
         self.assertFalse(os.path.exists(filename))
-
-        image2 = fileh.getInMemoryFileContents()
 
         self.assertNotEqual(len(image1), len(image2))
         self.assertNotEqual(image1, image2)
@@ -258,11 +260,11 @@ class CORE_INMEMORYDriverTestCase(common.PyTablesTestCase):
         fileh.createArray(fileh.root, 'array2', data, title="Array2")
         fileh.root._v_attrs.testattr2 = 42
 
+        image2 = fileh.get_file_image()
+
         fileh.close()
 
         self.assertFalse(os.path.exists(filename))
-
-        image2 = fileh.getInMemoryFileContents()
 
         self.assertNotEqual(len(image1), len(image2))
         self.assertNotEqual(image1, image2)
@@ -292,30 +294,6 @@ class CORE_INMEMORYDriverTestCase(common.PyTablesTestCase):
 
         fileh.close()
 
-        self.assertFalse(os.path.exists(filename))
-
-    def test_flush(self):
-        filename = tempfile.mktemp(".h5")
-        fileh = openFile(filename, mode="w", title="Title",
-                 DRIVER=self.DRIVER, H5FD_CORE_BACKING_STORE=0)
-
-        fileh.createArray(fileh.root, 'array', [1, 2], title="Array")
-        fileh.createTable(fileh.root, 'table', {'var1': IntCol()}, "Table")
-        fileh.root._v_attrs.testattr = 41
-
-        fileh.flush()
-
-        image1 = fileh.getInMemoryFileContents()
-
-        self.assertTrue(len(image1) > 0)
-        self.assertEqual([ord(i) for i in image1[:4]], [137, 72, 68, 70])
-
-        fileh.close()
-
-        image2 = fileh.getInMemoryFileContents()
-
-        self.asserrtEqual(len(image1), len(image2))
-        self.asserrtEqual(image1, image2)
         self.assertFalse(os.path.exists(filename))
 
     def test_str(self):

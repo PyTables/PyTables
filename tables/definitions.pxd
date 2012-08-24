@@ -261,6 +261,7 @@ cdef extern from "hdf5.h" nogil:
   htri_t H5Fis_hdf5(char *name)
   herr_t H5Fflush(hid_t object_id, H5F_scope_t scope)
   herr_t H5Fget_vfd_handle(hid_t file_id, hid_t fapl_id, void **file_handle)
+  ssize_t H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
 
   # Operations with groups
   hid_t  H5Gcreate(hid_t loc_id, char *name, hid_t lcpl_id, hid_t gcpl_id,
@@ -405,9 +406,6 @@ cdef extern from "H5ARRAY.h" nogil:
                          hsize_t *maxdims, H5T_class_t *super_class_id,
                          char *byteorder)
 
-# Functions for operations with ARRAY
-cdef extern from "H5PCORE-mem.h" nogil:
-  hid_t H5Pset_file_inmemory_callbacks(hid_t fapl, hvl_t *udata)
 
 # Some utilities
 cdef extern from "utils.h":

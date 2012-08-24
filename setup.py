@@ -689,7 +689,6 @@ extensions = [
                          "src/H5ARRAY-opt.c",
                          "src/H5VLARRAY.c",
                          "src/H5ATTR.c",
-                         "src/H5PCORE-mem.c",
                          ] + blosc_files,
                library_dirs=lib_dirs,
                libraries=hdf5Extension_libs,

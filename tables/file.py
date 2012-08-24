@@ -456,17 +456,17 @@ class File(hdf5Extension.File, object):
     def __init__(self, filename, mode="r", title="",
                  rootUEP="/", filters=None, **kwargs):
 
-        # Get all the parameters in parameter file(s)
-        params = dict([(k, v) for k, v in parameters.__dict__.iteritems()
-                       if k.isupper() and not k.startswith('_')])
-        # Update them with possible keyword arguments
-        params.update(kwargs)
-
         self.filename = filename
         """The name of the opened file."""
 
         self.mode = mode
         """The mode in which the file was opened."""
+
+        # Get all the parameters in parameter file(s)
+        params = dict([(k, v) for k, v in parameters.__dict__.iteritems()
+                       if k.isupper() and not k.startswith('_')])
+        # Update them with possible keyword arguments
+        params.update(kwargs)
 
         # If MAX_*_THREADS is not set yet, set it to the number of cores
         # on this machine.

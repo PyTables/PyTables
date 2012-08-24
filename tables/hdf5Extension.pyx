@@ -56,7 +56,7 @@ from libc.stdlib cimport malloc, free
 from libc.string cimport strdup
 from numpy cimport import_array, ndarray
 from cpython cimport (PyString_AsString, PyString_FromStringAndSize,
-    PyString_Check, PyString_Size)
+    PyString_Check)
 
 
 from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
@@ -67,14 +67,14 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
   H5P_DEFAULT, H5P_FILE_ACCESS,
   H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
-  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle,
+  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle, H5Fget_file_image,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
-  H5Pcreate, H5Pset_cache, H5Pclose, H5Pset_fapl_core, H5Pset_fapl_sec2, H5Pset_fapl_stdio, H5Pset_file_inmemory_callbacks,
-  H5Pset_file_image,
+  H5Pcreate, H5Pset_cache, H5Pclose,
+  H5Pset_fapl_core, H5Pset_fapl_sec2, H5Pset_fapl_stdio, H5Pset_file_image,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
@@ -261,9 +261,13 @@ cdef class File:
   cdef hid_t   file_id
   cdef hid_t   access_plist
   cdef object  name
-  cdef hvl_t   mem_data # Used only in case of memory write
+
 
   def _g_new(self, name, pymode, **params):
+    cdef herr_t err = 0
+    cdef size_t img_buf_len = 0
+    cdef void *img_buf_p = NULL
+
     # Check if we can handle the driver
     driver = params['DRIVER']
     if driver != None and not driver in _supported_drivers:
@@ -332,18 +336,11 @@ cdef class File:
                        params['H5FD_CORE_BACKING_STORE'])
 
       if image:
-        self.mem_data.len = PyString_Size(params['H5FD_CORE_INMEMORY_IMAGE'])
-        self.mem_data.p = <void *>PyString_AsString(
-                                            params['H5FD_CORE_INMEMORY_IMAGE'])
-        H5Pset_file_image(access_plist, self.mem_data.p, self.mem_data.len)
-      else:
-        self.mem_data.len = 0
-        self.mem_data.p = <void *>0
-
-      H5Pset_file_inmemory_callbacks(access_plist, &self.mem_data)
-
-      if image:
-        H5Pset_file_image(access_plist, self.mem_data.p, self.mem_data.len)
+        img_buf_len = len(params['H5FD_CORE_INMEMORY_IMAGE'])
+        img_buf_p = <void *>PyString_AsString(image)
+        err = H5Pset_file_image(access_plist, img_buf_p, img_buf_len)
+        if err < 0:
+          raise HDF5ExtError("Unable to set the file image")
 
     # Set parameters for chunk cache
     H5Pset_cache(access_plist, 0,
@@ -362,11 +359,11 @@ cdef class File:
         ## H5Pset_fapl_log (access_plist, "test.log", H5FD_LOG_LOC_WRITE, 0)
         self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
       else:
-        self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
-                                 H5P_DEFAULT, access_plist)
+        self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC, H5P_DEFAULT,
+                                 access_plist)
     elif pymode == 'w':
-      self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
-                               H5P_DEFAULT, access_plist)
+      self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC, H5P_DEFAULT,
+                               access_plist)
 
     if self.file_id < 0:
         e = HDF5ExtError("Unable to open/create file '%s'" % name)
@@ -381,10 +378,36 @@ cdef class File:
     # Set the maximum number of threads for Blosc
     setBloscMaxThreads(params['MAX_BLOSC_THREADS'])
 
-  def getInMemoryFileContents(self):
-    #if (self.mem_data.len==0):
-    #  raise RuntimeError("No data available in memory. Please make sure that the H5FD_CORE_INMEMORY driver is used and that the file is closed before calling this function.")
-    return PyString_FromStringAndSize(<char*>self.mem_data.p, self.mem_data.len)
+
+  # XXX: add the possibility to pass a pre-allocated buffer
+  def get_file_image(self):
+    cdef ssize_t size = 0
+    cdef size_t buf_len = 0
+    cdef object image
+
+    self.flush()
+
+    # retrieve the size of the buffer for the file image
+    size = H5Fget_file_image(self.file_id, NULL, buf_len)
+    if size < 0:
+      raise HDF5ExtError("Unable to retrieve the size of the buffer for the "
+                         "file image.  Plese note that not all drivers "
+                         "provide support for image files.")
+
+    # allocate the momory buffer
+    image = PyString_FromStringAndSize(NULL, size)
+    if not image:
+      raise RuntimeError("Unable to allecote meomory fir the file image")
+
+    buf_len = size
+    size = H5Fget_file_image(self.file_id, PyString_AsString(image), buf_len)
+    if size < 0:
+      raise HDF5ExtError("Unable to retrieve the file image. "
+                         "Plese note that not all drivers provide support "
+                         "for image files.")
+
+    return image
+
 
   # Accessor definitions
   def _getFileId(self):
