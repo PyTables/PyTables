@@ -2236,7 +2236,11 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
             return "<closed File>"
 
         # Print all the nodes (Group and Leaf objects) on object tree
-        date = time.asctime(time.localtime(os.stat(self.filename)[8]))
+        try:
+            date = time.asctime(time.localtime(os.stat(self.filename)[8]))
+        except OSError:
+            # in-memory file
+            date = ""
         astring =  self.filename + ' (File) ' + repr(self.title) + '\n'
 #         astring += 'rootUEP :=' + repr(self.rootUEP) + '; '
 #         astring += 'format_version := ' + self.format_version + '\n'
