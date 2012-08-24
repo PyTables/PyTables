@@ -1429,6 +1429,257 @@ class setBloscMaxThreads(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
 
 
+class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
+    DRIVER = "H5FD_CORE_INMEMORY"
+
+    def _create_image(self, filename="in-memory", title="Title", mode='w'):
+        fileh = openFile(filename, mode=mode, title=title,
+                         DRIVER=self.DRIVER, H5FD_CORE_BACKING_STORE=0)
+
+        fileh.createArray(fileh.root, 'array', [1, 2], title="Array")
+        fileh.createTable(fileh.root, 'table', {'var1': IntCol()}, "Table")
+        fileh.root._v_attrs.testattr = 41
+
+        image = fileh.get_file_image()
+
+        fileh.close()
+
+        return image
+
+    def test_newFileW(self):
+        filename = tempfile.mktemp(".h5")
+        image = self._create_image(filename, mode='w')
+        self.assertTrue(len(image) > 0)
+        self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+        self.assertFalse(os.path.exists(filename))
+
+    def test_newFileA(self):
+        filename = tempfile.mktemp(".h5")
+        image = self._create_image(filename, mode='a')
+        self.assertTrue(len(image) > 0)
+        self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+        self.assertFalse(os.path.exists(filename))
+
+    def test_openFileR(self):
+        filename = tempfile.mktemp(".h5")
+        image = self._create_image(filename)
+        self.assertFalse(os.path.exists(filename))
+
+        # Open an existing file
+        fileh = openFile(filename, mode="r",
+                         DRIVER=self.DRIVER,
+                         H5FD_CORE_INMEMORY_IMAGE=image,
+                         H5FD_CORE_BACKING_STORE=0)
+
+        # Get the CLASS attribute of the arr object
+        self.assertTrue(hasattr(fileh.root._v_attrs, "TITLE"))
+        self.assertEqual(fileh.getNodeAttr("/", "TITLE"), "Title")
+        self.assertTrue(hasattr(fileh.root._v_attrs, "testattr"))
+        self.assertEqual(fileh.getNodeAttr("/", "testattr"), 41)
+        self.assertTrue(hasattr(fileh.root, "array"))
+        self.assertEqual(fileh.getNodeAttr("/array", "TITLE"), "Array")
+        self.assertTrue(hasattr(fileh.root, "table"))
+        self.assertEqual(fileh.getNodeAttr("/table", "TITLE"), "Table")
+        self.assertEqual(fileh.root.array.read(), [1, 2])
+
+        fileh.close()
+
+    def test_openFileRW(self):
+        filename = tempfile.mktemp(".h5")
+        image = self._create_image(filename)
+        self.assertFalse(os.path.exists(filename))
+
+        # Open an existing file
+        fileh = openFile(filename, mode="r+",
+                         DRIVER=self.DRIVER,
+                         H5FD_CORE_INMEMORY_IMAGE=image,
+                         H5FD_CORE_BACKING_STORE=0)
+
+        # Get the CLASS attribute of the arr object
+        self.assertTrue(hasattr(fileh.root._v_attrs, "TITLE"))
+        self.assertEqual(fileh.getNodeAttr("/", "TITLE"), "Title")
+        self.assertTrue(hasattr(fileh.root._v_attrs, "testattr"))
+        self.assertEqual(fileh.getNodeAttr("/", "testattr"), 41)
+        self.assertTrue(hasattr(fileh.root, "array"))
+        self.assertEqual(fileh.getNodeAttr("/array", "TITLE"), "Array")
+        self.assertTrue(hasattr(fileh.root, "table"))
+        self.assertEqual(fileh.getNodeAttr("/table", "TITLE"), "Table")
+        self.assertEqual(fileh.root.array.read(), [1, 2])
+
+        fileh.createArray(fileh.root, 'array2', range(10000), title="Array2")
+        fileh.root._v_attrs.testattr2 = 42
+
+        fileh.close()
+
+        self.assertFalse(os.path.exists(filename))
+
+    def test_openFileRW_update(self):
+        filename = tempfile.mktemp(".h5")
+        image1 = self._create_image(filename)
+        self.assertFalse(os.path.exists(filename))
+
+        # Open an existing file
+        fileh = openFile(filename, mode="r+",
+                         DRIVER=self.DRIVER,
+                         H5FD_CORE_INMEMORY_IMAGE=image1,
+                         H5FD_CORE_BACKING_STORE=0)
+
+        # Get the CLASS attribute of the arr object
+        self.assertTrue(hasattr(fileh.root._v_attrs, "TITLE"))
+        self.assertEqual(fileh.getNodeAttr("/", "TITLE"), "Title")
+        self.assertTrue(hasattr(fileh.root._v_attrs, "testattr"))
+        self.assertEqual(fileh.getNodeAttr("/", "testattr"), 41)
+        self.assertTrue(hasattr(fileh.root, "array"))
+        self.assertEqual(fileh.getNodeAttr("/array", "TITLE"), "Array")
+        self.assertTrue(hasattr(fileh.root, "table"))
+        self.assertEqual(fileh.getNodeAttr("/table", "TITLE"), "Table")
+        self.assertEqual(fileh.root.array.read(), [1, 2])
+
+        data = range(2 * tables.parameters.H5FD_CORE_INCREMENT)
+        fileh.createArray(fileh.root, 'array2', data, title="Array2")
+        fileh.root._v_attrs.testattr2 = 42
+
+        image2 = fileh.get_file_image()
+
+        fileh.close()
+
+        self.assertFalse(os.path.exists(filename))
+
+        self.assertNotEqual(len(image1), len(image2))
+        self.assertNotEqual(image1, image2)
+
+        # Open an existing file
+        fileh = openFile(filename, mode="r",
+                         DRIVER=self.DRIVER,
+                         H5FD_CORE_INMEMORY_IMAGE=image2,
+                         H5FD_CORE_BACKING_STORE=0)
+
+        # Get the CLASS attribute of the arr object
+        self.assertTrue(hasattr(fileh.root._v_attrs, "TITLE"))
+        self.assertEqual(fileh.getNodeAttr("/", "TITLE"), "Title")
+        self.assertTrue(hasattr(fileh.root._v_attrs, "testattr"))
+        self.assertEqual(fileh.getNodeAttr("/", "testattr"), 41)
+        self.assertTrue(hasattr(fileh.root, "array"))
+        self.assertEqual(fileh.getNodeAttr("/array", "TITLE"), "Array")
+        self.assertTrue(hasattr(fileh.root, "table"))
+        self.assertEqual(fileh.getNodeAttr("/table", "TITLE"), "Table")
+        self.assertEqual(fileh.root.array.read(), [1, 2])
+
+        self.assertTrue(hasattr(fileh.root._v_attrs, "testattr2"))
+        self.assertEqual(fileh.getNodeAttr("/", "testattr2"), 42)
+        self.assertTrue(hasattr(fileh.root, "array2"))
+        self.assertEqual(fileh.getNodeAttr("/array2", "TITLE"), "Array2")
+        self.assertEqual(fileh.root.array2.read(), data)
+
+        fileh.close()
+
+        self.assertFalse(os.path.exists(filename))
+
+    def test_openFileA(self):
+        filename = tempfile.mktemp(".h5")
+        image = self._create_image(filename=filename)
+        self.assertFalse(os.path.exists(filename))
+
+        # Open an existing file
+        fileh = openFile(filename, mode="a",
+                         DRIVER=self.DRIVER,
+                         H5FD_CORE_INMEMORY_IMAGE=image,
+                         H5FD_CORE_BACKING_STORE=0)
+
+        # Get the CLASS attribute of the arr object
+        self.assertTrue(hasattr(fileh.root._v_attrs, "TITLE"))
+        self.assertEqual(fileh.getNodeAttr("/", "TITLE"), "Title")
+        self.assertTrue(hasattr(fileh.root._v_attrs, "testattr"))
+        self.assertEqual(fileh.getNodeAttr("/", "testattr"), 41)
+        self.assertTrue(hasattr(fileh.root, "array"))
+        self.assertEqual(fileh.getNodeAttr("/array", "TITLE"), "Array")
+        self.assertTrue(hasattr(fileh.root, "table"))
+        self.assertEqual(fileh.getNodeAttr("/table", "TITLE"), "Table")
+        self.assertEqual(fileh.root.array.read(), [1, 2])
+
+        fileh.close()
+
+        self.assertFalse(os.path.exists(filename))
+
+    def test_openFileA_update(self):
+        filename = tempfile.mktemp(".h5")
+        image1 = self._create_image(filename)
+        self.assertFalse(os.path.exists(filename))
+
+        # Open an existing file
+        fileh = openFile(filename, mode="a",
+                         DRIVER=self.DRIVER,
+                         H5FD_CORE_INMEMORY_IMAGE=image1,
+                         H5FD_CORE_BACKING_STORE=0)
+
+        # Get the CLASS attribute of the arr object
+        self.assertTrue(hasattr(fileh.root._v_attrs, "TITLE"))
+        self.assertEqual(fileh.getNodeAttr("/", "TITLE"), "Title")
+        self.assertTrue(hasattr(fileh.root._v_attrs, "testattr"))
+        self.assertEqual(fileh.getNodeAttr("/", "testattr"), 41)
+        self.assertTrue(hasattr(fileh.root, "array"))
+        self.assertEqual(fileh.getNodeAttr("/array", "TITLE"), "Array")
+        self.assertTrue(hasattr(fileh.root, "table"))
+        self.assertEqual(fileh.getNodeAttr("/table", "TITLE"), "Table")
+        self.assertEqual(fileh.root.array.read(), [1, 2])
+
+        data = range(2 * tables.parameters.H5FD_CORE_INCREMENT)
+        fileh.createArray(fileh.root, 'array2', data, title="Array2")
+        fileh.root._v_attrs.testattr2 = 42
+
+        image2 = fileh.get_file_image()
+
+        fileh.close()
+
+        self.assertFalse(os.path.exists(filename))
+
+        self.assertNotEqual(len(image1), len(image2))
+        self.assertNotEqual(image1, image2)
+
+        # Open an existing file
+        fileh = openFile(filename, mode="r",
+                         DRIVER=self.DRIVER,
+                         H5FD_CORE_INMEMORY_IMAGE=image2,
+                         H5FD_CORE_BACKING_STORE=0)
+
+        # Get the CLASS attribute of the arr object
+        self.assertTrue(hasattr(fileh.root._v_attrs, "TITLE"))
+        self.assertEqual(fileh.getNodeAttr("/", "TITLE"), "Title")
+        self.assertTrue(hasattr(fileh.root._v_attrs, "testattr"))
+        self.assertEqual(fileh.getNodeAttr("/", "testattr"), 41)
+        self.assertTrue(hasattr(fileh.root, "array"))
+        self.assertEqual(fileh.getNodeAttr("/array", "TITLE"), "Array")
+        self.assertTrue(hasattr(fileh.root, "table"))
+        self.assertEqual(fileh.getNodeAttr("/table", "TITLE"), "Table")
+        self.assertEqual(fileh.root.array.read(), [1, 2])
+
+        self.assertTrue(hasattr(fileh.root._v_attrs, "testattr2"))
+        self.assertEqual(fileh.getNodeAttr("/", "testattr2"), 42)
+        self.assertTrue(hasattr(fileh.root, "array2"))
+        self.assertEqual(fileh.getNodeAttr("/array2", "TITLE"), "Array2")
+        self.assertEqual(fileh.root.array2.read(), data)
+
+        fileh.close()
+
+        self.assertFalse(os.path.exists(filename))
+
+    def test_str(self):
+        filename = tempfile.mktemp(".h5")
+        fileh = openFile(filename, mode="w", title="Title",
+                 DRIVER=self.DRIVER, H5FD_CORE_BACKING_STORE=0)
+
+        fileh.createArray(fileh.root, 'array', [1, 2], title="Array")
+        fileh.createTable(fileh.root, 'table', {'var1': IntCol()}, "Table")
+        fileh.root._v_attrs.testattr = 41
+
+        # ensure that the __str__ method works even if there is no phisical
+        # file on disk (in which case the os.stat operation for date retrieval
+        # fails)
+        self.assertTrue(str(fileh) is not None)
+
+        fileh.close()
+        self.assertFalse(os.path.exists(filename))
+
 
 #----------------------------------------------------------------------
 
@@ -1451,6 +1702,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(GroupFiltersTestCase))
         theSuite.addTest(unittest.makeSuite(setBloscMaxThreads))
         theSuite.addTest(doctest.DocTestSuite(tables.filters))
+        theSuite.addTest(unittest.makeSuite(InMemoryCoreDriverTestCase))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(createTestCase))
         theSuite.addTest(unittest.makeSuite(FiltersCase3))
