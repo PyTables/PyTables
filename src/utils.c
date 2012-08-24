@@ -926,3 +926,27 @@ out:
  if (dims) free(dims);
  return -1;
 }
+
+
+#if (HAVE_IMAGE_FILE == 1)
+/* HDF5 version >= 1.8.9 */
+
+herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) {
+ return H5Pset_file_image(fapl_id, buf_ptr, buf_len);
+}
+
+ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len) {
+ return H5Fget_file_image(file_id, buf_ptr, buf_len);
+}
+
+#else /* (HAVE_IMAGE_FILE == 1) */
+/* HDF5 version < 1.8.9 */
+
+herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) {
+ return -1;
+}
+
+ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len) {
+ return -1;
+}
+#endif /* (HAVE_IMAGE_FILE == 1) */

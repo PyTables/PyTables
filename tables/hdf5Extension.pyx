@@ -67,14 +67,14 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
   H5P_DEFAULT, H5P_FILE_ACCESS,
   H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
-  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle, H5Fget_file_image,
+  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
   H5Pcreate, H5Pset_cache, H5Pclose,
-  H5Pset_fapl_core, H5Pset_fapl_sec2, H5Pset_fapl_stdio, H5Pset_file_image,
+  H5Pset_fapl_core, H5Pset_fapl_sec2, H5Pset_fapl_stdio,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
@@ -83,7 +83,8 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims,
   H5ARRAYget_ndims, H5ARRAYget_info,
   set_cache_size, get_objinfo, get_linkinfo, Giterate, Aiterate, H5UIget_info,
-  get_len_of_range, conv_float64_timeval32, truncate_dset)
+  get_len_of_range, conv_float64_timeval32, truncate_dset,
+  pt_H5Pset_file_image, pt_H5Fget_file_image, HAVE_IMAGE_FILE)
 
 
 # Include conversion tables
@@ -327,6 +328,11 @@ cdef class File:
                        params['H5FD_CORE_BACKING_STORE'])
     elif driver == 'H5FD_CORE_INMEMORY':
       image = params.get('H5FD_CORE_INMEMORY_IMAGE')
+
+      if not HAVE_IMAGE_FILE:
+        raise RuntimeError("Support for image files is only availabe in "
+                           "HDF5 >= 1.8.9")
+
       if pymode in ('r', 'r+') and not PyString_Check(image):
         raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as "
                         "H5FD_CORE_INMEMORY_IMAGE argument")
@@ -338,7 +344,7 @@ cdef class File:
       if image:
         img_buf_len = len(params['H5FD_CORE_INMEMORY_IMAGE'])
         img_buf_p = <void *>PyString_AsString(image)
-        err = H5Pset_file_image(access_plist, img_buf_p, img_buf_len)
+        err = pt_H5Pset_file_image(access_plist, img_buf_p, img_buf_len)
         if err < 0:
           raise HDF5ExtError("Unable to set the file image")
 
@@ -388,7 +394,7 @@ cdef class File:
     self.flush()
 
     # retrieve the size of the buffer for the file image
-    size = H5Fget_file_image(self.file_id, NULL, buf_len)
+    size = pt_H5Fget_file_image(self.file_id, NULL, buf_len)
     if size < 0:
       raise HDF5ExtError("Unable to retrieve the size of the buffer for the "
                          "file image.  Plese note that not all drivers "
@@ -400,7 +406,8 @@ cdef class File:
       raise RuntimeError("Unable to allecote meomory fir the file image")
 
     buf_len = size
-    size = H5Fget_file_image(self.file_id, PyString_AsString(image), buf_len)
+    size = pt_H5Fget_file_image(self.file_id, PyString_AsString(image),
+                                buf_len)
     if size < 0:
       raise HDF5ExtError("Unable to retrieve the file image. "
                          "Plese note that not all drivers provide support "

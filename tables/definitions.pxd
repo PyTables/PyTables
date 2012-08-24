@@ -423,6 +423,9 @@ cdef extern from "utils.h":
   herr_t get_order(hid_t type_id, char *byteorder) nogil
   int    is_complex(hid_t type_id) nogil
   herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size) nogil
+  herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) nogil
+  ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len) nogil
+  int HAVE_IMAGE_FILE
 
 # Type conversion routines
 cdef extern from "typeconv.h" nogil:

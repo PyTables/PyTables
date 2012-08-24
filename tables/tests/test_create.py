@@ -14,7 +14,7 @@ import warnings
 
 from tables import *
 # important objects to test
-from tables import Group, Leaf, Table, Array
+from tables import Group, Leaf, Table, Array, hdf5Version
 from tables.tests import common
 from tables.parameters import MAX_COLUMNS
 
@@ -1685,7 +1685,6 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
 def suite():
     import doctest
-    import tables.atom
 
     theSuite = unittest.TestSuite()
     niter = 1
@@ -1702,7 +1701,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(GroupFiltersTestCase))
         theSuite.addTest(unittest.makeSuite(setBloscMaxThreads))
         theSuite.addTest(doctest.DocTestSuite(tables.filters))
-        theSuite.addTest(unittest.makeSuite(InMemoryCoreDriverTestCase))
+        if hdf5Version >= "1.8.9":
+            theSuite.addTest(unittest.makeSuite(InMemoryCoreDriverTestCase))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(createTestCase))
         theSuite.addTest(unittest.makeSuite(FiltersCase3))
