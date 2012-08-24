@@ -4,6 +4,7 @@ import tempfile
 
 from tables import *
 from tables.tests import common
+import tables.parameters
 
 
 class FileDriverTestCase(common.PyTablesTestCase):
@@ -165,7 +166,7 @@ class CORE_INMEMORYDriverTestCase(common.PyTablesTestCase):
         self.assertEqual(fileh.getNodeAttr("/table", "TITLE"), "Table")
         self.assertEqual(fileh.root.array.read(), [1, 2])
 
-        data = range(10000)
+        data = range(2 * tables.parameters.H5FD_CORE_INCREMENT)
         fileh.createArray(fileh.root, 'array2', data, title="Array2")
         fileh.root._v_attrs.testattr2 = 42
 
@@ -175,8 +176,8 @@ class CORE_INMEMORYDriverTestCase(common.PyTablesTestCase):
 
         image2 = fileh.getInMemoryFileContents()
 
-        self.assertEqual(len(image1), len(image2))
-        self.assertEqual(image1, image2)
+        self.assertNotEqual(len(image1), len(image2))
+        self.assertNotEqual(image1, image2)
 
         # Open an existing file
         fileh = openFile(filename, mode="r",
@@ -253,7 +254,8 @@ class CORE_INMEMORYDriverTestCase(common.PyTablesTestCase):
         self.assertEqual(fileh.getNodeAttr("/table", "TITLE"), "Table")
         self.assertEqual(fileh.root.array.read(), [1, 2])
 
-        fileh.createArray(fileh.root, 'array2', range(10000), title="Array2")
+        data = range(2 * tables.parameters.H5FD_CORE_INCREMENT)
+        fileh.createArray(fileh.root, 'array2', data, title="Array2")
         fileh.root._v_attrs.testattr2 = 42
 
         fileh.close()
@@ -262,8 +264,8 @@ class CORE_INMEMORYDriverTestCase(common.PyTablesTestCase):
 
         image2 = fileh.getInMemoryFileContents()
 
-        self.assertEqual(len(image1), len(image2))
-        self.assertEqual(image1, image2)
+        self.assertNotEqual(len(image1), len(image2))
+        self.assertNotEqual(image1, image2)
 
         # Open an existing file
         fileh = openFile(filename, mode="r",

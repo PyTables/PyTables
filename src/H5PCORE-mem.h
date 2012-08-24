@@ -14,8 +14,6 @@ extern "C" {
 #endif
 
 hid_t H5Pset_file_inmemory_callbacks(hid_t fapl, hvl_t *udata);
-int H5PCOREhasHDF5HL();
-hid_t H5LTopen_file_image_proxy(void *buf_ptr, size_t buf_size, unsigned flags);
 
 #ifdef __cplusplus
 }

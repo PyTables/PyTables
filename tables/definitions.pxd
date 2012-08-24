@@ -362,6 +362,7 @@ cdef extern from "hdf5.h" nogil:
                           hbool_t backing_store)
   herr_t H5Pset_fapl_sec2(hid_t fapl_id)
   herr_t H5Pset_fapl_stdio(hid_t fapl_id)
+  herr_t H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
 
   # Error Handling Interface
   #herr_t H5Eget_auto(hid_t estack_id, H5E_auto_t *func, void** data)
@@ -407,9 +408,6 @@ cdef extern from "H5ARRAY.h" nogil:
 # Functions for operations with ARRAY
 cdef extern from "H5PCORE-mem.h" nogil:
   hid_t H5Pset_file_inmemory_callbacks(hid_t fapl, hvl_t *udata)
-  int H5PCOREhasHDF5HL()
-  hid_t H5LTopen_file_image_proxy(void *buf_ptr, size_t buf_size,
-                                  unsigned flags)
 
 # Some utilities
 cdef extern from "utils.h":

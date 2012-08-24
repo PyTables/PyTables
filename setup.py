@@ -304,7 +304,6 @@ if os.name == 'posix':
     _Package = PosixPackage
     _platdep = {  # package tag -> platform-dependent components
         'HDF5': ['hdf5'],
-        'HDF5HL': ['hdf5_hl'],
         'LZO2': ['lzo2'],
         'LZO': ['lzo'],
         'BZ2': ['bz2'],
@@ -313,7 +312,6 @@ elif os.name == 'nt':
     _Package = WindowsPackage
     _platdep = {  # package tag -> platform-dependent components
         'HDF5': ['hdf5dll', 'hdf5dll'],
-        'HDF5HL': ['hdf5_hldll', 'hdf5_hldll'],
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'],
@@ -325,12 +323,9 @@ elif os.name == 'nt':
                  ]
     if '--debug' in sys.argv:
         _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
-        _platdep['HDF5HL'] = ['hdf5_hlddll', 'hdf5_hldddll']
 
 hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
 hdf5_package.target_function = 'H5close'
-hdf5hl_package = _Package("HDF5HL", 'HDF5HL', 'H5LTpublic', *_platdep['HDF5HL'])
-hdf5hl_package.target_function = 'H5LTopen_file_image'
 lzo2_package = _Package("LZO 2", 'LZO2', _cp('lzo/lzo1x'), *_platdep['LZO2'])
 lzo2_package.target_function = 'lzo_version_date'
 lzo1_package = _Package("LZO 1", 'LZO', 'lzo1x', *_platdep['LZO'])
@@ -441,7 +436,6 @@ lzo2_enabled = False
 c = new_compiler()
 for (package, location) in [
     (hdf5_package, HDF5_DIR),
-    (hdf5hl_package, HDF5_DIR),
     (lzo2_package, LZO_DIR),
     (lzo1_package, LZO_DIR),
     (bzip2_package, BZIP2_DIR),
@@ -649,7 +643,7 @@ if os.name == "nt":
     data_files.extend([('Lib/site-packages/%s'%name, dll_files),
                        ])
 
-ADDLIBS = [hdf5_package.library_name, hdf5hl_package.library_name]
+ADDLIBS = [hdf5_package.library_name, ]
 utilsExtension_libs = LIBS + ADDLIBS
 hdf5Extension_libs = LIBS + ADDLIBS
 tableExtension_libs = LIBS + ADDLIBS

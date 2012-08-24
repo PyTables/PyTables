@@ -74,7 +74,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pset_fapl_core, H5Pset_fapl_sec2, H5Pset_fapl_stdio, H5Pset_file_inmemory_callbacks,
-  H5PCOREhasHDF5HL,
+  H5Pset_file_image,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
@@ -82,7 +82,6 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5ATTRget_attribute_vlen_string_array,
   H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims,
   H5ARRAYget_ndims, H5ARRAYget_info,
-  H5LTopen_file_image_proxy,
   set_cache_size, get_objinfo, get_linkinfo, Giterate, Aiterate, H5UIget_info,
   get_len_of_range, conv_float64_timeval32, truncate_dset)
 
@@ -314,81 +313,60 @@ cdef class File:
     # resources.
     # F. Alted 2010-04-15
 
-    image = params.get('H5FD_CORE_INMEMORY_IMAGE')
-    if image is not None and driver == "H5FD_CORE_INMEMORY":
-      warnings.warn("the H5FD_CORE_INMEMORY_IMAGE parameter will be "
-                    "ignored by the '%s' driver" % driver)
-
-    if (driver == "H5FD_CORE_INMEMORY" and pymode in ('r', 'r+') and
-        image is None):
-      raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as "
-                      "H5FD_CORE_INMEMORY_IMAGE argument")
-
-    if (driver == "H5FD_CORE_INMEMORY" and pymode in ('r', 'r+', 'a') and
-        image is not None):
-
-      if not H5PCOREhasHDF5HL():
-        raise RuntimeError("PyTables was compiled without HDF5HL library, "
-                           "H5FD_CORE_INMEMORY driver cannot be used for "
-                           "reading.")
-
-      if (not PyString_Check(image)):
+    if driver == 'H5FD_STDIO':
+      H5Pset_fapl_stdio(access_plist)
+    elif driver == 'H5FD_SEC2':
+      H5Pset_fapl_sec2(access_plist)
+    elif driver == 'H5FD_CORE':
+      H5Pset_fapl_core(access_plist,
+                       params['H5FD_CORE_INCREMENT'],
+                       params['H5FD_CORE_BACKING_STORE'])
+    elif driver == 'H5FD_CORE_INMEMORY':
+      image = params.get('H5FD_CORE_INMEMORY_IMAGE')
+      if pymode in ('r', 'r+') and not PyString_Check(image):
         raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as "
-                        "H5FD_CORE_INMEMORY_IMAGE  argument")
+                        "H5FD_CORE_INMEMORY_IMAGE argument")
 
-      self.mem_data.len = PyString_Size(params['H5FD_CORE_INMEMORY_IMAGE'])
-      self.mem_data.p = <void *>PyString_AsString(
+      H5Pset_fapl_core(access_plist,
+                       params['H5FD_CORE_INCREMENT'],
+                       params['H5FD_CORE_BACKING_STORE'])
+
+      if image:
+        self.mem_data.len = PyString_Size(params['H5FD_CORE_INMEMORY_IMAGE'])
+        self.mem_data.p = <void *>PyString_AsString(
                                             params['H5FD_CORE_INMEMORY_IMAGE'])
-
-      # XXX: import the H5LT_FILE_IMAGE_OPEN_RW from hdf5_hl.h
-      H5LT_FILE_IMAGE_OPEN_RW = 0x0001
-      if pymode in ('r+', 'a'):
-        flags = H5LT_FILE_IMAGE_OPEN_RW
+        H5Pset_file_image(access_plist, self.mem_data.p, self.mem_data.len)
       else:
-        flags = 0
-      self.file_id = H5LTopen_file_image_proxy(self.mem_data.p,
-                                               self.mem_data.len,
-                                               flags)
-      if self.file_id == -1:
-        raise HDF5ExtError("Can't open in-memory file.");
-    else:
-      if driver == 'H5FD_STDIO':
-        H5Pset_fapl_stdio(access_plist)
-      elif driver == 'H5FD_SEC2':
-        H5Pset_fapl_sec2(access_plist)
-      elif driver == 'H5FD_CORE':
-        H5Pset_fapl_core(access_plist,
-                         params['H5FD_CORE_INCREMENT'],
-                         params['H5FD_CORE_BACKING_STORE'])
-      elif driver == 'H5FD_CORE_INMEMORY':
-        H5Pset_fapl_core(access_plist,
-                         params['H5FD_CORE_INCREMENT'],
-                         params['H5FD_CORE_BACKING_STORE'])
         self.mem_data.len = 0
         self.mem_data.p = <void *>0
-        H5Pset_file_inmemory_callbacks(access_plist, &self.mem_data)
 
-      # Set parameters for chunk cache
-      H5Pset_cache(access_plist, 0,
-                   params['CHUNK_CACHE_NELMTS'],
-                   params['CHUNK_CACHE_SIZE'],
-                   params['CHUNK_CACHE_PREEMPT'])
-      if pymode == 'r':
-        self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)
-      elif pymode == 'r+':
+      H5Pset_file_inmemory_callbacks(access_plist, &self.mem_data)
+
+      if image:
+        H5Pset_file_image(access_plist, self.mem_data.p, self.mem_data.len)
+
+    # Set parameters for chunk cache
+    H5Pset_cache(access_plist, 0,
+                 params['CHUNK_CACHE_NELMTS'],
+                 params['CHUNK_CACHE_SIZE'],
+                 params['CHUNK_CACHE_PREEMPT'])
+
+    if pymode == 'r':
+      self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)
+    elif pymode == 'r+':
+      self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
+    elif pymode == 'a':
+      if exists:
+        # A test for logging.
+        ## H5Pset_sieve_buf_size(access_plist, 0)
+        ## H5Pset_fapl_log (access_plist, "test.log", H5FD_LOG_LOC_WRITE, 0)
         self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
-      elif pymode == 'a':
-        if exists:
-          # A test for logging.
-          ## H5Pset_sieve_buf_size(access_plist, 0)
-          ## H5Pset_fapl_log (access_plist, "test.log", H5FD_LOG_LOC_WRITE, 0)
-          self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
-        else:
-          self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
-                                   H5P_DEFAULT, access_plist)
-      elif pymode == 'w':
+      else:
         self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
                                  H5P_DEFAULT, access_plist)
+    elif pymode == 'w':
+      self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC,
+                               H5P_DEFAULT, access_plist)
 
     if self.file_id < 0:
         e = HDF5ExtError("Unable to open/create file '%s'" % name)
