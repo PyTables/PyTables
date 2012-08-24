@@ -289,6 +289,8 @@ The following drivers are not currently supported:
     If the user try to use a driver that is not available on the target
     platform a :exc:`RuntimeError` is raised.
 
+.. versionadded:: 3.0
+
 .. _`Drivers section`:
     http://www.hdfgroup.org/HDF5/doc/UG/08_TheFile.html#Drivers
 .. _`HDF5 User's Guide`: http://www.hdfgroup.org/HDF5/doc/UG/index.html
@@ -298,20 +300,34 @@ The following drivers are not currently supported:
 DRIVER_DIRECT_ALIGNMENT = 0
 """Specifies the required alignment boundary in memory.
 
-A value of 0 (zero) means to use HDF5 Library’s default value."""
+A value of 0 (zero) means to use HDF5 Library’s default value.
+
+.. versionadded:: 3.0
+
+"""
 
 DRIVER_DIRECT_BLOCK_SIZE = 0
 """Specifies the file system block size.
 
-A value of 0 (zero) means to use HDF5 Library’s default value of 4KB."""
+A value of 0 (zero) means to use HDF5 Library’s default value of 4KB.
+
+.. versionadded:: 3.0
+
+"""
 
 DRIVER_DIRECT_CBUF_SIZE = 0
 """Specifies the copy buffer size.
 
-A value of 0 (zero) means to use HDF5 Library’s default value."""
+A value of 0 (zero) means to use HDF5 Library’s default value.
+
+.. versionadded:: 3.0
+
+"""
 
 #DRIVER_LOG_FLAGS = 0x0001ffff
 #"""Flags specifying the types of logging activity.
+#
+#.. versionadded:: 3.0
 #
 #.. seeealso::
 #    http://www.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetFaplLog
@@ -326,14 +342,24 @@ A value of 0 (zero) means to use HDF5 Library’s default value."""
 #flags are set; these buffers will not grow as the file increases in
 #size.
 #
+#.. versionadded:: 3.0
+#
 #"""
 
 DRIVER_CORE_INCREMENT = 64 * _KB
-"""Specifies the increment by which allocated memory is to be increased
-each time more memory is required."""
+"""Core driver memory increment.
+
+Specifies the increment by which allocated memory is to be increased
+each time more memory is required.
+
+.. versionadded:: 3.0
+
+"""
 
 DRIVER_CORE_BACKING_STORE = 1
-"""With the H5FD_CORE driver, if the DRIVER_CORE_BACKING_STORE is set
+"""Enables backing store for the core driver.
+
+With the H5FD_CORE driver, if the DRIVER_CORE_BACKING_STORE is set
 to 1 (True), the file contents are flushed to a file with the same name
 as this core file when the file is closed or access to the file is
 terminated in memory.
@@ -348,11 +374,16 @@ when the file is closed. If the flags for :func:`tables.openFile` is
 set to H5F_ACC_RDONLY, no change to the file is allowed either in
 memory or on file.
 
+.. versionadded:: 3.0
+
 """
 
 H5FD_CORE_INMEMORY_IMAGE = None
-"""String containing an HDF5 formated file to be read when using
-H5FD_CORE_INMEMORY driver.
+"""String containing an HDF5 file image.
+
+.. note:: requires HDF5 >= 1.8.9.
+
+.. versionadded:: 3.0
 
 """
 

@@ -430,6 +430,14 @@ cdef class File:
 
   # XXX: add the possibility to pass a pre-allocated buffer
   def get_file_image(self):
+    """Retrieves an in-memory image of an existing, open HDF5 file.
+
+    This method requires HDF5 >= 1.8.9.
+
+    .. versionadded:: 3.0
+
+    """
+
     cdef ssize_t size = 0
     cdef size_t buf_len = 0
     cdef object image

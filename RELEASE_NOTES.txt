@@ -18,6 +18,12 @@ New features
   drivers and also set the main parameters (closes :issue:`166`).
   Thanks to Michal Slonina.
 
+- Basic support for in-memory image files.  An HDF5 file can be set from or
+  copied into a memory buffer (thanks to Michal Slonina).  This feature is
+  only available if PyTables is built against HDF5 1.8.9 or newer.
+  Closes :issue:`165` and :issue:`173`.
+
+
 API changes
 -----------
 

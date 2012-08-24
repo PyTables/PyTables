@@ -148,3 +148,5 @@ HDF5 driver management
 
 .. autodata:: DRIVER_CORE_BACKING_STORE
 
+.. autodata:: H5FD_CORE_INMEMORY_IMAGE
+

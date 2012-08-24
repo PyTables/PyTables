@@ -52,6 +52,8 @@ File methods - file handling
 
 .. automethod:: File.__repr__
 
+.. automethod:: File.get_file_image
+
 
 File methods - hierarchy manipulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
