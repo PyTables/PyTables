@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import unittest
-import os
 import tempfile
 import warnings
 import subprocess
@@ -2322,6 +2322,26 @@ class UnicodeFilename(common.PyTablesTestCase):
         self.assertNotEqual(tables.isPyTablesFile(self.h5fname), False)
 
 
+
+class FileSizeTestCase(common.PyTablesTestCase):
+    def test_get_filesize(self):
+        data = numpy.zeros((2000, 2000))
+        datasize = numpy.prod(data.shape) * data.dtype.itemsize
+
+        filename = tempfile.mktemp(".h5")
+
+        fileh = openFile(filename, mode="w")
+        fileh.createArray(fileh.root, 'array', data)
+        h5_filesize = fileh.get_filesize()
+        fileh.close()
+
+        fs_filesize = os.stat(filename)[6]
+        os.remove(filename)
+
+        self.assertTrue(h5_filesize >= datasize)
+        self.assertEqual(h5_filesize, fs_filesize)
+
+
 # Test for reading a file that uses Blosc and created on a big-endian platform
 class BloscBigEndian(common.PyTablesTestCase):
 
@@ -2713,6 +2733,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
+        theSuite.addTest(unittest.makeSuite(FileSizeTestCase))
         if blosc_avail:
             theSuite.addTest(unittest.makeSuite(BloscBigEndian))
         if multiprocessing_imported:

@@ -23,6 +23,8 @@ New features
   only available if PyTables is built against HDF5 1.8.9 or newer.
   Closes :issue:`165` and :issue:`173`.
 
+- New :meth:`File.get_filesize` method for retrieving the HDF5 file size.
+
 
 Deprecations
 ------------

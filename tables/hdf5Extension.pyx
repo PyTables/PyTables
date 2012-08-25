@@ -67,7 +67,7 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
   H5P_DEFAULT, H5P_FILE_ACCESS,
   H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
-  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle,
+  H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle, H5Fget_filesize,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
@@ -457,6 +457,26 @@ cdef class File:
                          "for image files.")
 
     return image
+
+
+  def get_filesize(self):
+    """Returns the size of an HDF5 file.
+
+    The returned size is that of the entire file, as opposed to only
+    the HDF5 portion of the file. I.e., size includes the user block,
+    if any, the HDF5 portion of the file, and any data that may have
+    been appended beyond the data written through the HDF5 Library.
+
+    """
+
+    cdef herr_t err = 0
+    cdef hsize_t size = 0
+
+    err = H5Fget_filesize(self.file_id, &size)
+    if err < 0:
+      raise HDF5ExtError("Unable to retrieve the HDF5 file size")
+
+    return size
 
 
   # Accessor definitions

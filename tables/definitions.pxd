@@ -278,6 +278,7 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Fflush(hid_t object_id, H5F_scope_t scope)
   herr_t H5Fget_vfd_handle(hid_t file_id, hid_t fapl_id, void **file_handle)
   ssize_t H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
+  herr_t H5Fget_filesize(hid_t file_id, hsize_t *size)
 
   # Operations with groups
   hid_t  H5Gcreate(hid_t loc_id, char *name, hid_t lcpl_id, hid_t gcpl_id,

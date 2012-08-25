@@ -54,6 +54,8 @@ File methods - file handling
 
 .. automethod:: File.get_file_image
 
+.. automethod:: File.get_filesize
+
 
 File methods - hierarchy manipulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
