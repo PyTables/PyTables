@@ -46,10 +46,10 @@
 
 #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR == 8 && H5_VERS_RELEASE >= 9) || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR > 8)
 /* HDF5 version >= 1.8.9 */
-#define HAVE_IMAGE_FILE 1
+#define H5_HAVE_IMAGE_FILE 1
 #else
 /* HDF5 version < 1.8.9 */
-#define HAVE_IMAGE_FILE 0
+#define H5_HAVE_IMAGE_FILE 0
 #endif
 
 /* Use %ld to print the value because long should cover most cases. */
@@ -117,10 +117,10 @@ hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step);
 
 herr_t truncate_dset( hid_t dataset_id, const int maindim, const hsize_t size);
 
-herr_t set_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size,
-                       size_t cbuf_size);
+herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
+                             size_t block_size, size_t cbuf_size);
 
-herr_t set_fapl_windows(hid_t fapl_id);
+herr_t pt_H5Pset_fapl_windows(hid_t fapl_id);
 
 herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len);
 

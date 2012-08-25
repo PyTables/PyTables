@@ -453,28 +453,31 @@ cdef extern from "H5ARRAY.h" nogil:
 
 
 # Some utilities
+cdef extern from "utils.h" nogil:
+  herr_t set_cache_size(hid_t file_id, size_t cache_size)
+  int get_objinfo(hid_t loc_id, char *name)
+  int get_linkinfo(hid_t loc_id, char *name)
+  hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step)
+  hid_t  create_ieee_float16(char *byteorder)
+  hid_t  create_ieee_complex64(char *byteorder)
+  hid_t  create_ieee_complex128(char *byteorder)
+  herr_t set_order(hid_t type_id, char *byteorder)
+  herr_t get_order(hid_t type_id, char *byteorder)
+  int    is_complex(hid_t type_id)
+  herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size)
+  herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
+                               size_t block_size, size_t cbuf_size)
+  herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
+  herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
+  ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
+  int H5_HAVE_DIRECT_DRIVER, H5_HAVE_WINDOWS_DRIVER, H5_HAVE_IMAGE_FILE
+
+
 cdef extern from "utils.h":
-  herr_t set_cache_size(hid_t file_id, size_t cache_size) nogil
-  int get_objinfo(hid_t loc_id, char *name) nogil
-  int get_linkinfo(hid_t loc_id, char *name) nogil
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   object H5UIget_info(hid_t loc_id, char *name, char *byteorder)
-  hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step) nogil
-  hid_t  create_ieee_float16(char *byteorder) nogil
-  hid_t  create_ieee_complex64(char *byteorder) nogil
-  hid_t  create_ieee_complex128(char *byteorder) nogil
-  herr_t set_order(hid_t type_id, char *byteorder) nogil
-  herr_t get_order(hid_t type_id, char *byteorder) nogil
-  int    is_complex(hid_t type_id) nogil
-  herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size) nogil
-  herr_t set_fapl_direct(hid_t fapl_id, size_t alignment, size_t block_size,
-                       size_t cbuf_size)
-  herr_t set_fapl_windows(hid_t fapl_id)
-  hid_t H5_HAVE_DIRECT_DRIVER, H5_HAVE_WINDOWS_DRIVER
-  herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) nogil
-  ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len) nogil
-  int HAVE_IMAGE_FILE
+
 
 # Type conversion routines
 cdef extern from "typeconv.h" nogil:

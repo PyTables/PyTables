@@ -84,9 +84,9 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5ARRAYget_ndims, H5ARRAYget_info,
   set_cache_size, get_objinfo, get_linkinfo, Giterate, Aiterate, H5UIget_info,
   get_len_of_range, conv_float64_timeval32, truncate_dset,
-  H5_HAVE_DIRECT_DRIVER, set_fapl_direct,
-  H5_HAVE_WINDOWS_DRIVER, set_fapl_windows,
-  pt_H5Pset_file_image, pt_H5Fget_file_image, HAVE_IMAGE_FILE)
+  H5_HAVE_DIRECT_DRIVER, pt_H5Pset_fapl_direct,
+  H5_HAVE_WINDOWS_DRIVER, pt_H5Pset_fapl_windows,
+  H5_HAVE_IMAGE_FILE, pt_H5Pset_file_image, pt_H5Fget_file_image)
 
 
 # Include conversion tables
@@ -308,7 +308,7 @@ cdef class File:
                       "the '%s' driver" % driver)
       elif not PyString_Check(image):
         raise TypeError("The DRIVER_CORE_IMAGE must be a string of bytes")
-      elif not HAVE_IMAGE_FILE:
+      elif not H5_HAVE_IMAGE_FILE:
         raise RuntimeError("Support for image files is only availabe in "
                            "HDF5 >= 1.8.9")
 
@@ -342,10 +342,10 @@ cdef class File:
       if H5_HAVE_DIRECT_DRIVER:
         H5Pclose(access_plist)
         raise RuntimeError("The H5FD_DIRECT driver is not available")
-      err = set_fapl_direct(access_plist,
-                            params["DRIVER_DIRECT_ALIGNMENT"],
-                            params["DRIVER_DIRECT_BLOCK_SIZE"],
-                            params["DRIVER_DIRECT_CBUF_SIZE"])
+      err = pt_H5Pset_fapl_direct(access_plist,
+                                  params["DRIVER_DIRECT_ALIGNMENT"],
+                                  params["DRIVER_DIRECT_BLOCK_SIZE"],
+                                  params["DRIVER_DIRECT_CBUF_SIZE"])
     #elif driver == "H5FD_LOG":
     #  if "DRIVER_LOG_FILE" not in params:
     #    H5Pclose(access_plist)
@@ -360,7 +360,7 @@ cdef class File:
       if H5_HAVE_WINDOWS_DRIVER:
         H5Pclose(access_plist)
         raise RuntimeError("The H5FD_WINDOWS driver is not available")
-      err = set_fapl_windows(access_plist)
+      err = pt_H5Pset_fapl_windows(access_plist)
     elif driver == "H5FD_STDIO":
       err = H5Pset_fapl_stdio(access_plist)
     elif driver == "H5FD_CORE":
