@@ -1443,7 +1443,7 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
     def setUp(self):
         self.h5fname = tempfile.mktemp(suffix=".h5")
         self.h5file = tables.openFile(self.h5fname, mode="w",
-                                      DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+                                      driver=self.DRIVER, **self.DRIVER_PARAMS)
 
         # Create an HDF5 file and contents
         root = self.h5file.root
@@ -1471,7 +1471,7 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
 
         # Open an existing HDF5 file
         self.h5file = tables.openFile(self.h5fname, mode="r",
-                                      DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+                                      driver=self.DRIVER, **self.DRIVER_PARAMS)
 
         # check contents
         root = self.h5file.root
@@ -1494,7 +1494,7 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
 
         # Open an existing HDF5 file in append mode
         self.h5file = tables.openFile(self.h5fname, mode="a",
-                                      DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+                                      driver=self.DRIVER, **self.DRIVER_PARAMS)
 
         # check contents
         root = self.h5file.root
@@ -1519,7 +1519,7 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
 
         # check contents
         self.h5file = tables.openFile(self.h5fname, mode="a",
-                                      DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+                                      driver=self.DRIVER, **self.DRIVER_PARAMS)
 
         root = self.h5file.root
 
@@ -1550,7 +1550,7 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
 
         # Open an existing HDF5 file in append mode
         self.h5file = tables.openFile(self.h5fname, mode="r+",
-                                      DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+                                      driver=self.DRIVER, **self.DRIVER_PARAMS)
 
         # check contents
         root = self.h5file.root
@@ -1574,7 +1574,7 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
 
         # check contents
         self.h5file = tables.openFile(self.h5fname, mode="r+",
-                                      DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+                                      driver=self.DRIVER, **self.DRIVER_PARAMS)
 
         root = self.h5file.root
 
@@ -1652,8 +1652,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.isfile(self.h5fname))
 
         self.h5file = tables.openFile(self.h5fname, mode="w",
-                                      DRIVER=self.DRIVER,
-                                      DRIVER_CORE_BACKING_STORE=False)
+                                      driver=self.DRIVER,
+                                      driver_core_backing_store=False)
 
         # Create an HDF5 file and contents
         root = self.h5file.root
@@ -1670,8 +1670,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
         # Create an HDF5 file and contents
         self.h5file = tables.openFile(self.h5fname, mode="w",
-                                      DRIVER=self.DRIVER,
-                                      DRIVER_CORE_BACKING_STORE=False)
+                                      driver=self.DRIVER,
+                                      driver_core_backing_store=False)
         root = self.h5file.root
         self.h5file.setNodeAttr(root, "testattr", 41)
         self.h5file.createArray(root, "array", [1, 2], title="array")
@@ -1697,8 +1697,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
         # Create an HDF5 file and contents
         self.h5file = tables.openFile(self.h5fname, mode="a",
-                                      DRIVER=self.DRIVER,
-                                      DRIVER_CORE_BACKING_STORE=False)
+                                      driver=self.DRIVER,
+                                      driver_core_backing_store=False)
         root = self.h5file.root
         self.h5file.setNodeAttr(root, "testattr", 41)
         self.h5file.createArray(root, "array", [1, 2], title="array")
@@ -1723,13 +1723,13 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.isfile(self.h5fname))
         self.assertRaises(HDF5ExtError,
                           tables.openFile, self.h5fname, mode="r+",
-                          DRIVER=self.DRIVER, DRIVER_CORE_BACKING_STORE=False)
+                          driver=self.DRIVER, driver_core_backing_store=False)
 
     def test_openNewFileR(self):
         self.assertFalse(os.path.isfile(self.h5fname))
         self.assertRaises(HDF5ExtError,
                           tables.openFile, self.h5fname, mode="r",
-                          DRIVER=self.DRIVER, DRIVER_CORE_BACKING_STORE=False)
+                          driver=self.DRIVER, driver_core_backing_store=False)
 
     def _create_file(self, filename):
         h5file = tables.openFile(filename, mode="w")
@@ -1748,8 +1748,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
         # Open an existing HDF5 file
         self.h5file = tables.openFile(self.h5fname, mode="r",
-                                      DRIVER=self.DRIVER,
-                                      DRIVER_CORE_BACKING_STORE=False)
+                                      driver=self.DRIVER,
+                                      driver_core_backing_store=False)
         root = self.h5file.root
 
         self.assertEqual(self.h5file.getNodeAttr(root, "testattr"), 41)
@@ -1784,8 +1784,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
         # Open an existing HDF5 file in append mode
         self.h5file = tables.openFile(self.h5fname, mode="a",
-                                      DRIVER=self.DRIVER,
-                                      DRIVER_CORE_BACKING_STORE=False)
+                                      driver=self.DRIVER,
+                                      driver_core_backing_store=False)
 
         # check contents
         root = self.h5file.root
@@ -1820,8 +1820,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
         # Open an existing HDF5 file in append mode
         self.h5file = tables.openFile(self.h5fname, mode="r+",
-                                      DRIVER=self.DRIVER,
-                                      DRIVER_CORE_BACKING_STORE=False)
+                                      driver=self.DRIVER,
+                                      driver_core_backing_store=False)
 
         # check contents
         root = self.h5file.root
@@ -1850,8 +1850,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
     if hdf5Version >= "1.8.9":
         def test_get_file_image(self):
             self.h5file = tables.openFile(self.h5fname, mode="w",
-                                          DRIVER=self.DRIVER,
-                                          DRIVER_CORE_BACKING_STORE=False)
+                                          driver=self.DRIVER,
+                                          driver_core_backing_store=False)
             root = self.h5file.root
             self.h5file.setNodeAttr(root, "testattr", 41)
             self.h5file.createArray(root, "array", [1, 2], title="array")
@@ -1881,7 +1881,7 @@ class NotSpportedDriverTestCase(common.PyTablesTestCase):
 
     def test_newFile(self):
         self.assertRaises(self.EXCEPTION, tables.openFile, self.h5fname,
-                          mode="w", DRIVER=self.DRIVER, **self.DRIVER_PARAMS)
+                          mode="w", driver=self.DRIVER, **self.DRIVER_PARAMS)
         self.assertFalse(os.path.isfile(self.h5fname))
 
 
@@ -1898,15 +1898,15 @@ class LogDriverTestCase(BaseLogDriverTestCase):
     def setUp(self):
         # local binding
         self.DRIVER_PARAMS = {
-            "DRIVER_LOG_FILE": tempfile.mktemp(suffix=".log")
+            "driver_log_file": tempfile.mktemp(suffix=".log")
         }
 
         super(LogDriverTestCase, self).setUp()
 
     def tearDown(self):
         super(LogDriverTestCase, self).tearDown()
-        if os.path.exists(self.DRIVER_PARAMS["DRIVER_LOG_FILE"]):
-            os.remove(self.DRIVER_PARAMS["DRIVER_LOG_FILE"])
+        if os.path.exists(self.DRIVER_PARAMS["driver_log_file"]):
+            os.remove(self.DRIVER_PARAMS["driver_log_file"])
 
 
 if HAVE_DIRECT_DRIVER:
@@ -1970,7 +1970,7 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
     def _create_image(self, filename="in-memory", title="Title", mode='w'):
         fileh = openFile(filename, mode=mode, title=title,
-                         DRIVER=self.DRIVER, DRIVER_CORE_BACKING_STORE=0)
+                         driver=self.DRIVER, driver_core_backing_store=0)
 
         try:
             fileh.createArray(fileh.root, 'array', [1, 2], title="Array")
@@ -2001,9 +2001,9 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         # Open an existing file
         self.h5file = openFile(self.h5fname, mode="r",
-                               DRIVER=self.DRIVER,
-                               DRIVER_CORE_IMAGE=image,
-                               DRIVER_CORE_BACKING_STORE=0)
+                               driver=self.DRIVER,
+                               driver_core_image=image,
+                               driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2022,9 +2022,9 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         # Open an existing file
         self.h5file = openFile(self.h5fname, mode="r+",
-                               DRIVER=self.DRIVER,
-                               DRIVER_CORE_IMAGE=image,
-                               DRIVER_CORE_BACKING_STORE=0)
+                               driver=self.DRIVER,
+                               driver_core_image=image,
+                               driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2052,9 +2052,9 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         # Open an existing file
         self.h5file = openFile(self.h5fname, mode="r+",
-                               DRIVER=self.DRIVER,
-                               DRIVER_CORE_IMAGE=image1,
-                               DRIVER_CORE_BACKING_STORE=0)
+                               driver=self.DRIVER,
+                               driver_core_image=image1,
+                               driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2083,9 +2083,9 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         # Open an existing file
         self.h5file = openFile(self.h5fname, mode="r",
-                               DRIVER=self.DRIVER,
-                               DRIVER_CORE_IMAGE=image2,
-                               DRIVER_CORE_BACKING_STORE=0)
+                               driver=self.DRIVER,
+                               driver_core_image=image2,
+                               driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2114,9 +2114,9 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         # Open an existing file
         self.h5file = openFile(self.h5fname, mode="a",
-                               DRIVER=self.DRIVER,
-                               DRIVER_CORE_IMAGE=image,
-                               DRIVER_CORE_BACKING_STORE=0)
+                               driver=self.DRIVER,
+                               driver_core_image=image,
+                               driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2140,9 +2140,9 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         # Open an existing file
         self.h5file = openFile(self.h5fname, mode="a",
-                               DRIVER=self.DRIVER,
-                               DRIVER_CORE_IMAGE=image1,
-                               DRIVER_CORE_BACKING_STORE=0)
+                               driver=self.DRIVER,
+                               driver_core_image=image1,
+                               driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2171,9 +2171,9 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         # Open an existing file
         self.h5file = openFile(self.h5fname, mode="r",
-                               DRIVER=self.DRIVER,
-                               DRIVER_CORE_IMAGE=image2,
-                               DRIVER_CORE_BACKING_STORE=0)
+                               driver=self.DRIVER,
+                               driver_core_image=image2,
+                               driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2198,8 +2198,8 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
     def test_str(self):
         self.h5file = openFile(self.h5fname, mode="w", title="Title",
-                               DRIVER=self.DRIVER,
-                               DRIVER_CORE_BACKING_STORE=0)
+                               driver=self.DRIVER,
+                               driver_core_backing_store=0)
 
         self.h5file.createArray(self.h5file.root, 'array', [1, 2],
                                 title="Array")

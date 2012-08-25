@@ -24,6 +24,16 @@ New features
   Closes :issue:`165` and :issue:`173`.
 
 
+Deprecations
+------------
+
+- The use of upper-case keyword arguments in the :func:`openFile` function
+  and the :class:`File` class initializer is now deprecated.  All parameters
+  defined in the :file:`tables/parameters.py` module can still be passed as
+  keyword argument to the :func:`openFile` function just using a lower-case
+  version of the parameter name.
+
+
 API changes
 -----------
 

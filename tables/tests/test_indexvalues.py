@@ -3117,7 +3117,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
 
     def test00_lrucache(self):
         filename = tempfile.mktemp(".h5")
-        fp = openFile(filename, 'w', NODE_CACHE_SLOTS=64)
+        fp = openFile(filename, 'w', node_cache_slots=64)
         ta = fp.createTable('/', 'table', self.Record, filters=Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
@@ -3139,7 +3139,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
 
     def test01_nocache(self):
         filename = tempfile.mktemp(".h5")
-        fp = openFile(filename, 'w', NODE_CACHE_SLOTS=0)
+        fp = openFile(filename, 'w', node_cache_slots=0)
         ta = fp.createTable('/', 'table', self.Record, filters=Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
@@ -3161,7 +3161,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
 
     def test02_dictcache(self):
         filename = tempfile.mktemp(".h5")
-        fp = openFile(filename, 'w', NODE_CACHE_SLOTS=-64)
+        fp = openFile(filename, 'w', node_cache_slots=-64)
         ta = fp.createTable('/', 'table', self.Record, filters=Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])

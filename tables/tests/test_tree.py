@@ -516,7 +516,7 @@ class DeepTreeTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         self.file = tempfile.mktemp(".h5")
-        fileh = openFile(self.file, mode = "w")
+        fileh = openFile(self.file, mode="w")
         group = fileh.root
         if common.verbose:
             print "Depth writing progress: ",
@@ -541,7 +541,7 @@ class DeepTreeTestCase(unittest.TestCase):
 
     def _check_tree(self, file):
         # Open the previous HDF5 file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = openFile(file, mode="r")
         group = fileh.root
         if common.verbose:
             print "\nDepth reading progress: ",
@@ -565,9 +565,9 @@ class DeepTreeTestCase(unittest.TestCase):
 
     def test01a_copyDeepTree(self):
         "Copy of a large depth object tree."
-        fileh = openFile(self.file, mode = "r")
+        fileh = openFile(self.file, mode="r")
         file2 = tempfile.mktemp(".h5")
-        fileh2 = openFile(file2, mode = "w")
+        fileh2 = openFile(file2, mode="w")
         if common.verbose:
             print "\nCopying deep tree..."
         fileh.copyNode(fileh.root, fileh2.root, recursive = True)
@@ -578,9 +578,9 @@ class DeepTreeTestCase(unittest.TestCase):
 
     def test01b_copyDeepTree(self):
         "Copy of a large depth object tree with small node cache."
-        fileh = openFile(self.file, mode = "r", NODE_MAX_SLOTS=10)
+        fileh = openFile(self.file, mode="r", node_cache_slots=10)
         file2 = tempfile.mktemp(".h5")
-        fileh2 = openFile(file2, mode = "w", NODE_MAX_SLOTS=10)
+        fileh2 = openFile(file2, mode="w", node_cache_slots=10)
         if common.verbose:
             print "\nCopying deep tree..."
         fileh.copyNode(fileh.root, fileh2.root, recursive = True)
@@ -591,9 +591,9 @@ class DeepTreeTestCase(unittest.TestCase):
 
     def test01c_copyDeepTree(self):
         "Copy of a large depth object tree with no node cache."
-        fileh = openFile(self.file, mode = "r", NODE_MAX_SLOTS=0)
+        fileh = openFile(self.file, mode="r", node_cache_slots=0)
         file2 = tempfile.mktemp(".h5")
-        fileh2 = openFile(file2, mode = "w", NODE_MAX_SLOTS=0)
+        fileh2 = openFile(file2, mode="w", node_cache_slots=0)
         if common.verbose:
             print "\nCopying deep tree..."
         fileh.copyNode(fileh.root, fileh2.root, recursive = True)
@@ -607,9 +607,9 @@ class DeepTreeTestCase(unittest.TestCase):
         # Do not execute this in heavy mode
         if common.heavy:
             return
-        fileh = openFile(self.file, mode = "r", NODE_MAX_SLOTS=-256)
+        fileh = openFile(self.file, mode = "r", node_cache_slots=-256)
         file2 = tempfile.mktemp(".h5")
-        fileh2 = openFile(file2, mode = "w", NODE_MAX_SLOTS=-256)
+        fileh2 = openFile(file2, mode = "w", node_cache_slots=-256)
         if common.verbose:
             print "\nCopying deep tree..."
         fileh.copyNode(fileh.root, fileh2.root, recursive = True)

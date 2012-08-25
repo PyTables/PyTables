@@ -80,8 +80,8 @@ if __name__=='__main__':
     if profile: tref = time()
     if profile: show_stats("Abans de crear...", tref)
     f = tables.openFile("/tmp/PTdeep-tree.h5", 'w',
-                        NODE_CACHE_SLOTS=nodeCacheSlots,
-                        PYTABLES_SYS_ATTRS=pytablesSysAttrs)
+                        node_cache_slots=nodeCacheSlots,
+                        pytables_sys_attrs=pytablesSysAttrs)
     if doprofile:
         prof.run('populate(f, nlevels)', 'populate.prof')
         stats = pstats.Stats('populate.prof')
@@ -99,8 +99,8 @@ if __name__=='__main__':
     if profile: tref = time()
     if profile: show_stats("Abans d'obrir...", tref)
     f = tables.openFile("/tmp/PTdeep-tree.h5", 'r',
-                        NODE_CACHE_SLOTS=nodeCacheSlots,
-                        PYTABLES_SYS_ATTRS=pytablesSysAttrs)
+                        node_cache_slots=nodeCacheSlots,
+                        pytables_sys_attrs=pytablessysattrs)
     if profile: show_stats("Abans d'accedir...", tref)
     if doprofile:
         prof.run('getnode(f, nlevels, niter, range_)', 'getnode.prof')

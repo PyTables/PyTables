@@ -31,10 +31,10 @@ _MB = 1024 * _KB
 BOUNDS_MAX_SIZE = 1 * _MB
 """The maximum size for bounds values cached during index lookups."""
 
-BOUNDS_MAX_SLOTS = 4 * 1024
+BOUNDS_MAX_SLOTS = 4 * _KB
 """The maximum number of slots for the BOUNDS cache."""
 
-ITERSEQ_MAX_ELEMENTS = 1024
+ITERSEQ_MAX_ELEMENTS = 1 * _KB
 """The maximum number of iterator elements cached in data lookups."""
 
 ITERSEQ_MAX_SIZE = 1 * _MB
@@ -61,7 +61,7 @@ SORTEDLR_MAX_SIZE = 8 * _MB
 """The maximum size for chunks in last row cached in index lookups (in
 bytes)."""
 
-SORTEDLR_MAX_SLOTS = 1024
+SORTEDLR_MAX_SLOTS = 1 * _KB
 """The maximum number of chunks for SORTEDLR cache."""
 
 
@@ -106,16 +106,16 @@ MAX_COLUMNS = 512
 arbitrary and can be increased.
 """
 
-MAX_NODE_ATTRS = 4096
+MAX_NODE_ATTRS = 4 * _KB
 """Maximum allowed number of attributes in a node."""
 
-MAX_GROUP_WIDTH = 16384
+MAX_GROUP_WIDTH = 16 * _KB
 """Maximum allowed number of children hanging from a group."""
 
-MAX_TREE_DEPTH = 2048
+MAX_TREE_DEPTH = 2 * _KB
 """Maximum depth in object tree allowed."""
 
-MAX_UNDO_PATH_LENGTH = 10240
+MAX_UNDO_PATH_LENGTH = 10 * _KB
 """Maximum length of paths allowed in undo/redo operations."""
 
 

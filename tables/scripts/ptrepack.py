@@ -94,7 +94,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
         dstleaf = srcNode.name
     # Check whether the destination group exists or not
     if os.path.isfile(dstfile) and not overwritefile:
-        dstfileh = openFile(dstfile, 'a', PYTABLES_SYS_ATTRS=createsysattrs)
+        dstfileh = openFile(dstfile, 'a', pytables_sys_attrs=createsysattrs)
         try:
             dstGroup = dstfileh.getNode(dstgroup)
         except:
@@ -120,7 +120,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
     else:
         # The destination file does not exist or will be overwritten.
         dstfileh = openFile(dstfile, 'w', title=title, filters=filters,
-                            PYTABLES_SYS_ATTRS=createsysattrs)
+                            pytables_sys_attrs=createsysattrs)
         dstGroup = newdstGroup(dstfileh, dstgroup, title="", filters=filters)
 
     # Finally, copy srcNode to dstNode
@@ -172,7 +172,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
     created_dstGroup = False
     # Check whether the destination group exists or not
     if os.path.isfile(dstfile) and not overwritefile:
-        dstfileh = openFile(dstfile, 'a', PYTABLES_SYS_ATTRS=createsysattrs)
+        dstfileh = openFile(dstfile, 'a', pytables_sys_attrs=createsysattrs)
         try:
             dstGroup = dstfileh.getNode(dstgroup)
         except:
@@ -199,7 +199,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
     else:
         # The destination file does not exist or will be overwritten.
         dstfileh = openFile(dstfile, 'w', title=title, filters=filters,
-                            PYTABLES_SYS_ATTRS=createsysattrs)
+                            pytables_sys_attrs=createsysattrs)
         dstGroup = newdstGroup(dstfileh, dstgroup, title="", filters=filters)
         created_dstGroup = True
 

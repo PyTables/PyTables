@@ -506,7 +506,7 @@ class BasicTestCase(PyTablesTestCase):
             print "Running %s.test10c_moveIndex..." % self.__class__.__name__
 
         # Open the HDF5 file in read-write mode
-        self.fileh = openFile(self.file, mode = "a", NODE_CACHE_SLOTS=10)
+        self.fileh = openFile(self.file, mode = "a", node_cache_slots=10)
         table = self.fileh.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -544,7 +544,7 @@ class BasicTestCase(PyTablesTestCase):
             print "Running %s.test10d_moveIndex..." % self.__class__.__name__
 
         # Open the HDF5 file in read-write mode
-        self.fileh = openFile(self.file, mode = "a", NODE_CACHE_SLOTS=0)
+        self.fileh = openFile(self.file, mode = "a", node_cache_slots=0)
         table = self.fileh.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -1574,7 +1574,7 @@ class ManyNodesTestCase(PyTablesTestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, "w", NODE_CACHE_SLOTS=64)
+        self.fileh = openFile(self.file, "w", node_cache_slots=64)
 
     def test00(self):
         """Indexing many nodes in one single session (based on bug #26)"""

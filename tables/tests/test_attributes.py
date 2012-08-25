@@ -31,7 +31,7 @@ class CreateTestCase(unittest.TestCase):
         # Create an instance of HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(
-            self.file, mode = "w", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+            self.file, mode = "w", node_cache_slots=self.nodeCacheSlots)
         self.root = self.fileh.root
 
         # Create a table object
@@ -69,7 +69,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         self.assertEqual(self.fileh.getNodeAttr(self.root.agroup, 'attr1'),
@@ -96,7 +96,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         self.assertEqual(self.root.agroup._f_getAttr('attr1'), "p" * attrlength)
@@ -119,7 +119,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         # This should work even when the node cache is disabled
@@ -156,7 +156,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -210,7 +210,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -253,7 +253,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -310,7 +310,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -358,7 +358,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -390,7 +390,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         atable = self.root.atable
@@ -427,7 +427,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         atable = self.root.atable
@@ -464,7 +464,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         agroup2 = self.root.agroup2
@@ -489,7 +489,7 @@ class CreateTestCase(unittest.TestCase):
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(
-                self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+                self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
             self.root = self.fileh.root
 
         atable2 = self.root.atable2
@@ -1462,7 +1462,7 @@ class NoSysAttrsTestCase(unittest.TestCase):
         # Create an instance of HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(
-            self.file, mode = "w", PYTABLES_SYS_ATTRS=False)
+            self.file, mode = "w", pytables_sys_attrs=False)
         self.root = self.fileh.root
 
         # Create a table object

@@ -19,11 +19,11 @@ memory. File class offer methods to traverse the tree, as well as to
 create new nodes.
 """
 
-import warnings
-import time
-import os, os.path
+import os
 import sys
+import time
 import weakref
+import warnings
 
 import numexpr
 
@@ -185,8 +185,9 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
 
     Notes
     -----
-    In addition, it recognizes the names of parameters present in
-    :file:`tables/parameters.py` as additional keyword arguments.
+    In addition, it recognizes the (lowercase) names of parameters
+    present in :file:`tables/parameters.py` as additional keyword
+    arguments.
     See :ref:`parameter_files` for a detailed info on the supported
     parameters.
 
@@ -379,8 +380,9 @@ class File(hdf5Extension.File, object):
 
     Notes
     -----
-    In addition, it recognizes the names of parameters present in
-    :file:`tables/parameters.py` as additional keyword arguments.
+    In addition, it recognizes the (lowercase) names of parameters
+    present in :file:`tables/parameters.py` as additional keyword
+    arguments.
     See :ref:`parameter_files` for a detailed info on the supported
     parameters.
 
@@ -464,6 +466,11 @@ class File(hdf5Extension.File, object):
         params = dict([(k, v) for k, v in parameters.__dict__.iteritems()
                        if k.isupper() and not k.startswith('_')])
         # Update them with possible keyword arguments
+        if [k for k in kwargs if k.isupper()]:
+            warnings.warn("The use of uppercase keyword parameters is "
+                          "deprecated", DeprecationWarning)
+
+        kwargs = dict([(k.upper(), v) for k, v in kwargs.iteritems()])
         params.update(kwargs)
 
         # If MAX_*_THREADS is not set yet, set it to the number of cores
