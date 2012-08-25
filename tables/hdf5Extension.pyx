@@ -258,7 +258,6 @@ _supported_drivers = (
     #"H5FD_MPIO",
     #"H5FD_MPIPOSIX",
     #"H5FD_STREAM",
-    "H5FD_CORE_INMEMORY",
 )
 
 HAVE_DIRECT_DRIVER = bool(H5_HAVE_DIRECT_DRIVER)
@@ -302,25 +301,39 @@ cdef class File:
            "passed the ``checkFileAccess()`` test; "
            "please report this to the authors" % pymode)
 
+    image = params.get('DRIVER_CORE_IMAGE')
+    if image:
+      if driver != "H5FD_CORE":
+        warnings.warn("The DRIVER_CORE_IMAGE parameter will be ignored by "
+                      "the '%s' driver" % driver)
+      elif not PyString_Check(image):
+        raise TypeError("The DRIVER_CORE_IMAGE must be a string of bytes")
+      elif not HAVE_IMAGE_FILE:
+        raise RuntimeError("Support for image files is only availabe in "
+                           "HDF5 >= 1.8.9")
+
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
     # But only if we are using file backed storage.
-    if ((driver != 'H5FD_CORE_INMEMORY') and
-        (driver != "H5FD_CORE" or params.get("DRIVER_CORE_BACKING_STORE", True))):
+    backing_store = params.get("DRIVER_CORE_BACKING_STORE", 1)
+    if driver != "H5FD_CORE" or backing_store:
       checkFileAccess(name, pymode)
 
     # Should a new file be created?
-    if driver != 'H5FD_CORE_INMEMORY':
-      exists = os.path.exists(name)
+    if image:
+      exists = True
     else:
-      if PyString_Check(params['H5FD_CORE_INMEMORY_IMAGE']):
-        exists = True
-      else:
-        exists = False
+      exists = os.path.exists(name)
     self._v_new = not (pymode in ('r', 'r+') or (pymode == 'a' and exists))
 
     # File access property list
     access_plist = H5Pcreate(H5P_FILE_ACCESS)
+
+    # Set parameters for chunk cache
+    H5Pset_cache(access_plist, 0,
+                 params["CHUNK_CACHE_NELMTS"],
+                 params["CHUNK_CACHE_SIZE"],
+                 params["CHUNK_CACHE_PREEMPT"])
 
     # Set the I/O driver
     if driver == "H5FD_SEC2":
@@ -353,24 +366,9 @@ cdef class File:
     elif driver == "H5FD_CORE":
       err = H5Pset_fapl_core(access_plist,
                              params["DRIVER_CORE_INCREMENT"],
-                             params["DRIVER_CORE_BACKING_STORE"])
-    elif driver == 'H5FD_CORE_INMEMORY':
-      image = params.get('H5FD_CORE_INMEMORY_IMAGE')
-
-      if not HAVE_IMAGE_FILE:
-        raise RuntimeError("Support for image files is only availabe in "
-                           "HDF5 >= 1.8.9")
-
-      if pymode in ('r', 'r+') and not PyString_Check(image):
-        raise TypeError("H5FD_CORE_INMEMORY driver needs a string passed as "
-                        "H5FD_CORE_INMEMORY_IMAGE argument")
-
-      err = H5Pset_fapl_core(access_plist,
-                             params["DRIVER_CORE_INCREMENT"],
-                             params["DRIVER_CORE_BACKING_STORE"])
-
+                             backing_store)
       if image:
-        img_buf_len = len(params['H5FD_CORE_INMEMORY_IMAGE'])
+        img_buf_len = len(image)
         img_buf_p = <void *>PyString_AsString(image)
         err = pt_H5Pset_file_image(access_plist, img_buf_p, img_buf_len)
         if err < 0:
@@ -390,12 +388,6 @@ cdef class File:
       e = HDF5ExtError("Unable to set the file access property list")
       H5Pclose(access_plist)
       raise e
-
-    # Set parameters for chunk cache
-    H5Pset_cache(access_plist, 0,
-                 params["CHUNK_CACHE_NELMTS"],
-                 params["CHUNK_CACHE_SIZE"],
-                 params["CHUNK_CACHE_PREEMPT"])
 
     if pymode == 'r':
       self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)

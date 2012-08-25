@@ -378,7 +378,7 @@ memory or on file.
 
 """
 
-H5FD_CORE_INMEMORY_IMAGE = None
+DRIVER_CORE_IMAGE = None
 """String containing an HDF5 file image.
 
 .. note:: requires HDF5 >= 1.8.9.
