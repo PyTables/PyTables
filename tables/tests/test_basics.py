@@ -2322,24 +2322,76 @@ class UnicodeFilename(common.PyTablesTestCase):
         self.assertNotEqual(tables.isPyTablesFile(self.h5fname), False)
 
 
+class FilePropertyTestCase(common.PyTablesTestCase):
+    def setUp(self):
+        self.h5fname = tempfile.mktemp(".h5")
+        self.h5file = None
 
-class FileSizeTestCase(common.PyTablesTestCase):
+    def tearDown(self):
+        if self.h5file:
+            self.h5file.close()
+
+        if os.path.exists(self.h5fname):
+            os.remove(self.h5fname)
+
     def test_get_filesize(self):
         data = numpy.zeros((2000, 2000))
         datasize = numpy.prod(data.shape) * data.dtype.itemsize
 
-        filename = tempfile.mktemp(".h5")
+        self.h5file = openFile(self.h5fname, mode="w")
+        self.h5file.createArray(self.h5file.root, 'array', data)
+        h5_filesize = self.h5file.get_filesize()
+        self.h5file.close()
 
-        fileh = openFile(filename, mode="w")
-        fileh.createArray(fileh.root, 'array', data)
-        h5_filesize = fileh.get_filesize()
-        fileh.close()
-
-        fs_filesize = os.stat(filename)[6]
-        os.remove(filename)
+        fs_filesize = os.stat(self.h5fname)[6]
 
         self.assertTrue(h5_filesize >= datasize)
         self.assertEqual(h5_filesize, fs_filesize)
+
+    def test01_null_userblock_size(self):
+        self.h5file = openFile(self.h5fname, mode="w")
+        self.h5file.createArray(self.h5file.root, 'array', [1, 2])
+        self.assertEqual(self.h5file.get_userblock_size(), 0)
+
+    def test02_null_userblock_size(self):
+        self.h5file = openFile(self.h5fname, mode="w")
+        self.h5file.createArray(self.h5file.root, 'array', [1, 2])
+        self.h5file.close()
+        self.h5file = openFile(self.h5fname, mode="r")
+        self.assertEqual(self.h5file.get_userblock_size(), 0)
+
+    def test03_null_userblock_size(self):
+        USER_BLOCK_SIZE = 0
+        self.h5file = openFile(self.h5fname, mode="w",
+                               user_block_size=USER_BLOCK_SIZE)
+        self.h5file.createArray(self.h5file.root, 'array', [1, 2])
+        self.assertEqual(self.h5file.get_userblock_size(), 0)
+
+    def test01_userblock_size(self):
+        USER_BLOCK_SIZE = 512
+        self.h5file = openFile(self.h5fname, mode="w",
+                               user_block_size=USER_BLOCK_SIZE)
+        self.h5file.createArray(self.h5file.root, 'array', [1, 2])
+        self.assertEqual(self.h5file.get_userblock_size(), USER_BLOCK_SIZE)
+
+    def test02_userblock_size(self):
+        USER_BLOCK_SIZE = 512
+        self.h5file = openFile(self.h5fname, mode="w",
+                               user_block_size=USER_BLOCK_SIZE)
+        self.h5file.createArray(self.h5file.root, 'array', [1, 2])
+        self.h5file.close()
+        self.h5file = openFile(self.h5fname, mode="r")
+        self.assertEqual(self.h5file.get_userblock_size(), USER_BLOCK_SIZE)
+
+    def test_small_userblock_size(self):
+        USER_BLOCK_SIZE = 12
+        self.assertRaises(ValueError, openFile, self.h5fname, mode="w",
+                          user_block_size=USER_BLOCK_SIZE)
+
+    def test_invalid_userblock_size(self):
+        USER_BLOCK_SIZE = 1025
+        self.assertRaises(ValueError, openFile, self.h5fname, mode="w",
+                          user_block_size=USER_BLOCK_SIZE)
 
 
 # Test for reading a file that uses Blosc and created on a big-endian platform
@@ -2733,7 +2785,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
-        theSuite.addTest(unittest.makeSuite(FileSizeTestCase))
+        theSuite.addTest(unittest.makeSuite(FilePropertyTestCase))
         if blosc_avail:
             theSuite.addTest(unittest.makeSuite(BloscBigEndian))
         if multiprocessing_imported:

@@ -279,6 +279,7 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Fget_vfd_handle(hid_t file_id, hid_t fapl_id, void **file_handle)
   ssize_t H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
   herr_t H5Fget_filesize(hid_t file_id, hsize_t *size)
+  hid_t H5Fget_create_plist(hid_t file_id)
 
   # Operations with groups
   hid_t  H5Gcreate(hid_t loc_id, char *name, hid_t lcpl_id, hid_t gcpl_id,
@@ -410,6 +411,8 @@ cdef extern from "hdf5.h" nogil:
   #herr_t H5Pset_fapl_mpiposix(hid_t fapl_id, MPI_Comm comm,
   #                            hbool_t use_gpfs_hints)
   herr_t H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
+  herr_t H5Pget_userblock(hid_t plist, hsize_t *size)
+  herr_t H5Pset_userblock(hid_t plist, hsize_t size)
 
   # Error Handling Interface
   #herr_t H5Eget_auto(hid_t estack_id, H5E_auto_t *func, void** data)

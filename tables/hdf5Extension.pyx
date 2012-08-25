@@ -65,15 +65,16 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5L_TYPE_ERROR, H5L_TYPE_HARD, H5L_TYPE_SOFT, H5L_TYPE_EXTERNAL,
   H5T_class_t, H5T_sign_t, H5T_NATIVE_INT,
   H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
-  H5P_DEFAULT, H5P_FILE_ACCESS,
+  H5P_DEFAULT, H5P_FILE_ACCESS, H5P_FILE_CREATE,
   H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
   H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle, H5Fget_filesize,
+  H5Fget_create_plist,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete,
-  H5Pcreate, H5Pset_cache, H5Pclose,
+  H5Pcreate, H5Pset_cache, H5Pclose, H5Pget_userblock, H5Pset_userblock,
   H5Pset_fapl_sec2, H5Pset_fapl_log, H5Pset_fapl_stdio, H5Pset_fapl_core,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
@@ -274,7 +275,8 @@ cdef class File:
 
   def _g_new(self, name, pymode, **params):
     cdef herr_t err = 0
-    cdef size_t img_buf_len = 0
+    cdef hid_t access_plist, create_plist = H5P_DEFAULT
+    cdef size_t img_buf_len = 0, user_block_size = 0
     cdef void *img_buf_p = NULL
 
     #cdef bytes logfile_name
@@ -326,6 +328,24 @@ cdef class File:
       exists = os.path.exists(name)
     self._v_new = not (pymode in ('r', 'r+') or (pymode == 'a' and exists))
 
+    user_block_size = params.get("USER_BLOCK_SIZE", 0)
+    if user_block_size and not self._v_new:
+        warnings.warn("The HDF5 file already esists: the USER_BLOCK_SIZE "
+                      "will be ignored")
+    elif user_block_size:
+      user_block_size = int(user_block_size)
+      is_pow_of_2 = ((user_block_size & (user_block_size - 1)) == 0)
+      if user_block_size < 512 or not is_pow_of_2:
+        raise ValueError("The USER_BLOCK_SIZE must be a power od 2 greather "
+                         "than 512 or zero")
+
+      # File creation property list
+      create_plist = H5Pcreate(H5P_FILE_CREATE)
+      err = H5Pset_userblock(create_plist, user_block_size)
+      if err < 0:
+        H5Pclose(create_plist)
+        raise HDF5ExtError("Unable to set the user block size")
+
     # File access property list
     access_plist = H5Pcreate(H5P_FILE_ACCESS)
 
@@ -340,6 +360,7 @@ cdef class File:
       err = H5Pset_fapl_sec2(access_plist)
     elif driver == "H5FD_DIRECT":
       if H5_HAVE_DIRECT_DRIVER:
+        H5Pclose(create_plist)
         H5Pclose(access_plist)
         raise RuntimeError("The H5FD_DIRECT driver is not available")
       err = pt_H5Pset_fapl_direct(access_plist,
@@ -359,6 +380,7 @@ cdef class File:
     elif driver == "H5FD_WINDOWS":
       if H5_HAVE_WINDOWS_DRIVER:
         H5Pclose(access_plist)
+        H5Pclose(create_plist)
         raise RuntimeError("The H5FD_WINDOWS driver is not available")
       err = pt_H5Pset_fapl_windows(access_plist)
     elif driver == "H5FD_STDIO":
@@ -372,6 +394,8 @@ cdef class File:
         img_buf_p = <void *>PyString_AsString(image)
         err = pt_H5Pset_file_image(access_plist, img_buf_p, img_buf_len)
         if err < 0:
+          H5Pclose(create_plist)
+          H5Pclose(access_plist)
           raise HDF5ExtError("Unable to set the file image")
 
     #elif driver == "H5FD_FAMILY":
@@ -386,6 +410,7 @@ cdef class File:
     #                          raw_plist_id)
     if err < 0:
       e = HDF5ExtError("Unable to set the file access property list")
+      H5Pclose(create_plist)
       H5Pclose(access_plist)
       raise e
 
@@ -400,17 +425,19 @@ cdef class File:
         ## H5Pset_fapl_log (access_plist, "test.log", H5FD_LOG_LOC_WRITE, 0)
         self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
       else:
-        self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC, H5P_DEFAULT,
+        self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC, create_plist,
                                  access_plist)
     elif pymode == 'w':
-      self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC, H5P_DEFAULT,
+      self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC, create_plist,
                                access_plist)
 
     if self.file_id < 0:
         e = HDF5ExtError("Unable to open/create file '%s'" % name)
+        H5Pclose(create_plist)
         H5Pclose(access_plist)
         raise e
 
+    H5Pclose(create_plist)
     H5Pclose(access_plist)
 
     # Set the cache size
@@ -475,6 +502,27 @@ cdef class File:
     err = H5Fget_filesize(self.file_id, &size)
     if err < 0:
       raise HDF5ExtError("Unable to retrieve the HDF5 file size")
+
+    return size
+
+
+  def get_userblock_size(self):
+    """Retrieves the size of a user block."""
+
+    cdef herr_t err = 0
+    cdef hsize_t size = 0
+    cdef hid_t create_plist
+
+    create_plist = H5Fget_create_plist(self.file_id)
+    if create_plist < 0:
+      raise HDF5ExtError("Unable to get the creation property list")
+
+    err = H5Pget_userblock(create_plist, &size)
+    if err < 0:
+      H5Pclose(create_plist)
+      raise HDF5ExtError("unable to retrieve the user block size")
+
+    H5Pclose(create_plist)
 
     return size
 

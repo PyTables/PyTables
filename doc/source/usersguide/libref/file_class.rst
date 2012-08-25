@@ -56,6 +56,8 @@ File methods - file handling
 
 .. automethod:: File.get_filesize
 
+.. automethod:: File.get_userblock_size
+
 
 File methods - hierarchy manipulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

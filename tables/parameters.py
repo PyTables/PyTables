@@ -219,6 +219,17 @@ your machine. In general, it is a good idea to set this to the number of
 cores in your machine or, when your machine has many of them (e.g. > 4),
 perhaps one less than this."""
 
+USER_BLOCK_SIZE = 0
+"""Sets the user block size of a file.
+
+The default user block size is 0; it may be set to any power of 2 equal
+to 512 or greater (512, 1024, 2048, etc.).
+
+.. versionadded:: 3.0
+
+"""
+
+
 # HDF5 driver management
 # ----------------------
 DRIVER = None
