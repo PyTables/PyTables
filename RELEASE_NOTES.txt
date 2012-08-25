@@ -25,6 +25,9 @@ New features
 
 - New :meth:`File.get_filesize` method for retrieving the HDF5 file size.
 
+- Implemented methods to get/set the user block size in a HDF5 file
+  (closes :issue:`123`)
+
 
 Deprecations
 ------------
