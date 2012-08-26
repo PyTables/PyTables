@@ -20,4 +20,4 @@ Contents
     tailoring_atexit_hooks
     custom_data_types
     simple_table
-
+    inmemory_hdf5_files
