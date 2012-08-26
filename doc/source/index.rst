@@ -33,16 +33,16 @@ Contents
 .. toctree::
     :maxdepth: 1
 
-    downloads
-    usersguide/index
+    User’s Guide <usersguide/index>
+    Cookbook <cookbook/index>
     FAQ
-    MIGRATING_TO_2.x
-    cookbook/index
     other_material
-    release_notes
+    Migrating from 1.x to 2.x <MIGRATING_TO_2.x>
+    downloads
+    Release Notes <release_notes>
     project_pointers
-    development
-    dev_team
+    Development <development>
+    Governance Team <dev_team>
 
 
 =============
