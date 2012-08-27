@@ -7,6 +7,7 @@
 
 .. py:currentmodule:: tables
 
+
 Changes from 2.4 to X.Y.Z (in development)
 ==========================================
 
@@ -67,7 +68,19 @@ Many deprecated features and support for obsolete modules has been dropped:
 Bugs fixed
 ----------
 
-- Better check access on closed files (closes: _issue:`62`)
+- Better check access on closed files (closes: :issue:`62`)
+
+
+Other changes
+-------------
+
+- Packaging: since this release the standard tar-ball package no more includes
+  the PDF version of the "PyTables User Guide", so it is a little bit smaller
+  now.  The complete and pre-build version of the documentation both in HTML
+  and PDF format is available on the file `download area`_ on SourceForge.net.
+  Closes: :issue:`172`.
+
+.. _`download area`: http://sourceforge.net/projects/pytables/files/pytables
 
 
 Changes from 2.3.1 to 2.4
