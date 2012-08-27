@@ -20,21 +20,58 @@ to efficiently cope with extremely large amounts of data.
 """
 
 
-import sys, os
-if os.name == 'nt':
-    module_path = os.path.abspath(os.path.dirname(__file__))
-    os.environ['PATH'] = ';'.join((os.environ['PATH'], module_path))
-    sys.path.append(module_path)
+import os
 
-# In order to improve diagnosis of a common Windows dependency
-# issue, we explicitly test that we can load the HDF5 dll before
-# loading tables.utilsExtensions.
+# On Windows, pre-load the HDF5 DLLs into the process via Ctypes
+# to improve diagnostics and avoid issues when loading DLLs during runtime.
 if os.name == 'nt':
-    import ctypes.util
+    import ctypes
 
-    if not ctypes.util.find_library('hdf5dll.dll'):
-        raise ImportError('Could not load "hdf5dll.dll", please ensure' +
-                ' that it can be found in the system path')
+    def _load_library(dllname, loadfunction, dllpaths=['']):
+        """Load a DLL via ctypes load function. Return None on failure.
+
+        By default, try to load the DLL from the current package directory
+        first, then from the Windows DLL search path.
+
+        """
+        try:
+            dllpaths = [os.path.abspath(os.path.dirname(__file__))] + dllpaths
+        except NameError:
+            pass  # PyPy and frozen distributions have no __file__ attribute
+        for path in dllpaths:
+            if path:
+                # Temporarily add the path to the PATH environment variable
+                # so Windows can find additional DLL dependencies.
+                try:
+                    oldenv = os.environ['PATH']
+                    os.environ['PATH'] = path + ';' + oldenv
+                except KeyError:
+                    oldenv = None
+                dllname = os.path.join(path, dllname)
+            try:
+                return loadfunction(dllname)
+            except WindowsError:
+                pass
+            finally:
+                if path and oldenv is not None:
+                    os.environ['PATH'] = oldenv
+        return None
+
+    # In order to improve diagnosis of a common Windows dependency
+    # issue, we explicitly test that we can load the HDF5 dll before
+    # loading tables.utilsExtensions.
+    if not _load_library('hdf5dll.dll', ctypes.cdll.LoadLibrary):
+        raise ImportError(
+            'Could not load "hdf5dll.dll", please ensure'
+            ' that it can be found in the system path')
+
+    # Some PyTables binary distributions place the dependency DLLs in the
+    # tables package directory.
+    # Lzo2.dll is loaded dynamically at runtime but can't be found because
+    # the package directory is not in the Windows DLL search path.
+    # This pre-loads lzo2.dll from the tables package directory.
+    if not _load_library('lzo2.dll', ctypes.cdll.LoadLibrary):
+        pass
 
 
 # Necessary imports to get versions stored on the cython extension
