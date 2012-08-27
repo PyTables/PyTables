@@ -451,7 +451,7 @@ cdef class File:
   def get_file_image(self):
     """Retrieves an in-memory image of an existing, open HDF5 file.
 
-    This method requires HDF5 >= 1.8.9.
+    .. note:: this method requires HDF5 >= 1.8.9.
 
     .. versionadded:: 3.0
 
@@ -494,6 +494,8 @@ cdef class File:
     if any, the HDF5 portion of the file, and any data that may have
     been appended beyond the data written through the HDF5 Library.
 
+    .. versionadded:: 3.0
+
     """
 
     cdef herr_t err = 0
@@ -507,7 +509,11 @@ cdef class File:
 
 
   def get_userblock_size(self):
-    """Retrieves the size of a user block."""
+    """Retrieves the size of a user block.
+
+    .. versionadded:: 3.0
+
+    """
 
     cdef herr_t err = 0
     cdef hsize_t size = 0
@@ -1503,7 +1509,8 @@ cdef class Array(Leaf):
                                    start, step, count, rbuf)
 
     if ret < 0:
-      raise HDF5ExtError("Internal error modifying the elements (H5ARRAYwrite_records returned errorcode -%i)"%(-ret))
+      raise HDF5ExtError("Internal error modifying the elements "
+                "(H5ARRAYwrite_records returned errorcode -%i)" % (-ret))
 
     return
 
