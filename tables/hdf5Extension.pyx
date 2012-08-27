@@ -619,7 +619,9 @@ cdef class AttributeSet:
     # Check if value is a NumPy ndarray and of a supported type
     if (isinstance(value, numpy.ndarray) and
         value.dtype.kind in ('V', 'S', 'b', 'i', 'u', 'f', 'c')):
-      value = numpy.array(value)  # to get a contiguous array.  Fixes #270.
+      # get a contiguous array: fixes #270 and gh-176
+      #value = numpy.ascontiguousarray(value)  
+      value = value.copy()
       if value.dtype.kind == 'V':
         description, rabyteorder = descr_from_dtype(value.dtype)
         byteorder = byteorders[rabyteorder]

@@ -2,14 +2,15 @@
 
 """This test unit checks node attributes that are persistent (AttributeSet)."""
 
+import os
 import sys
 import unittest
-import os
 import tempfile
+
 import numpy
 from numpy.testing import assert_array_equal, assert_almost_equal
-from tables.parameters import NODE_CACHE_SLOTS
 
+from tables.parameters import NODE_CACHE_SLOTS
 from tables import *
 from tables.tests import common
 from tables.tests.common import PyTablesTestCase
@@ -531,6 +532,29 @@ class CreateTestCase(unittest.TestCase):
         self.assertRaises(KeyError, attrs.__getitem__, 'pq')
         self.assertRaises(KeyError, attrs.__delitem__, 'pq')
 
+    def test_2d_non_contiguous(self):
+        """Checking setting 2D and non-contiguous NumPy attributes"""
+
+        # Regression for gh-176 numpy.
+        # In the views old implementation PyTAbles performa a copy of the
+        # array:
+        #
+        #     value = numpy.array(value)
+        #
+        # in order to get a contiguous array.
+        # Unfortunately array with swapped axis are copyed as they are so
+        # thay are stored in to HDF5 attributes without being actually
+        # contiguous and ths causes an error whn they are restored.
+
+        data = numpy.array([[0,1], [2,3]])
+
+        self.array.attrs['a'] = data
+        self.array.attrs['b'] = data.T.copy()
+        self.array.attrs['c'] = data.T
+
+        assert_array_equal(self.array.attrs['a'], data)
+        assert_array_equal(self.array.attrs['b'], data.T)
+        assert_array_equal(self.array.attrs['c'], data.T)  # AssertionError!
 
 
 class NotCloseCreate(CreateTestCase):
