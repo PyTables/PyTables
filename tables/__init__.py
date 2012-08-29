@@ -27,7 +27,7 @@ import os
 if os.name == 'nt':
     import ctypes
 
-    def _load_library(dllname, loadfunction, dllpaths=['']):
+    def _load_library(dllname, loadfunction, dllpaths=('', )):
         """Load a DLL via ctypes load function. Return None on failure.
 
         By default, try to load the DLL from the current package directory
@@ -35,7 +35,7 @@ if os.name == 'nt':
 
         """
         try:
-            dllpaths = [os.path.abspath(os.path.dirname(__file__))] + dllpaths
+            dllpaths = (os.path.abspath(os.path.dirname(__file__)), ) + dllpaths
         except NameError:
             pass  # PyPy and frozen distributions have no __file__ attribute
         for path in dllpaths:
