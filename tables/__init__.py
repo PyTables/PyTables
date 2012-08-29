@@ -47,9 +47,8 @@ if os.name == 'nt':
                     os.environ['PATH'] = path + ';' + oldenv
                 except KeyError:
                     oldenv = None
-                dllname = os.path.join(path, dllname)
             try:
-                return loadfunction(dllname)
+                return loadfunction(os.path.join(path, dllname))
             except WindowsError:
                 pass
             finally:
