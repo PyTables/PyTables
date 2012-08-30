@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-#----------------------------------------------------------------------
-# Setup script for the tables package
+# -*- coding: utf-8 -*-
+
+"""Setup script for the tables package"""
 
 import os
 import re
@@ -35,9 +36,9 @@ min_cython_version = '0.13'
 def _print_admonition(kind, head, body):
     tw = textwrap.TextWrapper(initial_indent='   ', subsequent_indent='   ')
 
-    print ".. %s:: %s" % (kind.upper(), head)
+    print(".. %s:: %s" % (kind.upper(), head))
     for line in tw.wrap(body):
-        print line
+        print(line)
 
 
 def exit_with_error(head, body=''):
@@ -398,7 +399,7 @@ if not HDF5_DIR and os.name == 'nt':
         libdir = os.path.dirname(libdir)
         # Strip off the 'bin' directory
         HDF5_DIR = os.path.dirname(libdir)
-        print "* Found HDF5 using system PATH ('%s')" % libdir
+        print("* Found HDF5 using system PATH ('%s')" % libdir)
 
 # The next flag for the C compiler is needed for finding the C headers for
 # the Cython extensions
@@ -554,11 +555,11 @@ def get_cython_extfiles(extnames):
         if not exists(extcfile) or newer(extpfile, extcfile):
             # For some reason, setup in setuptools does not compile
             # Cython files (!)  Do that manually...
-            print "cythoning %s to %s" % (extpfile, extcfile)
+            print("cythoning %s to %s" % (extpfile, extcfile))
             retcode = subprocess.call(
                         [sys.executable, "-m", "cython", extpfile])
             if retcode > 0:
-                print "cython aborted compilation with retcode:", retcode
+                print("cython aborted compilation with retcode:", retcode)
                 sys.exit()
         extfiles[extname] = extcfile
 
