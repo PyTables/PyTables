@@ -30,25 +30,29 @@ min_numpy_version = '1.4.1'
 min_numexpr_version = '1.4.1'
 min_cython_version = '0.13'
 
+
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):
-    tw = textwrap.TextWrapper(
-        initial_indent='   ', subsequent_indent='   ')
+    tw = textwrap.TextWrapper(initial_indent='   ', subsequent_indent='   ')
 
     print ".. %s:: %s" % (kind.upper(), head)
     for line in tw.wrap(body):
         print line
 
+
 def exit_with_error(head, body=''):
     _print_admonition('error', head, body)
     sys.exit(1)
 
+
 def print_warning(head, body=''):
     _print_admonition('warning', head, body)
+
 
 # Check for Python
 if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 4):
     exit_with_error("You need Python 2.4 or greater to install PyTables!")
+
 
 # Check for required Python packages
 def check_import(pkgname, pkgver):
@@ -57,15 +61,15 @@ def check_import(pkgname, pkgver):
     except ImportError:
         exit_with_error(
             "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
-            % {'pkgname': pkgname, 'pkgver': pkgver} )
+            % {'pkgname': pkgname, 'pkgver': pkgver})
     else:
         if mod.__version__ < pkgver:
             exit_with_error(
                 "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
-                % {'pkgname': pkgname, 'pkgver': pkgver} )
+                % {'pkgname': pkgname, 'pkgver': pkgver})
 
-    print ( "* Found %(pkgname)s %(pkgver)s package installed."
-            % {'pkgname': pkgname, 'pkgver': mod.__version__} )
+    print("* Found %(pkgname)s %(pkgver)s package installed."
+          % {'pkgname': pkgname, 'pkgver': mod.__version__})
     globals()[pkgname] = mod
 
 check_import('numpy', min_numpy_version)
@@ -81,15 +85,15 @@ try:
 except ImportError:
     exit_with_error(
         "You need %(pkgname)s %(pkgver)s or greater to compile PyTables!"
-        % {'pkgname': 'Cython', 'pkgver': min_cython_version} )
+        % {'pkgname': 'Cython', 'pkgver': min_cython_version})
 
 if Version.version < min_cython_version:
     exit_with_error(
         "At least Cython %s is needed so as to generate extensions!"
-        % (min_cython_version) )
+        % (min_cython_version))
 else:
-    print ( "* Found %(pkgname)s %(pkgver)s package installed."
-            % {'pkgname': 'Cython', 'pkgver': Version.version} )
+    print("* Found %(pkgname)s %(pkgver)s package installed."
+          % {'pkgname': 'Cython', 'pkgver': Version.version})
 
 VERSION = open('VERSION').read().strip()
 
@@ -107,11 +111,13 @@ default_header_dirs = None
 default_library_dirs = None
 default_runtime_dirs = None
 
+
 def add_from_path(envname, dirs):
     try:
         dirs.extend(os.environ[envname].split(os.pathsep))
     except KeyError:
         pass
+
 
 def add_from_flags(envname, flag_key, dirs):
     for flag in os.environ.get(envname, "").split():
@@ -130,19 +136,19 @@ if os.name == 'posix':
     default_library_dirs.extend(
         os.path.join(_tree, _arch)
         for _tree in ('/', '/usr', '/usr/local')
-        for _arch in ('lib64', 'lib') )
+            for _arch in ('lib64', 'lib'))
     default_runtime_dirs = default_library_dirs
 
 elif os.name == 'nt':
     default_header_dirs = []  # no default, must be given explicitly
     default_library_dirs = []  # no default, must be given explicitly
     default_runtime_dirs = [  # look for DLL files in ``%PATH%``
-        _path for _path in os.environ['PATH'].split(';') ]
+        _path for _path in os.environ['PATH'].split(';')]
     # Add the \Windows\system to the runtime list (necessary for Vista)
     default_runtime_dirs.append('\\windows\\system')
     # Add the \path_to_python\DLLs and tables package to the list
     default_runtime_dirs.extend(
-        [ os.path.join(sys.prefix, 'Lib\\site-packages\\tables') ] )
+        [os.path.join(sys.prefix, 'Lib\\site-packages\\tables')])
 
 from numpy.distutils.misc_util import get_numpy_include_dirs
 inc_dirs.extend(get_numpy_include_dirs())
@@ -152,6 +158,7 @@ inc_dirs.extend(get_numpy_include_dirs())
 if sys.platform.lower().startswith('darwin'):
     inc_dirs.extend(default_header_dirs)
     lib_dirs.extend(default_library_dirs)
+
 
 def _find_file_path(name, locations, prefixes=[''], suffixes=['']):
     for prefix in prefixes:
@@ -174,13 +181,12 @@ class Package(object):
         self.target_function = target_function
 
     def find_header_path(self, locations=default_header_dirs):
-        return _find_file_path(
-            self.header_name, locations, suffixes=['.h'] )
+        return _find_file_path(self.header_name, locations, suffixes=['.h'])
 
     def find_library_path(self, locations=default_library_dirs):
         return _find_file_path(
             self.library_name, locations,
-            self._library_prefixes, self._library_suffixes )
+            self._library_prefixes, self._library_suffixes)
 
     def find_runtime_path(self, locations=default_runtime_dirs):
         """
@@ -204,7 +210,8 @@ class Package(object):
         dirdata = [
             (self.header_name, self.find_header_path, default_header_dirs),
             (self.library_name, self.find_library_path, default_library_dirs),
-            (self.runtime_name, self.find_runtime_path, default_runtime_dirs), ]
+            (self.runtime_name, self.find_runtime_path, default_runtime_dirs),
+        ]
 
         locations = []
         if location:
@@ -215,8 +222,8 @@ class Package(object):
             # component directories to the given path.
             # Remove leading and trailing '"' chars that can mislead
             # the finding routines on Windows machines
-            locations = [ os.path.join(location.strip('"'), compdir)
-                          for compdir in self._component_dirs ]
+            locations = [os.path.join(location.strip('"'), compdir)
+                            for compdir in self._component_dirs]
 
         directories = [None, None, None]  # headers, libraries, runtime
         for idx, (name, find_path, default_dirs) in enumerate(dirdata):
@@ -268,7 +275,8 @@ class WindowsPackage(Package):
         # (The argument is accepted for compatibility with previous methods.)
         return _find_file_path(
             self.runtime_name, default_runtime_dirs,
-            self._runtime_prefixes, self._runtime_suffixes )
+            self._runtime_prefixes, self._runtime_suffixes)
+
 
 # Get the HDF5 version provided the 'H5public.h' header
 def get_hdf5_version(headername):
@@ -372,7 +380,7 @@ for arg in args:
         sys.argv.remove(arg)
     elif arg.find('--debug') == 0:
         # For debugging (mainly compression filters)
-        if os.name != 'nt': # to prevent including dlfcn.h by utils.c!!!
+        if os.name != 'nt':  # to prevent including dlfcn.h by utils.c!!!
             def_macros = [('DEBUG', 1)]
         # Don't delete this argument. It maybe useful for distutils
         # when adding more flags later on
@@ -436,8 +444,8 @@ for (package, location) in [
     ]:
 
     if package.tag == 'LZO' and lzo2_enabled:
-        print ( "* Skipping detection of %s since %s has already been found."
-                % (lzo1_package.name, lzo2_package.name) )
+        print("* Skipping detection of %s since %s has already been found."
+              % (lzo1_package.name, lzo2_package.name))
         continue  # do not use LZO 1 if LZO 2 is available
 
     (hdrdir, libdir, rundir) = package.find_directories(location)
@@ -456,17 +464,17 @@ for (package, location) in [
                 "where your local %(name)s headers and library can be found "
                 "by setting the ``%(tag)s_DIR`` environment variable "
                 "or by using the ``--%(ltag)s`` command-line option."
-                % dict(name=pname, tag=ptag, ltag=ptag.lower()) )
-        print ( "* Could not find %s headers and library; "
-                "disabling support for it."  % package.name)
+                % dict(name=pname, tag=ptag, ltag=ptag.lower()))
+        print("* Could not find %s headers and library; "
+              "disabling support for it." % package.name)
         continue  # look for the next library
 
     if libdir in ("", True):
-        print ( "* Found %s headers at ``%s``, the library is located in the "
-                "standard system search dirs." % (package.name, hdrdir) )
+        print("* Found %s headers at ``%s``, the library is located in the "
+              "standard system search dirs." % (package.name, hdrdir))
     else:
-        print ( "* Found %s headers at ``%s``, library at ``%s``."
-                % (package.name, hdrdir, libdir) )
+        print("* Found %s headers at ``%s``, library at ``%s``."
+              % (package.name, hdrdir, libdir))
 
     if package.tag in ['HDF5']:
         hdf5_header = os.path.join(hdrdir, "H5public.h")
@@ -480,7 +488,7 @@ for (package, location) in [
         # save library directory if needed
         if os.name == "nt":
             # Important to quote the libdir for Windows (Vista) systems
-            lib_dirs.append('"'+libdir+'"')
+            lib_dirs.append('"%s"' % libdir)
         else:
             lib_dirs.append(libdir)
 
@@ -490,13 +498,17 @@ for (package, location) in [
         def_macros.append(('HAVE_%s_LIB' % package.tag, 1))
 
     if not rundir:
+        loc = {
+            'posix': "the default library paths.",
+            'nt': "any of the directories in %%PATH%%.",
+        }[os.name]
+
         print_warning(
             "Could not find the %s runtime." % package.name,
-            ( "The %(name)s shared library was *not* found "
-              + { 'posix': "in the default library paths.",
-                  'nt': "in any of the directories in %%PATH%%.", }[os.name]
-              + " In case of runtime problems, please remember to install it." )
-            % dict(name=package.name) )
+            "The %(name)s shared library was *not* found in %(loc)s "
+            "In case of runtime problems, please remember to install it."
+            % dict(name=package.name, loc=loc)
+        )
 
     if os.name == "nt":
         # LZO DLLs cannot be copied to the binary package for license reasons
@@ -526,7 +538,8 @@ cython_extnames = [
     '_comp_lzo',
     '_comp_bzip2',
     'lrucacheExtension',
-    'indexesExtension' ]
+    'indexesExtension',
+]
 
 
 def get_cython_extfiles(extnames):
@@ -542,7 +555,8 @@ def get_cython_extfiles(extnames):
             # For some reason, setup in setuptools does not compile
             # Cython files (!)  Do that manually...
             print "cythoning %s to %s" % (extpfile, extcfile)
-            retcode = subprocess.call([sys.executable, "-m", "cython", extpfile])
+            retcode = subprocess.call(
+                        [sys.executable, "-m", "cython", extpfile])
             if retcode > 0:
                 print "cython aborted compilation with retcode:", retcode
                 sys.exit()
@@ -618,7 +632,7 @@ def find_name(base='tables'):
     append "-pyX.Y" to the base name'''
     name = base
     if '--name-with-python-version' in sys.argv:
-        name += '-py%i.%i'%(sys.version_info[0], sys.version_info[1])
+        name += '-py%i.%i' % (sys.version_info[0], sys.version_info[1])
         sys.argv.remove('--name-with-python-version')
     return name
 
@@ -627,7 +641,7 @@ name = find_name()
 
 if os.name == "nt":
     # Add DLL's to the final package for windows
-    data_files.extend([('Lib/site-packages/%s'%name, dll_files),
+    data_files.extend([('Lib/site-packages/%s' % name, dll_files),
                        ])
 
 ADDLIBS = [hdf5_package.library_name, ]
@@ -653,97 +667,97 @@ blosc_files = ["blosc/blosc.c", "blosc/blosclz.c", "blosc/shuffle.c",
                "blosc/blosc_filter.c"]
 
 extensions = [
-    Extension( "tables.utilsExtension",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources=[ cython_extfiles['utilsExtension'],
-                         "src/utils.c",
-                         "src/H5ARRAY.c",
-                         "src/H5ATTR.c",
-                         ] + blosc_files,
-               library_dirs=lib_dirs,
-               libraries=utilsExtension_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
+    Extension("tables.utilsExtension",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['utilsExtension'],
+                       "src/utils.c",
+                       "src/H5ARRAY.c",
+                       "src/H5ATTR.c",
+                       ] + blosc_files,
+              library_dirs=lib_dirs,
+              libraries=utilsExtension_libs,
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
 
-    Extension( "tables.hdf5Extension",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources=[ cython_extfiles['hdf5Extension'],
-                         "src/utils.c",
-                         "src/typeconv.c",
-                         "src/H5ARRAY.c",
-                         "src/H5ARRAY-opt.c",
-                         "src/H5VLARRAY.c",
-                         "src/H5ATTR.c",
-                         ] + blosc_files,
-               library_dirs=lib_dirs,
-               libraries=hdf5Extension_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
+    Extension("tables.hdf5Extension",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['hdf5Extension'],
+                       "src/utils.c",
+                       "src/typeconv.c",
+                       "src/H5ARRAY.c",
+                       "src/H5ARRAY-opt.c",
+                       "src/H5VLARRAY.c",
+                       "src/H5ATTR.c",
+                       ] + blosc_files,
+              library_dirs=lib_dirs,
+              libraries=hdf5Extension_libs,
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
 
-    Extension( "tables.tableExtension",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources=[ cython_extfiles['tableExtension'],
-                         "src/utils.c",
-                         "src/typeconv.c",
-                         "src/H5TB-opt.c",
-                         "src/H5ATTR.c",
-                         ] + blosc_files,
-               library_dirs=lib_dirs,
-               libraries=tableExtension_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
+    Extension("tables.tableExtension",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['tableExtension'],
+                       "src/utils.c",
+                       "src/typeconv.c",
+                       "src/H5TB-opt.c",
+                       "src/H5ATTR.c",
+                       ] + blosc_files,
+              library_dirs=lib_dirs,
+              libraries=tableExtension_libs,
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
 
-    Extension( "tables._comp_lzo",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources=[ cython_extfiles['_comp_lzo'],
-                         "src/H5Zlzo.c" ],
-               library_dirs=lib_dirs,
-               libraries=_comp_lzo_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
+    Extension("tables._comp_lzo",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['_comp_lzo'],
+                       "src/H5Zlzo.c"],
+              library_dirs=lib_dirs,
+              libraries=_comp_lzo_libs,
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
 
-    Extension( "tables._comp_bzip2",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources=[ cython_extfiles['_comp_bzip2'],
-                         "src/H5Zbzip2.c" ],
-               library_dirs=lib_dirs,
-               libraries=_comp_bzip2_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
+    Extension("tables._comp_bzip2",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['_comp_bzip2'],
+                       "src/H5Zbzip2.c"],
+              library_dirs=lib_dirs,
+              libraries=_comp_bzip2_libs,
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
 
-    Extension( "tables.linkExtension",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources=[ cython_extfiles['linkExtension'] ],
-               library_dirs=lib_dirs,
-               libraries=tableExtension_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
+    Extension("tables.linkExtension",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['linkExtension']],
+              library_dirs=lib_dirs,
+              libraries=tableExtension_libs,
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
 
-    Extension( "tables.lrucacheExtension",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources=[cython_extfiles['lrucacheExtension']],
-               library_dirs=lib_dirs,
-               libraries=lrucacheExtension_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
+    Extension("tables.lrucacheExtension",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['lrucacheExtension']],
+              library_dirs=lib_dirs,
+              libraries=lrucacheExtension_libs,
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
 
-    Extension( "tables.indexesExtension",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources = [ cython_extfiles['indexesExtension'],
-                           "src/H5ARRAY-opt.c",
-                           "src/idx-opt.c" ],
-               library_dirs=lib_dirs,
-               libraries=indexesExtension_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
+    Extension("tables.indexesExtension",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['indexesExtension'],
+                       "src/H5ARRAY-opt.c",
+                       "src/idx-opt.c"],
+              library_dirs=lib_dirs,
+              libraries=indexesExtension_libs,
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
 
 ]
 
@@ -760,11 +774,11 @@ Topic :: Software Development :: Libraries :: Python Modules
 Operating System :: Microsoft :: Windows
 Operating System :: Unix
 """
-setup(name = name,
-      version = VERSION,
-      description = 'Hierarchical datasets for Python',
-      long_description = """\
 
+setup(name=name,
+      version=VERSION,
+      description='Hierarchical datasets for Python',
+      long_description="""\
 PyTables is a package for managing hierarchical datasets and
 designed to efficently cope with extremely large amounts of
 data. PyTables is built on top of the HDF5 library and the
@@ -774,18 +788,18 @@ makes of it a fast, yet extremely easy to use tool for
 interactively save and retrieve large amounts of data.
 
 """,
-      classifiers = [c for c in classifiers.split("\n") if c],
-      author = 'Francesc Alted, Ivan Vilata, et al.',
-      author_email = 'pytables@pytables.org',
-      maintainer = 'Francesc Alted',
-      maintainer_email = 'pytables@pytables.org',
-      url = 'http://www.pytables.org/',
-      license = 'http://www.opensource.org/licenses/bsd-license.php',
-      download_url = "http://sourceforge.net/projects/pytables/files/pytables/%s/tables-%s.tar.gz" % (VERSION, VERSION),
-      platforms = ['any'],
-      ext_modules = extensions,
-      cmdclass = cmdclass,
-      data_files = data_files,
+      classifiers=[c for c in classifiers.split("\n") if c],
+      author='Francesc Alted, Ivan Vilata, et al.',
+      author_email='pytables@pytables.org',
+      maintainer='Francesc Alted',
+      maintainer_email='pytables@pytables.org',
+      url='http://www.pytables.org/',
+      license='http://www.opensource.org/licenses/bsd-license.php',
+      download_url="http://sourceforge.net/projects/pytables/files/pytables/%s/tables-%s.tar.gz" % (VERSION, VERSION),
+      platforms=['any'],
+      ext_modules=extensions,
+      cmdclass=cmdclass,
+      data_files=data_files,
 
       **setuptools_kwargs
 )
