@@ -983,8 +983,7 @@ class File(hdf5Extension.File, object):
         return slink
 
 
-    def createExternalLink(self, where, name, target, createparents=False,
-                           warn16incompat=True):
+    def createExternalLink(self, where, name, target, createparents=False):
         """Create an external link.
 
         Create an external link to a *target* node with the given *name*
@@ -994,11 +993,6 @@ class File(hdf5Extension.File, object):
         reaching *where* are created (the default is not doing so).
 
         The returned node is an :class:`ExternalLink` instance.
-
-        .. note::
-
-            The *warn16incompat* argument is deprecated since version 2.4.
-            It will be ignored.
 
         """
 

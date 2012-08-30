@@ -83,6 +83,12 @@ Many deprecated features and support for obsolete modules has been dropped:
   Of course the package level constant (:data:`tables.__version__`) still
   remains.  Closes :issue:`112`.
 
+- The :meth:`File.createExternalLink` method no more has a keyword parameter
+  named *warn16incompat*.  It was deprecated since PyTables 2.4.
+
+- The deprecated :exc:`exceptions.Incompat16Warning` exception has been
+  removed
+
 
 Bugs fixed
 ----------

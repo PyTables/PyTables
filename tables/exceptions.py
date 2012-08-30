@@ -356,22 +356,6 @@ class DataTypeWarning(Warning):
     pass
 
 
-class Incompat16Warning(Warning):
-    """Format incompatible with HDF5 1.6.x format.
-
-    This warning is issued when using a functionality that is
-    incompatible with the HDF5 1.6.x format and that may create issues
-    for reading the files with PyTables compiled against HDF5 1.6.x.
-
-    .. deprecated:: 2.4
-
-        Support for HDF5 1.6.x has been dropped.
-
-    """
-
-    pass
-
-
 class ExperimentalFeatureWarning(Warning):
     """Generic warning for experimental features.
 

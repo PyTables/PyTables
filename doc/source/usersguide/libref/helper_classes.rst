@@ -148,6 +148,4 @@ to PyTables are declared.
 
 .. autoexception:: DataTypeWarning
 
-.. autoexception:: Incompat16Warning
-
 .. autoexception:: ExperimentalFeatureWarning
