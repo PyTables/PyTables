@@ -29,6 +29,25 @@ New features
 - Implemented methods to get/set the user block size in a HDF5 file
   (closes :issue:`123`)
 
+- Improved support for PyInstaller_.  Now it is easier to pack frozen
+  applications that use the PyTables package (closes: :issue:`177`).
+  Thanks to Stuart Mentzer and Christoph Gohlke.
+
+
+Other improvements
+------------------
+
+- Packaging: since this release the standard tar-ball package no more includes
+  the PDF version of the "PyTables User Guide", so it is a little bit smaller
+  now.  The complete and pre-build version of the documentation both in HTML
+  and PDF format is available on the file `download area`_ on SourceForge.net.
+  Closes: :issue:`172`.
+
+- Improved runtime checks on dynamic loading of libraries: meaningful error
+  messages are generated in case of failure.
+  Also, now PyTables no more alters the system PATH.
+  Closes :issue:`178` and :issue:`179` (thanks to Christoph Gohlke).
+
 
 Deprecations
 ------------
@@ -71,15 +90,7 @@ Bugs fixed
 - Better check access on closed files (closes: :issue:`62`)
 
 
-Other changes
--------------
-
-- Packaging: since this release the standard tar-ball package no more includes
-  the PDF version of the "PyTables User Guide", so it is a little bit smaller
-  now.  The complete and pre-build version of the documentation both in HTML
-  and PDF format is available on the file `download area`_ on SourceForge.net.
-  Closes: :issue:`172`.
-
+.. _PyInstaller: http://www.pyinstaller.org
 .. _`download area`: http://sourceforge.net/projects/pytables/files/pytables
 
 
