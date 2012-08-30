@@ -34,8 +34,8 @@ New features
   Thanks to Stuart Mentzer and Christoph Gohlke.
 
 
-Other improvements
-------------------
+Improvements
+------------
 
 - Packaging: since this release the standard tar-ball package no more includes
   the PDF version of the "PyTables User Guide", so it is a little bit smaller
@@ -49,6 +49,12 @@ Other improvements
   Closes :issue:`178` and :issue:`179` (thanks to Christoph Gohlke).
 
 - Th internal Blosc_ library has been upgraded to version 1.1.5.
+
+
+Other changes
+-------------
+
+- PyTables now requires Python 2.6 or newer.
 
 
 Deprecations

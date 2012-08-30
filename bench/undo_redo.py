@@ -1,7 +1,6 @@
 ###########################################################################
 # Benchmark for undo/redo. Run this program without parameters
-# for mode of use. When using profiling, it is recommended to use it
-# with Python 2.4.
+# for mode of use.
 #
 # Francesc Alted
 # 2005-03-09

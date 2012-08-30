@@ -2,9 +2,9 @@
 
 ########################################################################
 #
-#       License:        BSD
-#       Created:        November 5, 2010
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: November 5, 2010
+# Author:  Francesc Alted - faltet@pytables.com
 #
 ########################################################################
 
