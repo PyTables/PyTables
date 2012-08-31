@@ -359,7 +359,7 @@ cdef class File:
     if driver == "H5FD_SEC2":
       err = H5Pset_fapl_sec2(access_plist)
     elif driver == "H5FD_DIRECT":
-      if H5_HAVE_DIRECT_DRIVER:
+      if not H5_HAVE_DIRECT_DRIVER:
         H5Pclose(create_plist)
         H5Pclose(access_plist)
         raise RuntimeError("The H5FD_DIRECT driver is not available")
@@ -378,7 +378,7 @@ cdef class File:
     #                        params["DRIVER_LOG_FLAGS"],
     #                        params["DRIVER_LOG_BUF_SIZE"])
     elif driver == "H5FD_WINDOWS":
-      if H5_HAVE_WINDOWS_DRIVER:
+      if not H5_HAVE_WINDOWS_DRIVER:
         H5Pclose(access_plist)
         H5Pclose(create_plist)
         raise RuntimeError("The H5FD_WINDOWS driver is not available")
@@ -620,7 +620,7 @@ cdef class AttributeSet:
     if (isinstance(value, numpy.ndarray) and
         value.dtype.kind in ('V', 'S', 'b', 'i', 'u', 'f', 'c')):
       # get a contiguous array: fixes #270 and gh-176
-      #value = numpy.ascontiguousarray(value)  
+      #value = numpy.ascontiguousarray(value)
       value = value.copy()
       if value.dtype.kind == 'V':
         description, rabyteorder = descr_from_dtype(value.dtype)
