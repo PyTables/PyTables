@@ -25,6 +25,35 @@ from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
 
+cmdclass = {}
+setuptools_kwargs = {}
+
+if sys.version_info >= (3,):
+    exclude_fixers = [
+        'lib2to3.fixes.fix_idioms',
+        'lib2to3.fixes.fix_zip',
+    ]
+
+    if has_setuptools:
+        setuptools_kwargs['use_2to3'] = True
+        setuptools_kwargs['use_2to3_fixers'] = []
+        setuptools_kwargs['use_2to3_exclude_fixers'] = exclude_fixers
+    else:
+        from distutils.command.build_py import build_py_2to3 as build_py
+        from distutils.command.build_scripts import build_scripts_2to3 as build_scripts
+
+        from lib2to3.refactor import get_fixers_from_package
+
+        all_fixers = set(get_fixers_from_package('lib2to3.fixes'))
+        fixer_names = sorted(all_fixers.difference(exclude_fixers))
+
+        build_py.fixer_names = fixer_names
+        build_scripts.fixer_names = fixer_names
+
+        cmdclass['build_py'] = build_py
+        cmdclass['build_scripts'] = build_scripts
+
+
 # The minimum required versions
 # (keep these in sync with tables.req_versions and user's guide and README)
 min_numpy_version = '1.4.1'
@@ -82,7 +111,7 @@ if not has_setuptools:
 try:
     from Cython.Distutils import build_ext
     from Cython.Compiler.Main import Version
-    cmdclass = {'build_ext': build_ext}
+    cmdclass['build_ext'] = build_ext
 except ImportError:
     exit_with_error(
         "You need %(pkgname)s %(pkgver)s or greater to compile PyTables!"
@@ -576,7 +605,6 @@ if newer('VERSION', 'src/version.h'):
 #--------------------------------------------------------------------
 
 # Package information for ``setuptools``.
-setuptools_kwargs = {}
 if has_setuptools:
     # PyTables contains data files for tests.
     setuptools_kwargs['zip_safe'] = False
