@@ -2383,7 +2383,7 @@ class Issue156TestBase(PyTablesTestCase):
         self.assertTrue(numpy.all(
             newNode.col(self.sort_field) == sorted(oldNode.col(self.sort_field))))
         # check index is available
-        self.assertTrue(newNode.colindexes.has_key(self.sort_field))
+        self.assertTrue(self.sort_field in newNode.colindexes)
         # check CSI was propagated
         self.assertTrue(newNode.colindexes[self.sort_field].is_CSI)
 
