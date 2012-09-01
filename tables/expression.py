@@ -204,22 +204,22 @@ class Expr(object):
 
         # Get the variables and types
         values = self.values
-        types = []
+        types_ = []
         for name in self.names:
             value = vars_[name]
             if hasattr(value, 'atom'):
-                types.append(value.atom)
+                types_.append(value.atom)
             elif hasattr(value, 'dtype'):
-                types.append(value)
+                types_.append(value)
             else:
                 # try to convert into a NumPy array
                 value = np.array(value)
-                types.append(value)
+                types_.append(value)
             values.append(value)
 
         # Create a signature for the expression
         signature = [(name, getType(type_))
-                     for (name, type_) in zip(self.names, types)]
+                     for (name, type_) in zip(self.names, types_)]
 
         # Compile the expression
         self._compiled_expr = NumExpr(expr, signature, copy_args, **kwargs)
