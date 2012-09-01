@@ -60,8 +60,8 @@ from utilsExtension cimport malloc_dims, get_native_type
 from libc.stdlib cimport malloc, free
 from libc.string cimport strdup, strlen
 from numpy cimport import_array, ndarray
-from cpython cimport (PyString_AsString, PyString_FromStringAndSize,
-    PyString_Check)
+from cpython cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
+    PyBytes_Check)
 from cpython.unicode cimport PyUnicode_DecodeUTF8
 
 
@@ -291,7 +291,6 @@ cdef class File:
     cdef hid_t access_plist, create_plist = H5P_DEFAULT
     cdef size_t img_buf_len = 0, user_block_size = 0
     cdef void *img_buf_p = NULL
-
     #cdef bytes logfile_name
 
     # Check if we can handle the driver
@@ -321,7 +320,7 @@ cdef class File:
       if driver != "H5FD_CORE":
         warnings.warn("The DRIVER_CORE_IMAGE parameter will be ignored by "
                       "the '%s' driver" % driver)
-      elif not PyString_Check(image):
+      elif not PyBytes_Check(image):
         raise TypeError("The DRIVER_CORE_IMAGE must be a string of bytes")
       elif not H5_HAVE_IMAGE_FILE:
         raise RuntimeError("Support for image files is only availabe in "
@@ -404,7 +403,7 @@ cdef class File:
                              backing_store)
       if image:
         img_buf_len = len(image)
-        img_buf_p = <void *>PyString_AsString(image)
+        img_buf_p = <void *>PyBytes_AsString(image)
         err = pt_H5Pset_file_image(access_plist, img_buf_p, img_buf_len)
         if err < 0:
           H5Pclose(create_plist)
@@ -472,7 +471,7 @@ cdef class File:
 
     cdef ssize_t size = 0
     cdef size_t buf_len = 0
-    cdef object image
+    cdef bytes image
 
     self.flush()
 
@@ -484,13 +483,12 @@ cdef class File:
                          "provide support for image files.")
 
     # allocate the momory buffer
-    image = PyString_FromStringAndSize(NULL, size)
+    image = PyBytes_FromStringAndSize(NULL, size)
     if not image:
       raise RuntimeError("Unable to allecote meomory fir the file image")
 
     buf_len = size
-    size = pt_H5Fget_file_image(self.file_id, PyString_AsString(image),
-                                buf_len)
+    size = pt_H5Fget_file_image(self.file_id, <void*>image, buf_len)
     if size < 0:
       raise HDF5ExtError("Unable to retrieve the file image. "
                          "Plese note that not all drivers provide support "
@@ -594,12 +592,11 @@ cdef class File:
 
 
 cdef class AttributeSet:
-  cdef char    *name
+  cdef object name
 
 
   def _g_new(self, node):
-    # Initialize the C attributes of Node object
-    self.name =  PyString_AsString(node._v_name)
+    self.name = node._v_name
 
 
   def _g_listAttr(self, node):
@@ -1094,7 +1091,7 @@ cdef class Array(Leaf):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
-    cdef char *complib, *version, *class_
+    cdef bytes complib, version, class_
     cdef object dtype_, atom, shape
     cdef ndarray dims
 
@@ -1115,9 +1112,9 @@ cdef class Array(Leaf):
     # Get the pointer to the buffer data area
     rbuf = nparr.data
     # Save the array
-    complib = PyString_AsString(self.filters.complib or '')
-    version = PyString_AsString(self._v_version)
-    class_ = PyString_AsString(self._c_classId)
+    complib = (self.filters.complib or '').encode('utf-8')
+    version = self._v_version.encode('utf-8')
+    class_ = self._c_classId.encode('utf-8')
     self.dataset_id = H5ARRAYmake(self.parent_id, self.name, version,
                                   self.rank, self.dims,
                                   self.extdim, self.disk_type_id, NULL, NULL,
@@ -1148,7 +1145,7 @@ cdef class Array(Leaf):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
-    cdef char *complib, *version, *class_
+    cdef bytes complib, version, class_
     cdef ndarray dflts
     cdef void *fill_data
     cdef ndarray extdim
@@ -1163,10 +1160,11 @@ cdef class Array(Leaf):
       self.dims_chunk = malloc_dims(self.chunkshape)
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
-    # Manually convert some string values that can't be done automatically
-    complib = PyString_AsString(self.filters.complib or '')
-    version = PyString_AsString(self._v_version)
-    class_ = PyString_AsString(self._c_classId)
+    # Encode strings
+    complib = (self.filters.complib or '').encode('utf-8')
+    version = self._v_version.encode('utf-8')
+    class_ = self._c_classId.encode('utf-8')
+
     # Get the fill values
     if isinstance(atom.dflt, numpy.ndarray) or atom.dflt:
       dflts = numpy.array(atom.dflt, dtype=atom.dtype)
@@ -1664,7 +1662,7 @@ cdef class VLArray(Leaf):
     cdef hsize_t *dims
     cdef herr_t ret
     cdef void *rbuf
-    cdef char *complib, *version, *class_
+    cdef bytes complib, version, class_
     cdef object type_, itemsize, atom, scatom
 
     atom = self.atom
@@ -1681,10 +1679,11 @@ cdef class VLArray(Leaf):
 
     rbuf = NULL   # We don't have data to save initially
 
-    # Manually convert some string values that can't be done automatically
-    complib = PyString_AsString(self.filters.complib or '')
-    version = PyString_AsString(self._v_version)
-    class_ = PyString_AsString(self._c_classId)
+    # Encode strings
+    complib = (self.filters.complib or '').encode('utf-8')
+    version = self._v_version.encode('utf-8')
+    class_ = self._c_classId.encode('utf-8')
+
     # Create the vlarray
     self.dataset_id = H5VLARRAYmake(self.parent_id, self.name, version,
                                     rank, dims, self.base_type_id,
@@ -1865,9 +1864,9 @@ cdef class VLArray(Leaf):
       if vllen > 0:
         # Create a buffer to keep this info. It is important to do a
         # copy, because we will dispose the buffer memory later on by
-        # calling the H5Dvlen_reclaim. PyString_FromStringAndSize does this.
-        buf = PyString_FromStringAndSize(<char *>rdata[i].p,
-                                         vllen*self._atomicsize)
+        # calling the H5Dvlen_reclaim. PyBytes_FromStringAndSize does this.
+        buf = PyBytes_FromStringAndSize(<char *>rdata[i].p,
+                                        vllen*self._atomicsize)
       else:
         # Case where there is info with zero lentgh
         buf = None

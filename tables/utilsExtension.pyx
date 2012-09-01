@@ -33,7 +33,6 @@ from tables.utils import checkFileAccess
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp, strlen
-from cpython cimport PyString_AsString
 from cpython.unicode cimport PyUnicode_DecodeUTF8
 from numpy cimport (import_array, ndarray, dtype,
   NPY_INT64, npy_int64,
@@ -795,7 +794,7 @@ def enumToHDF5(object enumAtom, char *byteorder):
   returned.
   """
 
-  cdef char  *name
+  cdef bytes  name
   cdef hid_t  baseId, enumId
   cdef long   bytestride, i
   cdef void  *rbuffer, *rbuf
@@ -820,7 +819,7 @@ def enumToHDF5(object enumAtom, char *byteorder):
   bytestride = npValues.strides[0]
   rbuffer = npValues.data
   for i from 0 <= i < len(npNames):
-    name = PyString_AsString(npNames[i])
+    name = npNames[i].encode('utf-8')
     rbuf = <void *>(<char *>rbuffer + bytestride * i)
     if H5Tenum_insert(enumId, name, rbuf) < 0:
       e = HDF5ExtError("failed to insert value into HDF5 enumerated type")
