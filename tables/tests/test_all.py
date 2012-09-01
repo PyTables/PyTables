@@ -66,7 +66,12 @@ def suite():
         # Add a memory report at the beginning
         alltests.addTest(unittest.makeSuite(common.ShowMemTime))
     for name in test_modules:
-        exec('from %s import suite as test_suite' % name)
+        # Unexpectedly, the following code doesn't seem to work anymore
+        # in python 3
+        #exec('from %s import suite as test_suite' % name)
+        __import__(name)
+        test_suite = sys.modules[name].suite
+
         alltests.addTest(test_suite())
         if common.show_memory:
             # Add a memory report after each test module
