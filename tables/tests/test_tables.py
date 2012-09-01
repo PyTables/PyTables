@@ -1286,15 +1286,15 @@ class DictWriteTestCase(BasicTestCase):
     stop = 10
     step = 3
 
-if sys.version_info[0] < 3:
+if sys.version_info < (3,):
     class DictWriteTestCase2(DictWriteTestCase):
         record = RecordDescriptionDict.copy()
         record[unicode('var1')] = record.pop('var1')
-# XXX: check
-#else:
-#    class DictWriteTestCase2(DictWriteTestCase):
-#        record = RecordDescriptionDict.copy()
-#        record[bytes('var1', 'ascii')] = record.pop('var1')
+else:
+    # XXX: check
+    class DictWriteTestCase2(DictWriteTestCase):
+        record = RecordDescriptionDict.copy()
+        record[bytes('var1', 'ascii')] = record.pop('var1')
 
 # Pure NumPy dtype
 class NumPyDTWriteTestCase(BasicTestCase):
