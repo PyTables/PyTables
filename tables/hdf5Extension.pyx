@@ -199,7 +199,7 @@ cdef object getshape(int rank, hsize_t *dims):
 
 
 # Helper function for quickly fetch an attribute string
-cdef object get_attribute_string_or_none(node_id, attr_name):
+cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
   """Returns a string/unicode attribute if it exists in node_id.
 
   It returns ``None`` in case it don't exists (or there have been problems
@@ -291,6 +291,7 @@ cdef class File:
     cdef hid_t access_plist, create_plist = H5P_DEFAULT
     cdef size_t img_buf_len = 0, user_block_size = 0
     cdef void *img_buf_p = NULL
+    cdef bytes encname
     #cdef bytes logfile_name
 
     # Check if we can handle the driver
@@ -605,7 +606,7 @@ cdef class AttributeSet:
     return a
 
 
-  def _g_setAttr(self, node, char *name, object value):
+  def _g_setAttr(self, node, name, object value):
     """Save Python or NumPy objects as HDF5 attributes.
 
     Scalar Python objects, scalar NumPy & 0-dim NumPy objects will all be
@@ -618,7 +619,13 @@ cdef class AttributeSet:
     cdef hsize_t *dims
     cdef ndarray ndv
     cdef object byteorder, rabyteorder, baseatom
+    cdef char* cname = NULL
+    cdef bytes encoded_name
     cdef int cset = H5T_CSET_DEFAULT
+
+    encoded_name = name.encode('utf-8')
+    # get the C pointer
+    cname = encoded_name
 
     # The dataset id of the node
     dset_id = node._v_objectID
@@ -646,7 +653,7 @@ cdef class AttributeSet:
       ndv = <ndarray>value
       dims = npy_malloc_dims(ndv.ndim, ndv.shape)
       # Actually write the attribute
-      ret = H5ATTRset_attribute(dset_id, name, type_id,
+      ret = H5ATTRset_attribute(dset_id, cname, type_id,
                                 ndv.ndim, dims, ndv.data)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
@@ -666,11 +673,11 @@ cdef class AttributeSet:
         # (binary pickles are not supported at this moment)
         value = pickle.dumps(value, 0)
 
-      ret = H5ATTRset_attribute_string(dset_id, name, value, cset)
+      ret = H5ATTRset_attribute_string(dset_id, cname, value, cset)
 
 
   # Get attributes
-  def _g_getAttr(self, node, char *attrname):
+  def _g_getAttr(self, node, attrname):
     """Get HDF5 attributes and retrieve them as NumPy objects.
 
     H5T_SCALAR types will be retrieved as scalar NumPy.
@@ -687,13 +694,19 @@ cdef class AttributeSet:
     cdef ndarray ndvalue
     cdef object shape, stype_atom, shape_atom, retvalue
     cdef int i, nelements
+    cdef char* cattrname = NULL
+    cdef bytes encoded_attrname
     cdef int cset = H5T_CSET_DEFAULT
+
+    encoded_attrname = attrname.encode('utf-8')
+    # Get the C pointer
+    cattrname = encoded_attrname
 
     # The dataset id of the node
     dset_id = node._v_objectID
     dims = NULL
 
-    ret = H5ATTRget_type_ndims(dset_id, attrname, &type_id, &class_id,
+    ret = H5ATTRget_type_ndims(dset_id, cattrname, &type_id, &class_id,
                                &type_size, &rank )
     if ret < 0:
       raise HDF5ExtError("Can't get type info on attribute %s in node %s." %
@@ -701,7 +714,7 @@ cdef class AttributeSet:
 
     # Call a fast function for scalar values and typical class types
     if (rank == 0 and class_id == H5T_STRING):
-      ret = H5ATTRget_attribute_string(dset_id, attrname, &str_value, &cset)
+      ret = H5ATTRget_attribute_string(dset_id, cattrname, &str_value, &cset)
       if ret < 0:
         raise HDF5ExtError("Can't read attribute %s in node %s." %
                            (attrname, self.name))
@@ -729,7 +742,7 @@ cdef class AttributeSet:
 
       # Get the dimensional info
       dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-      ret = H5ATTRget_dims(dset_id, attrname, dims)
+      ret = H5ATTRget_dims(dset_id, cattrname, dims)
       if ret < 0:
         raise HDF5ExtError("Can't get dims info on attribute %s in node %s." %
                            (attrname, self.name))
@@ -743,7 +756,7 @@ cdef class AttributeSet:
         dtype_ = numpy.dtype(stype_, shape_)
       except TypeError:
         if class_id == H5T_STRING and H5Tis_variable_str(type_id):
-          nelements = H5ATTRget_attribute_vlen_string_array(dset_id, attrname,
+          nelements = H5ATTRget_attribute_vlen_string_array(dset_id, cattrname,
                                                             &str_values, &cset)
           if nelements < 0:
             raise HDF5ExtError("Can't read attribute %s in node %s." %
@@ -794,7 +807,7 @@ cdef class AttributeSet:
     # Get the pointer to the buffer data area
     rbuf = ndvalue.data
     # Actually read the attribute from disk
-    ret = H5ATTRget_attribute(dset_id, attrname, native_type_id, rbuf)
+    ret = H5ATTRget_attribute(dset_id, cattrname, native_type_id, rbuf)
     if ret < 0:
       raise HDF5ExtError("Attribute %s exists in node %s, but can't get it." %
                          (attrname, self.name))
@@ -812,11 +825,17 @@ cdef class AttributeSet:
   def _g_remove(self, node, attrname):
     cdef int ret
     cdef hid_t dset_id
+    cdef char *cattrname = NULL
+    cdef bytes encoded_attrname
+
+    encoded_attrname = attrname.encode('utf-8')
+    # Get the C pointer
+    cattrname = encoded_attrname
 
     # The dataset id of the node
     dset_id = node._v_objectID
 
-    ret = H5Adelete(dset_id, attrname)
+    ret = H5Adelete(dset_id, cattrname)
     if ret < 0:
       raise HDF5ExtError("Attribute '%s' exists in node '%s', but cannot be "
                          "deleted." % (attrname, self.name))
@@ -829,7 +848,7 @@ cdef class Node:
 
 
   def _g_new(self, where, name, init):
-    self.name = strdup(<char *>name)
+    self.name = name
     # """The name of this node in its parent group."""
     self.parent_id = where._v_objectID
     # """The identifier of the parent group."""
@@ -837,16 +856,18 @@ cdef class Node:
 
   def _g_delete(self, parent):
     cdef int ret
+    cdef bytes encoded_name
+
+    encoded_name = self.name.encode('utf-8')
 
     # Delete this node
-    ret = H5Ldelete(parent._v_objectID, self.name, H5P_DEFAULT)
+    ret = H5Ldelete(parent._v_objectID, encoded_name, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("problems deleting the node ``%s``" % self.name)
     return ret
 
 
   def __dealloc__(self):
-    free(<void *>self.name)
     self.parent_id = 0
 
 
@@ -913,7 +934,7 @@ cdef class Group(Node):
     return Giterate(parent._v_objectID, self._v_objectID, self.name)
 
 
-  def _g_getGChildAttr(self, char *group_name, char *attr_name):
+  def _g_getGChildAttr(self, group_name, attr_name):
     """Return an attribute of a child `Group`.
 
     If the attribute does not exist, ``None`` is returned.
@@ -921,21 +942,26 @@ cdef class Group(Node):
 
     cdef hid_t gchild_id
     cdef object retvalue
+    cdef bytes encoded_group_name
+    cdef bytes encoded_attr_name
+
+    encoded_group_name = group_name.encode('utf-8')
+    encoded_attr_name = attr_name.encode('utf-8')
 
     # Open the group
     retvalue = None  # Default value
-    gchild_id = H5Gopen(self.group_id, group_name, H5P_DEFAULT)
+    gchild_id = H5Gopen(self.group_id, encoded_group_name, H5P_DEFAULT)
     if gchild_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (group_name, self._v_pathname))
-    retvalue = get_attribute_string_or_none(gchild_id, attr_name)
+    retvalue = get_attribute_string_or_none(gchild_id, encoded_attr_name)
     # Close child group
     H5Gclose(gchild_id)
 
     return retvalue
 
 
-  def _g_getLChildAttr(self, char *leaf_name, char *attr_name):
+  def _g_getLChildAttr(self, leaf_name, attr_name):
     """Return an attribute of a child `Leaf`.
 
     If the attribute does not exist, ``None`` is returned.
@@ -943,13 +969,18 @@ cdef class Group(Node):
 
     cdef hid_t leaf_id
     cdef object retvalue
+    cdef bytes encoded_leaf_name
+    cdef bytes encoded_attr_name
+
+    encoded_leaf_name = leaf_name.encode('utf-8')
+    encoded_attr_name = attr_name.encode('utf-8')
 
     # Open the dataset
-    leaf_id = H5Dopen(self.group_id, leaf_name, H5P_DEFAULT)
+    leaf_id = H5Dopen(self.group_id, encoded_leaf_name, H5P_DEFAULT)
     if leaf_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (leaf_name, self._v_pathname))
-    retvalue = get_attribute_string_or_none(leaf_id, attr_name)
+    retvalue = get_attribute_string_or_none(leaf_id, encoded_attr_name)
     # Close the dataset
     H5Dclose(leaf_id)
     return retvalue
@@ -969,12 +1000,15 @@ cdef class Group(Node):
     self.group_id = 0  # indicate that this group is closed
 
 
-  def _g_moveNode(self, hid_t oldparent, char *oldname,
-                  hid_t newparent, char *newname,
-                  char *oldpathname, char *newpathname):
+  def _g_moveNode(self, hid_t oldparent, oldname, hid_t newparent, newname,
+                  oldpathname, newpathname):
     cdef int ret
+    cdef bytes encoded_oldname, encoded_newname
 
-    ret = H5Lmove(oldparent, oldname, newparent, newname,
+    encoded_oldname = oldname.encode('utf-8')
+    encoded_newname = newname.encode('utf-8')
+
+    ret = H5Lmove(oldparent, encoded_oldname, newparent, encoded_newname,
                   H5P_DEFAULT, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("Problems moving the node %s to %s" %
@@ -1087,13 +1121,16 @@ cdef class Array(Leaf):
   # Instance variables declared in .pxd
 
 
-  def _createArray(self, ndarray nparr, char *title, object _atom):
+  def _createArray(self, ndarray nparr, object title, object _atom):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
     cdef bytes complib, version, class_
     cdef object dtype_, atom, shape
     cdef ndarray dims
+    cdef bytes encoded_title
+
+    encoded_title = title.encode('utf-8')
 
     # Get the HDF5 type associated with this numpy type
     shape = (<object>nparr).shape
@@ -1131,7 +1168,7 @@ cdef class Array(Leaf):
                                  H5T_CSET_ASCII)
       H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
                                  H5T_CSET_ASCII)
-      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title,
+      H5ATTRset_attribute_string(self.dataset_id, "TITLE", encoded_title,
                                  H5T_CSET_ASCII)
 
     # Get the native type (so that it is HDF5 who is the responsible to deal
@@ -1141,7 +1178,7 @@ cdef class Array(Leaf):
     return (self.dataset_id, shape, atom)
 
 
-  def _createCArray(self, char *title):
+  def _createCArray(self, object title):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
@@ -1150,6 +1187,9 @@ cdef class Array(Leaf):
     cdef void *fill_data
     cdef ndarray extdim
     cdef object atom
+    cdef bytes encoded_title
+
+    encoded_title = title.encode('utf-8')
 
     atom = self.atom
     self.disk_type_id = AtomToHDF5Type(atom, self.byteorder)
@@ -1193,7 +1233,7 @@ cdef class Array(Leaf):
                                  H5T_CSET_ASCII)
       H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
                                  H5T_CSET_ASCII)
-      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title,
+      H5ATTRset_attribute_string(self.dataset_id, "TITLE", encoded_title,
                                  H5T_CSET_ASCII)
       if self.extdim >= 0:
         extdim = <ndarray>numpy.array([self.extdim], dtype="int32")
@@ -1657,13 +1697,16 @@ cdef class VLArray(Leaf):
   # Instance variables
   cdef hsize_t nrecords
 
-  def _createArray(self, char *title):
+  def _createArray(self, object title):
     cdef int rank
     cdef hsize_t *dims
     cdef herr_t ret
     cdef void *rbuf
     cdef bytes complib, version, class_
     cdef object type_, itemsize, atom, scatom
+    cdef bytes encoded_title
+
+    encoded_title = title.encode('utf-8')
 
     atom = self.atom
     if not hasattr(atom, 'size'):  # it is a pseudo-atom
@@ -1704,7 +1747,7 @@ cdef class VLArray(Leaf):
                                  H5T_CSET_ASCII)
       H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
                                  H5T_CSET_ASCII)
-      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title,
+      H5ATTRset_attribute_string(self.dataset_id, "TITLE", encoded_title,
                                  H5T_CSET_ASCII)
 
     # Get the datatype handles

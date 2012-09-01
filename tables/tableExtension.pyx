@@ -141,7 +141,7 @@ cdef class Table(Leaf):
   # instance variables
   cdef void     *wbuf
 
-  def _createTable(self, char *title, char *complib, char *obversion):
+  def _createTable(self, title, complib, obversion):
     cdef int     offset
     cdef int     ret
     cdef long    buflen
@@ -153,6 +153,16 @@ cdef class Table(Leaf):
     cdef void    *fill_data
     cdef ndarray recarr
     cdef object  fieldname, name
+    cdef bytes encoded_title, encoded_complib, encoded_obversion
+    cdef char *ctitle = NULL, *cobversion = NULL
+
+    encoded_title = title.encode('utf-8')
+    encoded_complib = complib.encode('utf-8')
+    encoded_obversion = obversion.encode('utf-8')
+
+    # Get the C pointer
+    ctitle = encoded_title
+    cobversion = encoded_obversion
 
     # Compute the complete compound datatype based on the table description
     self.disk_type_id = createNestedType(self.description, self.byteorder)
@@ -176,11 +186,11 @@ cdef class Table(Leaf):
       data = NULL
 
     class_ = self._c_classId.encode('utf-8')
-    self.dataset_id = H5TBOmake_table(title, self.parent_id, self.name,
-                                      obversion, class_, self.disk_type_id,
+    self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, self.name,
+                                      cobversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
                                       fill_data,
-                                      self.filters.complevel, complib,
+                                      self.filters.complevel, encoded_complib,
                                       self.filters.shuffle,
                                       self.filters.fletcher32,
                                       data)
@@ -196,13 +206,13 @@ cdef class Table(Leaf):
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("CLASS", self.name))
       # Attach the VERSION attribute
-      ret = H5ATTRset_attribute_string(self.dataset_id, "VERSION", obversion,
+      ret = H5ATTRset_attribute_string(self.dataset_id, "VERSION", cobversion,
                                        H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("VERSION", self.name))
       # Attach the TITLE attribute
-      ret = H5ATTRset_attribute_string(self.dataset_id, "TITLE", title,
+      ret = H5ATTRset_attribute_string(self.dataset_id, "TITLE", ctitle,
                                        H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %

@@ -489,7 +489,7 @@ def getPyTablesVersion():
   return _getTablesVersion()
 
 
-def whichLibVersion(char *name):
+def whichLibVersion(name):
   """whichLibVersion(name)
 
   Get version information about a C library.
@@ -503,23 +503,30 @@ def whichLibVersion(char *name):
   another name is given, a ValueError is raised.
   """
 
+  cdef char *cname = NULL
+  cdef bytes encoded_name
+
+  encoded_name = name.encode('utf-8')
+  # get the C pointer
+  cname = encoded_name
+
   libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc')
 
-  if strcmp(name, "hdf5") == 0:
+  if strcmp(cname, "hdf5") == 0:
     binver, strver = getHDF5VersionInfo()
     return (binver, strver, None)     # Should be always available
-  elif strcmp(name, "zlib") == 0:
+  elif strcmp(cname, "zlib") == 0:
     if zlib_imported:
       return (1, zlib.ZLIB_VERSION, None)
-  elif strcmp(name, "lzo") == 0:
+  elif strcmp(cname, "lzo") == 0:
     if lzo_version:
       (lzo_version_string, lzo_version_date) = lzo_version
       return (lzo_version, lzo_version_string, lzo_version_date)
-  elif strcmp(name, "bzip2") == 0:
+  elif strcmp(cname, "bzip2") == 0:
     if bzip2_version:
       (bzip2_version_string, bzip2_version_date) = bzip2_version
       return (bzip2_version, bzip2_version_string, bzip2_version_date)
-  elif strcmp(name, "blosc") == 0:
+  elif strcmp(cname, "blosc") == 0:
     if blosc_version:
       (blosc_version_string, blosc_version_date) = blosc_version
       return (blosc_version, blosc_version_string, blosc_version_date)
@@ -531,7 +538,7 @@ def whichLibVersion(char *name):
   return None
 
 
-def whichClass(hid_t loc_id, char *name):
+def whichClass(hid_t loc_id, object name):
   """Detects a class ID using heuristics."""
 
   cdef H5T_class_t  class_id
@@ -544,10 +551,14 @@ def whichClass(hid_t loc_id, char *name):
   cdef int          rank
   cdef hsize_t      *dims, *maxdims
   cdef char         byteorder[11]  # "irrelevant" fits easily here
+  cdef bytes        encoded_name
+
+  encoded_name = name.encode('utf-8')
 
   classId = "UNSUPPORTED"  # default value
   # Get The HDF5 class for the datatype in this dataset
-  class_id = getHDF5ClassID(loc_id, name, &layout, &type_id, &dataset_id)
+  class_id = getHDF5ClassID(loc_id, encoded_name, &layout, &type_id,
+                            &dataset_id)
   # Check if this a dataset of supported classtype for ARRAY
   if  ((class_id == H5T_INTEGER)  or
        (class_id == H5T_FLOAT)    or
@@ -657,7 +668,7 @@ def getIndices(object start, object stop, object step, hsize_t length):
   return (o_start, o_stop, o_step)
 
 
-def read_f_attr(hid_t file_id, char *attr_name):
+def read_f_attr(hid_t file_id, object attr_name):
   """Read PyTables file attributes (i.e. in root group).
 
   Returns the value of the `attr_name` attribute in root group, or `None` if
@@ -668,13 +679,19 @@ def read_f_attr(hid_t file_id, char *attr_name):
   cdef char *attr_value
   cdef int cset
   cdef object retvalue
+  cdef bytes encoded_attr_name
+  cdef char *c_attr_name = NULL
+
+  encoded_attr_name = attr_name.encode('utf-8')
+  # Get the C pointer
+  c_attr_name = encoded_attr_name
 
   attr_value = NULL
   retvalue = None
   # Check if attribute exists
-  if H5ATTRfind_attribute(file_id, attr_name):
+  if H5ATTRfind_attribute(file_id, c_attr_name):
     # Read the attr_name attribute
-    ret = H5ATTRget_attribute_string(file_id, attr_name, &attr_value, &cset)
+    ret = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
     if ret >= 0:
       if cset == H5T_CSET_UTF8:
         retvalue = PyUnicode_DecodeUTF8(attr_value, strlen(attr_value), NULL)
@@ -728,7 +745,7 @@ def getTypeEnum(hid_t h5type):
   return enumId
 
 
-def enumFromHDF5(hid_t enumId, char *byteorder):
+def enumFromHDF5(hid_t enumId, object byteorder):
   """enumFromHDF5(enumId) -> (Enum, npType)
 
   Convert an HDF5 enumerated type to a PyTables one.
@@ -743,6 +760,9 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
   cdef char   *ename
   cdef ndarray npvalue
   cdef object dtype
+  #cdef bytes  encoded_byteorder
+
+  #encoded_byteorder = byteorder.encode('utf-8')
 
   # Find the base type of the enumerated type, and get the atom
   baseId = H5Tget_super(enumId)
@@ -783,7 +803,7 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
   return Enum(enumDict), dtype
 
 
-def enumToHDF5(object enumAtom, char *byteorder):
+def enumToHDF5(object enumAtom, object byteorder):
   """enumToHDF5(enumAtom, byteorder) -> hid_t
 
   Convert a PyTables enumerated type to an HDF5 one.
@@ -831,24 +851,30 @@ def enumToHDF5(object enumAtom, char *byteorder):
   return enumId
 
 
-def AtomToHDF5Type(atom, char *byteorder):
+def AtomToHDF5Type(atom, object byteorder):
   cdef hid_t   tid = -1
-  cdef hsize_t *dims
+  cdef hsize_t *dims = NULL
+  cdef bytes   encoded_byteorder
+  cdef char    *cbyteorder = NULL
+
+  encoded_byteorder = byteorder.encode('utf-8')
+  # Get the C pointer
+  cbyteorder = encoded_byteorder
 
   # Create the base HDF5 type
   if atom.type in PTTypeToHDF5:
     tid = H5Tcopy(PTTypeToHDF5[atom.type])
     # Fix the byteorder
     if atom.kind != 'time':
-      set_order(tid, byteorder)
+      set_order(tid, cbyteorder)
   elif atom.type == 'float16':
-    tid = create_ieee_float16(byteorder)
+    tid = create_ieee_float16(cbyteorder)
   elif atom.kind in PTSpecialKinds:
     # Special cases (the byteorder doesn't need to be fixed afterwards)
     if atom.type == 'complex64':
-      tid = create_ieee_complex64(byteorder)
+      tid = create_ieee_complex64(cbyteorder)
     elif atom.type == 'complex128':
-      tid = create_ieee_complex128(byteorder)
+      tid = create_ieee_complex128(cbyteorder)
     elif atom.kind == 'string':
       tid = H5Tcopy(H5T_C_S1);
       H5Tset_size(tid, atom.itemsize)
@@ -1055,7 +1081,7 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
   return atom_
 
 
-def createNestedType(object desc, char *byteorder):
+def createNestedType(object desc, object byteorder):
   """Create a nested type based on a description and return an HDF5 type."""
 
   cdef hid_t   tid, tid2
