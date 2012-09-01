@@ -118,7 +118,7 @@ def nested_description(classname, pos, shape=()):
     classdict = {}
     append_columns(classdict, shape=shape)
     classdict['_v_pos'] = pos
-    return types.ClassType(classname, (tables.IsDescription,), classdict)
+    return type(classname, (tables.IsDescription,), classdict)
 
 def table_description(classname, nclassname, shape=()):
     """
@@ -147,7 +147,7 @@ def table_description(classname, nclassname, shape=()):
     classdict['c_idxextra'] = idxextracol
     colpos += 1
 
-    return types.ClassType(classname, (tables.IsDescription,), classdict)
+    return type(classname, (tables.IsDescription,), classdict)
 
 TableDescription = table_description(
     'TableDescription', 'NestedDescription' )
@@ -539,7 +539,7 @@ def iclassdata():
 for cdatafunc in [niclassdata, iclassdata]:
     for (cname, cbasenames, cdict) in cdatafunc():
         cbases = tuple(eval(cbase) for cbase in cbasenames)
-        class_ = types.ClassType(cname, cbases, cdict)
+        class_ = type(cname, cbases, cdict)
         exec '%s = class_' % cname
 
 

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import unittest
 import os
-import tempfile
 import random
-import types
+import unittest
+import tempfile
 
 import numpy
 
@@ -3233,7 +3232,7 @@ def iclassdata():
 # Create test classes.
 for (cname, cbasenames, cdict) in iclassdata():
     cbases = tuple(eval(cbase) for cbase in cbasenames)
-    class_ = types.ClassType(cname, cbases, cdict)
+    class_ = type(cname, cbases, cdict)
     exec '%s = class_' % cname
 
 
