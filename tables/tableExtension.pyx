@@ -155,10 +155,12 @@ cdef class Table(Leaf):
     cdef object  fieldname, name
     cdef bytes encoded_title, encoded_complib, encoded_obversion
     cdef char *ctitle = NULL, *cobversion = NULL
+    cdef bytes encoded_name
 
     encoded_title = title.encode('utf-8')
     encoded_complib = complib.encode('utf-8')
     encoded_obversion = obversion.encode('utf-8')
+    encoded_name = self.name.encode('utf-8')
 
     # Get the C pointer
     ctitle = encoded_title
@@ -186,7 +188,7 @@ cdef class Table(Leaf):
       data = NULL
 
     class_ = self._c_classId.encode('utf-8')
-    self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, self.name,
+    self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, encoded_name,
                                       cobversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
                                       fill_data,
@@ -347,9 +349,12 @@ cdef class Table(Leaf):
     cdef size_t  type_size, size2
     cdef hsize_t dims[1], chunksize[1]  # enough for unidimensional tables
     cdef H5D_layout_t layout
+    cdef bytes encoded_name
+
+    encoded_name = self.name.encode('utf-8')
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
+    self.dataset_id = H5Dopen(self.parent_id, encoded_name, H5P_DEFAULT)
     if self.dataset_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))

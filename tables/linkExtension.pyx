@@ -124,9 +124,14 @@ cdef class Link(Node):
 
     cdef herr_t ret
     cdef object stats
+    cdef bytes encoded_name, encoded_newname
 
-    ret = H5Lcopy(self.parent_id, self.name, newParent._v_objectID, newName,
-                  H5P_DEFAULT, H5P_DEFAULT)
+    encoded_name = self.name.encode('utf-8')
+    encoded_newname = newName.encode('utf-8')
+
+    # @TODO: set property list --> utf-8
+    ret = H5Lcopy(self.parent_id, encoded_name, newParent._v_objectID,
+                  encoded_newname, H5P_DEFAULT, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to copy HDF5 link")
 
@@ -146,8 +151,11 @@ cdef class SoftLink(Link):
     """Create the link in file."""
 
     cdef herr_t ret
+    cdef bytes encoded_name
 
-    ret = H5Lcreate_soft(self.target, self.parent_id, self.name,
+    encoded_name = self.name.encode('utf-8')
+
+    ret = H5Lcreate_soft(self.target, self.parent_id, encoded_name,
                          H5P_DEFAULT, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to create HDF5 soft link")
@@ -162,15 +170,19 @@ cdef class SoftLink(Link):
     cdef H5L_info_t link_buff
     cdef size_t val_size
     cdef char *linkval
+    cdef bytes encoded_name
 
-    ret = H5Lget_info(self.parent_id, self.name, &link_buff, H5P_DEFAULT)
+    encoded_name = self.name.encode('utf-8')
+
+    ret = H5Lget_info(self.parent_id, encoded_name, &link_buff, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to get info about soft link")
 
     val_size = link_buff.u.val_size
     linkval = <char *>malloc(val_size)
 
-    ret = H5Lget_val(self.parent_id, self.name, linkval, val_size, H5P_DEFAULT)
+    ret = H5Lget_val(self.parent_id, encoded_name, linkval, val_size,
+                     H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to get target value")
 
@@ -189,9 +201,12 @@ cdef class ExternalLink(Link):
     """Create the link in file."""
 
     cdef herr_t ret
+    cdef bytes encoded_name
+
+    encoded_name = self.name.encode('utf-8')
 
     filename, target = self._get_filename_node()
-    ret = H5Lcreate_external(filename, target, self.parent_id, self.name,
+    ret = H5Lcreate_external(filename, target, self.parent_id, encoded_name,
                              H5P_DEFAULT, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to create HDF5 external link")
@@ -207,15 +222,19 @@ cdef class ExternalLink(Link):
     cdef size_t val_size
     cdef char *linkval, *filename, *obj_path
     cdef unsigned flags
+    cdef bytes encoded_name
 
-    ret = H5Lget_info(self.parent_id, self.name, &link_buff, H5P_DEFAULT)
+    encoded_name = self.name.encode('utf-8')
+
+    ret = H5Lget_info(self.parent_id, encoded_name, &link_buff, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to get info about external link")
 
     val_size = link_buff.u.val_size
     linkval = <char *>malloc(val_size)
 
-    ret = H5Lget_val(self.parent_id, self.name, linkval, val_size, H5P_DEFAULT)
+    ret = H5Lget_val(self.parent_id, encoded_name, linkval, val_size,
+                     H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to get target value")
 

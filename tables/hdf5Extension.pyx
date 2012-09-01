@@ -878,9 +878,14 @@ cdef class Group(Node):
 
   def _g_create(self):
     cdef hid_t ret
+    cdef bytes encoded_name
+
+    encoded_name = self.name.encode('utf-8')
+
+    # @TODO: set property list --> utf-8
 
     # Create a new group
-    ret = H5Gcreate(self.parent_id, self.name, H5P_DEFAULT, H5P_DEFAULT,
+    ret = H5Gcreate(self.parent_id, encoded_name, H5P_DEFAULT, H5P_DEFAULT,
                     H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("Can't create the group %s." % self.name)
@@ -890,8 +895,11 @@ cdef class Group(Node):
 
   def _g_open(self):
     cdef hid_t ret
+    cdef bytes encoded_name
 
-    ret = H5Gopen(self.parent_id, self.name, H5P_DEFAULT)
+    encoded_name = self.name.encode('utf-8')
+
+    ret = H5Gopen(self.parent_id, encoded_name, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("Can't open the group: '%s'." % self.name)
     self.group_id = ret
@@ -931,7 +939,11 @@ cdef class Group(Node):
   def _g_listGroup(self, parent):
     """Return a tuple with the groups and the leaves hanging from self."""
 
-    return Giterate(parent._v_objectID, self._v_objectID, self.name)
+    cdef bytes encoded_name
+
+    encoded_name = self.name.encode('utf-8')
+
+    return Giterate(parent._v_objectID, self._v_objectID, encoded_name)
 
 
   def _g_getGChildAttr(self, group_name, attr_name):
@@ -996,7 +1008,7 @@ cdef class Group(Node):
 
     ret = H5Gclose(self.group_id)
     if ret < 0:
-      raise HDF5ExtError("Problems closing the Group %s" % self.name )
+      raise HDF5ExtError("Problems closing the Group %s" % self.name)
     self.group_id = 0  # indicate that this group is closed
 
 
@@ -1128,9 +1140,10 @@ cdef class Array(Leaf):
     cdef bytes complib, version, class_
     cdef object dtype_, atom, shape
     cdef ndarray dims
-    cdef bytes encoded_title
+    cdef bytes encoded_title, encoded_name
 
     encoded_title = title.encode('utf-8')
+    encoded_name = self.name.encode('utf-8')
 
     # Get the HDF5 type associated with this numpy type
     shape = (<object>nparr).shape
@@ -1152,7 +1165,7 @@ cdef class Array(Leaf):
     complib = (self.filters.complib or '').encode('utf-8')
     version = self._v_version.encode('utf-8')
     class_ = self._c_classId.encode('utf-8')
-    self.dataset_id = H5ARRAYmake(self.parent_id, self.name, version,
+    self.dataset_id = H5ARRAYmake(self.parent_id, encoded_name, version,
                                   self.rank, self.dims,
                                   self.extdim, self.disk_type_id, NULL, NULL,
                                   self.filters.complevel, complib,
@@ -1187,9 +1200,10 @@ cdef class Array(Leaf):
     cdef void *fill_data
     cdef ndarray extdim
     cdef object atom
-    cdef bytes encoded_title
+    cdef bytes encoded_title, encoded_name
 
     encoded_title = title.encode('utf-8')
+    encoded_name = self.name.encode('utf-8')
 
     atom = self.atom
     self.disk_type_id = AtomToHDF5Type(atom, self.byteorder)
@@ -1220,7 +1234,7 @@ cdef class Array(Leaf):
 
     # Create the CArray/EArray
     self.dataset_id = H5ARRAYmake(
-      self.parent_id, self.name, version, self.rank,
+      self.parent_id, encoded_name, version, self.rank,
       self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
       fill_data, self.filters.complevel, complib,
       self.filters.shuffle, self.filters.fletcher32, rbuf)
@@ -1259,9 +1273,12 @@ cdef class Array(Leaf):
     cdef int fill_status
     cdef ndarray dflts
     cdef void *fill_data
+    cdef bytes encoded_name
+
+    encoded_name = self.name.encode('utf-8')
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
+    self.dataset_id = H5Dopen(self.parent_id, encoded_name, H5P_DEFAULT)
     if self.dataset_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
@@ -1704,9 +1721,10 @@ cdef class VLArray(Leaf):
     cdef void *rbuf
     cdef bytes complib, version, class_
     cdef object type_, itemsize, atom, scatom
-    cdef bytes encoded_title
+    cdef bytes encoded_title, encoded_name
 
     encoded_title = title.encode('utf-8')
+    encoded_name = self.name.encode('utf-8')
 
     atom = self.atom
     if not hasattr(atom, 'size'):  # it is a pseudo-atom
@@ -1728,7 +1746,7 @@ cdef class VLArray(Leaf):
     class_ = self._c_classId.encode('utf-8')
 
     # Create the vlarray
-    self.dataset_id = H5VLARRAYmake(self.parent_id, self.name, version,
+    self.dataset_id = H5VLARRAYmake(self.parent_id, encoded_name, version,
                                     rank, dims, self.base_type_id,
                                     self.chunkshape[0], rbuf,
                                     self.filters.complevel, complib,
@@ -1763,9 +1781,12 @@ cdef class VLArray(Leaf):
     cdef herr_t ret
     cdef hsize_t nrecords, chunksize
     cdef object shape, type_
+    cdef bytes encoded_name
+
+    encoded_name = self.name.encode('utf-8')
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
+    self.dataset_id = H5Dopen(self.parent_id, encoded_name, H5P_DEFAULT)
     if self.dataset_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))
@@ -1952,11 +1973,14 @@ cdef class UnImplemented(Leaf):
   def _openUnImplemented(self):
     cdef object shape
     cdef char byteorder[11]  # "irrelevant" fits easily here
+    cdef bytes encoded_name
+
+    encoded_name = self.name.encode('utf-8')
 
     # Get info on dimensions
-    shape = H5UIget_info(self.parent_id, self.name, byteorder)
+    shape = H5UIget_info(self.parent_id, encoded_name, byteorder)
     shape = tuple(map(SizeType, shape))
-    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
+    self.dataset_id = H5Dopen(self.parent_id, encoded_name, H5P_DEFAULT)
     return (shape, byteorder, self.dataset_id)
 
 
