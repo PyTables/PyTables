@@ -1,6 +1,5 @@
 #include <stdarg.h>
 #include "utils.h"
-/* #include <string.h> */
 #include "version.h"
 #include "H5Zlzo.h"                /* Import FILTER_LZO */
 #include "H5Zbzip2.h"              /* Import FILTER_BZIP2 */
@@ -110,7 +109,7 @@ PyObject *getHDF5VersionInfo(void) {
   }
 
   t = PyTuple_New(2);
-  PyTuple_SetItem(t, 0, PyInt_FromLong(binver));
+  PyTuple_SetItem(t, 0, PyLong_FromLong(binver));
   PyTuple_SetItem(t, 1, PyString_FromString(strver));
   return t;
 }
@@ -204,7 +203,7 @@ PyObject *get_filter_names( hid_t loc_id,
                      cd_values, sizeof(f_name), f_name, NULL);
        filter_values = PyTuple_New(cd_nelmts);
        for (j=0;j<(long)cd_nelmts;j++) {
-         PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
+         PyTuple_SetItem(filter_values, j, PyLong_FromLong(cd_values[j]));
        }
        PyMapping_SetItemString (filters, f_name, filter_values);
      }
@@ -469,7 +468,7 @@ PyObject *H5UIget_info( hid_t loc_id,
   t = PyTuple_New(rank);
   for(i=0;i<rank;i++) {
     /* I don't know if I should increase the reference count for dims[i]! */
-    PyTuple_SetItem(t, i, PyInt_FromLong((long)dims[i]));
+    PyTuple_SetItem(t, i, PyLong_FromLong((long)dims[i]));
   }
 
   /* Release resources */
@@ -541,7 +540,7 @@ hsize_t _PyEval_SliceIndex_modif(PyObject *v, hssize_t *pi)
 
   if (v != NULL) {
     PY_LONG_LONG x;
-    if (PyInt_Check(v)) {
+    if (PyLong_Check(v)) {
       x = PyLong_AsLongLong(v);
     }
     else if (PyLong_Check(v)) {
