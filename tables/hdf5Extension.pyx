@@ -29,8 +29,13 @@ Misc variables:
 """
 
 import os
-import cPickle
 import warnings
+
+from cpython cimport PY_MAJOR_VERSION
+if PY_MAJOR_VERSION < 3:
+    import cPickle as pickle
+else:
+    import pickle
 
 import numpy
 
@@ -653,7 +658,7 @@ cdef class AttributeSet:
         value = value[()]
       # Convert this object to a null-terminated string
       # (binary pickles are not supported at this moment)
-      value = cPickle.dumps(value, 0)
+      value = pickle.dumps(value, 0)
       ret = H5ATTRset_attribute_string(dset_id, name, value)
 
     return
