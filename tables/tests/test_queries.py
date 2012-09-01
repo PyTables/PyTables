@@ -13,6 +13,7 @@
 """Test module for queries on datasets"""
 
 import re
+import sys
 import types
 import unittest
 
@@ -445,7 +446,10 @@ for type_ in type_info:  # for type_ in ['string']:
             #tmethod.__doc__ += numfmt % testn
             tmethod.__doc__ += testfmt % testn
             ptmethod = common.pyTablesTest(tmethod)
-            imethod = types.MethodType(ptmethod, None, TableDataTestCase)
+            if sys.version_info < (3,):
+                imethod = types.MethodType(ptmethod, None, TableDataTestCase)
+            else:
+                imethod = ptmethod
             setattr(TableDataTestCase, tmethod.__name__, imethod)
             testn += 1
 
