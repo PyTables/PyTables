@@ -1,6 +1,6 @@
-===================
-PyTables Deveopment
-===================
+====================
+PyTables Development
+====================
 
 If you want to follow the development of PyTables and take part in it,
 you may have a look at the PyTables project pages on
