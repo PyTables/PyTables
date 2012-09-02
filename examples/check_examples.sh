@@ -23,3 +23,4 @@ $PYTHON nested-tut.py
 $PYTHON nested-iter.py
 $PYTHON links.py
 $PYTHON undo-redo.py
+$PYTHON multiprocess_access_queues.py
