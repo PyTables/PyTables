@@ -48,6 +48,8 @@ Other improvements
   Also, now PyTables no more alters the system PATH.
   Closes :issue:`178` and :issue:`179` (thanks to Christoph Gohlke).
 
+- Th internal Blosc_ library has been upgraded to version 1.1.4.
+
 
 Deprecations
 ------------

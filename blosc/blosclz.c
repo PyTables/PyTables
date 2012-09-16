@@ -132,7 +132,7 @@ int blosclz_compress(int opt_level, const void* input,
     return 0;                   /* Mark this as uncompressible */
   }
 
-  htab = malloc(hash_size*sizeof(uint16_t));
+  htab = (uint16_t *) malloc(hash_size*sizeof(uint16_t));
 
   /* sanity check */
   if(BLOSCLZ_UNEXPECT_CONDITIONAL(length < 4)) {
@@ -453,7 +453,7 @@ int blosclz_decompress(const void* input, int length, void* output, int maxout)
       ip += ctrl;
       op += ctrl;
 
-      loop = BLOSCLZ_EXPECT_CONDITIONAL(ip < ip_limit);
+      loop = (uint32_t)BLOSCLZ_EXPECT_CONDITIONAL(ip < ip_limit);
       if(loop)
         ctrl = *ip++;
     }

@@ -14,11 +14,11 @@
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
 #define BLOSC_VERSION_MINOR    1    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  3    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_RELEASE  4    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.1.3"  /* string version.  Sync with above! */
-#define BLOSC_VERSION_REVISION "$Rev: 296 $"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2010-11-16 #$"    /* date version */
+#define BLOSC_VERSION_STRING   "1.1.4"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
+#define BLOSC_VERSION_DATE     "$Date:: 2012-09-16 #$"    /* date version */
 
 /* The *_VERS_FORMAT should be just 1-byte long */
 #define BLOSC_VERSION_FORMAT    2   /* Blosc format version, starting at 1 */
@@ -36,7 +36,7 @@
 #define BLOSC_MAX_OVERHEAD BLOSC_MIN_HEADER_LENGTH
 
 /* Maximum buffer size to be compressed */
-#define BLOSC_MAX_BUFFERSIZE INT_MAX   /* Signed 32-bit internal counters */
+#define BLOSC_MAX_BUFFERSIZE (INT_MAX - BLOSC_MAX_OVERHEAD)
 
 /* Maximum typesize before considering buffer as a stream of bytes */
 #define BLOSC_MAX_TYPESIZE 255         /* Cannot be larger than 255 */
@@ -59,7 +59,7 @@
   between 0 (no compression) and 9 (maximum compression).
 
   `doshuffle` specifies whether the shuffle compression preconditioner
-  should be applyied or not.  0 means not applying it and 1 means
+  should be applied or not.  0 means not applying it and 1 means
   applying it.
 
   `typesize` is the number of bytes for the atomic type in binary
@@ -86,7 +86,7 @@
  */
 
 int blosc_compress(int clevel, int doshuffle, size_t typesize, size_t nbytes,
-		   const void *src, void *dest, size_t destsize);
+                   const void *src, void *dest, size_t destsize);
 
 
 /**

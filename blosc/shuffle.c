@@ -25,7 +25,7 @@
 
 /* Shuffle a block.  This can never fail. */
 void _shuffle(size_t bytesoftype, size_t blocksize,
-	      uint8_t* _src, uint8_t* _dest) {
+      uint8_t* _src, uint8_t* _dest) {
   size_t i, j, neblock, leftover;
 
   /* Non-optimized shuffle */
@@ -41,7 +41,7 @@ void _shuffle(size_t bytesoftype, size_t blocksize,
 
 /* Unshuffle a block.  This can never fail. */
 void _unshuffle(size_t bytesoftype, size_t blocksize,
-		uint8_t* _src, uint8_t* _dest) {
+      uint8_t* _src, uint8_t* _dest) {
   size_t i, j, neblock, leftover;
 
   /* Non-optimized unshuffle */
