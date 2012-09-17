@@ -475,11 +475,12 @@ int create_temporaries(void)
   /* Create temporary area for each thread */
   for (tid = 0; tid < nthreads; tid++) {
     uint8_t *tmp = my_malloc(blocksize);
+    uint8_t *tmp2;
     if (tmp == NULL) {
       return -1;
     }
     params.tmp[tid] = tmp;
-    uint8_t *tmp2 = my_malloc(ebsize);
+    tmp2 = my_malloc(ebsize);
     if (tmp2 == NULL) {
       return -1;
     }
@@ -524,8 +525,9 @@ int do_job(void) {
   else if (current_temp.nthreads != nthreads ||
            current_temp.typesize != params.typesize ||
            current_temp.blocksize != params.blocksize) {
+    int ret;
     release_temporaries();
-    int ret = create_temporaries();
+    ret = create_temporaries();
     if (ret < 0) {
       return -1;
     }
