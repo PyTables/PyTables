@@ -33,7 +33,8 @@ from tables.utils import checkFileAccess
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp
-from cpython cimport PyString_AsString
+from cpython cimport PY_MAJOR_VERSION
+from cpython cimport PyBytes_AsString
 from numpy cimport (import_array, ndarray, dtype,
   NPY_INT64, npy_int64,
   PyArray_DescrFromType)
@@ -489,7 +490,7 @@ def getPyTablesVersion():
   return _getTablesVersion()
 
 
-def whichLibVersion(char *name):
+def whichLibVersion(str sname):
   """whichLibVersion(name)
 
   Get version information about a C library.
@@ -502,6 +503,10 @@ def whichLibVersion(char *name):
   The currently supported library names are hdf5, zlib, lzo and bzip2. If
   another name is given, a ValueError is raised.
   """
+  if PY_MAJOR_VERSION >= 3:
+    name = sname.encode('ascii')
+  else:
+    name = sname
 
   libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc')
 
@@ -815,7 +820,7 @@ def enumToHDF5(object enumAtom, char *byteorder):
   bytestride = npValues.strides[0]
   rbuffer = npValues.data
   for i from 0 <= i < len(npNames):
-    name = PyString_AsString(npNames[i])
+    name = PyBytes_AsString(npNames[i])
     rbuf = <void *>(<char *>rbuffer + bytestride * i)
     if H5Tenum_insert(enumId, name, rbuf) < 0:
       e = HDF5ExtError("failed to insert value into HDF5 enumerated type")

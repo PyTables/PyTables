@@ -60,8 +60,8 @@ from utilsExtension cimport malloc_dims, get_native_type
 from libc.stdlib cimport malloc, free
 from libc.string cimport strdup
 from numpy cimport import_array, ndarray
-from cpython cimport (PyString_AsString, PyString_FromStringAndSize,
-    PyString_Check)
+from cpython cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
+    PyBytes_Check)
 
 
 from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
@@ -313,7 +313,7 @@ cdef class File:
       if driver != "H5FD_CORE":
         warnings.warn("The DRIVER_CORE_IMAGE parameter will be ignored by "
                       "the '%s' driver" % driver)
-      elif not PyString_Check(image):
+      elif not PyBytes_Check(image):
         raise TypeError("The DRIVER_CORE_IMAGE must be a string of bytes")
       elif not H5_HAVE_IMAGE_FILE:
         raise RuntimeError("Support for image files is only availabe in "
@@ -396,7 +396,7 @@ cdef class File:
                              backing_store)
       if image:
         img_buf_len = len(image)
-        img_buf_p = <void *>PyString_AsString(image)
+        img_buf_p = <void *>PyBytes_AsString(image)
         err = pt_H5Pset_file_image(access_plist, img_buf_p, img_buf_len)
         if err < 0:
           H5Pclose(create_plist)
@@ -475,13 +475,13 @@ cdef class File:
                          "file image.  Plese note that not all drivers "
                          "provide support for image files.")
 
-    # allocate the momory buffer
-    image = PyString_FromStringAndSize(NULL, size)
+    # allocate the memory buffer
+    image = PyBytes_FromStringAndSize(NULL, size)
     if not image:
       raise RuntimeError("Unable to allecote meomory fir the file image")
 
     buf_len = size
-    size = pt_H5Fget_file_image(self.file_id, PyString_AsString(image),
+    size = pt_H5Fget_file_image(self.file_id, PyBytes_AsString(image),
                                 buf_len)
     if size < 0:
       raise HDF5ExtError("Unable to retrieve the file image. "
@@ -591,7 +591,7 @@ cdef class AttributeSet:
 
   def _g_new(self, node):
     # Initialize the C attributes of Node object
-    self.name =  PyString_AsString(node._v_name)
+    self.name =  PyBytes_AsString(node._v_name)
 
 
   def _g_listAttr(self, node):
@@ -1087,9 +1087,9 @@ cdef class Array(Leaf):
     # Get the pointer to the buffer data area
     rbuf = nparr.data
     # Save the array
-    complib = PyString_AsString(self.filters.complib or '')
-    version = PyString_AsString(self._v_version)
-    class_ = PyString_AsString(self._c_classId)
+    complib = PyBytes_AsString(self.filters.complib or '')
+    version = PyBytes_AsString(self._v_version)
+    class_ = PyBytes_AsString(self._c_classId)
     self.dataset_id = H5ARRAYmake(self.parent_id, self.name, version,
                                   self.rank, self.dims,
                                   self.extdim, self.disk_type_id, NULL, NULL,
@@ -1133,9 +1133,9 @@ cdef class Array(Leaf):
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Manually convert some string values that can't be done automatically
-    complib = PyString_AsString(self.filters.complib or '')
-    version = PyString_AsString(self._v_version)
-    class_ = PyString_AsString(self._c_classId)
+    complib = PyBytes_AsString(self.filters.complib or '')
+    version = PyBytes_AsString(self._v_version)
+    class_ = PyBytes_AsString(self._c_classId)
     # Get the fill values
     if isinstance(atom.dflt, numpy.ndarray) or atom.dflt:
       dflts = numpy.array(atom.dflt, dtype=atom.dtype)
@@ -1648,9 +1648,9 @@ cdef class VLArray(Leaf):
     rbuf = NULL   # We don't have data to save initially
 
     # Manually convert some string values that can't be done automatically
-    complib = PyString_AsString(self.filters.complib or '')
-    version = PyString_AsString(self._v_version)
-    class_ = PyString_AsString(self._c_classId)
+    complib = PyBytes_AsString(self.filters.complib or '')
+    version = PyBytes_AsString(self._v_version)
+    class_ = PyBytes_AsString(self._c_classId)
     # Create the vlarray
     self.dataset_id = H5VLARRAYmake(self.parent_id, self.name, version,
                                     rank, dims, self.base_type_id,
@@ -1829,7 +1829,7 @@ cdef class VLArray(Leaf):
         # Create a buffer to keep this info. It is important to do a
         # copy, because we will dispose the buffer memory later on by
         # calling the H5Dvlen_reclaim. PyString_FromStringAndSize does this.
-        buf = PyString_FromStringAndSize(<char *>rdata[i].p,
+        buf = PyBytes_FromStringAndSize(<char *>rdata[i].p,
                                          vllen*self._atomicsize)
       else:
         # Case where there is info with zero lentgh
