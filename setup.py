@@ -80,7 +80,7 @@ def print_warning(head, body=''):
 
 
 # Check for Python
-if not sys.version_info >= (2, 6):
+if sys.version_info < (2, 6):
     exit_with_error("You need Python 2.6 or greater to install PyTables!")
 
 
