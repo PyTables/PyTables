@@ -40,7 +40,7 @@ from hdf5Extension cimport Leaf
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp
 from numpy cimport import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM
-from cpython cimport PyString_AsString
+from cpython cimport PyBytes_AsString
 from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL,
@@ -175,7 +175,7 @@ cdef class Table(Leaf):
     else:
       data = NULL
 
-    class_ = PyString_AsString(self._c_classId)
+    class_ = PyBytes_AsString(self._c_classId)
     self.dataset_id = H5TBOmake_table(title, self.parent_id, self.name,
                                       obversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
