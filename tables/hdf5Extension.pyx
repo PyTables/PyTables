@@ -911,8 +911,14 @@ cdef class Group(Node):
 
     cdef int ret
     cdef object node_type
+    cdef bytes encoded_name
+    cdef char *cname
 
-    ret = get_linkinfo(self.group_id, h5name)
+    encoded_name = h5name.encode('utf-8')
+    # Get the C pointer
+    cname = encoded_name
+
+    ret = get_linkinfo(self.group_id, cname)
     if ret == -2 or ret == H5L_TYPE_ERROR:
       node_type = "NoSuchNode"
     elif ret == H5L_TYPE_SOFT:
@@ -920,7 +926,7 @@ cdef class Group(Node):
     elif ret == H5L_TYPE_EXTERNAL:
       node_type = "ExternalLink"
     elif ret == H5L_TYPE_HARD:
-        ret = get_objinfo(self.group_id, h5name)
+        ret = get_objinfo(self.group_id, cname)
         if ret == -2:
           node_type = "NoSuchNode"
         elif ret == H5O_TYPE_UNKNOWN:
