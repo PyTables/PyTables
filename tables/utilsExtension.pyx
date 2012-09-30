@@ -419,11 +419,14 @@ cdef hid_t get_native_type(hid_t type_id) nogil:
 def encode_filename(object filename):
   """Return the encoded filename in the filesystem encoding."""
 
+  cdef bytes encname
+
   if type(filename) is unicode:
     encoding = sys.getfilesystemencoding()
     encname = filename.encode(encoding)
   else:
     encname = filename
+
   return encname
 
 
@@ -709,7 +712,12 @@ def read_f_attr(hid_t file_id, object attr_name):
 
 def getFilters(parent_id, name):
   """Get a dictionary with the filter names and cd_values"""
-  return get_filter_names(parent_id, name)
+
+  cdef bytes encoded_name
+
+  encoded_name = name.encode('utf-8')
+
+  return get_filter_names(parent_id, encoded_name)
 
 
 # This is used by several <Leaf>._convertTypes() methods.
