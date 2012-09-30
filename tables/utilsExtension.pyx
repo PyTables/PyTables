@@ -492,7 +492,7 @@ def getPyTablesVersion():
   return _getTablesVersion()
 
 
-def whichLibVersion(name):
+def whichLibVersion(str name):
   """whichLibVersion(name)
 
   Get version information about a C library.
@@ -541,7 +541,7 @@ def whichLibVersion(name):
   return None
 
 
-def whichClass(hid_t loc_id, object name):
+def whichClass(hid_t loc_id, str name):
   """Detects a class ID using heuristics."""
 
   cdef H5T_class_t  class_id
@@ -671,7 +671,7 @@ def getIndices(object start, object stop, object step, hsize_t length):
   return (o_start, o_stop, o_step)
 
 
-def read_f_attr(hid_t file_id, object attr_name):
+def read_f_attr(hid_t file_id, str attr_name):
   """Read PyTables file attributes (i.e. in root group).
 
   Returns the value of the `attr_name` attribute in root group, or `None` if
@@ -753,7 +753,7 @@ def getTypeEnum(hid_t h5type):
   return enumId
 
 
-def enumFromHDF5(hid_t enumId, object byteorder):
+def enumFromHDF5(hid_t enumId, str byteorder):
   """enumFromHDF5(enumId) -> (Enum, npType)
 
   Convert an HDF5 enumerated type to a PyTables one.
@@ -811,7 +811,7 @@ def enumFromHDF5(hid_t enumId, object byteorder):
   return Enum(enumDict), dtype
 
 
-def enumToHDF5(object enumAtom, object byteorder):
+def enumToHDF5(object enumAtom, str byteorder):
   """enumToHDF5(enumAtom, byteorder) -> hid_t
 
   Convert a PyTables enumerated type to an HDF5 one.
@@ -859,7 +859,7 @@ def enumToHDF5(object enumAtom, object byteorder):
   return enumId
 
 
-def AtomToHDF5Type(atom, object byteorder):
+def AtomToHDF5Type(atom, str byteorder):
   cdef hid_t   tid = -1
   cdef hsize_t *dims = NULL
   cdef bytes   encoded_byteorder
@@ -1089,7 +1089,7 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
   return atom_
 
 
-def createNestedType(object desc, object byteorder):
+def createNestedType(object desc, str byteorder):
   """Create a nested type based on a description and return an HDF5 type."""
 
   cdef hid_t   tid, tid2
