@@ -22,6 +22,13 @@
 #define FAIL            (-1)
 #define UFAIL           (unsigned)(-1)
 
+/* Python 3 flag for preprocessor */
+#if (PY_MAJOR_VERSION >= 3)
+#    define PY3 1
+#else
+#    define PY3 0
+#endif
+
 /*
  * HDF Boolean type.
  */

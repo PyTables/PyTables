@@ -84,7 +84,11 @@ herr_t set_cache_size(hid_t file_id, size_t cache_size) {
 }
 
 PyObject *_getTablesVersion() {
+#if PY3
+  return PyUnicode_FromString(PYTABLES_VERSION);
+#else
   return PyString_FromString(PYTABLES_VERSION);
+#endif
 }
 
 PyObject *getHDF5VersionInfo(void) {
@@ -110,7 +114,11 @@ PyObject *getHDF5VersionInfo(void) {
 
   t = PyTuple_New(2);
   PyTuple_SetItem(t, 0, PyLong_FromLong(binver));
+#if PY3
+  PyTuple_SetItem(t, 1, PyUnicode_FromString(strver));
+#else
   PyTuple_SetItem(t, 1, PyString_FromString(strver));
+#endif
   return t;
 }
 
@@ -127,7 +135,11 @@ PyObject *createNamesTuple(char *buffer[], int nelements)
 
   t = PyTuple_New(nelements);
   for (i = 0; i < nelements; i++) {
+#if PY3
+    str = PyUnicode_FromString(buffer[i]);
+#else
     str = PyString_FromString(buffer[i]);
+#endif
     PyTuple_SetItem(t, i, str);
     /* PyTuple_SetItem does not need a decref, because it already do this */
 /*     Py_DECREF(str); */
@@ -143,7 +155,11 @@ PyObject *createNamesList(char *buffer[], int nelements)
 
   t = PyList_New(nelements);
   for (i = 0; i < nelements; i++) {
+#if PY3
+    str = PyUnicode_FromString(buffer[i]);
+#else
     str = PyString_FromString(buffer[i]);
+#endif
     PyList_SetItem(t, i, str);
     /* PyList_SetItem does not need a decref, because it already do this */
 /*     Py_DECREF(str); */
@@ -278,7 +294,11 @@ herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
   H5O_info_t oinfo;
   int        namedtypes = 0;
 
+#if PY3
+  strname = PyUnicode_FromString(name);
+#else
   strname = PyString_FromString(name);
+#endif
 
   switch(info->type) {
     case H5L_TYPE_SOFT:
@@ -361,7 +381,11 @@ static herr_t aitercb( hid_t loc_id, const char *name,
                        const H5A_info_t *ainfo, void *op_data) {
   PyObject *strname;
 
+#if PY3
+  strname = PyUnicode_FromString(name);
+#else
   strname = PyString_FromString(name);
+#endif
   /* Return the name of the attribute on op_data */
   PyList_Append(op_data, strname);
   Py_DECREF(strname);
