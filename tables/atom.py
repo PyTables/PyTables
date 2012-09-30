@@ -531,14 +531,14 @@ class Atom(object):
 
             >>> atom1 = StringAtom(itemsize=12)
             >>> atom2 = atom1.copy()
-            >>> print atom1
+            >>> print(atom1)
             StringAtom(itemsize=12, shape=(), dflt='')
-            >>> print atom2
+            >>> print(atom2)
             StringAtom(itemsize=12, shape=(), dflt='')
             >>> atom1 is atom2
             False
             >>> atom3 = atom1.copy(itemsize=100, shape=(2, 2))
-            >>> print atom3
+            >>> print(atom3)
             StringAtom(itemsize=100, shape=(2, 2), dflt='')
             >>> atom1.copy(foobar=42)
             Traceback (most recent call last):

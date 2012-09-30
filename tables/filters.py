@@ -99,8 +99,8 @@ class Filters(object):
                                 [3., 4.]], dtype=numpy.float32))
 
         # Print information on that enlargeable array
-        print "Result Array:"
-        print repr(arr)
+        print("Result Array:")
+        print(repr(arr))
         fileh.close()
 
     This enforces the use of the Blosc library, a compression level of 1 and a
@@ -325,9 +325,9 @@ class Filters(object):
             ...
             ValueError: compression library ``None`` is not supported...
             >>> filters3 = filters1.copy(complevel=1, complib='zlib')
-            >>> print filters1
+            >>> print(filters1)
             Filters(complevel=0, shuffle=False, fletcher32=False)
-            >>> print filters3
+            >>> print(filters3)
             Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
             >>> filters1.copy(foobar=42)
             Traceback (most recent call last):

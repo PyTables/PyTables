@@ -190,7 +190,7 @@ def lazyattr(fget):
     ...     @lazyattr
     ...     def attribute(self):
     ...         'Attribute description.'
-    ...         print 'creating value'
+    ...         print('creating value')
     ...         return 10
     ...
     >>> type(MyClass.attribute)
