@@ -483,7 +483,7 @@ cdef class File:
                          "file image.  Plese note that not all drivers "
                          "provide support for image files.")
 
-    # allocate the momory buffer
+    # allocate the memory buffer
     image = PyBytes_FromStringAndSize(NULL, size)
     if not image:
       raise RuntimeError("Unable to allecote meomory fir the file image")
