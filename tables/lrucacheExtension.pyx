@@ -23,10 +23,14 @@ Functions:
 Misc variables:
 """
 
+cdef extern from "Python.h":
+    int PyUnicode_Compare(object, object)
+
 import sys
 
 import numpy
 from libc.string cimport memcpy, strcmp
+from cpython.unicode cimport PyUnicode_Check
 from numpy cimport import_array, ndarray
 
 from tables.parameters import (DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES,
@@ -75,8 +79,10 @@ cdef class NodeCache:
 
     if nslots < 0:
       raise ValueError("Negative number (%s) of slots!" % nslots)
-    self.nslots = nslots;  self.nextslot = 0
-    self.nodes = [];  self.paths = []
+    self.nslots = nslots
+    self.nextslot = 0
+    self.nodes = []
+    self.paths = []
 
 
   def __len__(self):
@@ -100,13 +106,15 @@ cdef class NodeCache:
       # F. Alted 2008-10-22
       self.nextslot = self.nextslot - 1
       # Remove the LRU node and path (the start of the lists)
-      del self.nodes[0];  del self.paths[0]
+      del self.nodes[0]
+      del self.paths[0]
     # The equality protection has been put for situations in which a
     # node is being preempted and added simultaneously (with very small
     # caches).
     if len(self.nodes) == len(self.paths):
       # Add the node and path to the end of its lists
-      self.nodes.append(node);  self.paths.append(path)
+      self.nodes.append(node)
+      self.paths.append(path)
       self.nextslot = self.nextslot + 1
 
 
@@ -123,11 +131,20 @@ cdef class NodeCache:
     cdef long i, nslot
 
     nslot = -1  # -1 means not found
-    # Start looking from the trailing values (most recently used)
-    for i from self.nextslot > i >= 0:
-      if strcmp(<char *>path, <char *>self.paths[i]) == 0:
-        nslot = i
-        break
+    if PyUnicode_Check(path):
+        # Start looking from the trailing values (most recently used)
+        for i from self.nextslot > i >= 0:
+          #if strcmp(<char *>encoded_path, <char *>self.paths[i]) == 0:
+          if PyUnicode_Compare(path, self.paths[i]) == 0:
+            nslot = i
+            break
+    else:
+        # Start looking from the trailing values (most recently used)
+        for i from self.nextslot > i >= 0:
+          if strcmp(<char *>path, <char *>self.paths[i]) == 0:
+            nslot = i
+            break
+
     return nslot
 
 
