@@ -39,7 +39,8 @@ herr_t H5ATTRset_attribute( hid_t obj_id,
 
 herr_t H5ATTRset_attribute_string( hid_t obj_id,
                                    const char *attr_name,
-                                   const char *attr_data );
+                                   const char *attr_data,
+                                   int cset);
 
 herr_t H5ATTRget_attribute( hid_t loc_id,
                             const char *attr_name,
@@ -48,11 +49,13 @@ herr_t H5ATTRget_attribute( hid_t loc_id,
 
 herr_t H5ATTRget_attribute_string( hid_t obj_id,
                                    const char *attr_name,
-                                   char **data);
+                                   char **data,
+                                   int *cset );
 
 int H5ATTRget_attribute_vlen_string_array( hid_t obj_id,
                                            const char *attr_name,
-                                           char ***data );
+                                           char ***data,
+                                           int *cset );
 
 /*-------------------------------------------------------------------------
  *

@@ -32,8 +32,9 @@ from tables.utils import checkFileAccess
 
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
-from libc.string cimport strchr, strcmp
+from libc.string cimport strchr, strcmp, strlen
 from cpython cimport PyString_AsString
+from cpython.unicode cimport PyUnicode_DecodeUTF8
 from numpy cimport (import_array, ndarray, dtype,
   NPY_INT64, npy_int64,
   PyArray_DescrFromType)
@@ -45,7 +46,7 @@ from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
   H5E_auto_t, H5Eset_auto, H5Eprint, H5Eget_msg,
   H5E_error_t, H5E_walk_t, H5Ewalk, H5E_WALK_DOWNWARD, H5E_DEFAULT,
   H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
-  H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
+  H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose, H5T_CSET_UTF8,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
   H5Tget_member_value, H5Tget_size, H5Tget_native_type,
   H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, H5Tget_precision,
@@ -666,6 +667,7 @@ def read_f_attr(hid_t file_id, char *attr_name):
 
   cdef herr_t ret
   cdef char *attr_value
+  cdef int cset
   cdef object retvalue
 
   attr_value = NULL
@@ -673,9 +675,12 @@ def read_f_attr(hid_t file_id, char *attr_name):
   # Check if attribute exists
   if H5ATTRfind_attribute(file_id, attr_name):
     # Read the attr_name attribute
-    ret = H5ATTRget_attribute_string(file_id, attr_name, &attr_value)
+    ret = H5ATTRget_attribute_string(file_id, attr_name, &attr_value, &cset)
     if ret >= 0:
-      retvalue = attr_value
+      if cset == H5T_CSET_UTF8:
+        retvalue = PyUnicode_DecodeUTF8(attr_value, strlen(attr_value), NULL)
+      else:
+        retvalue = attr_value
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
       free(attr_value)

@@ -58,17 +58,18 @@ from utilsExtension cimport malloc_dims, get_native_type
 
 # Types, constants, functions, classes & other objects from everywhere
 from libc.stdlib cimport malloc, free
-from libc.string cimport strdup
+from libc.string cimport strdup, strlen
 from numpy cimport import_array, ndarray
 from cpython cimport (PyString_AsString, PyString_FromStringAndSize,
     PyString_Check)
+from cpython.unicode cimport PyUnicode_DecodeUTF8
 
 
 from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED,
   H5O_TYPE_UNKNOWN, H5O_TYPE_GROUP, H5O_TYPE_DATASET, H5O_TYPE_NAMED_DATATYPE,
   H5L_TYPE_ERROR, H5L_TYPE_HARD, H5L_TYPE_SOFT, H5L_TYPE_EXTERNAL,
-  H5T_class_t, H5T_sign_t, H5T_NATIVE_INT,
+  H5T_class_t, H5T_sign_t, H5T_NATIVE_INT, H5T_CSET_ASCII, H5T_CSET_UTF8,
   H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
   H5P_DEFAULT, H5P_FILE_ACCESS, H5P_FILE_CREATE,
   H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
@@ -94,6 +95,7 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5_HAVE_WINDOWS_DRIVER, pt_H5Pset_fapl_windows,
   H5_HAVE_IMAGE_FILE, pt_H5Pset_file_image, pt_H5Fget_file_image)
 
+cdef int H5T_CSET_DEFAULT = 16
 
 # Include conversion tables
 include "convtypetables.pxi"
@@ -198,22 +200,28 @@ cdef object getshape(int rank, hsize_t *dims):
 
 # Helper function for quickly fetch an attribute string
 cdef object get_attribute_string_or_none(node_id, attr_name):
-  """Returns a string attribute if it exists in node_id.
+  """Returns a string/unicode attribute if it exists in node_id.
 
   It returns ``None`` in case it don't exists (or there have been problems
   reading it).
   """
 
   cdef char *attr_value
+  cdef int cset = H5T_CSET_DEFAULT
   cdef object retvalue
 
   attr_value = NULL
   retvalue = None   # Default value
   if H5ATTRfind_attribute(node_id, attr_name):
-    ret = H5ATTRget_attribute_string(node_id, attr_name, &attr_value)
+    ret = H5ATTRget_attribute_string(node_id, attr_name, &attr_value, &cset)
     if ret < 0:
       return None
-    retvalue = numpy.string_(attr_value)
+    if cset == H5T_CSET_UTF8:
+      retvalue = PyUnicode_DecodeUTF8(attr_value, strlen(attr_value), NULL)
+      retvalue = numpy.unicode_(retvalue)
+    else:
+      retvalue = numpy.string_(attr_value)
+
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
       free(<void *>attr_value)
@@ -613,6 +621,7 @@ cdef class AttributeSet:
     cdef hsize_t *dims
     cdef ndarray ndv
     cdef object byteorder, rabyteorder, baseatom
+    cdef int cset = H5T_CSET_DEFAULT
 
     # The dataset id of the node
     dset_id = node._v_objectID
@@ -655,13 +664,14 @@ cdef class AttributeSet:
       if (isinstance(value, numpy.ndarray) and
           value.dtype.kind == 'U' and
           value.shape == ()):
-        value = value[()]
-      # Convert this object to a null-terminated string
-      # (binary pickles are not supported at this moment)
-      value = pickle.dumps(value, 0)
-      ret = H5ATTRset_attribute_string(dset_id, name, value)
+        value = value[()].encode('utf-8')
+        cset = H5T_CSET_UTF8
+      else:
+        # Convert this object to a null-terminated string
+        # (binary pickles are not supported at this moment)
+        value = pickle.dumps(value, 0)
 
-    return
+      ret = H5ATTRset_attribute_string(dset_id, name, value, cset)
 
 
   # Get attributes
@@ -682,6 +692,7 @@ cdef class AttributeSet:
     cdef ndarray ndvalue
     cdef object shape, stype_atom, shape_atom, retvalue
     cdef int i, nelements
+    cdef int cset = H5T_CSET_DEFAULT
 
     # The dataset id of the node
     dset_id = node._v_objectID
@@ -695,11 +706,15 @@ cdef class AttributeSet:
 
     # Call a fast function for scalar values and typical class types
     if (rank == 0 and class_id == H5T_STRING):
-      ret = H5ATTRget_attribute_string(dset_id, attrname, &str_value)
+      ret = H5ATTRget_attribute_string(dset_id, attrname, &str_value, &cset)
       if ret < 0:
         raise HDF5ExtError("Can't read attribute %s in node %s." %
                            (attrname, self.name))
-      retvalue = numpy.string_(str_value)
+      if cset == H5T_CSET_UTF8:
+        retvalue = PyUnicode_DecodeUTF8(str_value, strlen(str_value), NULL)
+        retvalue = numpy.unicode_(retvalue)
+      else:
+        retvalue = numpy.string_(str_value)
       # Important to release attr_value, because it has been malloc'ed!
       if str_value:
         free(str_value)
@@ -734,14 +749,29 @@ cdef class AttributeSet:
       except TypeError:
         if class_id == H5T_STRING and H5Tis_variable_str(type_id):
           nelements = H5ATTRget_attribute_vlen_string_array(dset_id, attrname,
-                                                            &str_values)
+                                                            &str_values, &cset)
           if nelements < 0:
             raise HDF5ExtError("Can't read attribute %s in node %s." %
                                (attrname, self.name))
 
-          #vl = [<char*>str_values[i] for i in range(nelements)]
-          retvalue = numpy.array(
-            [<char*>str_values[i] for i in range(nelements)], "O8")
+          # The following generator expressions do not work with Cython 0.15.1
+          if cset == H5T_CSET_UTF8:
+            #retvalue = numpy.fromiter(
+            #  PyUnicode_DecodeUTF8(<char*>str_values[i],
+            #                        strlen(<char*>str_values[i]),
+            #                        NULL)
+            #    for i in range(nelements), "O8")
+            retvalue = numpy.array([
+              PyUnicode_DecodeUTF8(<char*>str_values[i],
+                                    strlen(<char*>str_values[i]),
+                                    NULL)
+                for i in range(nelements)], "O8")
+
+          else:
+            #retvalue = numpy.fromiter(
+            #  <char*>str_values[i] for i in range(nelements), "O8")
+            retvalue = numpy.array(
+              [<char*>str_values[i] for i in range(nelements)], "O8")
           retvalue.shape = shape
 
           # Important to release attr_value, because it has been malloc'ed!
@@ -1102,9 +1132,12 @@ cdef class Array(Leaf):
 
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
       # Set the conforming array attributes
-      H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_ )
-      H5ATTRset_attribute_string(self.dataset_id, "VERSION", version)
-      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title)
+      H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
+                                 H5T_CSET_ASCII)
+      H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
+                                 H5T_CSET_ASCII)
+      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title,
+                                 H5T_CSET_ASCII)
 
     # Get the native type (so that it is HDF5 who is the responsible to deal
     # with non-native byteorders on-disk)
@@ -1160,9 +1193,12 @@ cdef class Array(Leaf):
 
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
       # Set the conforming array attributes
-      H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_ )
-      H5ATTRset_attribute_string(self.dataset_id, "VERSION", version)
-      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title)
+      H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
+                                 H5T_CSET_ASCII)
+      H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
+                                 H5T_CSET_ASCII)
+      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title,
+                                 H5T_CSET_ASCII)
       if self.extdim >= 0:
         extdim = <ndarray>numpy.array([self.extdim], dtype="int32")
         # Attach the EXTDIM attribute in case of enlargeable arrays
@@ -1667,9 +1703,12 @@ cdef class VLArray(Leaf):
 
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
       # Set the conforming array attributes
-      H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_ )
-      H5ATTRset_attribute_string(self.dataset_id, "VERSION", version)
-      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title)
+      H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
+                                 H5T_CSET_ASCII)
+      H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
+                                 H5T_CSET_ASCII)
+      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title,
+                                 H5T_CSET_ASCII)
 
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()

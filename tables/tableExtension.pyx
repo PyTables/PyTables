@@ -51,6 +51,7 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   H5T_class_t, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, H5Tget_native_type,
   H5Tget_member_value, H5Tinsert, H5Tget_class, H5Tget_super, H5Tget_offset,
+  H5T_CSET_ASCII,
   H5ATTRset_attribute_string, H5ATTRset_attribute,
   get_len_of_range, get_order, set_order, is_complex,
   conv_float64_timeval32, truncate_dset)
@@ -190,17 +191,20 @@ cdef class Table(Leaf):
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
       # Set the conforming table attributes
       # Attach the CLASS attribute
-      ret = H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_)
+      ret = H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
+                                       H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("CLASS", self.name))
       # Attach the VERSION attribute
-      ret = H5ATTRset_attribute_string(self.dataset_id, "VERSION", obversion)
+      ret = H5ATTRset_attribute_string(self.dataset_id, "VERSION", obversion,
+                                       H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("VERSION", self.name))
       # Attach the TITLE attribute
-      ret = H5ATTRset_attribute_string(self.dataset_id, "TITLE", title)
+      ret = H5ATTRset_attribute_string(self.dataset_id, "TITLE", title,
+                                       H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("TITLE", self.name))
@@ -216,7 +220,8 @@ cdef class Table(Leaf):
       # We write only the first level names
       for i, name in enumerate(self.description._v_names):
         fieldname = "FIELD_%s_NAME" % i
-        ret = H5ATTRset_attribute_string(self.dataset_id, fieldname, name)
+        ret = H5ATTRset_attribute_string(self.dataset_id, fieldname, name,
+                                         H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            (fieldname, self.name))

@@ -92,6 +92,17 @@ Many deprecated features and support for obsolete modules has been dropped:
   removed
 
 
+Other backward incompatible changes
+-----------------------------------
+
+- Unicode attributes are no more stored in the HDF5 file as pickled string.
+  They are now saved on the HDF5 file as UTF-8 encoded strings.
+
+  Although this do not introduces no API breakage, files produced are different
+  (for what concerns unicode attributes) from the ones produced by earlier
+  versions of PyTables.
+
+
 Bugs fixed
 ----------
 

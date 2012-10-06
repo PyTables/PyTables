@@ -114,7 +114,8 @@ out:
 
 herr_t H5ATTRset_attribute_string( hid_t obj_id,
                                    const char *attr_name,
-                                   const char *attr_data )
+                                   const char *attr_data,
+                                   int cset )
 {
  hid_t      attr_type;
  hid_t      attr_size;
@@ -124,6 +125,10 @@ herr_t H5ATTRset_attribute_string( hid_t obj_id,
 
  /* Create the attribute */
  if ( (attr_type = H5Tcopy( H5T_C_S1 )) < 0 )
+  goto out;
+
+ if ( ( ( cset == H5T_CSET_ASCII ) || ( cset == H5T_CSET_UTF8 ) ) &&
+      ( H5Tset_cset( attr_type, cset ) < 0 ) )
   goto out;
 
  attr_size = strlen( attr_data ) + 1; /* extra null term */
@@ -237,7 +242,8 @@ out:
 
 herr_t H5ATTRget_attribute_string( hid_t obj_id,
                                    const char *attr_name,
-                                   char **data)
+                                   char **data,
+                                   int *cset )
 {
  /* identifiers */
  hid_t      attr_id;
@@ -251,6 +257,9 @@ herr_t H5ATTRget_attribute_string( hid_t obj_id,
   return -1;
 
  if ( (attr_type = H5Aget_type( attr_id )) < 0 )
+  goto out;
+
+ if ( ( cset != NULL ) && ( ( *cset = H5Tget_cset( attr_type ) ) < 0 ) )
   goto out;
 
  is_vlstr = H5Tis_variable_str( attr_type );
@@ -310,7 +319,8 @@ out:
 
 int H5ATTRget_attribute_vlen_string_array( hid_t obj_id,
                                            const char *attr_name,
-                                           char ***data)
+                                           char ***data,
+                                           int *cset )
 {
  /* identifiers */
  hid_t attr_id = -1, attr_type = -1, space_id = -1;
@@ -323,6 +333,9 @@ int H5ATTRget_attribute_vlen_string_array( hid_t obj_id,
   return -1;
 
  if ( (attr_type = H5Aget_type( attr_id )) < 0 )
+  goto out;
+
+ if ( ( cset != NULL ) && ( ( *cset = H5Tget_cset( attr_type ) ) < 0 ) )
   goto out;
 
  if ( (space_id = H5Aget_space( attr_id )) < 0 )
