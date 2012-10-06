@@ -2694,19 +2694,6 @@ class TestDescription(common.PyTablesTestCase):
                 else:
                     keys.append(key)
             self.assertTrue(sorted(descr._v_dtype.fields.keys()), sorted(keys))
-    else:
-        def test_byte_names(self):
-            # see gh-42
-            d = {bytes('name', 'ascii'): tables.Int16Col()}
-            descr = Description(d)
-            self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
-            self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
-            for key in d.keys():
-                if isinstance(key, unicode):
-                    keys.append(key.encode())
-                else:
-                    keys.append(key)
-            self.assertTrue(sorted(descr._v_dtype.fields.keys()), sorted(keys))
 
 
 class TestAtom(common.PyTablesTestCase):
