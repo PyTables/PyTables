@@ -37,6 +37,7 @@ from utilsExtension cimport get_native_type
 
 # numpy functions & objects
 from hdf5Extension cimport Leaf
+from libc.stdio cimport snprintf
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp
 from numpy cimport import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM
@@ -152,10 +153,12 @@ cdef class Table(Leaf):
     cdef ndarray wdflts
     cdef void    *fill_data
     cdef ndarray recarr
-    cdef object  fieldname, name
+    cdef object  name
     cdef bytes encoded_title, encoded_complib, encoded_obversion
     cdef char *ctitle = NULL, *cobversion = NULL
     cdef bytes encoded_name
+    cdef char fieldname[128]
+    cdef int i
 
     encoded_title = title.encode('utf-8')
     encoded_complib = complib.encode('utf-8')
@@ -230,9 +233,10 @@ cdef class Table(Leaf):
       # Attach the FIELD_N_NAME attributes
       # We write only the first level names
       for i, name in enumerate(self.description._v_names):
-        fieldname = "FIELD_%s_NAME" % i
-        ret = H5ATTRset_attribute_string(self.dataset_id, fieldname, name,
-                                         H5T_CSET_ASCII)
+        snprintf(fieldname, 128, "FIELD_%d_NAME", i)
+        encoded_name = name.encode('utf-8')
+        ret = H5ATTRset_attribute_string(self.dataset_id, fieldname, 
+                                         encoded_name, H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            (fieldname, self.name))
