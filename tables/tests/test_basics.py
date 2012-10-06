@@ -2508,7 +2508,7 @@ except tables.HDF5ExtError, e:
                                  stderr=subprocess.PIPE)
             (stdout, stderr) = p.communicate()
 
-            self.assertFalse("HDF5-DIAG" in stderr)
+            self.assertFalse("HDF5-DIAG" in stderr.decode('ascii'))
         finally:
             os.remove(fn)
 
@@ -2534,7 +2534,7 @@ except tables.HDF5ExtError, e:
                                  stderr=subprocess.PIPE)
             (stdout, stderr) = p.communicate()
 
-            self.assertTrue("HDF5-DIAG" in stderr)
+            self.assertTrue("HDF5-DIAG" in stderr.decode('ascii'))
         finally:
             os.remove(fn)
 
