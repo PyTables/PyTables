@@ -1092,8 +1092,9 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
 def createNestedType(object desc, str byteorder):
   """Create a nested type based on a description and return an HDF5 type."""
 
-  cdef hid_t   tid, tid2
-  cdef size_t  offset
+  cdef hid_t tid, tid2
+  cdef size_t offset
+  cdef bytes encoded_name
 
   tid = H5Tcreate(H5T_COMPOUND, desc._v_itemsize)
   if tid < 0:
@@ -1106,7 +1107,8 @@ def createNestedType(object desc, str byteorder):
       tid2 = createNestedType(obj, byteorder)
     else:
       tid2 = AtomToHDF5Type(obj, byteorder)
-    H5Tinsert(tid, k, offset, tid2)
+    encoded_name = k.encode('utf-8')
+    H5Tinsert(tid, encoded_name, offset, tid2)
     offset = offset + desc._v_dtype[k].itemsize
     # Release resources
     H5Tclose(tid2)
