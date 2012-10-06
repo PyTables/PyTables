@@ -1584,7 +1584,7 @@ class VlenStrAttrTestCase(PyTablesTestCase):
         filename = self._testFilename('vlstr_attr.h5')
         fileh = openFile(filename)
         attr = "vlen_str_scalar"
-        self.assertEqual(fileh.getNodeAttr("/", attr), attr)
+        self.assertEqual(fileh.getNodeAttr("/", attr), attr.encode('ascii'))
         fileh.close()
 
     def test02_vlen_str_array(self):
@@ -1596,7 +1596,8 @@ class VlenStrAttrTestCase(PyTablesTestCase):
         v = fileh.getNodeAttr('/', attr)
         self.assertEqual(v.ndim, 1)
         for idx, item in enumerate(v):
-            self.assertEqual(item, "%s_%d" % (attr, idx))
+            value = "%s_%d" % (attr, idx)
+            self.assertEqual(item, value.encode('ascii'))
         fileh.close()
 
     def test03_vlen_str_matrix(self):
@@ -1609,7 +1610,8 @@ class VlenStrAttrTestCase(PyTablesTestCase):
         self.assertEqual(m.ndim, 2)
         for row, rowdata in enumerate(m):
             for col, item in enumerate(rowdata):
-                self.assertEqual(item, "%s_%d%d" % (attr, row, col))
+                value = "%s_%d%d" % (attr, row, col)
+                self.assertEqual(item, value.encode('ascii'))
         fileh.close()
 
 
