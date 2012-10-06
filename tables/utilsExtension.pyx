@@ -698,16 +698,15 @@ def read_f_attr(hid_t file_id, str attr_name):
     if ret >= 0:
       if cset == H5T_CSET_UTF8:
         retvalue = PyUnicode_DecodeUTF8(attr_value, strlen(attr_value), NULL)
+        retvalue = numpy.str_(retvalue)
       else:
         retvalue = attr_value
+        retvalue = numpy.bytes_(retvalue)
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
       free(attr_value)
 
-  if retvalue is not None:
-    return numpy.string_(retvalue)
-  else:
-    return None
+  return retvalue
 
 
 def getFilters(parent_id, name):

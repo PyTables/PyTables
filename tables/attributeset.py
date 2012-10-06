@@ -374,7 +374,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # (only in case it has not been converted yet)
         # Fixes ticket #59
         if (stvalue is value and
-            type(value) in (bool, str, int, float, complex, unicode)):
+            type(value) in (bool, bytes, int, float, complex, unicode)):
             # Additional check for allowing a workaround for #307
             if isinstance(value, unicode) and value == u'':
                 value = numpy.array(value)[()]
