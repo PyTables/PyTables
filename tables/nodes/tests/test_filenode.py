@@ -207,7 +207,7 @@ class WriteFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_WriteFile(self):
         "Writing a whole file node."
 
-        datafile = file(self.datafname)
+        datafile = open(self.datafname)
         try:
             copyFileToFile(datafile, self.fnode)
         finally:
@@ -356,7 +356,7 @@ class ReadFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """
 
         self.datafname = self._testFilename(self.datafname)
-        self.datafile = file(self.datafname)
+        self.datafile = open(self.datafname)
 
         super(ReadFileTestCase, self).setUp()
 

@@ -51,7 +51,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
 
         # create a dummy file
         filename = tempfile.mktemp(".h5")
-        file(filename, 'wb').close()
+        open(filename, 'wb').close()
 
         # Try to open the dummy file
         try:
@@ -2540,7 +2540,7 @@ except tables.HDF5ExtError, e:
 
     def _raise_exterror(self):
         filename = tempfile.mktemp(".h5")
-        file(filename, 'wb').close()
+        open(filename, 'wb').close()
 
         try:
             f = tables.openFile(filename)
