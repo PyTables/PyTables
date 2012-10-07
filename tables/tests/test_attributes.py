@@ -1022,9 +1022,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.string_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.string_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.string_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.str_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.str_))
+        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.str_))
         self.assertEqual(self.root.anarray.attrs.pq, 'foo')
         self.assertEqual(self.root.anarray.attrs.qr, 'bar')
         self.assertEqual(self.root.anarray.attrs.rs, 'baz')
