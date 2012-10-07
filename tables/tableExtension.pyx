@@ -37,9 +37,11 @@ from utilsExtension cimport get_native_type
 
 # numpy functions & objects
 from hdf5Extension cimport Leaf
+from cpython cimport PY_MAJOR_VERSION
+from cpython.unicode cimport PyUnicode_DecodeUTF8
 from libc.stdio cimport snprintf
 from libc.stdlib cimport malloc, free
-from libc.string cimport memcpy, strdup, strcmp
+from libc.string cimport memcpy, strdup, strcmp, strlen
 from numpy cimport import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM
 from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
@@ -51,7 +53,7 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   H5T_class_t, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, H5Tget_native_type,
   H5Tget_member_value, H5Tinsert, H5Tget_class, H5Tget_super, H5Tget_offset,
-  H5T_CSET_ASCII,
+  H5T_cset_t, H5T_CSET_ASCII, H5T_CSET_UTF8,
   H5ATTRset_attribute_string, H5ATTRset_attribute,
   get_len_of_range, get_order, set_order, is_complex,
   conv_float64_timeval32, truncate_dset)
@@ -159,6 +161,7 @@ cdef class Table(Leaf):
     cdef bytes encoded_name
     cdef char fieldname[128]
     cdef int i
+    cdef H5T_cset_t cset = H5T_CSET_ASCII
 
     encoded_title = title.encode('utf-8')
     encoded_complib = complib.encode('utf-8')
@@ -203,22 +206,24 @@ cdef class Table(Leaf):
       raise HDF5ExtError("Problems creating the table")
 
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
+      if PY_MAJOR_VERSION > 2:
+        cset = H5T_CSET_UTF8
       # Set the conforming table attributes
       # Attach the CLASS attribute
       ret = H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
-                                       len(class_), H5T_CSET_ASCII)
+                                       len(class_), cset)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("CLASS", self.name))
       # Attach the VERSION attribute
       ret = H5ATTRset_attribute_string(self.dataset_id, "VERSION", cobversion,
-                                       len(encoded_obversion), H5T_CSET_ASCII)
+                                       len(encoded_obversion), cset)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("VERSION", self.name))
       # Attach the TITLE attribute
       ret = H5ATTRset_attribute_string(self.dataset_id, "TITLE", ctitle,
-                                       len(encoded_title), H5T_CSET_ASCII)
+                                       len(encoded_title), cset)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("TITLE", self.name))
@@ -237,7 +242,7 @@ cdef class Table(Leaf):
         encoded_name = name.encode('utf-8')
         ret = H5ATTRset_attribute_string(self.dataset_id, fieldname,
                                          encoded_name, len(encoded_name),
-                                         H5T_CSET_ASCII)
+                                         cset)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            (fieldname, self.name))
@@ -257,12 +262,13 @@ cdef class Table(Leaf):
     cdef hsize_t nfields, dims[1]
     cdef size_t  itemsize
     cdef int     i
-    cdef char    *colname
+    cdef char    *c_colname
     cdef H5T_class_t class_id
     cdef char    byteorder2[11]  # "irrelevant" fits easily here
     cdef char    *sys_byteorder
     cdef object  desc, colobj, colpath2, typeclassname, typeclass
     cdef object  byteorder
+    cdef str     colname
 
     offset = 0
     desc = {}
@@ -271,7 +277,12 @@ cdef class Table(Leaf):
     # Iterate thru the members
     for i from 0 <= i < nfields:
       # Get the member name
-      colname = H5Tget_member_name(type_id, i)
+      c_colname = H5Tget_member_name(type_id, i)
+      if PY_MAJOR_VERSION > 2:
+        colname = PyUnicode_DecodeUTF8(c_colname, strlen(c_colname), NULL)
+      else:
+        colname = c_colname
+
       # Get the member type
       member_type_id = H5Tget_member_type(type_id, i)
       # Get the member size
@@ -312,13 +323,13 @@ cdef class Table(Leaf):
             field_byteorders.append(byteorder2)
 
       # Insert the native member
-      H5Tinsert(native_type_id, colname, offset, native_member_type_id)
+      H5Tinsert(native_type_id, c_colname, offset, native_member_type_id)
       # Update the offset
       offset = offset + itemsize
       # Release resources
       H5Tclose(native_member_type_id)
       H5Tclose(member_type_id)
-      free(colname)
+      free(c_colname)
 
     # set the byteorder and other things (just in top level)
     if colpath == "":

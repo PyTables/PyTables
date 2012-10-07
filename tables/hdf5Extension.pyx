@@ -69,7 +69,8 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED,
   H5O_TYPE_UNKNOWN, H5O_TYPE_GROUP, H5O_TYPE_DATASET, H5O_TYPE_NAMED_DATATYPE,
   H5L_TYPE_ERROR, H5L_TYPE_HARD, H5L_TYPE_SOFT, H5L_TYPE_EXTERNAL,
-  H5T_class_t, H5T_sign_t, H5T_NATIVE_INT, H5T_CSET_ASCII, H5T_CSET_UTF8,
+  H5T_class_t, H5T_sign_t, H5T_NATIVE_INT,
+  H5T_cset_t, H5T_CSET_ASCII, H5T_CSET_UTF8,
   H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
   H5P_DEFAULT, H5P_FILE_ACCESS, H5P_FILE_CREATE,
   H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
@@ -1169,6 +1170,7 @@ cdef class Array(Leaf):
     cdef object dtype_, atom, shape
     cdef ndarray dims
     cdef bytes encoded_title, encoded_name
+    cdef H5T_cset_t cset = H5T_CSET_ASCII
 
     encoded_title = title.encode('utf-8')
     encoded_name = self.name.encode('utf-8')
@@ -1204,13 +1206,15 @@ cdef class Array(Leaf):
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
+      if PY_MAJOR_VERSION > 2:
+        cset = H5T_CSET_UTF8
       # Set the conforming array attributes
       H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
-                                 len(class_), H5T_CSET_ASCII)
+                                 len(class_), cset)
       H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
-                                 len(version), H5T_CSET_ASCII)
+                                 len(version), cset)
       H5ATTRset_attribute_string(self.dataset_id, "TITLE", encoded_title,
-                                 len(encoded_title), H5T_CSET_ASCII)
+                                 len(encoded_title), cset)
 
     # Get the native type (so that it is HDF5 who is the responsible to deal
     # with non-native byteorders on-disk)
@@ -1750,6 +1754,7 @@ cdef class VLArray(Leaf):
     cdef bytes complib, version, class_
     cdef object type_, itemsize, atom, scatom
     cdef bytes encoded_title, encoded_name
+    cdef H5T_cset_t cset = H5T_CSET_ASCII
 
     encoded_title = title.encode('utf-8')
     encoded_name = self.name.encode('utf-8')
@@ -1788,13 +1793,15 @@ cdef class VLArray(Leaf):
     self.nrecords = 0  # Initialize the number of records saved
 
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
+      if PY_MAJOR_VERSION > 2:
+        cset = H5T_CSET_UTF8
       # Set the conforming array attributes
       H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
-                                 len(class_), H5T_CSET_ASCII)
+                                 len(class_), cset)
       H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
-                                 len(version), H5T_CSET_ASCII)
+                                 len(version), cset)
       H5ATTRset_attribute_string(self.dataset_id, "TITLE", encoded_title,
-                                 len(encoded_title), H5T_CSET_ASCII)
+                                 len(encoded_title), cset)
 
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()

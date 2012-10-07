@@ -936,7 +936,8 @@ def HDF5ToNPNestedType(hid_t type_id):
   cdef int     i
   cdef char    *c_colname
   cdef H5T_class_t class_id
-  cdef object  desc, colname
+  cdef object  desc
+  cdef str     colname
 
   desc = {}
   # Get the number of members

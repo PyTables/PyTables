@@ -98,7 +98,7 @@ Many deprecated features and support for obsolete modules has been dropped:
   removed
 
 
-Other backward incompatible changes
+Other possibly incompatible changes
 -----------------------------------
 
 - Unicode attributes are no more stored in the HDF5 file as pickled string.
@@ -107,6 +107,16 @@ Other backward incompatible changes
   Although this do not introduces no API breakage, files produced are different
   (for what concerns unicode attributes) from the ones produced by earlier
   versions of PyTables.
+
+- System attributes are now stored in the HDF5 file using the character set
+  that reflects the native string behaviour: ASCII for Python 2 and UTF8 for
+  Python 3.  I any case system attributes are represented as Python string.
+
+.. todo:: check if all works correctly if one opens a file created with a
+          different python version:
+
+          * created with Python 2 --> opened with Python 3
+          * created with Python 3 --> opened with Python 2
 
 
 Bugs fixed
