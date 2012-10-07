@@ -206,19 +206,19 @@ cdef class Table(Leaf):
       # Set the conforming table attributes
       # Attach the CLASS attribute
       ret = H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
-                                       H5T_CSET_ASCII)
+                                       len(class_), H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("CLASS", self.name))
       # Attach the VERSION attribute
       ret = H5ATTRset_attribute_string(self.dataset_id, "VERSION", cobversion,
-                                       H5T_CSET_ASCII)
+                                       len(encoded_obversion), H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("VERSION", self.name))
       # Attach the TITLE attribute
       ret = H5ATTRset_attribute_string(self.dataset_id, "TITLE", ctitle,
-                                       H5T_CSET_ASCII)
+                                       len(encoded_title), H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("TITLE", self.name))
@@ -235,8 +235,9 @@ cdef class Table(Leaf):
       for i, name in enumerate(self.description._v_names):
         snprintf(fieldname, 128, "FIELD_%d_NAME", i)
         encoded_name = name.encode('utf-8')
-        ret = H5ATTRset_attribute_string(self.dataset_id, fieldname, 
-                                         encoded_name, H5T_CSET_ASCII)
+        ret = H5ATTRset_attribute_string(self.dataset_id, fieldname,
+                                         encoded_name, len(encoded_name),
+                                         H5T_CSET_ASCII)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            (fieldname, self.name))

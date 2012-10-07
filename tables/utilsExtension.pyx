@@ -46,13 +46,14 @@ from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
   H5E_auto_t, H5Eset_auto, H5Eprint, H5Eget_msg,
   H5E_error_t, H5E_walk_t, H5Ewalk, H5E_WALK_DOWNWARD, H5E_DEFAULT,
   H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
-  H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose, H5T_CSET_UTF8,
+  H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
   H5Tget_member_value, H5Tget_size, H5Tget_native_type,
   H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, H5Tget_precision,
   H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tvlen_create,
   H5Tarray_create, H5Tget_array_ndims, H5Tget_array_dims,
   H5Tis_variable_str, H5Tset_size, H5Tset_precision, H5Tpack,
+  H5T_CSET_ASCII, H5T_CSET_UTF8,
   H5ATTRget_attribute_string, H5ATTRfind_attribute,
   H5ARRAYget_ndims, H5ARRAYget_info,
   create_ieee_float16, create_ieee_complex64, create_ieee_complex128,
@@ -679,9 +680,9 @@ def read_f_attr(hid_t file_id, str attr_name):
   it does not exist.  This call cannot fail.
   """
 
-  cdef herr_t ret
+  cdef size_t size
   cdef char *attr_value
-  cdef int cset
+  cdef int cset = H5T_CSET_ASCII
   cdef object retvalue
   cdef bytes encoded_attr_name
   cdef char *c_attr_name = NULL
@@ -695,8 +696,8 @@ def read_f_attr(hid_t file_id, str attr_name):
   # Check if attribute exists
   if H5ATTRfind_attribute(file_id, c_attr_name):
     # Read the attr_name attribute
-    ret = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
-    if ret >= 0:
+    size = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
+    if size > 0:
       if cset == H5T_CSET_UTF8:
         retvalue = PyUnicode_DecodeUTF8(attr_value, strlen(attr_value), NULL)
         retvalue = numpy.str_(retvalue)

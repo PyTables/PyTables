@@ -209,18 +209,28 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
   cdef char *attr_value
   cdef int cset = H5T_CSET_DEFAULT
   cdef object retvalue
+  cdef hsize_t size
 
   attr_value = NULL
   retvalue = None   # Default value
   if H5ATTRfind_attribute(node_id, attr_name):
-    ret = H5ATTRget_attribute_string(node_id, attr_name, &attr_value, &cset)
-    if ret < 0:
+    size = H5ATTRget_attribute_string(node_id, attr_name, &attr_value, &cset)
+    if size == 0:
       return None
     if cset == H5T_CSET_UTF8:
-      retvalue = PyUnicode_DecodeUTF8(attr_value, strlen(attr_value), NULL)
+      retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
       retvalue = numpy.unicode_(retvalue)
     else:
-      retvalue = numpy.string_(attr_value)
+      retvalue = PyBytes_FromStringAndSize(attr_value, size)
+      # AV: oct 2012
+      # since now we use the string size got form HDF5 we have to stip
+      # trailing zeros used for padding.
+      # The entire process is quite odd but due to a bug (??) in the way
+      # numpy arrays are pickled in python 3 we can't assume that we can't
+      # assume that strlen(attr_value) is the actual length of the attibute
+      # and numpy.bytes_(attr_value) can give a truncated pickle sting
+      retvalue = retvalue.rstrip(b'\x00')
+      retvalue = numpy.bytes_(retvalue)
 
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
@@ -673,8 +683,10 @@ cdef class AttributeSet:
         # (binary pickles are not supported at this moment)
         value = pickle.dumps(value, 0)
 
-      ret = H5ATTRset_attribute_string(dset_id, cname, value, cset)
-
+      ret = H5ATTRset_attribute_string(dset_id, cname, value, len(value), cset)
+      if ret < 0:
+        raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
+                           (name, self._v_node))
 
   # Get attributes
   def _g_getAttr(self, node, attrname):
@@ -714,15 +726,25 @@ cdef class AttributeSet:
 
     # Call a fast function for scalar values and typical class types
     if (rank == 0 and class_id == H5T_STRING):
-      ret = H5ATTRget_attribute_string(dset_id, cattrname, &str_value, &cset)
-      if ret < 0:
+      type_size = H5ATTRget_attribute_string(dset_id, cattrname, &str_value,
+                                             &cset)
+      if type_size == 0:
         raise HDF5ExtError("Can't read attribute %s in node %s." %
                            (attrname, self.name))
       if cset == H5T_CSET_UTF8:
         retvalue = PyUnicode_DecodeUTF8(str_value, strlen(str_value), NULL)
         retvalue = numpy.unicode_(retvalue)
       else:
-        retvalue = numpy.string_(str_value)     # bytes
+        retvalue = PyBytes_FromStringAndSize(str_value, type_size)
+        # AV: oct 2012
+        # since now we use the string size got form HDF5 we have to stip
+        # trailing zeros used for padding.
+        # The entire process is quite odd but due to a bug (??) in the way
+        # numpy arrays are pickled in python 3 we can't assume that we can't
+        # assume that strlen(attr_value) is the actual length of the attibute
+        # and numpy.bytes_(attr_value) can give a truncated pickle sting
+        retvalue = retvalue.rstrip(b'\x00')
+        retvalue = numpy.bytes_(retvalue)     # bytes
       # Important to release attr_value, because it has been malloc'ed!
       if str_value:
         free(str_value)
@@ -1184,11 +1206,11 @@ cdef class Array(Leaf):
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
       # Set the conforming array attributes
       H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
-                                 H5T_CSET_ASCII)
+                                 len(class_), H5T_CSET_ASCII)
       H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
-                                 H5T_CSET_ASCII)
+                                 len(version), H5T_CSET_ASCII)
       H5ATTRset_attribute_string(self.dataset_id, "TITLE", encoded_title,
-                                 H5T_CSET_ASCII)
+                                 len(encoded_title), H5T_CSET_ASCII)
 
     # Get the native type (so that it is HDF5 who is the responsible to deal
     # with non-native byteorders on-disk)
@@ -1250,11 +1272,11 @@ cdef class Array(Leaf):
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
       # Set the conforming array attributes
       H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
-                                 H5T_CSET_ASCII)
+                                 len(class_), H5T_CSET_ASCII)
       H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
-                                 H5T_CSET_ASCII)
+                                 len(version), H5T_CSET_ASCII)
       H5ATTRset_attribute_string(self.dataset_id, "TITLE", encoded_title,
-                                 H5T_CSET_ASCII)
+                                 len(encoded_title), H5T_CSET_ASCII)
       if self.extdim >= 0:
         extdim = <ndarray>numpy.array([self.extdim], dtype="int32")
         # Attach the EXTDIM attribute in case of enlargeable arrays
@@ -1768,11 +1790,11 @@ cdef class VLArray(Leaf):
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
       # Set the conforming array attributes
       H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
-                                 H5T_CSET_ASCII)
+                                 len(class_), H5T_CSET_ASCII)
       H5ATTRset_attribute_string(self.dataset_id, "VERSION", version,
-                                 H5T_CSET_ASCII)
+                                 len(version), H5T_CSET_ASCII)
       H5ATTRset_attribute_string(self.dataset_id, "TITLE", encoded_title,
-                                 H5T_CSET_ASCII)
+                                 len(encoded_title), H5T_CSET_ASCII)
 
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()

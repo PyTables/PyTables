@@ -115,10 +115,11 @@ out:
 herr_t H5ATTRset_attribute_string( hid_t obj_id,
                                    const char *attr_name,
                                    const char *attr_data,
+                                   hsize_t attr_size,
                                    int cset )
 {
  hid_t      attr_type;
- hid_t      attr_size;
+ /*size_t     attr_size;*/
  hid_t      attr_space_id;
  hid_t      attr_id;
  int        has_attr;
@@ -131,9 +132,9 @@ herr_t H5ATTRset_attribute_string( hid_t obj_id,
       ( H5Tset_cset( attr_type, cset ) < 0 ) )
   goto out;
 
- attr_size = strlen( attr_data ) + 1; /* extra null term */
+ attr_size += 1; /* extra null term */
 
- if ( H5Tset_size( attr_type, (size_t)attr_size) < 0 )
+ if ( H5Tset_size( attr_type, attr_size) < 0 )
   goto out;
 
  if ( H5Tset_strpad( attr_type, H5T_STR_NULLTERM ) < 0 )
@@ -240,15 +241,15 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ATTRget_attribute_string( hid_t obj_id,
-                                   const char *attr_name,
-                                   char **data,
-                                   int *cset )
+hsize_t H5ATTRget_attribute_string( hid_t obj_id,
+                                    const char *attr_name,
+                                    char **data,
+                                    int *cset )
 {
  /* identifiers */
  hid_t      attr_id;
  hid_t      attr_type;
- size_t     type_size;
+ hsize_t    type_size = 0;
  htri_t     is_vlstr = 0;
 
  *data = NULL;
@@ -279,8 +280,13 @@ herr_t H5ATTRget_attribute_string( hid_t obj_id,
      padded strings */
   (*data)[type_size] = '\0';
  }
- else if ( H5Aread( attr_id, attr_type, data ) < 0 )
-  goto out;
+ else
+ {
+  if ( H5Aread( attr_id, attr_type, data ) < 0 )
+   goto out;
+
+  type_size = strlen( *data );
+ }
 
  if ( H5Tclose( attr_type ) < 0 )
   goto out;
@@ -288,13 +294,14 @@ herr_t H5ATTRget_attribute_string( hid_t obj_id,
  if ( H5Aclose( attr_id ) < 0 )
   return -1;
 
- return 0;
+ return type_size;
 
 out:
  H5Tclose( attr_type );
  H5Aclose( attr_id );
  if ( (is_vlstr == 0) && (*data != NULL) )
   free(*data);
+ *data = NULL;
  return -1;
 }
 
@@ -317,14 +324,14 @@ out:
  *-------------------------------------------------------------------------
  */
 
-int H5ATTRget_attribute_vlen_string_array( hid_t obj_id,
-                                           const char *attr_name,
-                                           char ***data,
-                                           int *cset )
+hsize_t H5ATTRget_attribute_vlen_string_array( hid_t obj_id,
+                                               const char *attr_name,
+                                               char ***data,
+                                               int *cset )
 {
  /* identifiers */
  hid_t attr_id = -1, attr_type = -1, space_id = -1;
- hsize_t nelements, *dims = NULL;
+ hsize_t nelements = 0, *dims = NULL;
  int ndims = 0, i;
 
  *data = NULL;
@@ -377,6 +384,7 @@ int H5ATTRget_attribute_vlen_string_array( hid_t obj_id,
 out:
  if ( *data != NULL )
   free( *data );
+ *data = NULL;
  if ( dims != NULL )
   free( dims );
  H5Tclose( attr_type );
