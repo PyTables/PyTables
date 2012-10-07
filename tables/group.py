@@ -571,7 +571,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         stats = kwargs.get('stats', None)
 
         # Fix arguments with explicit None values for backwards compatibility.
-        if title is None:  title = self._v_title
+        if title is None:
+            title = self._v_title
         # If no filters have been passed to the call, copy them from the
         # source group, but only if inherited or explicitly set.
         if filters is None:
