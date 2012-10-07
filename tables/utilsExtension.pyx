@@ -30,6 +30,7 @@ from tables.atom import Atom, EnumAtom
 
 from tables.utils import checkFileAccess
 
+from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp, strlen
@@ -932,9 +933,9 @@ def HDF5ToNPNestedType(hid_t type_id):
   cdef hid_t   member_type_id
   cdef hsize_t nfields
   cdef int     i
-  cdef char    *colname
+  cdef char    *c_colname
   cdef H5T_class_t class_id
-  cdef object  desc
+  cdef object  desc, colname
 
   desc = {}
   # Get the number of members
@@ -942,7 +943,11 @@ def HDF5ToNPNestedType(hid_t type_id):
   # Iterate thru the members
   for i from 0 <= i < nfields:
     # Get the member name
-    colname = H5Tget_member_name(type_id, i)
+    c_colname = H5Tget_member_name(type_id, i)
+    if PY_MAJOR_VERSION > 2:
+      colname = PyUnicode_DecodeUTF8(c_colname, strlen(c_colname), NULL)
+    else:
+      colname = c_colname
     # Get the member type
     member_type_id = H5Tget_member_type(type_id, i)
     # Get the HDF5 class
@@ -956,7 +961,7 @@ def HDF5ToNPNestedType(hid_t type_id):
 
     # Release resources
     H5Tclose(member_type_id)
-    free(colname)
+    free(c_colname)
 
   return desc
 

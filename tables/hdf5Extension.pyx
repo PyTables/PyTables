@@ -237,7 +237,7 @@ cdef object get_dtype_scalar(hid_t type_id, H5T_class_t class_id,
 
   if class_id == H5T_BITFIELD:
     stype = "b1"
-  elif class_id ==  H5T_INTEGER:
+  elif class_id == H5T_INTEGER:
     # Get the sign
     sign = H5Tget_sign(type_id)
     if (sign > 0):
