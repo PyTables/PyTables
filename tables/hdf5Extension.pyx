@@ -659,8 +659,6 @@ cdef class AttributeSet:
       H5Tclose(type_id)
     else:
       # Object cannot be natively represented in HDF5.
-      # Unicode attributes has to be pickled until we can definitely switch
-      # to HDF5 1.8.x, where Unicode datatype is supported natively.
       if (isinstance(value, numpy.ndarray) and
           value.dtype.kind == 'U' and
           value.shape == ()):
@@ -714,7 +712,7 @@ cdef class AttributeSet:
         retvalue = PyUnicode_DecodeUTF8(str_value, strlen(str_value), NULL)
         retvalue = numpy.unicode_(retvalue)
       else:
-        retvalue = numpy.string_(str_value)
+        retvalue = numpy.string_(str_value)     # bytes
       # Important to release attr_value, because it has been malloc'ed!
       if str_value:
         free(str_value)
