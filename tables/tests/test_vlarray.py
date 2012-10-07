@@ -1280,7 +1280,7 @@ class TypesTestCase(unittest.TestCase):
 
         vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
         # When updating an object, this seems to change the number
-        # of bytes that cPickle.dumps generates
+        # of bytes that pickle.dumps generates
         #vlarray.append(([1,2,3], "aaa", u"aaaççç"))
         vlarray.append(([1, 2, 3], "aaa", u"çç4"))
         #vlarray.append([3,4, C()])

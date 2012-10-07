@@ -207,7 +207,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         .. note::
 
             When data is stored in a VLArray using the ObjectAtom type,
-            it is first serialized using cPickle, and then converted to
+            it is first serialized using pickle, and then converted to
             a NumPy array suitable for storage in an HDF5 file.
             This attribute will return the size of that NumPy
             representation.  If you wish to know the size of the Python
@@ -680,7 +680,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             pseudo-atom, there is a problem: you can only update values
             with *exactly* the same size in bytes than the original row.
             This is very difficult to meet with object pseudo-atoms,
-            because :mod:`cPickle` applied on a Python object does not
+            because :mod:`pickle` applied on a Python object does not
             guarantee to return the same number of bytes than over another
             object, even if they are of the same class.
             This effectively limits the kinds of objects than can be

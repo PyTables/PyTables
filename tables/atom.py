@@ -1092,8 +1092,8 @@ class ObjectAtom(_BufferedAtom):
     """Defines an atom of type object.
 
     This class is meant to fit *any* kind of Python object in a row of a
-    VLArray dataset by using cPickle behind the scenes. Due to the fact that
-    you can not foresee how long will be the output of the cPickle
+    VLArray dataset by using pickle behind the scenes. Due to the fact that
+    you can not foresee how long will be the output of the pickle
     serialization (i.e. the atom already has a *variable* length), you can only
     fit *one object per row*. However, you can still group several objects in a
     single tuple or list and pass it to the :meth:`VLArray.append` method.

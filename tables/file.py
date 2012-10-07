@@ -1279,7 +1279,7 @@ class File(hdf5Extension.File, object):
             The value of the attribute to set. Any kind of Python
             object (like strings, ints, floats, lists, tuples, dicts,
             small NumPy objects ...) can be stored as an attribute.
-            However, if necessary, cPickle is automatically used so as
+            However, if necessary, pickle is automatically used so as
             to serialize objects that you might want to save.
             See the :class:`AttributeSet` class for details.
 
