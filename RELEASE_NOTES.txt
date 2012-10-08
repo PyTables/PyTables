@@ -112,12 +112,6 @@ Other possibly incompatible changes
   that reflects the native string behaviour: ASCII for Python 2 and UTF8 for
   Python 3.  I any case system attributes are represented as Python string.
 
-.. todo:: check if all works correctly if one opens a file created with a
-          different python version:
-
-          * created with Python 2 --> opened with Python 3
-          * created with Python 3 --> opened with Python 2
-
 
 Bugs fixed
 ----------

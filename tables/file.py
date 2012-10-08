@@ -568,6 +568,12 @@ class File(hdf5Extension.File, object):
                 # PYTABLES_FORMAT_VERSION attribute is not present
                 self.format_version = "unknown"
                 self._isPTFile = False
+            elif not isinstance(self.format_version, str):
+                # system attributes should always be str
+                if sys.version_info[0] < 3:
+                    self.format_version = self.format_version.encode()
+                else:
+                    self.format_version = self.format_version.decode('utf-8')
 
         # Create new attributes for the root Group instance and
         # create the object tree

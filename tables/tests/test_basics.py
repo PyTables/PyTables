@@ -2757,6 +2757,22 @@ class TestCol(common.PyTablesTestCase):
         self.assertNotEqual(cc._v_pos, pos)
         self.assertEqual(cc._v_pos, 2)
 
+
+class TestSysattrCompatibility(common.PyTablesTestCase):
+
+    def test_open_python2(self):
+        filename = self._testFilename("python2.h5")
+        fileh = openFile(filename, "r")
+        self.assertTrue(fileh.isopen)
+        fileh.close()
+
+    def test_open_python3(self):
+        filename = self._testFilename("python2.h5")
+        fileh = openFile(filename, "r")
+        self.assertTrue(fileh.isopen)
+        fileh.close()
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -2781,6 +2797,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TestDescription))
         theSuite.addTest(unittest.makeSuite(TestAtom))
         theSuite.addTest(unittest.makeSuite(TestCol))
+        theSuite.addTest(unittest.makeSuite(TestSysattrCompatibility))
 
     return theSuite
 

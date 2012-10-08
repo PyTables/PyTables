@@ -34,7 +34,8 @@ from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp, strlen
-from cpython.unicode cimport PyUnicode_DecodeUTF8
+from cpython.bytes cimport PyBytes_Check
+from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 from numpy cimport (import_array, ndarray, dtype,
   NPY_INT64, npy_int64,
   PyArray_DescrFromType)
@@ -467,8 +468,8 @@ def isPyTablesFile(object filename):
   """
 
   cdef hid_t file_id
+  cdef object isptf = None  # A PYTABLES_FORMAT_VERSION attribute was not found
 
-  isptf = None    # A PYTABLES_FORMAT_VERSION attribute was not found
   if isHDF5File(filename):
     # Encode the filename in case it is unicode
     encname = encode_filename(filename)
@@ -478,6 +479,12 @@ def isPyTablesFile(object filename):
     isptf = read_f_attr(file_id, 'PYTABLES_FORMAT_VERSION')
     # Close the file
     H5Fclose(file_id)
+
+    # system attributes should always be str
+    if PY_MAJOR_VERSION < 3 and PyUnicode_Check(isptf):
+        isptf = isptf.encode()
+    elif PY_MAJOR_VERSION > 2 and PyBytes_Check(isptf):
+        isptf = isptf.decode('utf-8')
 
   return isptf
 

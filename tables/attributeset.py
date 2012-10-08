@@ -13,6 +13,7 @@
 """Here is defined the AttributeSet class."""
 
 import re
+import sys
 import warnings
 import cPickle
 import numpy
@@ -339,6 +340,13 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 retval = numpy.array(retval)[()]
         elif name == 'FILTERS' and format_version >= (2, 0):
             retval = Filters._unpack(value)
+        elif issysattrname(name) and isinstance(value, (bytes, unicode)) and \
+                not isinstance(value, str):
+            # system attributes should always be str
+            if sys.version_info[0] < 3:
+                retval = value.encode()
+            else:
+                retval = value.decode('utf-8')
         else:
             retval = value
 
