@@ -2519,7 +2519,7 @@ tables.silenceHDF5Messages()
 tables.silenceHDF5Messages(False)
 try:
     tables.openFile(r'%s')
-except tables.HDF5ExtError, e:
+except tables.HDF5ExtError as e:
     pass
 """
 
