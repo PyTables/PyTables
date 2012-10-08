@@ -642,8 +642,9 @@ def getNestedField(recarray, fieldname):
   The `fieldname` may be a simple field name or a nested field name
   with slah-separated components.
   """
+  cdef bytes name = fieldname.encode('utf-8')
   try:
-    if strchr(<char *>fieldname, 47) != NULL:   # ord('/') == 47
+    if strchr(<char *>name, 47) != NULL:   # ord('/') == 47
       # It may be convenient to implement this way of descending nested
       # fields into the ``__getitem__()`` method of a subclass of
       # ``numpy.ndarray``.  -- ivb
