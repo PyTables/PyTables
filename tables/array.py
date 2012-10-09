@@ -761,7 +761,7 @@ class Array(hdf5Extension.Array, Leaf):
         """Write `nparr` in a slice based on `startl`, `stopl` and `stepl`."""
 
         nparr = self._checkShape(nparr, tuple(shape))
-        countl = ((stopl - startl - 1) / stepl) + 1
+        countl = ((stopl - startl - 1) // stepl) + 1
         self._g_writeSlice(startl, stepl, countl, nparr)
 
 
