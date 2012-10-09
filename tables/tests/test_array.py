@@ -206,14 +206,14 @@ class Basic0DOneTestCase(BasicTestCase):
     # Scalar case
     title = "Rank-0 case 1"
     tupleInt = 3
-    tupleChar = "3"
+    tupleChar = b"3"
     endiancheck = True
 
 class Basic0DTwoTestCase(BasicTestCase):
     # Scalar case
     title = "Rank-0 case 2"
     tupleInt = 33
-    tupleChar = "33"
+    tupleChar = b"33"
     endiancheck = True
 
 class Basic1DZeroTestCase(BasicTestCase):
@@ -229,21 +229,21 @@ class Basic1DOneTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 1"
     tupleInt = (3,)
-    tupleChar = ("a",)
+    tupleChar = (b"a",)
     endiancheck = True
 
 class Basic1DTwoTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 2"
     tupleInt = (3, 4)
-    tupleChar = ("aaa",)
+    tupleChar = (b"aaa",)
     endiancheck = True
 
 class Basic1DThreeTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 3"
     tupleInt = (3, 4, 5)
-    tupleChar = ("aaa", "bbb",)
+    tupleChar = (b"aaa", b"bbb",)
     endiancheck = True
 
 class Basic2DOneTestCase(BasicTestCase):
@@ -1322,8 +1322,8 @@ class GI1NATestCase(GetItemTestCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
-    charList = numpy.array(["3"])
-    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"])
+    charList = numpy.array(["3"], 'S')
+    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 class GI1NAOpenTestCase(GI1NATestCase):
     close = 0
@@ -1341,13 +1341,13 @@ class GI2NATestCase(GetItemTestCase):
                                       [3, 2, 1, 0, 4, 5, 6],
                                       [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a", "b"])
+    charList = numpy.array(["a", "b"], 'S')
     charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
                               ["21", "21", "11", "02", "42", "21", "61"],
                               ["31", "21", "12", "21", "41", "51", "621"],
                               ["321", "221", "121", "021", "421", "521", "621"],
                               ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]])
+                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 
 class GI2NAOpenTestCase(GI2NATestCase):
@@ -1711,8 +1711,8 @@ class SI1NATestCase(SetItemTestCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
-    charList = numpy.array(["3"])
-    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"])
+    charList = numpy.array(["3"], 'S')
+    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 class SI1NAOpenTestCase(SI1NATestCase):
     close = 0
@@ -1730,13 +1730,13 @@ class SI2NATestCase(SetItemTestCase):
                                       [3, 2, 1, 0, 4, 5, 6],
                                       [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a", "b"])
+    charList = numpy.array(["a", "b"], 'S')
     charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
                               ["21", "21", "11", "02", "42", "21", "61"],
                               ["31", "21", "12", "21", "41", "51", "621"],
                               ["321", "221", "121", "021", "421", "521", "621"],
                               ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]])
+                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 class SI2NAOpenTestCase(SI2NATestCase):
     close = 0
@@ -1866,8 +1866,8 @@ class GE1NATestCase(GeneratorTestCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
-    charList = numpy.array(["3"])
-    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"])
+    charList = numpy.array(["3"], 'S')
+    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 class GE1NAOpenTestCase(GE1NATestCase):
     close = 0
@@ -1885,13 +1885,13 @@ class GE2NATestCase(GeneratorTestCase):
                                       [3, 2, 1, 0, 4, 5, 6],
                                       [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a", "b"])
+    charList = numpy.array(["a", "b"], 'S')
     charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
                               ["21", "21", "11", "02", "42", "21", "61"],
                               ["31", "21", "12", "21", "41", "51", "621"],
                               ["321", "221", "121", "021", "421", "521", "621"],
                               ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]])
+                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 
 class GE2NAOpenTestCase(GE2NATestCase):
