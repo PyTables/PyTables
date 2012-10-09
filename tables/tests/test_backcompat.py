@@ -104,7 +104,7 @@ class VLArrayTestCase(common.PyTablesTestCase):
         self.assertEqual(vlarray1.flavor, "numeric")
         vlarray2 = fileh.root.vlarray2
         self.assertEqual(vlarray2.flavor, "python")
-        self.assertEqual(vlarray2[1], ['5', '6', '77'])
+        self.assertEqual(vlarray2[1], [b'5', b'6', b'77'])
 
         fileh.close()
 
@@ -134,9 +134,9 @@ class TimeTestCase(common.PyTablesTestCase):
 
         # Check that we can read the contents without problems (nor warnings!)
         vlarray4 = self.fileh.root.vlarray4
-        self.assertEqual(vlarray4.byteorder, "little")
+        self.assertEqual(vlarray4.byteorder, b"little")
         vlarray8 = self.fileh.root.vlarray4
-        self.assertEqual(vlarray8.byteorder, "little")
+        self.assertEqual(vlarray8.byteorder, b"little")
 
 
 #----------------------------------------------------------------------

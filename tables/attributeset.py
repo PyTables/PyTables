@@ -52,9 +52,9 @@ FORCE_COPY_CLASS = ['CLASS', 'VERSION']
 # Regular expression for column default values.
 _field_fill_re = re.compile('^FIELD_[0-9]+_FILL$')
 # Regular expression for fixing old pickled filters.
-_old_filters_re = re.compile(r'\(([ic])tables\.Leaf\n')
+_old_filters_re = re.compile(br'\(([ic])tables\.Leaf\n')
 # Fixed version of the previous string.
-_new_filters_sub = r'(\1tables.filters\n'
+_new_filters_sub = br'(\1tables.filters\n'
 
 def issysattrname(name):
     "Check if a name is a system attribute or not"
