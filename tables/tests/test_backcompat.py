@@ -134,9 +134,9 @@ class TimeTestCase(common.PyTablesTestCase):
 
         # Check that we can read the contents without problems (nor warnings!)
         vlarray4 = self.fileh.root.vlarray4
-        self.assertEqual(vlarray4.byteorder, b"little")
+        self.assertEqual(vlarray4.byteorder, "little")
         vlarray8 = self.fileh.root.vlarray4
-        self.assertEqual(vlarray8.byteorder, b"little")
+        self.assertEqual(vlarray8.byteorder, "little")
 
 
 #----------------------------------------------------------------------

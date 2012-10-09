@@ -1299,7 +1299,7 @@ cdef class Array(Leaf):
   def _openArray(self):
     cdef size_t type_size, type_precision
     cdef H5T_class_t class_id
-    cdef char byteorder[11]  # "irrelevant" fits easily here
+    cdef char cbyteorder[11]  # "irrelevant" fits easily here
     cdef int i
     cdef int extdim
     cdef herr_t ret
@@ -1308,6 +1308,7 @@ cdef class Array(Leaf):
     cdef ndarray dflts
     cdef void *fill_data
     cdef bytes encoded_name
+    cdef str byteorder
 
     encoded_name = self.name.encode('utf-8')
 
@@ -1330,9 +1331,14 @@ cdef class Array(Leaf):
     # Get info on dimensions, class and type (of base class)
     ret = H5ARRAYget_info(self.dataset_id, self.disk_type_id,
                           self.dims, self.maxdims,
-                          &class_id, byteorder)
+                          &class_id, cbyteorder)
     if ret < 0:
       raise HDF5ExtError("Unable to get array info.")
+
+    if PY_MAJOR_VERSION > 2:
+        byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
+    else:
+        byteorder = cbyteorder
 
     # Get the extendable dimension (if any)
     self.extdim = -1  # default is non-extensible Array
@@ -1812,13 +1818,14 @@ cdef class VLArray(Leaf):
 
 
   def _openArray(self):
-    cdef char byteorder[11]  # "irrelevant" fits easily here
+    cdef char cbyteorder[11]  # "irrelevant" fits easily here
     cdef int i, enumtype
     cdef int rank
     cdef herr_t ret
     cdef hsize_t nrecords, chunksize
     cdef object shape, type_
     cdef bytes encoded_name
+    cdef str byteorder
 
     encoded_name = self.name.encode('utf-8')
 
@@ -1834,7 +1841,13 @@ cdef class VLArray(Leaf):
 
     # Get info on dimensions & types (of base class)
     H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
-                      byteorder)
+                      cbyteorder)
+
+    if PY_MAJOR_VERSION > 2:
+        byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
+    else:
+        byteorder = cbyteorder
+
     # Get some properties of the atomic type
     self._atomicdtype = atom.dtype
     self._atomictype = atom.type
@@ -2009,15 +2022,21 @@ cdef class UnImplemented(Leaf):
 
   def _openUnImplemented(self):
     cdef object shape
-    cdef char byteorder[11]  # "irrelevant" fits easily here
+    cdef char cbyteorder[11]  # "irrelevant" fits easily here
     cdef bytes encoded_name
+    cdef str byteorder
 
     encoded_name = self.name.encode('utf-8')
 
     # Get info on dimensions
-    shape = H5UIget_info(self.parent_id, encoded_name, byteorder)
+    shape = H5UIget_info(self.parent_id, encoded_name, cbyteorder)
     shape = tuple(map(SizeType, shape))
     self.dataset_id = H5Dopen(self.parent_id, encoded_name, H5P_DEFAULT)
+    if PY_MAJOR_VERSION > 2:
+        byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
+    else:
+        byteorder = cbyteorder
+
     return (shape, byteorder, self.dataset_id)
 
 
