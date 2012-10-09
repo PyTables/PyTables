@@ -205,18 +205,7 @@ class Filters(object):
         return class_(**kwargs)
 
     def _pack(self):
-        """Pack the `Filters` object into a 64-bit NumPy integer.
-
-        >>> type(Filters()._pack())
-        <type 'numpy.int64'>
-        >>> hexl = lambda n: hex(long(n))
-        >>> hexl(Filters()._pack())
-        '0x0L'
-        >>> hexl(Filters(1, shuffle=False)._pack())
-        '0x101L'
-        >>> hexl(Filters(9, 'zlib', shuffle=True, fletcher32=True)._pack())
-        '0x30109L'
-        """
+        """Pack the `Filters` object into a 64-bit NumPy integer."""
 
         packed = numpy.int64(0)
         # Byte 2: parameterless filters.

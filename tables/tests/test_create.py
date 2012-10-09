@@ -18,6 +18,8 @@ import unittest
 import tempfile
 import warnings
 
+import numpy
+
 from tables import *
 # important objects to test
 from tables import Group, Leaf, Table, Array, hdf5Version
@@ -1436,6 +1438,21 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
 
 
+class FilterTestCase(common.PyTablesTestCase):
+    def test_filter_01(self):
+        self.assertEqual(type(Filters()._pack()), numpy.int64)
+
+    def test_filter_02(self):
+        if sys.version_info[0] > 2:
+            hexl = lambda n: hex(int(n))
+        else:
+            hexl = lambda n: hex(long(n))
+            self.assertEqual(hexl(Filters()._pack()), '0x0L')
+            self.assertEqual(hexl(Filters(1, shuffle=False)._pack()), '0x101L')
+            filter_ = Filters(9, 'zlib', shuffle=True, fletcher32=True)
+            self.assertEqual(hexl(filter_._pack()), '0x30109L')
+
+
 class DefaultDriverTestCase(common.PyTablesTestCase):
     DRIVER = None
     DRIVER_PARAMS = {}
@@ -2235,6 +2252,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyFileCase2))
         theSuite.addTest(unittest.makeSuite(GroupFiltersTestCase))
         theSuite.addTest(unittest.makeSuite(SetBloscMaxThreadsTestCase))
+        theSuite.addTest(unittest.makeSuite(FilterTestCase))
         theSuite.addTest(doctest.DocTestSuite(tables.filters))
 
         theSuite.addTest(unittest.makeSuite(DefaultDriverTestCase))
