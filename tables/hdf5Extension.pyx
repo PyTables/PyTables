@@ -484,6 +484,7 @@ cdef class File:
     cdef ssize_t size = 0
     cdef size_t buf_len = 0
     cdef bytes image
+    cdef char* cimage
 
     self.flush()
 
@@ -499,8 +500,9 @@ cdef class File:
     if not image:
       raise RuntimeError("Unable to allecote meomory fir the file image")
 
+    cimage = image
     buf_len = size
-    size = pt_H5Fget_file_image(self.file_id, <void*>image, buf_len)
+    size = pt_H5Fget_file_image(self.file_id, <void*>cimage, buf_len)
     if size < 0:
       raise HDF5ExtError("Unable to retrieve the file image. "
                          "Plese note that not all drivers provide support "
