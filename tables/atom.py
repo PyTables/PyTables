@@ -581,7 +581,7 @@ class StringAtom(Atom):
         lambda self: self.dtype.base.itemsize,
         None, None, "Size in bytes of a sigle item in the atom." )
     type = 'string'
-    _defvalue = ''
+    _defvalue = b''
 
     def __init__(self, itemsize, shape=(), dflt=_defvalue):
         if not hasattr(itemsize, '__int__') or int(itemsize) < 0:
