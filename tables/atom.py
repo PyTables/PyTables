@@ -1033,7 +1033,7 @@ class VLStringAtom(_BufferedAtom):
     def _tobuffer(self, object_):
         if not isinstance(object_, basestring):
             raise TypeError("object is not a string: %r" % (object_,))
-        return numpy.string0(object_)
+        return numpy.string_(object_)
 
     def fromarray(self, array):
         return array.tostring()
@@ -1080,7 +1080,7 @@ class VLUnicodeAtom(_BufferedAtom):
         # character matches that of the base atoms.
         if not isinstance(object_, basestring):
             raise TypeError("object is not a string: %r" % (object_,))
-        return numpy.unicode0(object_)
+        return numpy.unicode_(object_)
 
     def fromarray(self, array):
         length = len(array)
