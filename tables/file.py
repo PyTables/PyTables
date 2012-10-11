@@ -1734,7 +1734,7 @@ class File(hdf5Extension.File, object):
             self._actionlog = tgroup.actionlog
             for row in self._actionlog:
                 if row["opcode"] == _opToCode["MARK"]:
-                    name = row["arg2"]
+                    name = row["arg2"].decode('utf-8')
                     self._markers[name] = self._nmarks
                     self._seqmarkers.append(row.nrow)
                     self._nmarks += 1
@@ -1874,7 +1874,9 @@ class File(hdf5Extension.File, object):
             raise UndoRedoError("Parameter arg1 or arg2 is too long: "
                                 "(%r, %r)" % (arg1, arg2))
         #print "Logging-->", (action, arg1, arg2)
-        self._actionlog.append([(_opToCode[action], arg1, arg2)])
+        self._actionlog.append([(_opToCode[action],
+                                 arg1.encode('utf-8'),
+                                 arg2.encode('utf-8'))])
         self._curaction += 1
 
 
@@ -1936,20 +1938,20 @@ class File(hdf5Extension.File, object):
                                   #_codeToOp[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
                                   _codeToOp[int(actionlog['opcode'][i])],
-                                  actionlog['arg1'][i],
-                                  actionlog['arg2'][i])
+                                  actionlog['arg1'][i].decode('utf8'),
+                                  actionlog['arg2'][i].decode('utf8'))
                 else:
                     # Uncomment this for debugging
-#                     print "undo-->", \
-#                           _codeToOp[actionlog['opcode'][i]],\
-#                           actionlog['arg1'][i],\
-#                           actionlog['arg2'][i]
+                    #print "undo-->", \
+                    #       _codeToOp[actionlog['opcode'][i]],\
+                    #       actionlog['arg1'][i].decode('utf8'),\
+                    #       actionlog['arg2'][i].decode('utf8')
                     undoredo.undo(self,
                                   #_codeToOp[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
                                   _codeToOp[int(actionlog['opcode'][i])],
-                                  actionlog['arg1'][i],
-                                  actionlog['arg2'][i])
+                                  actionlog['arg1'][i].decode('utf8'),
+                                  actionlog['arg2'][i].decode('utf8'))
             else:
                 if direction > 0:
                     self._curmark = int(actionlog['arg1'][i])
