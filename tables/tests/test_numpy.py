@@ -544,7 +544,7 @@ class TableReadTestCase(common.PyTablesTestCase):
             n = 13
         else:
             n = 12
-        table[coords[0]] = tuple(["aasa", "x"]+[232]*n)
+        table[coords[0]] = tuple(["aasa", "x"]+[232]*n)     # XXX
         #record = list(table[coords[0]])
         record = table.read(coords[0])
         if common.verbose:
@@ -552,8 +552,8 @@ class TableReadTestCase(common.PyTablesTestCase):
 ['aasa', 'x', 232, -24, 232, 232, 1, 232L, 232, (232+0j), 232.0, 232L, (232+0j), 232.0]
 """
             print "Read row:\n", record
-        self.assertEqual(record['var1'], 'aasa')
-        self.assertEqual(record['var2'], 'x')
+        self.assertEqual(record['var1'], b'aasa')
+        self.assertEqual(record['var2'], b'x')
         self.assertEqual(record['var3'], True)
         self.assertEqual(record['var4'], -24)
         self.assertEqual(record['var7'], 232)
@@ -1235,9 +1235,9 @@ class StrlenTestCase(common.PyTablesTestCase):
         self.table = self.fileh.createTable(group, 'table', tablelayout)
         self.table.flavor = 'numpy'
         row = self.table.row
-        row['Text'] = 'Hello Francesc!'
+        row['Text'] = 'Hello Francesc!'     # XXX: check unicode --> bytes
         row.append()
-        row['Text'] = 'Hola Francesc!'
+        row['Text'] = 'Hola Francesc!'      # XXX: check unicode --> bytes
         row.append()
         self.table.flush()
 
@@ -1259,10 +1259,10 @@ class StrlenTestCase(common.PyTablesTestCase):
             print "string1-->", str1
             print "string2-->", str2
         # Check that both NumPy objects are equal
-        self.assertEqual(len(str1), len('Hello Francesc!'))
-        self.assertEqual(len(str2), len('Hola Francesc!'))
-        self.assertEqual(str1, 'Hello Francesc!')
-        self.assertEqual(str2, 'Hola Francesc!')
+        self.assertEqual(len(str1), len(b'Hello Francesc!'))
+        self.assertEqual(len(str2), len(b'Hola Francesc!'))
+        self.assertEqual(str1, b'Hello Francesc!')
+        self.assertEqual(str2, b'Hola Francesc!')
 
     def test02(self):
         """Checking the lengths of strings (read recarray)."""
@@ -1274,10 +1274,10 @@ class StrlenTestCase(common.PyTablesTestCase):
         str1 = self.table[:]['Text'][0]
         str2 = self.table[:]['Text'][1]
         # Check that both NumPy objects are equal
-        self.assertEqual(len(str1), len('Hello Francesc!'))
-        self.assertEqual(len(str2), len('Hola Francesc!'))
-        self.assertEqual(str1, 'Hello Francesc!')
-        self.assertEqual(str2, 'Hola Francesc!')
+        self.assertEqual(len(str1), len(b'Hello Francesc!'))
+        self.assertEqual(len(str2), len(b'Hola Francesc!'))
+        self.assertEqual(str1, b'Hello Francesc!')
+        self.assertEqual(str2, b'Hola Francesc!')
 
 
     def test03(self):
@@ -1290,10 +1290,10 @@ class StrlenTestCase(common.PyTablesTestCase):
         str1 = self.table[0]['Text']
         str2 = self.table[1]['Text']
         # Check that both NumPy objects are equal
-        self.assertEqual(len(str1), len('Hello Francesc!'))
-        self.assertEqual(len(str2), len('Hola Francesc!'))
-        self.assertEqual(str1, 'Hello Francesc!')
-        self.assertEqual(str2, 'Hola Francesc!')
+        self.assertEqual(len(str1), len(b'Hello Francesc!'))
+        self.assertEqual(len(str2), len(b'Hola Francesc!'))
+        self.assertEqual(str1, b'Hello Francesc!')
+        self.assertEqual(str2, b'Hola Francesc!')
 
 
 class StrlenOpenTestCase(StrlenTestCase):

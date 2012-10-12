@@ -185,7 +185,7 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
         # This version of the loop seems to fail because of ``iterrows()``.
         #for (m, row) in enumerate(tbl):
             self.assertEqual(row['a_name'], m)
-            self.assertEqual(row['c_name'], "Hello!")
+            self.assertEqual(row['c_name'], b"Hello!")
             dRow = row['d_name']
             for n in range(5):
                 for o in range(10):
@@ -234,7 +234,7 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
             self.assertEqual(row['b'], 4.0)
             self.assertTrue(allequal(row['c'], numpy.array([2.0, 3.0],
                                                         dtype="float64")))
-            self.assertEqual(row['d'], "d")
+            self.assertEqual(row['d'], b"d")
 
         self.h5file.close()
 

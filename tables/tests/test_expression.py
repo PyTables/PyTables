@@ -817,16 +817,16 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking strings in expression"""
 
         # Build arrays with different shapes as inputs
-        a = np.array(['a', 'bd', 'cd'])
-        b = np.array(['a', 'bdcd', 'ccdc'])
+        a = np.array(['a', 'bd', 'cd'], 'S')
+        b = np.array(['a', 'bdcd', 'ccdc'], 'S')
         root = self.h5file.root
         a1 = self.h5file.createArray(root, 'a1', a)
         self.assertTrue(a1 is not None)
         b1 = self.h5file.createArray(root, 'b1', b)
         self.assertTrue(b1 is not None)
-        expr = tb.Expr("(a1 > 'a') | ( b1 > 'b')")
+        expr = tb.Expr("(a1 > b'a') | ( b1 > b'b')")
         r1 = expr.eval()
-        r2 = eval("(a > 'a') | ( b > 'b')")
+        r2 = eval("(a > b'a') | ( b > b'b')")
         if common.verbose:
             print "Computed expression:", repr(r1), r1.dtype
             print "Should look like:", repr(r2), r2.dtype
