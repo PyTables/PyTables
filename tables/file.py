@@ -1846,7 +1846,7 @@ class File(hdf5Extension.File, object):
                                        self._actionlog.nrows)
             # Reset the current marker group
             mnode = self.getNode(_markPath % (self._curtransaction,
-                                               self._curmark))
+                                              self._curmark))
             mnode._g_reset()
             # Delete the marker groups with backup objects
             for mark in xrange(self._curmark+1, self._nmarks):
