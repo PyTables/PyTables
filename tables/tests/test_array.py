@@ -134,8 +134,8 @@ class BasicTestCase(unittest.TestCase):
         fileh = openFile(file, mode = "r")
         # Read the saved array
         b = fileh.root.somearray.read()
-        if isinstance(a, str):
-            self.assertEqual(type(b), str)
+        if isinstance(a, bytes):
+            self.assertEqual(type(b), bytes)
             self.assertEqual(a, b)
         else:
             # If a is not a python string, then it should be a list or ndarray

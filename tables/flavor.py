@@ -316,9 +316,9 @@ _python_aliases = [
     'Int', 'Float', 'String',
     'VLString', 'Object' ]
 _python_desc = ( "homogeneous list or tuple, "
-                 "integer, float, complex or string" )
+                 "integer, float, complex or bytes" )
 def _is_python(array):
-    return isinstance(array, (tuple, list, int, float, complex, str))
+    return isinstance(array, (tuple, list, int, float, complex, bytes))
 
 _numpy_aliases = []
 _numpy_desc = "NumPy array, record or scalar"
