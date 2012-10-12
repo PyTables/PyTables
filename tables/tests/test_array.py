@@ -366,7 +366,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test01_signedShort_unaligned(self):
         "Checking an unaligned signed short integer array"
 
-        r = numpy.rec.array('a'*200, formats='i1,f4,i2', shape=10)
+        r = numpy.rec.array(b'a'*200, formats='i1,f4,i2', shape=10)
         a = r["f2"]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
@@ -377,7 +377,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test02_float_unaligned(self):
         "Checking an unaligned single precision array"
 
-        r = numpy.rec.array('a'*200, formats='i1,f4,i2', shape=10)
+        r = numpy.rec.array(b'a'*200, formats='i1,f4,i2', shape=10)
         a = r["f1"]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, 0)
@@ -436,7 +436,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test09_float_offset_unaligned(self):
         "Checking an unaligned and offsetted single precision array"
 
-        r = numpy.rec.array('a'*200, formats='i1,3f4,i2', shape=10)
+        r = numpy.rec.array(b'a'*200, formats='i1,3f4,i2', shape=10)
         a = r["f1"][3]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
@@ -447,7 +447,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test10_double_offset_unaligned(self):
         "Checking an unaligned and offsetted double precision array"
 
-        r = numpy.rec.array('a'*400, formats='i1,3f8,i2', shape=10)
+        r = numpy.rec.array(b'a'*400, formats='i1,3f8,i2', shape=10)
         a = r["f1"][3]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
@@ -1374,8 +1374,8 @@ class SetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Modify a single element of a and arr:
-        a[0] = "b"
-        arr[0] = "b"
+        a[0] = b"b"
+        arr[0] = b"b"
 
         # Get and compare an element
         if common.verbose:
@@ -1434,8 +1434,8 @@ class SetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
-        a[1:3] = "xXx"
-        arr[1:3] = "xXx"
+        a[1:3] = b"xXx"
+        arr[1:3] = b"xXx"
 
         # Get and compare an element
         if common.verbose:
@@ -1497,8 +1497,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = slice(1, 4, 2)
-        a[s] = "xXx"
-        arr[s] = "xXx"
+        a[s] = b"xXx"
+        arr[s] = b"xXx"
 
         # Get and compare an element
         if common.verbose:
@@ -1560,8 +1560,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = -1
-        a[s] = "xXx"
-        arr[s] = "xXx"
+        a[s] = b"xXx"
+        arr[s] = b"xXx"
 
         # Get and compare an element
         if common.verbose:
@@ -1625,8 +1625,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = slice(-4, -1, None)
-        a[s] = "xXx"
-        arr[s] = "xXx"
+        a[s] = b"xXx"
+        arr[s] = b"xXx"
 
         # Get and compare an element
         if common.verbose:
