@@ -777,9 +777,7 @@ def enumFromHDF5(hid_t enumId, str byteorder):
   cdef char   *ename
   cdef ndarray npvalue
   cdef object dtype
-  #cdef bytes  encoded_byteorder
-
-  #encoded_byteorder = byteorder.encode('utf-8')
+  cdef str pyename
 
   # Find the base type of the enumerated type, and get the atom
   baseId = H5Tget_super(enumId)
@@ -807,7 +805,12 @@ def enumFromHDF5(hid_t enumId, str byteorder):
     if ename == NULL:
       raise HDF5ExtError(
         "failed to get element name from HDF5 enumerated type")
-    pyename = str(ename)
+
+    if PY_MAJOR_VERSION > 2:
+      pyename = PyUnicode_DecodeUTF8(ename, strlen(ename), NULL)
+    else:
+      pyename = ename
+
     free(ename)
 
     if H5Tget_member_value(enumId, i, rbuf) < 0:
@@ -922,12 +925,17 @@ def loadEnum(hid_t type_id):
   """
 
   cdef hid_t enumId
-  cdef char  byteorder[11]  # "irrelevant" fits well here
+  cdef char c_byteorder[11]  # "irrelevant" fits well here
+  cdef str byteorder
 
   # Get the enumerated type
   enumId = getTypeEnum(type_id)
   # Get the byteorder
-  get_order(type_id, byteorder)
+  get_order(type_id, c_byteorder)
+  if PY_MAJOR_VERSION > 2:
+    byteorder = PyUnicode_DecodeUTF8(c_byteorder, strlen(c_byteorder), NULL)
+  else:
+    byteorder = c_byteorder
   # Get the Enum and NumPy types and close the HDF5 type.
   try:
     return enumFromHDF5(enumId, byteorder)
@@ -1092,7 +1100,7 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
   if stype == 'e':
     (enum, nptype) = loadEnum(type_id)
     # Take one of the names as the default in the enumeration.
-    dflt = iter(enum).next()[0]
+    dflt = next(iter(enum))[0]
     base = Atom.from_dtype(nptype)
     atom_ = EnumAtom(enum, dflt, base, shape=shape)
   else:
