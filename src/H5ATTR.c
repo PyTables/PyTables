@@ -132,9 +132,10 @@ herr_t H5ATTRset_attribute_string( hid_t obj_id,
       ( H5Tset_cset( attr_type, cset ) < 0 ) )
   goto out;
 
- attr_size += 1; /* extra null term */
+ if ( cset == H5T_CSET_ASCII )
+  attr_size += 1; /* extra null term */
 
- if ( H5Tset_size( attr_type, attr_size) < 0 )
+ if ( ( attr_size > 0 ) && ( H5Tset_size( attr_type, attr_size) < 0 ) )
   goto out;
 
  if ( H5Tset_strpad( attr_type, H5T_STR_NULLTERM ) < 0 )
