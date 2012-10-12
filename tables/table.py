@@ -78,8 +78,11 @@ _nxTypeFromNPType = {
     numpy.float64: double,
     numpy.complex64: complex,
     numpy.complex128: complex,
-    numpy.str_: str,
+    numpy.bytes_: bytes,
 }
+
+if sys.version_info[0] > 2:
+    _nxTypeFromNPType[numpy.str_] = str
 
 if hasattr(numpy, 'float16'):
     _nxTypeFromNPType[numpy.float16] = float    # XXX: check
