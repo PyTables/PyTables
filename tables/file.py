@@ -1722,7 +1722,7 @@ class File(hdf5Extension.File, object):
             # Create a group for mark 0
             self._createMark(self._trans, 0)
             # Initialize the marker pointer
-            self._curmark = self._nmarks - 1
+            self._curmark = int(self._nmarks - 1)
             # Initialize the action pointer
             self._curaction = self._actionlog.nrows - 1
         else:
@@ -1739,7 +1739,7 @@ class File(hdf5Extension.File, object):
                     self._seqmarkers.append(row.nrow)
                     self._nmarks += 1
             # Get the current mark and current action
-            self._curmark = self._actionlog.attrs.CURMARK
+            self._curmark = int(self._actionlog.attrs.CURMARK)
             self._curaction = self._actionlog.attrs.CURACTION
 
         # The Undo/Redo mechanism has been enabled.
@@ -2034,7 +2034,7 @@ class File(hdf5Extension.File, object):
         if mark is None:
             mark = self._curmark + 1
         elif mark == -1:
-            mark = self._nmarks  # Go beyond the mark bounds up to the end
+            mark = int(self._nmarks)  # Go beyond the mark bounds up to the end
         # Get the mark ID number
         markid = self._getMarkID(mark)
         finalaction = self._getFinalAction(markid)
