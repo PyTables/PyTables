@@ -341,11 +341,12 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         elif name == 'FILTERS' and format_version >= (2, 0):
             retval = Filters._unpack(value)
         elif issysattrname(name) and isinstance(value, (bytes, unicode)) and \
-                not isinstance(value, str):
+                not isinstance(value, str) and not _field_fill_re.match(name):
             # system attributes should always be str
             if sys.version_info[0] < 3:
                 retval = value.encode()
             else:
+                # python 3, bytes and not "FIELD_[0-9]+_FILL"
                 retval = value.decode('utf-8')
         else:
             retval = value
