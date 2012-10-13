@@ -264,11 +264,11 @@ cdef class Table(Leaf):
     cdef int     i
     cdef char    *c_colname
     cdef H5T_class_t class_id
-    cdef char    byteorder2[11]  # "irrelevant" fits easily here
+    cdef char    c_byteorder2[11]  # "irrelevant" fits easily here
     cdef char    *sys_byteorder
     cdef object  desc, colobj, colpath2, typeclassname, typeclass
     cdef object  byteorder
-    cdef str     colname
+    cdef str     colname, byteorder2
 
     offset = 0
     desc = {}
@@ -318,8 +318,14 @@ cdef class Table(Leaf):
             field_byteorders.append("big")
         elif colobj.kind in ['int', 'uint', 'float', 'complex', 'enum']:
           # Keep track of the byteorder for this column
-          get_order(member_type_id, byteorder2)
-          if str(byteorder2) in ["little", "big"]:
+          get_order(member_type_id, c_byteorder2)
+          if PY_MAJOR_VERSION > 2:
+            byteorder2 = PyUnicode_DecodeUTF8(c_byteorder2,
+                                              strlen(c_byteorder2),
+                                              NULL)
+          else:
+            byteorder2 = c_byteorder2
+          if byteorder2 in ["little", "big"]:
             field_byteorders.append(byteorder2)
 
       # Insert the native member
