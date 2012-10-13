@@ -6,8 +6,9 @@ import os
 import tempfile
 import warnings
 
-from numpy import *
+import numpy as np
 from numpy import rec as records
+from numpy import testing as npt
 
 from tables import *
 from tables.utils import SizeType
@@ -30,7 +31,7 @@ class Record(IsDescription):
     var8 = BoolCol(dflt=True, pos=7)               # boolean
     var9 = ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8) # Complex single precision
     var10 = ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9) # Complex double precision
-    if 'float16' in typeDict:
+    if 'float16' in np.typeDict:
         var11 = Float16Col(dflt=6.4, pos=12)        # float  (half-precision)
 
 #  Dictionary definition
@@ -47,7 +48,7 @@ RecordDescriptionDict = {
     'var10': ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9), # Complex double precision
 }
 
-if 'float16' in typeDict:
+if 'float16' in np.typeDict:
     RecordDescriptionDict['var11'] = Float16Col(dflt=6.4, pos=12)    # float  (half-precision)
 
 
@@ -63,7 +64,7 @@ class OldRecord(IsDescription):
     var8 = Col.from_type("bool", shape=(), dflt=1, pos=7)
     var9 = ComplexCol(itemsize=8, shape=(), dflt=(0.+1.j), pos=8)
     var10 = ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos = 9)
-    if 'float16' in typeDict:
+    if 'float16' in np.typeDict:
        var11 = Col.from_type("float16", (), 6.4, pos=12)
 
 
@@ -103,33 +104,33 @@ class BasicTestCase(common.PyTablesTestCase):
             tmplist.append(var2)
             var3 = i % self.maxshort
             tmplist.append(var3)
-            if isinstance(row['var4'], ndarray):
+            if isinstance(row['var4'], np.ndarray):
                 tmplist.append([float(i), float(i*i)])
             else:
                 tmplist.append(float(i))
-            if isinstance(row['var5'], ndarray):
-                tmplist.append(array((float(i),)*4))
+            if isinstance(row['var5'], np.ndarray):
+                tmplist.append(np.array((float(i),)*4))
             else:
                 tmplist.append(float(i))
             # var6 will be like var3 but byteswaped
             tmplist.append(((var3>>8) & 0xff) + ((var3<<8) & 0xff00))
             var7 = var1[-1]
             tmplist.append(var7)
-            if isinstance(row['var8'], ndarray):
+            if isinstance(row['var8'], np.ndarray):
                 tmplist.append([0, 10])  # should be equivalent to [0,1]
             else:
                 tmplist.append(10) # should be equivalent to 1
-            if isinstance(row['var9'], ndarray):
+            if isinstance(row['var9'], np.ndarray):
                 tmplist.append([0.+float(i)*1j, float(i)+0.j])
             else:
                 tmplist.append(float(i)+0j)
-            if isinstance(row['var10'], ndarray):
+            if isinstance(row['var10'], np.ndarray):
                 tmplist.append([float(i)+0j, 1+float(i)*1j])
             else:
                 tmplist.append(1+float(i)*1j)
-            if 'float16' in typeDict:
-                if isinstance(row['var11'], ndarray):
-                    tmplist.append(array((float(i),)*4))
+            if 'float16' in np.typeDict:
+                if isinstance(row['var11'], np.ndarray):
+                    tmplist.append(np.array((float(i),)*4))
                 else:
                     tmplist.append(float(i))
             buflist.append(tmplist)
@@ -169,29 +170,29 @@ class BasicTestCase(common.PyTablesTestCase):
                     #row['var7'] = ('%04d' % (self.expectedrows - i))[-1]
                     row['var2'] = i
                     row['var3'] = i % self.maxshort
-                    if isinstance(row['var4'], ndarray):
+                    if isinstance(row['var4'], np.ndarray):
                         row['var4'] = [float(i), float(i*i)]
                     else:
                         row['var4'] = float(i)
-                    if isinstance(row['var8'], ndarray):
+                    if isinstance(row['var8'], np.ndarray):
                         row['var8'] = [0, 1]
                     else:
                         row['var8'] = 1
-                    if isinstance(row['var9'], ndarray):
+                    if isinstance(row['var9'], np.ndarray):
                         row['var9'] = [0.+float(i)*1j, float(i)+0.j]
                     else:
                         row['var9'] = float(i)+0.j
-                    if isinstance(row['var10'], ndarray):
+                    if isinstance(row['var10'], np.ndarray):
                         row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
                     else:
                         row['var10'] = 1.+float(i)*1j
-                    if isinstance(row['var5'], ndarray):
-                        row['var5'] = array((float(i),)*4)
+                    if isinstance(row['var5'], np.ndarray):
+                        row['var5'] = np.array((float(i),)*4)
                     else:
                         row['var5'] = float(i)
-                    if 'float16' in typeDict:
-                        if isinstance(row['var11'], ndarray):
-                            row['var11'] = array((float(i),)*4)
+                    if 'float16' in np.typeDict:
+                        if isinstance(row['var11'], np.ndarray):
+                            row['var11'] = np.array((float(i),)*4)
                         else:
                             row['var11'] = float(i)
 
@@ -226,10 +227,10 @@ class BasicTestCase(common.PyTablesTestCase):
 
         if isinstance(self.record, dict):
             columns = self.record
-        elif isinstance(self.record, ndarray):
+        elif isinstance(self.record, np.ndarray):
             descr, _ = descr_from_dtype(self.record.dtype)
             columns = descr._v_colObjects
-        elif isinstance(self.record, dtype):
+        elif isinstance(self.record, np.dtype):
             descr, _ = descr_from_dtype(self.record)
             columns = descr._v_colObjects
         else:
@@ -309,16 +310,16 @@ class BasicTestCase(common.PyTablesTestCase):
         nrows = self.expectedrows - 1
         self.assertEqual((rec['var1'], rec['var2'], rec['var7']),
                          ("0001", nrows, "1"))
-        if isinstance(rec['var5'], ndarray):
+        if isinstance(rec['var5'], np.ndarray):
             self.assertTrue(allequal(rec['var5'],
-                                     array((float(nrows),)*4, float32)))
+                                     np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(rec['var5'], float(nrows))
-        if isinstance(rec['var9'], ndarray):
+        if isinstance(rec['var9'], np.ndarray):
             self.assertTrue(
                 allequal(rec['var9'],
-                         array([0.+float(nrows)*1.j, float(nrows)+0.j],
-                                complex64)))
+                         np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
+                                  np.complex64)))
         else:
             self.assertEqual((rec['var9']), float(nrows)+0.j)
         self.assertEqual(len(result), 20)
@@ -348,16 +349,16 @@ class BasicTestCase(common.PyTablesTestCase):
         strnrows = "%04d" % (self.expectedrows - nrows)
         self.assertEqual((rec['var1'], rec['var2'], rec['var7']),
                          (strnrows, nrows, "1"))
-        if isinstance(rec['var5'], ndarray):
+        if isinstance(rec['var5'], np.ndarray):
             self.assertTrue(allequal(rec['var5'],
-                                     array((float(nrows),)*4, float32)))
+                                     np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(rec['var5'], float(nrows))
-        if isinstance(rec['var9'], ndarray):
+        if isinstance(rec['var9'], np.ndarray):
             self.assertTrue(
                 allequal(rec['var9'],
-                         array([0.+float(nrows)*1.j, float(nrows)+0.j],
-                                complex64)))
+                         np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
+                                np.complex64)))
         else:
             self.assertEqual(rec['var9'], float(nrows)+0.j)
         self.assertEqual(len(result), 20)
@@ -410,14 +411,14 @@ class BasicTestCase(common.PyTablesTestCase):
         strnrows = "%04d" % (self.expectedrows - nrows)
         self.assertEqual(rec[:2], (strnrows, 19))
         self.assertEqual(rec[3], '1')
-        if isinstance(rec[2], ndarray):
+        if isinstance(rec[2], np.ndarray):
             self.assertTrue(allequal(rec[2],
-                                     array((float(nrows),)*4, float32)))
+                                     np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(rec[2], nrows)
-        if isinstance(rec[4], ndarray):
+        if isinstance(rec[4], np.ndarray):
             self.assertTrue(allequal(rec[4],
-                    array([0.+float(nrows)*1.j, float(nrows)+0.j], complex64)))
+                    np.array([0.+float(nrows)*1.j, float(nrows)+0.j], np.complex64)))
         else:
             self.assertEqual(rec[4], float(nrows)+0.j)
         self.assertEqual(len(result), 20)
@@ -495,32 +496,32 @@ class BasicTestCase(common.PyTablesTestCase):
             print "nrows ==>", table.nrows
             print "Total selected records in table ==> ", len(result)
         nrows = table.nrows
-        if isinstance(rec['var5'], ndarray):
-            self.assertTrue(allequal(result[0], array((float(0),)*4, float32)))
-            self.assertTrue(allequal(result[1], array((float(1),)*4, float32)))
-            self.assertTrue(allequal(result[2], array((float(2),)*4, float32)))
-            self.assertTrue(allequal(result[3], array((float(3),)*4, float32)))
-            self.assertTrue(allequal(result[10], array((float(10),)*4, float32)))
+        if isinstance(rec['var5'], np.ndarray):
+            self.assertTrue(allequal(result[0], np.array((float(0),)*4, np.float32)))
+            self.assertTrue(allequal(result[1], np.array((float(1),)*4, np.float32)))
+            self.assertTrue(allequal(result[2], np.array((float(2),)*4, np.float32)))
+            self.assertTrue(allequal(result[3], np.array((float(3),)*4, np.float32)))
+            self.assertTrue(allequal(result[10], np.array((float(10),)*4, np.float32)))
             self.assertTrue(allequal(rec['var5'],
-                                     array((float(nrows-1),)*4, float32)))
+                                     np.array((float(nrows-1),)*4, np.float32)))
         else:
             self.assertEqual(rec['var5'], float(nrows - 1))
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var10'] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
-        if isinstance(rec['var10'], ndarray):
+        if isinstance(rec['var10'], np.ndarray):
             self.assertTrue(allequal(result[0],
-                array([float(0)+0.j, 1.+float(0)*1j], complex128)))
+                np.array([float(0)+0.j, 1.+float(0)*1j], np.complex128)))
             self.assertTrue(allequal(result[1],
-                array([float(1)+0.j, 1.+float(1)*1j], complex128)))
+                np.array([float(1)+0.j, 1.+float(1)*1j], np.complex128)))
             self.assertTrue(allequal(result[2],
-                array([float(2)+0.j, 1.+float(2)*1j], complex128)))
+                np.array([float(2)+0.j, 1.+float(2)*1j], np.complex128)))
             self.assertTrue(allequal(result[3],
-                array([float(3)+0.j, 1.+float(3)*1j], complex128)))
+                np.array([float(3)+0.j, 1.+float(3)*1j], np.complex128)))
             self.assertTrue(allequal(result[10],
-                array([float(10)+0.j, 1.+float(10)*1j], complex128)))
+                np.array([float(10)+0.j, 1.+float(10)*1j], np.complex128)))
             self.assertTrue(allequal(rec['var10'],
-                array([float(nrows-1)+0.j, 1.+float(nrows-1)*1j], complex128)))
+                np.array([float(nrows-1)+0.j, 1.+float(nrows-1)*1j], np.complex128)))
         else:
             self.assertEqual(rec['var10'], 1.+float(nrows-1)*1j)
         self.assertEqual(len(result), 20)
@@ -654,29 +655,29 @@ class BasicTestCase(common.PyTablesTestCase):
             row['var7'] = row['var1'][-1]
             row['var2'] = i
             row['var3'] = i % self.maxshort
-            if isinstance(row['var4'], ndarray):
+            if isinstance(row['var4'], np.ndarray):
                 row['var4'] = [float(i), float(i*i)]
             else:
                 row['var4'] = float(i)
-            if isinstance(row['var8'], ndarray):
+            if isinstance(row['var8'], np.ndarray):
                 row['var8'] = [0, 1]
             else:
                 row['var8'] = 1
-            if isinstance(row['var9'], ndarray):
+            if isinstance(row['var9'], np.ndarray):
                 row['var9'] = [0.+float(i)*1j, float(i)+0.j]
             else:
                 row['var9'] = float(i)+0.j
-            if isinstance(row['var10'], ndarray):
+            if isinstance(row['var10'], np.ndarray):
                 row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
             else:
                 row['var10'] = 1.+float(i)*1j
-            if isinstance(row['var5'], ndarray):
-                row['var5'] = array((float(i),)*4)
+            if isinstance(row['var5'], np.ndarray):
+                row['var5'] = np.array((float(i),)*4)
             else:
                 row['var5'] = float(i)
-            if 'float16' in typeDict:
-                if isinstance(row['var11'], ndarray):
-                    row['var11'] = array((float(i),)*4)
+            if 'float16' in np.typeDict:
+                if isinstance(row['var11'], np.ndarray):
+                    row['var11'] = np.array((float(i),)*4)
                 else:
                     row['var11'] = float(i)
             row.append()
@@ -689,9 +690,9 @@ class BasicTestCase(common.PyTablesTestCase):
         nrows = self.appendrows - 1
         self.assertEqual((row['var1'], row['var2'], row['var7']),
                          ("0001", nrows, "1"))
-        if isinstance(row['var5'], ndarray):
+        if isinstance(row['var5'], np.ndarray):
             self.assertTrue(allequal(row['var5'],
-                                     array((float(nrows),)*4, float32)))
+                                     np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -731,29 +732,29 @@ class BasicTestCase(common.PyTablesTestCase):
                 row['var7'] = row['var1'][-1]
                 row['var2'] = i
                 row['var3'] = i % self.maxshort
-                if isinstance(row['var4'], ndarray):
+                if isinstance(row['var4'], np.ndarray):
                     row['var4'] = [float(i), float(i*i)]
                 else:
                     row['var4'] = float(i)
-                if isinstance(row['var8'], ndarray):
+                if isinstance(row['var8'], np.ndarray):
                     row['var8'] = [0, 1]
                 else:
                     row['var8'] = 1
-                if isinstance(row['var9'], ndarray):
+                if isinstance(row['var9'], np.ndarray):
                     row['var9'] = [0.+float(i)*1j, float(i)+0.j]
                 else:
                     row['var9'] = float(i)+0.j
-                if isinstance(row['var10'], ndarray):
+                if isinstance(row['var10'], np.ndarray):
                     row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
                 else:
                     row['var10'] = 1.+float(i)*1j
-                if isinstance(row['var5'], ndarray):
-                    row['var5'] = array((float(i),)*4)
+                if isinstance(row['var5'], np.ndarray):
+                    row['var5'] = np.array((float(i),)*4)
                 else:
                     row['var5'] = float(i)
-                if 'float16' in typeDict:
-                    if isinstance(row['var11'], ndarray):
-                        row['var11'] = array((float(i),)*4)
+                if 'float16' in np.typeDict:
+                    if isinstance(row['var11'], np.ndarray):
+                        row['var11'] = np.array((float(i),)*4)
                     else:
                         row['var11'] = float(i)
                 row.append()
@@ -771,9 +772,9 @@ class BasicTestCase(common.PyTablesTestCase):
         nrows = self.appendrows - 1
         self.assertEqual((row['var1'], row['var2'], row['var7']),
                          ("0001", nrows, "1"))
-        if isinstance(row['var5'], ndarray):
+        if isinstance(row['var5'], np.ndarray):
             self.assertTrue(allequal(row['var5'],
-                                     array((float(nrows),)*4, float32)))
+                                     np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -810,29 +811,29 @@ class BasicTestCase(common.PyTablesTestCase):
             #row['var7'] = table.cols['var1'][i][-1]
             row['var2'] = i
             row['var3'] = i % self.maxshort
-            if isinstance(row['var4'], ndarray):
+            if isinstance(row['var4'], np.ndarray):
                 row['var4'] = [float(i), float(i*i)]
             else:
                 row['var4'] = float(i)
-            if isinstance(row['var8'], ndarray):
+            if isinstance(row['var8'], np.ndarray):
                 row['var8'] = [0, 1]
             else:
                 row['var8'] = 1
-            if isinstance(row['var9'], ndarray):
+            if isinstance(row['var9'], np.ndarray):
                 row['var9'] = [0.+float(i)*1j, float(i)+0.j]
             else:
                 row['var9'] = float(i)+0.j
-            if isinstance(row['var10'], ndarray):
+            if isinstance(row['var10'], np.ndarray):
                 row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
             else:
                 row['var10'] = 1.+float(i)*1j
-            if isinstance(row['var5'], ndarray):
-                row['var5'] = array((float(i),)*4)
+            if isinstance(row['var5'], np.ndarray):
+                row['var5'] = np.array((float(i),)*4)
             else:
                 row['var5'] = float(i)
-            if 'float16' in typeDict:
-                if isinstance(row['var11'], ndarray):
-                    row['var11'] = array((float(i),)*4)
+            if 'float16' in np.typeDict:
+                if isinstance(row['var11'], np.ndarray):
+                    row['var11'] = np.array((float(i),)*4)
                 else:
                     row['var11'] = float(i)
             row.append()
@@ -1186,29 +1187,29 @@ class BasicTestCase(common.PyTablesTestCase):
             #row['var7'] = row['var1'][-1]
             row['var2'] = i
             row['var3'] = i % self.maxshort
-            if isinstance(row['var4'], ndarray):
+            if isinstance(row['var4'], np.ndarray):
                 row['var4'] = [float(i), float(i*i)]
             else:
                 row['var4'] = float(i)
-            if isinstance(row['var8'], ndarray):
+            if isinstance(row['var8'], np.ndarray):
                 row['var8'] = [0, 1]
             else:
                 row['var8'] = 1
-            if isinstance(row['var9'], ndarray):
+            if isinstance(row['var9'], np.ndarray):
                 row['var9'] = [0.+float(i)*1j, float(i)+0.j]
             else:
                 row['var9'] = float(i)+0.j
-            if isinstance(row['var10'], ndarray):
+            if isinstance(row['var10'], np.ndarray):
                 row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
             else:
                 row['var10'] = 1.+float(i)*1j
-            if isinstance(row['var5'], ndarray):
-                row['var5'] = array((float(i),)*4)
+            if isinstance(row['var5'], np.ndarray):
+                row['var5'] = np.array((float(i),)*4)
             else:
                 row['var5'] = float(i)
-            if 'float16' in typeDict:
-                if isinstance(row['var11'], ndarray):
-                    row['var11'] = array((float(i),)*4)
+            if 'float16' in np.typeDict:
+                if isinstance(row['var11'], np.ndarray):
+                    row['var11'] = np.array((float(i),)*4)
                 else:
                     row['var11'] = float(i)
             row.append()
@@ -1299,16 +1300,16 @@ else:
 # Pure NumPy dtype
 class NumPyDTWriteTestCase(BasicTestCase):
     title = "NumPyDTWriteTestCase"
-    if 'float16' in typeDict:
-        record = dtype("a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16,f2")
+    if 'float16' in np.typeDict:
+        record = np.dtype("a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16,f2")
         record.names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11'.split(',')
     else:
-        record = dtype("a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16")
+        record = np.dtype("a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16")
         record.names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
-    if 'float16' in typeDict:
+    if 'float16' in np.typeDict:
         record=records.array(
             None, shape=0,
             formats="a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16,f2",
@@ -1323,7 +1324,7 @@ class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    if 'float16' in typeDict:
+    if 'float16' in np.typeDict:
         recordtemplate=records.array(
             None, shape=1,
             formats="a4,i4,i2,f8,f4,i2,a1,b1,2c8,c16,f2",
@@ -1338,7 +1339,7 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    if 'float16' in typeDict:
+    if 'float16' in np.typeDict:
         recordtemplate=records.array(
             None, shape=1,
             formats="a4,i4,i2,2f8,4f4,i2,a1,2b1,c8,c16,f2",
@@ -1428,7 +1429,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
         self.chunkshape = (1000, )
-        self.dtype = format_parser(['i4'] * 10, [], []).dtype
+        self.dtype = np.format_parser(['i4'] * 10, [], []).dtype
         # approximate size (in bytes) of non-data portion of hdf5 file
         self.hdf_overhead = 6000
         self.file = tempfile.mktemp(".h5")
@@ -1524,12 +1525,12 @@ class BasicRangeTestCase(unittest.TestCase):
                 row['var7'] = row['var1'][-1]
                 row['var2'] = i
                 row['var3'] = i % self.maxshort
-                if isinstance(row['var4'], ndarray):
+                if isinstance(row['var4'], np.ndarray):
                     row['var4'] = [float(i), float(i*i)]
                 else:
                     row['var4'] = float(i)
-                if isinstance(row['var5'], ndarray):
-                    row['var5'] = array((float(i),)*4)
+                if isinstance(row['var5'], np.ndarray):
+                    row['var5'] = np.array((float(i),)*4)
                 else:
                     row['var5'] = float(i)
                 # var6 will be like var3 but byteswaped
@@ -1955,12 +1956,12 @@ class getItemTestCase(unittest.TestCase):
                 row['var7'] = row['var1'][-1]
                 row['var2'] = i
                 row['var3'] = i % self.maxshort
-                if isinstance(row['var4'], ndarray):
+                if isinstance(row['var4'], np.ndarray):
                     row['var4'] = [float(i), float(i*i)]
                 else:
                     row['var4'] = float(i)
-                if isinstance(row['var5'], ndarray):
-                    row['var5'] = array((float(i),)*4)
+                if isinstance(row['var5'], np.ndarray):
+                    row['var5'] = np.array((float(i),)*4)
                 else:
                     row['var5'] = float(i)
                 # var6 will be like var3 but byteswaped
@@ -2057,11 +2058,11 @@ class getItemTestCase(unittest.TestCase):
 
         self.fileh = openFile(self.file, "r")
         table = self.fileh.root.table0
-        result = table[array(2)]
+        result = table[np.array(2)]
         self.assertEqual(result["var2"], 2)
-        result = table[array(25)]
+        result = table[np.array(25)]
         self.assertEqual(result["var2"], 25)
-        result = table[array(self.expectedrows-1)]
+        result = table[np.array(self.expectedrows-1)]
         self.assertEqual(result["var2"], self.expectedrows - 1)
 
     def test02_twoItems(self):
@@ -3620,7 +3621,7 @@ class RecArrayIO(unittest.TestCase):
         table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing column
-        columns = records.fromarrays(array([[2, 3, 4]]), formats="i4")
+        columns = records.fromarrays(np.array([[2, 3, 4]]), formats="i4")
         table.modifyColumns(start=1, columns=columns, names=["col1"])
         # Create the modified recarray
         r1=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
@@ -3661,7 +3662,7 @@ class RecArrayIO(unittest.TestCase):
         table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing column
-        columns = records.fromarrays(array([[2, 3, 4]]), formats="i4")
+        columns = records.fromarrays(np.array([[2, 3, 4]]), formats="i4")
         table.modifyColumn(start=1, column=columns, colname="col1")
         # Create the modified recarray
         r1=records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
@@ -3702,7 +3703,7 @@ class RecArrayIO(unittest.TestCase):
         table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing column
-        #columns = records.fromarrays(array([[4]]), formats="i4")
+        #columns = records.fromarrays(np.array([[4]]), formats="i4")
         #table.modifyColumns(start=1, columns=columns, names=["col1"])
         table.modifyColumns(start=1, columns=[[4]], names=["col1"])
         # Create the modified recarray
@@ -4668,7 +4669,7 @@ class LargeRowSize(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=records.array([[arange(100)]*2])
+        r=records.array([[np.arange(100)]*2])
 
         # Save it in a table:
         fileh.createTable(fileh.root, 'largerow', r)
@@ -4687,7 +4688,7 @@ class LargeRowSize(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create a recarray
-        r=records.array([[arange(40000)]*4])   # 640 KB
+        r=records.array([[np.arange(40000)]*4])   # 640 KB
 
         # Save it in a table:
 #         try:
@@ -4740,7 +4741,7 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        if 'float16' in typeDict:
+        if 'float16' in np.typeDict:
             r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j, 6.4]]*nrows,
                             formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16,f2')
         else:
@@ -4796,7 +4797,7 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        if 'float16' in typeDict:
+        if 'float16' in np.typeDict:
             r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j, 6.4]]*nrows,
                             formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16,f2')
         else:
@@ -5154,8 +5155,8 @@ class ZeroSizedTestCase(unittest.TestCase):
         "Appending zero length recarray."
 
         t = self.fileh.root.table
-        np = empty(shape=(0,), dtype='i4,f8')
-        t.append(np)
+        a = np.empty(shape=(0,), dtype='i4,f8')
+        t.append(a)
         self.assertEqual(t.nrows, 1, "The number of rows should be 1.")
 
 
@@ -5195,8 +5196,8 @@ class IrregularStrideTestCase(unittest.TestCase):
         if common.verbose:
             print "\nSelected coords1-->", coords1
             print "Selected coords2-->", coords2
-        self.assertTrue(allequal(coords1, arange(5, dtype=SizeType)))
-        self.assertTrue(allequal(coords2, arange(5, dtype=SizeType)))
+        self.assertTrue(allequal(coords1, np.arange(5, dtype=SizeType)))
+        self.assertTrue(allequal(coords2, np.arange(5, dtype=SizeType)))
 
 
 class TruncateTestCase(unittest.TestCase):
@@ -5347,14 +5348,14 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             (20, -10),  # no elements
             (-10, 4),  # several elements
             (0, 10),   # several elements (again)
-            ]
+        ]
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = fileh = openFile(self.file, "w")
         # Create a sample tables
-        self.data = data = arange(N)
-        self.recarr = recarr = empty(N, dtype="i4,f4")
+        self.data = data = np.arange(N)
+        self.recarr = recarr = np.empty(N, dtype="i4,f4")
         recarr["f0"][:] = data
         recarr["f1"][:] = data
         self.table = fileh.createTable(fileh.root, 'table', recarr)
@@ -5378,7 +5379,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             if common.verbose:
                 print "NumPy selection:", a
                 print "PyTables selection:", b
-            self.assertTrue(alltrue(a == b),
+            npt.assert_array_equal(a, b,
                 "NumPy array and PyTables selections does not match.")
 
     def test01b_read(self):
@@ -5387,7 +5388,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         recarr = self.recarr
         table = self.table
         for value1, value2 in self.limits:
-            key = where((data >= value1) & (data < value2))
+            key = np.where((data >= value1) & (data < value2))
             if common.verbose:
                 print "Selection to test:", key, type(key)
             a = recarr[key]
@@ -5395,7 +5396,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 #             if common.verbose:
 #                 print "NumPy selection:", a
 #                 print "PyTables selection:", b
-            self.assertTrue(alltrue(a == b),
+            npt.assert_array_equal(a, b,
                 "NumPy array and PyTables selections does not match.")
 
     def test01c_read(self):
@@ -5404,11 +5405,11 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         recarr = self.recarr
         table = self.table
         for value1, value2 in self.limits:
-            key = where((data >= value1) & (data < value2))
+            key = np.where((data >= value1) & (data < value2))
             if common.verbose:
                 print "Selection to test:", key
             recarr[key]
-            fkey = array(key, "f4")
+            fkey = np.array(key, "f4")
             self.assertRaises(TypeError, table.__getitem__, fkey)
 
     def test01d_read(self):
@@ -5417,7 +5418,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         recarr = self.recarr
         table = self.table
         for value1, value2 in self.limits:
-            key = where((data >= value1) & (data < value2))[0]
+            key = np.where((data >= value1) & (data < value2))[0]
             if common.verbose:
                 print "Selection to test:", key, type(key)
             a = recarr[key]
@@ -5425,7 +5426,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 #             if common.verbose:
 #                 print "NumPy selection:", a
 #                 print "PyTables selection:", b
-            self.assertTrue(alltrue(a == b),
+            npt.assert_array_equal(a, b,
                 "NumPy array and PyTables selections does not match.")
 
     def test01e_read(self):
@@ -5434,7 +5435,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         recarr = self.recarr
         table = self.table
         for value1, value2 in self.limits:
-            key = where((data >= value1) & (data < value2))[0].tolist()
+            key = np.where((data >= value1) & (data < value2))[0].tolist()
             if common.verbose:
                 print "Selection to test:", key, type(key)
             a = recarr[key]
@@ -5442,7 +5443,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 #             if common.verbose:
 #                 print "NumPy selection:", a
 #                 print "PyTables selection:", b
-            self.assertTrue(alltrue(a == b),
+            npt.assert_array_equal(a, b,
                 "NumPy array and PyTables selections does not match.")
 
 
@@ -5452,7 +5453,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         recarr = self.recarr
         table = self.table
         for value1, value2 in self.limits:
-            key = where((data >= value1) & (data < value2))
+            key = np.where((data >= value1) & (data < value2))
             if common.verbose:
                 print "Selection to test:", key
             s = recarr[key]
@@ -5467,7 +5468,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 #             if common.verbose:
 #                 print "NumPy modified array:", a
 #                 print "PyTables modifyied array:", b
-            self.assertTrue(alltrue(a == b),
+            npt.assert_array_equal(a, b,
                 "NumPy array and PyTables modifications does not match.")
 
     def test02b_write(self):
@@ -5476,7 +5477,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         recarr = self.recarr
         table = self.table
         for value1, value2 in self.limits:
-            key = where((data >= value1) & (data < value2))
+            key = np.where((data >= value1) & (data < value2))
             if common.verbose:
                 print "Selection to test:", key
             s = recarr[key]
@@ -5491,7 +5492,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 #             if common.verbose:
 #                 print "NumPy modified array:", a
 #                 print "PyTables modifyied array:", b
-            self.assertTrue(alltrue(a == b),
+            npt.assert_array_equal(a, b,
                 "NumPy array and PyTables modifications does not match.")
 
 
@@ -5511,7 +5512,7 @@ class MDLargeColTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check the value
         if common.verbose:
             print "First row-->", tbl[0]['col1']
-        self.assertTrue(allequal(tbl[0]['col1'], zeros(N, 'i1')))
+        npt.assert_array_equal(tbl[0]['col1'], np.zeros(N, 'i1'))
 
 class MDLargeColNoReopen(MDLargeColTestCase):
     reopen = False
@@ -5537,7 +5538,7 @@ class ExhaustedIter(common.PyTablesTestCase):
                                        chunkshape=32)
 
         # fill the database
-        observations = arange(225)
+        observations = np.arange(225)
         row = table.row
         for market_id in xrange(5):
             for scenario_id in xrange(3):
@@ -5591,7 +5592,7 @@ class SpecialColnamesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_check_names(self):
         f = self.h5file
-        a = array([(1, 2, 3)], dtype=[("a", int), ("_b", int), ("__c", int)])
+        a = np.array([(1, 2, 3)], dtype=[("a", int), ("_b", int), ("__c", int)])
         t = f.createTable(f.root, "test", a)
         self.assertEqual(len(t.colnames), 3, "Number of columns incorrect")
         if common.verbose:
@@ -5604,7 +5605,7 @@ class RowContainsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_row_contains(self):
         f = self.h5file
-        a = array([(1, 2, 3)], dtype="i1,i2,i4")
+        a = np.array([(1, 2, 3)], dtype="i1,i2,i4")
         t = f.createTable(f.root, "test", a)
         row = [r for r in t.iterrows()][0]
         if common.verbose:
