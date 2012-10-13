@@ -1820,7 +1820,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create a CArray with default values
         self.h5file.createCArray(
-            '/', 'bar', StringAtom(itemsize=5, dflt="abdef"), (10, 10))
+            '/', 'bar', StringAtom(itemsize=5, dflt=b"abdef"), (10, 10))
 
         if self.reopen:
             self._reopen()
@@ -1876,7 +1876,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00a_zeros(self):
         "Testing default values.  Zeros (scalar)."
         N = ()
-        atom = StringAtom(itemsize=3, shape=N, dflt="")
+        atom = StringAtom(itemsize=3, shape=N, dflt=b"")
         ca = self.h5file.createCArray('/', 'test', atom, (1,))
         if self.reopen:
             self._reopen('a')
@@ -1891,7 +1891,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00b_zeros(self):
         "Testing default values.  Zeros (array)."
         N = 2
-        atom = StringAtom(itemsize=3, shape=N, dflt="")
+        atom = StringAtom(itemsize=3, shape=N, dflt=b"")
         ca = self.h5file.createCArray('/', 'test', atom, (1,))
         if self.reopen:
             self._reopen('a')

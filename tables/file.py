@@ -1677,8 +1677,8 @@ class File(hdf5Extension.File, object):
 
         class ActionLogDesc(IsDescription):
             opcode = UInt8Col(pos=0)
-            arg1   = StringCol(maxUndo, pos=1, dflt="")
-            arg2   = StringCol(maxUndo, pos=2, dflt="")
+            arg1   = StringCol(maxUndo, pos=1, dflt=b"")
+            arg2   = StringCol(maxUndo, pos=2, dflt=b"")
 
         self._checkOpen()
 

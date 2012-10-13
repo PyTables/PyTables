@@ -22,20 +22,20 @@ unittest.TestCase.tearDown = common.cleanup
 
 # Test Record class
 class Record(IsDescription):
-    var0 = StringCol(itemsize=4, dflt="", shape=2)  # 4-character string array
-    var1 = StringCol(itemsize=4, dflt=["abcd", "efgh"], shape=(2, 2))
+    var0 = StringCol(itemsize=4, dflt=b"", shape=2)  # 4-character string array
+    var1 = StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2))
     var1_= IntCol(dflt=((1, 1),), shape=2)           # integer array
     var2 = IntCol(dflt=((1, 1), (1, 1)), shape=(2, 2))  # integer array
     var3 = Int16Col(dflt=2)                         # short integer
     var4 = FloatCol(dflt=3.1)                       # double (double-precision)
     var5 = Float32Col(dflt=4.2)                     # float  (single-precision)
     var6 = UInt16Col(dflt=5)                        # unsigned short integer
-    var7 = StringCol(itemsize=1, dflt="e")          # 1-character String
+    var7 = StringCol(itemsize=1, dflt=b"e")          # 1-character String
 
 #  Dictionary definition
 RecordDescriptionDict = {
-    'var0': StringCol(itemsize=4, dflt="", shape=2), # 4-character string array
-    'var1': StringCol(itemsize=4, dflt=["abcd", "efgh"], shape=(2, 2)),
+    'var0': StringCol(itemsize=4, dflt=b"", shape=2), # 4-character string array
+    'var1': StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2)),
 #     'var0': StringCol(itemsize=4, shape=2),       # 4-character String
 #     'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
     'var1_': IntCol(shape=2),                      # integer array
@@ -49,15 +49,15 @@ RecordDescriptionDict = {
 
 # Record class with numpy dtypes (mixed shapes is checked here)
 class RecordDT(IsDescription):
-    var0 = Col.from_dtype(numpy.dtype("2S4"), dflt="")  # shape in dtype
-    var1 = Col.from_dtype(numpy.dtype(("S4", (2, 2))), dflt=["abcd", "efgh"]) # shape is a mix
+    var0 = Col.from_dtype(numpy.dtype("2S4"), dflt=b"")  # shape in dtype
+    var1 = Col.from_dtype(numpy.dtype(("S4", (2, 2))), dflt=[b"abcd", b"efgh"]) # shape is a mix
     var1_= Col.from_dtype(numpy.dtype("2i4"), dflt=((1, 1),))  # shape in dtype
     var2 = Col.from_sctype("i4", shape=(2, 2), dflt=((1, 1), (1, 1)))  # shape is a mix
     var3 = Col.from_dtype(numpy.dtype("i2"), dflt=2)
     var4 = Col.from_dtype(numpy.dtype("2f8"), dflt=3.1)
     var5 = Col.from_dtype(numpy.dtype("f4"), dflt=4.2)
     var6 = Col.from_dtype(numpy.dtype("()u2"), dflt=5)
-    var7 = Col.from_dtype(numpy.dtype("1S1"), dflt="e")   # no shape
+    var7 = Col.from_dtype(numpy.dtype("1S1"), dflt=b"e")   # no shape
 
 
 class BasicTestCase(common.PyTablesTestCase):

@@ -27,7 +27,7 @@ small_blocksizes = (16, 8, 4, 2)  # The smaller set of parameters...
 minRowIndex = 1000
 
 class Small(IsDescription):
-    var1 = StringCol(itemsize=4, dflt="")
+    var1 = StringCol(itemsize=4, dflt=b"")
     var2 = BoolCol(dflt=0)
     var3 = IntCol(dflt=0)
     var4 = FloatCol(dflt=0)

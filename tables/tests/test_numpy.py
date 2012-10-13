@@ -379,8 +379,8 @@ class GroupsArrayTestCase(unittest.TestCase):
 
 # Test Record class
 class Record(IsDescription):
-    var1  = StringCol(itemsize=4, dflt="abcd", pos=0)
-    var2  = StringCol(itemsize=1, dflt="a", pos=1)
+    var1  = StringCol(itemsize=4, dflt=b"abcd", pos=0)
+    var2  = StringCol(itemsize=1, dflt=b"a", pos=1)
     var3  = BoolCol(dflt=1)
     var4  = Int8Col(dflt=1)
     var5  = UInt8Col(dflt=1)
@@ -573,7 +573,7 @@ class TestTDescr(IsDescription):
     y = FloatCol(dflt=1, shape=(2, 2))
     z = UInt8Col(dflt=1)
     z3 = EnumCol({'r':4, 'g':2, 'b':1}, 'r', 'int32', shape=2)
-    color = StringCol(itemsize=4, dflt="ab", pos=2)
+    color = StringCol(itemsize=4, dflt=b"ab", pos=2)
     info = Info()
     class Info(IsDescription): #1
         _v_pos = 1

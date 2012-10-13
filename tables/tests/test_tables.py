@@ -20,13 +20,13 @@ unittest.TestCase.tearDown = common.cleanup
 
 # Test Record class
 class Record(IsDescription):
-    var1 = StringCol(itemsize=4, dflt="abcd", pos=0) # 4-character String
+    var1 = StringCol(itemsize=4, dflt=b"abcd", pos=0) # 4-character String
     var2 = IntCol(dflt=1, pos=1)                   # integer
     var3 = Int16Col(dflt=2, pos=2)                 # short integer
     var4 = Float64Col(dflt=3.1, pos=3)             # double (double-precision)
     var5 = Float32Col(dflt=4.2, pos=4)             # float  (single-precision)
     var6 = UInt16Col(dflt=5, pos=5)                # unsigned short integer
-    var7 = StringCol(itemsize=1, dflt="e", pos=6)  # 1-character String
+    var7 = StringCol(itemsize=1, dflt=b"e", pos=6) # 1-character String
     var8 = BoolCol(dflt=True, pos=7)               # boolean
     var9 = ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8) # Complex single precision
     var10 = ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9) # Complex double precision
@@ -35,13 +35,13 @@ class Record(IsDescription):
 
 #  Dictionary definition
 RecordDescriptionDict = {
-    'var1': StringCol(itemsize=4, dflt="abcd", pos=0), # 4-character String
+    'var1': StringCol(itemsize=4, dflt=b"abcd", pos=0), # 4-character String
     'var2': IntCol(dflt=1, pos=1),              # integer
     'var3': Int16Col(dflt=2, pos=2),            # short integer
     'var4': Float64Col(dflt=3.1, pos=3),        # double (double-precision)
     'var5': Float32Col(dflt=4.2, pos=4),        # float  (single-precision)
     'var6': UInt16Col(dflt=5, pos=5),           # unsigned short integer
-    'var7': StringCol(itemsize=1, dflt="e", pos=6), # 1-character String
+    'var7': StringCol(itemsize=1, dflt=b"e", pos=6), # 1-character String
     'var8': BoolCol(dflt=True, pos=7),          # boolean
     'var9': ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8), # Complex single precision
     'var10': ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9), # Complex double precision
@@ -53,13 +53,13 @@ if 'float16' in typeDict:
 
 # Old fashion of defining tables (for testing backward compatibility)
 class OldRecord(IsDescription):
-    var1 = StringCol(itemsize=4, dflt="abcd", pos=0)
+    var1 = StringCol(itemsize=4, dflt=b"abcd", pos=0)
     var2 = Col.from_type("int32", (), 1, pos=1)
     var3 = Col.from_type("int16", (), 2, pos=2)
     var4 = Col.from_type("float64", (), 3.1, pos=3)
     var5 = Col.from_type("float32", (), 4.2, pos=4)
     var6 = Col.from_type("uint16", (), 5, pos=5)
-    var7 = StringCol(itemsize=1, dflt="e", pos=6)
+    var7 = StringCol(itemsize=1, dflt=b"e", pos=6)
     var8 = Col.from_type("bool", shape=(), dflt=1, pos=7)
     var9 = ComplexCol(itemsize=8, shape=(), dflt=(0.+1.j), pos=8)
     var10 = ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos = 9)
@@ -4831,7 +4831,7 @@ class OldRecordDefaultValues(DefaultValues):
     record = OldRecord
 
 class Record2(IsDescription):
-    var1 = StringCol(itemsize=4, dflt="abcd")   # 4-character String
+    var1 = StringCol(itemsize=4, dflt=b"abcd")  # 4-character String
     var2 = IntCol(dflt=1)                       # integer
     var3 = Int16Col(dflt=2)                     # short integer
     var4 = Float64Col(dflt=3.1)                 # double (double-precision)
