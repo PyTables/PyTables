@@ -141,9 +141,10 @@ class BasicTestCase(common.PyTablesTestCase):
 
                 # Fill the table
                 for i in xrange(self.expectedrows):
-                    row['var0'] = '%04d' % (self.expectedrows - i)
-                    row['var1'] = '%04d' % (self.expectedrows - i)
-                    row['var7'] = row['var1'][0][0][-1]
+                    s = '%04d' % (self.expectedrows - i)
+                    row['var0'] = s.encode('ascii')
+                    row['var1'] = s.encode('ascii')
+                    row['var7'] = s[-1].encode('ascii')
                     row['var1_'] = (i, 1)
                     row['var2'] = ((i, 1), (1, 1))  # *-*
                     row['var3'] = i % self.maxshort
@@ -272,7 +273,7 @@ class BasicTestCase(common.PyTablesTestCase):
             r['var1_'][0],
             r['var2'][0][0],
             r['var7']
-            ), ("0001", "0001", nrows, nrows, "1"))
+            ), (b"0001", b"0001", nrows, nrows, b"1"))
         if isinstance(r['var5'], np.ndarray):
             self.assertTrue(allequal(r['var5'],
                                      np.array((nrows,)*4, np.float32)))
@@ -324,17 +325,17 @@ class BasicTestCase(common.PyTablesTestCase):
         r = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
 
         if r['var1'].dtype.char == "S":
-            a = np.array([['%04d' % (self.expectedrows - 0)]*2]*2)
+            a = np.array([['%04d' % (self.expectedrows - 0)]*2]*2, 'S')
             self.assertTrue(allequal(result[0], a))
-            a = np.array([['%04d' % (self.expectedrows - 1)]*2]*2)
+            a = np.array([['%04d' % (self.expectedrows - 1)]*2]*2, 'S')
             self.assertTrue(allequal(result[1], a))
-            a = np.array([['%04d' % (self.expectedrows - 2)]*2]*2)
+            a = np.array([['%04d' % (self.expectedrows - 2)]*2]*2, 'S')
             self.assertTrue(allequal(result[2], a))
-            a = np.array([['%04d' % (self.expectedrows - 3)]*2]*2)
+            a = np.array([['%04d' % (self.expectedrows - 3)]*2]*2, 'S')
             self.assertTrue(allequal(result[3], a))
-            a = np.array([['%04d' % (self.expectedrows - 10)]*2]*2)
+            a = np.array([['%04d' % (self.expectedrows - 10)]*2]*2, 'S')
             self.assertTrue(allequal(result[10], a))
-            a = np.array([['%04d' % (1)]*2]*2)
+            a = np.array([['%04d' % (1)]*2]*2, 'S')
             self.assertTrue(allequal(r['var1'], a))
         else:
             self.assertEqual(r['var1'], "0001")
@@ -376,9 +377,10 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Record Size ==>", table.rowsize
         # Append some rows
         for i in xrange(self.appendrows):
-            row['var0'] = '%04d' % (self.appendrows - i)
-            row['var1'] = '%04d' % (self.appendrows - i)
-            row['var7'] = row['var1'][0][0][-1]
+            s = '%04d' % (self.appendrows - i)
+            row['var0'] = s.encode('ascii')
+            row['var1'] = s.encode('ascii')
+            row['var7'] = s[-1].encode('ascii')
             row['var1_'] = (i, 1)
             row['var2'] = ((i, 1), (1, 1))   # *-*
             row['var3'] = i % self.maxshort
@@ -394,8 +396,9 @@ class BasicTestCase(common.PyTablesTestCase):
 
         # Flush the buffer for this table and read it
         table.flush()
-        result = [ row['var2'][0][0] for row in table.iterrows()
-                   if row['var2'][0][0] < 20 ]
+        result = [row['var2'][0][0] for row in table.iterrows()
+                                                if row['var2'][0][0] < 20]
+        row = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
 
         nrows = self.appendrows - 1
         self.assertEqual((
