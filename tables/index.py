@@ -220,7 +220,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def _g_nblocks(self):
         # Last row should not be considered as a block
         nelements = self.nelements - self.nelementsILR
-        nblocks = nelements / self.blocksize
+        nblocks = nelements // self.blocksize
         if nelements % self.blocksize > 0:
             nblocks += 1
         return nblocks
@@ -1433,7 +1433,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         assert limits[0] < item <= limits[1]
         cs = self.chunksize
         ss = self.slicesize;  nelementsLR = self.nelementsILR
-        bstart = start / cs
+        bstart = start // cs
 
         # Find the chunk
         if nslice < self.nslices:
