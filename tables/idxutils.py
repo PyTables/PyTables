@@ -363,9 +363,9 @@ def infType(dtype, itemsize, sign=+1):
 
     if dtype.kind == "S":
         if sign < 0:
-            return "\x00"*itemsize
+            return b"\x00"*itemsize
         else:
-            return "\xff"*itemsize
+            return b"\xff"*itemsize
     try:
         return infinityMap[dtype.name][sign >= 0]
     except KeyError:
