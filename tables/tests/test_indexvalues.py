@@ -82,8 +82,9 @@ class SelectValuesTestCase(unittest.TestCase):
                     k = self.values[i]
                 else:
                     k = i
-                table1.row['var1'] = str(k)
-                table2.row['var1'] = str(k)
+                bk = str(k).encode('ascii')
+                table1.row['var1'] = bk
+                table2.row['var1'] = bk
                 table1.row['var2'] = k % 2
                 table2.row['var2'] = k % 2
                 table1.row['var3'] = k
@@ -130,8 +131,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         # First selection
@@ -207,8 +208,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        #il = str(self.il)
-        sl = str(self.sl)
+        #il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         # First selection
@@ -817,8 +818,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -1466,8 +1467,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table1._disableIndexingInQueries()
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -1660,8 +1661,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table1._disableIndexingInQueries()
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -1860,8 +1861,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -2072,8 +2073,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -2266,8 +2267,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do a selection and check the result
         t1var1 = table1.cols.var1
@@ -2339,8 +2340,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         # First selection: string
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         results1 = [p["var1"] for p in
                     table1.where('(il<=t1var1)&(t1var1<=sl)')]
@@ -2419,8 +2420,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -2474,8 +2475,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -2529,8 +2530,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -2584,8 +2585,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -2639,8 +2640,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -2700,8 +2701,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2.cols.var2.removeIndex()
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -2778,8 +2779,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -2803,7 +2804,7 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
         # Repeat the selection with different limits
-        il, sl = (str(self.il+1), str(self.sl-2))
+        il, sl = (str(self.il+1).encode('ascii'), str(self.sl-2).encode('ascii'))
         t2col = table1.cols.var2
         self.assertTrue(t2col is not None)
         condition = '(il<=t1col)&(t1col<=sl)'
