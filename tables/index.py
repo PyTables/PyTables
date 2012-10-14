@@ -1748,8 +1748,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def search(self, item):
         """Do a binary search in this index for an item"""
 
-        if profile: tref = time()
-        if profile: show_stats("Entering search", tref)
+        if profile:
+            tref = time()
+        if profile:
+            show_stats("Entering search", tref)
 
         if self.dirtycache:
             self.restorecache()
