@@ -56,7 +56,7 @@ class BasicTestCase(PyTablesTestCase):
         table = self.fileh.createTable(group, 'table', TDescr, title,
                                        self.filters, self.nrows)
         for i in range(self.nrows):
-            table.row['var1'] = str(i)
+            table.row['var1'] = str(i).encode('ascii')
             # table.row['var2'] = i > 2
             table.row['var2'] = i % 2
             table.row['var3'] = i
@@ -103,9 +103,9 @@ class BasicTestCase(PyTablesTestCase):
             print "Elements in last row:", idxcol.indicesLR[-1]
 
         # Do a selection
-        results = [p["var1"] for p in table.where('var1 == "1"')]
+        results = [p["var1"] for p in table.where('var1 == b"1"')]
         self.assertEqual(len(results), 2)
-        self.assertEqual(results, ['1']*2)
+        self.assertEqual(results, [b'1']*2)
 
     def test00_update(self):
         """Checking automatic re-indexing after an update operation."""
@@ -132,9 +132,9 @@ class BasicTestCase(PyTablesTestCase):
         self.assertEqual(idxcol3.dirty, False)
 
         # Do a couple of selections
-        results = [p["var1"] for p in table.where('var1 == "1"')]
+        results = [p["var1"] for p in table.where('var1 == b"1"')]
         self.assertEqual(len(results), 2)
-        self.assertEqual(results, ['1']*2)
+        self.assertEqual(results, [b'1']*2)
         results = [p["var3"] for p in table.where('var3 == 0')]
         self.assertEqual(len(results), 2)
         self.assertEqual(results, [0]*2)
@@ -156,9 +156,9 @@ class BasicTestCase(PyTablesTestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        results = [p["var1"] for p in table.where('var1 == "1"')]
+        results = [p["var1"] for p in table.where('var1 == b"1"')]
         self.assertEqual(len(results), 1)
-        self.assertEqual(results, ['1'])
+        self.assertEqual(results, [b'1'])
 
     def test02_readIndex(self):
         """Checking reading an Index (bool flavor)"""
@@ -251,8 +251,8 @@ class BasicTestCase(PyTablesTestCase):
 
         # Do a selection
         table.flavor = "python"
-        rowList1 = table.getWhereList('var1 < "10"')
-        rowList2 = [p.nrow for p in table if p['var1'] < "10"]
+        rowList1 = table.getWhereList('var1 < b"10"')
+        rowList2 = [p.nrow for p in table if p['var1'] < b"10"]
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
@@ -446,8 +446,8 @@ class BasicTestCase(PyTablesTestCase):
 
         # Some sanity checks
         table.flavor = "python"
-        rowList1 = table.getWhereList('var1 < "10"')
-        rowList2 = [p.nrow for p in table if p['var1'] < "10"]
+        rowList1 = table.getWhereList('var1 < b"10"')
+        rowList2 = [p.nrow for p in table if p['var1'] < b"10"]
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
@@ -490,8 +490,8 @@ class BasicTestCase(PyTablesTestCase):
 
         # Some sanity checks
         table.flavor = "python"
-        rowList1 = table.getWhereList('var1 < "10"')
-        rowList2 = [p.nrow for p in table if p['var1'] < "10"]
+        rowList1 = table.getWhereList('var1 < b"10"')
+        rowList2 = [p.nrow for p in table if p['var1'] < b"10"]
         if verbose:
             print "Selected values:", rowList1, type(rowList1)
             print "Should look like:", rowList2, type(rowList2)
@@ -528,8 +528,8 @@ class BasicTestCase(PyTablesTestCase):
 
         # Some sanity checks
         table.flavor = "python"
-        rowList1 = table.getWhereList('var1 < "10"')
-        rowList2 = [p.nrow for p in table if p['var1'] < "10"]
+        rowList1 = table.getWhereList('var1 < b"10"')
+        rowList2 = [p.nrow for p in table if p['var1'] < b"10"]
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
@@ -566,8 +566,8 @@ class BasicTestCase(PyTablesTestCase):
 
         # Some sanity checks
         table.flavor = "python"
-        rowList1 = table.getWhereList('var1 < "10"')
-        rowList2 = [p.nrow for p in table if p['var1'] < "10"]
+        rowList1 = table.getWhereList('var1 < b"10"')
+        rowList2 = [p.nrow for p in table if p['var1'] < b"10"]
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
