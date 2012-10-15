@@ -350,8 +350,6 @@ class Atom(object):
             >>> import numpy
             >>> Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
             Int16Atom(shape=(2, 2), dflt=0)
-            >>> Atom.from_dtype(numpy.dtype('S5'), dflt='hello')
-            StringAtom(itemsize=5, shape=(), dflt='hello')
             >>> Atom.from_dtype(numpy.dtype('Float64'))
             Float64Atom(shape=(), dflt=0.0)
         """
@@ -409,9 +407,7 @@ class Atom(object):
             Int32Atom(shape=(2, 2), dflt=0)
             >>> Atom.from_kind('int', shape=1)
             Int32Atom(shape=(1,), dflt=0)
-            >>> Atom.from_kind('string', itemsize=5, dflt='hello')
-            StringAtom(itemsize=5, shape=(), dflt='hello')
-            >>> Atom.from_kind('string', dflt='hello')
+            >>> Atom.from_kind('string', dflt=b'hello')
             Traceback (most recent call last):
             ...
             ValueError: no default item size for kind ``string``
@@ -529,17 +525,17 @@ class Atom(object):
         Constructor arguments to be overridden must be passed as
         keyword arguments::
 
-            >>> atom1 = StringAtom(itemsize=12)
+            >>> atom1 = Int32Atom(shape=12)
             >>> atom2 = atom1.copy()
             >>> print(atom1)
-            StringAtom(itemsize=12, shape=(), dflt='')
+            Int32Atom(shape=(12,), dflt=0)
             >>> print(atom2)
-            StringAtom(itemsize=12, shape=(), dflt='')
+            Int32Atom(shape=(12,), dflt=0)
             >>> atom1 is atom2
             False
-            >>> atom3 = atom1.copy(itemsize=100, shape=(2, 2))
+            >>> atom3 = atom1.copy(shape=(2, 2))
             >>> print(atom3)
-            StringAtom(itemsize=100, shape=(2, 2), dflt='')
+            Int32Atom(shape=(2, 2), dflt=0)
             >>> atom1.copy(foobar=42)
             Traceback (most recent call last):
             ...

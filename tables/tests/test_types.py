@@ -182,6 +182,76 @@ class ReadFloatTestCase(common.PyTablesTestCase):
         data = ds.read()
         common.allequal(data, self.values)
 
+
+class AtomTestCase(common.PyTablesTestCase):
+    def test_init_parameters_01(self):
+        atom1 = StringAtom(itemsize=12)
+        atom2 = atom1.copy()
+        self.assertEqual(atom1, atom2)
+        self.assertEqual(str(atom1), str(atom2))
+        self.assertFalse(atom1 is atom2)
+
+    def test_init_parameters_02(self):
+        atom1 = StringAtom(itemsize=12)
+        atom2 = atom1.copy(itemsize=100, shape=(2, 2))
+        self.assertEqual(atom2,
+            StringAtom(itemsize=100, shape=(2, 2), dflt=b''))
+
+    def test_init_parameters_03(self):
+        atom1 = StringAtom(itemsize=12)
+        self.assertRaises(TypeError, atom1.copy, foobar=42)
+
+    def test_from_dtype_01(self):
+        atom1 = Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
+        atom2 = Int16Atom(shape=(2, 2), dflt=0)
+        self.assertEqual(atom1, atom2)
+        self.assertEqual(str(atom1), str(atom2))
+
+    def test_from_dtype_02(self):
+        atom1 = Atom.from_dtype(numpy.dtype('S5'), dflt=b'hello')
+        atom2 = StringAtom(itemsize=5, shape=(), dflt=b'hello')
+        self.assertEqual(atom1, atom2)
+        self.assertEqual(str(atom1), str(atom2))
+
+    def test_from_dtype_03(self):
+        atom1 = Atom.from_dtype(numpy.dtype('Float64'))
+        atom2 = Float64Atom(shape=(), dflt=0.0)
+        self.assertEqual(atom1, atom2)
+        self.assertEqual(str(atom1), str(atom2))
+
+    def test_from_kind_01(self):
+        atom1 = Atom.from_kind('int', itemsize=2, shape=(2, 2))
+        atom2 = Int16Atom(shape=(2, 2), dflt=0)
+        self.assertEqual(atom1, atom2)
+        self.assertEqual(str(atom1), str(atom2))
+
+    def test_from_kind_02(self):
+        atom1 = Atom.from_kind('int', shape=(2, 2))
+        atom2 = Int32Atom(shape=(2, 2), dflt=0)
+        self.assertEqual(atom1, atom2)
+        self.assertEqual(str(atom1), str(atom2))
+
+    def test_from_kind_03(self):
+        atom1 = Atom.from_kind('int', shape=1)
+        atom2 = Int32Atom(shape=(1,), dflt=0)
+        self.assertEqual(atom1, atom2)
+        self.assertEqual(str(atom1), str(atom2))
+
+    def test_from_kind_04(self):
+        atom1 = Atom.from_kind('string', itemsize=5, dflt=b'hello')
+        atom2 = StringAtom(itemsize=5, shape=(), dflt=b'hello')
+        self.assertEqual(atom1, atom2)
+        self.assertEqual(str(atom1), str(atom2))
+
+    def test_from_kind_05(self):
+        # ValueError: no default item size for kind ``string``
+        self.assertRaises(ValueError, Atom.from_kind, 'string', dflt=b'hello')
+
+    def test_from_kind_06(self):
+        # ValueError: unknown kind: 'Float'
+        self.assertRaises(ValueError, Atom.from_kind, 'Float')
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -192,6 +262,7 @@ def suite():
 
     for i in range(1):
         theSuite.addTest(doctest.DocTestSuite(tables.atom))
+        theSuite.addTest(unittest.makeSuite(AtomTestCase))
         theSuite.addTest(unittest.makeSuite(RangeTestCase))
         theSuite.addTest(unittest.makeSuite(DtypeTestCase))
         theSuite.addTest(unittest.makeSuite(ReadFloatTestCase))
