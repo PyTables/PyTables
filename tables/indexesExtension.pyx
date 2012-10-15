@@ -238,8 +238,6 @@ cdef class IndexArray(Array):
     if ret < 0:
       raise HDF5ExtError("Problems reading the index indices.")
 
-    return
-
 
   def _initSortedSlice(self, index):
     """Initialize the structures for doing a binary search."""
@@ -958,7 +956,6 @@ cdef class LastRowArray(Array):
 
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data in Last Row.")
-    return
 
 
   def _readSortedSlice(self, IndexArray sorted, hsize_t start, hsize_t stop):
