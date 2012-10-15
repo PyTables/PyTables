@@ -715,7 +715,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
-        data = table.readWhere('color == "ab"')
+        data = table.readWhere('color == b"ab"')
         if common.verbose:
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
@@ -1076,7 +1076,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
         table = self.fileh.root.table
-        rdata = table.getWhereList('color == "ab"')
+        rdata = table.getWhereList('color == b"ab"')
         data = table.readCoordinates(rdata)
         if common.verbose:
             print "Type of read:", type(data)
