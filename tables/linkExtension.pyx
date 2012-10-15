@@ -17,6 +17,9 @@ from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Node
 
 from libc.stdlib cimport malloc, free
+from libc.string cimport strlen
+from cpython cimport PY_MAJOR_VERSION
+from cpython.unicode cimport PyUnicode_DecodeUTF8
 from definitions cimport (H5P_DEFAULT,
   const_char, hid_t, herr_t, hbool_t, int64_t, H5T_cset_t, haddr_t)
 
@@ -100,13 +103,15 @@ def _getLinkClass(parent_id, name):
     return "UnImplemented"
 
 
-def _g_createHardLink(parentNode, name, targetNode):
+def _g_createHardLink(parentNode, str name, targetNode):
   """Create a hard link in the file."""
 
   cdef herr_t ret
+  cdef bytes encoded_name = name.encode('utf-8')
+  cdef bytes encoded_v_name = targetNode._v_name.encode('utf-8')
 
-  ret = H5Lcreate_hard(targetNode._v_parent._v_objectID, targetNode._v_name,
-                       parentNode._v_objectID, name,
+  ret = H5Lcreate_hard(targetNode._v_parent._v_objectID, encoded_v_name,
+                       parentNode._v_objectID, <char*>encoded_name,
                        H5P_DEFAULT, H5P_DEFAULT)
   if ret < 0:
     raise HDF5ExtError("failed to create HDF5 hard link")
@@ -151,11 +156,10 @@ cdef class SoftLink(Link):
     """Create the link in file."""
 
     cdef herr_t ret
-    cdef bytes encoded_name
+    cdef bytes encoded_name = self.name.encode('utf-8')
+    cdef bytes encoded_target = self.target.encode('utf-8')
 
-    encoded_name = self.name.encode('utf-8')
-
-    ret = H5Lcreate_soft(self.target, self.parent_id, encoded_name,
+    ret = H5Lcreate_soft(encoded_target, self.parent_id, encoded_name,
                          H5P_DEFAULT, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to create HDF5 soft link")
@@ -169,7 +173,7 @@ cdef class SoftLink(Link):
     cdef herr_t ret
     cdef H5L_info_t link_buff
     cdef size_t val_size
-    cdef char *linkval
+    cdef char *clinkval
     cdef bytes encoded_name
 
     encoded_name = self.name.encode('utf-8')
@@ -179,17 +183,20 @@ cdef class SoftLink(Link):
       raise HDF5ExtError("failed to get info about soft link")
 
     val_size = link_buff.u.val_size
-    linkval = <char *>malloc(val_size)
+    clinkval = <char *>malloc(val_size)
 
-    ret = H5Lget_val(self.parent_id, encoded_name, linkval, val_size,
+    ret = H5Lget_val(self.parent_id, encoded_name, clinkval, val_size,
                      H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to get target value")
 
-    self.target = linkval
+    if PY_MAJOR_VERSION > 2:
+      self.target = PyUnicode_DecodeUTF8(clinkval, strlen(clinkval), NULL)
+    else:
+      self.target = clinkval
 
     # Release resources
-    free(linkval)
+    free(clinkval)
     return 0  # Object ID is zero'ed, as HDF5 does not assign one for links
 
 
@@ -201,12 +208,16 @@ cdef class ExternalLink(Link):
     """Create the link in file."""
 
     cdef herr_t ret
-    cdef bytes encoded_name
+    cdef bytes encoded_name, encoded_filename, encoded_target
 
     encoded_name = self.name.encode('utf-8')
 
     filename, target = self._get_filename_node()
-    ret = H5Lcreate_external(filename, target, self.parent_id, encoded_name,
+    encoded_filename = filename.encode('utf-8')
+    encoded_target = target.encode('utf-8')
+
+    ret = H5Lcreate_external(<char*>encoded_filename, <char*>encoded_target,
+                             self.parent_id, <char*>encoded_name,
                              H5P_DEFAULT, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to create HDF5 external link")
@@ -220,9 +231,10 @@ cdef class ExternalLink(Link):
     cdef herr_t ret
     cdef H5L_info_t link_buff
     cdef size_t val_size
-    cdef char *linkval, *filename, *obj_path
+    cdef char *clinkval, *cfilename, *c_obj_path
     cdef unsigned flags
     cdef bytes encoded_name
+    cdef str filename, obj_path
 
     encoded_name = self.name.encode('utf-8')
 
@@ -231,23 +243,30 @@ cdef class ExternalLink(Link):
       raise HDF5ExtError("failed to get info about external link")
 
     val_size = link_buff.u.val_size
-    linkval = <char *>malloc(val_size)
+    clinkval = <char *>malloc(val_size)
 
-    ret = H5Lget_val(self.parent_id, encoded_name, linkval, val_size,
+    ret = H5Lget_val(self.parent_id, encoded_name, clinkval, val_size,
                      H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to get target value")
 
-    ret = H5Lunpack_elink_val(linkval, val_size, &flags,
-                              <const_char **>&filename,
-                              <const_char **>&obj_path)
+    ret = H5Lunpack_elink_val(clinkval, val_size, &flags,
+                              <const_char **>&cfilename,
+                              <const_char **>&c_obj_path)
     if ret < 0:
       raise HDF5ExtError("failed to unpack external link value")
+
+    if PY_MAJOR_VERSION > 2:
+      filename = PyUnicode_DecodeUTF8(cfilename, strlen(cfilename), NULL)
+      obj_path = PyUnicode_DecodeUTF8(c_obj_path, strlen(c_obj_path), NULL)
+    else:
+      filename = cfilename
+      obj_path = c_obj_path
 
     self.target = filename+':'+obj_path
 
     # Release resources
-    free(linkval)
+    free(clinkval)
     return 0  # Object ID is zero'ed, as HDF5 does not assign one for links
 
 
