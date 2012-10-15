@@ -288,6 +288,8 @@ class Group(hdf5Extension.Group, Node):
 
         if self._v_file.params['PYTABLES_SYS_ATTRS']:
             childCID = self._g_getLChildAttr(childName, 'CLASS')
+            if childCID is not None and not isinstance(childCID, str):
+                childCID = childCID.decode('utf-8')
         else:
             childCID = None
 
