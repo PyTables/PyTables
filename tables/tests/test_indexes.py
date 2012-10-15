@@ -92,7 +92,7 @@ class BasicTestCase(PyTablesTestCase):
         table = self.fileh.root.table
         # Add just 3 rows more
         for i in range(3):
-            table.row['var1'] = str(i)
+            table.row['var1'] = str(i).encode('ascii')
             table.row.append()
         table.flush()  # redo the indexes
         idxcol = table.cols.var1.index
