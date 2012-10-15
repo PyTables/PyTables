@@ -321,12 +321,12 @@ class PyTablesTestCase(unittest.TestCase):
             print "Group 1:", node1
             print "Group 2:", node2
         if hardlink:
-            self.assert_(node1._v_pathname != node2._v_pathname,
+            self.assertTrue(node1._v_pathname != node2._v_pathname,
                          "node1 and node2 have the same pathnames.")
         else:
-            self.assert_(node1._v_pathname == node2._v_pathname,
+            self.assertTrue(node1._v_pathname == node2._v_pathname,
                          "node1 and node2 does not have the same pathnames.")
-        self.assert_(node1._v_children == node2._v_children,
+        self.assertTrue(node1._v_children == node2._v_children,
                      "node1 and node2 does not have the same children.")
 
 
@@ -335,12 +335,12 @@ class PyTablesTestCase(unittest.TestCase):
             print "Leaf 1:", node1
             print "Leaf 2:", node2
         if hardlink:
-            self.assert_(node1._v_pathname != node2._v_pathname,
+            self.assertTrue(node1._v_pathname != node2._v_pathname,
                          "node1 and node2 have the same pathnames.")
         else:
-            self.assert_(node1._v_pathname == node2._v_pathname,
+            self.assertTrue(node1._v_pathname == node2._v_pathname,
                          "node1 and node2 does not have the same pathnames.")
-        self.assert_(areArraysEqual(node1[:], node2[:]),
+        self.assertTrue(areArraysEqual(node1[:], node2[:]),
                      "node1 and node2 does not have the same values.")
 
 
