@@ -5051,7 +5051,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl2 = self.h5file.createTable('/', 'test2', DstTblDesc)
 
         self.assertRaises(NotImplementedError,
-                          tbl1.whereAppend, tbl2, 'v1 == "1"')
+                          tbl1.whereAppend, tbl2, 'v1 == b"1"')
 
 
     def test04_noColumn(self):
