@@ -717,11 +717,12 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             root = self.h5file.root
             a1 = self.h5file.createArray(root, 'a1', a)
             b1 = self.h5file.createArray(root, 'b1', b)
-            expr = tb.Expr("2*a1-b1")
+            two = np.int32(2)
+            expr = tb.Expr("two*a1-b1")
             r1 = expr.eval()
             a = np.array([1, 2, 3], 'int32')
             b = np.array([3, 4, 5], 'int32')
-            r2 = eval("2*a-b")
+            r2 = eval("two*a-b")
             if common.verbose:
                 print "Computed expression:", repr(r1), r1.dtype
                 print "Should look like:", repr(r2), r2.dtype
