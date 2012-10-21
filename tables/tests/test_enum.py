@@ -14,6 +14,7 @@
 
 import unittest
 import operator
+import itertools
 
 import tables
 from tables.tests import common
@@ -88,8 +89,10 @@ class CreateColTestCase(common.PyTablesTestCase):
         """Checking the string representation of an enumeration."""
         colors = tables.Enum(['red', 'green', 'blue'])
         enumcol = tables.EnumCol(colors, 'red', base='uint32', shape=())
-        self.assertEqual(repr(enumcol),
-"""EnumCol(enum=Enum({'blue': 2, 'green': 1, 'red': 0}), dflt='red', base=UInt32Atom(shape=(), dflt=0), shape=(), pos=None)""")
+        # needed due to "Hash randomization" (default on python 3.3)
+        template = """EnumCol(enum=Enum({%s}), dflt='red', base=UInt32Atom(shape=(), dflt=0), shape=(), pos=None)"""
+        permitations = [template % ', '.join(items) for items in itertools.permutations(("'blue': 2", "'green': 1", "'red': 0"))]
+        self.assertTrue(repr(enumcol) in permitations)
 
 
     def test99a_nonIntEnum(self):

@@ -573,7 +573,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if indsize == 2:
                 # Add a second offset in this case
                 # First normalize the number of rows
-                offset2 = (nrow%self.nslicesblock)*slicesize/lbucket
+                offset2 = (nrow%self.nslicesblock)*slicesize//lbucket
                 idx += offset2
         # Add the last row at the beginning of arr & idx (if needed)
         if (indsize == 8 and nelementsILR > 0):
@@ -613,7 +613,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # The next partition is valid up to table sizes of
         # 2**30*2**18 = 2**48 bytes, that is, 256 Tera-elements,
         # which should be a safe figure, at least for a while.
-        idx /= self.lbucket
+        idx //= self.lbucket
         # After the division, we can downsize the indexes to 'uint32'
         idx = idx.astype('uint32')
         if profile: show_stats("Exiting final_idx32", tref)
@@ -1951,7 +1951,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 else:
                     self.indicesLR._readIndexSlice(start, stop, idx)
                 if indsize == 8:
-                    idx /= lbucket
+                    idx //= lbucket
                 elif indsize == 2:
                     # The chunkmap size cannot be never larger than 'int_'
                     idx = idx.astype("int_")
