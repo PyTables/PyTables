@@ -108,13 +108,16 @@ cdef extern from "blosc.h" nogil:
 import_array()
 
 cdef register_blosc_():
-  cdef char *version_string, *version_date
+  cdef char *version, *date
 
-  register_blosc(&version_string, &version_date)
-  version = (version_string, version_date)
-  free(version_string)
-  free(version_date)
-  return version
+  register_blosc(&version, &date)
+  compinfo = (version, date)
+  free(version)
+  free(date)
+  if sys.version_info[0] > 2:
+    return compinfo[0].decode('ascii'), compinfo[1].decode('ascii')
+  else:
+    return compinfo
 
 # The version of the blosc compression library that is currently included in
 # PyTables relies on unaligned memory access, so it is not functional on some
