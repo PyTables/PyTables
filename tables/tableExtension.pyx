@@ -37,10 +37,12 @@ from utilsExtension cimport get_native_type
 
 # numpy functions & objects
 from hdf5Extension cimport Leaf
+from cpython cimport PY_MAJOR_VERSION
+from cpython.unicode cimport PyUnicode_DecodeUTF8
+from libc.stdio cimport snprintf
 from libc.stdlib cimport malloc, free
-from libc.string cimport memcpy, strdup, strcmp
+from libc.string cimport memcpy, strdup, strcmp, strlen
 from numpy cimport import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM
-from cpython cimport PyString_AsString
 from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL,
@@ -51,7 +53,7 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   H5T_class_t, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, H5Tget_native_type,
   H5Tget_member_value, H5Tinsert, H5Tget_class, H5Tget_super, H5Tget_offset,
-  H5T_CSET_ASCII,
+  H5T_cset_t, H5T_CSET_ASCII, H5T_CSET_UTF8,
   H5ATTRset_attribute_string, H5ATTRset_attribute,
   get_len_of_range, get_order, set_order, is_complex,
   conv_float64_timeval32, truncate_dset)
@@ -142,18 +144,33 @@ cdef class Table(Leaf):
   # instance variables
   cdef void     *wbuf
 
-  def _createTable(self, char *title, char *complib, char *obversion):
+  def _createTable(self, title, complib, obversion):
     cdef int     offset
     cdef int     ret
     cdef long    buflen
     cdef hid_t   oid
     cdef void    *data
     cdef hsize_t nrows
-    cdef char    *class_
+    cdef bytes   class_
     cdef ndarray wdflts
     cdef void    *fill_data
     cdef ndarray recarr
-    cdef object  fieldname, name
+    cdef object  name
+    cdef bytes encoded_title, encoded_complib, encoded_obversion
+    cdef char *ctitle = NULL, *cobversion = NULL
+    cdef bytes encoded_name
+    cdef char fieldname[128]
+    cdef int i
+    cdef H5T_cset_t cset = H5T_CSET_ASCII
+
+    encoded_title = title.encode('utf-8')
+    encoded_complib = complib.encode('utf-8')
+    encoded_obversion = obversion.encode('utf-8')
+    encoded_name = self.name.encode('utf-8')
+
+    # Get the C pointer
+    ctitle = encoded_title
+    cobversion = encoded_obversion
 
     # Compute the complete compound datatype based on the table description
     self.disk_type_id = createNestedType(self.description, self.byteorder)
@@ -176,12 +193,12 @@ cdef class Table(Leaf):
     else:
       data = NULL
 
-    class_ = PyString_AsString(self._c_classId)
-    self.dataset_id = H5TBOmake_table(title, self.parent_id, self.name,
-                                      obversion, class_, self.disk_type_id,
+    class_ = self._c_classId.encode('utf-8')
+    self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, encoded_name,
+                                      cobversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
                                       fill_data,
-                                      self.filters.complevel, complib,
+                                      self.filters.complevel, encoded_complib,
                                       self.filters.shuffle,
                                       self.filters.fletcher32,
                                       data)
@@ -189,22 +206,24 @@ cdef class Table(Leaf):
       raise HDF5ExtError("Problems creating the table")
 
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
+      if PY_MAJOR_VERSION > 2:
+        cset = H5T_CSET_UTF8
       # Set the conforming table attributes
       # Attach the CLASS attribute
       ret = H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
-                                       H5T_CSET_ASCII)
+                                       len(class_), cset)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("CLASS", self.name))
       # Attach the VERSION attribute
-      ret = H5ATTRset_attribute_string(self.dataset_id, "VERSION", obversion,
-                                       H5T_CSET_ASCII)
+      ret = H5ATTRset_attribute_string(self.dataset_id, "VERSION", cobversion,
+                                       len(encoded_obversion), cset)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("VERSION", self.name))
       # Attach the TITLE attribute
-      ret = H5ATTRset_attribute_string(self.dataset_id, "TITLE", title,
-                                       H5T_CSET_ASCII)
+      ret = H5ATTRset_attribute_string(self.dataset_id, "TITLE", ctitle,
+                                       len(encoded_title), cset)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            ("TITLE", self.name))
@@ -219,9 +238,11 @@ cdef class Table(Leaf):
       # Attach the FIELD_N_NAME attributes
       # We write only the first level names
       for i, name in enumerate(self.description._v_names):
-        fieldname = "FIELD_%s_NAME" % i
-        ret = H5ATTRset_attribute_string(self.dataset_id, fieldname, name,
-                                         H5T_CSET_ASCII)
+        snprintf(fieldname, 128, "FIELD_%d_NAME", i)
+        encoded_name = name.encode('utf-8')
+        ret = H5ATTRset_attribute_string(self.dataset_id, fieldname,
+                                         encoded_name, len(encoded_name),
+                                         cset)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                            (fieldname, self.name))
@@ -241,12 +262,13 @@ cdef class Table(Leaf):
     cdef hsize_t nfields, dims[1]
     cdef size_t  itemsize
     cdef int     i
-    cdef char    *colname
+    cdef char    *c_colname
     cdef H5T_class_t class_id
-    cdef char    byteorder2[11]  # "irrelevant" fits easily here
+    cdef char    c_byteorder2[11]  # "irrelevant" fits easily here
     cdef char    *sys_byteorder
     cdef object  desc, colobj, colpath2, typeclassname, typeclass
     cdef object  byteorder
+    cdef str     colname, byteorder2
 
     offset = 0
     desc = {}
@@ -255,7 +277,12 @@ cdef class Table(Leaf):
     # Iterate thru the members
     for i from 0 <= i < nfields:
       # Get the member name
-      colname = H5Tget_member_name(type_id, i)
+      c_colname = H5Tget_member_name(type_id, i)
+      if PY_MAJOR_VERSION > 2:
+        colname = PyUnicode_DecodeUTF8(c_colname, strlen(c_colname), NULL)
+      else:
+        colname = c_colname
+
       # Get the member type
       member_type_id = H5Tget_member_type(type_id, i)
       # Get the member size
@@ -291,18 +318,24 @@ cdef class Table(Leaf):
             field_byteorders.append("big")
         elif colobj.kind in ['int', 'uint', 'float', 'complex', 'enum']:
           # Keep track of the byteorder for this column
-          get_order(member_type_id, byteorder2)
-          if str(byteorder2) in ["little", "big"]:
+          get_order(member_type_id, c_byteorder2)
+          if PY_MAJOR_VERSION > 2:
+            byteorder2 = PyUnicode_DecodeUTF8(c_byteorder2,
+                                              strlen(c_byteorder2),
+                                              NULL)
+          else:
+            byteorder2 = c_byteorder2
+          if byteorder2 in ["little", "big"]:
             field_byteorders.append(byteorder2)
 
       # Insert the native member
-      H5Tinsert(native_type_id, colname, offset, native_member_type_id)
+      H5Tinsert(native_type_id, c_colname, offset, native_member_type_id)
       # Update the offset
       offset = offset + itemsize
       # Release resources
       H5Tclose(native_member_type_id)
       H5Tclose(member_type_id)
-      free(colname)
+      free(c_colname)
 
     # set the byteorder and other things (just in top level)
     if colpath == "":
@@ -338,9 +371,12 @@ cdef class Table(Leaf):
     cdef size_t  type_size, size2
     cdef hsize_t dims[1], chunksize[1]  # enough for unidimensional tables
     cdef H5D_layout_t layout
+    cdef bytes encoded_name
+
+    encoded_name = self.name.encode('utf-8')
 
     # Open the dataset
-    self.dataset_id = H5Dopen(self.parent_id, self.name, H5P_DEFAULT)
+    self.dataset_id = H5Dopen(self.parent_id, encoded_name, H5P_DEFAULT)
     if self.dataset_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
                          (self.name, self._v_parent._v_pathname))

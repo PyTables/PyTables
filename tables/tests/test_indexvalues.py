@@ -27,7 +27,7 @@ small_blocksizes = (16, 8, 4, 2)  # The smaller set of parameters...
 minRowIndex = 1000
 
 class Small(IsDescription):
-    var1 = StringCol(itemsize=4, dflt="")
+    var1 = StringCol(itemsize=4, dflt=b"")
     var2 = BoolCol(dflt=0)
     var3 = IntCol(dflt=0)
     var4 = FloatCol(dflt=0)
@@ -82,8 +82,9 @@ class SelectValuesTestCase(unittest.TestCase):
                     k = self.values[i]
                 else:
                     k = i
-                table1.row['var1'] = str(k)
-                table2.row['var1'] = str(k)
+                bk = str(k).encode('ascii')
+                table1.row['var1'] = bk
+                table2.row['var1'] = bk
                 table1.row['var2'] = k % 2
                 table2.row['var2'] = k % 2
                 table1.row['var3'] = k
@@ -130,8 +131,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         # First selection
@@ -207,8 +208,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        #il = str(self.il)
-        sl = str(self.sl)
+        #il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         # First selection
@@ -817,14 +818,14 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
         # First selection
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -844,7 +845,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = '(il<=t1col)&(t1col<sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -864,7 +865,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = '(il<t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -886,7 +887,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = '(il<t1col)&(t1col<sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -923,7 +924,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         condition = 't1col<sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -944,7 +945,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = 't1col<=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         rowList1 = table1.getWhereList(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
@@ -964,7 +965,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = 't1col>sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         rowList1 = table1.getWhereList(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
@@ -984,7 +985,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = 't1col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         rowList1 = table1.getWhereList(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
@@ -1015,7 +1016,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1var2 = table1.cols.var2
         condition = 't1var2==True'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1var2.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -1045,7 +1046,7 @@ class SelectValuesTestCase(unittest.TestCase):
         false = numpy.bool_(False)
         self.assertFalse(false)     # silence pyflakes
         condition = 't1var2==false'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1var2.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -1078,7 +1079,7 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var3
         # First selection
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -1098,7 +1099,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = '(il<=t1col)&(t1col<sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -1118,7 +1119,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = '(il<t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -1140,7 +1141,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = '(il<t1col)&(t1col<sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor="python"
         rowList1 = table1.getWhereList(condition)
@@ -1177,7 +1178,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         condition = 't1col<sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor="python"
         rowList1 = table1.getWhereList(condition)
@@ -1198,7 +1199,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = 't1col<=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         rowList1 = table1.getWhereList(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
@@ -1218,7 +1219,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = 't1col>sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         rowList1 = table1.getWhereList(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
@@ -1238,7 +1239,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = 't1col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         rowList1 = table1.getWhereList(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
@@ -1275,7 +1276,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # First selection
         condition = '(il<=t1col)&(t1col<=sl)'
         #results1 = [p["var4"] for p in table1.where(condition)]
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -1295,7 +1296,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = '(il<=t1col)&(t1col<sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -1315,7 +1316,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = '(il<t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -1337,7 +1338,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = '(il<t1col)&(t1col<sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -1374,7 +1375,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         condition = 't1col<sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         rowList1 = table1.getWhereList(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
@@ -1394,7 +1395,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = 't1col<=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         rowList1 = table1.getWhereList(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
@@ -1414,7 +1415,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = 't1col>sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         rowList1 = table1.getWhereList(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
@@ -1434,7 +1435,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = 't1col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         rowList1 = table1.getWhereList(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
@@ -1466,8 +1467,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table1._disableIndexingInQueries()
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -1475,7 +1476,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         condition = 't1col<=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var1'] for p in table1.where(condition, start=2, stop=10)]
         results2 = [p["var1"] for p in table2.iterrows(2, 10)
                     if p["var1"] <= sl]
@@ -1490,7 +1491,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = '(il<t1col)&(t1col<sl)'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
         results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
@@ -1506,7 +1507,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = '(il>t1col)&(t1col>sl)'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=-5)]
         results2 = [p["var1"] for p in table2.iterrows(2, -5)  # Negative indices
@@ -1523,7 +1524,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # This selection to be commented out
 #         condition = 't1col>=sl'
-#         self.assert_(not table1.willQueryUseIndexing(condition))
+#         self.assertTrue(not table1.willQueryUseIndexing(condition))
 #         results1 = [p['var1'] for p in table1.where(condition,start=2,stop=-1,step=1)]
 #         results2 = [p["var1"] for p in table2.iterrows(2, -1, 1)
 #                     if p["var1"] >= sl]
@@ -1539,7 +1540,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Fourth selection
         #results1 = [p['var1'] for p in table1.where(condition,start=2,stop=-1,step=3)]
         condition = 't1col>=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=-1, step=3)]
         results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
@@ -1580,7 +1581,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         condition = 't1col<sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var4'] for p in
                     table1.where(condition, start=2, stop=5)]
         results2 = [p["var4"] for p in table2.iterrows(2, 5)
@@ -1596,7 +1597,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = '(il<t1col)&(t1col<=sl)'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var4'] for p in
                     table1.where(condition, start=2, stop=-1, step=2)]
         results2 = [p["var4"] for p in table2.iterrows(2, -1, 2)
@@ -1612,7 +1613,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var4'] for p in
                     table1.where(condition, start=2, stop=-5)]
         results2 = [p["var4"] for p in table2.iterrows(2, -5)  # Negative indices
@@ -1628,7 +1629,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = 't1col>=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var4'] for p in
                     table1.where(condition, start=0, stop=-1, step=3)]
         results2 = [p["var4"] for p in table2.iterrows(0, -1, 3)
@@ -1660,8 +1661,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table1._disableIndexingInQueries()
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -1669,7 +1670,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         condition = 't1col>=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=-1, step=3)]
         results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
@@ -1688,7 +1689,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition= 't1col>=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=5, stop=-1, step=10)]
         results2 = [p["var1"] for p in table2.iterrows(5, -1, 10)
@@ -1707,7 +1708,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = 't1col>=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=5, stop=-3, step=11)]
         results2 = [p["var1"] for p in table2.iterrows(5, -3, 11)
@@ -1726,7 +1727,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = 't1col>=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=-1, step=300)]
         results2 = [p["var1"] for p in table2.iterrows(2, -1, 300)
@@ -1770,7 +1771,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         condition = 't3col>=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=2, stop=-1, step=3)]
         results2 = [p["var3"] for p in table2.iterrows(2, -1, 3)
@@ -1789,7 +1790,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = 't3col>=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=5, stop=-1, step=10)]
         results2 = [p["var3"] for p in table2.iterrows(5, -1, 10)
@@ -1808,7 +1809,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = 't3col>=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=5, stop=-3, step=11)]
         results2 = [p["var3"] for p in table2.iterrows(5, -3, 11)
@@ -1827,7 +1828,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = 't3col>=sl'
-        self.assert_(not table1.willQueryUseIndexing(condition))
+        self.assertTrue(not table1.willQueryUseIndexing(condition))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=2, stop=-1, step=300)]
         results2 = [p["var3"] for p in table2.iterrows(2, -1, 300)
@@ -1860,14 +1861,14 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
         # First selection
         condition = 't1col<=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=10)]
@@ -1887,7 +1888,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=1)]
@@ -1907,7 +1908,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Repeat second selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
@@ -1927,7 +1928,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = '(il<t1col)&(t1col<sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=-5)]
@@ -1947,7 +1948,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = 't1col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=1, stop=-1, step=3)]
@@ -1983,7 +1984,7 @@ class SelectValuesTestCase(unittest.TestCase):
         t3col = table1.cols.var3
         # First selection
         condition = 't3col<=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t3col.pathname]))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=2, stop=10)]
@@ -2003,7 +2004,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = '(il<=t3col)&(t3col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t3col.pathname]))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
@@ -2023,7 +2024,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = '(il<t3col)&(t3col<sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t3col.pathname]))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=2, stop=-5)]
@@ -2043,7 +2044,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = 't3col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t3col.pathname]))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=1, stop=-1, step=3)]
@@ -2072,15 +2073,15 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
 
         # First selection
         condition = 't1col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=-1, step=3)]
@@ -2100,7 +2101,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = 't1col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=5, stop=-1, step=10)]
@@ -2120,7 +2121,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = 't1col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=5, stop=-3, step=11)]
@@ -2140,7 +2141,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = 't1col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=-1, step=300)]
@@ -2177,7 +2178,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # First selection
         condition = 't3col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t3col.pathname]))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=2, stop=-1, step=3)]
@@ -2197,7 +2198,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         condition = 't3col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t3col.pathname]))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=5, stop=-1, step=10)]
@@ -2217,7 +2218,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         condition = 't3col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t3col.pathname]))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=5, stop=-3, step=11)]
@@ -2237,7 +2238,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         condition = 't3col>=sl'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t3col.pathname]))
         results1 = [p['var3'] for p in
                     table1.where(condition, start=2, stop=-1, step=300)]
@@ -2266,13 +2267,13 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do a selection and check the result
         t1var1 = table1.cols.var1
         condition = '(il<=t1var1)&(t1var1<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1var1.pathname]))
         coords1 = table1.getWhereList(condition)
         table1.flavor = "python"
@@ -2331,16 +2332,16 @@ class SelectValuesTestCase(unittest.TestCase):
         t1var2 = table1.cols.var2
         t1var3 = table1.cols.var3
         t1var4 = table1.cols.var4
-        self.assert_(t1var1.index.dirty == False)
-        self.assert_(t1var2.index.dirty == False)
-        self.assert_(t1var3.index.dirty == False)
-        self.assert_(t1var4.index.dirty == False)
+        self.assertTrue(t1var1.index.dirty == False)
+        self.assertTrue(t1var2.index.dirty == False)
+        self.assertTrue(t1var3.index.dirty == False)
+        self.assertTrue(t1var4.index.dirty == False)
 
         # Do some selections and check the results
         # First selection: string
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         results1 = [p["var1"] for p in
                     table1.where('(il<=t1var1)&(t1var1<=sl)')]
@@ -2419,13 +2420,13 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=1)]
@@ -2445,7 +2446,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
@@ -2474,13 +2475,13 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=1)]
@@ -2500,7 +2501,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
@@ -2529,13 +2530,13 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=1, step=2)]
@@ -2555,7 +2556,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=5, step=1)]
@@ -2584,13 +2585,13 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=1, step=1)]
@@ -2610,7 +2611,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=1, step=1)]
@@ -2639,13 +2640,13 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
@@ -2666,7 +2667,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Repeat the selection with a more complex condition
         t2col = table1.cols.var2
         condition = '(il<=t1col)&(t1col<=sl)&(t2col==True)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname,
                                                              t2col.pathname]))
         results1 = [p['var1'] for p in
@@ -2700,15 +2701,15 @@ class SelectValuesTestCase(unittest.TestCase):
         table2.cols.var2.removeIndex()
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
         t2col = table1.cols.var2
         self.assertTrue(t2col is not None)
         condition = '(il<=t1col)&(t1col<=sl)&(t2col==True)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
@@ -2728,7 +2729,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Repeat the selection with a simpler condition
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
@@ -2749,7 +2750,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Repeat again with the original condition, but with a constant
         constant = True
         condition = '(il<=t1col)&(t1col<=sl)&(t2col==constant)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
@@ -2778,13 +2779,13 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
@@ -2803,11 +2804,11 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
         # Repeat the selection with different limits
-        il, sl = (str(self.il+1), str(self.sl-2))
+        il, sl = (str(self.il+1).encode('ascii'), str(self.sl-2).encode('ascii'))
         t2col = table1.cols.var2
         self.assertTrue(t2col is not None)
         condition = '(il<=t1col)&(t1col<=sl)'
-        self.assert_(
+        self.assertTrue(
             table1.willQueryUseIndexing(condition) == fzset([t1col.pathname]))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]

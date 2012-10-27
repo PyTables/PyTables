@@ -568,6 +568,12 @@ class File(hdf5Extension.File, object):
                 # PYTABLES_FORMAT_VERSION attribute is not present
                 self.format_version = "unknown"
                 self._isPTFile = False
+            elif not isinstance(self.format_version, str):
+                # system attributes should always be str
+                if sys.version_info[0] < 3:
+                    self.format_version = self.format_version.encode()
+                else:
+                    self.format_version = self.format_version.decode('utf-8')
 
         # Create new attributes for the root Group instance and
         # create the object tree
@@ -1279,7 +1285,7 @@ class File(hdf5Extension.File, object):
             The value of the attribute to set. Any kind of Python
             object (like strings, ints, floats, lists, tuples, dicts,
             small NumPy objects ...) can be stored as an attribute.
-            However, if necessary, cPickle is automatically used so as
+            However, if necessary, pickle is automatically used so as
             to serialize objects that you might want to save.
             See the :class:`AttributeSet` class for details.
 
@@ -1671,8 +1677,8 @@ class File(hdf5Extension.File, object):
 
         class ActionLogDesc(IsDescription):
             opcode = UInt8Col(pos=0)
-            arg1   = StringCol(maxUndo, pos=1, dflt="")
-            arg2   = StringCol(maxUndo, pos=2, dflt="")
+            arg1   = StringCol(maxUndo, pos=1, dflt=b"")
+            arg2   = StringCol(maxUndo, pos=2, dflt=b"")
 
         self._checkOpen()
 
@@ -1716,7 +1722,7 @@ class File(hdf5Extension.File, object):
             # Create a group for mark 0
             self._createMark(self._trans, 0)
             # Initialize the marker pointer
-            self._curmark = self._nmarks - 1
+            self._curmark = int(self._nmarks - 1)
             # Initialize the action pointer
             self._curaction = self._actionlog.nrows - 1
         else:
@@ -1728,12 +1734,12 @@ class File(hdf5Extension.File, object):
             self._actionlog = tgroup.actionlog
             for row in self._actionlog:
                 if row["opcode"] == _opToCode["MARK"]:
-                    name = row["arg2"]
+                    name = row["arg2"].decode('utf-8')
                     self._markers[name] = self._nmarks
                     self._seqmarkers.append(row.nrow)
                     self._nmarks += 1
             # Get the current mark and current action
-            self._curmark = self._actionlog.attrs.CURMARK
+            self._curmark = int(self._actionlog.attrs.CURMARK)
             self._curaction = self._actionlog.attrs.CURACTION
 
         # The Undo/Redo mechanism has been enabled.
@@ -1840,7 +1846,7 @@ class File(hdf5Extension.File, object):
                                        self._actionlog.nrows)
             # Reset the current marker group
             mnode = self.getNode(_markPath % (self._curtransaction,
-                                               self._curmark))
+                                              self._curmark))
             mnode._g_reset()
             # Delete the marker groups with backup objects
             for mark in xrange(self._curmark+1, self._nmarks):
@@ -1868,7 +1874,9 @@ class File(hdf5Extension.File, object):
             raise UndoRedoError("Parameter arg1 or arg2 is too long: "
                                 "(%r, %r)" % (arg1, arg2))
         #print "Logging-->", (action, arg1, arg2)
-        self._actionlog.append([(_opToCode[action], arg1, arg2)])
+        self._actionlog.append([(_opToCode[action],
+                                 arg1.encode('utf-8'),
+                                 arg2.encode('utf-8'))])
         self._curaction += 1
 
 
@@ -1930,20 +1938,20 @@ class File(hdf5Extension.File, object):
                                   #_codeToOp[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
                                   _codeToOp[int(actionlog['opcode'][i])],
-                                  actionlog['arg1'][i],
-                                  actionlog['arg2'][i])
+                                  actionlog['arg1'][i].decode('utf8'),
+                                  actionlog['arg2'][i].decode('utf8'))
                 else:
                     # Uncomment this for debugging
-#                     print "undo-->", \
-#                           _codeToOp[actionlog['opcode'][i]],\
-#                           actionlog['arg1'][i],\
-#                           actionlog['arg2'][i]
+                    #print "undo-->", \
+                    #       _codeToOp[actionlog['opcode'][i]],\
+                    #       actionlog['arg1'][i].decode('utf8'),\
+                    #       actionlog['arg2'][i].decode('utf8')
                     undoredo.undo(self,
                                   #_codeToOp[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
                                   _codeToOp[int(actionlog['opcode'][i])],
-                                  actionlog['arg1'][i],
-                                  actionlog['arg2'][i])
+                                  actionlog['arg1'][i].decode('utf8'),
+                                  actionlog['arg2'][i].decode('utf8'))
             else:
                 if direction > 0:
                     self._curmark = int(actionlog['arg1'][i])
@@ -2026,7 +2034,7 @@ class File(hdf5Extension.File, object):
         if mark is None:
             mark = self._curmark + 1
         elif mark == -1:
-            mark = self._nmarks  # Go beyond the mark bounds up to the end
+            mark = int(self._nmarks)  # Go beyond the mark bounds up to the end
         # Get the mark ID number
         markid = self._getMarkID(mark)
         finalaction = self._getFinalAction(markid)

@@ -12,8 +12,9 @@
 
 """Utility functions"""
 
-import os, os.path, subprocess
+import os
 import sys
+import subprocess
 from time import time
 
 import numpy
@@ -190,7 +191,7 @@ def lazyattr(fget):
     ...     @lazyattr
     ...     def attribute(self):
     ...         'Attribute description.'
-    ...         print 'creating value'
+    ...         print('creating value')
     ...         return 10
     ...
     >>> type(MyClass.attribute)
@@ -228,13 +229,17 @@ def lazyattr(fget):
     return property(newfget, None, None, fget.__doc__)
 
 
-def show_stats(explain, tref):
+def show_stats(explain, tref, encoding=None):
     """Show the used memory (only works for Linux 2.6.x)."""
+
+    if encoding is None:
+        encoding = sys.getdefaultencoding()
 
     # Build the command to obtain memory info
     cmd = "cat /proc/%s/status" % os.getpid()
     sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
     for line in sout:
+        line = line.decode(encoding)
         if line.startswith("VmSize:"):
             vmsize = int(line.split()[1])
         elif line.startswith("VmRSS:"):

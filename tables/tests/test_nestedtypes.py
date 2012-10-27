@@ -13,7 +13,9 @@
 
 """Test module for nested types under PyTables"""
 
+import sys
 import unittest
+import itertools
 
 import numpy
 
@@ -52,7 +54,7 @@ class TestTDescr(t.IsDescription):
     x = t.Int32Col(dflt=0, shape=2, pos=0) #0
     y = t.Float64Col(dflt=1, shape=(2, 2))
     z = t.UInt8Col(dflt=1)
-    color = t.StringCol(itemsize=2, dflt=" ", pos=2)
+    color = t.StringCol(itemsize=2, dflt=b" ", pos=2)
     info = Info()
     class Info(t.IsDescription): #1
         _v_pos = 1
@@ -673,8 +675,8 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblrepr = repr(tbl)
         # Remove the platform-dependent information (i.e. byteorder)
         tblrepr = "\n".join(tblrepr.split("\n")[:-2])+"\n"
-        self.assertEqual(tblrepr,
-"""/test (Table(2,)) 'test00'
+        if sys.version_info[0] < 3:
+            template = """/test (Table(2,)) 'test00'
   description := {
   "x": Int32Col(shape=(2,), dflt=0, pos=0),
   "Info": {
@@ -684,7 +686,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
       "name": StringCol(itemsize=2, shape=(), dflt='', pos=0),
       "value": ComplexCol(itemsize=16, shape=(2,), dflt=0j, pos=1),
       "y3": Time64Col(shape=(2,), dflt=1.0, pos=2),
-      "z3": EnumCol(enum=Enum({'r': 4, 'b': 1, 'g': 2}), dflt='r', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
+      "z3": EnumCol(enum=Enum({%s}), dflt='r', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
     "name": StringCol(itemsize=2, shape=(), dflt='', pos=3),
     "z2": UInt8Col(shape=(), dflt=1, pos=4)},
   "color": StringCol(itemsize=2, shape=(), dflt=' ', pos=2),
@@ -693,8 +695,31 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
     "Value": ComplexCol(itemsize=16, shape=(), dflt=0j, pos=1)},
   "y": Float64Col(shape=(2, 2), dflt=1.0, pos=4),
   "z": UInt8Col(shape=(), dflt=1, pos=5)}
-""")
-
+"""
+        else:
+            template = """/test (Table(2,)) 'test00'
+  description := {
+  "x": Int32Col(shape=(2,), dflt=0, pos=0),
+  "Info": {
+    "value": ComplexCol(itemsize=16, shape=(), dflt=0j, pos=0),
+    "y2": Float64Col(shape=(), dflt=1.0, pos=1),
+    "Info2": {
+      "name": StringCol(itemsize=2, shape=(), dflt=b'', pos=0),
+      "value": ComplexCol(itemsize=16, shape=(2,), dflt=0j, pos=1),
+      "y3": Time64Col(shape=(2,), dflt=1.0, pos=2),
+      "z3": EnumCol(enum=Enum({%s}), dflt='r', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
+    "name": StringCol(itemsize=2, shape=(), dflt=b'', pos=3),
+    "z2": UInt8Col(shape=(), dflt=1, pos=4)},
+  "color": StringCol(itemsize=2, shape=(), dflt=b' ', pos=2),
+  "info": {
+    "Name": StringCol(itemsize=2, shape=(), dflt=b'', pos=0),
+    "Value": ComplexCol(itemsize=16, shape=(), dflt=0j, pos=1)},
+  "y": Float64Col(shape=(2, 2), dflt=1.0, pos=4),
+  "z": UInt8Col(shape=(), dflt=1, pos=5)}
+"""
+        values = [template % ', '.join(items)
+            for items in itertools.permutations(("'r': 4", "'b': 1", "'g': 2"))]
+        self.assertTrue(tblrepr in values)
 
     def test00b_repr(self):
         """Checking representation of a root Column."""

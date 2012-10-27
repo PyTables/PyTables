@@ -1214,7 +1214,7 @@ def populateTable(where, name):
     "Create a table under where with name name"
 
     class Indexed(IsDescription):
-        var1 = StringCol(itemsize=4, dflt="", pos=1)
+        var1 = StringCol(itemsize=4, dflt=b"", pos=1)
         var2 = BoolCol(dflt=0, pos=2)
         var3 = IntCol(dflt=0, pos=3)
         var4 = FloatCol(dflt=0, pos=4)

@@ -71,7 +71,7 @@ class BasicTestCase(unittest.TestCase):
         self.rowshape[earray.extdim] = self.chunksize
 
         if self.type == "string":
-            object = numpy.ndarray(buffer="a"*self.objsize,
+            object = numpy.ndarray(buffer=b"a"*self.objsize,
                                    shape=self.rowshape,
                                    dtype="S%s" % earray.atom.itemsize)
         else:
@@ -132,7 +132,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = numpy.ndarray(buffer="a"*self.objsize,
+            object_ = numpy.ndarray(buffer=b"a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.atom.itemsize)
         else:
@@ -202,7 +202,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = numpy.ndarray(buffer="a"*self.objsize,
+            object_ = numpy.ndarray(buffer=b"a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.atom.itemsize)
         else:
@@ -264,7 +264,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = numpy.ndarray(buffer="a"*self.objsize,
+            object_ = numpy.ndarray(buffer=b"a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.atom.itemsize)
         else:
@@ -364,7 +364,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = numpy.ndarray(buffer="a"*self.objsize,
+            object_ = numpy.ndarray(buffer=b"a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s"%earray.atom.itemsize)
         else:
@@ -456,7 +456,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = numpy.ndarray(buffer="a"*self.objsize,
+            object_ = numpy.ndarray(buffer=b"a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s"%earray.atom.itemsize)
         else:
@@ -1012,8 +1012,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Second row in earray ==>", row[1].tolist()
 
         self.assertEqual(earray.nrows, 2)
-        self.assertEqual(row[0].tolist(), [["123", "45"], ["45", "123"]])
-        self.assertEqual(row[1].tolist(), [["s", "abc"], ["abc", "f"]])
+        self.assertEqual(row[0].tolist(), [[b"123", b"45"], [b"45", b"123"]])
+        self.assertEqual(row[1].tolist(), [[b"s", b"abc"], [b"abc", b"f"]])
         self.assertEqual(len(row[0]), 2)
         self.assertEqual(len(row[1]), 2)
 
@@ -1041,8 +1041,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Second row in earray ==>", row[1].tolist()
 
         self.assertEqual(earray.nrows, 2)
-        self.assertEqual(row[0].tolist(), [["a", "b"], ["45", "123"]])
-        self.assertEqual(row[1].tolist(), [["s", "a"], ["s", "abc"]])
+        self.assertEqual(row[0].tolist(), [[b"a", b"b"], [b"45", b"123"]])
+        self.assertEqual(row[1].tolist(), [[b"s", b"a"], [b"s", b"abc"]])
         self.assertEqual(len(row[0]), 2)
         self.assertEqual(len(row[1]), 2)
 

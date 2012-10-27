@@ -104,7 +104,7 @@ class VLArrayTestCase(common.PyTablesTestCase):
         self.assertEqual(vlarray1.flavor, "numeric")
         vlarray2 = fileh.root.vlarray2
         self.assertEqual(vlarray2.flavor, "python")
-        self.assertEqual(vlarray2[1], ['5', '6', '77'])
+        self.assertEqual(vlarray2[1], [b'5', b'6', b'77'])
 
         fileh.close()
 

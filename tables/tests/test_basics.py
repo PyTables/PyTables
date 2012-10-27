@@ -51,7 +51,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
 
         # create a dummy file
         filename = tempfile.mktemp(".h5")
-        file(filename, 'wb').close()
+        open(filename, 'wb').close()
 
         # Try to open the dummy file
         try:
@@ -2508,7 +2508,7 @@ except tables.HDF5ExtError, e:
                                  stderr=subprocess.PIPE)
             (stdout, stderr) = p.communicate()
 
-            self.assertFalse("HDF5-DIAG" in stderr)
+            self.assertFalse("HDF5-DIAG" in stderr.decode('ascii'))
         finally:
             os.remove(fn)
 
@@ -2519,7 +2519,7 @@ tables.silenceHDF5Messages()
 tables.silenceHDF5Messages(False)
 try:
     tables.openFile(r'%s')
-except tables.HDF5ExtError, e:
+except tables.HDF5ExtError as e:
     pass
 """
 
@@ -2534,13 +2534,13 @@ except tables.HDF5ExtError, e:
                                  stderr=subprocess.PIPE)
             (stdout, stderr) = p.communicate()
 
-            self.assertTrue("HDF5-DIAG" in stderr)
+            self.assertTrue("HDF5-DIAG" in stderr.decode('ascii'))
         finally:
             os.remove(fn)
 
     def _raise_exterror(self):
         filename = tempfile.mktemp(".h5")
-        file(filename, 'wb').close()
+        open(filename, 'wb').close()
 
         try:
             f = tables.openFile(filename)
@@ -2694,19 +2694,6 @@ class TestDescription(common.PyTablesTestCase):
                 else:
                     keys.append(key)
             self.assertTrue(sorted(descr._v_dtype.fields.keys()), sorted(keys))
-    else:
-        def test_byte_names(self):
-            # see gh-42
-            d = {bytes('name', 'ascii'): tables.Int16Col()}
-            descr = Description(d)
-            self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
-            self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
-            for key in d.keys():
-                if isinstance(key, unicode):
-                    keys.append(key.encode())
-                else:
-                    keys.append(key)
-            self.assertTrue(sorted(descr._v_dtype.fields.keys()), sorted(keys))
 
 
 class TestAtom(common.PyTablesTestCase):
@@ -2770,6 +2757,22 @@ class TestCol(common.PyTablesTestCase):
         self.assertNotEqual(cc._v_pos, pos)
         self.assertEqual(cc._v_pos, 2)
 
+
+class TestSysattrCompatibility(common.PyTablesTestCase):
+
+    def test_open_python2(self):
+        filename = self._testFilename("python2.h5")
+        fileh = openFile(filename, "r")
+        self.assertTrue(fileh.isopen)
+        fileh.close()
+
+    def test_open_python3(self):
+        filename = self._testFilename("python2.h5")
+        fileh = openFile(filename, "r")
+        self.assertTrue(fileh.isopen)
+        fileh.close()
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -2794,6 +2797,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TestDescription))
         theSuite.addTest(unittest.makeSuite(TestAtom))
         theSuite.addTest(unittest.makeSuite(TestCol))
+        theSuite.addTest(unittest.makeSuite(TestSysattrCompatibility))
 
     return theSuite
 

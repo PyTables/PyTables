@@ -100,7 +100,7 @@ print smomentum
 print "Done --- Time:", round((time()-t1), 3), "sec"
 
 # This is the same than above, but using generator expressions
-# Python 2.4 needed here!
+# Python >= 2.4 needed here!
 print "Sum of module of momentum for particle 3 in event 34 (2):",
 t1 = time()
 print sum(numpy.sqrt(numpy.add.reduce(row['momentum']**2))

@@ -350,8 +350,6 @@ class Atom(object):
             >>> import numpy
             >>> Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
             Int16Atom(shape=(2, 2), dflt=0)
-            >>> Atom.from_dtype(numpy.dtype('S5'), dflt='hello')
-            StringAtom(itemsize=5, shape=(), dflt='hello')
             >>> Atom.from_dtype(numpy.dtype('Float64'))
             Float64Atom(shape=(), dflt=0.0)
         """
@@ -409,9 +407,7 @@ class Atom(object):
             Int32Atom(shape=(2, 2), dflt=0)
             >>> Atom.from_kind('int', shape=1)
             Int32Atom(shape=(1,), dflt=0)
-            >>> Atom.from_kind('string', itemsize=5, dflt='hello')
-            StringAtom(itemsize=5, shape=(), dflt='hello')
-            >>> Atom.from_kind('string', dflt='hello')
+            >>> Atom.from_kind('string', dflt=b'hello')
             Traceback (most recent call last):
             ...
             ValueError: no default item size for kind ``string``
@@ -529,17 +525,17 @@ class Atom(object):
         Constructor arguments to be overridden must be passed as
         keyword arguments::
 
-            >>> atom1 = StringAtom(itemsize=12)
+            >>> atom1 = Int32Atom(shape=12)
             >>> atom2 = atom1.copy()
-            >>> print atom1
-            StringAtom(itemsize=12, shape=(), dflt='')
-            >>> print atom2
-            StringAtom(itemsize=12, shape=(), dflt='')
+            >>> print(atom1)
+            Int32Atom(shape=(12,), dflt=0)
+            >>> print(atom2)
+            Int32Atom(shape=(12,), dflt=0)
             >>> atom1 is atom2
             False
-            >>> atom3 = atom1.copy(itemsize=100, shape=(2, 2))
-            >>> print atom3
-            StringAtom(itemsize=100, shape=(2, 2), dflt='')
+            >>> atom3 = atom1.copy(shape=(2, 2))
+            >>> print(atom3)
+            Int32Atom(shape=(2, 2), dflt=0)
             >>> atom1.copy(foobar=42)
             Traceback (most recent call last):
             ...
@@ -581,7 +577,7 @@ class StringAtom(Atom):
         lambda self: self.dtype.base.itemsize,
         None, None, "Size in bytes of a sigle item in the atom." )
     type = 'string'
-    _defvalue = ''
+    _defvalue = b''
 
     def __init__(self, itemsize, shape=(), dflt=_defvalue):
         if not hasattr(itemsize, '__int__') or int(itemsize) < 0:
@@ -1033,7 +1029,7 @@ class VLStringAtom(_BufferedAtom):
     def _tobuffer(self, object_):
         if not isinstance(object_, basestring):
             raise TypeError("object is not a string: %r" % (object_,))
-        return numpy.string0(object_)
+        return numpy.string_(object_)
 
     def fromarray(self, array):
         return array.tostring()
@@ -1060,7 +1056,9 @@ class VLUnicodeAtom(_BufferedAtom):
     type = 'vlunicode'
     base = UInt32Atom()
 
-    if sys.maxunicode <= 0xffff:
+    if sys.version_info[0] > 2 or sys.maxunicode <= 0xffff:
+        # numpy.unicode_ no more implements the buffer interface in Python 3
+        #
         # When the Python build is UCS-2, we need to promote the
         # Unicode string to UCS-4.  We *must* use a 0-d array since
         # NumPy scalars inherit the UCS-2 encoding from Python (see
@@ -1080,7 +1078,7 @@ class VLUnicodeAtom(_BufferedAtom):
         # character matches that of the base atoms.
         if not isinstance(object_, basestring):
             raise TypeError("object is not a string: %r" % (object_,))
-        return numpy.unicode0(object_)
+        return numpy.unicode_(object_)
 
     def fromarray(self, array):
         length = len(array)
@@ -1092,8 +1090,8 @@ class ObjectAtom(_BufferedAtom):
     """Defines an atom of type object.
 
     This class is meant to fit *any* kind of Python object in a row of a
-    VLArray dataset by using cPickle behind the scenes. Due to the fact that
-    you can not foresee how long will be the output of the cPickle
+    VLArray dataset by using pickle behind the scenes. Due to the fact that
+    you can not foresee how long will be the output of the pickle
     serialization (i.e. the atom already has a *variable* length), you can only
     fit *one object per row*. However, you can still group several objects in a
     single tuple or list and pass it to the :meth:`VLArray.append` method.

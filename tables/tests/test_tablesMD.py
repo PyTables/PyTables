@@ -5,8 +5,7 @@ import unittest
 import os
 import tempfile
 
-import numpy
-from numpy import *
+import numpy as np
 from numpy import rec as records
 
 from tables import *
@@ -22,20 +21,20 @@ unittest.TestCase.tearDown = common.cleanup
 
 # Test Record class
 class Record(IsDescription):
-    var0 = StringCol(itemsize=4, dflt="", shape=2)  # 4-character string array
-    var1 = StringCol(itemsize=4, dflt=["abcd", "efgh"], shape=(2, 2))
+    var0 = StringCol(itemsize=4, dflt=b"", shape=2)  # 4-character string array
+    var1 = StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2))
     var1_= IntCol(dflt=((1, 1),), shape=2)           # integer array
     var2 = IntCol(dflt=((1, 1), (1, 1)), shape=(2, 2))  # integer array
     var3 = Int16Col(dflt=2)                         # short integer
     var4 = FloatCol(dflt=3.1)                       # double (double-precision)
     var5 = Float32Col(dflt=4.2)                     # float  (single-precision)
     var6 = UInt16Col(dflt=5)                        # unsigned short integer
-    var7 = StringCol(itemsize=1, dflt="e")          # 1-character String
+    var7 = StringCol(itemsize=1, dflt=b"e")          # 1-character String
 
 #  Dictionary definition
 RecordDescriptionDict = {
-    'var0': StringCol(itemsize=4, dflt="", shape=2), # 4-character string array
-    'var1': StringCol(itemsize=4, dflt=["abcd", "efgh"], shape=(2, 2)),
+    'var0': StringCol(itemsize=4, dflt=b"", shape=2), # 4-character string array
+    'var1': StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2)),
 #     'var0': StringCol(itemsize=4, shape=2),       # 4-character String
 #     'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
     'var1_': IntCol(shape=2),                      # integer array
@@ -49,15 +48,15 @@ RecordDescriptionDict = {
 
 # Record class with numpy dtypes (mixed shapes is checked here)
 class RecordDT(IsDescription):
-    var0 = Col.from_dtype(numpy.dtype("2S4"), dflt="")  # shape in dtype
-    var1 = Col.from_dtype(numpy.dtype(("S4", (2, 2))), dflt=["abcd", "efgh"]) # shape is a mix
-    var1_= Col.from_dtype(numpy.dtype("2i4"), dflt=((1, 1),))  # shape in dtype
+    var0 = Col.from_dtype(np.dtype("2S4"), dflt=b"")  # shape in dtype
+    var1 = Col.from_dtype(np.dtype(("S4", (2, 2))), dflt=[b"abcd", b"efgh"]) # shape is a mix
+    var1_= Col.from_dtype(np.dtype("2i4"), dflt=((1, 1),))  # shape in dtype
     var2 = Col.from_sctype("i4", shape=(2, 2), dflt=((1, 1), (1, 1)))  # shape is a mix
-    var3 = Col.from_dtype(numpy.dtype("i2"), dflt=2)
-    var4 = Col.from_dtype(numpy.dtype("2f8"), dflt=3.1)
-    var5 = Col.from_dtype(numpy.dtype("f4"), dflt=4.2)
-    var6 = Col.from_dtype(numpy.dtype("()u2"), dflt=5)
-    var7 = Col.from_dtype(numpy.dtype("1S1"), dflt="e")   # no shape
+    var3 = Col.from_dtype(np.dtype("i2"), dflt=2)
+    var4 = Col.from_dtype(np.dtype("2f8"), dflt=3.1)
+    var5 = Col.from_dtype(np.dtype("f4"), dflt=4.2)
+    var6 = Col.from_dtype(np.dtype("()u2"), dflt=5)
+    var7 = Col.from_dtype(np.dtype("1S1"), dflt=b"e")   # no shape
 
 
 class BasicTestCase(common.PyTablesTestCase):
@@ -99,12 +98,12 @@ class BasicTestCase(common.PyTablesTestCase):
             tmplist.append(var2)
             var3 = i % self.maxshort
             tmplist.append(var3)
-            if isinstance(row['var4'], numpy.ndarray):
+            if isinstance(row['var4'], np.ndarray):
                 tmplist.append([float(i), float(i*i)])
             else:
                 tmplist.append(float(i))
-            if isinstance(row['var5'], numpy.ndarray):
-                tmplist.append(array((float(i),)*4))
+            if isinstance(row['var5'], np.ndarray):
+                tmplist.append(np.array((float(i),)*4))
             else:
                 tmplist.append(float(i))
             # var6 will be like var3 but byteswaped
@@ -113,7 +112,7 @@ class BasicTestCase(common.PyTablesTestCase):
             tmplist.append(var7)
             buflist.append(tmplist)
 
-        self.record=numpy.rec.array(buflist, dtype=record.dtype,
+        self.record=np.rec.array(buflist, dtype=record.dtype,
                                     shape = self.expectedrows)
         return
 
@@ -142,18 +141,19 @@ class BasicTestCase(common.PyTablesTestCase):
 
                 # Fill the table
                 for i in xrange(self.expectedrows):
-                    row['var0'] = '%04d' % (self.expectedrows - i)
-                    row['var1'] = '%04d' % (self.expectedrows - i)
-                    row['var7'] = row['var1'][0][0][-1]
+                    s = '%04d' % (self.expectedrows - i)
+                    row['var0'] = s.encode('ascii')
+                    row['var1'] = s.encode('ascii')
+                    row['var7'] = s[-1].encode('ascii')
                     row['var1_'] = (i, 1)
                     row['var2'] = ((i, 1), (1, 1))  # *-*
                     row['var3'] = i % self.maxshort
-                    if isinstance(row['var4'], numpy.ndarray):
+                    if isinstance(row['var4'], np.ndarray):
                         row['var4'] = [float(i), float(i*i)]
                     else:
                         row['var4'] = float(i)
-                    if isinstance(row['var5'], numpy.ndarray):
-                        row['var5'] = array((float(i),)*4)
+                    if isinstance(row['var5'], np.ndarray):
+                        row['var5'] = np.array((float(i),)*4)
                     else:
                         row['var5'] = float(i)
                     # var6 will be like var3 but byteswaped
@@ -186,10 +186,10 @@ class BasicTestCase(common.PyTablesTestCase):
 
         if isinstance(self.record, dict):
             columns = self.record
-        elif isinstance(self.record, numpy.ndarray):
+        elif isinstance(self.record, np.ndarray):
             descr, _ = descr_from_dtype(self.record.dtype)
             columns = descr._v_colObjects
-        elif isinstance(self.record, numpy.dtype):
+        elif isinstance(self.record, np.dtype):
             descr, _ = descr_from_dtype(self.record)
             columns = descr._v_colObjects
         else:
@@ -257,8 +257,8 @@ class BasicTestCase(common.PyTablesTestCase):
         # Choose a small value for buffer size
         table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
-        result = [ rec['var2'][0][0] for rec in table.iterrows()
-                   if rec['var2'][0][0] < 20 ]
+        result = [r['var2'][0][0] for r in table.iterrows()
+                                                if r['var2'][0][0] < 20]
 
         if common.verbose:
             print "Table:", repr(table)
@@ -266,17 +266,19 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
         nrows = self.expectedrows - 1
+        r = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
         self.assertEqual((
-            rec['var0'][0],
-            rec['var1'][0][0],
-            rec['var1_'][0],
-            rec['var2'][0][0],
-            rec['var7']
-            ), ("0001", "0001", nrows, nrows, "1"))
-        if isinstance(rec['var5'], numpy.ndarray):
-            self.assertTrue(allequal(rec['var5'], array((nrows,)*4, float32)))
+            r['var0'][0],
+            r['var1'][0][0],
+            r['var1_'][0],
+            r['var2'][0][0],
+            r['var7']
+            ), (b"0001", b"0001", nrows, nrows, b"1"))
+        if isinstance(r['var5'], np.ndarray):
+            self.assertTrue(allequal(r['var5'],
+                                     np.array((nrows,)*4, np.float32)))
         else:
-            self.assertEqual(rec['var5'], float(nrows))
+            self.assertEqual(r['var5'], float(nrows))
         self.assertEqual(len(result), 20)
 
     def test01b_readTable(self):
@@ -293,45 +295,50 @@ class BasicTestCase(common.PyTablesTestCase):
         # Choose a small value for buffer size
         table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
-        result = [ rec['var5'] for rec in table.iterrows()
-                   if rec['var2'][0][0] < 20 ]
+        result = [r['var5'] for r in table.iterrows() if r['var2'][0][0] < 20]
         if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
         nrows = table.nrows
-        if isinstance(rec['var5'], numpy.ndarray):
-            self.assertTrue(allequal(result[0], array((float(0),)*4, float32)))
-            self.assertTrue(allequal(result[1], array((float(1),)*4, float32)))
-            self.assertTrue(allequal(result[2], array((float(2),)*4, float32)))
-            self.assertTrue(allequal(result[3], array((float(3),)*4, float32)))
+        r = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
+        if isinstance(r['var5'], np.ndarray):
+            self.assertTrue(allequal(result[0],
+                                     np.array((float(0),)*4, np.float32)))
+            self.assertTrue(allequal(result[1],
+                                     np.array((float(1),)*4, np.float32)))
+            self.assertTrue(allequal(result[2],
+                                     np.array((float(2),)*4, np.float32)))
+            self.assertTrue(allequal(result[3],
+                                     np.array((float(3),)*4, np.float32)))
             self.assertTrue(allequal(result[10],
-                                     array((float(10),)*4, float32)))
-            self.assertTrue(allequal(rec['var5'],
-                                     array((float(nrows-1),)*4, float32)))
+                                     np.array((float(10),)*4, np.float32)))
+            self.assertTrue(allequal(r['var5'],
+                                     np.array((float(nrows-1),)*4,
+                                              np.float32)))
         else:
-            self.assertEqual(rec['var5'], float(nrows-1))
+            self.assertEqual(r['var5'], float(nrows-1))
         self.assertEqual(len(result), 20)
 
         # Read the records and select those with "var2" file less than 20
-        result = [ rec['var1'] for rec in table.iterrows()
-                   if rec['var2'][0][0] < 20 ]
+        result = [r['var1'] for r in table.iterrows() if r['var2'][0][0] < 20]
+        r = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
 
-        if rec['var1'].dtype.char == "S":
-            a = numpy.array([['%04d' % (self.expectedrows - 0)]*2]*2)
+        if r['var1'].dtype.char == "S":
+            a = np.array([['%04d' % (self.expectedrows - 0)]*2]*2, 'S')
             self.assertTrue(allequal(result[0], a))
-            a = numpy.array([['%04d' % (self.expectedrows - 1)]*2]*2)
+            a = np.array([['%04d' % (self.expectedrows - 1)]*2]*2, 'S')
             self.assertTrue(allequal(result[1], a))
-            a = numpy.array([['%04d' % (self.expectedrows - 2)]*2]*2)
+            a = np.array([['%04d' % (self.expectedrows - 2)]*2]*2, 'S')
             self.assertTrue(allequal(result[2], a))
-            a = numpy.array([['%04d' % (self.expectedrows - 3)]*2]*2)
+            a = np.array([['%04d' % (self.expectedrows - 3)]*2]*2, 'S')
             self.assertTrue(allequal(result[3], a))
-            a = numpy.array([['%04d' % (self.expectedrows - 10)]*2]*2)
+            a = np.array([['%04d' % (self.expectedrows - 10)]*2]*2, 'S')
             self.assertTrue(allequal(result[10], a))
-            a = numpy.array([['%04d' % (1)]*2]*2)
-            self.assertTrue(allequal(rec['var1'], a))
+            a = np.array([['%04d' % (1)]*2]*2, 'S')
+            self.assertTrue(allequal(r['var1'], a))
         else:
-            self.assertEqual(rec['var1'], "0001")
+            self.assertEqual(r['var1'], "0001")
         self.assertEqual(len(result), 20)
 
     def test01c_readTable(self):
@@ -370,26 +377,28 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Record Size ==>", table.rowsize
         # Append some rows
         for i in xrange(self.appendrows):
-            row['var0'] = '%04d' % (self.appendrows - i)
-            row['var1'] = '%04d' % (self.appendrows - i)
-            row['var7'] = row['var1'][0][0][-1]
+            s = '%04d' % (self.appendrows - i)
+            row['var0'] = s.encode('ascii')
+            row['var1'] = s.encode('ascii')
+            row['var7'] = s[-1].encode('ascii')
             row['var1_'] = (i, 1)
             row['var2'] = ((i, 1), (1, 1))   # *-*
             row['var3'] = i % self.maxshort
-            if isinstance(row['var4'], numpy.ndarray):
+            if isinstance(row['var4'], np.ndarray):
                 row['var4'] = [float(i), float(i*i)]
             else:
                 row['var4'] = float(i)
-            if isinstance(row['var5'], numpy.ndarray):
-                row['var5'] = array((float(i),)*4)
+            if isinstance(row['var5'], np.ndarray):
+                row['var5'] = np.array((float(i),)*4)
             else:
                 row['var5'] = float(i)
             row.append()
 
         # Flush the buffer for this table and read it
         table.flush()
-        result = [ row['var2'][0][0] for row in table.iterrows()
-                   if row['var2'][0][0] < 20 ]
+        result = [row['var2'][0][0] for row in table.iterrows()
+                                                if row['var2'][0][0] < 20]
+        row = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
 
         nrows = self.appendrows - 1
         self.assertEqual((
@@ -398,10 +407,10 @@ class BasicTestCase(common.PyTablesTestCase):
             row['var1_'][0],
             row['var2'][0][0],
             row['var7']),
-            ( "0001", "0001", nrows, nrows, "1"))
-        if isinstance(row['var5'], numpy.ndarray):
+            (b"0001", b"0001", nrows, nrows, b"1"))
+        if isinstance(row['var5'], np.ndarray):
             self.assertTrue(allequal(row['var5'],
-                                     array((float(nrows),)*4, float32)))
+                                     np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -424,14 +433,15 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/group0/group1/table2")
 
         # Read the records and select the ones with "var3" column less than 20
-        result = [ rec['var2'] for rec in table.iterrows() if rec['var3'] < 20]
+        result = [r['var2'] for r in table.iterrows() if r['var3'] < 20]
         if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "On-disk byteorder ==>", table.byteorder
             print "Last record in table ==>", rec
             print "Total selected records in table ==>", len(result)
         nrows = self.expectedrows - 1
-        self.assertEqual((rec['var1'][0][0], rec['var3']), ("0001", nrows))
+        r = list(table.iterrows())[-1]
+        self.assertEqual((r['var1'][0][0], r['var3']), (b"0001", nrows))
         self.assertEqual(len(result), 20)
 
 class BasicWriteTestCase(BasicTestCase):
@@ -455,12 +465,12 @@ class RecordDTWriteTestCase(BasicTestCase):
 # Pure NumPy dtype
 class NumPyDTWriteTestCase(BasicTestCase):
     title = "NumPyDTWriteTestCase"
-    record = numpy.dtype("(2,)S4,(2,2)S4,(2,)i4,(2,2)i4,i2,2f8,f4,i2,S1")
+    record = np.dtype("(2,)S4,(2,2)S4,(2,)i4,(2,2)i4,i2,2f8,f4,i2,S1")
     record.names = 'var0,var1,var1_,var2,var3,var4,var5,var6,var7'.split(',')
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
-    record=numpy.rec.array(
+    record=np.rec.array(
         None,
         formats="(2,)S4,(2,2)S4,(2,)i4,(2,2)i4,i2,2f8,f4,i2,S1",
         names='var0,var1,var1_,var2,var3,var4,var5,var6,var7',
@@ -470,7 +480,7 @@ class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=numpy.rec.array(
+    recordtemplate=np.rec.array(
         None,
         formats="(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,f8,f4,i2,a1",
         names='var0,var1,var1_,var2,var3,var4,var5,var6,var7',
@@ -480,7 +490,7 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=numpy.rec.array(
+    recordtemplate=np.rec.array(
         None,
         formats="(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,2f8,4f4,i2,a1",
         names='var0,var1,var1_,var2,var3,var4,var5,var6,var7',
@@ -563,12 +573,12 @@ class BasicRangeTestCase(unittest.TestCase):
                 row['var7'] = row['var1'][0][0][-1]
                 row['var2'] = i
                 row['var3'] = i % self.maxshort
-                if isinstance(row['var4'], numpy.ndarray):
+                if isinstance(row['var4'], np.ndarray):
                     row['var4'] = [float(i), float(i*i)]
                 else:
                     row['var4'] = float(i)
-                if isinstance(row['var5'], numpy.ndarray):
-                    row['var5'] = array((float(i),)*4)
+                if isinstance(row['var5'], np.ndarray):
+                    row['var5'] = np.array((float(i),)*4)
                 else:
                     row['var5'] = float(i)
                 # var6 will be like var3 but byteswaped
@@ -594,7 +604,6 @@ class BasicRangeTestCase(unittest.TestCase):
     #----------------------------------------
 
     def check_range(self):
-
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
         table = self.fileh.getNode("/table0")
@@ -616,9 +625,9 @@ class BasicRangeTestCase(unittest.TestCase):
                 if column[nrec][0][0] < self.nrows:    #*-*
                     result.append(column[nrec][0][0])  #*-*
         else:
-            result = [ rec['var2'][0][0] for rec in
+            result = [r['var2'][0][0] for r in
                        table.iterrows(self.start, self.stop, self.step)
-                       if rec['var2'][0][0] < self.nrows ]
+                       if r['var2'][0][0] < self.nrows]
 
         if self.start < 0:
             startr = self.expectedrows + self.start
@@ -652,11 +661,13 @@ class BasicRangeTestCase(unittest.TestCase):
 
         self.assertEqual(result, range(startr, stopr, self.step))
         if startr < stopr and not (self.checkrecarray or self.checkgetCol):
+            r = [r for r in table.iterrows(self.start, self.stop, self.step)
+                                    if r['var2'][0][0] < self.nrows][-1]
             if self.nrows < self.expectedrows:
-                self.assertEqual(rec['var2'][0][0],
+                self.assertEqual(r['var2'][0][0],
                                  range(self.start, self.stop, self.step)[-1])
             else:
-                self.assertEqual(rec['var2'][0][0],
+                self.assertEqual(r['var2'][0][0],
                                  range(startr, stopr, self.step)[-1])
 
         # Close the file
@@ -875,10 +886,8 @@ class BasicRangeTestCase(unittest.TestCase):
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
-                print value
             self.fileh.close()
         else:
-            print rec
             self.fail("expected a ValueError")
 
         # Case where step == 0
@@ -889,10 +898,8 @@ class BasicRangeTestCase(unittest.TestCase):
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
-                print value
             self.fileh.close()
         else:
-            print rec
             self.fail("expected a ValueError")
 
 
@@ -923,10 +930,7 @@ class getColRangeTestCase(BasicRangeTestCase):
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next KeyError was catched!"
-                print value
-            pass
         else:
-            print rec
             self.fail("expected a KeyError")
 
 
@@ -944,13 +948,13 @@ class RecArrayIO(unittest.TestCase):
 
         # Create a recarray
         intlist1 = [[456, 23]*3]*2
-        intlist2 = array([[2, 2]*3]*2, dtype=int)
+        intlist2 = np.array([[2, 2]*3]*2, dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2, 2.3]*3]*4
-        floatlist2 = array([[4.5, 2.4]*3]*4)
+        floatlist2 = np.array([[4.5, 2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1], [intlist2, arrlist2, floatlist2]]
-        r=numpy.rec.array(b, formats='(2,6)i4,(3,2)a3,(4,6)f8',
+        r=np.rec.array(b, formats='(2,6)i4,(3,2)a3,(4,6)f8',
                           names='col1,col2,col3')
 
         # Save it in a table:
@@ -971,13 +975,13 @@ class RecArrayIO(unittest.TestCase):
 
         # Create a recarray
         intlist1 = [[456, 23]*3]*2
-        intlist2 = array([[2, 2]*3]*2, dtype=int)
+        intlist2 = np.array([[2, 2]*3]*2, dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2, 2.3]*3]*4
-        floatlist2 = array([[4.5, 2.4]*3]*4)
+        floatlist2 = np.array([[4.5, 2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1], [intlist2, arrlist2, floatlist2]]
-        r=numpy.rec.array(b, formats='(2,6)i4,(3,2)a3,(4,6)f8',
+        r=np.rec.array(b, formats='(2,6)i4,(3,2)a3,(4,6)f8',
                           names='col1,col2,col3')
 
         # Get a view of the recarray
@@ -999,13 +1003,13 @@ class RecArrayIO(unittest.TestCase):
 
         # Create a recarray
         intlist1 = [[[23, 24, 35]*6]*6]
-        intlist2 = array([[[2, 3, 4]*6]*6], dtype=int)
+        intlist2 = np.array([[[2, 3, 4]*6]*6], dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2, 2.3]*3]*4
-        floatlist2 = array([[4.5, 2.4]*3]*4)
+        floatlist2 = np.array([[4.5, 2.4]*3]*4)
         b=[[intlist1, arrlist1, floatlist1], [intlist2, arrlist2, floatlist2]]
-        r=numpy.rec.array(b*300,  formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
+        r=np.rec.array(b*300,  formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
                           names='col1,col2,col3')
 
         # Get an slice of recarray
@@ -1027,13 +1031,13 @@ class RecArrayIO(unittest.TestCase):
 
         # Create a recarray
         intlist1 = [[[23, 24, 35]*6]*6]
-        intlist2 = array([[[2, 3, 4]*6]*6], dtype=int)
+        intlist2 = np.array([[[2, 3, 4]*6]*6], dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2, 2.3]*3]*4
-        floatlist2 = array([[4.5, 2.4]*3]*4)
+        floatlist2 = np.array([[4.5, 2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1], [intlist2, arrlist2, floatlist2]]
-        r=numpy.rec.array(b*300, formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
+        r=np.rec.array(b*300, formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
                           names='col1,col2,col3', shape=300)
 
         # Get an strided recarray
@@ -1111,7 +1115,8 @@ class RecArrayIO(unittest.TestCase):
         table.append([[[457, 458], s2, f2], [[5, 6], s3, f3]])
 
         # Modify just one existing column
-        columns = records.fromarrays(array([[[2, 3], [3, 4], [4, 5]]]), formats="i4")
+        columns = records.fromarrays(
+            np.array([[[2, 3], [3, 4], [4, 5]]]), formats="i4")
         table.modifyColumns(start=1, columns=columns, names=["col1"])
         # Create the modified recarray
         r1=records.array([[[456, 457], s0, f0], [[2, 3], s1, f1],
@@ -1151,7 +1156,8 @@ class RecArrayIO(unittest.TestCase):
         table.append([[[457, 458], s2, f2], [[5, 6], s3, f3]])
 
         # Modify just one existing column
-        columns = records.fromarrays(array([[[2, 3], [3, 4], [4, 5]]]), formats="i4")
+        columns = records.fromarrays(
+            np.array([[[2, 3], [3, 4], [4, 5]]]), formats="i4")
         table.modifyColumn(start=1, column=columns, colname="col1")
         # Create the modified recarray
         r1=records.array([[[456, 457], s0, f0], [[2, 3], s1, f1],
@@ -1203,7 +1209,7 @@ class DefaultValues(unittest.TestCase):
             (1, 1),
             ((1, 1), (1, 1)),
             2, 3.1, 4.2, 5, "e"]]
-        r = numpy.rec.array(
+        r = np.rec.array(
             buffer*nrows,
             formats='(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,f8,f4,u2,a1',
             names = ['var0', 'var1', 'var1_', 'var2', 'var3', 'var4', 'var5',

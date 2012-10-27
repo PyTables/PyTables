@@ -288,6 +288,8 @@ class Group(hdf5Extension.Group, Node):
 
         if self._v_file.params['PYTABLES_SYS_ATTRS']:
             childCID = self._g_getLChildAttr(childName, 'CLASS')
+            if childCID is not None and not isinstance(childCID, str):
+                childCID = childCID.decode('utf-8')
         else:
             childCID = None
 
@@ -571,7 +573,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         stats = kwargs.get('stats', None)
 
         # Fix arguments with explicit None values for backwards compatibility.
-        if title is None:  title = self._v_title
+        if title is None:
+            title = self._v_title
         # If no filters have been passed to the call, copy them from the
         # source group, but only if inherited or explicitly set.
         if filters is None:

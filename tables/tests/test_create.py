@@ -18,6 +18,8 @@ import unittest
 import tempfile
 import warnings
 
+import numpy
+
 from tables import *
 # important objects to test
 from tables import Group, Leaf, Table, Array, hdf5Version
@@ -1436,6 +1438,21 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
 
 
+class FilterTestCase(common.PyTablesTestCase):
+    def test_filter_01(self):
+        self.assertEqual(type(Filters()._pack()), numpy.int64)
+
+    def test_filter_02(self):
+        if sys.version_info[0] > 2:
+            hexl = lambda n: hex(int(n))
+        else:
+            hexl = lambda n: hex(long(n))
+            self.assertEqual(hexl(Filters()._pack()), '0x0L')
+            self.assertEqual(hexl(Filters(1, shuffle=False)._pack()), '0x101L')
+            filter_ = Filters(9, 'zlib', shuffle=True, fletcher32=True)
+            self.assertEqual(hexl(filter_._pack()), '0x30109L')
+
+
 class DefaultDriverTestCase(common.PyTablesTestCase):
     DRIVER = None
     DRIVER_PARAMS = {}
@@ -1605,7 +1622,10 @@ class Sec2DriverTestCase(DefaultDriverTestCase):
         def test_get_file_image(self):
             image = self.h5file.get_file_image()
             self.assertTrue(len(image) > 0)
-            self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+            if sys.version_info[0] < 3:
+                self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+            else:
+                self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
 class StdioDriverTestCase(DefaultDriverTestCase):
@@ -1615,7 +1635,10 @@ class StdioDriverTestCase(DefaultDriverTestCase):
         def test_get_file_image(self):
             image = self.h5file.get_file_image()
             self.assertTrue(len(image) > 0)
-            self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+            if sys.version_info[0] < 3:
+                self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+            else:
+                self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
 class CoreDriverTestCase(DefaultDriverTestCase):
@@ -1625,7 +1648,10 @@ class CoreDriverTestCase(DefaultDriverTestCase):
         def test_get_file_image(self):
             image = self.h5file.get_file_image()
             self.assertTrue(len(image) > 0)
-            self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+            if sys.version_info[0] < 3:
+                self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+            else:
+                self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
 class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
@@ -1861,7 +1887,10 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
             image = self.h5file.get_file_image()
 
             self.assertTrue(len(image) > 0)
-            self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+            if sys.version_info[0] < 3:
+                self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+            else:
+                self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
 class NotSpportedDriverTestCase(common.PyTablesTestCase):
@@ -1986,13 +2015,19 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
     def test_newFileW(self):
         image = self._create_image(self.h5fname, mode='w')
         self.assertTrue(len(image) > 0)
-        self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+        if sys.version_info[0] < 3:
+            self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+        else:
+            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
         self.assertFalse(os.path.exists(self.h5fname))
 
     def test_newFileA(self):
         image = self._create_image(self.h5fname, mode='a')
         self.assertTrue(len(image) > 0)
-        self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+        if sys.version_info[0] < 3:
+            self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
+        else:
+            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
         self.assertFalse(os.path.exists(self.h5fname))
 
     def test_openFileR(self):
@@ -2235,6 +2270,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyFileCase2))
         theSuite.addTest(unittest.makeSuite(GroupFiltersTestCase))
         theSuite.addTest(unittest.makeSuite(SetBloscMaxThreadsTestCase))
+        theSuite.addTest(unittest.makeSuite(FilterTestCase))
         theSuite.addTest(doctest.DocTestSuite(tables.filters))
 
         theSuite.addTest(unittest.makeSuite(DefaultDriverTestCase))

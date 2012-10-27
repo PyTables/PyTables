@@ -13,6 +13,7 @@
 """Here is defined the AttributeSet class."""
 
 import re
+import sys
 import warnings
 import cPickle
 import numpy
@@ -51,9 +52,9 @@ FORCE_COPY_CLASS = ['CLASS', 'VERSION']
 # Regular expression for column default values.
 _field_fill_re = re.compile('^FIELD_[0-9]+_FILL$')
 # Regular expression for fixing old pickled filters.
-_old_filters_re = re.compile(r'\(([ic])tables\.Leaf\n')
+_old_filters_re = re.compile(br'\(([ic])tables\.Leaf\n')
 # Fixed version of the previous string.
-_new_filters_sub = r'(\1tables.filters\n'
+_new_filters_sub = br'(\1tables.filters\n'
 
 def issysattrname(name):
     "Check if a name is a system attribute or not"
@@ -99,7 +100,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     scalar H5T_NATIVE_LLONG will be read and returned as a numpy.int64
     scalar).
 
-    However, other kinds of values are serialized using cPickle, so you
+    However, other kinds of values are serialized using pickle, so you
     only will be able to correctly retrieve them using a Python-aware
     HDF5 library.  Thus, if you want to save Python scalar values and
     make sure you are able to read them with generic HDF5 tools, you
@@ -109,8 +110,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
     One more advice: because of the various potential difficulties in
     restoring a Python object stored in an attribute, you may end up
-    getting a cPickle string where a Python object is expected. If this
-    is the case, you may wish to run cPickle.loads() on that string to
+    getting a pickle string where a Python object is expected. If this
+    is the case, you may wish to run pickle.loads() on that string to
     get an idea of where things went wrong, as shown in this example::
 
         >>> import os, tempfile
@@ -131,8 +132,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         >>> h5f = tables.openFile(h5fname, 'r')
         >>> print repr(h5f.root._v_attrs.obj)
         'ccopy_reg\\n_reconstructor...
-        >>> import cPickle  # let's unpickle that to see what went wrong
-        >>> cPickle.loads(h5f.root._v_attrs.obj)
+        >>> import pickle  # let's unpickle that to see what went wrong
+        >>> pickle.loads(h5f.root._v_attrs.obj)
         Traceback (most recent call last):
         ...
         AttributeError: 'module' object has no attribute 'MyClass'
@@ -295,10 +296,10 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Pickled values always seems to end with a "."
         maybe_pickled = (
             isinstance(value, numpy.generic) and  # NumPy scalar?
-            value.dtype.type == numpy.string_ and # string type?
-            value.itemsize > 0 and value[-1] == '.' )
+            value.dtype.type == numpy.bytes_ and  # string type?
+            value.itemsize > 0 and value.endswith(b'.') )
 
-        if ( maybe_pickled and value in ["0", "0."] ):
+        if ( maybe_pickled and value in [b"0", b"0."] ):
             # Workaround for a bug in many versions of Python (starting
             # somewhere after Python 2.6.1).  See ticket #253.
             retval = value
@@ -320,7 +321,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             try:
                 retval = cPickle.loads(value)
             #except cPickle.UnpicklingError:
-            # It seems that cPickle may raise other errors than UnpicklingError
+            # It seems that pickle may raise other errors than UnpicklingError
             # Perhaps it would be better just an "except:" clause?
             #except (cPickle.UnpicklingError, ImportError):
             # Definitely (see SF bug #1254636)
@@ -339,6 +340,14 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 retval = numpy.array(retval)[()]
         elif name == 'FILTERS' and format_version >= (2, 0):
             retval = Filters._unpack(value)
+        elif issysattrname(name) and isinstance(value, (bytes, unicode)) and \
+                not isinstance(value, str) and not _field_fill_re.match(name):
+            # system attributes should always be str
+            if sys.version_info[0] < 3:
+                retval = value.encode()
+            else:
+                # python 3, bytes and not "FIELD_[0-9]+_FILL"
+                retval = value.decode('utf-8')
         else:
             retval = value
 
@@ -374,7 +383,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # (only in case it has not been converted yet)
         # Fixes ticket #59
         if (stvalue is value and
-            type(value) in (bool, str, int, float, complex, unicode)):
+            type(value) in (bool, bytes, int, float, complex, unicode)):
             # Additional check for allowing a workaround for #307
             if isinstance(value, unicode) and value == u'':
                 value = numpy.array(value)[()]

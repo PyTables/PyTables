@@ -12,6 +12,7 @@
 
 """Utilities to be used mainly by the Index class."""
 
+import sys
 import math
 import numpy
 
@@ -362,9 +363,9 @@ def infType(dtype, itemsize, sign=+1):
 
     if dtype.kind == "S":
         if sign < 0:
-            return "\x00"*itemsize
+            return b"\x00"*itemsize
         else:
-            return "\xff"*itemsize
+            return b"\xff"*itemsize
     try:
         return infinityMap[dtype.name][sign >= 0]
     except KeyError:
@@ -472,33 +473,37 @@ def StringNextAfter(x, direction, itemsize):
     # Pad the string with \x00 chars until itemsize completion
     padsize = itemsize - len(x)
     if padsize > 0:
-        x += "\x00"*padsize
-    xlist = list(x); xlist.reverse()
+        x += b"\x00"*padsize
+    if sys.version_info[0] < 3:
+        xlist = list(x)
+    else:
+        xlist = [i.to_bytes(1, sys.byteorder) for i in x]
+    xlist.reverse()
     i = 0
     if direction > 0:
-        if xlist == "\xff"*itemsize:
+        if xlist == b"\xff"*itemsize:
             # Maximum value, return this
-            return "".join(xlist)
+            return b"".join(xlist)
         for xchar in xlist:
             if ord(xchar) < 0xff:
-                xlist[i] = chr(ord(xchar)+1)
+                xlist[i] = chr(ord(xchar) + 1).encode('ascii')
                 break
             else:
-                xlist[i] = "\x00"
+                xlist[i] = b"\x00"
             i += 1
     else:
-        if xlist == "\x00"*itemsize:
+        if xlist == b"\x00"*itemsize:
             # Minimum value, return this
-            return "".join(xlist)
+            return b"".join(xlist)
         for xchar in xlist:
             if ord(xchar) > 0x00:
-                xlist[i] = chr(ord(xchar)-1)
+                xlist[i] = chr(ord(xchar) - 1).encode('ascii')
                 break
             else:
-                xlist[i] = "\xff"
+                xlist[i] = b"\xff"
             i += 1
     xlist.reverse()
-    return "".join(xlist)
+    return b"".join(xlist)
 
 
 def IntTypeNextAfter(x, direction, itemsize):

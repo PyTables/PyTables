@@ -30,11 +30,12 @@ from tables.atom import Atom, EnumAtom
 
 from tables.utils import checkFileAccess
 
+from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp, strlen
-from cpython cimport PyString_AsString
-from cpython.unicode cimport PyUnicode_DecodeUTF8
+from cpython.bytes cimport PyBytes_Check
+from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 from numpy cimport (import_array, ndarray, dtype,
   NPY_INT64, npy_int64,
   PyArray_DescrFromType)
@@ -46,13 +47,14 @@ from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
   H5E_auto_t, H5Eset_auto, H5Eprint, H5Eget_msg,
   H5E_error_t, H5E_walk_t, H5Ewalk, H5E_WALK_DOWNWARD, H5E_DEFAULT,
   H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
-  H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose, H5T_CSET_UTF8,
+  H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
   H5Tget_member_value, H5Tget_size, H5Tget_native_type,
   H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, H5Tget_precision,
   H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tvlen_create,
   H5Tarray_create, H5Tget_array_ndims, H5Tget_array_dims,
   H5Tis_variable_str, H5Tset_size, H5Tset_precision, H5Tpack,
+  H5T_CSET_ASCII, H5T_CSET_UTF8,
   H5ATTRget_attribute_string, H5ATTRfind_attribute,
   H5ARRAYget_ndims, H5ARRAYget_info,
   create_ieee_float16, create_ieee_complex64, create_ieee_complex128,
@@ -106,13 +108,16 @@ cdef extern from "blosc.h" nogil:
 import_array()
 
 cdef register_blosc_():
-  cdef char *version_string, *version_date
+  cdef char *version, *date
 
-  register_blosc(&version_string, &version_date)
-  version = (version_string, version_date)
-  free(version_string)
-  free(version_date)
-  return version
+  register_blosc(&version, &date)
+  compinfo = (version, date)
+  free(version)
+  free(date)
+  if sys.version_info[0] > 2:
+    return compinfo[0].decode('ascii'), compinfo[1].decode('ascii')
+  else:
+    return compinfo
 
 # The version of the blosc compression library that is currently included in
 # PyTables relies on unaligned memory access, so it is not functional on some
@@ -420,11 +425,14 @@ cdef hid_t get_native_type(hid_t type_id) nogil:
 def encode_filename(object filename):
   """Return the encoded filename in the filesystem encoding."""
 
+  cdef bytes encname
+
   if type(filename) is unicode:
     encoding = sys.getfilesystemencoding()
     encname = filename.encode(encoding)
   else:
     encname = filename
+
   return encname
 
 
@@ -463,8 +471,8 @@ def isPyTablesFile(object filename):
   """
 
   cdef hid_t file_id
+  cdef object isptf = None  # A PYTABLES_FORMAT_VERSION attribute was not found
 
-  isptf = None    # A PYTABLES_FORMAT_VERSION attribute was not found
   if isHDF5File(filename):
     # Encode the filename in case it is unicode
     encname = encode_filename(filename)
@@ -474,6 +482,12 @@ def isPyTablesFile(object filename):
     isptf = read_f_attr(file_id, 'PYTABLES_FORMAT_VERSION')
     # Close the file
     H5Fclose(file_id)
+
+    # system attributes should always be str
+    if PY_MAJOR_VERSION < 3 and PyUnicode_Check(isptf):
+        isptf = isptf.encode()
+    elif PY_MAJOR_VERSION > 2 and PyBytes_Check(isptf):
+        isptf = isptf.decode('utf-8')
 
   return isptf
 
@@ -490,7 +504,7 @@ def getPyTablesVersion():
   return _getTablesVersion()
 
 
-def whichLibVersion(char *name):
+def whichLibVersion(str name):
   """whichLibVersion(name)
 
   Get version information about a C library.
@@ -504,23 +518,30 @@ def whichLibVersion(char *name):
   another name is given, a ValueError is raised.
   """
 
+  cdef char *cname = NULL
+  cdef bytes encoded_name
+
+  encoded_name = name.encode('utf-8')
+  # get the C pointer
+  cname = encoded_name
+
   libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc')
 
-  if strcmp(name, "hdf5") == 0:
+  if strcmp(cname, "hdf5") == 0:
     binver, strver = getHDF5VersionInfo()
     return (binver, strver, None)     # Should be always available
-  elif strcmp(name, "zlib") == 0:
+  elif strcmp(cname, "zlib") == 0:
     if zlib_imported:
       return (1, zlib.ZLIB_VERSION, None)
-  elif strcmp(name, "lzo") == 0:
+  elif strcmp(cname, "lzo") == 0:
     if lzo_version:
       (lzo_version_string, lzo_version_date) = lzo_version
       return (lzo_version, lzo_version_string, lzo_version_date)
-  elif strcmp(name, "bzip2") == 0:
+  elif strcmp(cname, "bzip2") == 0:
     if bzip2_version:
       (bzip2_version_string, bzip2_version_date) = bzip2_version
       return (bzip2_version, bzip2_version_string, bzip2_version_date)
-  elif strcmp(name, "blosc") == 0:
+  elif strcmp(cname, "blosc") == 0:
     if blosc_version:
       (blosc_version_string, blosc_version_date) = blosc_version
       return (blosc_version, blosc_version_string, blosc_version_date)
@@ -532,7 +553,7 @@ def whichLibVersion(char *name):
   return None
 
 
-def whichClass(hid_t loc_id, char *name):
+def whichClass(hid_t loc_id, str name):
   """Detects a class ID using heuristics."""
 
   cdef H5T_class_t  class_id
@@ -545,10 +566,14 @@ def whichClass(hid_t loc_id, char *name):
   cdef int          rank
   cdef hsize_t      *dims, *maxdims
   cdef char         byteorder[11]  # "irrelevant" fits easily here
+  cdef bytes        encoded_name
+
+  encoded_name = name.encode('utf-8')
 
   classId = "UNSUPPORTED"  # default value
   # Get The HDF5 class for the datatype in this dataset
-  class_id = getHDF5ClassID(loc_id, name, &layout, &type_id, &dataset_id)
+  class_id = getHDF5ClassID(loc_id, encoded_name, &layout, &type_id,
+                            &dataset_id)
   # Check if this a dataset of supported classtype for ARRAY
   if  ((class_id == H5T_INTEGER)  or
        (class_id == H5T_FLOAT)    or
@@ -627,8 +652,9 @@ def getNestedField(recarray, fieldname):
   The `fieldname` may be a simple field name or a nested field name
   with slah-separated components.
   """
+  cdef bytes name = fieldname.encode('utf-8')
   try:
-    if strchr(<char *>fieldname, 47) != NULL:   # ord('/') == 47
+    if strchr(<char *>name, 47) != NULL:   # ord('/') == 47
       # It may be convenient to implement this way of descending nested
       # fields into the ``__getitem__()`` method of a subclass of
       # ``numpy.ndarray``.  -- ivb
@@ -658,42 +684,52 @@ def getIndices(object start, object stop, object step, hsize_t length):
   return (o_start, o_stop, o_step)
 
 
-def read_f_attr(hid_t file_id, char *attr_name):
+def read_f_attr(hid_t file_id, str attr_name):
   """Read PyTables file attributes (i.e. in root group).
 
   Returns the value of the `attr_name` attribute in root group, or `None` if
   it does not exist.  This call cannot fail.
   """
 
-  cdef herr_t ret
+  cdef size_t size
   cdef char *attr_value
-  cdef int cset
+  cdef int cset = H5T_CSET_ASCII
   cdef object retvalue
+  cdef bytes encoded_attr_name
+  cdef char *c_attr_name = NULL
+
+  encoded_attr_name = attr_name.encode('utf-8')
+  # Get the C pointer
+  c_attr_name = encoded_attr_name
 
   attr_value = NULL
   retvalue = None
   # Check if attribute exists
-  if H5ATTRfind_attribute(file_id, attr_name):
+  if H5ATTRfind_attribute(file_id, c_attr_name):
     # Read the attr_name attribute
-    ret = H5ATTRget_attribute_string(file_id, attr_name, &attr_value, &cset)
-    if ret >= 0:
+    size = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
+    if size > 0:
       if cset == H5T_CSET_UTF8:
         retvalue = PyUnicode_DecodeUTF8(attr_value, strlen(attr_value), NULL)
+        retvalue = numpy.str_(retvalue)
       else:
         retvalue = attr_value
+        retvalue = numpy.bytes_(retvalue)
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
       free(attr_value)
 
-  if retvalue is not None:
-    return numpy.string_(retvalue)
-  else:
-    return None
+  return retvalue
 
 
 def getFilters(parent_id, name):
   """Get a dictionary with the filter names and cd_values"""
-  return get_filter_names(parent_id, name)
+
+  cdef bytes encoded_name
+
+  encoded_name = name.encode('utf-8')
+
+  return get_filter_names(parent_id, encoded_name)
 
 
 # This is used by several <Leaf>._convertTypes() methods.
@@ -729,7 +765,7 @@ def getTypeEnum(hid_t h5type):
   return enumId
 
 
-def enumFromHDF5(hid_t enumId, char *byteorder):
+def enumFromHDF5(hid_t enumId, str byteorder):
   """enumFromHDF5(enumId) -> (Enum, npType)
 
   Convert an HDF5 enumerated type to a PyTables one.
@@ -744,6 +780,7 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
   cdef char   *ename
   cdef ndarray npvalue
   cdef object dtype
+  cdef str pyename
 
   # Find the base type of the enumerated type, and get the atom
   baseId = H5Tget_super(enumId)
@@ -771,7 +808,12 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
     if ename == NULL:
       raise HDF5ExtError(
         "failed to get element name from HDF5 enumerated type")
-    pyename = str(ename)
+
+    if PY_MAJOR_VERSION > 2:
+      pyename = PyUnicode_DecodeUTF8(ename, strlen(ename), NULL)
+    else:
+      pyename = ename
+
     free(ename)
 
     if H5Tget_member_value(enumId, i, rbuf) < 0:
@@ -784,7 +826,7 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
   return Enum(enumDict), dtype
 
 
-def enumToHDF5(object enumAtom, char *byteorder):
+def enumToHDF5(object enumAtom, str byteorder):
   """enumToHDF5(enumAtom, byteorder) -> hid_t
 
   Convert a PyTables enumerated type to an HDF5 one.
@@ -795,7 +837,7 @@ def enumToHDF5(object enumAtom, char *byteorder):
   returned.
   """
 
-  cdef char  *name
+  cdef bytes  name
   cdef hid_t  baseId, enumId
   cdef long   bytestride, i
   cdef void  *rbuffer, *rbuf
@@ -820,7 +862,7 @@ def enumToHDF5(object enumAtom, char *byteorder):
   bytestride = npValues.strides[0]
   rbuffer = npValues.data
   for i from 0 <= i < len(npNames):
-    name = PyString_AsString(npNames[i])
+    name = npNames[i].encode('utf-8')
     rbuf = <void *>(<char *>rbuffer + bytestride * i)
     if H5Tenum_insert(enumId, name, rbuf) < 0:
       e = HDF5ExtError("failed to insert value into HDF5 enumerated type")
@@ -832,24 +874,30 @@ def enumToHDF5(object enumAtom, char *byteorder):
   return enumId
 
 
-def AtomToHDF5Type(atom, char *byteorder):
+def AtomToHDF5Type(atom, str byteorder):
   cdef hid_t   tid = -1
-  cdef hsize_t *dims
+  cdef hsize_t *dims = NULL
+  cdef bytes   encoded_byteorder
+  cdef char    *cbyteorder = NULL
+
+  encoded_byteorder = byteorder.encode('utf-8')
+  # Get the C pointer
+  cbyteorder = encoded_byteorder
 
   # Create the base HDF5 type
   if atom.type in PTTypeToHDF5:
     tid = H5Tcopy(PTTypeToHDF5[atom.type])
     # Fix the byteorder
     if atom.kind != 'time':
-      set_order(tid, byteorder)
+      set_order(tid, cbyteorder)
   elif atom.type == 'float16':
-    tid = create_ieee_float16(byteorder)
+    tid = create_ieee_float16(cbyteorder)
   elif atom.kind in PTSpecialKinds:
     # Special cases (the byteorder doesn't need to be fixed afterwards)
     if atom.type == 'complex64':
-      tid = create_ieee_complex64(byteorder)
+      tid = create_ieee_complex64(cbyteorder)
     elif atom.type == 'complex128':
-      tid = create_ieee_complex128(byteorder)
+      tid = create_ieee_complex128(cbyteorder)
     elif atom.kind == 'string':
       tid = H5Tcopy(H5T_C_S1);
       H5Tset_size(tid, atom.itemsize)
@@ -880,12 +928,17 @@ def loadEnum(hid_t type_id):
   """
 
   cdef hid_t enumId
-  cdef char  byteorder[11]  # "irrelevant" fits well here
+  cdef char c_byteorder[11]  # "irrelevant" fits well here
+  cdef str byteorder
 
   # Get the enumerated type
   enumId = getTypeEnum(type_id)
   # Get the byteorder
-  get_order(type_id, byteorder)
+  get_order(type_id, c_byteorder)
+  if PY_MAJOR_VERSION > 2:
+    byteorder = PyUnicode_DecodeUTF8(c_byteorder, strlen(c_byteorder), NULL)
+  else:
+    byteorder = c_byteorder
   # Get the Enum and NumPy types and close the HDF5 type.
   try:
     return enumFromHDF5(enumId, byteorder)
@@ -900,9 +953,10 @@ def HDF5ToNPNestedType(hid_t type_id):
   cdef hid_t   member_type_id
   cdef hsize_t nfields
   cdef int     i
-  cdef char    *colname
+  cdef char    *c_colname
   cdef H5T_class_t class_id
   cdef object  desc
+  cdef str     colname
 
   desc = {}
   # Get the number of members
@@ -910,7 +964,11 @@ def HDF5ToNPNestedType(hid_t type_id):
   # Iterate thru the members
   for i from 0 <= i < nfields:
     # Get the member name
-    colname = H5Tget_member_name(type_id, i)
+    c_colname = H5Tget_member_name(type_id, i)
+    if PY_MAJOR_VERSION > 2:
+      colname = PyUnicode_DecodeUTF8(c_colname, strlen(c_colname), NULL)
+    else:
+      colname = c_colname
     # Get the member type
     member_type_id = H5Tget_member_type(type_id, i)
     # Get the HDF5 class
@@ -924,7 +982,7 @@ def HDF5ToNPNestedType(hid_t type_id):
 
     # Release resources
     H5Tclose(member_type_id)
-    free(colname)
+    free(c_colname)
 
   return desc
 
@@ -1045,7 +1103,7 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
   if stype == 'e':
     (enum, nptype) = loadEnum(type_id)
     # Take one of the names as the default in the enumeration.
-    dflt = iter(enum).next()[0]
+    dflt = next(iter(enum))[0]
     base = Atom.from_dtype(nptype)
     atom_ = EnumAtom(enum, dflt, base, shape=shape)
   else:
@@ -1056,11 +1114,12 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
   return atom_
 
 
-def createNestedType(object desc, char *byteorder):
+def createNestedType(object desc, str byteorder):
   """Create a nested type based on a description and return an HDF5 type."""
 
-  cdef hid_t   tid, tid2
-  cdef size_t  offset
+  cdef hid_t tid, tid2
+  cdef size_t offset
+  cdef bytes encoded_name
 
   tid = H5Tcreate(H5T_COMPOUND, desc._v_itemsize)
   if tid < 0:
@@ -1073,7 +1132,8 @@ def createNestedType(object desc, char *byteorder):
       tid2 = createNestedType(obj, byteorder)
     else:
       tid2 = AtomToHDF5Type(obj, byteorder)
-    H5Tinsert(tid, k, offset, tid2)
+    encoded_name = k.encode('utf-8')
+    H5Tinsert(tid, encoded_name, offset, tid2)
     offset = offset + desc._v_dtype[k].itemsize
     # Release resources
     H5Tclose(tid2)

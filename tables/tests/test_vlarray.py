@@ -7,6 +7,7 @@ import tempfile
 import cPickle
 
 import numpy
+import numpy.testing as npt
 
 from tables import *
 from tables.tests import common
@@ -326,9 +327,9 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(
-            allequal(row[0], numpy.array(["1", "12", "123", "123", "123"])))
-        self.assertTrue(allequal(row[1], numpy.array(["1", "123"])))
+        npt.assert_array_equal(
+            row[0], numpy.array(["1", "12", "123", "123", "123"], 'S'))
+        npt.assert_array_equal(row[1], numpy.array(["1", "123"], 'S'))
         self.assertEqual(len(row[0]), 5)
         self.assertEqual(len(row[1]), 2)
 
@@ -360,8 +361,8 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(allequal(row[0], numpy.array(["1", "123", "123"])))
-        self.assertTrue(allequal(row[1], numpy.array(["1", "321"])))
+        npt.assert_array_equal(row[0], numpy.array(["1", "123", "123"], 'S'))
+        npt.assert_array_equal(row[1], numpy.array(["1", "321"], 'S'))
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 2)
 
@@ -393,9 +394,9 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(
-            allequal(row[0], numpy.array(["1", "12", "123", "123"])))
-        self.assertTrue(allequal(row[1], numpy.array(["1", "2", "321"])))
+        npt.assert_array_equal(
+            row[0], numpy.array(["1", "12", "123", "123"], 'S'))
+        npt.assert_array_equal(row[1], numpy.array(["1", "2", "321"], 'S'))
         self.assertEqual(len(row[0]), 4)
         self.assertEqual(len(row[1]), 3)
 
@@ -428,8 +429,8 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], ["1", "12", "123", "123", "123"])
-        self.assertEqual(row[1], ["1", "123"])
+        self.assertEqual(row[0], [b"1", b"12", b"123", b"123", b"123"])
+        self.assertEqual(row[1], [b"1", b"123"])
         self.assertEqual(len(row[0]), 5)
         self.assertEqual(len(row[1]), 2)
 
@@ -466,7 +467,7 @@ class TypesTestCase(unittest.TestCase):
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertTrue(
-            allequal(row[0], numpy.array(["1", "123", "12", "", "123"])))
+            allequal(row[0], numpy.array([b"1", b"123", b"12", b"", b"123"])))
         self.assertTrue(allequal(row[1], numpy.array(["44", "4"], dtype="S3")))
         self.assertEqual(len(row[0]), 5)
         self.assertEqual(len(row[1]), 2)
@@ -504,8 +505,8 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], ["1", "123", "12", "", "123"])
-        self.assertEqual(row[1], ["44", "4"])
+        self.assertEqual(row[0], [b"1", b"123", b"12", b"", b"123"])
+        self.assertEqual(row[1], [b"44", b"4"])
         self.assertEqual(len(row[0]), 5)
         self.assertEqual(len(row[1]), 2)
 
@@ -1230,8 +1231,8 @@ class TypesTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", repr(row[1])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], "as4")
-        self.assertEqual(row[1], "aaanc")
+        self.assertEqual(row[0], b"as4")
+        self.assertEqual(row[1], b"aaanc")
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 5)
 
@@ -1280,7 +1281,7 @@ class TypesTestCase(unittest.TestCase):
 
         vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
         # When updating an object, this seems to change the number
-        # of bytes that cPickle.dumps generates
+        # of bytes that pickle.dumps generates
         #vlarray.append(([1,2,3], "aaa", u"aaaççç"))
         vlarray.append(([1, 2, 3], "aaa", u"çç4"))
         #vlarray.append([3,4, C()])
@@ -1517,11 +1518,11 @@ class MDTypesTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", row[1]
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(
-            allequal(row[0], numpy.array([["123", "45"], ["45", "123"]])))
-        self.assertTrue(
-            allequal(row[1], numpy.array([["s", "abc"], ["abc", "f"],
-                                          ["s", "ab"], ["ab", "f"]])))
+        npt.assert_array_equal(
+            row[0], numpy.array([["123", "45"], ["45", "123"]], 'S'))
+        npt.assert_array_equal(
+            row[1], numpy.array([["s", "abc"], ["abc", "f"],
+                                 ["s", "ab"], ["ab", "f"]], 'S'))
         self.assertEqual(len(row[0]), 2)
         self.assertEqual(len(row[1]), 4)
 
@@ -1550,9 +1551,9 @@ class MDTypesTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", row[1]
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], [["123", "45"], ["45", "123"]])
-        self.assertEqual(row[1], [["s", "abc"], ["abc", "f"],
-                                  ["s", "ab"], ["ab", "f"]])
+        self.assertEqual(row[0], [[b"123", b"45"], [b"45", b"123"]])
+        self.assertEqual(row[1], [[b"s", b"abc"], [b"abc", b"f"],
+                                  [b"s", b"ab"], [b"ab", b"f"]])
         self.assertEqual(len(row[0]), 2)
         self.assertEqual(len(row[1]), 4)
 
@@ -1585,9 +1586,9 @@ class MDTypesTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", row[1]
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], [["123", "45"], ["45", "123"]])
-        self.assertEqual(row[1], [["s", "abc"], ["abc", "f"],
-                                  ["s", "ab"], ["ab", "f"]])
+        self.assertEqual(row[0], [[b"123", b"45"], [b"45", b"123"]])
+        self.assertEqual(row[1], [[b"s", b"abc"], [b"abc", b"f"],
+                                  [b"s", b"ab"], [b"ab", b"f"]])
         self.assertEqual(len(row[0]), 2)
         self.assertEqual(len(row[1]), 4)
 
@@ -1619,8 +1620,8 @@ class MDTypesTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", row[1]
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], [["123", "45"]])
-        self.assertEqual(row[1], [["s", "a"], ["abc", "f"]])
+        self.assertEqual(row[0], [[b"123", b"45"]])
+        self.assertEqual(row[1], [[b"s", b"a"], [b"abc", b"f"]])
         self.assertEqual(len(row[0]), 1)
         self.assertEqual(len(row[1]), 2)
 
@@ -4130,9 +4131,9 @@ class SizeInMemoryPropertyTestCase(unittest.TestCase):
         obj = [1, 2, 3]
         for i in xrange(10):
             self.array.append([obj])
-        pickle = cPickle.dumps(obj)
-        pickle_array = numpy.ndarray(buffer=pickle, dtype='uint8',
-                                     shape=len(pickle))
+        pickle_ = cPickle.dumps(obj)
+        pickle_array = numpy.ndarray(buffer=pickle_, dtype='uint8',
+                                     shape=len(pickle_))
         expected_size = 10 * pickle_array.nbytes
         self.assertEqual(self.array.size_in_memory, expected_size)
 

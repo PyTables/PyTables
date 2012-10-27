@@ -63,7 +63,7 @@ class BasicTestCase(unittest.TestCase):
 
         if self.flavor == "numpy":
             if self.type == "string":
-                object = numpy.ndarray(buffer="a"*self.objsize,
+                object = numpy.ndarray(buffer=b"a"*self.objsize,
                                        shape=self.shape,
                                        dtype="S%s" % carray.atom.itemsize)
             else:
@@ -116,7 +116,7 @@ class BasicTestCase(unittest.TestCase):
         # Build the array to do comparisons
         if self.flavor == "numpy":
             if self.type == "string":
-                object_ = numpy.ndarray(buffer="a"*self.objsize,
+                object_ = numpy.ndarray(buffer=b"a"*self.objsize,
                                         shape=self.shape,
                                         dtype="S%s" % carray.atom.itemsize)
             else:
@@ -187,7 +187,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = numpy.ndarray(buffer="a"*self.objsize,
+            object_ = numpy.ndarray(buffer=b"a"*self.objsize,
                                     shape=self.shape,
                                     dtype="S%s" % carray.atom.itemsize)
         else:
@@ -248,7 +248,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = numpy.ndarray(buffer="a"*self.objsize,
+            object_ = numpy.ndarray(buffer=b"a"*self.objsize,
                                     shape=self.shape,
                                     dtype="S%s" % carray.atom.itemsize)
         else:
@@ -814,8 +814,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Second row in carray ==>", data[1].tolist()
 
         self.assertEqual(carray.nrows, 3)
-        self.assertEqual(data[0].tolist(), [["123", "45"], ["45", "123"]])
-        self.assertEqual(data[1].tolist(), [["s", "abc"], ["abc", "f"]])
+        self.assertEqual(data[0].tolist(), [[b"123", b"45"], [b"45", b"123"]])
+        self.assertEqual(data[1].tolist(), [[b"s", b"abc"], [b"abc", b"f"]])
         self.assertEqual(len(data[0]), 2)
         self.assertEqual(len(data[1]), 2)
 
@@ -846,8 +846,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Second row in carray ==>", data[1].tolist()
 
         self.assertEqual(carray.nrows, 3)
-        self.assertEqual(data[0].tolist(), [["a", "b"], ["45", "123"]])
-        self.assertEqual(data[1].tolist(), [["s", "a"], ["s", "abc"]])
+        self.assertEqual(data[0].tolist(), [[b"a", b"b"], [b"45", b"123"]])
+        self.assertEqual(data[1].tolist(), [[b"s", b"a"], [b"s", b"abc"]])
         self.assertEqual(len(data[0]), 2)
         self.assertEqual(len(data[1]), 2)
 
@@ -1820,7 +1820,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create a CArray with default values
         self.h5file.createCArray(
-            '/', 'bar', StringAtom(itemsize=5, dflt="abdef"), (10, 10))
+            '/', 'bar', StringAtom(itemsize=5, dflt=b"abdef"), (10, 10))
 
         if self.reopen:
             self._reopen()
@@ -1876,7 +1876,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00a_zeros(self):
         "Testing default values.  Zeros (scalar)."
         N = ()
-        atom = StringAtom(itemsize=3, shape=N, dflt="")
+        atom = StringAtom(itemsize=3, shape=N, dflt=b"")
         ca = self.h5file.createCArray('/', 'test', atom, (1,))
         if self.reopen:
             self._reopen('a')
@@ -1891,7 +1891,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00b_zeros(self):
         "Testing default values.  Zeros (array)."
         N = 2
-        atom = StringAtom(itemsize=3, shape=N, dflt="")
+        atom = StringAtom(itemsize=3, shape=N, dflt=b"")
         ca = self.h5file.createCArray('/', 'test', atom, (1,))
         if self.reopen:
             self._reopen('a')

@@ -41,14 +41,14 @@ Prerequisites
 
 First, make sure that you have
 
-* Python_ >= 2.4 (Python 3.x is not supported currently),
+* Python_ >= 2.6 (Python 3.x is not supported currently),
 * HDF5_ >= 1.8.4,
 * NumPy_ >= 1.4.1,
 * Numexpr_ >= 1.4.1 and
 * Cython_ >= 0.13
 
 installed (for testing purposes, we are using HDF5_ 1.8.9, NumPy_ 1.6.1
-and Numexpr_ 1.4.2 currently). If you don't, fetch and install them before
+and Numexpr_ 2.0.1 currently). If you don't, fetch and install them before
 proceeding.
 
 .. _Python: http://www.python.org
@@ -56,8 +56,6 @@ proceeding.
 .. _NumPy: http://numpy.scipy.org
 .. _Numexpr: http://code.google.com/p/numexpr
 .. _Cython: http://cython.org
-
-.. note:: Users of Python 2.4.x also need to install ctypes_
 
 .. note::
 
@@ -325,7 +323,7 @@ platforms. You may also find it useful for instructions on how to install
 Windows prerequisites
 ~~~~~~~~~~~~~~~~~~~~~
 
-First, make sure that you have Python 2.4, NumPy 1.4.1 and Numexpr 1.4.1 or
+First, make sure that you have Python 2.6, NumPy 1.4.1 and Numexpr 1.4.1 or
 higher installed (PyTables binaries have been built using NumPy 1.5 and
 Numexpr 1.4.1).  The binaries already include DLLs for HDF5 (1.8.4, 1.8.9),
 zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2 (1.0.5) for

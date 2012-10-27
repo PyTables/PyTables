@@ -16,7 +16,7 @@ from definitions cimport hid_t, hsize_t
 
 # Declaration of instance variables for shared classes
 cdef class Node:
-  cdef char  *name
+  cdef object name
   cdef hid_t  parent_id
 
 cdef class Leaf(Node):

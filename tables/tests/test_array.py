@@ -134,8 +134,8 @@ class BasicTestCase(unittest.TestCase):
         fileh = openFile(file, mode = "r")
         # Read the saved array
         b = fileh.root.somearray.read()
-        if isinstance(a, str):
-            self.assertEqual(type(b), str)
+        if isinstance(a, bytes):
+            self.assertEqual(type(b), bytes)
             self.assertEqual(a, b)
         else:
             # If a is not a python string, then it should be a list or ndarray
@@ -206,14 +206,14 @@ class Basic0DOneTestCase(BasicTestCase):
     # Scalar case
     title = "Rank-0 case 1"
     tupleInt = 3
-    tupleChar = "3"
+    tupleChar = b"3"
     endiancheck = True
 
 class Basic0DTwoTestCase(BasicTestCase):
     # Scalar case
     title = "Rank-0 case 2"
     tupleInt = 33
-    tupleChar = "33"
+    tupleChar = b"33"
     endiancheck = True
 
 class Basic1DZeroTestCase(BasicTestCase):
@@ -229,21 +229,21 @@ class Basic1DOneTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 1"
     tupleInt = (3,)
-    tupleChar = ("a",)
+    tupleChar = (b"a",)
     endiancheck = True
 
 class Basic1DTwoTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 2"
     tupleInt = (3, 4)
-    tupleChar = ("aaa",)
+    tupleChar = (b"aaa",)
     endiancheck = True
 
 class Basic1DThreeTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 3"
     tupleInt = (3, 4, 5)
-    tupleChar = ("aaa", "bbb",)
+    tupleChar = (b"aaa", b"bbb",)
     endiancheck = True
 
 class Basic2DOneTestCase(BasicTestCase):
@@ -366,7 +366,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test01_signedShort_unaligned(self):
         "Checking an unaligned signed short integer array"
 
-        r = numpy.rec.array('a'*200, formats='i1,f4,i2', shape=10)
+        r = numpy.rec.array(b'a'*200, formats='i1,f4,i2', shape=10)
         a = r["f2"]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
@@ -377,7 +377,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test02_float_unaligned(self):
         "Checking an unaligned single precision array"
 
-        r = numpy.rec.array('a'*200, formats='i1,f4,i2', shape=10)
+        r = numpy.rec.array(b'a'*200, formats='i1,f4,i2', shape=10)
         a = r["f1"]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, 0)
@@ -436,7 +436,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test09_float_offset_unaligned(self):
         "Checking an unaligned and offsetted single precision array"
 
-        r = numpy.rec.array('a'*200, formats='i1,3f4,i2', shape=10)
+        r = numpy.rec.array(b'a'*200, formats='i1,3f4,i2', shape=10)
         a = r["f1"][3]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
@@ -447,7 +447,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test10_double_offset_unaligned(self):
         "Checking an unaligned and offsetted double precision array"
 
-        r = numpy.rec.array('a'*400, formats='i1,3f8,i2', shape=10)
+        r = numpy.rec.array(b'a'*400, formats='i1,3f8,i2', shape=10)
         a = r["f1"][3]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
@@ -1322,8 +1322,8 @@ class GI1NATestCase(GetItemTestCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
-    charList = numpy.array(["3"])
-    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"])
+    charList = numpy.array(["3"], 'S')
+    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 class GI1NAOpenTestCase(GI1NATestCase):
     close = 0
@@ -1341,13 +1341,13 @@ class GI2NATestCase(GetItemTestCase):
                                       [3, 2, 1, 0, 4, 5, 6],
                                       [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a", "b"])
+    charList = numpy.array(["a", "b"], 'S')
     charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
                               ["21", "21", "11", "02", "42", "21", "61"],
                               ["31", "21", "12", "21", "41", "51", "621"],
                               ["321", "221", "121", "021", "421", "521", "621"],
                               ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]])
+                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 
 class GI2NAOpenTestCase(GI2NATestCase):
@@ -1374,8 +1374,8 @@ class SetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Modify a single element of a and arr:
-        a[0] = "b"
-        arr[0] = "b"
+        a[0] = b"b"
+        arr[0] = b"b"
 
         # Get and compare an element
         if common.verbose:
@@ -1434,8 +1434,8 @@ class SetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
-        a[1:3] = "xXx"
-        arr[1:3] = "xXx"
+        a[1:3] = b"xXx"
+        arr[1:3] = b"xXx"
 
         # Get and compare an element
         if common.verbose:
@@ -1497,8 +1497,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = slice(1, 4, 2)
-        a[s] = "xXx"
-        arr[s] = "xXx"
+        a[s] = b"xXx"
+        arr[s] = b"xXx"
 
         # Get and compare an element
         if common.verbose:
@@ -1560,8 +1560,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = -1
-        a[s] = "xXx"
-        arr[s] = "xXx"
+        a[s] = b"xXx"
+        arr[s] = b"xXx"
 
         # Get and compare an element
         if common.verbose:
@@ -1625,8 +1625,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = slice(-4, -1, None)
-        a[s] = "xXx"
-        arr[s] = "xXx"
+        a[s] = b"xXx"
+        arr[s] = b"xXx"
 
         # Get and compare an element
         if common.verbose:
@@ -1711,8 +1711,8 @@ class SI1NATestCase(SetItemTestCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
-    charList = numpy.array(["3"])
-    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"])
+    charList = numpy.array(["3"], 'S')
+    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 class SI1NAOpenTestCase(SI1NATestCase):
     close = 0
@@ -1730,13 +1730,13 @@ class SI2NATestCase(SetItemTestCase):
                                       [3, 2, 1, 0, 4, 5, 6],
                                       [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a", "b"])
+    charList = numpy.array(["a", "b"], 'S')
     charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
                               ["21", "21", "11", "02", "42", "21", "61"],
                               ["31", "21", "12", "21", "41", "51", "621"],
                               ["321", "221", "121", "021", "421", "521", "621"],
                               ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]])
+                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 class SI2NAOpenTestCase(SI2NATestCase):
     close = 0
@@ -1866,8 +1866,8 @@ class GE1NATestCase(GeneratorTestCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
-    charList = numpy.array(["3"])
-    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"])
+    charList = numpy.array(["3"], 'S')
+    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 class GE1NAOpenTestCase(GE1NATestCase):
     close = 0
@@ -1885,13 +1885,13 @@ class GE2NATestCase(GeneratorTestCase):
                                       [3, 2, 1, 0, 4, 5, 6],
                                       [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a", "b"])
+    charList = numpy.array(["a", "b"], 'S')
     charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
                               ["21", "21", "11", "02", "42", "21", "61"],
                               ["31", "21", "12", "21", "41", "51", "621"],
                               ["321", "221", "121", "021", "421", "521", "621"],
                               ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]])
+                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 
 class GE2NAOpenTestCase(GE2NATestCase):

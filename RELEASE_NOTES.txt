@@ -34,8 +34,8 @@ New features
   Thanks to Stuart Mentzer and Christoph Gohlke.
 
 
-Other improvements
-------------------
+Improvements
+------------
 
 - Packaging: since this release the standard tar-ball package no more includes
   the PDF version of the "PyTables User Guide", so it is a little bit smaller
@@ -49,6 +49,12 @@ Other improvements
   Closes :issue:`178` and :issue:`179` (thanks to Christoph Gohlke).
 
 - Th internal Blosc_ library has been upgraded to version 1.1.5.
+
+
+Other changes
+-------------
+
+- PyTables now requires Python 2.6 or newer.
 
 
 Deprecations
@@ -92,7 +98,7 @@ Many deprecated features and support for obsolete modules has been dropped:
   removed
 
 
-Other backward incompatible changes
+Other possibly incompatible changes
 -----------------------------------
 
 - Unicode attributes are no more stored in the HDF5 file as pickled string.
@@ -101,6 +107,10 @@ Other backward incompatible changes
   Although this do not introduces no API breakage, files produced are different
   (for what concerns unicode attributes) from the ones produced by earlier
   versions of PyTables.
+
+- System attributes are now stored in the HDF5 file using the character set
+  that reflects the native string behaviour: ASCII for Python 2 and UTF8 for
+  Python 3.  I any case system attributes are represented as Python string.
 
 
 Bugs fixed

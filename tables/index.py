@@ -220,7 +220,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def _g_nblocks(self):
         # Last row should not be considered as a block
         nelements = self.nelements - self.nelementsILR
-        nblocks = nelements / self.blocksize
+        nblocks = nelements // self.blocksize
         if nelements % self.blocksize > 0:
             nblocks += 1
         return nblocks
@@ -573,7 +573,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if indsize == 2:
                 # Add a second offset in this case
                 # First normalize the number of rows
-                offset2 = (nrow%self.nslicesblock)*slicesize/lbucket
+                offset2 = (nrow%self.nslicesblock)*slicesize//lbucket
                 idx += offset2
         # Add the last row at the beginning of arr & idx (if needed)
         if (indsize == 8 and nelementsILR > 0):
@@ -613,7 +613,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # The next partition is valid up to table sizes of
         # 2**30*2**18 = 2**48 bytes, that is, 256 Tera-elements,
         # which should be a safe figure, at least for a while.
-        idx /= self.lbucket
+        idx //= self.lbucket
         # After the division, we can downsize the indexes to 'uint32'
         idx = idx.astype('uint32')
         if profile: show_stats("Exiting final_idx32", tref)
@@ -1433,7 +1433,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         assert limits[0] < item <= limits[1]
         cs = self.chunksize
         ss = self.slicesize;  nelementsLR = self.nelementsILR
-        bstart = start / cs
+        bstart = start // cs
 
         # Find the chunk
         if nslice < self.nslices:
@@ -1748,8 +1748,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def search(self, item):
         """Do a binary search in this index for an item"""
 
-        if profile: tref = time()
-        if profile: show_stats("Entering search", tref)
+        if profile:
+            tref = time()
+        if profile:
+            show_stats("Entering search", tref)
 
         if self.dirtycache:
             self.restorecache()
@@ -1949,7 +1951,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 else:
                     self.indicesLR._readIndexSlice(start, stop, idx)
                 if indsize == 8:
-                    idx /= lbucket
+                    idx //= lbucket
                 elif indsize == 2:
                     # The chunkmap size cannot be never larger than 'int_'
                     idx = idx.astype("int_")

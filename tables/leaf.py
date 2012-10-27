@@ -436,7 +436,8 @@ very small/large chunksize, you may want to increase/decrease it."""
             chunkshape = None             # Will recompute chunkshape
 
         # Fix arguments with explicit None values for backwards compatibility.
-        if title is None:  title = self._v_title
+        if title is None:
+            title = self._v_title
         if filters is None:  filters = self.filters
 
         # Create a copy of the object.
