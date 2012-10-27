@@ -151,13 +151,13 @@ class ClosedFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test09_Write(self):
         "Writing a closed file."
 
-        self.assertRaises(ValueError, self.fnode.write, 'foo')
+        self.assertRaises(ValueError, self.fnode.write, b'foo')
 
 
     def test10_Writelines(self):
         "Writing lines to a closed file."
 
-        self.assertRaises(ValueError, self.fnode.writelines, ['foo\n'])
+        self.assertRaises(ValueError, self.fnode.writelines, [b'foo\n'])
 
 
 
@@ -207,7 +207,7 @@ class WriteFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_WriteFile(self):
         "Writing a whole file node."
 
-        datafile = open(self.datafname)
+        datafile = open(self.datafname, 'rb')
         try:
             copyFileToFile(datafile, self.fnode)
         finally:
@@ -217,31 +217,31 @@ class WriteFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_SeekFile(self):
         "Seeking and writing file node."
 
-        self.fnode.write('0123')
+        self.fnode.write(b'0123')
         self.fnode.seek(8)
-        self.fnode.write('4567')
+        self.fnode.write(b'4567')
         self.fnode.seek(3)
         data = self.fnode.read(6)
         self.assertEqual(
-                data, '3\0\0\0\0''4',
+                data, b'3\0\0\0\0'b'4',
                 "Gap caused by forward seek was not properly filled.")
 
         self.fnode.seek(0)
-        self.fnode.write('test')
+        self.fnode.write(b'test')
 
         self.fnode.seek(0)
         data = self.fnode.read(4)
         self.assertNotEqual(
-                data, 'test', "Data was overwritten instead of appended.")
+                data, b'test', "Data was overwritten instead of appended.")
 
         self.fnode.seek(-4, 2)
         data = self.fnode.read(4)
-        self.assertEqual(data, 'test', "Written data was not appended.")
+        self.assertEqual(data, b'test', "Written data was not appended.")
 
         self.fnode.seek(0, 2)
         oldendoff = self.fnode.tell()
         self.fnode.seek(-2, 2)
-        self.fnode.write('test')
+        self.fnode.write(b'test')
         newendoff = self.fnode.tell()
         self.assertEqual(
                 newendoff, oldendoff + 4,
@@ -251,7 +251,7 @@ class WriteFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_TruncateFile(self):
         "Truncating a file node."
 
-        self.fnode.write('test')
+        self.fnode.write(b'test')
 
         self.fnode.seek(2)
         self.assertRaises(IOError, self.fnode.truncate)
@@ -260,14 +260,14 @@ class WriteFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.fnode.truncate()
         self.fnode.seek(0)
         data = self.fnode.read()
-        self.assertEqual(
-                data, 'test\0\0', "File was not grown to the current offset.")
+        self.assertEqual(data,
+            b'test\0\0', "File was not grown to the current offset.")
 
         self.fnode.truncate(8)
         self.fnode.seek(0)
         data = self.fnode.read()
-        self.assertEqual(
-                data, 'test\0\0\0\0', "File was not grown to an absolute size.")
+        self.assertEqual(data,
+            b'test\0\0\0\0', "File was not grown to an absolute size.")
 
 
 
@@ -356,7 +356,7 @@ class ReadFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """
 
         self.datafname = self._testFilename(self.datafname)
-        self.datafile = open(self.datafname)
+        self.datafile = open(self.datafname, 'rb')
 
         super(ReadFileTestCase, self).setUp()
 
@@ -447,9 +447,11 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
         fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
         fnode.lineSeparator = linesep
         fnode.write(linesep)
-        fnode.write('short line%sshort line%s%s' % ((linesep,) * 3))
-        fnode.write('long line ' * 20 + linesep)
-        fnode.write('unterminated')
+        data = 'short line%sshort line%s%s' % ((linesep.decode('ascii'),) * 3)
+        data = data.encode('ascii')
+        fnode.write(data)
+        fnode.write(b'long line ' * 20 + linesep)
+        fnode.write(b'unterminated')
         fnode.close()
 
         # Re-open it for reading.
@@ -478,21 +480,21 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         line = self.fnode.readline()  # 'short line' + linesep
         line = self.fnode.readline()
-        self.assertEqual(line, 'short line' + linesep)
+        self.assertEqual(line, b'short line' + linesep)
         line = self.fnode.readline()
         self.assertEqual(line, linesep)
 
         line = self.fnode.readline()
-        self.assertEqual(line, 'long line ' * 20 + linesep)
+        self.assertEqual(line, b'long line ' * 20 + linesep)
 
         line = self.fnode.readline()
-        self.assertEqual(line, 'unterminated')
+        self.assertEqual(line, b'unterminated')
 
         line = self.fnode.readline()
-        self.assertEqual(line, '')
+        self.assertEqual(line, b'')
 
         line = self.fnode.readline()
-        self.assertEqual(line, '')
+        self.assertEqual(line, b'')
 
 
     def test01_ReadlineSeek(self):
@@ -506,13 +508,13 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.fnode.seek(-(lseplen + 4), 1)
         line = self.fnode.readline()
-        self.assertEqual(
-                line, 'line' + linesep, "Seeking back yielded different data.")
+        self.assertEqual(line, b'line' + linesep,
+                         "Seeking back yielded different data.")
 
         self.fnode.seek(lseplen + 20, 1)  # Into the long line.
         line = self.fnode.readline()
         self.assertEqual(
-                line[-(lseplen + 10):], 'long line ' + linesep,
+                line[-(lseplen + 10):], b'long line ' + linesep,
                 "Seeking forth yielded unexpected data.")
 
 
@@ -533,7 +535,7 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(line, linesep)
 
         line = self.fnode.next()
-        self.assertEqual(line, 'short line' + linesep)
+        self.assertEqual(line, b'short line' + linesep)
 
 
     def test03_Readlines(self):
@@ -542,10 +544,9 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
         linesep = self.lineSeparator
 
         lines = self.fnode.readlines()
-        self.assertEqual(
-                lines, [
-                        linesep, 'short line' + linesep, 'short line' + linesep,
-                        linesep, 'long line ' * 20 + linesep, 'unterminated'])
+        self.assertEqual(lines, [
+            linesep, b'short line' + linesep, b'short line' + linesep,
+            linesep, b'long line ' * 20 + linesep, b'unterminated'])
 
 
     def test04_ReadlineSize(self):
@@ -557,24 +558,24 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
         line = self.fnode.readline()  # linesep
 
         line = self.fnode.readline(lseplen + 20)
-        self.assertEqual(line, 'short line' + linesep)
+        self.assertEqual(line, b'short line' + linesep)
 
         line = self.fnode.readline(5)
-        self.assertEqual(line, 'short')
+        self.assertEqual(line, b'short')
 
         line = self.fnode.readline(lseplen + 20)
-        self.assertEqual(line, ' line' + linesep)
+        self.assertEqual(line, b' line' + linesep)
 
         line = self.fnode.readline(lseplen)
         self.assertEqual(line, linesep)
 
         self.fnode.seek(-4, 2)
         line = self.fnode.readline(4)
-        self.assertEqual(line, 'ated')
+        self.assertEqual(line, b'ated')
 
         self.fnode.seek(-4, 2)
         line = self.fnode.readline(20)
-        self.assertEqual(line, 'ated')
+        self.assertEqual(line, b'ated')
 
 
     def test05_ReadlinesSize(self):
@@ -582,27 +583,27 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         linesep = self.lineSeparator
 
-        lines = self.fnode.readlines(
-                len('%sshort line%sshort' % ((linesep,) * 2)))
-        self.assertEqual(
-                lines, [linesep, 'short line' + linesep, 'short'])
+        data = '%sshort line%sshort' % ((linesep.decode('ascii'),) * 2)
+        data = data.encode('ascii')
+        lines = self.fnode.readlines(len(data))
+        self.assertEqual(lines, [linesep, b'short line' + linesep, b'short'])
 
         line = self.fnode.readline()
-        self.assertEqual(line, ' line' + linesep)
+        self.assertEqual(line, b' line' + linesep)
 
 
 
 class MonoReadlineTestCase(ReadlineTestCase):
     "Tests reading one-byte-separated text lines from an existing file node."
 
-    lineSeparator = '\n'
+    lineSeparator = b'\n'
 
 
 
 class MultiReadlineTestCase(ReadlineTestCase):
     "Tests reading multibyte-separated text lines from an existing file node."
 
-    lineSeparator = '<br/>'
+    lineSeparator = b'<br/>'
 
 
 
@@ -635,7 +636,7 @@ class LineSeparatorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Default line separator."
 
         self.assertEqual(
-                self.fnode.lineSeparator, os.linesep,
+                self.fnode.lineSeparator, os.linesep.encode('ascii'),
                 "Default line separator does not match that in os.linesep.")
 
 
@@ -643,12 +644,12 @@ class LineSeparatorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Setting a valid line separator."
 
         try:
-            self.fnode.lineSeparator = 'SEPARATOR'
+            self.fnode.lineSeparator = b'SEPARATOR'
         except ValueError:
             self.fail("Valid line separator was not accepted.")
         else:
             self.assertEqual(
-                    self.fnode.lineSeparator, 'SEPARATOR',
+                    self.fnode.lineSeparator, b'SEPARATOR',
                     "Line separator was not correctly set.")
 
 
@@ -656,9 +657,11 @@ class LineSeparatorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Setting an invalid line separator."
 
         self.assertRaises(
-                ValueError, setattr, self.fnode, 'lineSeparator', '')
+                ValueError, setattr, self.fnode, 'lineSeparator', b'')
         self.assertRaises(
-                ValueError, setattr, self.fnode, 'lineSeparator', 'x' * 1024)
+                ValueError, setattr, self.fnode, 'lineSeparator', b'x' * 1024)
+        self.assertRaises(
+                TypeError, setattr, self.fnode, 'lineSeparator', u'x')
 
 
 
@@ -706,7 +709,7 @@ class AttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 "File node does not have a valid 'NODE_TYPE' attribute.")
 
         nodeTypeVersion = getattr(self.fnode.attrs, 'NODE_TYPE_VERSION', None)
-        self.assert_(
+        self.assertTrue(
                 nodeTypeVersion in filenode.NodeTypeVersions,
                 "File node does not have a valid 'NODE_TYPE_VERSION' attribute.")
 

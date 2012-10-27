@@ -88,7 +88,7 @@ class ReadableMixin:
     _lineChunkSize = 128
 
     # The line separator string.
-    _lineSeparator = os.linesep
+    _lineSeparator = os.linesep.encode('ascii')
 
     # The line separator string property methods.
     def getLineSeparator(self):
@@ -102,7 +102,10 @@ class ReadableMixin:
         Raises ValueError if the string is empty or too long.
         """
 
-        if value == '':
+        if not isinstance(value, bytes):
+            raise TypeError('the line separator must be a string of bytes')
+
+        if value == b'':
             raise ValueError("line separator string is empty")
         elif len(value) > self._lineChunkSize:
             raise ValueError("sorry, line separator string is too long")
@@ -229,7 +232,7 @@ class ReadableMixin:
             if size > 0 and remsize <= 0:
                 finished = True
 
-        return ''.join(partial)
+        return b''.join(partial)
 
     def readlines(self, sizehint=-1):
         """Reads the text lines into a list.
