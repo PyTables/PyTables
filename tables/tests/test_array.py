@@ -213,14 +213,12 @@ class BasicTestCase(unittest.TestCase):
         fileh = openFile(file, mode = "r")
         # Read the saved array
         b = numpy.empty_like(a)
-        fileh.root.somearray.read(out=b)
-        if isinstance(a, str):
-## only support out arguments if the array flavor is numpy
-            self.assertEqual(type(b), str)
-            self.assertEqual(a, b)
+        if fileh.root.somearray.flavor != 'numpy':
+            self.assertRaises(TypeError,
+                              lambda: fileh.root.somearray.read(out=b))
         else:
-            # If a is not a python string, then it should be a list or ndarray
-            self.assertTrue(type(b) in [list, numpy.ndarray])
+            fileh.root.somearray.read(out=b)
+        self.assertTrue(type(b), numpy.ndarray)
         # Close the file
         fileh.close()
         # Then, delete the file

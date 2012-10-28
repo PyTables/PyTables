@@ -804,19 +804,15 @@ class Array(hdf5Extension.Array, Leaf):
         shape = list(self.shape)
         if shape:
             shape[self.maindim] = rowstoread
-        byteswap = False
         if out is None:
             arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
         else:
             arr = out
-            if byteorders[arr.dtype.byteorder] != sys.byteorder:
-                byteswap = True
-                arr.byteswap(True)
         # Protection against reading empty arrays
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._readArray(start, stop, step, arr)
-        if byteswap:
+        if byteorders[arr.dtype.byteorder] != sys.byteorder:
             arr.byteswap(True)
         return arr
 
@@ -834,7 +830,9 @@ class Array(hdf5Extension.Array, Leaf):
 
         self._g_checkOpen()
         if out is not None and self.flavor != 'numpy':
-            raise TypeError
+            msg = ("Optional 'out' argument may only be supplied if array "
+                   "flavor is 'numpy', currently is {0}").format(self.flavor)
+            raise TypeError(msg)
         (start, stop, step) = self._processRangeRead(start, stop, step)
         arr = self._read(start, stop, step, out)
         return internal_to_flavor(arr, self.flavor)
