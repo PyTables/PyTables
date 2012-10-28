@@ -12,13 +12,17 @@
 
 """Here is defined the Array class."""
 
+import sys
+
 import numpy
 
 from tables import hdf5Extension
 from tables.utilsExtension import lrange
 from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx, convertToNPAtom2, SizeType, lazyattr
+
+from tables.utils import (is_idx, convertToNPAtom2, SizeType, lazyattr,
+                          byteorders)
 from tables.leaf import Leaf
 
 
@@ -50,6 +54,11 @@ class Array(hdf5Extension.Array, Leaf):
     flush() method they inherit from Leaf in order to save their internal state
     to disk.  When a writing method call returns, all the data is already on
     disk.
+
+    When data is read from disk in NumPy format, it will be in the current
+    system's byteorder, regardless of how it is stored on disk.  The exception
+    is when an output buffer is supplied, then the output will be in the
+    byteorder of that output buffer.
 
     Parameters
     ----------
@@ -788,23 +797,31 @@ class Array(hdf5Extension.Array, Leaf):
         self._g_writeSelection(selection, nparr)
 
 
-    def _read(self, start, stop, step):
+    def _read(self, start, stop, step, out=None):
         """Read the array from disk without slice or flavor processing."""
 
         rowstoread = lrange(start, stop, step).length
         shape = list(self.shape)
         if shape:
             shape[self.maindim] = rowstoread
-        arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
-
+        byteswap = False
+        if out is None:
+            arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
+        else:
+            arr = out
+            if byteorders[arr.dtype.byteorder] != sys.byteorder:
+                byteswap = True
+                arr.byteswap(True)
         # Protection against reading empty arrays
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._readArray(start, stop, step, arr)
+        if byteswap:
+            arr.byteswap(True)
         return arr
 
 
-    def read(self, start=None, stop=None, step=None):
+    def read(self, start=None, stop=None, step=None, out=None):
         """Get data in the array as an object of the current flavor.
 
         The start, stop and step parameters can be used to select only a *range
@@ -816,8 +833,10 @@ class Array(hdf5Extension.Array, Leaf):
         """
 
         self._g_checkOpen()
+        if out is not None and self.flavor != 'numpy':
+            raise TypeError
         (start, stop, step) = self._processRangeRead(start, stop, step)
-        arr = self._read(start, stop, step)
+        arr = self._read(start, stop, step, out)
         return internal_to_flavor(arr, self.flavor)
 
 

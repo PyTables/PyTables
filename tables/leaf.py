@@ -22,7 +22,6 @@ from tables.flavor import (check_flavor, internal_flavor,
 from tables.node import Node
 from tables.filters import Filters
 from tables.utils import byteorders, lazyattr, SizeType
-from tables.utilsExtension import whichLibVersion
 from tables.exceptions import PerformanceWarning
 from tables import utilsExtension
 
@@ -94,7 +93,8 @@ class Leaf(Node):
 
     .. attribute:: byteorder
 
-        The byte ordering of the leaf data *on disk*.
+        The byte ordering of the leaf data *on disk*.  It will be either
+        ``little`` or ``big``.
 
     .. attribute:: dtype
 

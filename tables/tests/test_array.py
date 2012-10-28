@@ -108,17 +108,71 @@ class BasicTestCase(unittest.TestCase):
         # Then, delete the file
         os.remove(self.file)
 
-        return
+    def WriteRead_OutArgument(self, testArray):
+        # Create an instance of HDF5 file
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+        self.root = self.fileh.root
 
-    def test00_char(self):
+        # Create the array under root and name 'somearray'
+        a = testArray
+        if self.endiancheck and a.dtype.kind != "S":
+            b = a.byteswap()
+            b.dtype = a.dtype.newbyteorder()
+            a = b
+
+        self.fileh.createArray(self.root, 'somearray', a, "Some array")
+
+        # Close the file
+        self.fileh.close()
+
+        # Re-open the file in read-only mode
+        self.fileh = openFile(self.file, mode = "r")
+        self.root = self.fileh.root
+
+        # Read the saved array
+        b = numpy.empty_like(a, dtype=a.dtype)
+        self.root.somearray.read(out=b)
+
+        # Check strictly the array equality
+        self.assertEqual(a.shape, b.shape)
+        self.assertEqual(a.shape, self.root.somearray.shape)
+        if a.dtype.kind == "S":
+            self.assertEqual(self.root.somearray.atom.type, "string")
+        else:
+            self.assertEqual(a.dtype.type, b.dtype.type)
+            self.assertEqual(a.dtype.type, self.root.somearray.atom.dtype.type)
+            abo = byteorders[a.dtype.byteorder]
+            bbo = byteorders[b.dtype.byteorder]
+            if abo != "irrelevant":
+                self.assertEqual(abo, self.root.somearray.byteorder)
+                self.assertEqual(abo, bbo)
+                if self.endiancheck:
+                    self.assertNotEqual(bbo, sys.byteorder)
+
+        self.assertTrue(allequal(a, b))
+
+        self.fileh.close()
+
+        # Then, delete the file
+        os.remove(self.file)
+
+    def setup_00_char(self):
         "Data integrity during recovery (character objects)"
 
         if not isinstance(self.tupleChar, numpy.ndarray):
             a = numpy.array(self.tupleChar, dtype="S")
         else:
             a = self.tupleChar
+        return a
+
+    def test_00_char(self):
+        a = self.setup_00_char()
         self.WriteRead(a)
-        return
+
+    def test_00_char_out_arg(self):
+        a = self.setup_00_char()
+        self.WriteRead_OutArgument(a)
 
     def test00b_char(self):
         "Data integrity during recovery (string objects)"
@@ -144,9 +198,35 @@ class BasicTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
-    def test01_char_nc(self):
+    def test00b_char_out_arg(self):
+        "Data integrity during recovery (string objects)"
+
+        a = self.tupleChar
+        # Create an instance of HDF5 file
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        # Close the file
+        fileh.close()
+        # Re-open the file in read-only mode
+        fileh = openFile(file, mode = "r")
+        # Read the saved array
+        b = numpy.empty_like(a)
+        fileh.root.somearray.read(out=b)
+        if isinstance(a, str):
+## only support out arguments if the array flavor is numpy
+            self.assertEqual(type(b), str)
+            self.assertEqual(a, b)
+        else:
+            # If a is not a python string, then it should be a list or ndarray
+            self.assertTrue(type(b) in [list, numpy.ndarray])
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+
+    def setup_01_char_nc(self):
         "Data integrity during recovery (non-contiguous character objects)"
 
         if not isinstance(self.tupleChar, numpy.ndarray):
@@ -160,8 +240,15 @@ class BasicTestCase(unittest.TestCase):
             # Ensure that this numpy string is non-contiguous
             if len(b) > 1:
                 self.assertEqual(b.flags.contiguous, False)
+        return b
+
+    def test_01_char_nc(self):
+        b = self.setup_01_char_nc()
         self.WriteRead(b)
-        return
+
+    def test_01_char_nc_out_arg(self):
+        b = self.setup_01_char_nc()
+        self.WriteRead_OutArgument(b)
 
     def test02_types(self):
         "Data integrity during recovery (numerical types)"
@@ -176,8 +263,8 @@ class BasicTestCase(unittest.TestCase):
         for typecode in typecodes:
             a = numpy.array(self.tupleInt, typecode)
             self.WriteRead(a)
-
-        return
+            b = numpy.array(self.tupleInt, typecode)
+            self.WriteRead_OutArgument(b)
 
     def test03_types_nc(self):
         "Data integrity during recovery (non-contiguous numerical types)"
@@ -192,15 +279,19 @@ class BasicTestCase(unittest.TestCase):
         for typecode in typecodes:
             a = numpy.array(self.tupleInt, typecode)
             if a.ndim == 0:
-                b = a.copy()
+                b1 = a.copy()
+                b2 = a.copy()
             else:
-                b = a[::2]
+                b1 = a[::2]
+                b2 = a[::2]
                 # Ensure that this array is non-contiguous
-                if len(b) > 1:
-                    self.assertEqual(b.flags.contiguous, False)
-            self.WriteRead(b)
+                if len(b1) > 1:
+                    self.assertEqual(b1.flags.contiguous, False)
+                if len(b2) > 1:
+                    self.assertEqual(b2.flags.contiguous, False)
+            self.WriteRead(b1)
+            self.WriteRead_OutArgument(b2)
 
-        return
 
 class Basic0DOneTestCase(BasicTestCase):
     # Scalar case
