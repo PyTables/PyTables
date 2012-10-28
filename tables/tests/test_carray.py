@@ -164,6 +164,63 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(carray.chunkshape, self.chunkshape)
         self.assertTrue(allequal(data, object, self.flavor))
 
+    def test01_readCArray_out_argument(self):
+        """Checking read() of chunked layout arrays"""
+
+        # Create an instance of an HDF5 Table
+        if self.reopen:
+            self.fileh = openFile(self.file, "r")
+        carray = self.fileh.getNode("/carray1")
+
+        # Choose a small value for buffer size
+        carray.nrowsinbuf = 3
+        # Build the array to do comparisons
+        if self.flavor == "numpy":
+            if self.type == "string":
+                object_ = numpy.ndarray(buffer=b"a"*self.objsize,
+                                        shape=self.shape,
+                                        dtype="S%s" % carray.atom.itemsize)
+            else:
+                object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
+                object_.shape = self.shape
+
+        stop = self.stop
+        # stop == None means read only the element designed by start
+        # (in read() contexts)
+        if self.stop == None:
+            if self.start == -1:  # corner case
+                stop = carray.nrows
+            else:
+                stop = self.start + 1
+        # Protection against number of elements less than existing
+        #if rowshape[self.extdim] < self.stop or self.stop == 0:
+        if carray.nrows < stop:
+            # self.stop == 0 means last row only in read()
+            # and not in [::] slicing notation
+            stop = int(carray.nrows)
+        # do a copy() in order to ensure that len(object._data)
+        # actually do a measure of its length
+        object = object_[self.start:stop:self.step].copy()
+
+        # Read all the array
+        try:
+            data = numpy.empty(self.shape, dtype=carray.atom.dtype)
+            data = data[self.start:stop:self.step].copy()
+            carray.read(self.start, stop, self.step, out=data)
+        except IndexError:
+            if self.flavor == "numpy":
+                data = numpy.empty(shape=self.shape, dtype=self.type)
+            else:
+                data = numpy.empty(shape=self.shape, dtype=self.type)
+
+        if hasattr(data, "shape"):
+            self.assertEqual(len(data.shape), len(self.shape))
+        else:
+            # Scalar case
+            self.assertEqual(len(self.shape), 1)
+        self.assertEqual(carray.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(data, object, self.flavor))
+
     def test02_getitemCArray(self):
         """Checking chunked layout array __getitem__ special method"""
 

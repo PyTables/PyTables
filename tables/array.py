@@ -55,11 +55,6 @@ class Array(hdf5Extension.Array, Leaf):
     to disk.  When a writing method call returns, all the data is already on
     disk.
 
-    When data is read from disk in NumPy format, it will be in the current
-    system's byteorder, regardless of how it is stored on disk.  The exception
-    is when an output buffer is supplied, then the output will be in the
-    byteorder of that output buffer.
-
     Parameters
     ----------
     object
@@ -826,6 +821,17 @@ class Array(hdf5Extension.Array, Leaf):
         allowed yet. Moreover, if only start is specified, then stop will be
         set to start+1. If you do not specify neither start nor stop, then *all
         the rows* in the array are selected.
+
+        The out parameter may be used to specify a NumPy array to hold the
+        output data.  Note that the array must have the same size and datatype
+        as the data selected with the other parameters.  Also, this parameter
+        is only valid when the array's flavor is set to 'numpy'.  Otherwise, a
+        TypeError will be raised.
+
+        When data is read from disk in NumPy format, the output will be in the
+        current system's byteorder, regardless of how it is stored on disk.
+        The exception is when an output buffer is supplied, then the output
+        will be in the byteorder of that output buffer.
         """
 
         self._g_checkOpen()

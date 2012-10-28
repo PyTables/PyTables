@@ -167,14 +167,14 @@ class EArray(CArray):
         myrank = len(self.shape)
         narank = len(nparr.shape) - len(self.atom.shape)
         if myrank != narank:
-            raise ValueError("""\
-the ranks of the appended object (%d) and the ``%s`` EArray (%d) differ"""
+            raise ValueError(("the ranks of the appended object (%d) and the "
+                              "``%s`` EArray (%d) differ")
                              % (narank, self._v_pathname, myrank))
         for i in range(myrank):
             if i != self.extdim and self.shape[i] != nparr.shape[i]:
-                raise ValueError("""\
-the shapes of the appended object and the ``%s`` EArray \
-differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
+                raise ValueError(("the shapes of the appended object and the "
+                                  "``%s`` EArray differ in non-enlargeable "
+                                  "dimension %d") % (self._v_pathname, i))
 
 
     def append(self, sequence):
