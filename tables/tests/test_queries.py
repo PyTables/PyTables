@@ -446,7 +446,7 @@ for type_ in type_info:  # for type_ in ['string']:
             #tmethod.__doc__ += numfmt % testn
             tmethod.__doc__ += testfmt % testn
             ptmethod = common.pyTablesTest(tmethod)
-            if sys.version_info < (3,):
+            if sys.version_info[0] < 3:
                 imethod = types.MethodType(ptmethod, None, TableDataTestCase)
             else:
                 imethod = ptmethod
