@@ -1201,7 +1201,11 @@ class Table(tableExtension.Table, Leaf):
                     "variable ``%s`` refers to a nested column, "
                     "not allowed in conditions" % var )
             else:  # only non-column values are converted to arrays
-                val = numpy.asarray(val)
+                # XXX: not 100% sure about this
+                if isinstance(val, unicode):
+                    val = numpy.asarray(val.encode('ascii'))
+                else:
+                    val = numpy.asarray(val)
             reqvars[var] = val
         return reqvars
 
