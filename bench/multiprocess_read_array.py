@@ -10,6 +10,10 @@
 # another, and then modified by incrementing each array element.  This is meant
 # to simulate retrieving data and then modifying it.
 
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import multiprocessing
 import os
 import select
@@ -26,7 +30,7 @@ def create_file(array_size):
     array = np.ones(array_size, dtype='i8')
     with tables.openFile('test.h5', 'w') as fobj:
         array = fobj.createArray('/', 'test', array)
-        print 'file created, size: ' + str(array.size_on_disk / 1e6)
+        print('file created, size: ' + str(array.size_on_disk / 1e6))
 
 
 # process to receive an array using a multiprocessing.Pipe connection
@@ -162,7 +166,7 @@ class UnixSocketReceive(multiprocessing.Process):
 def read_and_send_socket(array_size, array_bytes):
     # create a Unix domain address in the abstract namespace
     # this will only work on Linux
-    address = '\x00' + os.urandom(5)
+    address = b'\x00' + os.urandom(5)
     # start the receiving process and pause to allow it to start up
     result_recv, result_send = multiprocessing.Pipe(False)
     recv_process = UnixSocketReceive(address, result_send, array_bytes)
@@ -187,14 +191,14 @@ def read_and_send_socket(array_size, array_bytes):
 
 def print_results(start_timestamp, recv_timestamp, finish_timestamp):
     msg = 'receive: {0}, add:{1}, total: {2}'
-    print msg.format(recv_timestamp - start_timestamp,
+    print(msg.format(recv_timestamp - start_timestamp,
                      finish_timestamp - recv_timestamp,
-                     finish_timestamp - start_timestamp)
+                     finish_timestamp - start_timestamp))
 
 
 if __name__ == '__main__':
     array_bytes = 100000000
-    array_size = int(array_bytes / 8)
+    array_size = int(array_bytes // 8)
 
     create_file(array_size)
     read_and_send_pipe(array_size)
