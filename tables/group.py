@@ -270,6 +270,8 @@ class Group(hdf5Extension.Group, Node):
         """
 
         childCID = self._g_getGChildAttr(childName, 'CLASS')
+        if childCID is not None and not isinstance(childCID, str):
+            childCID = childCID.decode('utf-8')
 
         if childCID in classIdDict:
             return classIdDict[childCID]  # look up group class
