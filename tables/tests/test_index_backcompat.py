@@ -45,8 +45,8 @@ class IndexesTestCase(common.PyTablesTestCase):
         table2 = self.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = str(self.il).encode('ascii')
+        sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
         # First selection
@@ -54,8 +54,7 @@ class IndexesTestCase(common.PyTablesTestCase):
         self.assertTrue(t1var1 is not None)
         results1 = [p["var1"] for p in
                     table1.where('(il<=t1var1)&(t1var1<=sl)')]
-        results2 = [p["var1"] for p in table2
-                    if il <= p["var1"] <= sl]
+        results2 = [p["var1"] for p in table2 if il <= p["var1"] <= sl]
         results1.sort(); results2.sort()
         if verbose:
 #             print "Superior & inferior limits:", il, sl
