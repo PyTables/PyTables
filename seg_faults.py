@@ -6,9 +6,12 @@ import tables
 def buffer_too_small():
 
     with tables.openFile('test.h5', 'w') as f:
-        array = np.arange(1000)
+        array = np.arange(1000, dtype='f8')
         disk_array = f.createArray('/', 'array', array)
         out_buffer = np.empty((500, ), 'f8')
+        print()
+        print(disk_array.size_in_memory)
+        print(out_buffer.nbytes)
         disk_array.read(out=out_buffer)
     return out_buffer
 

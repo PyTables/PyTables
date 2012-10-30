@@ -312,7 +312,8 @@ class Array(hdf5Extension.Array, Leaf):
 
         The element is returned as an object of the current flavor.
         """
-
+        # this could probably be sped up for long iterations by reusing the
+        # listarr buffer
         if self._nrowsread >= self._stop:
             self._init = False
             raise StopIteration        # end of iteration
@@ -795,18 +796,28 @@ class Array(hdf5Extension.Array, Leaf):
     def _read(self, start, stop, step, out=None):
         """Read the array from disk without slice or flavor processing."""
 
-        rowstoread = lrange(start, stop, step).length
+        nrowstoread = lrange(start, stop, step).length
         shape = list(self.shape)
         if shape:
-            shape[self.maindim] = rowstoread
+            shape[self.maindim] = nrowstoread
         if out is None:
             arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
         else:
+            bytes_required = self.rowsize * nrowstoread
+            # if buffer is too small, it will segfault
+            if bytes_required != out.nbytes:
+                raise ValueError(('output array size invalid, got {0} bytes, '
+                                  'need {1} bytes').format(out.nbytes,
+                                                           bytes_required))
+            if not out.flags['C_CONTIGUOUS']:
+                raise ValueError('output array not C contiguous')
             arr = out
         # Protection against reading empty arrays
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._readArray(start, stop, step, arr)
+        # data is always read in the system byteorder
+        # if the out array's byteorder is different, do a byteswap
         if byteorders[arr.dtype.byteorder] != sys.byteorder:
             arr.byteswap(True)
         return arr

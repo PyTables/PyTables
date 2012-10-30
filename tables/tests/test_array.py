@@ -362,6 +362,76 @@ class Basic32DTestCase(BasicTestCase):
     tupleInt = numpy.array((32,)); tupleInt.shape = (1,)*32
     tupleChar = numpy.array(["121"], dtype="S3"); tupleChar.shape = (1,)*32
 
+
+class ReadOutArgumentTests(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode='w')
+        self.size = 1000
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+
+    def create_array(self):
+        array = numpy.arange(self.size, dtype='f8')
+        disk_array = self.fileh.createArray('/', 'array', array)
+        return array, disk_array
+
+    def test_read_entire_array(self):
+        array, disk_array = self.create_array()
+        out_buffer = numpy.empty((self.size, ), 'f8')
+        disk_array.read(out=out_buffer)
+        numpy.testing.assert_equal(out_buffer, array)
+
+    def test_read_contiguous_slice(self):
+        array, disk_array = self.create_array()
+        out_buffer = numpy.arange(self.size, dtype='f8')
+        out_buffer = numpy.random.permutation(out_buffer)
+        out_buffer_orig = out_buffer.copy()
+        start = self.size // 2
+        disk_array.read(start=start, stop=self.size, out=out_buffer[start:])
+        numpy.testing.assert_equal(out_buffer[start:], array[start:])
+        numpy.testing.assert_equal(out_buffer[:start], out_buffer_orig[:start])
+
+    def test_read_non_contiguous_slice(self):
+        array, disk_array = self.create_array()
+        out_buffer = numpy.empty((self.size, ), 'f8')
+        out_buffer_slice = out_buffer[0:self.size:2]
+        # once Python 2.6 support is dropped, this could change
+        # to assertRaisesRegexp to check exception type and message at once
+        self.assertRaises(ValueError, disk_array.read, 0, self.size, 2,
+                          out_buffer_slice)
+        try:
+            disk_array.read(0, self.size, 2, out_buffer_slice)
+        except ValueError as exc:
+            pass
+        self.assertEqual('output array not C contiguous', str(exc))
+
+    def test_buffer_too_small(self):
+        array, disk_array = self.create_array()
+        out_buffer = numpy.empty((self.size // 2, ), 'f8')
+        self.assertRaises(ValueError, disk_array.read, 0, self.size, 1,
+                          out_buffer)
+        try:
+            disk_array.read(0, self.size, 1, out_buffer)
+        except ValueError as exc:
+            pass
+        self.assertTrue('output array size invalid, got' in str(exc))
+
+    def test_buffer_too_large(self):
+        array, disk_array = self.create_array()
+        out_buffer = numpy.empty((self.size + 1, ), 'f8')
+        self.assertRaises(ValueError, disk_array.read, 0, self.size, 1,
+                          out_buffer)
+        try:
+            disk_array.read(0, self.size, 1, out_buffer)
+        except ValueError as exc:
+            pass
+        self.assertTrue('output array size invalid, got' in str(exc))
+
+
 class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -373,7 +443,6 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.fileh.close()
-        # Then, delete the file
         os.remove(self.file)
         common.cleanup(self)
 
@@ -2394,6 +2463,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
         # The 32 dimensions case is tested on GroupsArray
         #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
+        theSuite.addTest(unittest.makeSuite(ReadOutArgumentTests))
         theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexNotReopenNotEndianTestCase))
