@@ -477,7 +477,9 @@ def StringNextAfter(x, direction, itemsize):
     if sys.version_info[0] < 3:
         xlist = list(x)
     else:
-        xlist = [i.to_bytes(1, sys.byteorder) for i in x]
+        # int.to_bytes is not available in Python < 3.2
+        #xlist = [i.to_bytes(1, sys.byteorder) for i in x]
+        xlist = [bytes([i]) for i in x]
     xlist.reverse()
     i = 0
     if direction > 0:
