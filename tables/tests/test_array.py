@@ -385,7 +385,7 @@ class ReadOutArgumentTests(unittest.TestCase):
         disk_array.read(out=out_buffer)
         numpy.testing.assert_equal(out_buffer, array)
 
-    def test_read_contiguous_slice(self):
+    def test_read_contiguous_slice1(self):
         array, disk_array = self.create_array()
         out_buffer = numpy.arange(self.size, dtype='f8')
         out_buffer = numpy.random.permutation(out_buffer)
@@ -395,7 +395,25 @@ class ReadOutArgumentTests(unittest.TestCase):
         numpy.testing.assert_equal(out_buffer[start:], array[start:])
         numpy.testing.assert_equal(out_buffer[:start], out_buffer_orig[:start])
 
-    def test_read_non_contiguous_slice(self):
+    def test_read_contiguous_slice2(self):
+        array, disk_array = self.create_array()
+        out_buffer = numpy.arange(self.size, dtype='f8')
+        out_buffer = numpy.random.permutation(out_buffer)
+        out_buffer_orig = out_buffer.copy()
+        start = self.size // 4
+        stop = self.size - start
+        disk_array.read(start=start, stop=stop, out=out_buffer[start:stop])
+        numpy.testing.assert_equal(out_buffer[start:stop], array[start:stop])
+        numpy.testing.assert_equal(out_buffer[:start], out_buffer_orig[:start])
+        numpy.testing.assert_equal(out_buffer[stop:], out_buffer_orig[stop:])
+
+    def test_read_non_contiguous_slice_contiguous_buffer(self):
+        array, disk_array = self.create_array()
+        out_buffer = numpy.empty((self.size // 2, ), dtype='f8')
+        disk_array.read(start=0, stop=self.size, step=2, out=out_buffer)
+        numpy.testing.assert_equal(out_buffer, array[0:self.size:2])
+
+    def test_read_non_contiguous_buffer(self):
         array, disk_array = self.create_array()
         out_buffer = numpy.empty((self.size, ), 'f8')
         out_buffer_slice = out_buffer[0:self.size:2]
