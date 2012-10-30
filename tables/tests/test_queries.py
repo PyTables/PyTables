@@ -599,7 +599,11 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         """Using a condition with unsupported operations on types."""
         NIE = NotImplementedError
         self.assertRaises(NIE, self.table.where, 'c_complex128 > 0j')
-        self.assertRaises(NIE, self.table.where, 'c_string + "a" > "abc"')
+        if sys.version_info[0] < 3:
+            self.assertRaises(NIE, self.table.where, 'c_string + "a" > "abc"')
+        else:
+            self.assertRaises(NIE, self.table.where,
+                              'c_string + b"a" > b"abc"')
 
     def test_not_boolean(self):
         """Using a non-boolean condition."""
