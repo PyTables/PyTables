@@ -123,6 +123,16 @@ PyTables, so you don't need to install it separately.
     CPU has support for SSE2 vector instructions, you may want to pass the
     :option:`-msse2` flag that will accelerate Blosc operation.
 
+    .. hint::
+
+        some GNU/Linux distributions provide a packaged version of the HDF5
+        libraries with MPI support.  In this case you may need to specify
+        the path of the MPH headers as additional include directory.
+
+        On Ubuntu 12.04 the following command has been reported to work::
+
+          $ C_INCLUDE_PATH=/usr/lib/openmpi/include pip install --upgrade tables
+
 **Windows**
 
     You can get ready-to-use Windows binaries and other development files for
