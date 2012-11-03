@@ -24,3 +24,5 @@ $PYTHON nested-iter.py
 $PYTHON links.py
 $PYTHON undo-redo.py
 $PYTHON multiprocess_access_queues.py
+$PYTHON multiprocess_access_benchmarks.py
+$PYTHON read_array_out_arg.py
