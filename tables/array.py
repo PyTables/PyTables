@@ -818,7 +818,7 @@ class Array(hdf5Extension.Array, Leaf):
             self._readArray(start, stop, step, arr)
         # data is always read in the system byteorder
         # if the out array's byteorder is different, do a byteswap
-        if byteorders[arr.dtype.byteorder] != sys.byteorder:
+        if out is not None and byteorders[arr.dtype.byteorder] != sys.byteorder:
             arr.byteswap(True)
         return arr
 
@@ -833,16 +833,18 @@ class Array(hdf5Extension.Array, Leaf):
         set to start+1. If you do not specify neither start nor stop, then *all
         the rows* in the array are selected.
 
-        The out parameter may be used to specify a NumPy array to hold the
-        output data.  Note that the array must have the same size and datatype
-        as the data selected with the other parameters.  Also, this parameter
-        is only valid when the array's flavor is set to 'numpy'.  Otherwise, a
-        TypeError will be raised.
+        The out parameter may be used to specify a NumPy array to receive the
+        output data.  Note that the array must have the same size as the data
+        selected with the other parameters.  Note that the array's datatype is
+        not checked and no type casting is performed, so if it does not match
+        the datatype on disk, the output will not be correct.  Also, this
+        parameter is only valid when the array's flavor is set to 'numpy'.
+        Otherwise, a TypeError will be raised.
 
         When data is read from disk in NumPy format, the output will be in the
         current system's byteorder, regardless of how it is stored on disk.
-        The exception is when an output buffer is supplied, then the output
-        will be in the byteorder of that output buffer.
+        The exception is when an output buffer is supplied, in which case the
+        output will be in the byteorder of that output buffer.
         """
 
         self._g_checkOpen()
