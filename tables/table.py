@@ -1769,6 +1769,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         Columns under a nested column can be specified in the field parameter by
         using a slash character (/) as a separator (e.g. 'position/x').
+
+        The out parameter may be used to specify a NumPy array to receive the
+        output data.  Note that the array must have the same size as the data
+        selected with the other parameters.  Note that the array's datatype is
+        not checked and no type casting is performed, so if it does not match
+        the datatype on disk, the output will not be correct.
         """
 
         self._g_checkOpen()

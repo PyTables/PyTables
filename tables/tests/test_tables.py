@@ -1561,6 +1561,76 @@ class NonNestedTableReadTestCase(unittest.TestCase):
         self.table.read(1, 64, field='f1', out=output)
         npt.assert_array_equal(output, self.array['f1'][1:64])
 
+    def test_read_all_out_arg_sliced(self):
+        output = np.empty((200, ), self.dtype)
+        output['f0'] = np.random.randint(0, 10000, (200, ))
+        output_orig = output.copy()
+        self.table.read(out=output[0:100])
+        npt.assert_array_equal(output[0:100], self.array)
+        npt.assert_array_equal(output[100:], output_orig[100:])
+
+    def test_all_fields_non_contiguous_slice_contiguous_buffer(self):
+        output = np.empty((50, ), self.dtype)
+        self.table.read(0, 100, 2, out=output)
+        npt.assert_array_equal(output, self.array[0:100:2])
+
+    def test_specified_field_non_contiguous_slice_contiguous_buffer(self):
+        output = np.empty((50, ), 'i4')
+        self.table.read(0, 100, 2, field='f3', out=output)
+        npt.assert_array_equal(output, self.array['f3'][0:100:2])
+
+    def test_all_fields_non_contiguous_buffer(self):
+        output = np.empty((100, ), self.dtype)
+        output_slice = output[0:100:2]
+        self.assertRaises(ValueError, self.table.read, 0, 100, 2, None,
+                          output_slice)
+        # once Python 2.6 support is dropped, this could change
+        # to assertRaisesRegexp to check exception type and message at once
+        try:
+            self.table.read(0, 100, 2, field=None, out=output_slice)
+        except ValueError as exc:
+            pass
+        self.assertEqual('output array not C contiguous', str(exc))
+
+    def test_specified_field_non_contiguous_buffer(self):
+        output = np.empty((100, ), 'i4')
+        output_slice = output[0:100:2]
+        self.assertRaises(ValueError, self.table.read, 0, 100, 2, 'f3',
+                          output_slice)
+        try:
+            self.table.read(0, 100, 2, field='f3', out=output_slice)
+        except ValueError as exc:
+            pass
+        self.assertEqual('output array not C contiguous', str(exc))
+
+    def test_all_fields_buffer_too_small(self):
+        output = np.empty((99, ), self.dtype)
+        self.assertRaises(ValueError, lambda: self.table.read(out=output))
+        try:
+            self.table.read(out=output)
+        except ValueError as exc:
+            pass
+        self.assertTrue('output array size invalid, got' in str(exc))
+
+    def test_specified_field_buffer_too_small(self):
+        output = np.empty((99, ), 'i4')
+        func = lambda: self.table.read(field='f5', out=output)
+        self.assertRaises(ValueError, func)
+        try:
+            self.table.read(field='f5', out=output)
+        except ValueError as exc:
+            pass
+        self.assertTrue('output array size invalid, got' in str(exc))
+
+    def test_all_fields_buffer_too_large(self):
+        output = np.empty((101, ), self.dtype)
+        self.assertRaises(ValueError, lambda: self.table.read(out=output))
+        try:
+            self.table.read(out=output)
+        except ValueError as exc:
+            pass
+        self.assertTrue('output array size invalid, got' in str(exc))
+
 
 class BasicRangeTestCase(unittest.TestCase):
     #file  = "test.h5"
