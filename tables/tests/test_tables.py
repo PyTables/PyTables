@@ -11,7 +11,7 @@ from numpy import rec as records
 from numpy import testing as npt
 
 from tables import *
-from tables.utils import SizeType
+from tables.utils import SizeType, byteorders
 from tables.tests import common
 from tables.tests.common import allequal, areArraysEqual
 from tables.description import descr_from_dtype
@@ -1520,10 +1520,11 @@ class NonNestedTableReadTestCase(unittest.TestCase):
     def populate_file(self):
         self.array = np.zeros(self.shape, self.dtype)
         for row_num, row in enumerate(self.array):
-            item_num = row_num * len(self.array.dtype.names)
-            for value, col in enumerate(self.array.dtype.names, item_num):
+            start = row_num * len(self.array.dtype.names)
+            for value, col in enumerate(self.array.dtype.names, start):
                 row[col] = value
         self.table.append(self.array)
+        self.assertEqual(len(self.table), len(self.array))
 
     def test_read_all(self):
         output = self.table.read()
@@ -1630,6 +1631,38 @@ class NonNestedTableReadTestCase(unittest.TestCase):
         except ValueError as exc:
             pass
         self.assertTrue('output array size invalid, got' in str(exc))
+
+
+class TableReadByteorderTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+        self.system_byteorder = sys.byteorder
+        self.other_byteorder = {'little':'big', 'big':'little'}[sys.byteorder]
+        self.reverse_byteorders = {'little':'<', 'big':'>'}
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+
+    def create_table(self, table_byteorder, input_byteorder):
+        table_dtype_code = self.reverse_byteorders[table_byteorder] + 'i4'
+        table_dtype = np.format_parser([table_dtype_code], [], []).dtype
+        input_dtype_code = self.reverse_byteorders[input_byteorder] + 'i4'
+        input_dtype = np.format_parser([input_dtype_code], [], []).dtype
+        self.table = self.fileh.createTable('/', 'table', table_dtype,
+                                            byteorder=table_byteorder)
+        self.input_array = np.zeros((10, ), input_dtype)
+        self.input_array['f0'] = np.arange(10)
+        self.table.append(self.input_array)
+
+    def test_table_system_input_system_no_out_argument(self):
+        self.create_table(self.system_byteorder, self.system_byteorder)
+        output = self.table.read()
+        self.assertEqual(byteorders[output['f0'].dtype.byteorder],
+                         self.system_byteorder)
+        npt.assert_array_equal(output['f0'], np.arange(10))
 
 
 class BasicRangeTestCase(unittest.TestCase):
@@ -5851,6 +5884,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(NonNestedTableReadTestCase))
+        theSuite.addTest(unittest.makeSuite(TableReadByteorderTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
