@@ -35,8 +35,7 @@ from numexpr.necompiler import (
     getType as numexpr_getType, double, is_cpu_amd_intel)
 from numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import (is_idx, lazyattr, SizeType, NailedDict as CacheDict,
-                          byteorders)
+from tables.utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
 from tables.leaf import Leaf
 from tables.description import (
     IsDescription, Description, Col, descr_from_dtype)
@@ -1781,12 +1780,22 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         selected with the other parameters.  Note that the array's datatype is
         not checked and no type casting is performed, so if it does not match
         the datatype on disk, the output will not be correct.
+
+        When data is read from disk in NumPy format, the output will be in the
+        current system's byteorder, regardless of how it is stored on disk.
+        If the out parameter is specified, it also must be in the current
+        system's byteorder.
         """
 
         self._g_checkOpen()
 
         if field:
             self._checkColumn(field)
+
+        if out is not None and self.flavor != 'numpy':
+            msg = ("Optional 'out' argument may only be supplied if array "
+                   "flavor is 'numpy', currently is {0}").format(self.flavor)
+            raise TypeError(msg)
 
         (start, stop, step) = self._processRangeRead(start, stop, step)
 

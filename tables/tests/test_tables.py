@@ -1542,6 +1542,16 @@ class NonNestedTableReadTestCase(unittest.TestCase):
         output = self.table.read(1, 64, field='f1')
         npt.assert_array_equal(output, self.array['f1'][1:64])
 
+    def test_out_arg_with_non_numpy_flavor(self):
+        output = np.empty(self.shape, self.dtype)
+        self.table.flavor = 'python'
+        self.assertRaises(TypeError, lambda: self.table.read(out=output))
+        try:
+            self.table.read(out=output)
+        except TypeError as exc:
+            pass
+        self.assertTrue("Optional 'out' argument may only be" in str(exc))
+
     def test_read_all_out_arg(self):
         output = np.empty(self.shape, self.dtype)
         self.table.read(out=output)
