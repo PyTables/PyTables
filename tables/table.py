@@ -35,7 +35,8 @@ from numexpr.necompiler import (
     getType as numexpr_getType, double, is_cpu_amd_intel)
 from numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
+from tables.utils import (is_idx, lazyattr, SizeType, NailedDict as CacheDict,
+                          byteorders)
 from tables.leaf import Leaf
 from tables.description import (
     IsDescription, Description, Col, descr_from_dtype)
@@ -1718,6 +1719,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 # Recarray case
                 result = self._get_container(nrows)
         else:
+            # there is no fast way to byteswap, since different columns may have
+            # different byteorders
+            if not out.dtype.isnative:
+                raise ValueError(("output array must be in system's byteorder "
+                                  "or results will be incorrect"))
             if field:
                 bytes_required = dtypeField.itemsize * nrows
             else:

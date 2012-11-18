@@ -1646,23 +1646,74 @@ class TableReadByteorderTestCase(unittest.TestCase):
         self.fileh.close()
         os.remove(self.file)
 
-    def create_table(self, table_byteorder, input_byteorder):
-        table_dtype_code = self.reverse_byteorders[table_byteorder] + 'i4'
-        table_dtype = np.format_parser([table_dtype_code], [], []).dtype
-        input_dtype_code = self.reverse_byteorders[input_byteorder] + 'i4'
-        input_dtype = np.format_parser([input_dtype_code], [], []).dtype
+    def create_table(self, byteorder):
+        table_dtype_code = self.reverse_byteorders[byteorder] + 'i4'
+        table_dtype = np.format_parser([table_dtype_code, 'a1'], [], []).dtype
         self.table = self.fileh.createTable('/', 'table', table_dtype,
-                                            byteorder=table_byteorder)
+                                            byteorder=byteorder)
+        input_dtype = np.format_parser(['i4', 'a1'], [], []).dtype
         self.input_array = np.zeros((10, ), input_dtype)
         self.input_array['f0'] = np.arange(10)
+        self.input_array['f1'] = b'a'
         self.table.append(self.input_array)
 
-    def test_table_system_input_system_no_out_argument(self):
-        self.create_table(self.system_byteorder, self.system_byteorder)
+    def test_table_system_byteorder_no_out_argument(self):
+        self.create_table(self.system_byteorder)
         output = self.table.read()
         self.assertEqual(byteorders[output['f0'].dtype.byteorder],
                          self.system_byteorder)
         npt.assert_array_equal(output['f0'], np.arange(10))
+
+    def test_table_other_byteorder_no_out_argument(self):
+        self.create_table(self.other_byteorder)
+        output = self.table.read()
+        self.assertEqual(byteorders[output['f0'].dtype.byteorder],
+                         self.system_byteorder)
+        npt.assert_array_equal(output['f0'], np.arange(10))
+
+    def test_table_system_byteorder_out_argument_system_byteorder(self):
+        self.create_table(self.system_byteorder)
+        out_dtype_code = self.reverse_byteorders[self.system_byteorder] + 'i4'
+        out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
+        output = np.empty((10, ), out_dtype)
+        self.table.read(out=output)
+        self.assertEqual(byteorders[output['f0'].dtype.byteorder],
+                         self.system_byteorder)
+        npt.assert_array_equal(output['f0'], np.arange(10))
+
+    def test_table_other_byteorder_out_argument_system_byteorder(self):
+        self.create_table(self.other_byteorder)
+        out_dtype_code = self.reverse_byteorders[self.system_byteorder] + 'i4'
+        out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
+        output = np.empty((10, ), out_dtype)
+        self.table.read(out=output)
+        self.assertEqual(byteorders[output['f0'].dtype.byteorder],
+                         self.system_byteorder)
+        npt.assert_array_equal(output['f0'], np.arange(10))
+
+    def test_table_system_byteorder_out_argument_other_byteorder(self):
+        self.create_table(self.system_byteorder)
+        out_dtype_code = self.reverse_byteorders[self.other_byteorder] + 'i4'
+        out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
+        output = np.empty((10, ), out_dtype)
+        self.assertRaises(ValueError, lambda: self.table.read(out=output))
+        try:
+            self.table.read(out=output)
+        except ValueError as exc:
+            pass
+        self.assertTrue("array must be in system's byteorder" in str(exc))
+
+    def test_table_other_byteorder_out_argument_other_byteorder(self):
+        self.create_table(self.other_byteorder)
+        out_dtype_code = self.reverse_byteorders[self.other_byteorder] + 'i4'
+        out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
+        output = np.empty((10, ), out_dtype)
+        self.assertRaises(ValueError, lambda: self.table.read(out=output))
+        try:
+            self.table.read(out=output)
+        except ValueError as exc:
+            pass
+        self.assertTrue("array must be in system's byteorder" in str(exc))
 
 
 class BasicRangeTestCase(unittest.TestCase):
