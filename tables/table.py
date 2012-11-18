@@ -17,11 +17,7 @@ import math
 import warnings
 import os.path
 from time import time
-try:
-    # functools.reduce is new in python 2.6
-    from functools import reduce as _reduce
-except ImportError:
-    _reduce = reduce
+from functools import reduce as _reduce
 
 import numpy
 import numexpr
@@ -1522,8 +1518,8 @@ class Table(tableExtension.Table, Leaf):
         """
 
         if not hasattr(sequence, '__getitem__'):
-            raise TypeError("""\
-Wrong 'sequence' parameter type. Only sequences are suported.""")
+            raise TypeError(("Wrong 'sequence' parameter type. Only sequences "
+                             "are suported."))
         # start, stop and step are necessary for the new iterator for
         # coordinates, and perhaps it would be useful to add them as
         # parameters in the future (not now, because I've just removed
@@ -1706,7 +1702,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         # Return a rank-0 array if start > stop
         if start >= stop:
-            if field == None:
+            if field is None:
                 nra = self._get_container(0)
                 return nra
             return numpy.empty(shape=0, dtype=dtypeField)
@@ -2279,17 +2275,17 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
 
         if type(names) not in (list, tuple):
-            raise TypeError("""\
-The 'names' parameter must be a list of strings.""")
+            raise TypeError("The 'names' parameter must be a list of strings.")
 
-        if columns is None:      # Nothing to be done
+        if columns is None: # Nothing to be done
             return SizeType(0)
         if start is None:
             start = 0
         if start < 0:
             raise ValueError("'start' must have a positive value.")
         if step < 1:
-            raise ValueError("'step' must have a value greater or equal than 1.")        # Get the column formats to be modified:
+            raise ValueError(("'step' must have a value greater or "
+                              "equal than 1.")) # Get the column formats to be modified:
         descr = []
         for colname in names:
             objcol = self._getColumnInstance(colname)
@@ -2721,10 +2717,14 @@ The 'names' parameter must be a list of strings.""")
         if (('row' in self.__dict__ and self.row._getUnsavedNrows() > 0) or
             (self.indexed and self.autoIndex and
              (self._unsaved_indexedrows > 0 or self._dirtyindexes))):
-            warnings.warn("""\
-table ``%s`` is being preempted from alive nodes without its buffers being flushed or with some index being dirty.  This may lead to very ineficient use of resources and even to fatal errors in certain situations.  Please do a call to the .flush() or .reIndexDirty() methods on this table before start using other nodes."""
-                          % (self._v_pathname),
-                          PerformanceWarning)
+            warnings.warn(("table ``%s`` is being preempted from alive nodes "
+                           "without its buffers being flushed or with some "
+                           "index being dirty.  This may lead to very "
+                           "ineficient use of resources and even to fatal "
+                           "errors in certain situations.  Please do a call to "
+                           "the .flush() or .reIndexDirty() methods on this "
+                           "table before start using other nodes.")
+                          % (self._v_pathname), PerformanceWarning)
         # Get rid of the IO buffers (if they have been created at all)
         mydict = self.__dict__
         if '_v_iobuf' in mydict:
@@ -2887,9 +2887,10 @@ class Cols(object):
         if ((colname.find('/') > -1 and
              not colname in self._v_colpathnames) and
             not colname in self._v_colnames):
-            raise KeyError(
-"Cols accessor ``%s.cols%s`` does not have a column named ``%s``"
-        % (self._v__tablePath, self._v_desc._v_pathname, colname))
+            raise KeyError(("Cols accessor ``%s.cols%s`` does not have a "
+                            "column named ``%s``")
+                           % (self._v__tablePath, self._v_desc._v_pathname,
+                              colname))
 
         return self._g_col(colname)
 
