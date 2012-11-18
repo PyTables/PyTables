@@ -1446,6 +1446,7 @@ class BigTablesTestCase(BasicTestCase):
 
 
 class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+
     def setUp(self):
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
@@ -1500,6 +1501,65 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
             abs(self.table.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertEqual(self.table.size_in_memory, 10 * 1000 * 10 * 4)
         self.assertTrue(self.table.size_on_disk < self.table.size_in_memory)
+
+
+class NonNestedTableReadTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.dtype = np.format_parser(['i4'] * 10, [], []).dtype
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+        self.table = self.fileh.createTable('/', 'table', self.dtype)
+        self.shape = (100, )
+        self.populate_file()
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+
+    def populate_file(self):
+        self.array = np.zeros(self.shape, self.dtype)
+        for row_num, row in enumerate(self.array):
+            item_num = row_num * len(self.array.dtype.names)
+            for value, col in enumerate(self.array.dtype.names, item_num):
+                row[col] = value
+        self.table.append(self.array)
+
+    def test_read_all(self):
+        output = self.table.read()
+        npt.assert_array_equal(output, self.array)
+
+    def test_read_slice1(self):
+        output = self.table.read(0, 51)
+        npt.assert_array_equal(output, self.array[0:51])
+
+    def test_read_all_rows_specified_field(self):
+        output = self.table.read(field='f1')
+        npt.assert_array_equal(output, self.array['f1'])
+
+    def test_read_slice1_specified_field(self):
+        output = self.table.read(1, 64, field='f1')
+        npt.assert_array_equal(output, self.array['f1'][1:64])
+
+    def test_read_all_out_arg(self):
+        output = np.empty(self.shape, self.dtype)
+        self.table.read(out=output)
+        npt.assert_array_equal(output, self.array)
+
+    def test_read_slice1_out_arg(self):
+        output = np.empty((51, ), self.dtype)
+        self.table.read(0, 51, out=output)
+        npt.assert_array_equal(output, self.array[0:51])
+
+    def test_read_all_rows_specified_field_out_arg(self):
+        output = np.empty(self.shape, 'i4')
+        self.table.read(field='f1', out=output)
+        npt.assert_array_equal(output, self.array['f1'])
+
+    def test_read_slice1_specified_field_out_arg(self):
+        output = np.empty((63, ), 'i4')
+        self.table.read(1, 64, field='f1', out=output)
+        npt.assert_array_equal(output, self.array['f1'][1:64])
 
 
 class BasicRangeTestCase(unittest.TestCase):
@@ -1588,13 +1648,13 @@ class BasicRangeTestCase(unittest.TestCase):
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
-            for nrec in range(len(recarray)):
+            for nrec in xrange(len(recarray)):
                 if recarray['var2'][nrec] < self.nrows:
                     result.append(recarray['var2'][nrec])
         elif self.checkgetCol:
             column = table.read(self.start, self.stop, self.step, 'var2')
             result = []
-            for nrec in range(len(column)):
+            for nrec in xrange(len(column)):
                 if column[nrec] < self.nrows:
                     result.append(column[nrec])
         else:
@@ -5720,6 +5780,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AllFiltersTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
+        theSuite.addTest(unittest.makeSuite(NonNestedTableReadTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))

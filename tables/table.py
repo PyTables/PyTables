@@ -1683,7 +1683,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         return self.iterrows()
 
 
-    def _read(self, start, stop, step, field=None):
+    def _read(self, start, stop, step, field=None, out=None):
         """Read a range of rows and return an in-memory object."""
 
         select_field = None
@@ -1709,13 +1709,26 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         nrows = lrange(start, stop, step).length
 
-        # Compute the shape of the resulting column object
-        if field:
-            # Create a container for the results
-            result = numpy.empty(shape=nrows, dtype=dtypeField)
+        if out is None:
+            # Compute the shape of the resulting column object
+            if field:
+                # Create a container for the results
+                result = numpy.empty(shape=nrows, dtype=dtypeField)
+            else:
+                # Recarray case
+                result = self._get_container(nrows)
         else:
-            # Recarray case
-            result = self._get_container(nrows)
+            if field:
+                bytes_required = dtypeField.itemsize * nrows
+            else:
+                bytes_required = self.rowsize * nrows
+            if bytes_required != out.nbytes:
+                raise ValueError(('output array size invalid, got {0} bytes, '
+                                  'need {1} bytes').format(out.nbytes,
+                                                           bytes_required))
+            if not out.flags['C_CONTIGUOUS']:
+                raise ValueError('output array not C contiguous')
+            result = out
 
         # Call the routine to fill-up the resulting array
         if step == 1 and not field:
@@ -1738,7 +1751,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             return result
 
 
-    def read(self, start=None, stop=None, step=None, field=None):
+    def read(self, start=None, stop=None, step=None, field=None, out=None):
         """Get data in the table as a (record) array.
 
         The start, stop and step parameters can be used to select only a *range
@@ -1765,7 +1778,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         (start, stop, step) = self._processRangeRead(start, stop, step)
 
-        arr = self._read(start, stop, step, field)
+        arr = self._read(start, stop, step, field, out)
         return internal_to_flavor(arr, self.flavor)
 
 
