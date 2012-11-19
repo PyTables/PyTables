@@ -17,7 +17,6 @@ import sys
 
 import numpy
 
-from tables.utilsExtension import lrange
 from tables.atom import Atom
 from tables.array import Array
 from tables.utils import correct_byteorder, SizeType
@@ -245,7 +244,7 @@ class CArray(Array):
         (start, stop, step) = self._processRangeRead(start, stop, step)
         maindim = self.maindim
         shape = list(self.shape)
-        shape[maindim] = lrange(start, stop, step).length
+        shape[maindim] = len(xrange(start, stop, step))
         # Now, fill the new carray with values from source
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__
@@ -258,7 +257,7 @@ class CArray(Array):
                         title=title, filters=filters, chunkshape=chunkshape,
                         _log=_log)
         # Start the copy itself
-        for start2 in lrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:

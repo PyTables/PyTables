@@ -14,7 +14,6 @@
 
 import numpy
 
-from tables.utilsExtension import lrange
 from tables.utils import convertToNPAtom2, SizeType
 from tables.carray import CArray
 
@@ -210,7 +209,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         shape = list(self.shape)
         shape[maindim] = 0
         # The number of final rows
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
         # Build the new EArray object
         object = EArray(
             group, name, atom=self.atom, shape=shape, title=title,
@@ -224,7 +223,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         # when copying buffers
         self._v_convert = False
         # Start the copy itself
-        for start2 in lrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:

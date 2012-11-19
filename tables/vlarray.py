@@ -17,7 +17,6 @@ import sys
 import numpy
 
 from tables import hdf5Extension
-from tables.utilsExtension import lrange
 from tables.utils import (convertToNPAtom, convertToNPAtom2, idx2long,
     correct_byteorder, SizeType, is_idx, lazyattr)
 
@@ -786,7 +785,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             atomsize = self.atom.base.size
         else:
             atomsize = self.atom.size
-        for start2 in lrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:
