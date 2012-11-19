@@ -782,6 +782,32 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
+    def test01_read_out_arg(self):
+        tbl = self.h5file.createTable(
+            '/', 'test', self._TestTDescr, title=self._getMethodName())
+        tbl.append(self._testAData)
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        nrarr = numpy.rec.array(testABuffer,
+                                dtype=tbl.description._v_nestedDescr)
+        # When reading an entire nested column, the output array must contain
+        # all fields in the table.  The output buffer will contain the contents
+        # of all fields.  The selected column alone will be returned from the
+        # method call.
+        all_cols = numpy.empty(1, tbl.dtype)
+        tblcols = tbl.read(start=0, step=2, field='Info', out=all_cols)
+        nrarrcols = nrarr['Info'][0::2]
+        if common.verbose:
+            print "Read cols:", tblcols
+            print "Should look like:", nrarrcols
+        self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
+                        "Original array are retrieved doesn't match.")
+        self.assertTrue(common.areArraysEqual(nrarr[0::2], all_cols),
+                        "Output buffer does not match full table.")
+
     def test02_read(self):
         """Checking Table.read with a nested Column."""
 
@@ -799,6 +825,26 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarrcols = nrarr['Info']['value'][0::2]
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                      "Original array are retrieved doesn't match.")
+
+    def test02_read_out_arg(self):
+        """Checking Table.read with a nested Column."""
+
+        tbl = self.h5file.createTable(
+            '/', 'test', self._TestTDescr, title=self._getMethodName())
+        tbl.append(self._testAData)
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        tblcols = numpy.empty(1, dtype='c16')
+        tbl.read(start=0, step=2, field='Info/value', out=tblcols)
+        nrarr = numpy.rec.array(testABuffer,
+                                dtype=tbl.description._v_nestedDescr)
+        nrarrcols = nrarr['Info']['value'][0::2]
+        self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
+                     "Original array are retrieved doesn't match.")
+
 
 class ReadNoReopen(ReadTestCase):
     reopen = 0

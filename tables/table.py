@@ -1694,8 +1694,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                     select_field = field
                     field = None
                 else:
-                    raise KeyError("Field %s not found in table %s" %
-                                                            (field, self))
+                    raise KeyError(("Field {0} not found in table "
+                                    "{1}").format(field, self))
             else:
                 # The column hangs directly from the top
                 dtypeField = self.coldtypes[field]
@@ -1781,10 +1781,16 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         not checked and no type casting is performed, so if it does not match
         the datatype on disk, the output will not be correct.
 
+        When specifying a single nested column with the field parameter, and
+        supplying an output buffer with the out parameter, the output buffer
+        must contain all columns in the table.  The data in all columns will be
+        read into the output buffer.  However, only the specified nested column
+        will be returned from the method call.
+
         When data is read from disk in NumPy format, the output will be in the
         current system's byteorder, regardless of how it is stored on disk.
-        If the out parameter is specified, it also must be in the current
-        system's byteorder.
+        If the out parameter is specified, the output array also must be in the
+        current system's byteorder.
         """
 
         self._g_checkOpen()
