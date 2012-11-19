@@ -404,7 +404,8 @@ class Array(hdf5Extension.Array, Leaf):
             # I've finally decided to rely on the len(xrange) function.
             # F. Alted 2006-09-25
             # Switch to `lrange` to allow long ranges (see #99).
-            # use xrange, since it now supports large integers (github #181)
+            # use xrange, since it supports large integers as of Python 2.6
+            # see github #181
             new_dim = len(xrange(startl[dim], stopl[dim], stepl[dim]))
             if not (new_dim == 1 and stop_None[dim]):
                 shape.append(new_dim)
