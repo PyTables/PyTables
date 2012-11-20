@@ -101,7 +101,7 @@ Why NumPy?
 NumPy_ is a Python package to efficiently deal with large datasets
 **in-memory**, providing containers for homogeneous data, heterogeneous data,
 and string arrays.
-PyTables uses these !NumPy containers as *in-memory buffers* to push the I/O
+PyTables uses these NumPy containers as *in-memory buffers* to push the I/O
 bandwith towards the platform limits.
 
 
@@ -137,7 +137,7 @@ features yet (we don't even know if we will ever be motivated to implement
 this!), so there is always the risk that you can lose your data in case of an
 unexpected event while writing (like a power outage, system shutdowns ...).
 Having said that, if your typical scenarios are *write once, read many*, then
-the use of !PyTables is perfectly safe, even for dealing extremely large
+the use of PyTables is perfectly safe, even for dealing extremely large
 amounts of data.
 
 
@@ -147,7 +147,7 @@ Can PyTables be used in concurrent access scenarios?
 It depends. Concurrent reads are no problem at all. However, whenever a process
 (or thread) is trying to write, then problems will start to appear.
 First, PyTables doesn't support locking at any level, so several process
-writing concurrently to the same !PyTables file will probably end corrupting
+writing concurrently to the same PyTables file will probably end up corrupting
 it, so don't do this!
 Even having only one process writing and the others reading is a hairy thing,
 because the reading processes might be reading incomplete data from a
@@ -202,7 +202,7 @@ getting started.
 Can you show me some screenshots?
 ---------------------------------
 
-Well, !PyTables is not a graphical library by itself.
+Well, PyTables is not a graphical library by itself.
 However, you may want to check out ViTables_, a GUI tool to browse and edit
 PyTables & HDF5_ files.
 
@@ -233,7 +233,7 @@ large amounts of data which are loosely related).
 How can PyTables be fast if it is written in an interpreted language like Python?
 ---------------------------------------------------------------------------------
 
-Actually, all of the critical I/O code in !PyTables is a thin layer of code on
+Actually, all of the critical I/O code in PyTables is a thin layer of code on
 top of HDF5_, which is a very efficient C library. Cython_ is used as the
 *glue* language to generate "wrappers" around HDF5 calls so that they can be
 used in Python.
@@ -355,7 +355,7 @@ The recommended way to cite PyTables in a paper or a presentation is as
 following:
 
 * Author: Francesc Alted, Ivan Vilata and others
-* Title: !PyTables: Hierarchical Datasets in Python
+* Title: PyTables: Hierarchical Datasets in Python
 * Year: 2002 -
 * URL: http://www.pytables.org
 
@@ -457,7 +457,7 @@ files, you have several possibilities:
   so as to convert all flavors in old files to the default (effectively by
   removing the `FLAVOR` attribute).
 * Remove the `numarray` (and/or `Numeric`) package from your system.
-  Then PyTables 2.x will return you pure !NumPy objects (it can't be
+  Then PyTables 2.x will return you pure NumPy objects (it can't be
   otherwise!).
 
 
