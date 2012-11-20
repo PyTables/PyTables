@@ -33,6 +33,9 @@ New features
   applications that use the PyTables package (closes: :issue:`177`).
   Thanks to Stuart Mentzer and Christoph Gohlke.
 
+- All read methods now have an optional *out* argument that allows to pass a
+  pre-allocated array to store data (:issue:`192`)
+
 
 Improvements
 ------------
@@ -48,7 +51,7 @@ Improvements
   Also, now PyTables no more alters the system PATH.
   Closes :issue:`178` and :issue:`179` (thanks to Christoph Gohlke).
 
-- Th internal Blosc_ library has been upgraded to version 1.1.5.
+- The internal Blosc_ library has been upgraded to version 1.1.5.
 
 
 Other changes
@@ -96,6 +99,8 @@ Many deprecated features and support for obsolete modules has been dropped:
 
 - The deprecated :exc:`exceptions.Incompat16Warning` exception has been
   removed
+
+- The :func:`lrange` has been dropped in favour of xrange (:issue:`181`)
 
 
 Other possibly incompatible changes
