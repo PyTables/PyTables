@@ -11,7 +11,7 @@ from numpy import rec as records
 from numpy import testing as npt
 
 from tables import *
-from tables.utils import SizeType
+from tables.utils import SizeType, byteorders
 from tables.tests import common
 from tables.tests.common import allequal, areArraysEqual
 from tables.description import descr_from_dtype
@@ -1446,6 +1446,7 @@ class BigTablesTestCase(BasicTestCase):
 
 
 class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+
     def setUp(self):
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
@@ -1500,6 +1501,229 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
             abs(self.table.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertEqual(self.table.size_in_memory, 10 * 1000 * 10 * 4)
         self.assertTrue(self.table.size_on_disk < self.table.size_in_memory)
+
+
+class NonNestedTableReadTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.dtype = np.format_parser(['i4'] * 10, [], []).dtype
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+        self.table = self.fileh.createTable('/', 'table', self.dtype)
+        self.shape = (100, )
+        self.populate_file()
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+
+    def populate_file(self):
+        self.array = np.zeros(self.shape, self.dtype)
+        for row_num, row in enumerate(self.array):
+            start = row_num * len(self.array.dtype.names)
+            for value, col in enumerate(self.array.dtype.names, start):
+                row[col] = value
+        self.table.append(self.array)
+        self.assertEqual(len(self.table), len(self.array))
+
+    def test_read_all(self):
+        output = self.table.read()
+        npt.assert_array_equal(output, self.array)
+
+    def test_read_slice1(self):
+        output = self.table.read(0, 51)
+        npt.assert_array_equal(output, self.array[0:51])
+
+    def test_read_all_rows_specified_field(self):
+        output = self.table.read(field='f1')
+        npt.assert_array_equal(output, self.array['f1'])
+
+    def test_read_slice1_specified_field(self):
+        output = self.table.read(1, 64, field='f1')
+        npt.assert_array_equal(output, self.array['f1'][1:64])
+
+    def test_out_arg_with_non_numpy_flavor(self):
+        output = np.empty(self.shape, self.dtype)
+        self.table.flavor = 'python'
+        self.assertRaises(TypeError, lambda: self.table.read(out=output))
+        try:
+            self.table.read(out=output)
+        except TypeError as exc:
+            pass
+        self.assertTrue("Optional 'out' argument may only be" in str(exc))
+
+    def test_read_all_out_arg(self):
+        output = np.empty(self.shape, self.dtype)
+        self.table.read(out=output)
+        npt.assert_array_equal(output, self.array)
+
+    def test_read_slice1_out_arg(self):
+        output = np.empty((51, ), self.dtype)
+        self.table.read(0, 51, out=output)
+        npt.assert_array_equal(output, self.array[0:51])
+
+    def test_read_all_rows_specified_field_out_arg(self):
+        output = np.empty(self.shape, 'i4')
+        self.table.read(field='f1', out=output)
+        npt.assert_array_equal(output, self.array['f1'])
+
+    def test_read_slice1_specified_field_out_arg(self):
+        output = np.empty((63, ), 'i4')
+        self.table.read(1, 64, field='f1', out=output)
+        npt.assert_array_equal(output, self.array['f1'][1:64])
+
+    def test_read_all_out_arg_sliced(self):
+        output = np.empty((200, ), self.dtype)
+        output['f0'] = np.random.randint(0, 10000, (200, ))
+        output_orig = output.copy()
+        self.table.read(out=output[0:100])
+        npt.assert_array_equal(output[0:100], self.array)
+        npt.assert_array_equal(output[100:], output_orig[100:])
+
+    def test_all_fields_non_contiguous_slice_contiguous_buffer(self):
+        output = np.empty((50, ), self.dtype)
+        self.table.read(0, 100, 2, out=output)
+        npt.assert_array_equal(output, self.array[0:100:2])
+
+    def test_specified_field_non_contiguous_slice_contiguous_buffer(self):
+        output = np.empty((50, ), 'i4')
+        self.table.read(0, 100, 2, field='f3', out=output)
+        npt.assert_array_equal(output, self.array['f3'][0:100:2])
+
+    def test_all_fields_non_contiguous_buffer(self):
+        output = np.empty((100, ), self.dtype)
+        output_slice = output[0:100:2]
+        self.assertRaises(ValueError, self.table.read, 0, 100, 2, None,
+                          output_slice)
+        # once Python 2.6 support is dropped, this could change
+        # to assertRaisesRegexp to check exception type and message at once
+        try:
+            self.table.read(0, 100, 2, field=None, out=output_slice)
+        except ValueError as exc:
+            pass
+        self.assertEqual('output array not C contiguous', str(exc))
+
+    def test_specified_field_non_contiguous_buffer(self):
+        output = np.empty((100, ), 'i4')
+        output_slice = output[0:100:2]
+        self.assertRaises(ValueError, self.table.read, 0, 100, 2, 'f3',
+                          output_slice)
+        try:
+            self.table.read(0, 100, 2, field='f3', out=output_slice)
+        except ValueError as exc:
+            pass
+        self.assertEqual('output array not C contiguous', str(exc))
+
+    def test_all_fields_buffer_too_small(self):
+        output = np.empty((99, ), self.dtype)
+        self.assertRaises(ValueError, lambda: self.table.read(out=output))
+        try:
+            self.table.read(out=output)
+        except ValueError as exc:
+            pass
+        self.assertTrue('output array size invalid, got' in str(exc))
+
+    def test_specified_field_buffer_too_small(self):
+        output = np.empty((99, ), 'i4')
+        func = lambda: self.table.read(field='f5', out=output)
+        self.assertRaises(ValueError, func)
+        try:
+            self.table.read(field='f5', out=output)
+        except ValueError as exc:
+            pass
+        self.assertTrue('output array size invalid, got' in str(exc))
+
+    def test_all_fields_buffer_too_large(self):
+        output = np.empty((101, ), self.dtype)
+        self.assertRaises(ValueError, lambda: self.table.read(out=output))
+        try:
+            self.table.read(out=output)
+        except ValueError as exc:
+            pass
+        self.assertTrue('output array size invalid, got' in str(exc))
+
+
+class TableReadByteorderTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+        self.system_byteorder = sys.byteorder
+        self.other_byteorder = {'little':'big', 'big':'little'}[sys.byteorder]
+        self.reverse_byteorders = {'little':'<', 'big':'>'}
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+
+    def create_table(self, byteorder):
+        table_dtype_code = self.reverse_byteorders[byteorder] + 'i4'
+        table_dtype = np.format_parser([table_dtype_code, 'a1'], [], []).dtype
+        self.table = self.fileh.createTable('/', 'table', table_dtype,
+                                            byteorder=byteorder)
+        input_dtype = np.format_parser(['i4', 'a1'], [], []).dtype
+        self.input_array = np.zeros((10, ), input_dtype)
+        self.input_array['f0'] = np.arange(10)
+        self.input_array['f1'] = b'a'
+        self.table.append(self.input_array)
+
+    def test_table_system_byteorder_no_out_argument(self):
+        self.create_table(self.system_byteorder)
+        output = self.table.read()
+        self.assertEqual(byteorders[output['f0'].dtype.byteorder],
+                         self.system_byteorder)
+        npt.assert_array_equal(output['f0'], np.arange(10))
+
+    def test_table_other_byteorder_no_out_argument(self):
+        self.create_table(self.other_byteorder)
+        output = self.table.read()
+        self.assertEqual(byteorders[output['f0'].dtype.byteorder],
+                         self.system_byteorder)
+        npt.assert_array_equal(output['f0'], np.arange(10))
+
+    def test_table_system_byteorder_out_argument_system_byteorder(self):
+        self.create_table(self.system_byteorder)
+        out_dtype_code = self.reverse_byteorders[self.system_byteorder] + 'i4'
+        out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
+        output = np.empty((10, ), out_dtype)
+        self.table.read(out=output)
+        self.assertEqual(byteorders[output['f0'].dtype.byteorder],
+                         self.system_byteorder)
+        npt.assert_array_equal(output['f0'], np.arange(10))
+
+    def test_table_other_byteorder_out_argument_system_byteorder(self):
+        self.create_table(self.other_byteorder)
+        out_dtype_code = self.reverse_byteorders[self.system_byteorder] + 'i4'
+        out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
+        output = np.empty((10, ), out_dtype)
+        self.table.read(out=output)
+        self.assertEqual(byteorders[output['f0'].dtype.byteorder],
+                         self.system_byteorder)
+        npt.assert_array_equal(output['f0'], np.arange(10))
+
+    def test_table_system_byteorder_out_argument_other_byteorder(self):
+        self.create_table(self.system_byteorder)
+        out_dtype_code = self.reverse_byteorders[self.other_byteorder] + 'i4'
+        out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
+        output = np.empty((10, ), out_dtype)
+        self.assertRaises(ValueError, lambda: self.table.read(out=output))
+        try:
+            self.table.read(out=output)
+        except ValueError as exc:
+            pass
+        self.assertTrue("array must be in system's byteorder" in str(exc))
+
+    def test_table_other_byteorder_out_argument_other_byteorder(self):
+        self.create_table(self.other_byteorder)
+        out_dtype_code = self.reverse_byteorders[self.other_byteorder] + 'i4'
+        out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
+        output = np.empty((10, ), out_dtype)
+        self.assertRaises(ValueError, lambda: self.table.read(out=output))
+        try:
+            self.table.read(out=output)
+        except ValueError as exc:
+            pass
+        self.assertTrue("array must be in system's byteorder" in str(exc))
 
 
 class BasicRangeTestCase(unittest.TestCase):
@@ -1588,13 +1812,13 @@ class BasicRangeTestCase(unittest.TestCase):
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
-            for nrec in range(len(recarray)):
+            for nrec in xrange(len(recarray)):
                 if recarray['var2'][nrec] < self.nrows:
                     result.append(recarray['var2'][nrec])
         elif self.checkgetCol:
             column = table.read(self.start, self.stop, self.step, 'var2')
             result = []
-            for nrec in range(len(column)):
+            for nrec in xrange(len(column)):
                 if column[nrec] < self.nrows:
                     result.append(column[nrec])
         else:
@@ -5720,6 +5944,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AllFiltersTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
+        theSuite.addTest(unittest.makeSuite(NonNestedTableReadTestCase))
+        theSuite.addTest(unittest.makeSuite(TableReadByteorderTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
         theSuite.addTest(unittest.makeSuite(getColRangeTestCase))

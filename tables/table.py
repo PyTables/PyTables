@@ -1683,7 +1683,7 @@ class Table(tableExtension.Table, Leaf):
         return self.iterrows()
 
 
-    def _read(self, start, stop, step, field=None):
+    def _read(self, start, stop, step, field=None, out=None):
         """Read a range of rows and return an in-memory object."""
 
         select_field = None
@@ -1694,8 +1694,8 @@ class Table(tableExtension.Table, Leaf):
                     select_field = field
                     field = None
                 else:
-                    raise KeyError("Field %s not found in table %s" %
-                                                            (field, self))
+                    raise KeyError(("Field {0} not found in table "
+                                    "{1}").format(field, self))
             else:
                 # The column hangs directly from the top
                 dtypeField = self.coldtypes[field]
@@ -1709,13 +1709,31 @@ class Table(tableExtension.Table, Leaf):
 
         nrows = lrange(start, stop, step).length
 
-        # Compute the shape of the resulting column object
-        if field:
-            # Create a container for the results
-            result = numpy.empty(shape=nrows, dtype=dtypeField)
+        if out is None:
+            # Compute the shape of the resulting column object
+            if field:
+                # Create a container for the results
+                result = numpy.empty(shape=nrows, dtype=dtypeField)
+            else:
+                # Recarray case
+                result = self._get_container(nrows)
         else:
-            # Recarray case
-            result = self._get_container(nrows)
+            # there is no fast way to byteswap, since different columns may have
+            # different byteorders
+            if not out.dtype.isnative:
+                raise ValueError(("output array must be in system's byteorder "
+                                  "or results will be incorrect"))
+            if field:
+                bytes_required = dtypeField.itemsize * nrows
+            else:
+                bytes_required = self.rowsize * nrows
+            if bytes_required != out.nbytes:
+                raise ValueError(('output array size invalid, got {0} bytes, '
+                                  'need {1} bytes').format(out.nbytes,
+                                                           bytes_required))
+            if not out.flags['C_CONTIGUOUS']:
+                raise ValueError('output array not C contiguous')
+            result = out
 
         # Call the routine to fill-up the resulting array
         if step == 1 and not field:
@@ -1738,7 +1756,7 @@ class Table(tableExtension.Table, Leaf):
             return result
 
 
-    def read(self, start=None, stop=None, step=None, field=None):
+    def read(self, start=None, stop=None, step=None, field=None, out=None):
         """Get data in the table as a (record) array.
 
         The start, stop and step parameters can be used to select only a *range
@@ -1756,6 +1774,23 @@ class Table(tableExtension.Table, Leaf):
 
         Columns under a nested column can be specified in the field parameter by
         using a slash character (/) as a separator (e.g. 'position/x').
+
+        The out parameter may be used to specify a NumPy array to receive the
+        output data.  Note that the array must have the same size as the data
+        selected with the other parameters.  Note that the array's datatype is
+        not checked and no type casting is performed, so if it does not match
+        the datatype on disk, the output will not be correct.
+
+        When specifying a single nested column with the field parameter, and
+        supplying an output buffer with the out parameter, the output buffer
+        must contain all columns in the table.  The data in all columns will be
+        read into the output buffer.  However, only the specified nested column
+        will be returned from the method call.
+
+        When data is read from disk in NumPy format, the output will be in the
+        current system's byteorder, regardless of how it is stored on disk.
+        If the out parameter is specified, the output array also must be in the
+        current system's byteorder.
         """
 
         self._g_checkOpen()
@@ -1763,9 +1798,14 @@ class Table(tableExtension.Table, Leaf):
         if field:
             self._checkColumn(field)
 
+        if out is not None and self.flavor != 'numpy':
+            msg = ("Optional 'out' argument may only be supplied if array "
+                   "flavor is 'numpy', currently is {0}").format(self.flavor)
+            raise TypeError(msg)
+
         (start, stop, step) = self._processRangeRead(start, stop, step)
 
-        arr = self._read(start, stop, step, field)
+        arr = self._read(start, stop, step, field, out)
         return internal_to_flavor(arr, self.flavor)
 
 

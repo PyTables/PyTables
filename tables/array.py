@@ -12,13 +12,17 @@
 
 """Here is defined the Array class."""
 
+import sys
+
 import numpy
 
 from tables import hdf5Extension
 from tables.utilsExtension import lrange
 from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx, convertToNPAtom2, SizeType, lazyattr
+
+from tables.utils import (is_idx, convertToNPAtom2, SizeType, lazyattr,
+                          byteorders)
 from tables.leaf import Leaf
 
 
@@ -308,7 +312,8 @@ class Array(hdf5Extension.Array, Leaf):
 
         The element is returned as an object of the current flavor.
         """
-
+        # this could probably be sped up for long iterations by reusing the
+        # listarr buffer
         if self._nrowsread >= self._stop:
             self._init = False
             raise StopIteration        # end of iteration
@@ -788,23 +793,37 @@ class Array(hdf5Extension.Array, Leaf):
         self._g_writeSelection(selection, nparr)
 
 
-    def _read(self, start, stop, step):
+    def _read(self, start, stop, step, out=None):
         """Read the array from disk without slice or flavor processing."""
 
-        rowstoread = lrange(start, stop, step).length
+        nrowstoread = lrange(start, stop, step).length
         shape = list(self.shape)
         if shape:
-            shape[self.maindim] = rowstoread
-        arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
-
+            shape[self.maindim] = nrowstoread
+        if out is None:
+            arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
+        else:
+            bytes_required = self.rowsize * nrowstoread
+            # if buffer is too small, it will segfault
+            if bytes_required != out.nbytes:
+                raise ValueError(('output array size invalid, got {0} bytes, '
+                                  'need {1} bytes').format(out.nbytes,
+                                                           bytes_required))
+            if not out.flags['C_CONTIGUOUS']:
+                raise ValueError('output array not C contiguous')
+            arr = out
         # Protection against reading empty arrays
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._readArray(start, stop, step, arr)
+        # data is always read in the system byteorder
+        # if the out array's byteorder is different, do a byteswap
+        if out is not None and byteorders[arr.dtype.byteorder] != sys.byteorder:
+            arr.byteswap(True)
         return arr
 
 
-    def read(self, start=None, stop=None, step=None):
+    def read(self, start=None, stop=None, step=None, out=None):
         """Get data in the array as an object of the current flavor.
 
         The start, stop and step parameters can be used to select only a *range
@@ -813,11 +832,28 @@ class Array(hdf5Extension.Array, Leaf):
         allowed yet. Moreover, if only start is specified, then stop will be
         set to start+1. If you do not specify neither start nor stop, then *all
         the rows* in the array are selected.
+
+        The out parameter may be used to specify a NumPy array to receive the
+        output data.  Note that the array must have the same size as the data
+        selected with the other parameters.  Note that the array's datatype is
+        not checked and no type casting is performed, so if it does not match
+        the datatype on disk, the output will not be correct.  Also, this
+        parameter is only valid when the array's flavor is set to 'numpy'.
+        Otherwise, a TypeError will be raised.
+
+        When data is read from disk in NumPy format, the output will be in the
+        current system's byteorder, regardless of how it is stored on disk.
+        The exception is when an output buffer is supplied, in which case the
+        output will be in the byteorder of that output buffer.
         """
 
         self._g_checkOpen()
+        if out is not None and self.flavor != 'numpy':
+            msg = ("Optional 'out' argument may only be supplied if array "
+                   "flavor is 'numpy', currently is {0}").format(self.flavor)
+            raise TypeError(msg)
         (start, stop, step) = self._processRangeRead(start, stop, step)
-        arr = self._read(start, stop, step)
+        arr = self._read(start, stop, step, out)
         return internal_to_flavor(arr, self.flavor)
 
 

@@ -164,6 +164,63 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(carray.chunkshape, self.chunkshape)
         self.assertTrue(allequal(data, object, self.flavor))
 
+    def test01_readCArray_out_argument(self):
+        """Checking read() of chunked layout arrays"""
+
+        # Create an instance of an HDF5 Table
+        if self.reopen:
+            self.fileh = openFile(self.file, "r")
+        carray = self.fileh.getNode("/carray1")
+
+        # Choose a small value for buffer size
+        carray.nrowsinbuf = 3
+        # Build the array to do comparisons
+        if self.flavor == "numpy":
+            if self.type == "string":
+                object_ = numpy.ndarray(buffer=b"a"*self.objsize,
+                                        shape=self.shape,
+                                        dtype="S%s" % carray.atom.itemsize)
+            else:
+                object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
+                object_.shape = self.shape
+
+        stop = self.stop
+        # stop == None means read only the element designed by start
+        # (in read() contexts)
+        if self.stop == None:
+            if self.start == -1:  # corner case
+                stop = carray.nrows
+            else:
+                stop = self.start + 1
+        # Protection against number of elements less than existing
+        #if rowshape[self.extdim] < self.stop or self.stop == 0:
+        if carray.nrows < stop:
+            # self.stop == 0 means last row only in read()
+            # and not in [::] slicing notation
+            stop = int(carray.nrows)
+        # do a copy() in order to ensure that len(object._data)
+        # actually do a measure of its length
+        object = object_[self.start:stop:self.step].copy()
+
+        # Read all the array
+        try:
+            data = numpy.empty(self.shape, dtype=carray.atom.dtype)
+            data = data[self.start:stop:self.step].copy()
+            carray.read(self.start, stop, self.step, out=data)
+        except IndexError:
+            if self.flavor == "numpy":
+                data = numpy.empty(shape=self.shape, dtype=self.type)
+            else:
+                data = numpy.empty(shape=self.shape, dtype=self.type)
+
+        if hasattr(data, "shape"):
+            self.assertEqual(len(data.shape), len(self.shape))
+        else:
+            # Scalar case
+            self.assertEqual(len(self.shape), 1)
+        self.assertEqual(carray.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(data, object, self.flavor))
+
     def test02_getitemCArray(self):
         """Checking chunked layout array __getitem__ special method"""
 
@@ -699,6 +756,60 @@ class ComprTestCase(BasicTestCase):
     start = 51
     stop = 100
     step = 7
+
+
+# this is a subset of the tests in test_array.py, mostly to verify that errors
+# are handled in the same way
+class ReadOutArgumentTests(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode='w')
+        self.size = 1000
+        self.filters = Filters(complevel=1, complib='blosc')
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+
+    def create_array(self):
+        array = numpy.arange(self.size, dtype='i8')
+        disk_array = self.fileh.createCArray('/', 'array', Int64Atom(),
+                                             (self.size, ),
+                                             filters=self.filters)
+        disk_array[:] = array
+        return array, disk_array
+
+    def test_read_entire_array(self):
+        array, disk_array = self.create_array()
+        out_buffer = numpy.empty((self.size, ), 'i8')
+        disk_array.read(out=out_buffer)
+        numpy.testing.assert_equal(out_buffer, array)
+
+    def test_read_non_contiguous_buffer(self):
+        array, disk_array = self.create_array()
+        out_buffer = numpy.empty((self.size, ), 'i8')
+        out_buffer_slice = out_buffer[0:self.size:2]
+        # once Python 2.6 support is dropped, this could change
+        # to assertRaisesRegexp to check exception type and message at once
+        self.assertRaises(ValueError, disk_array.read, 0, self.size, 2,
+                          out_buffer_slice)
+        try:
+            disk_array.read(0, self.size, 2, out_buffer_slice)
+        except ValueError as exc:
+            pass
+        self.assertEqual('output array not C contiguous', str(exc))
+
+    def test_buffer_too_small(self):
+        array, disk_array = self.create_array()
+        out_buffer = numpy.empty((self.size // 2, ), 'i8')
+        self.assertRaises(ValueError, disk_array.read, 0, self.size, 1,
+                          out_buffer)
+        try:
+            disk_array.read(0, self.size, 1, out_buffer)
+        except ValueError as exc:
+            pass
+        self.assertTrue('output array size invalid, got' in str(exc))
 
 
 class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
@@ -2184,6 +2295,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
+        theSuite.addTest(unittest.makeSuite(ReadOutArgumentTests))
         theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))

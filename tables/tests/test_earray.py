@@ -335,6 +335,92 @@ class BasicTestCase(unittest.TestCase):
             # Scalar case
             self.assertEqual(len(self.shape), 1)
 
+    def test03_readEArray_out_argument(self):
+        """Checking read() of enlargeable arrays"""
+
+        # This conversion made just in case indices are numpy scalars
+        if self.start is not None: self.start = long(self.start)
+        if self.stop is not None: self.stop = long(self.stop)
+        if self.step is not None: self.step = long(self.step)
+
+        # Create an instance of an HDF5 Table
+        if self.reopen:
+            self.fileh = openFile(self.file, "r")
+        earray = self.fileh.getNode("/earray1")
+
+        # Choose a small value for buffer size
+        earray.nrowsinbuf = 3
+        # Build the array to do comparisons
+        if self.type == "string":
+            object_ = numpy.ndarray(buffer=b"a"*self.objsize,
+                                    shape=self.rowshape,
+                                    dtype="S%s" % earray.atom.itemsize)
+        else:
+            object_ = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
+            object_.shape = self.rowshape
+        object_ = object_.swapaxes(earray.extdim, 0)
+
+        rowshape = self.rowshape
+        rowshape[self.extdim] *= self.nappends
+        if self.type == "string":
+            object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.atom.itemsize)
+        else:
+            object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
+
+        object__ = object__.swapaxes(0, self.extdim)
+
+        for i in range(self.nappends):
+            j = i * self.chunksize
+            if self.type == "string":
+                object__[j:j+self.chunksize] = object_
+            else:
+                object__[j:j+self.chunksize] = object_ * i
+
+        stop = self.stop
+
+        if self.nappends:
+            # stop == None means read only the element designed by start
+            # (in read() contexts)
+            if self.stop == None:
+                if self.start == -1:  # corner case
+                    stop = earray.nrows
+                else:
+                    stop = self.start + 1
+            # Protection against number of elements less than existing
+            # if rowshape[self.extdim] < self.stop or self.stop == 0:
+            if rowshape[self.extdim] < stop:
+                # self.stop == 0 means last row only in read()
+                # and not in [::] slicing notation
+                stop = rowshape[self.extdim]
+            # do a copy() in order to ensure that len(object._data)
+            # actually do a measure of its length
+            object = object__[self.start:stop:self.step].copy()
+            # Swap the axes again to have normal ordering
+            if self.flavor == "numpy":
+                object = object.swapaxes(0, self.extdim)
+        else:
+            object = numpy.empty(shape=self.shape, dtype=self.dtype)
+
+        # Read all the array
+        try:
+            row = numpy.empty(earray.shape, dtype=earray.atom.dtype)
+            slice_obj = [slice(None)] * len(earray.shape)
+            slice_obj[earray.maindim] = slice(self.start, stop, self.step)
+            row = row[slice_obj].copy()
+            earray.read(self.start, self.stop, self.step, out=row)
+        except IndexError:
+            row = numpy.empty(shape=self.shape, dtype=self.dtype)
+
+        self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+        self.assertTrue(allequal(row, object, self.flavor))
+        if hasattr(row, "shape"):
+            self.assertEqual(len(row.shape), len(self.shape))
+            if self.flavor == "numpy":
+                self.assertEqual(row.itemsize, earray.atom.itemsize)
+        else:
+            # Scalar case
+            self.assertEqual(len(self.shape), 1)
+
     def test04_getitemEArray(self):
         """Checking enlargeable array __getitem__ special method"""
 
