@@ -19,8 +19,6 @@ Global functions
 
 .. autofunction:: isPyTablesFile
 
-.. autoclass:: lrange
-
 .. autofunction:: openFile
 
 .. autofunction:: setBloscMaxThreads

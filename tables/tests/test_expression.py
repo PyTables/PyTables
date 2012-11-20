@@ -17,7 +17,6 @@ import unittest
 import numpy as np
 import tables as tb
 from tables.tests import common
-from tables.utilsExtension import lrange
 
 # An example of record
 class Record(tb.IsDescription):
@@ -1220,7 +1219,7 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr.setOutputRange(start, stop, step)
         expr.eval()
         r2 = eval("a-b-1")
-        r[start:stop:step] = r2[:lrange(start, stop, step).length]
+        r[start:stop:step] = r2[:len(xrange(start, stop, step))]
         if common.verbose:
             print "Tested shape:", shape
             print "Computed expression:", repr(r1[:]), r1.dtype
@@ -1253,7 +1252,7 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r2 = eval("a-b-1")
         lsl = tuple([slice(None)] * self.maindim)
         #print "lsl-->", lsl + (slice(start,stop,step),)
-        l = lrange(start, stop, step).length
+        l = len(xrange(start, stop, step))
         r.__setitem__(lsl + (slice(start, stop, step),),
                       r2.__getitem__(lsl + (slice(0, l),)))
         if common.verbose:

@@ -17,7 +17,6 @@ import sys
 import numpy
 
 from tables import hdf5Extension
-from tables.utilsExtension import lrange
 from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 
@@ -410,8 +409,9 @@ class Array(hdf5Extension.Array, Leaf):
             # I've finally decided to rely on the len(xrange) function.
             # F. Alted 2006-09-25
             # Switch to `lrange` to allow long ranges (see #99).
-            #new_dim = ((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1
-            new_dim = lrange(startl[dim], stopl[dim], stepl[dim]).length
+            # use xrange, since it supports large integers as of Python 2.6
+            # see github #181
+            new_dim = len(xrange(startl[dim], stopl[dim], stepl[dim]))
             if not (new_dim == 1 and stop_None[dim]):
                 shape.append(new_dim)
 
@@ -796,7 +796,7 @@ class Array(hdf5Extension.Array, Leaf):
     def _read(self, start, stop, step, out=None):
         """Read the array from disk without slice or flavor processing."""
 
-        nrowstoread = lrange(start, stop, step).length
+        nrowstoread = len(xrange(start, stop, step))
         shape = list(self.shape)
         if shape:
             shape[self.maindim] = nrowstoread

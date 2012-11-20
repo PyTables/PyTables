@@ -19,7 +19,7 @@ import numpy as np
 import tables as tb
 from numexpr.necompiler import getContext, getExprNames, getType, NumExpr
 from numexpr.expressions import functions as numexpr_functions
-from tables.utilsExtension import lrange, getIndices
+from tables.utilsExtension import getIndices
 from tables.exceptions import PerformanceWarning
 from tables.parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 
@@ -464,7 +464,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             (start, stop, step) = getIndices(
                 self.start, self.stop, self.step, shape[maindim])
             shape[maindim] = min(
-                shape[maindim], lrange(start, stop, step).length)
+                shape[maindim], len(xrange(start, stop, step)))
             i_nrows = shape[maindim]
         else:
             start, stop, step = 0, 0, None
@@ -493,7 +493,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 (o_start, o_stop, o_step) = getIndices(
                     self.o_start, self.o_stop, self.o_step, o_shape[o_maindim])
                 o_shape[o_maindim] = min(o_shape[o_maindim],
-                                         lrange(o_start, o_stop, o_step).length)
+                                         len(xrange(o_start, o_stop, o_step)))
 
                 # Check that the shape of output is consistent with inputs
                 tr_oshape = list(o_shape)   # this implies a copy
@@ -588,7 +588,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 val._v_convert = False
 
         # Start the computation itself
-        for start2 in lrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step*nrowsinbuf):
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
@@ -654,7 +654,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 val._v_convert = False
 
         # Start the computation itself
-        for start2 in lrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step*nrowsinbuf):
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop

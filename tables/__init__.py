@@ -83,8 +83,8 @@ hdf5Version = getHDF5Version()
 """The underlying HDF5 library version number."""
 
 from tables.utilsExtension import (
-    isHDF5File, isPyTablesFile, whichLibVersion, lrange,
-    setBloscMaxThreads, silenceHDF5Messages)
+    isHDF5File, isPyTablesFile, whichLibVersion, setBloscMaxThreads,
+    silenceHDF5Messages)
 
 from tables.misc.enum import Enum
 from tables.atom import *
@@ -121,7 +121,7 @@ __all__ = [
     # Functions:
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
     'copyFile', 'openFile', 'print_versions', 'test',
-    'split_type', 'restrict_flavors', 'lrange', 'setBloscMaxThreads',
+    'split_type', 'restrict_flavors', 'setBloscMaxThreads',
     'silenceHDF5Messages',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',

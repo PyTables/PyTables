@@ -23,7 +23,6 @@ import numpy
 import numexpr
 
 from tables import tableExtension
-from tables.utilsExtension import lrange
 from tables.lrucacheExtension import ObjectCache, NumCache
 from tables.atom import Atom
 from tables.conditions import compile_condition
@@ -1707,7 +1706,7 @@ class Table(tableExtension.Table, Leaf):
                 return nra
             return numpy.empty(shape=0, dtype=dtypeField)
 
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
 
         if out is None:
             # Compute the shape of the resulting column object
@@ -2194,7 +2193,7 @@ class Table(tableExtension.Table, Leaf):
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
         if len(rows) != nrows:
             raise ValueError("The value has different elements than the "
                              "specified range")
@@ -2279,7 +2278,7 @@ class Table(tableExtension.Table, Leaf):
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
         if len(column) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2354,7 +2353,7 @@ class Table(tableExtension.Table, Leaf):
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
         if len(recarray) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2603,7 +2602,7 @@ class Table(tableExtension.Table, Leaf):
         absstep = abs(step)
         if sortby is not None:
             index = self._check_sortby_CSI(sortby, checkCSI)
-        for start2 in lrange(start, stop, absstep*lenbuf):
+        for start2 in xrange(start, stop, absstep*lenbuf):
             stop2 = start2+absstep*lenbuf
             if stop2 > stop:
                 stop2 = stop
@@ -2624,7 +2623,7 @@ class Table(tableExtension.Table, Leaf):
         nrowsinbuf = self.nrowsinbuf
         object._open_append(self._v_iobuf)
         nrowsdest = object.nrows
-        for start2 in lrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:
@@ -2666,7 +2665,7 @@ class Table(tableExtension.Table, Leaf):
         (start, stop, step) = self._processRangeRead(
             start, stop, step, warn_negstep = sortby is None)
         # And the number of final rows
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
         # Create the new table and copy the selected data.
         newtable = Table( group, name, self.description, title=title,
                           filters=filters, expectedrows=nrows,
