@@ -646,7 +646,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "col-->", col
             print "npcol-->", npcol
         # A copy() is needed in case the buffer can be in different segments
-        self.assertEqual(col.copy().data, npcol.data)
+        self.assertEqual(bytes(col.copy().data), bytes(npcol.data))
 
     def test01b_basicTableRead(self):
         """Checking the return of a NumPy in read() (strided version)."""
@@ -685,7 +685,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "col-->", col
             print "npcol-->", npcol
         # A copy() is needed in case the buffer can be in different segments
-        self.assertEqual(col.copy().data, npcol.data)
+        self.assertEqual(bytes(col.copy().data), bytes(npcol.data))
 
     def test02_getWhereList(self):
         """Checking the return of NumPy in getWhereList method."""
@@ -773,7 +773,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
-        self.assertEqual(data.copy().data, npdata.data)
+        self.assertEqual(bytes(data.copy().data), bytes(npdata.data))
 
     def test04b_appendTable(self):
         """Checking appending a numpy recarray."""
@@ -799,7 +799,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
-        self.assertEqual(data.copy().data, npdata.data)
+        self.assertEqual(bytes(data.copy().data), bytes(npdata.data))
 
     def test05a_assignColumn(self):
         """Checking assigning to a column."""
@@ -912,7 +912,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
-        self.assertEqual(data.copy().data, npdata.data)
+        self.assertEqual(bytes(data.copy().data), bytes(npdata.data))
 
     def test06b_assignNestedColumn(self):
         """Checking assigning a nested column (using the .cols accessor)."""
@@ -948,7 +948,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
-        self.assertEqual(data.copy().data, npdata.data)
+        self.assertEqual(bytes(data.copy().data), bytes(npdata.data))
 
     def test07a_modifyingRows(self):
         """Checking modifying several rows at once (using modifyRows)."""
