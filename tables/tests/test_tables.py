@@ -1549,8 +1549,7 @@ class NonNestedTableReadTestCase(unittest.TestCase):
         try:
             self.table.read(out=output)
         except TypeError as exc:
-            pass
-        self.assertTrue("Optional 'out' argument may only be" in str(exc))
+            self.assertTrue("Optional 'out' argument may only be" in str(exc))
 
     def test_read_all_out_arg(self):
         output = np.empty(self.shape, self.dtype)
@@ -1600,8 +1599,7 @@ class NonNestedTableReadTestCase(unittest.TestCase):
         try:
             self.table.read(0, 100, 2, field=None, out=output_slice)
         except ValueError as exc:
-            pass
-        self.assertEqual('output array not C contiguous', str(exc))
+            self.assertEqual('output array not C contiguous', str(exc))
 
     def test_specified_field_non_contiguous_buffer(self):
         output = np.empty((100, ), 'i4')
@@ -1611,8 +1609,7 @@ class NonNestedTableReadTestCase(unittest.TestCase):
         try:
             self.table.read(0, 100, 2, field='f3', out=output_slice)
         except ValueError as exc:
-            pass
-        self.assertEqual('output array not C contiguous', str(exc))
+            self.assertEqual('output array not C contiguous', str(exc))
 
     def test_all_fields_buffer_too_small(self):
         output = np.empty((99, ), self.dtype)
@@ -1620,8 +1617,7 @@ class NonNestedTableReadTestCase(unittest.TestCase):
         try:
             self.table.read(out=output)
         except ValueError as exc:
-            pass
-        self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertTrue('output array size invalid, got' in str(exc))
 
     def test_specified_field_buffer_too_small(self):
         output = np.empty((99, ), 'i4')
@@ -1630,8 +1626,7 @@ class NonNestedTableReadTestCase(unittest.TestCase):
         try:
             self.table.read(field='f5', out=output)
         except ValueError as exc:
-            pass
-        self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertTrue('output array size invalid, got' in str(exc))
 
     def test_all_fields_buffer_too_large(self):
         output = np.empty((101, ), self.dtype)
@@ -1639,8 +1634,7 @@ class NonNestedTableReadTestCase(unittest.TestCase):
         try:
             self.table.read(out=output)
         except ValueError as exc:
-            pass
-        self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertTrue('output array size invalid, got' in str(exc))
 
 
 class TableReadByteorderTestCase(unittest.TestCase):
@@ -1710,8 +1704,7 @@ class TableReadByteorderTestCase(unittest.TestCase):
         try:
             self.table.read(out=output)
         except ValueError as exc:
-            pass
-        self.assertTrue("array must be in system's byteorder" in str(exc))
+            self.assertTrue("array must be in system's byteorder" in str(exc))
 
     def test_table_other_byteorder_out_argument_other_byteorder(self):
         self.create_table(self.other_byteorder)
@@ -1722,8 +1715,7 @@ class TableReadByteorderTestCase(unittest.TestCase):
         try:
             self.table.read(out=output)
         except ValueError as exc:
-            pass
-        self.assertTrue("array must be in system's byteorder" in str(exc))
+            self.assertTrue("array must be in system's byteorder" in str(exc))
 
 
 class BasicRangeTestCase(unittest.TestCase):

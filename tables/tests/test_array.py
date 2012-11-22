@@ -424,8 +424,7 @@ class ReadOutArgumentTests(unittest.TestCase):
         try:
             disk_array.read(0, self.size, 2, out_buffer_slice)
         except ValueError as exc:
-            pass
-        self.assertEqual('output array not C contiguous', str(exc))
+            self.assertEqual('output array not C contiguous', str(exc))
 
     def test_buffer_too_small(self):
         array, disk_array = self.create_array()
@@ -435,8 +434,7 @@ class ReadOutArgumentTests(unittest.TestCase):
         try:
             disk_array.read(0, self.size, 1, out_buffer)
         except ValueError as exc:
-            pass
-        self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertTrue('output array size invalid, got' in str(exc))
 
     def test_buffer_too_large(self):
         array, disk_array = self.create_array()
@@ -446,8 +444,7 @@ class ReadOutArgumentTests(unittest.TestCase):
         try:
             disk_array.read(0, self.size, 1, out_buffer)
         except ValueError as exc:
-            pass
-        self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertTrue('output array size invalid, got' in str(exc))
 
 
 class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
