@@ -4130,10 +4130,8 @@ class SizeInMemoryPropertyTestCase(unittest.TestCase):
         self.create_array(atom, complevel)
         obj = [1, 2, 3]
         for i in xrange(10):
-            self.array.append([obj])
-        pickle_ = cPickle.dumps(obj)
-        pickle_array = numpy.ndarray(buffer=pickle_, dtype='uint8',
-                                     shape=len(pickle_))
+            self.array.append(obj)
+        pickle_array = atom.toarray(obj)
         expected_size = 10 * pickle_array.nbytes
         self.assertEqual(self.array.size_in_memory, expected_size)
 
