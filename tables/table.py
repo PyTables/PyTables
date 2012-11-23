@@ -3298,10 +3298,9 @@ class Column(object):
         """
         table = self.table
         itemsize = self.dtype.itemsize
-        params = table._v_file.params
-        nrowsinbuf = params['IO_BUFFER_SIZE'] // itemsize
+        nrowsinbuf = table._v_file.params['IO_BUFFER_SIZE'] // itemsize
         buf = numpy.empty((nrowsinbuf, ), self.dtype)
-        max_row = len(self) - 1
+        max_row = len(self)
         for start_row in xrange(0, len(self), nrowsinbuf):
             end_row = min([start_row + nrowsinbuf, max_row])
             buf_slice = buf[0:end_row - start_row]

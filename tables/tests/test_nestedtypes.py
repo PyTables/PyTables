@@ -1181,6 +1181,22 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
+    def test_01a__iter__(self):
+        tbl = self.h5file.createTable(
+            '/', 'test', self._TestTDescr, title=self._getMethodName())
+        tbl.append(self._testAData)
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        row_num = 0
+        for item in tbl.cols.Info.value:
+            self.assertEqual(item, nrarr['Info']['value'][row_num])
+            row_num += 1
+        self.assertEqual(row_num, len(nrarr))
+
 
 class ColsNoReopen(ColsTestCase):
     reopen = 0

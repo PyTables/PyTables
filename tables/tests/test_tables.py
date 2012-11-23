@@ -5934,6 +5934,7 @@ class ColumnIterationTestCase(unittest.TestCase):
         for item in table.cols.f0:
             self.assertEqual(item, array['f0'][row_num])
             row_num += 1
+        self.assertEqual(row_num, len(array))
 
     def test_less_than_io_buffer(self):
         dtype = np.format_parser(['i8'] * 3, [], []).dtype
@@ -5952,6 +5953,12 @@ class ColumnIterationTestCase(unittest.TestCase):
         rows_in_buffer = self.buffer_size // dtype[0].itemsize
         array, table = self.create_non_nested_table(rows_in_buffer * 2 + 2,
                                                     dtype)
+        self.iterate(array, table)
+
+    def test_zero_length_table(self):
+        dtype = np.format_parser(['i8'] * 3, [], []).dtype
+        array, table = self.create_non_nested_table(0, dtype)
+        self.assertEqual(len(table), 0)
         self.iterate(array, table)
 
 
