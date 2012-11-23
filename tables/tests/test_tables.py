@@ -5909,6 +5909,52 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedNodeError, self.table.readCoordinates, [2, 5])
 
 
+class ColumnIterationTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, mode = "w")
+        self.buffer_size = self.fileh.params['IO_BUFFER_SIZE']
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def create_non_nested_table(self, nrows, dtype):
+        array = np.empty((nrows, ), dtype)
+        for name in dtype.names:
+            array[name] = np.random.randint(0, 10000, nrows)
+        table = self.fileh.createTable('/', 'table', dtype)
+        table.append(array)
+        return array, table
+
+    def iterate(self, array, table):
+        row_num = 0
+        for item in table.cols.f0:
+            self.assertEqual(item, array['f0'][row_num])
+            row_num += 1
+
+    def test_less_than_io_buffer(self):
+        dtype = np.format_parser(['i8'] * 3, [], []).dtype
+        rows_in_buffer = self.buffer_size // dtype[0].itemsize
+        array, table = self.create_non_nested_table(rows_in_buffer // 2, dtype)
+        self.iterate(array, table)
+
+    def test_more_than_io_buffer(self):
+        dtype = np.format_parser(['i8'] * 3, [], []).dtype
+        rows_in_buffer = self.buffer_size // dtype[0].itemsize
+        array, table = self.create_non_nested_table(rows_in_buffer * 3, dtype)
+        self.iterate(array, table)
+
+    def test_partially_filled_buffer(self):
+        dtype = np.format_parser(['i8'] * 3, [], []).dtype
+        rows_in_buffer = self.buffer_size // dtype[0].itemsize
+        array, table = self.create_non_nested_table(rows_in_buffer * 2 + 2,
+                                                    dtype)
+        self.iterate(array, table)
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -5983,6 +6029,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(SpecialColnamesTestCase))
         theSuite.addTest(unittest.makeSuite(RowContainsTestCase))
         theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
+        theSuite.addTest(unittest.makeSuite(ColumnIterationTestCase))
 
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressBzip2TablesTestCase))

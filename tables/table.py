@@ -3293,6 +3293,24 @@ class Column(object):
                 "'%s' key type is not valid in this context" % key)
 
 
+    def __iter__(self):
+        """Iterate through all items in the column.
+        """
+        table = self.table
+        itemsize = self.dtype.itemsize
+        params = table._v_file.params
+        nrowsinbuf = params['IO_BUFFER_SIZE'] // itemsize
+        buf = numpy.empty((nrowsinbuf, ), self.dtype)
+        max_row = len(self) - 1
+        for start_row in xrange(0, len(self), nrowsinbuf):
+            end_row = min([start_row + nrowsinbuf, max_row])
+            buf_slice = buf[0:end_row - start_row]
+            table.read(start_row, end_row, 1, field=self.pathname,
+                       out=buf_slice)
+            for row in buf_slice:
+                yield row
+
+
     def __setitem__(self, key, value):
         """Set a row or a range of rows in a column.
 
