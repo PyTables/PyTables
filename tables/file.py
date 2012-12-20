@@ -26,6 +26,7 @@ import weakref
 import warnings
 
 import numexpr
+import numpy
 
 import tables.misc.proxydict
 from tables import hdf5Extension
@@ -1076,7 +1077,7 @@ class File(hdf5Extension.File, object):
             node = where
             node._g_checkOpen()  # the node object must be open
             nodePath = where._v_pathname
-        elif isinstance(where, basestring):
+        elif isinstance(where, (basestring, numpy.str_)):
             node = None
             if where.startswith('/'):
                 nodePath = where

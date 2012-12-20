@@ -48,7 +48,6 @@ class HDF5CompatibilityTestCase(common.PyTablesTestCase):
         self._test()
 
 
-
 class EnumTestCase(HDF5CompatibilityTestCase):
 
     """
@@ -324,6 +323,30 @@ class SzipTestCase(HDF5CompatibilityTestCase):
         self.assertEqual(repr(arr.filters), filters)
 
 
+# this demonstrates github #203
+class MatlabFileTestCase(unittest.TestCase):
+
+    def setUp(self):
+        h5fname = 'matlab_file.mat'
+        self.h5file = tables.openFile(h5fname, 'r')
+
+    def tearDown(self):
+        self.h5file.close()
+
+    def test_unicode(self):
+        array = self.h5file.getNode(unicode('/'), unicode('a'))
+        self.assertEqual(array.shape, (3, 1))
+
+    # in Python 3 this will be the same as the test above
+    def test_string(self):
+        array = self.h5file.getNode('/', 'a')
+        self.assertEqual(array.shape, (3, 1))
+
+    def test_numpy_str(self):
+        array = self.h5file.getNode(numpy.str_('/'), numpy.str_('a'))
+        self.assertEqual(array.shape, (3, 1))
+
+
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
@@ -332,24 +355,20 @@ def suite():
 
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(EnumTestCase))
-
         theSuite.addTest(unittest.makeSuite(F64BETestCase))
         theSuite.addTest(unittest.makeSuite(F64LETestCase))
         theSuite.addTest(unittest.makeSuite(I64BETestCase))
         theSuite.addTest(unittest.makeSuite(I64LETestCase))
         theSuite.addTest(unittest.makeSuite(I32BETestCase))
         theSuite.addTest(unittest.makeSuite(I32LETestCase))
-
         theSuite.addTest(unittest.makeSuite(ChunkedCompoundTestCase))
         theSuite.addTest(unittest.makeSuite(ContiguousCompoundTestCase))
         theSuite.addTest(unittest.makeSuite(ContiguousCompoundAppendTestCase))
-
         theSuite.addTest(unittest.makeSuite(ExtendibleTestCase))
-
         theSuite.addTest(unittest.makeSuite(SzipTestCase))
+        theSuite.addTest(unittest.makeSuite(MatlabFileTestCase))
 
     return theSuite
-
 
 
 if __name__ == '__main__':

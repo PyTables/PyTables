@@ -553,7 +553,7 @@ def whichLibVersion(str name):
   return None
 
 
-def whichClass(hid_t loc_id, str name):
+def whichClass(hid_t loc_id, object name):
   """Detects a class ID using heuristics."""
 
   cdef H5T_class_t  class_id
@@ -568,7 +568,10 @@ def whichClass(hid_t loc_id, str name):
   cdef char         byteorder[11]  # "irrelevant" fits easily here
   cdef bytes        encoded_name
 
-  encoded_name = name.encode('utf-8')
+  if isinstance(name, unicode):
+      encoded_name = name.encode('utf-8')
+  else:
+      encoded_name = name
 
   classId = "UNSUPPORTED"  # default value
   # Get The HDF5 class for the datatype in this dataset

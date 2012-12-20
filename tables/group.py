@@ -299,8 +299,7 @@ class Group(hdf5Extension.Group, Node):
             return classIdDict[childCID]  # look up leaf class
         else:
             # Unknown or no ``CLASS`` attribute, try a guess.
-            childCID2 = utilsExtension.whichClass(
-                self._v_objectID, childName)
+            childCID2 = utilsExtension.whichClass(self._v_objectID, childName)
             if childCID2 == 'UNSUPPORTED':
                 if warn:
                     if childCID is None:
