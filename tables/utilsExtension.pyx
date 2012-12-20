@@ -427,7 +427,8 @@ def encode_filename(object filename):
 
   cdef bytes encname
 
-  if type(filename) is unicode:
+  if isinstance(filename, (unicode, numpy.str_)):
+#  if type(filename) is unicode:
     encoding = sys.getfilesystemencoding()
     encname = filename.encode(encoding)
   else:

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import shutil
 import sys
 import unittest
 import tempfile
@@ -134,6 +135,27 @@ class OpenFileTestCase(common.PyTablesTestCase):
         os.remove(file)
 
         self.assertEqual(class_.capitalize(), "Array")
+
+    def test00_newFile_unicode_filename(self):
+        temp_dir = tempfile.mkdtemp()
+        file_path = unicode(os.path.join(temp_dir, 'test.h5'))
+        with openFile(file_path, 'w') as fileh:
+            self.assertTrue(fileh, File)
+        shutil.rmtree(temp_dir)
+
+    def test00_newFile_numpy_str_filename(self):
+        temp_dir = tempfile.mkdtemp()
+        file_path = numpy.str_(os.path.join(temp_dir, 'test.h5'))
+        with openFile(file_path, 'w') as fileh:
+            self.assertTrue(fileh, File)
+        shutil.rmtree(temp_dir)
+
+    def test00_newFile_numpy_unicode_filename(self):
+        temp_dir = tempfile.mkdtemp()
+        file_path = numpy.unicode_(os.path.join(temp_dir, 'test.h5'))
+        with openFile(file_path, 'w') as fileh:
+            self.assertTrue(fileh, File)
+        shutil.rmtree(temp_dir)
 
     def test01_openFile(self):
         """Checking opening of an existing file"""
