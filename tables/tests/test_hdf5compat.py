@@ -324,11 +324,12 @@ class SzipTestCase(HDF5CompatibilityTestCase):
 
 
 # this demonstrates github #203
-class MatlabFileTestCase(unittest.TestCase):
+class MatlabFileTestCase(common.PyTablesTestCase):
 
     def setUp(self):
         h5fname = 'matlab_file.mat'
-        self.h5file = tables.openFile(h5fname, 'r')
+        file_path = self._testFilename(h5fname)
+        self.h5file = tables.openFile(file_path, 'r')
 
     def tearDown(self):
         self.h5file.close()
