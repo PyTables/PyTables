@@ -66,10 +66,14 @@ if os.name == 'nt':
 
     # Some PyTables binary distributions place the dependency DLLs in the
     # tables package directory.
-    # Lzo2.dll is loaded dynamically at runtime but can't be found because
-    # the package directory is not in the Windows DLL search path.
-    # This pre-loads lzo2.dll from the tables package directory.
+    # The lzo2 and libbz2 DLLs are loaded dynamically at runtime but can't be 
+    # found because the package directory is not in the Windows DLL search 
+    # path.
+    # This pre-loads lzo2 and libbz2 DLLs from the tables package directory.
     if not _load_library('lzo2.dll', ctypes.cdll.LoadLibrary):
+        pass
+
+    if not _load_library('libbz2.dll', ctypes.cdll.LoadLibrary):
         pass
 
 
