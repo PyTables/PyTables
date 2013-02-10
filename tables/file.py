@@ -2349,7 +2349,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # Update alive and dead descendents.
         for cache in [self._aliveNodes, self._deadNodes]:
             for nodePath in cache:
-                if nodePath.startswith(oldPrefix):
+                if nodePath.startswith(oldPrefix) and nodePath != oldPrefix:
                     nodeSuffix = nodePath[oldPrefixLen:]
                     newNodePath = joinPath(newPath, nodeSuffix)
                     newNodePPath = splitPath(newNodePath)[0]
