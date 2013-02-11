@@ -123,7 +123,10 @@ Other possibly incompatible changes
 Bugs fixed
 ----------
 
-- Better check access on closed files (closes: :issue:`62`)
+- Better check access on closed files (closes :issue:`62`)
+- Fix for :meth:`File.renameNode` where in certain cases
+  :meth:`File._g_updateLocation` was wrongly called (closes :issue:`208`).
+  Thanks to Michka Popoff.
 
 
 .. _PyInstaller: http://www.pyinstaller.org
