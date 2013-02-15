@@ -1,0 +1,17 @@
+language: python
+
+virtualenv:
+  system_site_packages: true
+
+python:
+  - "2.6"
+  - "2.7"
+
+before_install:
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq libhdf5-serial-dev
+    - pip install -r requirements.txt --use-mirrors
+
+install: "python setup.py build_ext --inplace --hdf5=/usr"
+
+script: "nosetests run tables/tests/test_all.py"
