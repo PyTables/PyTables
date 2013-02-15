@@ -2488,14 +2488,19 @@ class BloscSubprocess(common.PyTablesTestCase):
 
         if common.verbose:
             print "**** Running from subprocess:"
-        qout = mp.Queue()
-        ps = mp.Process(target=_worker, args=(fn, qout,))
-        ps.daemon = True
-        ps.start()
 
-        result = qout.get()
-        if common.verbose:
-            print result
+        try:
+            qout = mp.Queue()
+        except OSError:
+            print "Permission denied due to /dev/shm settings"
+        else:
+            ps = mp.Process(target=_worker, args=(fn, qout,))
+            ps.daemon = True
+            ps.start()
+
+            result = qout.get()
+            if common.verbose:
+                print result
 
         os.remove(fn)
 
