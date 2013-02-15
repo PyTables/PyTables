@@ -14,4 +14,4 @@ before_install:
 
 install: "python setup.py build_ext --inplace --hdf5=/usr"
 
-script: "nosetests run tables/tests/test_all.py"
+script: "PYTHONPATH=. python tables/tests/test_all.py"
