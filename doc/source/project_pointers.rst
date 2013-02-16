@@ -10,7 +10,12 @@ Project pointers
 * `Users Mailing List <https://lists.sourceforge.net/lists/listinfo/pytables-users>`_
 * `Announce Mailing List <https://lists.sourceforge.net/lists/listinfo/pytables-announce>`_
 * `Developers Mailing List <https://groups.google.com/group/pytables-dev>`_
-* `Continuous Integration <http://hudson.openmicroscopy.org.uk/job/PyTables>`_
+* Continuous Integration:
+
+  - `OME <http://hudson.openmicroscopy.org.uk/job/PyTables>`_ (master branch)
+  - `Shining Panda <https://jenkins.shiningpanda.com/pytables/>`_ (development branch)
+  - `Travis-CI <https://travis-ci.org/PyTables/PyTables>`_ (all branches)
+
 * `Project page on PyPi <http://pypi.python.org/pypi/tables>`_
 * `Project Page on SourceForge.net <http://sourceforge.net/projects/pytables>`_
   (needs update)

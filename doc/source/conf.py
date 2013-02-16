@@ -130,12 +130,12 @@ html_theme_options = {'sidebarbgcolor': 'rgba(213, 197, 229, 0.15)',
                       'footertextcolor': '#504A4B',
                       'bodytrimcolor': trimcolor,
                       'linkcolor': linkcolor,
-                      'textcolor': '#323039', 
+                      'textcolor': '#323039',
                       'sectionbgcolor': '#3CAD1C',
                       #'sectiontextcolor': '#777777',
-                      #'sectiontrimcolor': trimcolor, 
+                      #'sectiontrimcolor': trimcolor,
                       'codebgcolor': '#F1FFF0',
-                      'codetextcolor': '#000000', 
+                      'codetextcolor': '#000000',
                       'quotebgcolor': '#f6fcfc',
                       'rubricbgcolor': '#D00000',
                       #'min_height': 'bottom',
@@ -176,7 +176,7 @@ html_static_path = ['_static']
 # Custom sidebar templates, maps document names to template names.
 html_sidebars = {
     'index': ['globaltoc.html', 'relations.html', 'sourcelink.html',
-              'searchbox.html']
+              'searchbox.html', 'travis-ci.html']
 }
 
 # Additional templates that should be rendered to pages, maps page names to
