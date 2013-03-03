@@ -127,6 +127,8 @@ Bugs fixed
 - Fix for :meth:`File.renameNode` where in certain cases
   :meth:`File._g_updateLocation` was wrongly called (closes :issue:`208`).
   Thanks to Michka Popoff.
+- Fixed ptdump failure on data with nested columns (closes :issue:`213`).
+  Thanks to Alexander Ford.
 
 
 .. _PyInstaller: http://www.pyinstaller.org
