@@ -23,7 +23,10 @@ class Record(IsDescription):
     var7 = Col.from_kind('complex', itemsize=8) # single-precision
     if hasattr(numpy, "float16"):
         var8 = Col.from_kind('float', itemsize=2) # half-precision
-
+    if hasattr(numpy, "float96"):
+        var9 = Col.from_kind('float', itemsize=12) # half-precision
+    if hasattr(numpy, "float128"):
+        var10 = Col.from_kind('float', itemsize=16) # half-precision
 
 class RangeTestCase(unittest.TestCase):
     file  = "test.h5"
@@ -63,6 +66,10 @@ class RangeTestCase(unittest.TestCase):
         rec['var7'] = complex(i, i)
         if hasattr(numpy, "float16"):
             rec['var8'] = float(i)
+        if hasattr(numpy, "float96"):
+            rec['var9'] = float(i)
+        if hasattr(numpy, "float129"):
+            rec['var10'] = float(i)
         try:
             rec.append()
         except ValueError:
@@ -99,6 +106,10 @@ class RangeTestCase(unittest.TestCase):
         rec['var7'] = complex(i, i)
         if hasattr(numpy, "float16"):
             rec['var8'] = float(i)
+        if hasattr(numpy, "float96"):
+            rec['var9'] = float(i)
+        if hasattr(numpy, "float128"):
+            rec['var10'] = float(i)
 
 
 # Check the dtype read-only attribute
@@ -182,6 +193,23 @@ class ReadFloatTestCase(common.PyTablesTestCase):
         data = ds.read()
         common.allequal(data, self.values)
 
+    def test04_read_float96(self):
+        dtype = "float96"
+        ds = getattr(self.fileh.root, dtype)
+        self.assertFalse(isinstance(ds, UnImplemented))
+        self.assertEqual(ds.shape, (self.ncols, self.nrows))
+        self.assertEqual(ds.dtype, 'longdouble')
+        data = ds.read()
+        common.allequal(data, self.values)
+
+    def test05_read_float128(self):
+        dtype = "float128"
+        ds = getattr(self.fileh.root, dtype)
+        self.assertFalse(isinstance(ds, UnImplemented))
+        self.assertEqual(ds.shape, (self.ncols, self.nrows))
+        self.assertEqual(ds.dtype, 'longdouble')
+        data = ds.read()
+        common.allequal(data, self.values)
 
 class AtomTestCase(common.PyTablesTestCase):
     def test_init_parameters_01(self):
