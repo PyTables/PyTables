@@ -68,7 +68,7 @@ class RangeTestCase(unittest.TestCase):
             rec['var8'] = float(i)
         if hasattr(numpy, "float96"):
             rec['var9'] = float(i)
-        if hasattr(numpy, "float129"):
+        if hasattr(numpy, "float128"):
             rec['var10'] = float(i)
         try:
             rec.append()
