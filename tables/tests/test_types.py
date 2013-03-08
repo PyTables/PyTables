@@ -149,8 +149,8 @@ class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 class ReadFloatTestCase(common.PyTablesTestCase):
     filename = "float.h5"
-    nrows = 6
-    ncols = 5
+    nrows = 5
+    ncols = 6
 
     def setUp(self):
         self.fileh = openFile(self._testFilename(self.filename), mode="r")
@@ -167,10 +167,10 @@ class ReadFloatTestCase(common.PyTablesTestCase):
         if hasattr(numpy, dtype):
             ds = getattr(self.fileh.root, dtype)
             self.assertFalse(isinstance(ds, UnImplemented))
-            self.assertEqual(ds.shape, (self.ncols, self.nrows))
+            self.assertEqual(ds.shape, (self.nrows, self.ncols))
             self.assertEqual(ds.dtype, dtype)
-            data = ds.read()
-            common.allequal(data, self.values)
+            self.assertTrue(common.allequal(
+                ds.read(),self.values.astype(dtype)))
         else:
             ds = self.assertWarns(UserWarning, getattr, self.fileh.root, dtype)
             self.assertTrue(isinstance(ds, UnImplemented))
@@ -179,37 +179,43 @@ class ReadFloatTestCase(common.PyTablesTestCase):
         dtype = "float32"
         ds = getattr(self.fileh.root, dtype)
         self.assertFalse(isinstance(ds, UnImplemented))
-        self.assertEqual(ds.shape, (self.ncols, self.nrows))
+        self.assertEqual(ds.shape, (self.nrows, self.ncols))
         self.assertEqual(ds.dtype, dtype)
-        data = ds.read()
-        common.allequal(data, self.values)
+        self.assertTrue(common.allequal(
+            ds.read(), self.values.astype(dtype)))
 
     def test03_read_float64(self):
         dtype = "float64"
         ds = getattr(self.fileh.root, dtype)
         self.assertFalse(isinstance(ds, UnImplemented))
-        self.assertEqual(ds.shape, (self.ncols, self.nrows))
+        self.assertEqual(ds.shape, (self.nrows, self.ncols))
         self.assertEqual(ds.dtype, dtype)
-        data = ds.read()
-        common.allequal(data, self.values)
+        self.assertTrue(common.allequal(
+            ds.read(), self.values.astype(dtype)))
 
     def test04_read_float96(self):
-        dtype = "float96"
-        ds = getattr(self.fileh.root, dtype)
-        self.assertFalse(isinstance(ds, UnImplemented))
-        self.assertEqual(ds.shape, (self.ncols, self.nrows))
-        self.assertEqual(ds.dtype, 'longdouble')
-        data = ds.read()
-        common.allequal(data, self.values)
+        if hasattr(numpy, "longdouble"):
+            ds = getattr(self.fileh.root, "float96")
+            self.assertFalse(isinstance(ds, UnImplemented))
+            self.assertEqual(ds.shape, (self.nrows, self.ncols))
+            self.assertEqual(ds.dtype, "longdouble")
+            self.assertTrue(common.allequal(
+                ds.read(),self.values.astype("longdouble")))
+        else:
+            ds = self.assertWarns(UserWarning, getattr, self.fileh.root, "float96")
+            self.assertTrue(isinstance(ds, UnImplemented))
 
     def test05_read_float128(self):
-        dtype = "float128"
-        ds = getattr(self.fileh.root, dtype)
-        self.assertFalse(isinstance(ds, UnImplemented))
-        self.assertEqual(ds.shape, (self.ncols, self.nrows))
-        self.assertEqual(ds.dtype, 'longdouble')
-        data = ds.read()
-        common.allequal(data, self.values)
+        if hasattr(numpy, "longdouble"):
+            ds = getattr(self.fileh.root, "float128")
+            self.assertFalse(isinstance(ds, UnImplemented))
+            self.assertEqual(ds.shape, (self.nrows, self.ncols))
+            self.assertEqual(ds.dtype, "longdouble")
+            self.assertTrue(common.allequal(
+                ds.read(), self.values.astype("longdouble")))
+        else:
+            ds = self.assertWarns(UserWarning, getattr, self.fileh.root, "float128")
+            self.assertTrue(isinstance(ds, UnImplemented))
 
 class AtomTestCase(common.PyTablesTestCase):
     def test_init_parameters_01(self):
