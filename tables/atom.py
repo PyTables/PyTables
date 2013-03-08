@@ -662,6 +662,10 @@ def _generate_floating_classes():
     for itemsize in itemsizes:
         newclass = _create_numeric_class(FloatAtom, itemsize)
         yield newclass
+	if hasattr(numpy, "float96"):
+		yield _create_numeric_class(FloatAtom, 12)
+	if hasattr(numpy, "float128"):
+		yield _create_numeric_class(FloatAtom, 16)
 
 
 # Create all numeric atom classes.
