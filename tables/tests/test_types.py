@@ -24,9 +24,9 @@ class Record(IsDescription):
     if hasattr(numpy, "float16"):
         var8 = Col.from_kind('float', itemsize=2) # half-precision
     if hasattr(numpy, "float96"):
-        var9 = Col.from_kind('float', itemsize=12) # half-precision
+        var9 = Col.from_kind('float', itemsize=12) # extended-precision
     if hasattr(numpy, "float128"):
-        var10 = Col.from_kind('float', itemsize=16) # half-precision
+        var10 = Col.from_kind('float', itemsize=16) # extended-precision
 
 class RangeTestCase(unittest.TestCase):
     file  = "test.h5"
