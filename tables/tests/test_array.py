@@ -2684,6 +2684,31 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.close()
         self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
 
+class BroadcastTest(common.PyTablesTestCase):
+
+    def setUp(self):
+        # Create an instance of an HDF5 Array
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = fileh = open_file(self.file, "w")
+        # Create a sample array
+        self.element_shape = (3,)
+        self.array_shape = (2, 3)
+        
+        self.atom = Atom.from_dtype(numpy.dtype((numpy.int, self.element_shape)))
+        self.tbarr = fileh.create_carray(fileh.root, 'array', self.atom, self.array_shape)
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test(self):
+        """Test arrays are broadcasted correctly when the array dtype is not scalar"""
+        size = numpy.prod(self.element_shape)
+        A = numpy.arange(size).reshape(self.element_shape)
+        
+        self.tbarr[0] = A
+        self.assertTrue(numpy.all(self.tbarr[0] == A))
 
 class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
     where = '/'
@@ -2952,6 +2977,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyNativeHDF5MDAtom))
         theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
         theSuite.addTest(unittest.makeSuite(TestCreateArrayArgs))
+        theSuite.addTest(unittest.makeSuite(BroadcastTest))
 
     return theSuite
 
