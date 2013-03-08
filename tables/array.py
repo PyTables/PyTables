@@ -724,19 +724,16 @@ class Array(hdf5extension.Array, Leaf):
 
         """
 
-        if nparr.shape != slice_shape:
+        if nparr.shape != (slice_shape + self.atom.dtype.shape):
             # Create an array compliant with the specified shape
             narr = numpy.empty(shape=slice_shape, dtype=self.atom.dtype)
-            # Assign the value to it
-            try:
-                narr[...] = nparr
-            except Exception, exc:  # XXX
-                raise ValueError("value parameter '%s' cannot be converted "
-                                 "into an array object compliant with %s: "
-                                 "'%r' The error was: <%s>" % (
-                                 nparr, self.__class__.__name__, self, exc))
+
+            # Assign the value to it. It will raise a ValueError exception
+            # if the objects cannot be broadcast to a single shape.
+            narr[...] = nparr
             return narr
-        return nparr
+        else:
+            return nparr
 
     _checkShape = previous_api(_check_shape)
 
