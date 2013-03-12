@@ -30,7 +30,9 @@ from tables.description import Col
 from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
 from tables.utilsExtension import (getNestedField, AtomFromHDF5Type,
-  createNestedType)
+  createNestedType, HDF5ToNPExtType, createNestedType, platform_byteorder,
+  PTTypeToHDF5, PTSpecialKinds, NPExtPrefixesToPTKinds, HDF5ClassToString, 
+  H5T_STD_I64)
 from tables.utils import SizeType
 
 from utilsExtension cimport get_native_type
@@ -42,11 +44,12 @@ from cpython.unicode cimport PyUnicode_DecodeUTF8
 from libc.stdio cimport snprintf
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp, strlen
-from numpy cimport import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM
+from numpy cimport (import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM, \
+  npy_intp)
 from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
-  H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL,
-  H5Fflush, H5Dget_create_plist,
+  H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, H5T_COMPOUND, H5Tget_order,
+  H5Fflush, H5Dget_create_plist, H5T_ORDER_LE,
   H5D_layout_t, H5Dopen, H5Dclose, H5Dread, H5Dget_type, H5Dget_space,
   H5Pget_layout, H5Pget_chunk, H5Pclose,
   H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose,
@@ -59,9 +62,6 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   conv_float64_timeval32, truncate_dset)
 
 from lrucacheExtension cimport ObjectCache, NumCache
-
-# Include conversion tables & type
-include "convtypetables.pxi"
 
 
 #-----------------------------------------------------------------
