@@ -49,8 +49,9 @@ from tables.atom import Atom
 from tables.description import descr_from_dtype
 
 from tables.utilsExtension import (encode_filename, setBloscMaxThreads,
-  AtomToHDF5Type, AtomFromHDF5Type,
-  HDF5ToNPExtType, createNestedType)
+  AtomToHDF5Type, AtomFromHDF5Type, HDF5ToNPExtType, createNestedType,
+  PTTypeToHDF5, PTSpecialKinds, NPExtPrefixesToPTKinds, HDF5ClassToString, 
+  platform_byteorder)
 
 
 from utilsExtension cimport malloc_dims, get_native_type
@@ -59,7 +60,7 @@ from utilsExtension cimport malloc_dims, get_native_type
 # Types, constants, functions, classes & other objects from everywhere
 from libc.stdlib cimport malloc, free
 from libc.string cimport strdup, strlen
-from numpy cimport import_array, ndarray
+from numpy cimport import_array, ndarray, npy_intp
 from cpython cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
     PyBytes_Check)
 from cpython.unicode cimport PyUnicode_DecodeUTF8
@@ -80,11 +81,11 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
-  H5Adelete,
+  H5Adelete, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT, H5T_STRING, H5Tget_order, 
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pget_userblock, H5Pset_userblock,
   H5Pset_fapl_sec2, H5Pset_fapl_log, H5Pset_fapl_stdio, H5Pset_fapl_core,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
-  H5Screate_simple, H5Sclose,
+  H5Screate_simple, H5Sclose, 
   H5ATTRset_attribute, H5ATTRset_attribute_string,
   H5ATTRget_attribute, H5ATTRget_attribute_string,
   H5ATTRget_attribute_vlen_string_array,
@@ -97,9 +98,6 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5_HAVE_IMAGE_FILE, pt_H5Pset_file_image, pt_H5Fget_file_image)
 
 cdef int H5T_CSET_DEFAULT = 16
-
-# Include conversion tables
-include "convtypetables.pxi"
 
 #-------------------------------------------------------------------
 
