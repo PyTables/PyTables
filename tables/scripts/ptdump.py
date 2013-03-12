@@ -23,7 +23,7 @@ import getopt
 from tables.file import openFile
 from tables.group import Group
 from tables.leaf import Leaf
-from tables.table import Table
+from tables.table import Table, Column
 from tables.unimplemented import UnImplemented
 
 
@@ -77,8 +77,9 @@ def dumpLeaf(leaf):
     if isinstance(leaf, Table) and options.idxinfo:
         # Show info of indexes
         for colname in leaf.colnames:
-            if leaf.cols._f_col(colname).index is not None:
-                idx = leaf.cols._f_col(colname).index
+            col = leaf.cols._f_col(colname)
+            if isinstance(col, Column) and col.index is not None:
+                idx = col.index
                 print repr(idx)
 
 
