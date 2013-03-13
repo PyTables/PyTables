@@ -36,40 +36,123 @@ from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp, strlen
 from cpython.bytes cimport PyBytes_Check
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
+
 from numpy cimport (import_array, ndarray, dtype,
-  NPY_INT64, npy_int64,
-  PyArray_DescrFromType)
+  npy_int64, PyArray_DescrFromType, npy_intp,
+  NPY_BOOL, NPY_STRING, NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64,
+  NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, NPY_FLOAT16, NPY_FLOAT32, 
+  NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128)
 
-from definitions cimport (hid_t, herr_t, hsize_t, hssize_t, htri_t,
-  H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
-  H5Fopen, H5Fclose, H5Fis_hdf5,
-  H5Gopen, H5Gclose,
-  H5E_auto_t, H5Eset_auto, H5Eprint, H5Eget_msg,
-  H5E_error_t, H5E_walk_t, H5Ewalk, H5E_WALK_DOWNWARD, H5E_DEFAULT,
-  H5D_layout_t, H5Dopen, H5Dclose, H5Dget_type,
-  H5T_class_t, H5T_sign_t, H5Tcreate, H5Tcopy, H5Tclose,
-  H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type,
-  H5Tget_member_value, H5Tget_size, H5Tget_native_type,
-  H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, H5Tget_precision,
-  H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tvlen_create,
-  H5Tarray_create, H5Tget_array_ndims, H5Tget_array_dims,
-  H5Tis_variable_str, H5Tset_size, H5Tset_precision, H5Tpack,
-  H5T_CSET_ASCII, H5T_CSET_UTF8,
-  H5ATTRget_attribute_string, H5ATTRfind_attribute,
-  H5ARRAYget_ndims, H5ARRAYget_info,
-  create_ieee_float16, create_ieee_complex64, create_ieee_complex128,
-  get_order, set_order, is_complex,
-  get_len_of_range,
-  PyArray_Scalar,
-  register_blosc)
+from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims, 
+  H5ATTRfind_attribute, H5ATTRget_attribute_string, H5D_CHUNKED, 
+  H5D_layout_t, H5Dclose, H5Dget_type, H5Dopen, H5E_DEFAULT, 
+  H5E_WALK_DOWNWARD, H5E_auto_t, H5E_error_t, H5E_walk_t, H5Eget_msg, 
+  H5Eprint, H5Eset_auto, H5Ewalk, H5F_ACC_RDONLY, H5Fclose, H5Fis_hdf5, 
+  H5Fopen, H5Gclose, H5Gopen, H5P_DEFAULT, H5T_ARRAY, H5T_BITFIELD, 
+  H5T_COMPOUND, H5T_CSET_ASCII, H5T_CSET_UTF8, H5T_C_S1, H5T_DIR_DEFAULT, 
+  H5T_ENUM, H5T_FLOAT, H5T_IEEE_F32BE, H5T_IEEE_F32LE, H5T_IEEE_F64BE, 
+  H5T_IEEE_F64LE, H5T_INTEGER, H5T_NATIVE_LDOUBLE, H5T_NO_CLASS, H5T_OPAQUE, 
+  H5T_ORDER_BE, H5T_ORDER_LE, H5T_REFERENCE, H5T_STD_B8BE, H5T_STD_B8LE, 
+  H5T_STD_I16BE, H5T_STD_I16LE, H5T_STD_I32BE, H5T_STD_I32LE, H5T_STD_I64BE, 
+  H5T_STD_I64LE, H5T_STD_I8BE, H5T_STD_I8LE, H5T_STD_U16BE, H5T_STD_U16LE, 
+  H5T_STD_U32BE, H5T_STD_U32LE, H5T_STD_U64BE, H5T_STD_U64LE, H5T_STD_U8BE, 
+  H5T_STD_U8LE, H5T_STRING, H5T_TIME, H5T_UNIX_D32BE, H5T_UNIX_D32LE, 
+  H5T_UNIX_D64BE, H5T_UNIX_D64LE, H5T_VLEN, H5T_class_t, H5T_sign_t, 
+  H5Tarray_create, H5Tclose, H5Tcopy, H5Tcreate, H5Tenum_create, 
+  H5Tenum_insert, H5Tget_array_dims, H5Tget_array_ndims, H5Tget_class, 
+  H5Tget_member_name, H5Tget_member_type, H5Tget_member_value, 
+  H5Tget_native_type, H5Tget_nmembers, H5Tget_offset, H5Tget_order, 
+  H5Tget_precision, H5Tget_sign, H5Tget_size, H5Tget_super, H5Tinsert, 
+  H5Tis_variable_str, H5Tpack, H5Tset_precision, H5Tset_size, H5Tvlen_create, 
+  PyArray_Scalar, create_ieee_complex128, create_ieee_complex64, 
+  create_ieee_float16, get_len_of_range, get_order, herr_t, hid_t, hsize_t, 
+  hssize_t, htri_t, is_complex, register_blosc, set_order)
 
 
-# Include conversion tables & type
-include "convtypetables.pxi"
+# Platform-dependent types
+if sys.byteorder == "little":
+  platform_byteorder = H5T_ORDER_LE
+  # Standard types, independent of the byteorder
+  H5T_STD_B8   = H5T_STD_B8LE
+  H5T_STD_I8   = H5T_STD_I8LE
+  H5T_STD_I16  = H5T_STD_I16LE
+  H5T_STD_I32  = H5T_STD_I32LE
+  H5T_STD_I64  = H5T_STD_I64LE
+  H5T_STD_U8   = H5T_STD_U8LE
+  H5T_STD_U16  = H5T_STD_U16LE
+  H5T_STD_U32  = H5T_STD_U32LE
+  H5T_STD_U64  = H5T_STD_U64LE
+  H5T_IEEE_F32 = H5T_IEEE_F32LE
+  H5T_IEEE_F64 = H5T_IEEE_F64LE
+  H5T_UNIX_D32  = H5T_UNIX_D32LE
+  H5T_UNIX_D64  = H5T_UNIX_D64LE
+else:  # sys.byteorder == "big"
+  platform_byteorder = H5T_ORDER_BE
+  # Standard types, independent of the byteorder
+  H5T_STD_B8   = H5T_STD_B8BE
+  H5T_STD_I8   = H5T_STD_I8BE
+  H5T_STD_I16  = H5T_STD_I16BE
+  H5T_STD_I32  = H5T_STD_I32BE
+  H5T_STD_I64  = H5T_STD_I64BE
+  H5T_STD_U8   = H5T_STD_U8BE
+  H5T_STD_U16  = H5T_STD_U16BE
+  H5T_STD_U32  = H5T_STD_U32BE
+  H5T_STD_U64  = H5T_STD_U64BE
+  H5T_IEEE_F32 = H5T_IEEE_F32BE
+  H5T_IEEE_F64 = H5T_IEEE_F64BE
+  H5T_UNIX_D32  = H5T_UNIX_D32BE
+  H5T_UNIX_D64  = H5T_UNIX_D64BE
 
+
+#----------------------------------------------------------------------------
+
+# Conversion from PyTables string types to HDF5 native types
+# List only types that are susceptible of changing byteorder
+# (complex & enumerated types are special and should not be listed here)
+PTTypeToHDF5 = {
+  'int8'   : H5T_STD_I8,   'uint8'  : H5T_STD_U8,
+  'int16'  : H5T_STD_I16,  'uint16' : H5T_STD_U16,
+  'int32'  : H5T_STD_I32,  'uint32' : H5T_STD_U32,
+  'int64'  : H5T_STD_I64,  'uint64' : H5T_STD_U64,
+  'float32': H5T_IEEE_F32, 'float64': H5T_IEEE_F64,
+  'float96': H5T_NATIVE_LDOUBLE, 'float128': H5T_NATIVE_LDOUBLE,  
+  'time32' : H5T_UNIX_D32, 'time64' : H5T_UNIX_D64,
+  }
+
+# Special cases whose byteorder cannot be directly changed
+PTSpecialKinds = ['complex', 'string', 'enum', 'bool']
+
+# Conversion table from NumPy extended codes prefixes to PyTables kinds
+NPExtPrefixesToPTKinds = {
+  "S": "string",
+  "b": "bool",
+  "i": "int",
+  "u": "uint",
+  "f": "float",
+  "c": "complex",
+  "t": "time",
+  "e": "enum",
+  }
+
+# Names of HDF5 classes
+HDF5ClassToString = {
+  H5T_NO_CLASS  : 'H5T_NO_CLASS',
+  H5T_INTEGER   : 'H5T_INTEGER',
+  H5T_FLOAT     : 'H5T_FLOAT',
+  H5T_TIME      : 'H5T_TIME',
+  H5T_STRING    : 'H5T_STRING',
+  H5T_BITFIELD  : 'H5T_BITFIELD',
+  H5T_OPAQUE    : 'H5T_OPAQUE',
+  H5T_COMPOUND  : 'H5T_COMPOUND',
+  H5T_REFERENCE : 'H5T_REFERENCE',
+  H5T_ENUM      : 'H5T_ENUM',
+  H5T_VLEN      : 'H5T_VLEN',
+  H5T_ARRAY     : 'H5T_ARRAY',
+  }
 
 from numpy import typeDict
 cdef int have_float16 = ("float16" in typeDict)
+
 
 #----------------------------------------------------------------------
 
