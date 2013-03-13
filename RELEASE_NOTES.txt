@@ -36,6 +36,10 @@ New features
 - All read methods now have an optional *out* argument that allows to pass a
   pre-allocated array to store data (:issue:`192`)
 
+- Added support for the floating point data types with extended precision
+  (Float96 and Float128).  It is only available if numpy_ provides it as well.
+  Closes :issue:`51` and :issue:`214`.  Many thanks to Anderea Bedini.
+
 
 Improvements
 ------------
@@ -54,6 +58,10 @@ Improvements
 - The internal Blosc_ library has been upgraded to version 1.1.5.
 
 - Pre-load the bzip2 library on windows (closes :issue:`205`)
+
+- Removed deprecated cython include (.pxi) files. Contents of
+  :file:`convtypetables.pxi` have been moved in :file:`utilsExtension.pyx`.
+  Closes :issue:`217`.
 
 
 Other changes
