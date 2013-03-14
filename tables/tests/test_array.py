@@ -891,7 +891,7 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        allequal(array1.read(), array2.read())
+        self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
@@ -938,7 +938,7 @@ class CopyTestCase(unittest.TestCase):
             print "attrs array2-->", repr(array2.attrs)
 
         # Check that all the elements are equal
-        allequal(array1.read(), array2.read())
+        self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
@@ -1104,7 +1104,7 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        allequal(r2, array2.read())
+        self.assertTrue(allequal(r2, array2.read()))
 
         # Assert the number of rows in array
         if common.verbose:
@@ -1151,7 +1151,7 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        allequal(r2, array2.read())
+        self.assertTrue(allequal(r2, array2.read()))
 
         # Assert the number of rows in array
         if common.verbose:

@@ -2111,9 +2111,9 @@ class FlavorTestCase(unittest.TestCase):
             arr3 = numpy.array([1, 0], dtype="bool")
 
         if self.flavor == "numpy":
-            allequal(row[0], arr1, self.flavor)
-            allequal(row[1], arr2, self.flavor)
-            allequal(row[1], arr2, self.flavor)
+            self.assertTrue(allequal(row[0], arr1, self.flavor))
+            self.assertTrue(allequal(row[1], arr2, self.flavor))
+            self.assertTrue(allequal(row[1], arr2, self.flavor))
         else:
             # 'python' flavor
             self.assertEqual(row[0], arr1)
@@ -2169,9 +2169,9 @@ class FlavorTestCase(unittest.TestCase):
                 arr3 = numpy.array([100, 0], dtype=atype)
 
             if self.flavor == "numpy":
-                allequal(row[0], arr1, self.flavor)
-                allequal(row[1], arr2, self.flavor)
-                allequal(row[2], arr3, self.flavor)
+                self.assertTrue(allequal(row[0], arr1, self.flavor))
+                self.assertTrue(allequal(row[1], arr2, self.flavor))
+                self.assertTrue(allequal(row[2], arr3, self.flavor))
             else:
                 # "python" flavor
                 self.assertEqual(row[0], arr1)
@@ -2230,9 +2230,9 @@ class FlavorTestCase(unittest.TestCase):
                 arr3 = numpy.array([100, 0], dtype=atype)
 
             if self.flavor == "numpy":
-                allequal(row[0], arr1, self.flavor)
-                allequal(row[1], arr2, self.flavor)
-                allequal(row[2], arr3, self.flavor)
+                self.assertTrue(allequal(row[0], arr1, self.flavor))
+                self.assertTrue(allequal(row[1], arr2, self.flavor))
+                self.assertTrue(allequal(row[2], arr3, self.flavor))
             else:
                 # Tuple or List flavors
                 self.assertEqual(row[0], arr1)
@@ -2288,9 +2288,9 @@ class FlavorTestCase(unittest.TestCase):
                 arr3 = numpy.array([-1.3e34, 1.e-32], dtype=atype)
 
             if self.flavor == "numpy":
-                allequal(row[0], arr1, self.flavor)
-                allequal(row[1], arr2, self.flavor)
-                allequal(row[2], arr3, self.flavor)
+                self.assertTrue(allequal(row[0], arr1, self.flavor))
+                self.assertTrue(allequal(row[1], arr2, self.flavor))
+                self.assertTrue(allequal(row[2], arr3, self.flavor))
             else:
                 # Tuple or List flavors
                 self.assertEqual(row[0], arr1)
