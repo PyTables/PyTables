@@ -38,7 +38,7 @@ New features
 
 - Added support for the floating point data types with extended precision
   (Float96 and Float128).  It is only available if numpy_ provides it as well.
-  Closes :issue:`51` and :issue:`214`.  Many thanks to Anderea Bedini.
+  Closes :issue:`51` and :issue:`214`.  Many thanks to Andrea Bedini.
 
 
 Improvements
