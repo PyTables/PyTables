@@ -160,3 +160,11 @@ __all__ = [
 if 'Float16Atom' in locals():
     # float16 is new in numpy 1.6.0
     __all__.extend(('Float16Atom', 'Float16Col'))
+
+if 'Float96Atom' in locals():
+    __all__.extend(('Float96Atom', 'Float96Col'))
+    #__all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
+
+if 'Float128Atom' in locals():
+    __all__.extend(('Float128Atom', 'Float128Col'))
+    #__all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check
