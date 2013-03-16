@@ -656,16 +656,18 @@ def _generate_floating_classes():
     """Generate all floating classes."""
 
     itemsizes = [4, 8]
+
     # numpy >= 1.6
     if hasattr(numpy, 'float16'):
         itemsizes.insert(0, 2)
+    if hasattr(numpy, 'float96'):
+        itemsizes.append(12)
+    if hasattr(numpy, 'float128'):
+        itemsizes.append(16)
+
     for itemsize in itemsizes:
         newclass = _create_numeric_class(FloatAtom, itemsize)
         yield newclass
-	if hasattr(numpy, "float96"):
-		yield _create_numeric_class(FloatAtom, 12)
-	if hasattr(numpy, "float128"):
-		yield _create_numeric_class(FloatAtom, 16)
 
 
 # Create all numeric atom classes.

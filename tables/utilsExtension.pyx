@@ -115,7 +115,7 @@ PTTypeToHDF5 = {
   'int32'  : H5T_STD_I32,  'uint32' : H5T_STD_U32,
   'int64'  : H5T_STD_I64,  'uint64' : H5T_STD_U64,
   'float32': H5T_IEEE_F32, 'float64': H5T_IEEE_F64,
-  'float96': H5T_NATIVE_LDOUBLE, 'float128': H5T_NATIVE_LDOUBLE,  
+  'float96': H5T_NATIVE_LDOUBLE, 'float128': H5T_NATIVE_LDOUBLE,
   'time32' : H5T_UNIX_D32, 'time64' : H5T_UNIX_D64,
   }
 
