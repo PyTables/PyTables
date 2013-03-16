@@ -726,6 +726,26 @@ class Float64TestCase(BasicTestCase):
     stop = 100
     step = 20
 
+class Float96TestCase(BasicTestCase):
+    type = "float96"
+    shape = (200,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (20,)
+    start = -1
+    stop = 100
+    step = 20
+
+class Float128TestCase(BasicTestCase):
+    type = "float128"
+    shape = (200,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (20,)
+    start = -1
+    stop = 100
+    step = 20
+
 class Complex64TestCase(BasicTestCase):
     type = "complex64"
     shape = (4,)
@@ -2287,6 +2307,10 @@ def suite():
             theSuite.addTest(unittest.makeSuite(Float16TestCase))
         theSuite.addTest(unittest.makeSuite(Float32TestCase))
         theSuite.addTest(unittest.makeSuite(Float64TestCase))
+        if hasattr(numpy, 'float96'):
+            theSuite.addTest(unittest.makeSuite(Float96TestCase))
+        if hasattr(numpy, 'float128'):
+            theSuite.addTest(unittest.makeSuite(Float128TestCase))
         theSuite.addTest(unittest.makeSuite(Complex64TestCase))
         theSuite.addTest(unittest.makeSuite(Complex128TestCase))
         theSuite.addTest(unittest.makeSuite(ComprTestCase))

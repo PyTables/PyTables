@@ -837,8 +837,9 @@ class TypesTestCase(unittest.TestCase):
         ttypes = ["Float32",
                   "Float64",
         ]
-        if hasattr(numpy, "float16"):
-            ttypes.append("float16")
+        for name in ("float16", "float96", "float128"):
+            if hasattr(numpy, name):
+                ttypes.append(name)
 
         if common.verbose:
             print '\n', '-=' * 30
@@ -879,6 +880,10 @@ class TypesTestCase(unittest.TestCase):
         }
         if hasattr(numpy, "float16"):
             ttypes["float16"] = numpy.float16
+        if hasattr(numpy, "float96"):
+            ttypes["float96"] = numpy.float96
+        if hasattr(numpy, "float16"):
+            ttypes["float128"] = numpy.float128
 
         if common.verbose:
             print '\n', '-=' * 30
@@ -923,8 +928,9 @@ class TypesTestCase(unittest.TestCase):
             "Float32",
             "Float64",
         ]
-        if hasattr(numpy, "float16"):
-            ttypes.append("float16")
+        for name in ("float16", "float96", "float128"):
+            if hasattr(numpy, name):
+                ttypes.append(name)
 
         if common.verbose:
             print '\n', '-=' * 30
@@ -970,6 +976,10 @@ class TypesTestCase(unittest.TestCase):
         }
         if hasattr(numpy, "float16"):
             ttypes["float16"] = numpy.float16
+        if hasattr(numpy, "float96"):
+            ttypes["float96"] = numpy.float96
+        if hasattr(numpy, "float128"):
+            ttypes["float128"] = numpy.float128
 
         if common.verbose:
             print '\n', '-=' * 30
@@ -1023,6 +1033,10 @@ class TypesTestCase(unittest.TestCase):
         }
         if hasattr(numpy, "float16"):
             ttypes["float16"] = numpy.float16
+        if hasattr(numpy, "float96"):
+            ttypes["float96"] = numpy.float96
+        if hasattr(numpy, "float128"):
+            ttypes["float128"] = numpy.float128
 
         if common.verbose:
             print '\n', '-=' * 30
@@ -1771,8 +1785,9 @@ class MDTypesTestCase(unittest.TestCase):
             "Complex32",
             "Complex64",
         ]
-        if hasattr(numpy, "float16"):
-            ttypes.append("float16")
+        for name in ("float16", "float96", "float128"):
+            if hasattr(numpy, name):
+                ttypes.append(name)
 
         root = self.rootgroup
         if common.verbose:
@@ -2249,8 +2264,9 @@ class FlavorTestCase(unittest.TestCase):
             "Complex32",
             "Complex64",
         ]
-        if hasattr(numpy, "float16"):
-            ttypes.append("float16")
+        for name in ("float16", "float96", "float128"):
+            if hasattr(numpy, name):
+                ttypes.append(name)
 
         root = self.rootgroup
         if common.verbose:

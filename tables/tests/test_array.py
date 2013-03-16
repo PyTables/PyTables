@@ -257,6 +257,10 @@ class BasicTestCase(unittest.TestCase):
                      'complex64', 'complex128']
         if hasattr(numpy, 'float16'):
             typecodes.append('float16')
+        if hasattr(numpy, 'float96'):
+            typecodes.append('float96')
+        if hasattr(numpy, 'float128'):
+            typecodes.append('float128')
 
         for typecode in typecodes:
             a = numpy.array(self.tupleInt, typecode)
@@ -273,6 +277,10 @@ class BasicTestCase(unittest.TestCase):
                      'complex64', 'complex128',]
         if hasattr(numpy, 'float16'):
             typecodes.append('float16')
+        if hasattr(numpy, 'float96'):
+            typecodes.append('float96')
+        if hasattr(numpy, 'float128'):
+            typecodes.append('float128')
 
         for typecode in typecodes:
             a = numpy.array(self.tupleInt, typecode)
@@ -735,9 +743,14 @@ class GroupsArrayTestCase(unittest.TestCase):
         # The typecodes below does expose an ambiguity that is reported in:
         # http://projects.scipy.org/scipy/numpy/ticket/283 and
         # http://projects.scipy.org/scipy/numpy/ticket/290
-        typecodes = ['b', 'B', 'h', 'H', 'i', 'I', 'l', 'L', 'q', 'f', 'd', 'F', 'D']
+        typecodes = ['b', 'B', 'h', 'H', 'i', 'I', 'l', 'L', 'q', 'f', 'd',
+                     'F', 'D']
         if hasattr(numpy, 'float16'):
             typecodes.append('e')
+        if hasattr(numpy, 'float96'):
+            typecodes.append('g')
+        if hasattr(numpy, 'float128'):
+            typecodes.append('g')
 
         for i, typecode in enumerate(typecodes):
             a = numpy.ones((3,), typecode)

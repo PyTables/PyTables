@@ -26,6 +26,10 @@ typecodes += ['b1']   # boolean
 
 if 'float16' in typeDict:
     typecodes.append('e')
+if 'float96' in typeDict:
+    typecodes.append('g')
+if 'float128' in typeDict:
+    typecodes.append('g')
 
 byteorder = {'little': '<', 'big': '>'}[sys.byteorder]
 
@@ -395,6 +399,10 @@ class Record(IsDescription):
     var14 = ComplexCol(itemsize=16, dflt=(1.+0.j))
     if 'float16' in typeDict:
         var15 = Float16Col(dflt=1.0)
+    if 'float96' in typeDict:
+        var16 = Float96Col(dflt=1.0)
+    if 'float128' in typeDict:
+        var17 = Float128Col(dflt=1.0)
 
 
 class TableReadTestCase(common.PyTablesTestCase):
@@ -540,10 +548,12 @@ class TableReadTestCase(common.PyTablesTestCase):
         # From PyTables 2.0 on, assignments to records can be done
         # only as tuples (see http://projects.scipy.org/scipy/numpy/ticket/315)
         #table[coords[0]] = ["aasa","x"]+[232]*12
-        if 'float16' in typeDict:
-            n = 13
-        else:
-            n = 12
+
+        n = 12
+        for name in ('float16', 'float96', 'float128'):
+            if name in typeDict:
+                n += 1
+
         table[coords[0]] = tuple(["aasa", "x"]+[232]*n)     # XXX
         #record = list(table[coords[0]])
         record = table.read(coords[0])
