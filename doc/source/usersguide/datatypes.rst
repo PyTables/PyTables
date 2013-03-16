@@ -28,7 +28,8 @@ There are eight kinds of types supported by PyTables:
   Supported precisions: 8, 16, 32 (default) and 64 bits.
 
 - float: Floating point types.
-  Supported precisions: 16, 32 and 64 (default) bits (see
+  Supported precisions: 16, 32, 64 (default) bits and extended precision
+  floatting point (see
   :ref:`note on floating point types<floating-point-note>`).
 
 - complex: Complex number types.
@@ -46,9 +47,12 @@ There are eight kinds of types supported by PyTables:
 .. _floating-point-note:
 .. note:: Floating point types.
 
-   The half precision floating point data type (float16) is only available
-   if numpy_ supports it on the host platform.  Also it is required
-   numpy_ >= 1.6.0.
+   The half precision floating point data type (float16) and extended
+   precision ones (fload96, float128) are only available if numpy_ supports
+   them on the host platform.
+
+   Also, in order to use the half precision floating point type (float16)
+   it is required numpy_ >= 1.6.0.
 
 .. _numpy: http://numpy.scipy.org
 
@@ -77,28 +81,30 @@ Here you have a quick reference to the complete set of supported data types:
 .. table:: **Data types supported for array elements and tables columns in
              PyTables.**
 
-    ============ ======================== ====================== =============== ==================
-    Type Code    Description              C Type                 Size (in bytes) Python Counterpart
-    ============ ======================== ====================== =============== ==================
-    bool         boolean                  unsigned char          1               bool
-    int8         8-bit integer            signed char            1               int
-    uint8        8-bit unsigned integer   unsigned char          1               int
-    int16        16-bit integer           short                  2               int
-    uint16       16-bit unsigned integer  unsigned short         2               int
-    int32        integer                  int                    4               int
-    uint32       unsigned integer         unsigned int           4               long
-    int64        64-bit integer           long long              8               long
-    uint64       unsigned 64-bit integer  unsigned long long     8               long
-    float16 [1]_ half-precision float     -                      2               -
-    float32      single-precision float   float                  4               float
-    float64      double-precision float   double                 8               float
-    complex64    single-precision complex struct {float r, i;}   8               complex
-    complex128   double-precision complex struct {double r, i;}  16              complex
-    string       arbitrary length string  char[]                 *               str
-    time32       integer time             POSIX's time_t         4               int
-    time64       floating point time      POSIX's struct timeval 8               float
-    enum         enumerated value         enum                   -               -
-    ============ ======================== ====================== =============== ==================
+    =============== ======================== ====================== =============== ==================
+    Type Code       Description              C Type                 Size (in bytes) Python Counterpart
+    =============== ======================== ====================== =============== ==================
+    bool            boolean                  unsigned char          1               bool
+    int8            8-bit integer            signed char            1               int
+    uint8           8-bit unsigned integer   unsigned char          1               int
+    int16           16-bit integer           short                  2               int
+    uint16          16-bit unsigned integer  unsigned short         2               int
+    int32           integer                  int                    4               int
+    uint32          unsigned integer         unsigned int           4               long
+    int64           64-bit integer           long long              8               long
+    uint64          unsigned 64-bit integer  unsigned long long     8               long
+    float16 [1]_    half-precision float     -                      2               -
+    float32         single-precision float   float                  4               float
+    float64         double-precision float   double                 8               float
+    float96 [1]_    extended precision float -                      12              -
+    float128 [1]_   extended precision float -                      16              -
+    complex64       single-precision complex struct {float r, i;}   8               complex
+    complex128      double-precision complex struct {double r, i;}  16              complex
+    string          arbitrary length string  char[]                 *               str
+    time32          integer time             POSIX's time_t         4               int
+    time64          floating point time      POSIX's struct timeval 8               float
+    enum            enumerated value         enum                   -               -
+    =============== ======================== ====================== =============== ==================
 
 .. rubric:: Footnotes
 
