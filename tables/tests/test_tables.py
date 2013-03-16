@@ -5084,7 +5084,7 @@ class DefaultValues(unittest.TestCase):
 
         # Create a recarray with the same default values
         values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]
-        formats = 'a4,i4,i2,f8,f4,i2,a1,b1,c8,c16'.split(',')
+        formats = 'a4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
 
         if 'float16' in np.typeDict:
             values.append(6.4)
@@ -5117,7 +5117,16 @@ class DefaultValues(unittest.TestCase):
             print "Records should look like:"
             print r[:5]
 
-        self.assertEqual(r.tostring(), r2.tostring())
+        for name1, name2 in zip(r.dtype.names, r2.dtype.names):
+            self.assertTrue(allequal(r[name1], r2[name2]))
+
+        # The following can give false errors when columns with extended
+        # precision data type are present in the record.
+        # It is probably due to some difference in the value of bits used
+        # for patting (longdoubles use just 80 bits but are stored in 96 or
+        # 128 bits in numpy arrays)
+        #self.assertEqual(r.tostring(), r2.tostring())
+
         fileh.close()
         os.remove(file)
 
@@ -5148,7 +5157,7 @@ class DefaultValues(unittest.TestCase):
 
         # Create a recarray with the same default values
         values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]
-        formats = 'a4,i4,i2,f8,f4,i2,a1,b1,c8,c16'.split(',')
+        formats = 'a4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
 
         if 'float16' in np.typeDict:
             values.append(6.4)
@@ -5181,7 +5190,16 @@ class DefaultValues(unittest.TestCase):
             print "Records should look like:"
             print r[:5]
 
-        self.assertEqual(r.tostring(), r2.tostring())
+        for name1, name2 in zip(r.dtype.names, r2.dtype.names):
+            self.assertTrue(allequal(r[name1], r2[name2]))
+
+        # The following can give false errors when columns with extended
+        # precision data type are present in the record.
+        # It is probably due to some difference in the value of bits used
+        # for patting (longdoubles use just 80 bits but are stored in 96 or
+        # 128 bits in numpy arrays)
+        #self.assertEqual(r.tostring(), r2.tostring())
+
         fileh.close()
         os.remove(file)
 
