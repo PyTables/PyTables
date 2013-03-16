@@ -32,7 +32,11 @@ class Record(IsDescription):
     var9 = ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8) # Complex single precision
     var10 = ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9) # Complex double precision
     if 'float16' in np.typeDict:
-        var11 = Float16Col(dflt=6.4, pos=12)        # float  (half-precision)
+        var11 = Float16Col(dflt=6.4)               # float  (half-precision)
+    if 'float96' in np.typeDict:
+        var12 = Float96Col(dflt=6.4)               # float  (extended precision)
+    if 'float128' in np.typeDict:
+        var13 = Float128Col(dflt=6.4)              # float  (extended precision)
 
 #  Dictionary definition
 RecordDescriptionDict = {
@@ -49,7 +53,11 @@ RecordDescriptionDict = {
 }
 
 if 'float16' in np.typeDict:
-    RecordDescriptionDict['var11'] = Float16Col(dflt=6.4, pos=12)    # float  (half-precision)
+    RecordDescriptionDict['var11'] = Float16Col(dflt=6.4)    # float  (half-precision)
+if 'float96' in np.typeDict:
+    RecordDescriptionDict['var12'] = Float96Col(dflt=6.4)    # float  (extended precision)
+if 'float128' in np.typeDict:
+    RecordDescriptionDict['var13'] = Float128Col(dflt=6.4)   # float  (extended precision)
 
 
 # Old fashion of defining tables (for testing backward compatibility)
@@ -65,7 +73,11 @@ class OldRecord(IsDescription):
     var9 = ComplexCol(itemsize=8, shape=(), dflt=(0.+1.j), pos=8)
     var10 = ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos = 9)
     if 'float16' in np.typeDict:
-       var11 = Col.from_type("float16", (), 6.4, pos=12)
+       var11 = Col.from_type("float16", (), 6.4)
+    if 'float96' in np.typeDict:
+       var12 = Col.from_type("float96", (), 6.4)
+    if 'float128' in np.typeDict:
+       var13 = Col.from_type("float128", (), 6.4)
 
 
 class BasicTestCase(common.PyTablesTestCase):
@@ -132,6 +144,16 @@ class BasicTestCase(common.PyTablesTestCase):
                     tmplist.append(np.array((float(i),)*4))
                 else:
                     tmplist.append(float(i))
+            if 'float96' in np.typeDict:
+                if isinstance(row['var12'], np.ndarray):
+                    tmplist.append(np.array((float(i),)*4))
+                else:
+                    tmplist.append(float(i))
+            if 'float128' in np.typeDict:
+                if isinstance(row['var13'], np.ndarray):
+                    tmplist.append(np.array((float(i),)*4))
+                else:
+                    tmplist.append(float(i))
             buflist.append(tmplist)
 
         self.record = records.array(buflist, dtype=record.dtype,
@@ -194,6 +216,16 @@ class BasicTestCase(common.PyTablesTestCase):
                             row['var11'] = np.array((float(i),)*4)
                         else:
                             row['var11'] = float(i)
+                    if 'float96' in np.typeDict:
+                        if isinstance(row['var12'], np.ndarray):
+                            row['var12'] = np.array((float(i),)*4)
+                        else:
+                            row['var12'] = float(i)
+                    if 'float128' in np.typeDict:
+                        if isinstance(row['var13'], np.ndarray):
+                            row['var13'] = np.array((float(i),)*4)
+                        else:
+                            row['var13'] = float(i)
 
                     # var6 will be like var3 but byteswaped
                     row['var6'] = (((row['var3']>>8) & 0xff) +
@@ -239,7 +271,13 @@ class BasicTestCase(common.PyTablesTestCase):
         # These checks are only valid for non-nested tables.
 
         # Column names.
-        expectedNames = ['var%d' % n for n in range(1, len(columns) + 1)]
+        fix_n_column = 10
+        expectedNames = ['var%d' % n for n in range(1, fix_n_column + 1)]
+        for n, typename in enumerate(("float16", "float96", "float128"),
+                                     fix_n_column + 1):
+            if typename in np.typeDict:
+                expectedNames.append('var%d' % n)
+
         self.assertEqual(expectedNames, list(tbl.colnames))
         self.assertEqual(expectedNames, list(desc._v_names))
 
@@ -687,6 +725,16 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var11'] = np.array((float(i),)*4)
                 else:
                     row['var11'] = float(i)
+            if 'float96' in np.typeDict:
+                if isinstance(row['var12'], np.ndarray):
+                    row['var12'] = np.array((float(i),)*4)
+                else:
+                    row['var12'] = float(i)
+            if 'float128' in np.typeDict:
+                if isinstance(row['var13'], np.ndarray):
+                    row['var13'] = np.array((float(i),)*4)
+                else:
+                    row['var13'] = float(i)
             row.append()
 
         # Flush the buffer for this table and read it
@@ -764,6 +812,16 @@ class BasicTestCase(common.PyTablesTestCase):
                         row['var11'] = np.array((float(i),)*4)
                     else:
                         row['var11'] = float(i)
+                if 'float96' in np.typeDict:
+                    if isinstance(row['var12'], np.ndarray):
+                        row['var12'] = np.array((float(i),)*4)
+                    else:
+                        row['var12'] = float(i)
+                if 'float128' in np.typeDict:
+                    if isinstance(row['var13'], np.ndarray):
+                        row['var13'] = np.array((float(i),)*4)
+                    else:
+                        row['var13'] = float(i)
                 row.append()
             table.flush()
 
@@ -844,6 +902,16 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var11'] = np.array((float(i),)*4)
                 else:
                     row['var11'] = float(i)
+            if 'float96' in np.typeDict:
+                if isinstance(row['var12'], np.ndarray):
+                    row['var12'] = np.array((float(i),)*4)
+                else:
+                    row['var12'] = float(i)
+            if 'float128' in np.typeDict:
+                if isinstance(row['var13'], np.ndarray):
+                    row['var13'] = np.array((float(i),)*4)
+                else:
+                    row['var13'] = float(i)
             row.append()
             # the next call can mislead the counters
             result = [ row2['var2'] for row2 in table ]
@@ -1219,6 +1287,16 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var11'] = np.array((float(i),)*4)
                 else:
                     row['var11'] = float(i)
+            if 'float96' in np.typeDict:
+                if isinstance(row['var12'], np.ndarray):
+                    row['var12'] = np.array((float(i),)*4)
+                else:
+                    row['var12'] = float(i)
+            if 'float128' in np.typeDict:
+                if isinstance(row['var13'], np.ndarray):
+                    row['var13'] = np.array((float(i),)*4)
+                else:
+                    row['var13'] = float(i)
             row.append()
         # Flush the buffer for this table
         table.flush()
@@ -1307,58 +1385,82 @@ if sys.version_info < (3,):
 # Pure NumPy dtype
 class NumPyDTWriteTestCase(BasicTestCase):
     title = "NumPyDTWriteTestCase"
+    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
+
     if 'float16' in np.typeDict:
-        record = np.dtype("a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16,f2")
-        record.names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11'.split(',')
-    else:
-        record = np.dtype("a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16")
-        record.names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
+        formats.append('f2')
+        names.append('var11')
+    if 'float96' in np.typeDict:
+        formats.append('f12')
+        names.append('var12')
+    if 'float128' in np.typeDict:
+        formats.append('f16')
+        names.append('var13')
+
+    record = np.dtype(','.join(formats))
+    record.names = names
 
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
+    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
+
     if 'float16' in np.typeDict:
-        record=records.array(
-            None, shape=0,
-            formats="a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16,f2",
-            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11')
-    else:
-        record=records.array(
-            None, shape=0,
-            formats="a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16",
-            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
+        formats.append('f2')
+        names.append('var11')
+    if 'float96' in np.typeDict:
+        formats.append('f12')
+        names.append('var12')
+    if 'float128' in np.typeDict:
+        formats.append('f16')
+        names.append('var13')
+
+    record = records.array(None, shape=0, formats=','.join(formats),
+                           names=names)
 
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
+    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
+
     if 'float16' in np.typeDict:
-        recordtemplate=records.array(
-            None, shape=1,
-            formats="a4,i4,i2,f8,f4,i2,a1,b1,2c8,c16,f2",
-            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11')
-    else:
-        recordtemplate=records.array(
-            None, shape=1,
-            formats="a4,i4,i2,f8,f4,i2,a1,b1,2c8,c16",
-            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
+        formats.append('f2')
+        names.append('var11')
+    if 'float96' in np.typeDict:
+        formats.append('f12')
+        names.append('var12')
+    if 'float128' in np.typeDict:
+        formats.append('f16')
+        names.append('var13')
+
+    recordtemplate = records.array(None, shape=1, formats=','.join(formats),
+                                   names=names)
 
 
 class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
+    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
+
     if 'float16' in np.typeDict:
-        recordtemplate=records.array(
-            None, shape=1,
-            formats="a4,i4,i2,2f8,4f4,i2,a1,2b1,c8,c16,f2",
-            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11')
-    else:
-        recordtemplate=records.array(
-            None, shape=1,
-            formats="a4,i4,i2,2f8,4f4,i2,a1,2b1,c8,c16",
-            names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
+        formats.append('f2')
+        names.append('var11')
+    if 'float96' in np.typeDict:
+        formats.append('f12')
+        names.append('var12')
+    if 'float128' in np.typeDict:
+        formats.append('f16')
+        names.append('var13')
+
+    recordtemplate = records.array(None, shape=1, formats=','.join(formats),
+                                   names=names)
 
 
 class CompressBloscTablesTestCase(BasicTestCase):
@@ -4981,12 +5083,20 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
+        values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]
+        formats = 'a4,i4,i2,f8,f4,i2,a1,b1,c8,c16'.split(',')
+
         if 'float16' in np.typeDict:
-            r=records.array([[b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j, 6.4]]*nrows,
-                            formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16,f2')
-        else:
-            r=records.array([[b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]]*nrows,
-                            formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16')
+            values.append(6.4)
+            formats.append('f2')
+        if 'float96' in np.typeDict:
+            values.append(6.4)
+            formats.append('f12')
+        if 'float128' in np.typeDict:
+            values.append(6.4)
+            formats.append('f16')
+
+        r = records.array([values]*nrows, formats=','.join(formats))
 
         # Assign the value exceptions
         r["f1"][3] = 2
@@ -5037,12 +5147,20 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
+        values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]
+        formats = 'a4,i4,i2,f8,f4,i2,a1,b1,c8,c16'.split(',')
+
         if 'float16' in np.typeDict:
-            r=records.array([[b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j, 6.4]]*nrows,
-                            formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16,f2')
-        else:
-            r=records.array([[b"abcd", 1, 2, 3.1, 4.2, 5, b"e", 1, 1j, 1+0j]]*nrows,
-                            formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16')
+            values.append(6.4)
+            formats.append('f2')
+        if 'float96' in np.typeDict:
+            values.append(6.4)
+            formats.append('f12')
+        if 'float128' in np.typeDict:
+            values.append(6.4)
+            formats.append('f16')
+
+        r = records.array([values]*nrows, formats=','.join(formats))
 
         # Assign the value exceptions
         r["f1"][3] = 2
