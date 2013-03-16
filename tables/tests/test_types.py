@@ -193,29 +193,37 @@ class ReadFloatTestCase(common.PyTablesTestCase):
         self.assertTrue(common.allequal(
             ds.read(), self.values.astype(dtype)))
 
-    def test04_read_float96(self):
-        if hasattr(numpy, "longdouble"):
-            ds = getattr(self.fileh.root, "float96")
+    def test04_read_longdouble(self):
+        dtype = "longdouble"
+        if hasattr(numpy, "float96") or hasattr(numpy, "float128"):
+            ds = getattr(self.fileh.root, dtype)
             self.assertFalse(isinstance(ds, UnImplemented))
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
-            self.assertEqual(ds.dtype, "longdouble")
+            self.assertEqual(ds.dtype, dtype)
             self.assertTrue(common.allequal(
-                ds.read(),self.values.astype("longdouble")))
+                ds.read(), self.values.astype(dtype)))
+
+            if hasattr(numpy, "float96"):
+                self.assertEqual(ds.dtype, "float96")
+            elif hasattr(numpy, "float128"):
+                self.assertEqual(ds.dtype, "float128")
         else:
-            ds = self.assertWarns(UserWarning, getattr, self.fileh.root, "float96")
+            # XXX: check
+            ds = self.assertWarns(UserWarning, getattr, self.fileh.root, dtype)
             self.assertTrue(isinstance(ds, UnImplemented))
 
-    def test05_read_float128(self):
-        if hasattr(numpy, "longdouble"):
-            ds = getattr(self.fileh.root, "float128")
-            self.assertFalse(isinstance(ds, UnImplemented))
-            self.assertEqual(ds.shape, (self.nrows, self.ncols))
-            self.assertEqual(ds.dtype, "longdouble")
-            self.assertTrue(common.allequal(
-                ds.read(), self.values.astype("longdouble")))
-        else:
-            ds = self.assertWarns(UserWarning, getattr, self.fileh.root, "float128")
-            self.assertTrue(isinstance(ds, UnImplemented))
+    def test05_read_quadprecision_float(self):
+        #ds = self.assertWarns(UserWarning, getattr, self.fileh.root,
+        #                     "quadprecision")
+        #self.assertTrue(isinstance(ds, UnImplemented))
+
+        # NOTE: it would be nice to have some sort of message that warns
+        #       against the potential precision loss: the quad-precision
+        #       dataset actually uses 128 bits for each element, not just
+        #       80 bits (longdouble)
+        ds = self.fileh.root.quadprecision
+        self.assertEqual(ds.dtype, "longdouble")
+
 
 class AtomTestCase(common.PyTablesTestCase):
     def test_init_parameters_01(self):
