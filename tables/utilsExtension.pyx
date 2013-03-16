@@ -40,32 +40,32 @@ from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 from numpy cimport (import_array, ndarray, dtype,
   npy_int64, PyArray_DescrFromType, npy_intp,
   NPY_BOOL, NPY_STRING, NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64,
-  NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, NPY_FLOAT16, NPY_FLOAT32, 
+  NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, NPY_FLOAT16, NPY_FLOAT32,
   NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128)
 
-from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims, 
-  H5ATTRfind_attribute, H5ATTRget_attribute_string, H5D_CHUNKED, 
-  H5D_layout_t, H5Dclose, H5Dget_type, H5Dopen, H5E_DEFAULT, 
-  H5E_WALK_DOWNWARD, H5E_auto_t, H5E_error_t, H5E_walk_t, H5Eget_msg, 
-  H5Eprint, H5Eset_auto, H5Ewalk, H5F_ACC_RDONLY, H5Fclose, H5Fis_hdf5, 
-  H5Fopen, H5Gclose, H5Gopen, H5P_DEFAULT, H5T_ARRAY, H5T_BITFIELD, 
-  H5T_COMPOUND, H5T_CSET_ASCII, H5T_CSET_UTF8, H5T_C_S1, H5T_DIR_DEFAULT, 
-  H5T_ENUM, H5T_FLOAT, H5T_IEEE_F32BE, H5T_IEEE_F32LE, H5T_IEEE_F64BE, 
-  H5T_IEEE_F64LE, H5T_INTEGER, H5T_NATIVE_LDOUBLE, H5T_NO_CLASS, H5T_OPAQUE, 
-  H5T_ORDER_BE, H5T_ORDER_LE, H5T_REFERENCE, H5T_STD_B8BE, H5T_STD_B8LE, 
-  H5T_STD_I16BE, H5T_STD_I16LE, H5T_STD_I32BE, H5T_STD_I32LE, H5T_STD_I64BE, 
-  H5T_STD_I64LE, H5T_STD_I8BE, H5T_STD_I8LE, H5T_STD_U16BE, H5T_STD_U16LE, 
-  H5T_STD_U32BE, H5T_STD_U32LE, H5T_STD_U64BE, H5T_STD_U64LE, H5T_STD_U8BE, 
-  H5T_STD_U8LE, H5T_STRING, H5T_TIME, H5T_UNIX_D32BE, H5T_UNIX_D32LE, 
-  H5T_UNIX_D64BE, H5T_UNIX_D64LE, H5T_VLEN, H5T_class_t, H5T_sign_t, 
-  H5Tarray_create, H5Tclose, H5Tcopy, H5Tcreate, H5Tenum_create, 
-  H5Tenum_insert, H5Tget_array_dims, H5Tget_array_ndims, H5Tget_class, 
-  H5Tget_member_name, H5Tget_member_type, H5Tget_member_value, 
-  H5Tget_native_type, H5Tget_nmembers, H5Tget_offset, H5Tget_order, 
-  H5Tget_precision, H5Tget_sign, H5Tget_size, H5Tget_super, H5Tinsert, 
-  H5Tis_variable_str, H5Tpack, H5Tset_precision, H5Tset_size, H5Tvlen_create, 
-  PyArray_Scalar, create_ieee_complex128, create_ieee_complex64, 
-  create_ieee_float16, get_len_of_range, get_order, herr_t, hid_t, hsize_t, 
+from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
+  H5ATTRfind_attribute, H5ATTRget_attribute_string, H5D_CHUNKED,
+  H5D_layout_t, H5Dclose, H5Dget_type, H5Dopen, H5E_DEFAULT,
+  H5E_WALK_DOWNWARD, H5E_auto_t, H5E_error_t, H5E_walk_t, H5Eget_msg,
+  H5Eprint, H5Eset_auto, H5Ewalk, H5F_ACC_RDONLY, H5Fclose, H5Fis_hdf5,
+  H5Fopen, H5Gclose, H5Gopen, H5P_DEFAULT, H5T_ARRAY, H5T_BITFIELD,
+  H5T_COMPOUND, H5T_CSET_ASCII, H5T_CSET_UTF8, H5T_C_S1, H5T_DIR_DEFAULT,
+  H5T_ENUM, H5T_FLOAT, H5T_IEEE_F32BE, H5T_IEEE_F32LE, H5T_IEEE_F64BE,
+  H5T_IEEE_F64LE, H5T_INTEGER, H5T_NATIVE_LDOUBLE, H5T_NO_CLASS, H5T_OPAQUE,
+  H5T_ORDER_BE, H5T_ORDER_LE, H5T_REFERENCE, H5T_STD_B8BE, H5T_STD_B8LE,
+  H5T_STD_I16BE, H5T_STD_I16LE, H5T_STD_I32BE, H5T_STD_I32LE, H5T_STD_I64BE,
+  H5T_STD_I64LE, H5T_STD_I8BE, H5T_STD_I8LE, H5T_STD_U16BE, H5T_STD_U16LE,
+  H5T_STD_U32BE, H5T_STD_U32LE, H5T_STD_U64BE, H5T_STD_U64LE, H5T_STD_U8BE,
+  H5T_STD_U8LE, H5T_STRING, H5T_TIME, H5T_UNIX_D32BE, H5T_UNIX_D32LE,
+  H5T_UNIX_D64BE, H5T_UNIX_D64LE, H5T_VLEN, H5T_class_t, H5T_sign_t,
+  H5Tarray_create, H5Tclose, H5Tcopy, H5Tcreate, H5Tenum_create,
+  H5Tenum_insert, H5Tget_array_dims, H5Tget_array_ndims, H5Tget_class,
+  H5Tget_member_name, H5Tget_member_type, H5Tget_member_value,
+  H5Tget_native_type, H5Tget_nmembers, H5Tget_offset, H5Tget_order,
+  H5Tget_precision, H5Tget_sign, H5Tget_size, H5Tget_super, H5Tinsert,
+  H5Tis_variable_str, H5Tpack, H5Tset_precision, H5Tset_size, H5Tvlen_create,
+  PyArray_Scalar, create_ieee_complex128, create_ieee_complex64,
+  create_ieee_float16, get_len_of_range, get_order, herr_t, hid_t, hsize_t,
   hssize_t, htri_t, is_complex, register_blosc, set_order)
 
 
@@ -1108,14 +1108,14 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
     # Get the sign
     sign = H5Tget_sign(type_id)
     if (sign > 0):
-      stype = "i%s" % (itemsize)
+      stype = "i%s" % itemsize
     else:
-      stype = "u%s" % (itemsize)
+      stype = "u%s" % itemsize
   elif class_id == H5T_FLOAT:
-    stype = "f%s" % (itemsize)
+    stype = "f%s" % itemsize
   elif class_id ==  H5T_COMPOUND:
     if is_complex(type_id):
-      stype = "c%s" % (itemsize)
+      stype = "c%s" % itemsize
     else:
       if atom:
         raise TypeError("the HDF5 class ``%s`` is not supported yet"
@@ -1130,12 +1130,12 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
   elif class_id == H5T_STRING:
     if H5Tis_variable_str(type_id):
       raise TypeError("variable length strings are not supported yet")
-    stype = "S%s" % (itemsize)
+    stype = "S%s" % itemsize
   elif class_id == H5T_TIME:
     if pure_numpy_types:
       raise TypeError("the HDF5 class ``%s`` is not supported yet"
                       % HDF5ClassToString[class_id])
-    stype = "t%s" % (itemsize)
+    stype = "t%s" % itemsize
   elif class_id == H5T_ENUM:
     if pure_numpy_types:
       raise TypeError("the HDF5 class ``%s`` is not supported yet"

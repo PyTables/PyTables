@@ -2257,7 +2257,6 @@ class FlavorTestCase(unittest.TestCase):
     def test04_FloatAtom(self):
         """Checking vlarray with different flavors (floating point versions)"""
 
-
         ttypes = [
             "Float32",
             "Float64",

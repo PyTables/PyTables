@@ -255,12 +255,11 @@ class BasicTestCase(unittest.TestCase):
                      'uint8', 'uint16', 'uint32', 'uint64',
                      'float32', 'float64',
                      'complex64', 'complex128']
-        if hasattr(numpy, 'float16'):
-            typecodes.append('float16')
-        if hasattr(numpy, 'float96'):
-            typecodes.append('float96')
-        if hasattr(numpy, 'float128'):
-            typecodes.append('float128')
+
+        #for name in ('float16', 'float96', 'float128', 'complex192', 'complex256'):
+        for name in ('float16', 'float96', 'float128'):
+            if hasattr(numpy, name):
+                typecodes.append(name)
 
         for typecode in typecodes:
             a = numpy.array(self.tupleInt, typecode)
@@ -275,12 +274,11 @@ class BasicTestCase(unittest.TestCase):
                      'uint8', 'uint16', 'uint32', 'uint64',
                      'float32', 'float64',
                      'complex64', 'complex128',]
-        if hasattr(numpy, 'float16'):
-            typecodes.append('float16')
-        if hasattr(numpy, 'float96'):
-            typecodes.append('float96')
-        if hasattr(numpy, 'float128'):
-            typecodes.append('float128')
+
+        #for name in ('float16', 'float96', 'float128', 'complex192', 'complex256'):
+        for name in ('float16', 'float96', 'float128'):
+            if hasattr(numpy, name):
+                typecodes.append(name)
 
         for typecode in typecodes:
             a = numpy.array(self.tupleInt, typecode)
@@ -747,10 +745,10 @@ class GroupsArrayTestCase(unittest.TestCase):
                      'F', 'D']
         if hasattr(numpy, 'float16'):
             typecodes.append('e')
-        if hasattr(numpy, 'float96'):
+        if hasattr(numpy, 'float96') or hasattr(numpy, 'float128'):
             typecodes.append('g')
-        if hasattr(numpy, 'float128'):
-            typecodes.append('g')
+        #if hasattr(numpy, 'complex192') or hasattr(numpy, 'complex256'):
+        #    typecodes.append('G')
 
         for i, typecode in enumerate(typecodes):
             a = numpy.ones((3,), typecode)

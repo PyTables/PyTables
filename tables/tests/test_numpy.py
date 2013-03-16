@@ -26,10 +26,10 @@ typecodes += ['b1']   # boolean
 
 if 'float16' in typeDict:
     typecodes.append('e')
-if 'float96' in typeDict:
+if 'float96' in typeDict or 'float128' in typeDict:
     typecodes.append('g')
-if 'float128' in typeDict:
-    typecodes.append('g')
+#if 'complex192' in typeDict or 'conplex256' in typeDict:
+#    typecodes.append('G')
 
 byteorder = {'little': '<', 'big': '>'}[sys.byteorder]
 
