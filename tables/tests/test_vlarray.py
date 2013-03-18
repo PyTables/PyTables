@@ -882,7 +882,7 @@ class TypesTestCase(unittest.TestCase):
             ttypes["float16"] = numpy.float16
         if hasattr(numpy, "float96"):
             ttypes["float96"] = numpy.float96
-        if hasattr(numpy, "float16"):
+        if hasattr(numpy, "float128"):
             ttypes["float128"] = numpy.float128
 
         if common.verbose:
