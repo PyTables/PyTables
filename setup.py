@@ -165,7 +165,7 @@ if os.name == 'posix':
     add_from_flags("LDFLAGS", "-L", default_library_dirs)
     default_library_dirs.extend(
         os.path.join(_tree, _arch)
-        for _tree in ('/', '/usr', '/usr/local')
+        for _tree in ('/', '/usr', '/usr/local', '/opt', '/opt/local')
             for _arch in ('lib64', 'lib'))
     default_runtime_dirs = default_library_dirs
 
