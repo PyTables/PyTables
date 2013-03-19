@@ -867,7 +867,7 @@ def enumFromHDF5(hid_t enumId, str byteorder):
   cdef char   *ename
   cdef ndarray npvalue
   cdef object dtype
-  cdef str pyename
+  cdef object pyename
 
   # Find the base type of the enumerated type, and get the atom
   baseId = H5Tget_super(enumId)
@@ -1016,7 +1016,7 @@ def loadEnum(hid_t type_id):
 
   cdef hid_t enumId
   cdef char c_byteorder[11]  # "irrelevant" fits well here
-  cdef str byteorder
+  cdef object byteorder
 
   # Get the enumerated type
   enumId = getTypeEnum(type_id)
@@ -1043,7 +1043,7 @@ def HDF5ToNPNestedType(hid_t type_id):
   cdef char    *c_colname
   cdef H5T_class_t class_id
   cdef object  desc
-  cdef str     colname
+  cdef object  colname
 
   desc = {}
   # Get the number of members

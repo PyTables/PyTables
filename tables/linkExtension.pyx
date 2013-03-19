@@ -234,7 +234,7 @@ cdef class ExternalLink(Link):
     cdef char *clinkval, *cfilename, *c_obj_path
     cdef unsigned flags
     cdef bytes encoded_name
-    cdef str filename, obj_path
+    cdef object filename, obj_path
 
     encoded_name = self.name.encode('utf-8')
 
