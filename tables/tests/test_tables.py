@@ -37,6 +37,10 @@ class Record(IsDescription):
         var12 = Float96Col(dflt=6.4)               # float  (extended precision)
     if 'float128' in np.typeDict:
         var13 = Float128Col(dflt=6.4)              # float  (extended precision)
+    if 'complex192' in np.typeDict:
+        var14 = ComplexCol(itemsize=24, dflt=(1.-0.j)) # Complex double (extended precision)
+    if 'complex256' in np.typeDict:
+        var15 = ComplexCol(itemsize=32, dflt=(1.-0.j)) # Complex double (extended precision)
 
 #  Dictionary definition
 RecordDescriptionDict = {
@@ -58,6 +62,10 @@ if 'float96' in np.typeDict:
     RecordDescriptionDict['var12'] = Float96Col(dflt=6.4)    # float  (extended precision)
 if 'float128' in np.typeDict:
     RecordDescriptionDict['var13'] = Float128Col(dflt=6.4)   # float  (extended precision)
+if 'complex192' in np.typeDict:
+    RecordDescriptionDict['var14'] = ComplexCol(itemsize=24, dflt=(1.-0.j)) # Complex double (extended precision)
+if 'complex256' in np.typeDict:
+    RecordDescriptionDict['var15'] = ComplexCol(itemsize=32, dflt=(1.-0.j)) # Complex double (extended precision)
 
 
 # Old fashion of defining tables (for testing backward compatibility)
@@ -73,11 +81,15 @@ class OldRecord(IsDescription):
     var9 = ComplexCol(itemsize=8, shape=(), dflt=(0.+1.j), pos=8)
     var10 = ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos = 9)
     if 'float16' in np.typeDict:
-       var11 = Col.from_type("float16", (), 6.4)
+        var11 = Col.from_type("float16", (), 6.4)
     if 'float96' in np.typeDict:
-       var12 = Col.from_type("float96", (), 6.4)
+        var12 = Col.from_type("float96", (), 6.4)
     if 'float128' in np.typeDict:
-       var13 = Col.from_type("float128", (), 6.4)
+        var13 = Col.from_type("float128", (), 6.4)
+    if 'complex192' in np.typeDict:
+        var14 = ComplexCol(itemsize=24, shape=(), dflt=(1.-0.j))
+    if 'complex256' in np.typeDict:
+        var15 = ComplexCol(itemsize=32, shape=(), dflt=(1.-0.j))
 
 
 class BasicTestCase(common.PyTablesTestCase):
@@ -154,6 +166,17 @@ class BasicTestCase(common.PyTablesTestCase):
                     tmplist.append(np.array((float(i),)*4))
                 else:
                     tmplist.append(float(i))
+            if 'complex192' in np.typeDict:
+                if isinstance(row['var14'], np.ndarray):
+                    tmplist.append([float(i)+0j, 1+float(i)*1j])
+                else:
+                    tmplist.append(1+float(i)*1j)
+            if 'complex256' in np.typeDict:
+                if isinstance(row['var15'], np.ndarray):
+                    tmplist.append([float(i)+0j, 1+float(i)*1j])
+                else:
+                    tmplist.append(1+float(i)*1j)
+
             buflist.append(tmplist)
 
         self.record = records.array(buflist, dtype=record.dtype,
@@ -226,6 +249,16 @@ class BasicTestCase(common.PyTablesTestCase):
                             row['var13'] = np.array((float(i),)*4)
                         else:
                             row['var13'] = float(i)
+                    if 'complex192' in np.typeDict:
+                        if isinstance(row['var14'], np.ndarray):
+                            row['var14'] = [float(i)+0j, 1+float(i)*1j]
+                        else:
+                            row['var14'] = 1+float(i)*1j
+                    if 'complex256' in np.typeDict:
+                        if isinstance(row['var15'], np.ndarray):
+                            row['var15'] = [float(i)+0j, 1+float(i)*1j]
+                        else:
+                            row['var15'] = 1+float(i)*1j
 
                     # var6 will be like var3 but byteswaped
                     row['var6'] = (((row['var3']>>8) & 0xff) +
@@ -273,8 +306,8 @@ class BasicTestCase(common.PyTablesTestCase):
         # Column names.
         fix_n_column = 10
         expectedNames = ['var%d' % n for n in range(1, fix_n_column + 1)]
-        for n, typename in enumerate(("float16", "float96", "float128"),
-                                     fix_n_column + 1):
+        types = ("float16", "float96", "float128", "complex192", "complex256")
+        for n, typename in enumerate(types, fix_n_column + 1):
             if typename in np.typeDict:
                 expectedNames.append('var%d' % n)
 
@@ -735,6 +768,17 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var13'] = np.array((float(i),)*4)
                 else:
                     row['var13'] = float(i)
+            if 'complex192' in np.typeDict:
+                if isinstance(row['var14'], np.ndarray):
+                    row['var14'] = [float(i)+0j, 1+float(i)*1j]
+                else:
+                    row['var14'] = 1+float(i)*1j
+            if 'complex256' in np.typeDict:
+                if isinstance(row['var15'], np.ndarray):
+                    row['var15'] = [float(i)+0j, 1+float(i)*1j]
+                else:
+                    row['var15'] = 1+float(i)*1j
+
             row.append()
 
         # Flush the buffer for this table and read it
@@ -822,6 +866,17 @@ class BasicTestCase(common.PyTablesTestCase):
                         row['var13'] = np.array((float(i),)*4)
                     else:
                         row['var13'] = float(i)
+                if 'complex192' in np.typeDict:
+                    if isinstance(row['var14'], np.ndarray):
+                        row['var14'] = [float(i)+0j, 1+float(i)*1j]
+                    else:
+                        row['var14'] = 1+float(i)*1j
+                if 'complex256' in np.typeDict:
+                    if isinstance(row['var15'], np.ndarray):
+                        row['var15'] = [float(i)+0j, 1+float(i)*1j]
+                    else:
+                        row['var15'] = 1+float(i)*1j
+
                 row.append()
             table.flush()
 
@@ -912,6 +967,17 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var13'] = np.array((float(i),)*4)
                 else:
                     row['var13'] = float(i)
+            if 'complex192' in np.typeDict:
+                if isinstance(row['var14'], np.ndarray):
+                    row['var14'] = [float(i)+0j, 1+float(i)*1j]
+                else:
+                    row['var14'] = 1+float(i)*1j
+            if 'complex256' in np.typeDict:
+                if isinstance(row['var15'], np.ndarray):
+                    row['var15'] = [float(i)+0j, 1+float(i)*1j]
+                else:
+                    row['var15'] = 1+float(i)*1j
+
             row.append()
             # the next call can mislead the counters
             result = [ row2['var2'] for row2 in table ]
@@ -1297,6 +1363,17 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var13'] = np.array((float(i),)*4)
                 else:
                     row['var13'] = float(i)
+            if 'complex192' in np.typeDict:
+                if isinstance(row['var14'], np.ndarray):
+                    row['var14'] = [float(i)+0j, 1+float(i)*1j]
+                else:
+                    row['var14'] = 1+float(i)*1j
+            if 'complex256' in np.typeDict:
+                if isinstance(row['var15'], np.ndarray):
+                    row['var15'] = [float(i)+0j, 1+float(i)*1j]
+                else:
+                    row['var15'] = 1+float(i)*1j
+
             row.append()
         # Flush the buffer for this table
         table.flush()
@@ -1397,6 +1474,12 @@ class NumPyDTWriteTestCase(BasicTestCase):
     if 'float128' in np.typeDict:
         formats.append('f16')
         names.append('var13')
+    if 'complex192' in np.typeDict:
+        formats.append('c24')
+        names.append('var14')
+    if 'complex256' in np.typeDict:
+        formats.append('c32')
+        names.append('var15')
 
     record = np.dtype(','.join(formats))
     record.names = names
@@ -1416,6 +1499,12 @@ class RecArrayOneWriteTestCase(BasicTestCase):
     if 'float128' in np.typeDict:
         formats.append('f16')
         names.append('var13')
+    if 'complex192' in np.typeDict:
+        formats.append('c24')
+        names.append('var14')
+    if 'complex256' in np.typeDict:
+        formats.append('c32')
+        names.append('var15')
 
     record = records.array(None, shape=0, formats=','.join(formats),
                            names=names)
@@ -1437,6 +1526,12 @@ class RecArrayTwoWriteTestCase(BasicTestCase):
     if 'float128' in np.typeDict:
         formats.append('f16')
         names.append('var13')
+    if 'complex192' in np.typeDict:
+        formats.append('c24')
+        names.append('var14')
+    if 'complex256' in np.typeDict:
+        formats.append('c32')
+        names.append('var15')
 
     recordtemplate = records.array(None, shape=1, formats=','.join(formats),
                                    names=names)
@@ -1458,6 +1553,12 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     if 'float128' in np.typeDict:
         formats.append('f16')
         names.append('var13')
+    if 'complex192' in np.typeDict:
+        formats.append('c24')
+        names.append('var14')
+    if 'complex256' in np.typeDict:
+        formats.append('c32')
+        names.append('var15')
 
     recordtemplate = records.array(None, shape=1, formats=','.join(formats),
                                    names=names)
@@ -5095,6 +5196,12 @@ class DefaultValues(unittest.TestCase):
         if 'float128' in np.typeDict:
             values.append(6.4)
             formats.append('f16')
+        if 'complex192' in np.typeDict:
+            values.append(1.-0.j)
+            formats.append('c24')
+        if 'complex256' in np.typeDict:
+            values.append(1.-0.j)
+            formats.append('c32')
 
         r = records.array([values]*nrows, formats=','.join(formats))
 
@@ -5168,6 +5275,12 @@ class DefaultValues(unittest.TestCase):
         if 'float128' in np.typeDict:
             values.append(6.4)
             formats.append('f16')
+        if 'complex192' in np.typeDict:
+            values.append(1.-0.j)
+            formats.append('c24')
+        if 'complex256' in np.typeDict:
+            values.append(1.-0.j)
+            formats.append('c32')
 
         r = records.array([values]*nrows, formats=','.join(formats))
 

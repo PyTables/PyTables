@@ -466,6 +466,8 @@ cdef extern from "utils.h" nogil:
   hid_t  create_ieee_float16(char *byteorder)
   hid_t  create_ieee_complex64(char *byteorder)
   hid_t  create_ieee_complex128(char *byteorder)
+  hid_t  create_ieee_complex192(char *byteorder)
+  hid_t  create_ieee_complex256(char *byteorder)
   herr_t set_order(hid_t type_id, char *byteorder)
   herr_t get_order(hid_t type_id, char *byteorder)
   int    is_complex(hid_t type_id)

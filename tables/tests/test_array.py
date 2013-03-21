@@ -256,8 +256,8 @@ class BasicTestCase(unittest.TestCase):
                      'float32', 'float64',
                      'complex64', 'complex128']
 
-        #for name in ('float16', 'float96', 'float128', 'complex192', 'complex256'):
-        for name in ('float16', 'float96', 'float128'):
+        for name in ('float16', 'float96', 'float128',
+                     'complex192', 'complex256'):
             if hasattr(numpy, name):
                 typecodes.append(name)
 
@@ -275,8 +275,8 @@ class BasicTestCase(unittest.TestCase):
                      'float32', 'float64',
                      'complex64', 'complex128',]
 
-        #for name in ('float16', 'float96', 'float128', 'complex192', 'complex256'):
-        for name in ('float16', 'float96', 'float128'):
+        for name in ('float16', 'float96', 'float128',
+                     'complex192', 'complex256'):
             if hasattr(numpy, name):
                 typecodes.append(name)
 
@@ -747,8 +747,8 @@ class GroupsArrayTestCase(unittest.TestCase):
             typecodes.append('e')
         if hasattr(numpy, 'float96') or hasattr(numpy, 'float128'):
             typecodes.append('g')
-        #if hasattr(numpy, 'complex192') or hasattr(numpy, 'complex256'):
-        #    typecodes.append('G')
+        if hasattr(numpy, 'complex192') or hasattr(numpy, 'complex256'):
+            typecodes.append('G')
 
         for i, typecode in enumerate(typecodes):
             a = numpy.ones((3,), typecode)

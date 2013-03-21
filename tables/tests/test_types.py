@@ -27,6 +27,10 @@ class Record(IsDescription):
         var9 = Col.from_kind('float', itemsize=12) # extended-precision
     if hasattr(numpy, "float128"):
         var10 = Col.from_kind('float', itemsize=16) # extended-precision
+    if hasattr(numpy, "complex192"):
+        var11 = Col.from_kind('complex', itemsize=24) # extended-precision
+    if hasattr(numpy, "complex256"):
+        var12 = Col.from_kind('complex', itemsize=32) # extended-precision
 
 class RangeTestCase(unittest.TestCase):
     file  = "test.h5"

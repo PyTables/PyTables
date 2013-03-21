@@ -766,6 +766,26 @@ class Complex128TestCase(BasicTestCase):
     stop = 100
     step = 20
 
+class Complex192TestCase(BasicTestCase):
+    type = "complex192"
+    shape = (20,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (2,)
+    start = -1
+    stop = 100
+    step = 20
+
+class Complex256TestCase(BasicTestCase):
+    type = "complex256"
+    shape = (20,)
+    compress = 1
+    shuffle = 1
+    chunkshape = (2,)
+    start = -1
+    stop = 100
+    step = 20
+
 class ComprTestCase(BasicTestCase):
     type = "float64"
     compress = 1
@@ -2313,6 +2333,10 @@ def suite():
             theSuite.addTest(unittest.makeSuite(Float128TestCase))
         theSuite.addTest(unittest.makeSuite(Complex64TestCase))
         theSuite.addTest(unittest.makeSuite(Complex128TestCase))
+        if hasattr(numpy, 'complex192'):
+            theSuite.addTest(unittest.makeSuite(Complex192TestCase))
+        if hasattr(numpy, 'complex256'):
+            theSuite.addTest(unittest.makeSuite(Complex256TestCase))
         theSuite.addTest(unittest.makeSuite(ComprTestCase))
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))

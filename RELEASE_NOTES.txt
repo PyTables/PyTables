@@ -37,7 +37,8 @@ New features
   pre-allocated array to store data (:issue:`192`)
 
 - Added support for the floating point data types with extended precision
-  (Float96 and Float128).  It is only available if numpy_ provides it as well.
+  (Float96, Float128, Complex192 and Complex256).  It is only available if
+  numpy_ provides it as well.
   Closes :issue:`51` and :issue:`214`.  Many thanks to Andrea Bedini.
 
 

@@ -1092,6 +1092,12 @@ class TypesTestCase(unittest.TestCase):
             "Complex32",
             "Complex64",
         ]
+
+        if hasattr(numpy, "complex192"):
+            ttypes.append("Complex96")
+        if hasattr(numpy, "complex256"):
+            ttypes.append("Complex128")
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_ComplexAtom..." % self.__class__.__name__
@@ -1132,6 +1138,12 @@ class TypesTestCase(unittest.TestCase):
             "Complex32",
             "Complex64",
         ]
+
+        if hasattr(numpy, "complex192"):
+            ttypes.append("Complex96")
+        if hasattr(numpy, "complex256"):
+            ttypes.append("Complex128")
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
@@ -1785,9 +1797,10 @@ class MDTypesTestCase(unittest.TestCase):
             "Complex32",
             "Complex64",
         ]
-        for name in ("float16", "float96", "float128"):
+        for name in ("float16", "float96", "float128",
+                     "Complex192", "Complex256"):
             if hasattr(numpy, name):
-                ttypes.append(name)
+                ttypes.append(name.capitalize())
 
         root = self.rootgroup
         if common.verbose:
@@ -2263,9 +2276,10 @@ class FlavorTestCase(unittest.TestCase):
             "Complex32",
             "Complex64",
         ]
-        for name in ("float16", "float96", "float128"):
+        for name in ("float16", "float96", "float128",
+                     "Complex192", "Complex256"):
             if hasattr(numpy, name):
-                ttypes.append(name)
+                ttypes.append(name.capitalize())
 
         root = self.rootgroup
         if common.verbose:

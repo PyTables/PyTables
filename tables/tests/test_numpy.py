@@ -28,8 +28,8 @@ if 'float16' in typeDict:
     typecodes.append('e')
 if 'float96' in typeDict or 'float128' in typeDict:
     typecodes.append('g')
-#if 'complex192' in typeDict or 'conplex256' in typeDict:
-#    typecodes.append('G')
+if 'complex192' in typeDict or 'conplex256' in typeDict:
+    typecodes.append('G')
 
 byteorder = {'little': '<', 'big': '>'}[sys.byteorder]
 
@@ -403,6 +403,10 @@ class Record(IsDescription):
         var16 = Float96Col(dflt=1.0)
     if 'float128' in typeDict:
         var17 = Float128Col(dflt=1.0)
+    if 'complex196' in typeDict:
+        var17 = ComplexCol(itemsize=24, dflt=(1.+0.j))
+    if 'complex256' in typeDict:
+        var17 = ComplexCol(itemsize=32, dflt=(1.+0.j))
 
 
 class TableReadTestCase(common.PyTablesTestCase):
@@ -549,8 +553,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         # only as tuples (see http://projects.scipy.org/scipy/numpy/ticket/315)
         #table[coords[0]] = ["aasa","x"]+[232]*12
 
-        n = 12
-        for name in ('float16', 'float96', 'float128'):
+        n = 11
+        for name in ('float16', 'float96', 'float128',
+                     'complex196', 'complex256'):
             if name in typeDict:
                 n += 1
 
@@ -559,7 +564,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         record = table.read(coords[0])
         if common.verbose:
             print """Original row:
-['aasa', 'x', 232, -24, 232, 232, 1, 232L, 232, (232+0j), 232.0, 232L, (232+0j), 232.0]
+['aasa', 'x', True, -24, 232, 232, 232, 232, 232L, 232, 232.0, 232.0, (232+0j), (232+0j), 232.0, (232+0j)]
 """
             print "Read row:\n", record
         self.assertEqual(record['var1'], b'aasa')

@@ -109,9 +109,15 @@ herr_t get_order(hid_t type_id, char *byteorder);
 
 hid_t create_ieee_float16(const char *byteorder);
 
+hid_t create_ieee_quadprecision_float(const char *byteorder);
+
 hid_t create_ieee_complex64(const char *byteorder);
 
 hid_t create_ieee_complex128(const char *byteorder);
+
+hid_t create_ieee_complex192(const char *byteorder);
+
+hid_t create_ieee_complex256(const char *byteorder);
 
 hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step);
 

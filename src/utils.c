@@ -8,6 +8,14 @@
 #define PyString_FromString PyUnicode_FromString
 #endif
 
+#ifndef NPY_COMPLEX192
+typedef npy_cdouble npy_complex192;
+#endif
+
+#ifndef NPY_COMPLEX256
+typedef npy_cdouble npy_complex256;
+#endif
+
 /* ---------------------------------------------------------------- */
 
 #ifdef WIN32
@@ -796,6 +804,37 @@ hid_t create_ieee_float16(const char *byteorder) {
 }
 
 
+/* Create a HDF5 atomic datatype that represents quad precision floatting
+   point numbers. */
+hid_t create_ieee_quadprecision_float(const char *byteorder) {
+  hid_t float_id;
+
+  if (byteorder == NULL)
+    float_id = H5Tcopy(H5T_NATIVE_DOUBLE);
+  else if (strcmp(byteorder, "little") == 0)
+    float_id = H5Tcopy(H5T_IEEE_F64LE);
+  else
+    float_id = H5Tcopy(H5T_IEEE_F64BE);
+
+  if (float_id < 0)
+    return float_id;
+
+  if (H5Tset_size(float_id, 16) < 0)
+    return -1;
+
+  if ((H5Tset_precision(float_id, 128)) < 0)
+    return -1;
+
+  if (H5Tset_fields(float_id , 127, 112, 15, 0, 112) < 0)
+    return -1;
+
+  if (H5Tset_ebias(float_id, 16383) < 0)
+    return -1;
+
+  return float_id;
+}
+
+
 /* Create a HDF5 compound datatype that represents complex numbers
    defined by numpy as complex64. */
 hid_t create_ieee_complex64(const char *byteorder) {
@@ -808,6 +847,13 @@ hid_t create_ieee_complex64(const char *byteorder) {
     float_id = H5Tcopy(H5T_IEEE_F32LE);
   else
     float_id = H5Tcopy(H5T_IEEE_F32BE);
+
+  if (float_id < 0)
+  {
+    H5Tclose(complex_id);
+    return float_id;
+  }
+
   H5Tinsert(complex_id, "r", HOFFSET(npy_complex64, real), float_id);
   H5Tinsert(complex_id, "i", HOFFSET(npy_complex64, imag), float_id);
   H5Tclose(float_id);
@@ -826,8 +872,79 @@ hid_t create_ieee_complex128(const char *byteorder) {
     float_id = H5Tcopy(H5T_IEEE_F64LE);
   else
     float_id = H5Tcopy(H5T_IEEE_F64BE);
+
+  if (float_id < 0)
+  {
+    H5Tclose(complex_id);
+    return float_id;
+  }
+
   H5Tinsert(complex_id, "r", HOFFSET(npy_complex128, real), float_id);
   H5Tinsert(complex_id, "i", HOFFSET(npy_complex128, imag), float_id);
+  H5Tclose(float_id);
+  return complex_id;
+}
+
+
+/* Counterpart for complex192 */
+hid_t create_ieee_complex192(const char *byteorder) {
+  herr_t err;
+  hid_t float_id, complex_id;
+  H5T_order_t h5order = H5Tget_order(H5T_NATIVE_LDOUBLE);
+
+  complex_id = H5Tcreate(H5T_COMPOUND, sizeof(npy_complex192));
+  float_id = H5Tcopy(H5T_NATIVE_LDOUBLE);
+  if (float_id < 0)
+  {
+    H5Tclose(complex_id);
+    return float_id;
+  }
+
+  if ((strcmp(byteorder, "little") == 0) && (h5order != H5T_ORDER_LE))
+    err = H5Tset_order(float_id, H5T_ORDER_LE);
+  else if ((strcmp(byteorder, "big") == 0) && (h5order != H5T_ORDER_BE))
+    err = H5Tset_order(float_id, H5T_ORDER_BE);
+
+  if (err < 0)
+  {
+    H5Tclose(complex_id);
+    return err;
+  }
+
+  H5Tinsert(complex_id, "r", HOFFSET(npy_complex192, real), float_id);
+  H5Tinsert(complex_id, "i", HOFFSET(npy_complex192, imag), float_id);
+  H5Tclose(float_id);
+  return complex_id;
+}
+
+
+/* Counterpart for complex256 */
+hid_t create_ieee_complex256(const char *byteorder) {
+  herr_t err;
+  hid_t float_id, complex_id;
+  H5T_order_t h5order = H5Tget_order(H5T_NATIVE_LDOUBLE);
+
+  complex_id = H5Tcreate(H5T_COMPOUND, sizeof(npy_complex256));
+  float_id = H5Tcopy(H5T_NATIVE_LDOUBLE);
+  if (float_id < 0)
+  {
+    H5Tclose(complex_id);
+    return float_id;
+  }
+
+  if ((strcmp(byteorder, "little") == 0) && (h5order != H5T_ORDER_LE))
+    err = H5Tset_order(float_id, H5T_ORDER_LE);
+  else if ((strcmp(byteorder, "big") == 0) && (h5order != H5T_ORDER_BE))
+    err = H5Tset_order(float_id, H5T_ORDER_BE);
+
+  if (err < 0)
+  {
+    H5Tclose(complex_id);
+    return err;
+  }
+
+  H5Tinsert(complex_id, "r", HOFFSET(npy_complex256, real), float_id);
+  H5Tinsert(complex_id, "i", HOFFSET(npy_complex256, imag), float_id);
   H5Tclose(float_id);
   return complex_id;
 }

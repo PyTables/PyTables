@@ -66,8 +66,8 @@ if os.name == 'nt':
 
     # Some PyTables binary distributions place the dependency DLLs in the
     # tables package directory.
-    # The lzo2 and libbz2 DLLs are loaded dynamically at runtime but can't be 
-    # found because the package directory is not in the Windows DLL search 
+    # The lzo2 and libbz2 DLLs are loaded dynamically at runtime but can't be
+    # found because the package directory is not in the Windows DLL search
     # path.
     # This pre-loads lzo2 and libbz2 DLLs from the tables package directory.
     if not _load_library('lzo2.dll', ctypes.cdll.LoadLibrary):
@@ -163,8 +163,8 @@ if 'Float16Atom' in locals():
 
 if 'Float96Atom' in locals():
     __all__.extend(('Float96Atom', 'Float96Col'))
-    #__all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
+    __all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
 
 if 'Float128Atom' in locals():
     __all__.extend(('Float128Atom', 'Float128Col'))
-    #__all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check
+    __all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check

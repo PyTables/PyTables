@@ -697,16 +697,22 @@ class ComplexAtom(Atom):
         None, None, "Size in bytes of a sigle item in the atom." )
     _deftype = 'complex128'
     _defvalue = 0j
+    _isizes = [8, 16]
 
     # Only instances have a `type` attribute, so complex types must be
     # registered by hand.
     all_types.add('complex64')
     all_types.add('complex128')
+    if hasattr(numpy, 'complex192'):
+        all_types.add('complex192')
+        _isizes.append(24)
+    if hasattr(numpy, 'complex256'):
+        all_types.add('complex256')
+        _isizes.append(32)
 
     def __init__(self, itemsize, shape=(), dflt=_defvalue):
-        isizes = [8, 16]
-        if itemsize not in isizes:
-            raise _invalid_itemsize_error('complex', itemsize, isizes)
+        if itemsize not in self._isizes:
+            raise _invalid_itemsize_error('complex', itemsize, self._isizes)
         self.type = '%s%d' % (self.kind, itemsize * 8)
         Atom.__init__(self, self.type, shape, dflt)
 
@@ -721,7 +727,7 @@ class _ComplexErrorAtom(ComplexAtom):
             "where N=8 for single precision complex atoms, "
             "and N=16 for double precision complex atoms" )
 Complex32Atom = Complex64Atom = Complex128Atom = _ComplexErrorAtom
-
+Complex192Atom = Complex256Atom = _ComplexErrorAtom # XXX check
 
 class TimeAtom(Atom):
     """Defines an atom of time type (time kind).

@@ -81,6 +81,14 @@ if sys.version_info[0] > 2:
 
 if hasattr(numpy, 'float16'):
     _nxTypeFromNPType[numpy.float16] = float    # XXX: check
+if hasattr(numpy, 'float96'):
+    _nxTypeFromNPType[numpy.float96] = double   # XXX: check
+if hasattr(numpy, 'float128'):
+    _nxTypeFromNPType[numpy.float128] = double  # XXX: check
+if hasattr(numpy, 'complec192'):
+    _nxTypeFromNPType[numpy.complex192] = complex  # XXX: check
+if hasattr(numpy, 'complex256'):
+    _nxTypeFromNPType[numpy.complex256] = complex  # XXX: check
 
 
 # The NumPy scalar type corresponding to `SizeType`.

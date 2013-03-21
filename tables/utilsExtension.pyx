@@ -65,7 +65,8 @@ from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   H5Tget_precision, H5Tget_sign, H5Tget_size, H5Tget_super, H5Tinsert,
   H5Tis_variable_str, H5Tpack, H5Tset_precision, H5Tset_size, H5Tvlen_create,
   PyArray_Scalar, create_ieee_complex128, create_ieee_complex64,
-  create_ieee_float16, get_len_of_range, get_order, herr_t, hid_t, hsize_t,
+  create_ieee_float16, create_ieee_complex192, create_ieee_complex256,
+  get_len_of_range, get_order, herr_t, hid_t, hsize_t,
   hssize_t, htri_t, is_complex, register_blosc, set_order)
 
 
@@ -985,6 +986,10 @@ def AtomToHDF5Type(atom, str byteorder):
       tid = create_ieee_complex64(cbyteorder)
     elif atom.type == 'complex128':
       tid = create_ieee_complex128(cbyteorder)
+    elif atom.type == 'complex192':
+      tid = create_ieee_complex192(cbyteorder)
+    elif atom.type == 'complex256':
+      tid = create_ieee_complex256(cbyteorder)
     elif atom.kind == 'string':
       tid = H5Tcopy(H5T_C_S1);
       H5Tset_size(tid, atom.itemsize)
