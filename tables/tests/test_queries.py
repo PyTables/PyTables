@@ -68,6 +68,14 @@ type_info = {
 
 if hasattr(numpy, 'float16'):
     type_info['float16'] = (numpy.float16, float)
+#if hasattr(numpy, 'float96'):
+#    type_info['float96'] = (numpy.float96, float)
+#if hasattr(numpy, 'float128'):
+#    type_info['float128'] = (numpy.float128, float)
+#if hasattr(numpy, 'complex192'):
+#    type_info['complex192'] = (numpy.complex192, complex)
+#if hasattr(numpy, 'complex256'):
+#    type_info['complex256'] = (numpy.complex256, complex)
 
 sctype_from_type = dict( (type_, info[0])
                          for (type_, info) in type_info.iteritems() )

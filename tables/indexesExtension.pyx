@@ -36,7 +36,9 @@ from numpy cimport (import_array, ndarray,
   npy_int16, npy_uint16,
   npy_int32, npy_uint32,
   npy_int64, npy_uint64,
-  npy_float32, npy_float64)
+  npy_float32, npy_float64,
+  npy_float96, npy_float128,
+  npy_longdouble)
 
 ctypedef npy_uint16 npy_float16
 
@@ -90,7 +92,11 @@ cdef extern from "idx-opt.h" nogil:
   int bisect_right_f(npy_float32 *a, npy_float64 x, int hi, int offset)
   int bisect_left_d(npy_float64 *a, npy_float64 x, int hi, int offset)
   int bisect_right_d(npy_float64 *a, npy_float64 x, int hi, int offset)
+  int bisect_left_g(npy_longdouble *a, npy_longdouble x, int hi, int offset)
+  int bisect_right_g(npy_longdouble *a, npy_longdouble x, int hi, int offset)
 
+  int keysort_f96(npy_float96 *start1, char *start2, npy_intp num, int ts)
+  int keysort_f128(npy_float128 *start1, char *start2, npy_intp num, int ts)
   int keysort_f64(npy_float64 *start1, char *start2, npy_intp num, int ts)
   int keysort_f32(npy_float32 *start1, char *start2, npy_intp num, int ts)
   int keysort_f16(npy_float16 *start1, char *start2, npy_intp num, int ts)
@@ -139,6 +145,10 @@ def keysort(ndarray array1, ndarray array2):
   # elif array1.dtype == "float16": # raises an error if float16 is not defined
   elif array1.dtype.name == "float16":
     return keysort_f16(<npy_float16 *>array1.data, array2.data, size, elsize2)
+  elif array1.dtype.name == "float96":
+    return keysort_f96(<npy_float96 *>array1.data, array2.data, size, elsize2)
+  elif array1.dtype.name == "float128":
+    return keysort_f128(<npy_float128 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "int64":
     return keysort_i64(<npy_int64 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "uint64":
@@ -925,6 +935,55 @@ cdef class IndexArray(Array):
             # Get the sorted row from the LRU cache or read it.
             rbuflb = <npy_float64 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
+        else:
+          stop = ss
+      else:
+        stop = 0
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
+
+
+  # Optimized version for npy_longdouble/float96/float128
+  def _searchBinNA_g(self, npy_longdouble item1, npy_longdouble item2):
+    cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef npy_longdouble *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+
+    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    # Limits not in cache, do a lookup
+    rbufrv = <npy_longdouble *>self.rbufrv
+    for nrow from 0 <= nrow < nrows:
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
+      if item1 > rbufrv[rvrow]:
+        if item1 <= rbufrv[rvrow+1]:
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <npy_longdouble *>self.getLRUbounds(nrow, nbounds)
+          bread = 1
+          nchunk = bisect_left_g(rbufbc, item1, nbounds, 0)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <npy_longdouble *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          start = bisect_left_g(rbuflb, item1, cs, 0) + cs*nchunk
+        else:
+          start = ss
+      else:
+        start = 0
+      # Now, for item2
+      if item2 >= rbufrv[rvrow]:
+        if item2 < rbufrv[rvrow+1]:
+          if not bread:
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <npy_longdouble *>self.getLRUbounds(nrow, nbounds)
+          nchunk2 = bisect_right_g(rbufbc, item2, nbounds, 0)
+          if nchunk2 <> nchunk:
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <npy_longdouble *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+          stop = bisect_right_g(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
       else:

@@ -1796,6 +1796,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     tlen = sorted._searchBinNA_f(*item)
                 elif self.type == "float64":
                     tlen = sorted._searchBinNA_d(*item)
+                elif self.type == "float96":
+                    tlen = sorted._searchBinNA_g(*item)
+                elif self.type == "float128":
+                    tlen = sorted._searchBinNA_g(*item)
                 elif self.type == "uint32":
                     tlen = sorted._searchBinNA_ui(*item)
                 elif self.type == "uint64":

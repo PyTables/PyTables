@@ -354,6 +354,10 @@ infinityMap = {
 
 if hasattr(numpy, 'float16'):
     infinityMap['float16'] = [-numpy.float16(numpy.inf),  numpy.float16(numpy.inf)]
+if hasattr(numpy, 'float96'):
+    infinityMap['float96'] = [-numpy.float96(numpy.inf),  numpy.float96(numpy.inf)]
+if hasattr(numpy, 'float128'):
+    infinityMap['float128'] = [-numpy.float128(numpy.inf),  numpy.float128(numpy.inf)]
 
 # Utility functions
 def infType(dtype, itemsize, sign=+1):
