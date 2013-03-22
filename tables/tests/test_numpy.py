@@ -404,9 +404,9 @@ class Record(IsDescription):
     if 'float128' in typeDict:
         var17 = Float128Col(dflt=1.0)
     if 'complex196' in typeDict:
-        var17 = ComplexCol(itemsize=24, dflt=(1.+0.j))
+        var18 = ComplexCol(itemsize=24, dflt=(1.+0.j))
     if 'complex256' in typeDict:
-        var17 = ComplexCol(itemsize=32, dflt=(1.+0.j))
+        var19 = ComplexCol(itemsize=32, dflt=(1.+0.j))
 
 
 class TableReadTestCase(common.PyTablesTestCase):
@@ -553,11 +553,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         # only as tuples (see http://projects.scipy.org/scipy/numpy/ticket/315)
         #table[coords[0]] = ["aasa","x"]+[232]*12
 
-        n = 11
-        for name in ('float16', 'float96', 'float128',
-                     'complex196', 'complex256'):
-            if name in typeDict:
-                n += 1
+        n = len(Record.columns) - 2
 
         table[coords[0]] = tuple(["aasa", "x"]+[232]*n)     # XXX
         #record = list(table[coords[0]])
