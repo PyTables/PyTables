@@ -213,7 +213,14 @@ class ReadFloatTestCase(common.PyTablesTestCase):
                 self.assertEqual(ds.dtype, "float128")
         else:
             # XXX: check
-            ds = self.assertWarns(UserWarning, getattr, self.fileh.root, dtype)
+            #ds = self.assertWarns(UserWarning, getattr, self.fileh.root, dtype)
+
+            # XXX: temporary change for debugging win32
+            ds = getattr(self.fileh.root, dtype)
+            if hasattr(ds.dtype):
+                print
+                print 'ds.dtype:', ds.dtype
+                print
             self.assertTrue(isinstance(ds, UnImplemented))
 
     def test05_read_quadprecision_float(self):
