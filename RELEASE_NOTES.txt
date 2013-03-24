@@ -64,6 +64,9 @@ Improvements
   :file:`convtypetables.pxi` have been moved in :file:`utilsExtension.pyx`.
   Closes :issue:`217`.
 
+- Improved list of search paths for libraries as suggested by Nicholaus
+  Halecky (see :issue:`219`).
+
 
 Other changes
 -------------
@@ -133,9 +136,11 @@ Bugs fixed
 ----------
 
 - Better check access on closed files (closes :issue:`62`)
+
 - Fix for :meth:`File.renameNode` where in certain cases
   :meth:`File._g_updateLocation` was wrongly called (closes :issue:`208`).
   Thanks to Michka Popoff.
+
 - Fixed ptdump failure on data with nested columns (closes :issue:`213`).
   Thanks to Alexander Ford.
 
