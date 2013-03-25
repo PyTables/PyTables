@@ -888,7 +888,7 @@ hid_t create_ieee_complex128(const char *byteorder) {
 
 /* Counterpart for complex192 */
 hid_t create_ieee_complex192(const char *byteorder) {
-  herr_t err;
+  herr_t err = 0;
   hid_t float_id, complex_id;
   H5T_order_t h5order = H5Tget_order(H5T_NATIVE_LDOUBLE);
 
@@ -920,7 +920,7 @@ hid_t create_ieee_complex192(const char *byteorder) {
 
 /* Counterpart for complex256 */
 hid_t create_ieee_complex256(const char *byteorder) {
-  herr_t err;
+  herr_t err = 0;
   hid_t float_id, complex_id;
   H5T_order_t h5order = H5Tget_order(H5T_NATIVE_LDOUBLE);
 
