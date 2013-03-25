@@ -649,7 +649,7 @@ else:
         'utils/ptdump', 'utils/ptrepack']
 # Copy additional data for packages that need it.
 setuptools_kwargs['package_data'] = {
-    'tables.tests': ['*.h5'],
+    'tables.tests': ['*.h5', '*.mat'],
     'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5']}
 
 

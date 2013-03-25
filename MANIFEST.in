@@ -3,7 +3,7 @@ include *.txt THANKS
 include setup.py setup.cfg VERSION Makefile
 
 recursive-include tables *.py *.pyx *.pxd *.pxi *.c
-recursive-include tables/tests *.h5
+recursive-include tables/tests *.h5 *.mat
 recursive-include tables/nodes/tests *.h5 *.dat *.xbm
 recursive-include src *.c *.h Makefile
 recursive-include blosc *.c *.h
