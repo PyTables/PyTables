@@ -31,7 +31,7 @@ from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
 from tables.utilsExtension import (getNestedField, AtomFromHDF5Type,
   createNestedType, HDF5ToNPExtType, createNestedType, platform_byteorder,
-  PTTypeToHDF5, PTSpecialKinds, NPExtPrefixesToPTKinds, HDF5ClassToString, 
+  PTTypeToHDF5, PTSpecialKinds, NPExtPrefixesToPTKinds, HDF5ClassToString,
   H5T_STD_I64)
 from tables.utils import SizeType
 
@@ -268,7 +268,7 @@ cdef class Table(Leaf):
     cdef char    *sys_byteorder
     cdef object  desc, colobj, colpath2, typeclassname, typeclass
     cdef object  byteorder
-    cdef str     colname, byteorder2
+    cdef object  colname, byteorder2
 
     offset = 0
     desc = {}

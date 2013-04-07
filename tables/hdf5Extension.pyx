@@ -1306,7 +1306,7 @@ cdef class Array(Leaf):
     cdef ndarray dflts
     cdef void *fill_data
     cdef bytes encoded_name
-    cdef str byteorder
+    cdef object byteorder
 
     encoded_name = self.name.encode('utf-8')
 
@@ -1823,7 +1823,7 @@ cdef class VLArray(Leaf):
     cdef hsize_t nrecords, chunksize
     cdef object shape, type_
     cdef bytes encoded_name
-    cdef str byteorder
+    cdef object byteorder
 
     encoded_name = self.name.encode('utf-8')
 
@@ -2022,7 +2022,7 @@ cdef class UnImplemented(Leaf):
     cdef object shape
     cdef char cbyteorder[11]  # "irrelevant" fits easily here
     cdef bytes encoded_name
-    cdef str byteorder
+    cdef object byteorder
 
     encoded_name = self.name.encode('utf-8')
 
