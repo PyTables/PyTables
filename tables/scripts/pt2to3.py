@@ -23,8 +23,22 @@ import argparse
 # breaks transforming cython files.  So instead we are going to do the 
 # dumb thing with replace.
 
+# old name, new name
 names = [
-    # old name, new name
+    # from array.py
+    ('getEnum', 'get_enum'),
+    ('_initLoop', '_initloop'), 
+    ('_fancySelection', '_fancyselection'),
+    ('_checkShape', '_checkshape'),
+    ('_readSlice', '_readslice'),
+    ('_readCoords', '_readcoords'),
+    ('_readSelection', '_readselection'),
+    ('_writeSlice', '_writeslice'),
+    ('_writeCoords', '_writecoords'),
+    ('_writeSelection', '_writeselection'),
+    ('_g_copyWithStats', '_g_copy_with_stats'),
+    ('_c_classId', '_c_classid'),
+    # from file.py
     ('copyFile', 'copy_file'),
     ]
 

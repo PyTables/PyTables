@@ -24,6 +24,7 @@ from tables.utils import (is_idx, convertToNPAtom2, SizeType, lazyattr,
                           byteorders)
 from tables.leaf import Leaf
 
+from tables._past import previous_api
 
 # default version for ARRAY objects
 #obversion = "1.0"    # initial version
@@ -236,6 +237,8 @@ class Array(hdf5Extension.Array, Leaf):
 
         return self.atom.enum
 
+    getEnum = previous_api(getEnum, 'getEnum')
+
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterate over the rows of the array.
@@ -304,6 +307,8 @@ class Array(hdf5Extension.Array, Leaf):
         self._row = -1   # Sentinel
         self._init = True  # Sentinel
         self.nrow = SizeType(self._start - self._step)    # row number
+
+    _initLoop = previous_api(_initLoop, '_initLoop')
 
 
     def next(self):
@@ -588,6 +593,7 @@ class Array(hdf5Extension.Array, Leaf):
         mshape = tuple(x for x in mshape if x != 0)
         return selection, reorder, mshape
 
+    _fancySelection = previous_api(_fancySelection, '_fancySelection')
 
     def __getitem__(self, key):
         """Get a row, a range of rows or a slice from the array.
@@ -714,6 +720,8 @@ class Array(hdf5Extension.Array, Leaf):
             return narr
         return nparr
 
+    _checkShape = previous_api(_checkShape, '_checkShape')
+
 
     def _readSlice(self, startl, stopl, stepl, shape):
         """Read a slice based on `startl`, `stopl` and `stepl`."""
@@ -728,6 +736,8 @@ class Array(hdf5Extension.Array, Leaf):
             nparr = nparr[()]
         return nparr
 
+    _readSlice = previous_api(_readSlice, '_readSlice')
+
 
     def _readCoords(self, coords):
         """Read a set of points defined by `coords`."""
@@ -739,6 +749,8 @@ class Array(hdf5Extension.Array, Leaf):
         if nparr.shape == ():
             nparr = nparr[()]
         return nparr
+
+    _readCoords = previous_api(_readCoords, '_readCoords')
 
 
     def _readSelection(self, selection, reorder, shape):
@@ -761,6 +773,8 @@ class Array(hdf5Extension.Array, Leaf):
             nparr = nparr[k].copy()
         return nparr
 
+    _readSelection = previous_api(_readSelection, '_readSelection')
+
 
     def _writeSlice(self, startl, stopl, stepl, shape, nparr):
         """Write `nparr` in a slice based on `startl`, `stopl` and `stepl`."""
@@ -769,6 +783,8 @@ class Array(hdf5Extension.Array, Leaf):
         countl = ((stopl - startl - 1) // stepl) + 1
         self._g_writeSlice(startl, stepl, countl, nparr)
 
+    _writeSlice = previous_api(_writeSlice, '_writeSlice')
+
 
     def _writeCoords(self, coords, nparr):
         """Write `nparr` values in points defined by `coords` coordinates."""
@@ -776,6 +792,8 @@ class Array(hdf5Extension.Array, Leaf):
         if len(coords) > 0:
             nparr = self._checkShape(nparr, (len(coords),))
             self._g_writeCoords(coords, nparr)
+
+    _writeCoords = previous_api(_writeCoords, '_writeCoords')
 
 
     def _writeSelection(self, selection, reorder, shape, nparr):
@@ -791,6 +809,8 @@ class Array(hdf5Extension.Array, Leaf):
             # the reordered array
             nparr = nparr[k].copy()
         self._g_writeSelection(selection, nparr)
+
+    _writeSelection = previous_api(_writeSelection, '_writeSelection')
 
 
     def _read(self, start, stop, step, out=None):
@@ -878,6 +898,8 @@ class Array(hdf5Extension.Array, Leaf):
         nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.size
 
         return (object_, nbytes)
+
+    _g_copyWithStats = previous_api(_g_copyWithStats, '_g_copyWithStats')
 
 
     def __repr__(self):
