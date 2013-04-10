@@ -27,6 +27,8 @@ concrete values out of its enumerated type.  For that kind of use,
 standard variables and constants are more adequate.
 """
 
+from tables._past import previous_api
+
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
@@ -159,6 +161,8 @@ sequences, mappings and other enumerations""")
         names[name] = value
         values[value] = name
         self.__dict__[name] = value
+
+    _checkAndSetPair = previous_api(_checkAndSetPair)
 
 
     def __getitem__(self, name):

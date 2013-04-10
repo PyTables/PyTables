@@ -21,6 +21,7 @@ from tables.path import joinPath, splitPath, isVisiblePath
 from tables.utils import lazyattr
 from tables.undoredo import moveToShadow
 from tables.attributeset import AttributeSet, NotLoggedAttributeSet
+from tables._past import previous_api
 
 
 __docformat__ = 'reStructuredText'
@@ -267,6 +268,8 @@ class Node(object):
     def _g_logCreate(self):
         self._v_file._log('CREATE', self._v_pathname)
 
+    _g_logCreate = previous_api(_g_logCreate)
+
 
     def __del__(self):
         # Closed `Node` instances can not be killed and revived.
@@ -308,10 +311,14 @@ class Node(object):
         """Code to be called before killing the node."""
         pass
 
+    _g_preKillHook = previous_api(_g_preKillHook)
+
 
     def _g_postReviveHook(self):
         """Code to be called after reviving the node."""
         pass
+
+    _g_postReviveHook = previous_api(_g_postReviveHook)
 
 
     def _g_create(self):
@@ -333,6 +340,8 @@ class Node(object):
         if not self._v_isopen:
             raise ClosedNodeError("the node object is closed")
         assert self._v_file.isopen, "found an open node in a closed file"
+
+    _g_checkOpen = previous_api(_g_checkOpen)
 
 
     def _g_setLocation(self, parentNode, name):
@@ -379,6 +388,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         file_._refNode(self, self._v_pathname)
 
+    _g_setLocation = previous_api(_g_setLocation)
+
 
     def _g_updateLocation(self, newParentPath):
         """Update location-dependent attributes.
@@ -414,6 +425,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Tell dependent objects about the new location of this node.
         self._g_updateDependent()
 
+    _g_updateLocation = previous_api(_g_updateLocation)
+
 
     def _g_delLocation(self):
         """Clear location-dependent attributes.
@@ -435,10 +448,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if not self._v__deleting:
             file_._unrefNode(pathname)
 
+    _g_delLocation = previous_api(_g_delLocation)
+
 
     def _g_postInitHook(self):
         """Code to be run after node creation and before creation logging."""
         pass
+
+    _g_postInitHook = previous_api(_g_postInitHook)
 
 
     def _g_updateDependent(self):
@@ -450,6 +467,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         if '_v_attrs' in self.__dict__:
             self._v_attrs._g_updateNodeLocation(self)
+
+    _g_updateDependent = previous_api(_g_updateDependent)
 
 
     def _f_close(self):
@@ -540,6 +559,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Log *before* moving to use the right shadow name.
         file_._log('REMOVE', oldPathname)
         moveToShadow(file_, oldPathname)
+
+    _g_removeAndLog = previous_api(_g_removeAndLog)
 
 
     def _g_move(self, newParent, newName):
@@ -679,6 +700,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_logMove(self, oldPathname):
         self._v_file._log('MOVE', oldPathname, self._v_pathname)
 
+    _g_logMove = previous_api(_g_logMove)
+
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         """Copy this node and return the new one.
@@ -708,6 +731,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         return self._g_copy( newParent, self._v_name,
                              recursive=False, _log=False, **kwargs )
+
+    _g_copyAsChild = previous_api(_g_copyAsChild)
 
 
     def _f_copy(self, newparent=None, newname=None,
@@ -812,6 +837,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_checkOpen()
         return isVisiblePath(self._v_pathname)
 
+    _f_isVisible = previous_api(_f_isVisible)
+
 
     def _g_checkGroup(self, node):
         # Node must be defined in order to define a Group.
@@ -824,6 +851,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             raise TypeError("new parent node ``%s`` is not a group"
                             % node._v_pathname)
 
+    _g_checkGroup = previous_api(_g_checkGroup)
+
 
     def _g_checkNotContains(self, pathname):
         # The not-a-TARDIS test. ;)
@@ -835,6 +864,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 "can not move or recursively copy node ``%s`` into itself"
                 % mypathname )
 
+    _g_checkNotContains = previous_api(_g_checkNotContains)
+
 
     def _g_maybeRemove(self, parent, name, overwrite):
         if name in parent:
@@ -843,6 +874,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 destination group ``%s`` already has a node named ``%s``; \
 you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
             parent._f_getChild(name)._f_remove(True)
+
+    _g_maybeRemove = previous_api(_g_maybeRemove)
 
 
     def _g_checkName(self, name):
@@ -857,6 +890,8 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
             raise ValueError(
                 "node name starts with reserved prefix ``_i_``: %s" % name)
 
+    _g_checkName = previous_api(_g_checkName)
+
 
     # <attribute handling>
 
@@ -868,6 +903,9 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
 
         return getattr(self._v_attrs, name)
 
+    _f_getAttr = previous_api(_f_getAttr)
+
+
     def _f_setAttr(self, name, value):
         """Set a PyTables attribute for this node.
 
@@ -877,6 +915,8 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
 
         setattr(self._v_attrs, name, value)
 
+    _f_setAttr = previous_api(_f_setAttr)
+
     def _f_delAttr(self, name):
         """Delete a PyTables attribute from this node.
 
@@ -884,6 +924,8 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         """
 
         delattr(self._v_attrs, name)
+
+    _f_delAttr = previous_api(_f_delAttr)
 
     # </attribute handling>
 
@@ -898,12 +940,17 @@ class NotLoggedMixin:
     def _g_logCreate(self):
         pass
 
+    _g_logCreate = previous_api(_g_logCreate)
+
     def _g_logMove(self, oldPathname):
         pass
+
+    _g_logMove = previous_api(_g_logMove)
 
     def _g_removeAndLog(self, recursive, force):
         self._g_remove(recursive, force)
 
+    _g_removeAndLog = previous_api(_g_removeAndLog)
 
 
 ## Local Variables:

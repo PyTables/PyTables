@@ -14,6 +14,8 @@
 
 import weakref
 
+from tables._past import previous_api
+
 
 class ProxyDict(dict):
     """A dictionary which uses a container object to store its values."""
@@ -82,3 +84,5 @@ class ProxyDict(dict):
         if container is None:
             raise ValueError("the container object does no longer exist")
         return container
+
+    _getContainer = previous_api(_getContainer)
