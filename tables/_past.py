@@ -242,6 +242,8 @@ old2newnames = dict([
     ('linkExtension', 'linkextension'),
     ('_getLinkClass', '_get_link_class'),
     ('_g_createHardLink', '_g_create_hard_link'),
+    # from lrucacheextension
+    ('linkExtension', 'linkextension'),
     ('', ''),
     ('', ''),
     ('', ''),
