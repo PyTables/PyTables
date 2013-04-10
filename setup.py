@@ -561,14 +561,14 @@ else:
 #------------------------------------------------------------------------------
 
 cython_extnames = [
-    'utilsExtension',
-    'hdf5Extension',
-    'tableExtension',
-    'linkExtension',
+    'utilsextension',
+    'hdf5extension',
+    'tableextension',
+    'linkextension',
     '_comp_lzo',
     '_comp_bzip2',
-    'lrucacheExtension',
-    'indexesExtension',
+    'lrucacheextension',
+    'indexesextension',
 ]
 
 
