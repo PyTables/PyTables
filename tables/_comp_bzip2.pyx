@@ -19,3 +19,9 @@ def register_():
     return compinfo[0].decode('ascii'), compinfo[1].decode('ascii')
   else:
     return compinfo
+
+
+
+
+
+

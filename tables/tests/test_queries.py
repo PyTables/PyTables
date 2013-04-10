@@ -262,7 +262,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
             vprint("* Indexing ``%s`` columns. Type: %s." % (colname, kind))
             for acolname in [colname, ncolname, extracolname]:
                 acolumn = self.table.colinstances[acolname]
-                acolumn.createIndex(
+                acolumn.create_index(
                     kind=self.kind, optlevel=self.optlevel,
                     _blocksizes=small_blocksizes, _testmode=True)
 
@@ -277,7 +277,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
         super(BaseTableQueryTestCase, self).setUp()
-        self.table = table = self.h5file.createTable(
+        self.table = table = self.h5file.create_table(
             '/', 'test', self.tableDescription, expectedrows=self.nrows )
         fill_table(table, self.shape, self.nrows)
 
@@ -404,12 +404,12 @@ def create_test_method(type_, op, extracond):
             ptvars['c_extra'] = table.colinstances['c_extra']
             ptvars['c_idxextra'] = table.colinstances['c_idxextra']
             try:
-                isidxq = table.willQueryUseIndexing(cond, ptvars)
+                isidxq = table.will_query_use_indexing(cond, ptvars)
                 # Query twice to trigger possible query result caching.
-                ptrownos = [ table.getWhereList( cond, condvars, sort=True,
+                ptrownos = [ table.get_where_list( cond, condvars, sort=True,
                                                  **table_slice )
                              for _ in range(2) ]
-                ptfvalues = [ table.readWhere( cond, condvars, field=acolname,
+                ptfvalues = [ table.read_where( cond, condvars, field=acolname,
                                                **table_slice )
                               for _ in range(2) ]
             except TypeError, te:
@@ -597,7 +597,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
     def test_foreign_column(self):
         """Using a condition with a column from other table."""
-        table2 = self.h5file.createTable('/', 'other', self.tableDescription)
+        table2 = self.h5file.create_table('/', 'other', self.tableDescription)
         self.assertRaises( ValueError, self.table.where,
                            'c_int32_a + c_int32_b > 0',
                            { 'c_int32_a': self.table.cols.c_int32,
@@ -707,11 +707,11 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
 
     def setUp(self):
         super(IndexedTableUsage, self).setUp()
-        self.table.cols.c_bool.createIndex(_blocksizes=small_blocksizes)
-        self.table.cols.c_int32.createIndex(_blocksizes=small_blocksizes)
-        self.willQueryUseIndexing = self.table.willQueryUseIndexing
-        self.compileCondition = self.table._compileCondition
-        self.requiredExprVars = self.table._requiredExprVars
+        self.table.cols.c_bool.create_index(_blocksizes=small_blocksizes)
+        self.table.cols.c_int32.create_index(_blocksizes=small_blocksizes)
+        self.will_query_use_indexing = self.table.will_query_use_indexing
+        self.compileCondition = self.table._compile_condition
+        self.requiredExprVars = self.table._required_expr_vars
         usable_idxs = set()
         for expr in self.idx_expr:
             idxvar = expr[0]
@@ -721,7 +721,7 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
 
     def test(self):
         for condition in self.conditions:
-            c_usable_idxs = self.willQueryUseIndexing(condition, {})
+            c_usable_idxs = self.will_query_use_indexing(condition, {})
             self.assertEqual(c_usable_idxs, self.usable_idxs,
                              "\nQuery with condition: ``%s``\n"
                              "Computed usable indexes are: ``%s``\n"
@@ -1167,3 +1167,9 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')
+
+
+
+
+
+

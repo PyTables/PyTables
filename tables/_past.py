@@ -12,12 +12,12 @@
 
 """A module with no PyTables dependencies that helps with deprecation warnings.
 """
-from inspect import getmembers, isclass
+from inspect import getmembers, isclass, ismethod, isfunction
 from warnings import warn
 
 def previous_api(obj):
     """A decorator-like function for dealing with deprecations."""
-    if isclass(obj):
+    if not (ismethod(obj) or isfunction(obj)):
         # punt if not a function or method
         return obj
     for key, value in getmembers(obj):
@@ -211,6 +211,7 @@ old2newnames = dict([
     # from indexesextension
     ('indexesExtension', 'indexesextension'),
     ('initRead', 'initread'),
+    ('readSlice', 'read_slice'),
     ('_readIndexSlice', '_read_index_slice'),
     ('_initSortedSlice', '_init_sorted_slice'),
     ('_g_readSortedSlice', '_g_read_sorted_slice'),
@@ -316,6 +317,7 @@ old2newnames = dict([
     ('_indexPathnameOfColumn', '_index_pathname_of_column'),
     ('_indexNameOf_', '_index_name_of_'),
     ('_indexPathnameOf_', '_index_pathname_of_'),
+    ('_indexPathnameOfColumn_', '_index_pathname_of_column_'),
     ('_table__setautoIndex', '_table__setautoindex'),
     ('_table__getautoIndex', '_table__getautoindex'),
     ('_table__autoIndex', '_table__autoindex'),

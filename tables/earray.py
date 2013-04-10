@@ -14,7 +14,7 @@
 
 import numpy
 
-from tables.utils import convertToNPAtom2, SizeType
+from tables.utils import convert_to_np_atom2, SizeType
 from tables.carray import CArray
 
 from tables._past import previous_api
@@ -92,11 +92,11 @@ class EArray(CArray):
         import tables
         import numpy
 
-        fileh = tables.openFile('earray1.h5', mode='w')
+        fileh = tables.open_file('earray1.h5', mode='w')
         a = tables.StringAtom(itemsize=8)
 
         # Use ``a`` as the object type for the enlargeable array.
-        array_c = fileh.createEArray(fileh.root, 'array_c', a, (0,), \"Chars\")
+        array_c = fileh.create_earray(fileh.root, 'array_c', a, (0,), \"Chars\")
         array_c.append(numpy.array(['a'*2, 'b'*4], dtype='S8'))
         array_c.append(numpy.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
 
@@ -116,7 +116,7 @@ class EArray(CArray):
     """
 
     # Class identifier.
-    _c_classId = 'EARRAY'
+    _c_classid = 'EARRAY'
 
 
     # Special methods
@@ -161,7 +161,7 @@ class EArray(CArray):
         return self._g_create_common(self._v_expectedrows)
 
 
-    def _checkShapeAppend(self, nparr):
+    def _check_shape_append(self, nparr):
         "Test that nparr shape is consistent with underlying EArray."
 
         # The arrays conforms self expandibility?
@@ -177,7 +177,7 @@ class EArray(CArray):
                                   "``%s`` EArray differ in non-enlargeable "
                                   "dimension %d") % (self._v_pathname, i))
 
-    _checkShapeAppend = previous_api(_checkShapeAppend, '_checkShapeAppend')
+    _checkShapeAppend = previous_api(_check_shape_append)
 
     def append(self, sequence):
         """Add a sequence of data to the end of the dataset.
@@ -190,23 +190,23 @@ class EArray(CArray):
         of the sequence is invalid, a ValueError is raised.
         """
 
-        self._g_checkOpen()
-        self._v_file._checkWritable()
+        self._g_check_open()
+        self._v_file._check_writable()
 
         # Convert the sequence into a NumPy object
-        nparr = convertToNPAtom2(sequence, self.atom)
+        nparr = convert_to_np_atom2(sequence, self.atom)
         # Check if it has a consistent shape with underlying EArray
-        self._checkShapeAppend(nparr)
+        self._check_shape_append(nparr)
         # If the size of the nparr is zero, don't do anything else
         if nparr.size > 0:
             self._append(nparr)
 
 
-    def _g_copyWithStats(self, group, name, start, stop, step,
+    def _g_copy_with_stats(self, group, name, start, stop, step,
                          title, filters, chunkshape, _log, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
 
-        (start, stop, step) = self._processRangeRead(start, stop, step)
+        (start, stop, step) = self._process_range_read(start, stop, step)
         # Build the new EArray object
         maindim = self.maindim
         shape = list(self.shape)
@@ -240,7 +240,7 @@ class EArray(CArray):
 
         return (object, nbytes)
 
-    _g_copyWithStats = previous_api(_g_copyWithStats, '_g_copyWithStats')
+    _g_copyWithStats = previous_api(_g_copy_with_stats)
 
 ## Local Variables:
 ## mode: python
@@ -248,3 +248,9 @@ class EArray(CArray):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

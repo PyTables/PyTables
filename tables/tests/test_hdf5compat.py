@@ -44,7 +44,7 @@ class HDF5CompatibilityTestCase(common.PyTablesTestCase):
 
     def test(self):
         self.h5fname = self._testFilename(self.h5fname)
-        self.h5file = tables.openFile(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         self._test()
 
 
@@ -61,10 +61,10 @@ class EnumTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/EnumTest' in self.h5file)
 
-        arr = self.h5file.getNode('/EnumTest')
+        arr = self.h5file.get_node('/EnumTest')
         self.assertTrue(isinstance(arr, tables.Array))
 
-        enum = arr.getEnum()
+        enum = arr.get_enum()
         expectedEnum = tables.Enum(['RED', 'GREEN', 'BLUE', 'WHITE', 'BLACK'])
         self.assertEqual(enum, expectedEnum)
 
@@ -89,7 +89,7 @@ class NumericTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/TestArray' in self.h5file)
 
-        arr = self.h5file.getNode('/TestArray')
+        arr = self.h5file.get_node('/TestArray')
         self.assertTrue(isinstance(arr, tables.Array))
 
         self.assertEqual(arr.atom.type, self.type)
@@ -154,7 +154,7 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/CompoundChunked' in self.h5file)
 
-        tbl = self.h5file.getNode('/CompoundChunked')
+        tbl = self.h5file.get_node('/CompoundChunked')
         self.assertTrue(isinstance(tbl, tables.Table))
 
         self.assertEqual(
@@ -209,7 +209,7 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/test_var/structure variable' in self.h5file)
 
-        tbl = self.h5file.getNode('/test_var/structure variable')
+        tbl = self.h5file.get_node('/test_var/structure variable')
         self.assertTrue(isinstance(tbl, tables.Table))
 
         self.assertEqual(
@@ -254,11 +254,11 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
         shutil.copy(self.h5fname, h5fname_copy)
         # Reopen in 'a'ppend mode
         try:
-            self.h5file = tables.openFile(h5fname_copy, 'a')
+            self.h5file = tables.open_file(h5fname_copy, 'a')
         except IOError:
             # Problems for opening (probably not permisions to write the file)
             return
-        tbl = self.h5file.getNode('/test_var/structure variable')
+        tbl = self.h5file.get_node('/test_var/structure variable')
         # Try to add rows to a non-chunked table (this should raise an error)
         self.assertRaises(tables.HDF5ExtError, tbl.append,
                           [(4.0, 5.0, [2.0, 3.0], 'd')])
@@ -283,7 +283,7 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/ExtendibleArray' in self.h5file)
 
-        arr = self.h5file.getNode('/ExtendibleArray')
+        arr = self.h5file.get_node('/ExtendibleArray')
         self.assertTrue(isinstance(arr, tables.EArray))
 
         self.assertEqual(arr.byteorder, 'big')
@@ -318,7 +318,7 @@ class SzipTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/dset_szip' in self.h5file)
 
-        arr = self.h5file.getNode('/dset_szip')
+        arr = self.h5file.get_node('/dset_szip')
         filters = "Filters(complib='szip', shuffle=False, fletcher32=False)"
         self.assertEqual(repr(arr.filters), filters)
 
@@ -329,22 +329,22 @@ class MatlabFileTestCase(common.PyTablesTestCase):
     def setUp(self):
         h5fname = 'matlab_file.mat'
         file_path = self._testFilename(h5fname)
-        self.h5file = tables.openFile(file_path, 'r')
+        self.h5file = tables.open_file(file_path, 'r')
 
     def tearDown(self):
         self.h5file.close()
 
     def test_unicode(self):
-        array = self.h5file.getNode(unicode('/'), unicode('a'))
+        array = self.h5file.get_node(unicode('/'), unicode('a'))
         self.assertEqual(array.shape, (3, 1))
 
     # in Python 3 this will be the same as the test above
     def test_string(self):
-        array = self.h5file.getNode('/', 'a')
+        array = self.h5file.get_node('/', 'a')
         self.assertEqual(array.shape, (3, 1))
 
     def test_numpy_str(self):
-        array = self.h5file.getNode(numpy.str_('/'), numpy.str_('a'))
+        array = self.h5file.get_node(numpy.str_('/'), numpy.str_('a'))
         self.assertEqual(array.shape, (3, 1))
 
 
@@ -383,3 +383,9 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

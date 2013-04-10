@@ -220,13 +220,13 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00a_reopen(self):
         """Reopening a file with tables using enumerated data."""
 
-        self.h5file.createTable(
+        self.h5file.create_table(
             '/', 'test', self._description(), title=self._getMethodName())
 
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum('rcolor'), self.enum,
+            self.h5file.root.test.get_enum('rcolor'), self.enum,
             "Enumerated type was not restored correctly from disk.")
 
 
@@ -236,20 +236,20 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         data.
         """
 
-        self.h5file.createTable(
+        self.h5file.create_table(
             '/', 'test', self._description((2,)), title=self._getMethodName())
 
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum('rcolor'), self.enum,
+            self.h5file.root.test.get_enum('rcolor'), self.enum,
             "Enumerated type was not restored correctly from disk.")
 
 
     def test01_rowAppend(self):
         """Appending enumerated values using ``row.append()``."""
 
-        tbl = self.h5file.createTable(
+        tbl = self.h5file.create_table(
             '/', 'test', self._description(), title=self._getMethodName())
 
         appended = [
@@ -280,7 +280,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_append(self):
         """Appending enumerated values using ``table.append()``."""
 
-        tbl = self.h5file.createTable(
+        tbl = self.h5file.create_table(
             '/', 'test', self._description(), title=self._getMethodName())
 
         appended = [
@@ -301,7 +301,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_setitem(self):
         """Changing enumerated values using ``table.__setitem__()``."""
 
-        tbl = self.h5file.createTable(
+        tbl = self.h5file.create_table(
             '/', 'test', self._description(), title=self._getMethodName())
 
         appended = [
@@ -325,7 +325,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test04_multidim(self):
         """Appending multi-dimensional enumerated data."""
 
-        tbl = self.h5file.createTable(
+        tbl = self.h5file.create_table(
             '/', 'test', self._description((2,)), title=self._getMethodName())
 
         appended = [
@@ -353,7 +353,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test05_where(self):
         """Searching enumerated data."""
 
-        tbl = self.h5file.createTable(
+        tbl = self.h5file.create_table(
             '/', 'test', self._description(), title=self._getMethodName())
 
         appended = [
@@ -395,7 +395,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00a_reopen(self):
         """Reopening a file with extendable arrays using enumerated data."""
 
-        self.h5file.createEArray(
+        self.h5file.create_earray(
             '/', 'test', self._atom(), shape=(0,),
             title=self._getMethodName() )
         self.h5file.root.test.flavor = 'python'
@@ -403,7 +403,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum(), self.enum,
+            self.h5file.root.test.get_enum(), self.enum,
             "Enumerated type was not restored correctly from disk.")
 
 
@@ -413,7 +413,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         multi-dimensional data.
         """
 
-        self.h5file.createEArray(
+        self.h5file.create_earray(
             '/', 'test', self._atom(), shape=(0, 2),
             title=self._getMethodName() )
         self.h5file.root.test.flavor = 'python'
@@ -421,14 +421,14 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum(), self.enum,
+            self.h5file.root.test.get_enum(), self.enum,
             "Enumerated type was not restored correctly from disk.")
 
 
     def test01_append(self):
         """Appending scalar elements of enumerated values."""
 
-        earr = self.h5file.createEArray(
+        earr = self.h5file.create_earray(
             '/', 'test', self._atom(), shape=(0,),
             title=self._getMethodName() )
         earr.flavor = 'python'
@@ -444,7 +444,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_appendMD(self):
         """Appending multi-dimensional elements of enumerated values."""
 
-        earr = self.h5file.createEArray(
+        earr = self.h5file.create_earray(
             '/', 'test', self._atom(), shape=(0, 2),
             title=self._getMethodName() )
         earr.flavor = 'python'
@@ -462,7 +462,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_setitem(self):
         """Changing enumerated values using ``earray.__setitem__()``."""
 
-        earr = self.h5file.createEArray(
+        earr = self.h5file.create_earray(
             '/', 'test', self._atom(), shape=(0,),
             title=self._getMethodName() )
         earr.flavor = 'python'
@@ -495,7 +495,7 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00a_reopen(self):
         """Reopening a file with variable-length arrays using enumerated data."""
 
-        self.h5file.createVLArray(
+        self.h5file.create_vlarray(
             '/', 'test', self._atom(),
             title=self._getMethodName() )
         self.h5file.root.test.flavor = 'python'
@@ -503,7 +503,7 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum(), self.enum,
+            self.h5file.root.test.get_enum(), self.enum,
             "Enumerated type was not restored correctly from disk.")
 
 
@@ -513,7 +513,7 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         multi-dimensional data.
         """
 
-        self.h5file.createVLArray(
+        self.h5file.create_vlarray(
             '/', 'test', self._atom((2,)),
             title=self._getMethodName() )
         self.h5file.root.test.flavor = 'python'
@@ -521,14 +521,14 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum(), self.enum,
+            self.h5file.root.test.get_enum(), self.enum,
             "Enumerated type was not restored correctly from disk.")
 
 
     def test01_append(self):
         """Appending scalar elements of enumerated values."""
 
-        vlarr = self.h5file.createVLArray(
+        vlarr = self.h5file.create_vlarray(
             '/', 'test', self._atom(),
             title=self._getMethodName() )
         vlarr.flavor = 'python'
@@ -551,7 +551,7 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_appendMD(self):
         """Appending multi-dimensional elements of enumerated values."""
 
-        vlarr = self.h5file.createVLArray(
+        vlarr = self.h5file.create_vlarray(
             '/', 'test', self._atom((2,)),
             title=self._getMethodName() )
         vlarr.flavor = 'python'
@@ -575,7 +575,7 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_setitem(self):
         """Changing enumerated values using ``vlarray.__setitem__()``."""
 
-        vlarr = self.h5file.createVLArray(
+        vlarr = self.h5file.create_vlarray(
             '/', 'test', self._atom(),
             title=self._getMethodName() )
         vlarr.flavor = 'python'
@@ -627,3 +627,9 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

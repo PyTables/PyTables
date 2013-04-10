@@ -79,7 +79,7 @@ def idx2long(index):
 # with atom from a generic python type.  If copy is stated as True, it
 # is assured that it will return a copy of the object and never the same
 # object or a new one sharing the same memory.
-def convertToNPAtom(arr, atom, copy=False):
+def convert_to_np_atom(arr, atom, copy=False):
     "Convert a generic object into a NumPy object compliant with atom."
 
     # First, convert the object into a NumPy array
@@ -105,18 +105,18 @@ def convertToNPAtom(arr, atom, copy=False):
         nparr = nparr2.view(atom.dtype)
     return nparr
 
-convertToNPAtom = previous_api(convertToNPAtom)
+convertToNPAtom = previous_api(convert_to_np_atom)
 
 
 # The next is used in Array, EArray and VLArray, and it is a bit more
-# high level than convertToNPAtom
-def convertToNPAtom2(object, atom):
+# high level than convert_to_np_atom
+def convert_to_np_atom2(object, atom):
     """Convert a generic object into a NumPy object compliant with atom."""
 
     # Check whether the object needs to be copied to make the operation
     # safe to in-place conversion.
     copy = atom.type in ['time64']
-    nparr = convertToNPAtom(object, atom, copy)
+    nparr = convert_to_np_atom(object, atom, copy)
     # Finally, check the byteorder and change it if needed
     byteorder = byteorders[nparr.dtype.byteorder]
     if ( byteorder in ['little', 'big'] and byteorder != sys.byteorder ):
@@ -126,10 +126,10 @@ def convertToNPAtom2(object, atom):
 
     return nparr
 
-convertToNPAtom2 = previous_api(convertToNPAtom2)
+convertToNPAtom2 = previous_api(convert_to_np_atom2)
 
 
-def checkFileAccess(filename, mode='r'):
+def check_file_access(filename, mode='r'):
     """Check for file access in the specified `mode`.
 
     `mode` is one of the modes supported by `File` objects.  If the file
@@ -155,7 +155,7 @@ def checkFileAccess(filename, mode='r'):
         if os.access(filename, os.F_OK):
             # Since the file is not removed but replaced,
             # it must already be accessible to read and write operations.
-            checkFileAccess(filename, 'r+')
+            check_file_access(filename, 'r+')
         else:
             # A new file is going to be created,
             # so the directory should be writable.
@@ -171,18 +171,18 @@ def checkFileAccess(filename, mode='r'):
                               % (parentname,))
     elif mode == 'a':
         if os.access(filename, os.F_OK):
-            checkFileAccess(filename, 'r+')
+            check_file_access(filename, 'r+')
         else:
-            checkFileAccess(filename, 'w')
+            check_file_access(filename, 'w')
     elif mode == 'r+':
-        checkFileAccess(filename, 'r')
+        check_file_access(filename, 'r')
         if not os.access(filename, os.W_OK):
             raise IOError("file ``%s`` exists but it can not be written"
                           % (filename,))
     else:
         raise ValueError("invalid mode: %r" % (mode,))
 
-checkFileAccess = previous_api(checkFileAccess)
+checkFileAccess = previous_api(check_file_access)
 
 
 def lazyattr(fget):
@@ -273,14 +273,14 @@ def show_stats(explain, tref, encoding=None):
 tracked_classes = {}
 import weakref
 
-def logInstanceCreation(instance, name=None):
+def log_instance_creation(instance, name=None):
     if name is None:
         name = instance.__class__.__name__
         if name not in tracked_classes:
             tracked_classes[name] = []
         tracked_classes[name].append(weakref.ref(instance))
 
-logInstanceCreation = previous_api(logInstanceCreation)
+logInstanceCreation = previous_api(log_instance_creation)
 
 def string_to_classes(s):
     if s == '*':
@@ -289,19 +289,19 @@ def string_to_classes(s):
     else:
         return s.split()
 
-def fetchLoggedInstances(classes="*"):
+def fetch_logged_instances(classes="*"):
     classnames = string_to_classes(classes)
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
-fetchLoggedInstances = previous_api(fetchLoggedInstances)
+fetchLoggedInstances = previous_api(fetch_logged_instances)
 
-def countLoggedInstances(classes, file=sys.stdout):
+def count_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
 
-countLoggedInstances = previous_api(countLoggedInstances)
+countLoggedInstances = previous_api(count_logged_instances)
 
-def listLoggedInstances(classes, file=sys.stdout):
+def list_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write('\n%s:\n' % classname)
         for ref in tracked_classes[classname]:
@@ -309,9 +309,9 @@ def listLoggedInstances(classes, file=sys.stdout):
             if obj is not None:
                 file.write('    %s\n' % repr(obj))
 
-listLoggedInstances = previous_api(listLoggedInstances)
+listLoggedInstances = previous_api(list_logged_instances)
 
-def dumpLoggedInstances(classes, file=sys.stdout):
+def dump_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write('\n%s:\n' % classname)
         for ref in tracked_classes[classname]:
@@ -321,7 +321,7 @@ def dumpLoggedInstances(classes, file=sys.stdout):
                 for key, value in obj.__dict__.iteritems():
                     file.write('        %20s : %s\n' % (key, value))
 
-dumpLoggedInstances = previous_api(dumpLoggedInstances)
+dumpLoggedInstances = previous_api(dump_logged_instances)
 
 
 #
@@ -396,7 +396,7 @@ class NailedDict(object):
         cache[key] = value
 
 
-def detectNumberOfCores():
+def detect_number_of_cores():
     """Detects the number of cores on a system. Cribbed from pp."""
 
     # Linux, Unix and MacOS:
@@ -415,7 +415,7 @@ def detectNumberOfCores():
             return ncpus
     return 1 # Default
 
-detectNumberOfCores = previous_api(detectNumberOfCores)
+detectNumberOfCores = previous_api(detect_number_of_cores)
 
 
 # Main part
@@ -436,3 +436,9 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

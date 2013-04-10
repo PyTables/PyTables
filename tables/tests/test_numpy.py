@@ -48,17 +48,17 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode = "w")
         self.root = self.fileh.root
         # Create the array under root and name 'somearray'
         a = testArray
-        self.fileh.createArray(self.root, 'somearray', a, "Some array")
+        self.fileh.create_array(self.root, 'somearray', a, "Some array")
 
         # Close the file
         self.fileh.close()
 
         # Re-open the file in read-only mode
-        self.fileh = openFile(self.file, mode = "r")
+        self.fileh = open_file(self.file, mode = "r")
         self.root = self.fileh.root
 
         # Read the saved array
@@ -225,7 +225,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Get the root group
         group = fileh.root
 
@@ -237,9 +237,9 @@ class GroupsArrayTestCase(unittest.TestCase):
             dsetname = 'array_' + typecode
             if common.verbose:
                 print "Creating dataset:", group._g_join(dsetname)
-            fileh.createArray(group, dsetname, a, "Large array")
+            fileh.create_array(group, dsetname, a, "Large array")
             # Create a new group
-            group = fileh.createGroup(group, 'group' + str(i))
+            group = fileh.create_group(group, 'group' + str(i))
             # increment the range for next iteration
             i += 1
 
@@ -247,7 +247,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         fileh.close()
 
         # Open the previous HDF5 file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode = "r")
         # Get the root group
         group = fileh.root
 
@@ -323,7 +323,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             print "Maximum rank for tested arrays:", maxrank
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         group = fileh.root
         if common.verbose:
             print "Rank array writing progress: ",
@@ -332,15 +332,15 @@ class GroupsArrayTestCase(unittest.TestCase):
             a = ones((1,) * rank, 'i')
             if common.verbose:
                 print "%3d," % (rank),
-            fileh.createArray(group, "array", a, "Rank: %s" % rank)
-            group = fileh.createGroup(group, 'group' + str(rank))
+            fileh.create_array(group, "array", a, "Rank: %s" % rank)
+            group = fileh.create_group(group, 'group' + str(rank))
         # Flush the buffers
         fileh.flush()
         # Close the file
         fileh.close()
 
         # Open the previous HDF5 file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode = "r")
         group = fileh.root
         if common.verbose:
             print
@@ -371,7 +371,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             self.assertEqual(a, b)
 
             # Iterate over the next group
-            group = fileh.getNode(group, 'group' + str(rank))
+            group = fileh.get_node(group, 'group' + str(rank))
 
         if common.verbose:
             print # This flush the stdout buffer
@@ -416,12 +416,12 @@ class TableReadTestCase(common.PyTablesTestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        fileh = openFile(self.file, "w")
-        table = fileh.createTable(fileh.root, 'table', Record)
+        fileh = open_file(self.file, "w")
+        table = fileh.create_table(fileh.root, 'table', Record)
         for i in range(self.nrows):
             table.row.append()  # Fill 100 rows with default values
         fileh.close()
-        self.fileh = openFile(self.file, "a")  # allow flavor changes
+        self.fileh = open_file(self.file, "a")  # allow flavor changes
 
     def tearDown(self):
         self.fileh.close()
@@ -480,7 +480,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         coords = (1, 2, 3)
         self.nrows = len(coords)
         for colname in table.colnames:
-            numcol = table.readCoordinates(coords, field=colname)
+            numcol = table.read_coordinates(coords, field=colname)
             typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.dtype.char
@@ -500,14 +500,14 @@ class TableReadTestCase(common.PyTablesTestCase):
                 self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
     def test02_readCoordsNum(self):
-        """Column conversion into NumPy in readCoordinates(). NumPy."""
+        """Column conversion into NumPy in read_coordinates(). NumPy."""
 
         table = self.fileh.root.table
         table.flavor = "numpy"
         coords = (1, 2, 3)
         self.nrows = len(coords)
         for colname in table.colnames:
-            numcol = table.readCoordinates(coords, field=colname)
+            numcol = table.read_coordinates(coords, field=colname)
             typecol = table.coltypes[colname]
             type_ = numcol.dtype.type
             if typecol != "string":
@@ -544,7 +544,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Setting table rows specifyied as NumPy integers."""
 
         self.fileh.close()
-        self.fileh = openFile(self.file, "a")
+        self.fileh = open_file(self.file, "a")
         table = self.fileh.root.table
         table.flavor = "numpy"
         coords = numpy.array([1, 2, 3], dtype='int8')
@@ -605,8 +605,8 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        fileh = openFile(self.file, "w")
-        table = fileh.createTable(fileh.root, 'table', TestTDescr,
+        fileh = open_file(self.file, "w")
+        table = fileh.create_table(fileh.root, 'table', TestTDescr,
                                   expectedrows=self.nrows)
         table.flavor = "numpy"
         for i in range(self.nrows):
@@ -625,7 +625,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
         table = self.fileh.root.table
         data = table[:]
         if common.verbose:
@@ -664,7 +664,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
         table = self.fileh.root.table
         data = table[::3]
         if common.verbose:
@@ -699,13 +699,13 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         self.assertEqual(bytes(col.copy().data), bytes(npcol.data))
 
     def test02_getWhereList(self):
-        """Checking the return of NumPy in getWhereList method."""
+        """Checking the return of NumPy in get_where_list method."""
 
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
         table = self.fileh.root.table
-        data = table.getWhereList('z == 1')
+        data = table.get_where_list('z == 1')
         if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
@@ -718,15 +718,15 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         self.assertTrue(allequal(data, arange(100, dtype="i8"), "numpy"))
 
     def test03a_readWhere(self):
-        """Checking the return of NumPy in readWhere method (strings)."""
+        """Checking the return of NumPy in read_where method (strings)."""
 
         table = self.fileh.root.table
-        table.cols.color.createIndex()
+        table.cols.color.create_index()
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
-        data = table.readWhere('color == b"ab"')
+        data = table.read_where('color == b"ab"')
         if common.verbose:
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
@@ -736,15 +736,15 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         self.assertEqual(len(data), self.nrows)
 
     def test03b_readWhere(self):
-        """Checking the return of NumPy in readWhere method (numeric)."""
+        """Checking the return of NumPy in read_where method (numeric)."""
 
         table = self.fileh.root.table
-        table.cols.z.createIndex()
+        table.cols.z.create_index()
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
-        data = table.readWhere('z == 0')
+        data = table.read_where('z == 0')
         if common.verbose:
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
@@ -765,10 +765,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
                  ('name', '|S2'),
                  ('z2', '|u1')]
         npdata = zeros((3,), dtype=dtype)
-        table = self.fileh.createTable(self.fileh.root, 'table2', npdata)
+        table = self.fileh.create_table(self.fileh.root, 'table2', npdata)
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table2
         data = table[:]
         if common.verbose:
@@ -794,7 +794,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         table.append(npdata)
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
         data = table[-3:]
         if common.verbose:
@@ -819,7 +819,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         table.cols.z[:] = zeros((100,), dtype='u1')
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
         data = table.cols.z[:]
         if common.verbose:
@@ -841,10 +841,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         xcol = ones((3, 2), 'int32')
         ycol = zeros((3, 2, 2), 'float64')
         zcol = zeros((3,), 'uint8')
-        table.modifyColumns(3, 6, 1, [xcol, ycol, zcol], ['x', 'y', 'z'])
+        table.modify_columns(3, 6, 1, [xcol, ycol, zcol], ['x', 'y', 'z'])
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
         data = table.cols.y[3:6]
         if common.verbose:
@@ -868,10 +868,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         dtype=[('x', 'i4', (2,)), ('y', 'f8', (2, 2)), ('z', 'u1')]
         nparray = zeros((3,), dtype=dtype)
-        table.modifyColumns(3, 6, 1, nparray, ['x', 'y', 'z'])
+        table.modify_columns(3, 6, 1, nparray, ['x', 'y', 'z'])
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
         ycol = zeros((3, 2, 2), 'float64')
         data = table.cols.y[3:6]
@@ -891,7 +891,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         self.assertEqual(data.copy().data, ycol.data)
 
     def test06a_assignNestedColumn(self):
-        """Checking assigning a nested column (using modifyColumn)."""
+        """Checking assigning a nested column (using modify_column)."""
 
         table = self.fileh.root.table
         dtype = [('value', '%sc16' % byteorder),
@@ -904,10 +904,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
                  ('z2', '|u1')]
         npdata = zeros((3,), dtype=dtype)
         data = table.cols.Info[3:6]
-        table.modifyColumn(3, 6, 1, column=npdata, colname='Info')
+        table.modify_column(3, 6, 1, column=npdata, colname='Info')
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
         data = table.cols.Info[3:6]
         if common.verbose:
@@ -943,7 +943,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         table.cols.Info[3:6] = npdata
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
         data = table.cols.Info[3:6]
         if common.verbose:
@@ -962,17 +962,17 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         self.assertEqual(bytes(data.copy().data), bytes(npdata.data))
 
     def test07a_modifyingRows(self):
-        """Checking modifying several rows at once (using modifyRows)."""
+        """Checking modifying several rows at once (using modify_rows)."""
 
         table = self.fileh.root.table
         # Read a chunk of the table
         chunk = table[0:3]
         # Modify it somewhat
         chunk['y'][:] = -1
-        table.modifyRows(3, 6, 1, rows=chunk)
+        table.modify_rows(3, 6, 1, rows=chunk)
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
         ycol = zeros((3, 2, 2), 'float64')-1
         data = table.cols.y[3:6]
@@ -1001,7 +1001,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         table.cols[3:6] = chunk
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
         # Check that some column has been actually modified
         ycol = zeros((3, 2, 2), 'float64')-1
@@ -1021,17 +1021,17 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         self.assertTrue(allequal(ycol, data, "numpy"))
 
     def test08a_modifyingRows(self):
-        """Checking modifying just one row at once (using modifyRows)."""
+        """Checking modifying just one row at once (using modify_rows)."""
 
         table = self.fileh.root.table
         # Read a chunk of the table
         chunk = table[3:4]
         # Modify it somewhat
         chunk['y'][:] = -1
-        table.modifyRows(6, 7, 1, chunk)
+        table.modify_rows(6, 7, 1, chunk)
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
         # Check that some column has been actually modified
         ycol = zeros((2, 2), 'float64')-1
@@ -1061,7 +1061,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         table.cols[6] = chunk
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             table = self.fileh.root.table
         # Check that some column has been actually modified
         ycol = zeros((2, 2), 'float64')-1
@@ -1085,10 +1085,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
         table = self.fileh.root.table
-        rdata = table.getWhereList('color == b"ab"')
-        data = table.readCoordinates(rdata)
+        rdata = table.get_where_list('color == b"ab"')
+        data = table.read_coordinates(rdata)
         if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
@@ -1106,7 +1106,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
         table = self.fileh.root.table
         for i in range(50):
             table.cols.color[i] = "a  "
@@ -1133,7 +1133,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
         table = self.fileh.root.table
         row = table.row
         for i in range(50):
@@ -1142,7 +1142,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         table.flush()
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
         data = self.fileh.root.table[:]
         if common.verbose:
             print "Type of read:", type(data)
@@ -1173,8 +1173,8 @@ class AttributesTestCase(common.PyTablesTestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, "w")
-        self.fileh.createGroup(self.fileh.root, 'group')
+        self.fileh = open_file(self.file, "w")
+        self.fileh.create_group(self.fileh.root, 'group')
 
     def tearDown(self):
         self.fileh.close()
@@ -1188,7 +1188,7 @@ class AttributesTestCase(common.PyTablesTestCase):
         g_attrs.numpy1 = zeros((1, 1), dtype='int16')
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             group = self.fileh.root.group
             g_attrs = group._v_attrs
         # Check that we can retrieve a numpy object
@@ -1211,7 +1211,7 @@ class AttributesTestCase(common.PyTablesTestCase):
         g_attrs.numpy1 = zeros((1, 2), dtype='int16')
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             group = self.fileh.root.group
             g_attrs = group._v_attrs
         # Update this attribute
@@ -1240,10 +1240,10 @@ class StrlenTestCase(common.PyTablesTestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, "w")
-        group = self.fileh.createGroup(self.fileh.root, 'group')
+        self.fileh = open_file(self.file, "w")
+        group = self.fileh.create_group(self.fileh.root, 'group')
         tablelayout = {'Text': StringCol(itemsize=1000),}
-        self.table = self.fileh.createTable(group, 'table', tablelayout)
+        self.table = self.fileh.create_table(group, 'table', tablelayout)
         self.table.flavor = 'numpy'
         row = self.table.row
         row['Text'] = 'Hello Francesc!'     # XXX: check unicode --> bytes
@@ -1261,7 +1261,7 @@ class StrlenTestCase(common.PyTablesTestCase):
         """Checking the lengths of strings (read field)."""
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             self.table = self.fileh.root.group.table
         # Get both strings
         str1 = self.table.col('Text')[0]
@@ -1279,7 +1279,7 @@ class StrlenTestCase(common.PyTablesTestCase):
         """Checking the lengths of strings (read recarray)."""
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             self.table = self.fileh.root.group.table
         # Get both strings
         str1 = self.table[:]['Text'][0]
@@ -1295,7 +1295,7 @@ class StrlenTestCase(common.PyTablesTestCase):
         """Checking the lengths of strings (read recarray, row by row)."""
         if self.close:
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")
+            self.fileh = open_file(self.file, "a")
             self.table = self.fileh.root.group.table
         # Get both strings
         str1 = self.table[0]['Text']
@@ -1347,3 +1347,9 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main( defaultTest='suite' )
+
+
+
+
+
+

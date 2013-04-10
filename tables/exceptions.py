@@ -30,7 +30,7 @@ class HDF5ExtError(RuntimeError):
 
     Errors in the HDF5 C library may be accompanied by an extensive
     HDF5 back trace on standard error (see also
-    :func:`tables.silenceHDF5Messages`).
+    :func:`tables.silence_hdf5_messages`).
 
     .. versionchanged:: 2.4
 
@@ -372,3 +372,9 @@ class ExperimentalFeatureWarning(Warning):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

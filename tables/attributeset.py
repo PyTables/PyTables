@@ -18,12 +18,12 @@ import warnings
 import cPickle
 import numpy
 
-from tables import hdf5Extension
+from tables import hdf5extension
 from tables.utils import SizeType
-from tables.registry import classNameDict
+from tables.registry import class_name_dict
 from tables.exceptions import ClosedNodeError, PerformanceWarning
-from tables.path import checkNameValidity
-from tables.undoredo import attrToShadow
+from tables.path import check_name_validity
+from tables.undoredo import attr_to_shadow
 from tables.filters import Filters
 
 from tables._past import previous_api
@@ -68,7 +68,7 @@ def issysattrname(name):
         return False
 
 
-class AttributeSet(hdf5Extension.AttributeSet, object):
+class AttributeSet(hdf5extension.AttributeSet, object):
     """Container for the HDF5 attributes of a Node
 
     This class provides methods to create new HDF5 node attributes,
@@ -123,14 +123,14 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         ...
         >>> myObject = MyClass()  # save object of custom class in HDF5 attr
         >>> h5fname = tempfile.mktemp(suffix='.h5')
-        >>> h5f = tables.openFile(h5fname, 'w')
+        >>> h5f = tables.open_file(h5fname, 'w')
         >>> h5f.root._v_attrs.obj = myObject  # store the object
         >>> print h5f.root._v_attrs.obj.foo  # retrieve it
         bar
         >>> h5f.close()
         >>>
         >>> del MyClass, myObject  # delete class of object and reopen file
-        >>> h5f = tables.openFile(h5fname, 'r')
+        >>> h5f = tables.open_file(h5fname, 'r')
         >>> print repr(h5f.root._v_attrs.obj)
         'ccopy_reg\\n_reconstructor...
         >>> import pickle  # let's unpickle that to see what went wrong
@@ -190,7 +190,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     """
 
     def _g_getnode(self):
-        return self._v__nodeFile._getNode(self._v__nodePath)
+        return self._v__nodeFile._get_node(self._v__nodePath)
 
     _v_node = property(_g_getnode, None, None,
         "The :class:`Node` instance this attribute set is associated with.")
@@ -217,7 +217,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self._g_new(node)
         mydict["_v__nodeFile"] = node._v_file
         mydict["_v__nodePath"] = node._v_pathname
-        mydict["_v_attrnames"] = self._g_listAttr(node)
+        mydict["_v_attrnames"] = self._g_list_attr(node)
         # The list of unimplemented attribute names
         mydict["_v_unimplemented"] = []
 
@@ -251,16 +251,16 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self._v_attrnamesuser.sort()
 
 
-    def _g_updateNodeLocation(self, node):
+    def _g_update_node_location(self, node):
         """Updates the location information about the associated `node`."""
 
         myDict = self.__dict__
         myDict['_v__nodeFile'] = node._v_file
         myDict['_v__nodePath'] = node._v_pathname
-        # hdf5Extension operations:
+        # hdf5extension operations:
         self._g_new(node)
 
-    _g_updateNodeLocation = previous_api(_g_updateNodeLocation)
+    _g_updateNodeLocation = previous_api(_g_update_node_location)
 
 
     def _f_list(self, attrset='user'):
@@ -293,7 +293,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # takes care of other types as well as for example NROWS for
         # Tables and EXTDIM for EArrays
         format_version = self._v__format_version
-        value = self._g_getAttr(self._v_node, name)
+        value = self._g_getattr(self._v_node, name)
 
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
@@ -394,7 +394,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 stvalue = numpy.array(value)
                 value = stvalue[()]
 
-        self._g_setAttr(self._v_node, name, stvalue)
+        self._g_setattr(self._v_node, name, stvalue)
 
         # New attribute or value. Introduce it into the local
         # directory
@@ -433,9 +433,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         attrnames = self._v_attrnames
 
         # Check for name validity
-        checkNameValidity(name)
+        check_name_validity(name)
 
-        nodeFile._checkWritable()
+        nodeFile._check_writable()
 
         # Check if there are too many attributes.
         maxNodeAttrs = nodeFile.params['MAX_NODE_ATTRS']
@@ -446,33 +446,33 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                           % (self._v__nodePath, maxNodeAttrs),
                           PerformanceWarning)
 
-        undoEnabled = nodeFile.isUndoEnabled()
+        undoEnabled = nodeFile.is_undo_enabled()
         # Log old attribute removal (if any).
         if undoEnabled and (name in attrnames):
-            self._g_delAndLog(name)
+            self._g_del_and_log(name)
 
         # Set the attribute.
         self._g__setattr(name, value)
 
         # Log new attribute addition.
         if undoEnabled:
-            self._g_logAdd(name)
+            self._g_log_add(name)
 
 
-    def _g_logAdd(self, name):
+    def _g_log_add(self, name):
         self._v__nodeFile._log('ADDATTR', self._v__nodePath, name)
 
-    _g_logAdd = previous_api(_g_logAdd)
+    _g_logAdd = previous_api(_g_log_add)
 
 
-    def _g_delAndLog(self, name):
+    def _g_del_and_log(self, name):
         nodeFile = self._v__nodeFile
         nodePathname = self._v__nodePath
         # Log *before* moving to use the right shadow name.
         nodeFile._log('DELATTR', nodePathname, name)
-        attrToShadow(nodeFile, nodePathname, name)
+        attr_to_shadow(nodeFile, nodePathname, name)
 
-    _g_delAndLog = previous_api(_g_delAndLog)
+    _g_delAndLog = previous_api(_g_del_and_log)
 
 
     def _g__delattr(self, name):
@@ -514,11 +514,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 "Attribute ('%s') does not exist in node '%s'"
                 % (name, self._v__nodePath))
 
-        nodeFile._checkWritable()
+        nodeFile._check_writable()
 
         # Remove the PyTables attribute or move it to shadow.
-        if nodeFile.isUndoEnabled():
-            self._g_delAndLog(name)
+        if nodeFile.is_undo_enabled():
+            self._g_del_and_log(name)
         else:
             self._g__delattr(name)
 
@@ -580,7 +580,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         delattr(self, oldattrname)
 
 
-    def _g_copy(self, newSet, setAttr=None, copyClass=False):
+    def _g_copy(self, newSet, set_attr=None, copyClass=False):
         """Copy set attributes.
 
         Copies all user and allowed system PyTables attributes to the
@@ -595,13 +595,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         copysysattrs = newSet._v__nodeFile.params['PYTABLES_SYS_ATTRS']
-        if setAttr is None:
-            setAttr = newSet._g__setattr
+        if set_attr is None:
+            set_attr = newSet._g__setattr
 
         for attrname in self._v_attrnamesuser:
             # Do not copy the unimplemented attributes.
             if attrname not in self._v_unimplemented:
-                setAttr(attrname, getattr(self, attrname))
+                set_attr(attrname, getattr(self, attrname))
         # Copy the system attributes that we are allowed to.
         if copysysattrs:
             for attrname in self._v_attrnamessys:
@@ -610,12 +610,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                     # be really *slow* (don't know exactly the reason).
                     # See #304.
                     not attrname.startswith("FIELD_")):
-                    setAttr(attrname, getattr(self, attrname))
+                    set_attr(attrname, getattr(self, attrname))
             # Copy CLASS and VERSION attributes if requested
             if copyClass:
                 for attrname in FORCE_COPY_CLASS:
                     if attrname in self._v_attrnamessys:
-                        setAttr(attrname, getattr(self, attrname))
+                        set_attr(attrname, getattr(self, attrname))
 
 
     def _f_copy(self, where):
@@ -628,8 +628,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # AttributeSet must be defined in order to define a Node.
         # However, we need to know Node here.
-        # Using classNameDict avoids a circular import.
-        if not isinstance(where, classNameDict['Node']):
+        # Using class_name_dict avoids a circular import.
+        if not isinstance(where, class_name_dict['Node']):
             raise TypeError("destination object is not a node: %r" % (where,))
         self._g_copy(where._v_attrs, where._v_attrs.__setattr__)
 
@@ -669,15 +669,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
 class NotLoggedAttributeSet(AttributeSet):
-    def _g_logAdd(self, name):
+    def _g_log_add(self, name):
         pass
 
-    _g_logAdd = previous_api(_g_logAdd)
+    _g_logAdd = previous_api(_g_log_add)
 
-    def _g_delAndLog(self, name):
+    def _g_del_and_log(self, name):
         self._g__delattr(name)
 
-    _g_delAndLog = previous_api(_g_delAndLog)
+    _g_delAndLog = previous_api(_g_del_and_log)
 
 ## Local Variables:
 ## mode: python
@@ -685,3 +685,9 @@ class NotLoggedAttributeSet(AttributeSet):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

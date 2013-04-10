@@ -28,19 +28,19 @@ Misc variables:
 
 import os
 import tables as t
-from tables import linkExtension
+from tables import linkextension
 from tables.node import Node
 from tables.utils import lazyattr
 from tables.attributeset import AttributeSet
 import tables.file
 from tables._past import previous_api
 
-def _g_getLinkClass(parent_id, name):
+def _g_get_link_class(parent_id, name):
     """Guess the link class."""
 
-    return linkExtension._getLinkClass(parent_id, name)
+    return linkextension._get_link_class(parent_id, name)
 
-_g_getLinkClass = previous_api(_g_getLinkClass)
+_g_getLinkClass = previous_api(_g_get_link_class)
 
 
 class Link(Node):
@@ -105,7 +105,7 @@ class Link(Node):
         newnode = self._f_copy(newparent=newparent, newname=newname,
                                overwrite=overwrite, createparents=createparents)
         # Insert references to a `newnode` via `newname`
-        newnode._v_parent._g_refNode(newnode, newname, True)
+        newnode._v_parent._g_refnode(newnode, newname, True)
         return newnode
 
 
@@ -137,7 +137,7 @@ class Link(Node):
         return str(self)
 
 
-class SoftLink(linkExtension.SoftLink, Link):
+class SoftLink(linkextension.SoftLink, Link):
     """Represents a soft link (aka symbolic link).
 
     A soft link is a reference to another node in the *same* file hierarchy.
@@ -146,7 +146,7 @@ class SoftLink(linkExtension.SoftLink, Link):
     """
 
     # Class identifier.
-    _c_classId = 'SOFTLINK'
+    _c_classid = 'SOFTLINK'
 
     def __call__(self):
         """Dereference `self.target` and return the object.
@@ -156,7 +156,7 @@ class SoftLink(linkExtension.SoftLink, Link):
 
         ::
 
-            >>> f=tables.openFile('data/test.h5')
+            >>> f=tables.open_file('data/test.h5')
             >>> print f.root.link0
             /link0 (SoftLink) -> /another/path
             >>> print f.root.link0()
@@ -167,7 +167,7 @@ class SoftLink(linkExtension.SoftLink, Link):
         # Check for relative pathnames
         if not self.target.startswith('/'):
             target = self._v_parent._g_join(self.target)
-        return self._v_file._getNode(target)
+        return self._v_file._get_node(target)
 
 
     def __str__(self):
@@ -178,7 +178,7 @@ class SoftLink(linkExtension.SoftLink, Link):
 
         ::
 
-            >>> f=tables.openFile('data/test.h5')
+            >>> f=tables.open_file('data/test.h5')
             >>> print f.root.link0
             /link0 (SoftLink) -> /path/to/node
         """
@@ -196,7 +196,7 @@ class SoftLink(linkExtension.SoftLink, Link):
                                     self.target, dangling)
 
 
-class ExternalLink(linkExtension.ExternalLink, Link):
+class ExternalLink(linkextension.ExternalLink, Link):
     """Represents an external link.
 
     An external link is a reference to a node in *another* file.
@@ -215,7 +215,7 @@ class ExternalLink(linkExtension.ExternalLink, Link):
     """
 
     # Class identifier.
-    _c_classId = 'EXTERNALLINK'
+    _c_classid = 'EXTERNALLINK'
 
     def __init__(self, parentNode, name, target=None, _log = False):
         self.extfile = None
@@ -236,7 +236,7 @@ class ExternalLink(linkExtension.ExternalLink, Link):
     def __call__(self, **kwargs):
         """Dereference self.target and return the object.
 
-        You can pass all the arguments supported by the :func:`openFile`
+        You can pass all the arguments supported by the :func:`open_file`
         function (except filename, of course) so as to open the referenced
         external file.
 
@@ -245,7 +245,7 @@ class ExternalLink(linkExtension.ExternalLink, Link):
 
         ::
 
-            >>> f=tables.openFile('data1/test1.h5')
+            >>> f=tables.open_file('data1/test1.h5')
             >>> print f.root.link2
             /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
             >>> plink2 = f.root.link2('a')  # open in 'a'ppend mode
@@ -268,8 +268,8 @@ class ExternalLink(linkExtension.ExternalLink, Link):
         if filename in open_files:
             self.extfile = open_files[filename]
         else:
-            self.extfile = t.openFile(filename, **kwargs)
-        return self.extfile._getNode(target)
+            self.extfile = t.open_file(filename, **kwargs)
+        return self.extfile._get_node(target)
 
 
     def umount(self):
@@ -297,7 +297,7 @@ class ExternalLink(linkExtension.ExternalLink, Link):
 
         ::
 
-            >>> f=tables.openFile('data1/test1.h5')
+            >>> f=tables.open_file('data1/test1.h5')
             >>> print f.root.link2
             /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
         """
@@ -313,3 +313,9 @@ class ExternalLink(linkExtension.ExternalLink, Link):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

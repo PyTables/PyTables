@@ -865,7 +865,7 @@ class EnumAtom(Atom):
 
     # Private methods
     # ~~~~~~~~~~~~~~~
-    def _checkBase(self, base):
+    def _checkbase(self, base):
         """Check the `base` storage atom."""
 
         if base.kind == 'enum':
@@ -900,7 +900,7 @@ class EnumAtom(Atom):
             raise NotImplementedError( "only scalar concrete values "
                                        "are supported for the moment, sorry" )
 
-    _checkBase = previous_api(_checkBase)
+    _checkBase = previous_api(_checkbase)
 
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments."""
@@ -929,7 +929,7 @@ class EnumAtom(Atom):
 
         if isinstance(base, str):
             base = Atom.from_type(base)
-        self._checkBase(base)
+        self._checkbase(base)
         self.base = base
 
         default = enum[dflt]  # check default value
@@ -1143,3 +1143,9 @@ def _test():
 
 if __name__ == '__main__':
     _test()
+
+
+
+
+
+

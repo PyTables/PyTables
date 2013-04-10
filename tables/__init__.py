@@ -78,15 +78,19 @@ if os.name == 'nt':
 
 
 # Necessary imports to get versions stored on the cython extension
-from tables.utilsExtension import getPyTablesVersion, getHDF5Version
+from tables.utilsextension import get_pytables_version, get_hdf5_version, \
+    getPyTablesVersion, getHDF5Version  # Pending Deprecation!
 
 
-__version__ = getPyTablesVersion()
+__version__ = get_pytables_version()
 """The PyTables version number."""
-hdf5Version = getHDF5Version()
+
+hdf5version = hdf5Version = get_hdf5_version()
 """The underlying HDF5 library version number."""
 
-from tables.utilsExtension import (
+from tables.utilsextension import (is_hdf5_file, is_pytables_file, 
+    which_lib_version, set_blosc_max_threads, silence_hdf5_messages,
+    # Pending Deprecation!
     isHDF5File, isPyTablesFile, whichLibVersion, setBloscMaxThreads,
     silenceHDF5Messages)
 
@@ -98,7 +102,7 @@ from tables.filters import Filters
 
 # Import the user classes from the proper modules
 from tables.exceptions import *
-from tables.file import File, openFile, copyFile
+from tables.file import File, open_file, copy_file, openFile, copyFile
 from tables.node import Node
 from tables.group import Group
 from tables.leaf import Leaf
@@ -123,10 +127,10 @@ __all__ = [
     'FlavorError', 'FlavorWarning',
     'FiltersWarning', 'DataTypeWarning',
     # Functions:
-    'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
-    'copyFile', 'openFile', 'print_versions', 'test',
-    'split_type', 'restrict_flavors', 'setBloscMaxThreads',
-    'silenceHDF5Messages',
+    'is_hdf5_file', 'is_pytables_file', 'which_lib_version',
+    'copy_file', 'open_file', 'print_versions', 'test',
+    'split_type', 'restrict_flavors', 'set_blosc_max_threads',
+    'silence_hdf5_messages',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
     # Types:
@@ -155,6 +159,13 @@ __all__ = [
     'File',
     # Expr class
     'Expr',
+    # 
+    # Pending deprecation!!!
+    #
+    'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
+    'copyFile', 'openFile', 'print_versions', 'test',
+    'split_type', 'restrict_flavors', 'setBloscMaxThreads',
+    'silenceHDF5Messages',
     ]
 
 if 'Float16Atom' in locals():

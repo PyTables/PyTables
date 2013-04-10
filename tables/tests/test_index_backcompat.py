@@ -11,7 +11,7 @@ from tables.tests.common import verbose, cleanup
 class IndexesTestCase(common.PyTablesTestCase):
 
     def setUp(self):
-        self.fileh = openFile(self._testFilename(self.file_), "r")
+        self.fileh = open_file(self._testFilename(self.file_), "r")
         self.table1 = self.fileh.root.table1
         self.table2 = self.fileh.root.table2
         self.il = 0
@@ -183,3 +183,9 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main( defaultTest='suite' )
+
+
+
+
+
+

@@ -14,7 +14,7 @@
 
 from tables.exceptions import HDF5ExtError
 
-from hdf5Extension cimport Node
+from hdf5extension cimport Node
 
 from libc.stdlib cimport malloc, free
 from libc.string cimport strlen
@@ -86,7 +86,7 @@ cdef extern from "H5Lpublic.h" nogil:
 
 # Helper functions
 
-def _getLinkClass(parent_id, name):
+def _get_link_class(parent_id, name):
     """Guess the link class."""
 
     cdef herr_t ret
@@ -104,23 +104,23 @@ def _getLinkClass(parent_id, name):
       return "ExternalLink"
     return "UnImplemented"
 
-_getLinkClass = previous_api(_getLinkClass)
+_getLinkClass = previous_api(_get_link_class)
 
 
-def _g_createHardLink(parentNode, str name, targetNode):
+def _g_create_hard_link(parentNode, str name, targetNode):
   """Create a hard link in the file."""
 
   cdef herr_t ret
   cdef bytes encoded_name = name.encode('utf-8')
   cdef bytes encoded_v_name = targetNode._v_name.encode('utf-8')
 
-  ret = H5Lcreate_hard(targetNode._v_parent._v_objectID, encoded_v_name,
-                       parentNode._v_objectID, <char*>encoded_name,
+  ret = H5Lcreate_hard(targetNode._v_parent._v_objectid, encoded_v_name,
+                       parentNode._v_objectid, <char*>encoded_name,
                        H5P_DEFAULT, H5P_DEFAULT)
   if ret < 0:
     raise HDF5ExtError("failed to create HDF5 hard link")
 
-_g_createHardLink = previous_api(_g_createHardLink)
+_g_createHardLink = previous_api(_g_create_hard_link)
 
 
 #----------------------------------------------------------------------
@@ -141,7 +141,7 @@ cdef class Link(Node):
     encoded_newname = newName.encode('utf-8')
 
     # @TODO: set property list --> utf-8
-    ret = H5Lcopy(self.parent_id, encoded_name, newParent._v_objectID,
+    ret = H5Lcopy(self.parent_id, encoded_name, newParent._v_objectid,
                   encoded_newname, H5P_DEFAULT, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to copy HDF5 link")
@@ -151,7 +151,7 @@ cdef class Link(Node):
     if stats is not None:
       stats['links'] += 1
 
-    return newParent._v_file.getNode(newParent, newName)
+    return newParent._v_file.get_node(newParent, newName)
 
 
 
@@ -284,3 +284,9 @@ cdef class ExternalLink(Link):
 ## tab-width: 2
 ## fill-column: 78
 ## End:
+
+
+
+
+
+

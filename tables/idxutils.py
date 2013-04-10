@@ -104,7 +104,7 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
     return size
 
 
-def calcChunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
+def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -134,7 +134,7 @@ def calcChunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
     sizes = (superblocksize, blocksize, slicesize, chunksize)
     return sizes
 
-calcChunksize = previous_api(calcChunksize)
+calcChunksize = previous_api(calc_chunksize)
 
 def ccs_ultralight(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
@@ -327,7 +327,7 @@ def get_reduction_level(indsize, optlevel, slicesize, chunksize):
 #smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for floats < minFloatF
 
 infinity = math.ldexp(1.0, 1023) * 2
-infinityF = math.ldexp(1.0, 128)
+infinityf = math.ldexp(1.0, 128)
 #Finf = float("inf")  # Infinite in the IEEE 754 standard (not avail in Win)
 
 # A portable representation of NaN
@@ -341,7 +341,7 @@ infinityF = math.ldexp(1.0, 128)
 #testNaN = infinity - infinity
 
 # "infinity" for several types
-infinityMap = {
+infinitymap = {
     'bool':    [0,          1],
     'int8':    [-2**7,      2**7-1],
     'uint8':   [0,          2**8-1],
@@ -351,19 +351,19 @@ infinityMap = {
     'uint32':  [0,          2**32-1],
     'int64':   [-2**63,     2**63-1],
     'uint64':  [0,          2**64-1],
-    'float32': [-infinityF, infinityF],
+    'float32': [-infinityf, infinityf],
     'float64': [-infinity,  infinity],
 }
 
 if hasattr(numpy, 'float16'):
-    infinityMap['float16'] = [-numpy.float16(numpy.inf),  numpy.float16(numpy.inf)]
+    infinitymap['float16'] = [-numpy.float16(numpy.inf),  numpy.float16(numpy.inf)]
 if hasattr(numpy, 'float96'):
-    infinityMap['float96'] = [-numpy.float96(numpy.inf),  numpy.float96(numpy.inf)]
+    infinitymap['float96'] = [-numpy.float96(numpy.inf),  numpy.float96(numpy.inf)]
 if hasattr(numpy, 'float128'):
-    infinityMap['float128'] = [-numpy.float128(numpy.inf),  numpy.float128(numpy.inf)]
+    infinitymap['float128'] = [-numpy.float128(numpy.inf),  numpy.float128(numpy.inf)]
 
 # Utility functions
-def infType(dtype, itemsize, sign=+1):
+def inftype(dtype, itemsize, sign=+1):
     """Return a superior limit for maximum representable data type"""
 
     assert sign in [-1, +1]
@@ -374,11 +374,11 @@ def infType(dtype, itemsize, sign=+1):
         else:
             return b"\xff"*itemsize
     try:
-        return infinityMap[dtype.name][sign >= 0]
+        return infinitymap[dtype.name][sign >= 0]
     except KeyError:
         raise TypeError("Type %s is not supported" % dtype.name)
 
-infType = previous_api(infType)
+infType = previous_api(inftype)
 
 
 ## This check does not work for Python 2.2.x or 2.3.x (!)
@@ -433,10 +433,10 @@ infType = previous_api(infType)
 #        return x
 #
 #    # similarly if x is infinity
-#    if x >= infinityF:
-#        return infinityF
-#    elif x <= -infinityF:
-#        return -infinityF
+#    if x >= infinityf:
+#        return infinityf
+#    elif x <= -infinityf:
+#        return -infinityf
 #
 #    # return small numbers for x very close to 0.0
 #    if -minFloatF < x < minFloatF:
@@ -473,7 +473,7 @@ infType = previous_api(infType)
 #    return math.ldexp(m, e)
 
 
-def StringNextAfter(x, direction, itemsize):
+def string_next_after(x, direction, itemsize):
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
@@ -516,10 +516,10 @@ def StringNextAfter(x, direction, itemsize):
     xlist.reverse()
     return b"".join(xlist)
 
-StringNextAfter = previous_api(StringNextAfter)
+StringNextAfter = previous_api(string_next_after)
 
 
-def IntTypeNextAfter(x, direction, itemsize):
+def int_type_next_after(x, direction, itemsize):
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
@@ -539,10 +539,10 @@ def IntTypeNextAfter(x, direction, itemsize):
             #return int(PyNextAfter(x,x+1))+1
             return int(numpy.nextafter(x,x+1))+1
 
-IntTypeNextAfter = previous_api(IntTypeNextAfter)
+IntTypeNextAfter = previous_api(int_type_next_after)
 
 
-def BoolTypeNextAfter(x, direction, itemsize):
+def bool_type_next_after(x, direction, itemsize):
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
@@ -554,7 +554,7 @@ def BoolTypeNextAfter(x, direction, itemsize):
     else:
         return True
 
-BoolTypeNextAfter = previous_api(BoolTypeNextAfter)
+BoolTypeNextAfter = previous_api(bool_type_next_after)
 
 
 def nextafter(x, direction, dtype, itemsize):
@@ -568,12 +568,12 @@ def nextafter(x, direction, dtype, itemsize):
         return x
 
     if dtype.kind == "S":
-        return StringNextAfter(x, direction, itemsize)
+        return string_next_after(x, direction, itemsize)
 
     if dtype.kind in ['b']:
-        return BoolTypeNextAfter(x, direction, itemsize)
+        return bool_type_next_after(x, direction, itemsize)
     elif dtype.kind in ['i', 'u']:
-        return IntTypeNextAfter(x, direction, itemsize)
+        return int_type_next_after(x, direction, itemsize)
     elif dtype.kind == "f":
         if direction < 0:
             return numpy.nextafter(x, x - 1)
@@ -601,3 +601,9 @@ def nextafter(x, direction, dtype, itemsize):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

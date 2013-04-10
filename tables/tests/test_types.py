@@ -42,11 +42,11 @@ class RangeTestCase(unittest.TestCase):
 
     def setUp(self):
         # Create an instance of HDF5 Table
-        self.fileh = openFile(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode = "w")
         self.rootgroup = self.fileh.root
 
         # Create a table
-        self.table = self.fileh.createTable(self.rootgroup, 'table',
+        self.table = self.fileh.create_table(self.rootgroup, 'table',
                                             Record, self.title)
 
     def tearDown(self):
@@ -121,33 +121,33 @@ class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00a_table(self):
         """Check dtype accessor for Table objects"""
-        a = self.h5file.createTable('/', 'table', Record)
+        a = self.h5file.create_table('/', 'table', Record)
         self.assertEqual(a.dtype, a.description._v_dtype)
 
     def test00b_column(self):
         """Check dtype accessor for Column objects"""
-        a = self.h5file.createTable('/', 'table', Record)
+        a = self.h5file.create_table('/', 'table', Record)
         c = a.cols.var3
         self.assertEqual(c.dtype, a.description._v_dtype['var3'])
 
     def test01_array(self):
         """Check dtype accessor for Array objects"""
-        a = self.h5file.createArray('/', 'array', [1, 2])
+        a = self.h5file.create_array('/', 'array', [1, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test02_carray(self):
         """Check dtype accessor for CArray objects"""
-        a = self.h5file.createCArray('/', 'array', FloatAtom(), [1, 2])
+        a = self.h5file.create_carray('/', 'array', FloatAtom(), [1, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test03_carray(self):
         """Check dtype accessor for EArray objects"""
-        a = self.h5file.createEArray('/', 'array', FloatAtom(), [0, 2])
+        a = self.h5file.create_earray('/', 'array', FloatAtom(), [0, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test04_vlarray(self):
         """Check dtype accessor for VLArray objects"""
-        a = self.h5file.createVLArray('/', 'array', FloatAtom())
+        a = self.h5file.create_vlarray('/', 'array', FloatAtom())
         self.assertEqual(a.dtype, a.atom.dtype)
 
 
@@ -157,7 +157,7 @@ class ReadFloatTestCase(common.PyTablesTestCase):
     ncols = 6
 
     def setUp(self):
-        self.fileh = openFile(self._testFilename(self.filename), mode="r")
+        self.fileh = open_file(self._testFilename(self.filename), mode="r")
         x = numpy.arange(self.ncols)
         y = numpy.arange(self.nrows)
         y.shape = (self.nrows, 1)
@@ -325,3 +325,9 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main( defaultTest='suite' )
+
+
+
+
+
+

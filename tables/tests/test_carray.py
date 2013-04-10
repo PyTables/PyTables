@@ -34,7 +34,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, "w")
+        self.fileh = open_file(self.file, "w")
         self.rootgroup = self.fileh.root
         self.populateFile()
         if self.reopen:
@@ -52,7 +52,7 @@ class BasicTestCase(unittest.TestCase):
                           complib = self.complib,
                           shuffle = self.shuffle,
                           fletcher32 = self.fletcher32)
-        carray = self.fileh.createCArray(group, 'carray1', atom, self.shape,
+        carray = self.fileh.create_carray(group, 'carray1', atom, self.shape,
                                          title, filters=filters,
                                          chunkshape = self.chunkshape)
         carray.flavor = self.flavor
@@ -84,8 +84,8 @@ class BasicTestCase(unittest.TestCase):
 
     def test00_attributes(self):
         if self.reopen:
-            self.fileh = openFile(self.file, "r")
-        obj = self.fileh.getNode("/carray1")
+            self.fileh = open_file(self.file, "r")
+        obj = self.fileh.get_node("/carray1")
 
         self.assertEqual(obj.flavor, self.flavor)
         self.assertEqual(obj.shape, self.shape)
@@ -103,8 +103,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = openFile(self.file, "r")
-        carray = self.fileh.getNode("/carray1")
+            self.fileh = open_file(self.file, "r")
+        carray = self.fileh.get_node("/carray1")
 
         # Choose a small value for buffer size
         carray.nrowsinbuf = 3
@@ -169,8 +169,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = openFile(self.file, "r")
-        carray = self.fileh.getNode("/carray1")
+            self.fileh = open_file(self.file, "r")
+        carray = self.fileh.get_node("/carray1")
 
         # Choose a small value for buffer size
         carray.nrowsinbuf = 3
@@ -234,8 +234,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = openFile(self.file, "r")
-        carray = self.fileh.getNode("/carray1")
+            self.fileh = open_file(self.file, "r")
+        carray = self.fileh.get_node("/carray1")
 
         if common.verbose:
             print "CArray descr:", repr(carray)
@@ -295,8 +295,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = openFile(self.file, "a")
-        carray = self.fileh.getNode("/carray1")
+            self.fileh = open_file(self.file, "a")
+        carray = self.fileh.get_node("/carray1")
 
         if common.verbose:
             print "CArray descr:", repr(carray)
@@ -804,7 +804,7 @@ class ReadOutArgumentTests(unittest.TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode='w')
+        self.fileh = open_file(self.file, mode='w')
         self.size = 1000
         self.filters = Filters(complevel=1, complib='blosc')
 
@@ -814,7 +814,7 @@ class ReadOutArgumentTests(unittest.TestCase):
 
     def create_array(self):
         array = numpy.arange(self.size, dtype='i8')
-        disk_array = self.fileh.createCArray('/', 'array', Int64Atom(),
+        disk_array = self.fileh.create_carray('/', 'array', Int64Atom(),
                                              (self.size, ),
                                              filters=self.filters)
         disk_array[:] = array
@@ -860,7 +860,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         # approximate size (in bytes) of non-data portion of hdf5 file
         self.hdf_overhead = 6000
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode = "w")
 
     def tearDown(self):
         self.fileh.close()
@@ -870,7 +870,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def create_array(self, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.array = self.fileh.createCArray('/', 'somearray', Int16Atom(),
+        self.array = self.fileh.create_carray('/', 'somearray', Int16Atom(),
                                              self.array_size,
                                              filters=filters,
                                              chunkshape=self.chunkshape)
@@ -910,7 +910,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
             abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
 
         # XXX: check. The test fails if blosc is not available
-        if whichLibVersion('blosc') is not None:
+        if which_lib_version('blosc') is not None:
             self.assertAlmostEqual(self.array.size_on_disk, 10000 * 10 * 2)
         else:
             self.assertTrue(
@@ -926,7 +926,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, self.mode)
+        self.fileh = open_file(self.file, self.mode)
         self.rootgroup = self.fileh.root
 
     def tearDown(self):
@@ -946,7 +946,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         shape = (3, 2, 2)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'strings',
+        carray = self.fileh.create_carray(root, 'strings',
                                          StringAtom(itemsize=3), shape,
                                          "Array of strings",
                                          chunkshape=(1, 2, 2))
@@ -978,7 +978,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         shape = (3, 2, 2)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'strings',
+        carray = self.fileh.create_carray(root, 'strings',
                                          StringAtom(itemsize=3), shape,
                                          "Array of strings",
                                          chunkshape=(1, 2, 2))
@@ -1010,7 +1010,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         shape = (3, 3)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom',
+        carray = self.fileh.create_carray(root, 'CAtom',
                                          Int32Atom(), shape,
                                          "array of ints",
                                          chunkshape=(1, 3))
@@ -1041,7 +1041,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         shape = (3, 3)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom',
+        carray = self.fileh.create_carray(root, 'CAtom',
                                          Int32Atom(), shape,
                                          "array of ints",
                                          chunkshape=(1, 3))
@@ -1074,12 +1074,12 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an CArray
         shape = (2, 2)
         arr = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
@@ -1087,7 +1087,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another location
@@ -1097,7 +1097,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1138,12 +1138,12 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an CArray
         shape = (2, 2)
         arr = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(5, 5))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
@@ -1151,7 +1151,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another location
@@ -1161,7 +1161,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1200,12 +1200,12 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an CArray
         shape = (5, 5)
         arr = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
         array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
@@ -1213,7 +1213,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another location
@@ -1223,7 +1223,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1264,12 +1264,12 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an CArray
         shape = (5, 5)
         arr = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
         array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
@@ -1277,18 +1277,18 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy to another location
-        group1 = fileh.createGroup("/", "group1")
+        group1 = fileh.create_group("/", "group1")
         array2 = array1.copy(group1, 'array2')
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
@@ -1329,11 +1329,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         shape = (2, 2)
         arr = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
         array1.flavor = "python"
         array1[...] = [[456, 2], [3, 457]]
@@ -1342,7 +1342,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy to another location
@@ -1352,7 +1352,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1389,11 +1389,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         shape = (2, 2)
         arr = StringAtom(itemsize=4)
-        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
         array1.flavor = "python"
         array1[...] = [["456", "2"], ["3", "457"]]
@@ -1402,7 +1402,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy to another location
@@ -1412,7 +1412,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1452,11 +1452,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         shape = (2, 2)
         arr = StringAtom(itemsize=4)
-        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([["456", "2"], ["3", "457"]], dtype="S4")
 
@@ -1464,7 +1464,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy to another location
@@ -1474,7 +1474,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1511,12 +1511,12 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an CArray
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
                                     "title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
@@ -1527,7 +1527,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another Array
@@ -1537,7 +1537,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1559,12 +1559,12 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an CArray
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
                                     "title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
@@ -1575,7 +1575,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another Array
@@ -1585,7 +1585,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1610,12 +1610,12 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an Array
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
                                     "title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
@@ -1626,7 +1626,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another Array
@@ -1636,7 +1636,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1671,12 +1671,12 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Array
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an CArray
         shape = (100, 2)
         atom = Int32Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
                                     "title array1", chunkshape=(2, 2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
@@ -1724,12 +1724,12 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Array
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an CArray
         shape = (100, 2)
         atom = Int32Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
+        array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
                                     "title array1", chunkshape=(2, 2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
@@ -1745,7 +1745,7 @@ class CopyIndexTestCase(unittest.TestCase):
                              step=self.step)
         # Close and reopen the file
         fileh.close()
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode = "r")
         array1 = fileh.root.array1
         array2 = fileh.root.array2
 
@@ -1847,10 +1847,10 @@ class Rows64bitsTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        fileh = self.fileh = openFile(self.file, "a")
+        fileh = self.fileh = open_file(self.file, "a")
         # Create an CArray
         shape = (self.narows*self.nanumber,)
-        array = fileh.createCArray(fileh.root, 'array',
+        array = fileh.create_carray(fileh.root, 'array',
                                    Int8Atom(), shape,
                                    filters=Filters(complib='lzo',
                                                    complevel=1))
@@ -1889,7 +1889,7 @@ class Rows64bitsTestCase(unittest.TestCase):
             # Close the file
             fileh.close()
             # Re-open the file
-            fileh = self.fileh = openFile(self.file)
+            fileh = self.fileh = open_file(self.file)
             array = fileh.root.array
             if common.verbose:
                 print "After re-open"
@@ -1936,7 +1936,7 @@ class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         super(BigArrayTestCase, self).setUp()
         # This should be fast since disk space isn't actually allocated,
         # so this case is OK for non-heavy test runs.
-        self.h5file.createCArray('/', 'array', Int8Atom(), self.shape)
+        self.h5file.create_carray('/', 'array', Int8Atom(), self.shape)
 
     def test00_shape(self):
         """Check that the shape doesn't overflow."""
@@ -1968,7 +1968,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Check that Atom.dflt is honored (string version)."
 
         # Create a CArray with default values
-        self.h5file.createCArray(
+        self.h5file.create_carray(
             '/', 'bar', StringAtom(itemsize=5, dflt=b"abdef"), (10, 10))
 
         if self.reopen:
@@ -1985,7 +1985,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Check that Atom.dflt is honored (int version)."
 
         # Create a CArray with default values
-        self.h5file.createCArray('/', 'bar', IntAtom(dflt=1), (10, 10))
+        self.h5file.create_carray('/', 'bar', IntAtom(dflt=1), (10, 10))
 
         if self.reopen:
             self._reopen()
@@ -2000,7 +2000,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Check that Atom.dflt is honored (float version)."
 
         # Create a CArray with default values
-        self.h5file.createCArray('/', 'bar', FloatAtom(dflt=1.134), (10, 10))
+        self.h5file.create_carray('/', 'bar', FloatAtom(dflt=1.134), (10, 10))
 
         if self.reopen:
             self._reopen()
@@ -2026,7 +2026,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing default values.  Zeros (scalar)."
         N = ()
         atom = StringAtom(itemsize=3, shape=N, dflt=b"")
-        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom, (1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2041,7 +2041,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing default values.  Zeros (array)."
         N = 2
         atom = StringAtom(itemsize=3, shape=N, dflt=b"")
-        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom, (1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2056,7 +2056,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing default values.  Ones."
         N = 2
         atom = Int32Atom(shape=N, dflt=1)
-        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom, (1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2072,7 +2072,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         N = 2
         generic = 112.32
         atom = Float32Atom(shape=N, dflt=generic)
-        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom, (1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2087,7 +2087,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing default values.  None (scalar)."
         N = ()
         atom = Int32Atom(shape=N, dflt=None)
-        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom, (1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2101,7 +2101,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing default values.  None (array)."
         N = 2
         atom = Int32Atom(shape=N, dflt=None)
-        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom, (1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2122,7 +2122,7 @@ class AtomDefaultReprReopen(AtomDefaultReprTestCase):
 class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test(self):
         """Test for unability to truncate Array objects."""
-        array1 = self.h5file.createArray('/', 'array1', [0, 2])
+        array1 = self.h5file.create_array('/', 'array1', [0, 2])
         self.assertRaises(TypeError, array1.truncate, 0)
 
 
@@ -2132,7 +2132,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01a_assign(self):
         "Assign a row to a (unidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2, 2)), (1,))
+        ca = self.h5file.create_carray('/', 'test', Int32Atom((2, 2)), (1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2146,7 +2146,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01b_assign(self):
         "Assign several rows to a (unidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2, 2)), (3,))
+        ca = self.h5file.create_carray('/', 'test', Int32Atom((2, 2)), (3,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2160,7 +2160,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02a_assign(self):
         "Assign a row to a (multidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,)), (1, 3))
+        ca = self.h5file.create_carray('/', 'test', Int32Atom((2,)), (1, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2174,7 +2174,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02b_assign(self):
         "Assign several rows to a (multidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,)), (3, 3))
+        ca = self.h5file.create_carray('/', 'test', Int32Atom((2,)), (3, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2191,7 +2191,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03a_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2, 4)), (3, 2, 3))
+        ca = self.h5file.create_carray('/', 'test', Int32Atom((2, 4)), (3, 2, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2207,7 +2207,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03b_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom (II)."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2, 4)), (2, 3, 3))
+        ca = self.h5file.create_carray('/', 'test', Int32Atom((2, 4)), (2, 3, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2223,7 +2223,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03c_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom (III)."
         # Create an CArray
-        ca = self.h5file.createCArray('/', 'test', Int32Atom((2, 4)), (3, 1, 2))
+        ca = self.h5file.create_carray('/', 'test', Int32Atom((2, 4)), (3, 1, 2))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2250,7 +2250,7 @@ class MDLargeAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_create(self):
         "Create a CArray with a very large MD atom."
         N = 2**16      # 4x larger than maximum object header size (64 KB)
-        ca = self.h5file.createCArray('/', 'test', Int32Atom(shape=N), (1,))
+        ca = self.h5file.create_carray('/', 'test', Int32Atom(shape=N), (1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2271,7 +2271,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
-        self.array = self.h5file.createCArray(self.h5file.root, 'array',
+        self.array = self.h5file.create_carray(self.h5file.root, 'array',
                                               Int32Atom(), (10, 10))
         self.array[...] = numpy.zeros((10, 10))
 
@@ -2393,3 +2393,9 @@ if __name__ == '__main__':
 ## py-indent-offset: 4
 ## tab-width: 4
 ## End:
+
+
+
+
+
+

@@ -11,7 +11,7 @@
 ########################################################################
 
 """
-These are declarations for functions in utilsExtension.pyx that have to
+These are declarations for functions in utilsextension.pyx that have to
 be shared with other extensions.
 """
 
@@ -19,3 +19,9 @@ from definitions cimport hsize_t, hid_t
 
 cdef hsize_t *malloc_dims(object)
 cdef hid_t get_native_type(hid_t) nogil
+
+
+
+
+
+

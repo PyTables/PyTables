@@ -29,16 +29,16 @@ from time import time
 from tables.description import Col
 from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
-from tables.utilsExtension import (getNestedField, AtomFromHDF5Type,
-  createNestedType, HDF5ToNPExtType, createNestedType, platform_byteorder,
-  PTTypeToHDF5, PTSpecialKinds, NPExtPrefixesToPTKinds, HDF5ClassToString, 
+from tables.utilsextension import (get_nested_field, atom_from_hdf5_type,
+  create_nested_type, hdf5_to_np_ext_type, create_nested_type, platform_byteorder,
+  pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string, 
   H5T_STD_I64)
 from tables.utils import SizeType
 
-from utilsExtension cimport get_native_type
+from utilsextension cimport get_native_type
 
 # numpy functions & objects
-from hdf5Extension cimport Leaf
+from hdf5extension cimport Leaf
 from cpython cimport PY_MAJOR_VERSION
 from cpython.unicode cimport PyUnicode_DecodeUTF8
 from libc.stdio cimport snprintf
@@ -61,7 +61,7 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   get_len_of_range, get_order, set_order, is_complex,
   conv_float64_timeval32, truncate_dset)
 
-from lrucacheExtension cimport ObjectCache, NumCache
+from lrucacheextension cimport ObjectCache, NumCache
 
 from tables._past import previous_api
 
@@ -113,7 +113,7 @@ import_array()
 
 
 # Private functions
-cdef getNestedFieldCache(recarray, fieldname, fieldcache):
+cdef get_nested_field_cache(recarray, fieldname, fieldcache):
   """Get the maybe nested field named `fieldname` from the `recarray`.
 
   The `fieldname` may be a simple field name or a nested field name with
@@ -128,12 +128,12 @@ cdef getNestedFieldCache(recarray, fieldname, fieldcache):
     if isinstance(fieldname, int):
       field = recarray[fieldname]
     else:
-      field = getNestedField(recarray, fieldname)
+      field = get_nested_field(recarray, fieldname)
     fieldcache[fieldname] = field
   return field
 
 
-cdef joinPath(object parent, object name):
+cdef join_path(object parent, object name):
   if parent == "":
     return name
   else:
@@ -175,11 +175,11 @@ cdef class Table(Leaf):
     cobversion = encoded_obversion
 
     # Compute the complete compound datatype based on the table description
-    self.disk_type_id = createNestedType(self.description, self.byteorder)
+    self.disk_type_id = create_nested_type(self.description, self.byteorder)
     #self.type_id = H5Tcopy(self.disk_type_id)
     # A H5Tcopy only is not enough, as we want the in-memory type to be
     # in the byteorder of the machine (sys.byteorder).
-    self.type_id = createNestedType(self.description, sys.byteorder)
+    self.type_id = create_nested_type(self.description, sys.byteorder)
 
     # The fill values area
     wdflts = self._v_wdflts
@@ -195,7 +195,7 @@ cdef class Table(Leaf):
     else:
       data = NULL
 
-    class_ = self._c_classId.encode('utf-8')
+    class_ = self._c_classid.encode('utf-8')
     self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, encoded_name,
                                       cobversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
@@ -256,7 +256,7 @@ cdef class Table(Leaf):
     return self.dataset_id
 
 
-  cdef getNestedType(self, hid_t type_id, hid_t native_type_id,
+  cdef get_nested_type(self, hid_t type_id, hid_t native_type_id,
                      object colpath, object field_byteorders):
     """Open a nested type and return a nested dictionary as description."""
 
@@ -290,18 +290,18 @@ cdef class Table(Leaf):
       # Get the HDF5 class
       class_id = H5Tget_class(member_type_id)
       if class_id == H5T_COMPOUND and not is_complex(member_type_id):
-        colpath2 = joinPath(colpath, colname)
+        colpath2 = join_path(colpath, colname)
         # Create the native data in-memory (without gaps!)
         itemsize = H5Tget_size(member_type_id)
         native_member_type_id = H5Tcreate(H5T_COMPOUND, itemsize)
-        desc[colname], itemsize = self.getNestedType(
+        desc[colname], itemsize = self.get_nested_type(
           member_type_id, native_member_type_id, colpath2, field_byteorders)
         desc[colname]["_v_pos"] = i  # Remember the position
       else:
         # Get the member format and the corresponding Col object
         try:
           native_member_type_id = get_native_type(member_type_id)
-          atom = AtomFromHDF5Type(native_member_type_id)
+          atom = atom_from_hdf5_type(native_member_type_id)
           colobj = Col.from_atom(atom, pos=i)
           itemsize = H5Tget_size(native_member_type_id)
         except TypeError, te:
@@ -366,7 +366,7 @@ cdef class Table(Leaf):
     return desc, offset
 
 
-  def _getInfo(self):
+  def _get_info(self):
     """Get info from a table on disk."""
 
     cdef hid_t   space_id, plist
@@ -412,7 +412,7 @@ cdef class Table(Leaf):
     # Create the native data in-memory
     self.type_id = H5Tcreate(H5T_COMPOUND, type_size)
     # Fill-up the (nested) native type (removing the gaps!) and description
-    desc, _ = self.getNestedType(self.disk_type_id, self.type_id, "", [])
+    desc, _ = self.get_nested_type(self.disk_type_id, self.type_id, "", [])
     if desc == {}:
       raise HDF5ExtError("Problems getting desciption for table %s", self.name)
 
@@ -420,7 +420,7 @@ cdef class Table(Leaf):
     return (self.dataset_id, desc, SizeType(chunksize[0]))
 
 
-  cdef _convertTime64_(self, ndarray nparr, hsize_t nrecords, int sense):
+  cdef _convert_time64_(self, ndarray nparr, hsize_t nrecords, int sense):
     """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
 
     NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
@@ -441,7 +441,7 @@ cdef class Table(Leaf):
       t64buf, byteoffset, bytestride, nrecords, nelements, sense)
 
 
-  cdef _convertTypes(self, ndarray recarr, hsize_t nrecords, int sense):
+  cdef _convert_types(self, ndarray recarr, hsize_t nrecords, int sense):
     """Converts columns in 'recarr' between NumPy and HDF5 formats.
 
     NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
@@ -457,14 +457,14 @@ cdef class Table(Leaf):
           colobj = self.coldescrs[colpathname]
           if hasattr(colobj, "_byteorder"):
             if colobj._byteorder != platform_byteorder:
-              column = getNestedField(recarr, colpathname)
+              column = get_nested_field(recarr, colpathname)
               # Do an *inplace* byteswapping
               column.byteswap(True)
 
     # This should be generalised to support other type conversions.
     for t64cname in self._time64colnames:
-      column = getNestedField(recarr, t64cname)
-      self._convertTime64_(column, nrecords, sense)
+      column = get_nested_field(recarr, t64cname)
+      self._convert_time64_(column, nrecords, sense)
 
 
   def _open_append(self, ndarray recarr):
@@ -478,7 +478,7 @@ cdef class Table(Leaf):
     cdef hsize_t nrows
 
     # Convert some NumPy types to HDF5 before storing.
-    self._convertTypes(self._v_recarray, nrecords, 0)
+    self._convert_types(self._v_recarray, nrecords, 0)
 
     nrows = self.nrows
     # release GIL (allow other threads to use the Python interpreter)
@@ -526,7 +526,7 @@ cdef class Table(Leaf):
       nrecords = nrows
 
     # Convert some NumPy types to HDF5 before storing.
-    self._convertTypes(recarr, nrecords, 0)
+    self._convert_types(recarr, nrecords, 0)
     # Update the records:
     with nogil:
         ret = H5TBOwrite_records(self.dataset_id, self.type_id,
@@ -551,7 +551,7 @@ cdef class Table(Leaf):
     rbuf = recarr.data
 
     # Convert some NumPy types to HDF5 before storing.
-    self._convertTypes(recarr, nrecords, 0)
+    self._convert_types(recarr, nrecords, 0)
 
     # Update the records:
     with nogil:
@@ -585,7 +585,7 @@ cdef class Table(Leaf):
       raise HDF5ExtError("Problems reading records.")
 
     # Convert some HDF5 types to NumPy after reading.
-    self._convertTypes(recarr, nrecords, 1)
+    self._convert_types(recarr, nrecords, 1)
 
     return nrecords
 
@@ -641,7 +641,7 @@ cdef class Table(Leaf):
       raise HDF5ExtError("Problems reading records.")
 
     # Convert some HDF5 types to NumPy after reading.
-    self._convertTypes(recarr, nrecords, 1)
+    self._convert_types(recarr, nrecords, 1)
 
     return nrecords
 
@@ -723,7 +723,7 @@ cdef class Row:
   cdef object  condfunc, condargs
   cdef object  mod_elements, colenums
   cdef object  rfieldscache, wfieldscache
-  cdef object  _tableFile, _tablePath
+  cdef object  _table_file, _table_path
   cdef object  modified_fields
   cdef object  seq_available
 
@@ -741,14 +741,14 @@ cdef class Row:
 
   property table:
     def __get__(self):
-        return self._tableFile._getNode(self._tablePath)
+        return self._table_file._get_node(self._table_path)
 
 
   def __cinit__(self, table):
     cdef int nfields, i
     # Location-dependent information.
-    self._tableFile = table._v_file
-    self._tablePath = table._v_pathname
+    self._table_file = table._v_file
+    self._table_path = table._v_pathname
     self._unsaved_nrows = 0
     self._mod_nrows = 0
     self._row = 0
@@ -767,7 +767,7 @@ cdef class Row:
     self.chunksize = table.chunkshape[0]
     self.nchunksinbuf = self.nrowsinbuf / self.chunksize
     self.dtype = table._v_dtype
-    self._newBuffer(table)
+    self._new_buffer(table)
     self.mod_elements = None
     self.rfieldscache = {}
     self.wfieldscache = {}
@@ -777,7 +777,7 @@ cdef class Row:
   def _iter(self, start=0, stop=0, step=1, coords=None, chunkmap=None):
     """Return an iterator for traversiong the data in table."""
 
-    self._initLoop(start, stop, step, coords, chunkmap)
+    self._init_loop(start, stop, step, coords, chunkmap)
     return iter(self)
 
 
@@ -787,7 +787,7 @@ cdef class Row:
     return self
 
 
-  cdef _newBuffer(self, table):
+  cdef _new_buffer(self, table):
     """Create the recarrays for I/O buffering"""
 
     wdflts = table._v_wdflts
@@ -819,7 +819,7 @@ cdef class Row:
     self.nrows = table.nrows  # This value may change
 
 
-  cdef _initLoop(self, hsize_t start, hsize_t stop, hsize_t step,
+  cdef _init_loop(self, hsize_t start, hsize_t stop, hsize_t step,
                  object coords, object chunkmap):
     """Initialization for the __iter__ iterator"""
 
@@ -845,12 +845,12 @@ cdef class Row:
       self.absstep = abs(step)
       return
 
-    if table._whereCondition:
+    if table._where_condition:
       self.whereCond = 1
-      self.condfunc, self.condargs = table._whereCondition
-      table._whereCondition = None
+      self.condfunc, self.condargs = table._where_condition
+      table._where_condition = None
 
-    if table._useIndex:
+    if table._use_index:
       self.indexed = 1
       # Compute totalchunks here because self.nrows can change during the
       # life of a Row instance.
@@ -861,7 +861,7 @@ cdef class Row:
       self.nextelement = 0
       self.chunkmap = chunkmap
       self.chunkmapData = <char*>self.chunkmap.data
-      table._useIndex = False
+      table._use_index = False
       self.lenbuf = self.nrowsinbuf
       # Check if we have limitations on start, stop, step
       self.sss_on = (self.start > 0 or self.stop < self.nrows or self.step > 1)
@@ -879,7 +879,7 @@ cdef class Row:
     elif self.coords is not None:
         return self.__next__coords()
     elif self.whereCond:
-      return self.__next__inKernel()
+      return self.__next__inkernel()
     else:
       return self.__next__general()
 
@@ -1025,7 +1025,7 @@ cdef class Row:
       self._finish_riterator()
 
 
-  cdef __next__inKernel(self):
+  cdef __next__inkernel(self):
     """The version of next() in case of in-kernel conditions"""
 
     cdef hsize_t recout, correct
@@ -1127,12 +1127,12 @@ cdef class Row:
       self.wrec[:] = self.IObuf[self._row]
     self._riterator = 0        # out of iterator
     if self._mod_nrows > 0:    # Check if there is some modified row
-      self._flushModRows()     # Flush any possible modified row
+      self._flush_mod_rows()     # Flush any possible modified row
     self.modified_fields = set()  # Empty the set of modified fields
     raise StopIteration        # end of iteration
 
 
-  def _fillCol(self, result, start, stop, step, field):
+  def _fill_col(self, result, start, stop, step, field):
     """Read a field from a table on disk and put the result in result"""
 
     cdef hsize_t startr, stopr, i, j, istartb, istopb
@@ -1140,7 +1140,7 @@ cdef class Row:
     cdef object fields
 
     # We can't reuse existing buffers in this context
-    self._initLoop(start, stop, step, None, None)
+    self._init_loop(start, stop, step, None, None)
     istart, istop, istep = (self.start, self.stop, self.step)
     inrowsinbuf, inextelement, inrowsread = (self.nrowsinbuf, istart, istart)
     istartb, startr = (self.startb, 0)
@@ -1161,7 +1161,7 @@ cdef class Row:
       # Assign the correct part to result
       fields = self.IObuf
       if field:
-        fields = getNestedField(fields, field)
+        fields = get_nested_field(fields, field)
       result[startr:stopr] = fields[istartb:istopb:istep]
 
       # Compute some indexes for the next iteration
@@ -1173,7 +1173,7 @@ cdef class Row:
     self._riterator = 0  # out of iterator
     return
 
-  _fillCol = previous_api(_fillCol)
+  _fillCol = previous_api(_fill_col)
 
 
   def append(self):
@@ -1231,22 +1231,22 @@ cdef class Row:
     self._unsaved_nrows = self._unsaved_nrows + 1
     # When the buffer is full, flush it
     if self._unsaved_nrows == self.nrowsinbuf:
-      self._flushBufferedRows()
+      self._flush_buffered_rows()
 
 
-  def _flushBufferedRows(self):
+  def _flush_buffered_rows(self):
     if self._unsaved_nrows > 0:
-      self.table._saveBufferedRows(self.IObuf, self._unsaved_nrows)
+      self.table._save_buffered_rows(self.IObuf, self._unsaved_nrows)
       # Reset the buffer unsaved counter
       self._unsaved_nrows = 0
 
-  _flushBufferedRows = previous_api(_flushBufferedRows)
+  _flushBufferedRows = previous_api(_flush_buffered_rows)
 
 
-  def _getUnsavedNrows(self):
+  def _get_unsaved_nrows(self):
     return self._unsaved_nrows
 
-  _getUnsavedNrows = previous_api(_getUnsavedNrows)
+  _getUnsavedNrows = previous_api(_get_unsaved_nrows)
 
   def update(self):
     """Change the data of the current row in the dataset.
@@ -1319,10 +1319,10 @@ cdef class Row:
     self._mod_nrows = self._mod_nrows + 1
     # When the buffer is full, flush it
     if self._mod_nrows == self.nrowsinbuf:
-      self._flushModRows()
+      self._flush_mod_rows()
 
 
-  def _flushModRows(self):
+  def _flush_mod_rows(self):
     """Flush any possible modified row using Row.update()"""
 
     table = self.table
@@ -1331,9 +1331,9 @@ cdef class Row:
     # Reset the counter of modified rows to 0
     self._mod_nrows = 0
     # Mark the modified fields' indexes as dirty.
-    table._markColumnsAsDirty(self.modified_fields)
+    table._mark_columns_as_dirty(self.modified_fields)
 
-  _flushModRows = previous_api(_flushModRows)
+  _flushModRows = previous_api(_flush_mod_rows)
 
 
   def __contains__(self, item):
@@ -1404,7 +1404,7 @@ cdef class Row:
     except (KeyError, TypeError):
       try:
         # Try to get it from fields (str or int keys)
-        field = getNestedFieldCache(fields, key, fieldscache)
+        field = get_nested_field_cache(fields, key, fieldscache)
       except TypeError:
         # No luck yet. Still, the key can be a slice.
         # Fetch the complete row and convert it into a tuple
@@ -1477,7 +1477,7 @@ cdef class Row:
           enum(cenval)  # raises ``ValueError`` on invalid values
 
     # Get the field to be modified
-    field = getNestedFieldCache(fields, key, fieldscache)
+    field = get_nested_field_cache(fields, key, fieldscache)
     if key not in self.modified_fields:
       self.modified_fields.add(key)
 
@@ -1549,3 +1549,9 @@ cdef class Row:
 ## tab-width: 2
 ## fill-column: 78
 ## End:
+
+
+
+
+
+
