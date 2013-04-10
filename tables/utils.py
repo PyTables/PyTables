@@ -20,7 +20,7 @@ from time import time
 import numpy
 
 from tables.flavor import array_of_flavor
-
+from tables._past import previous_api
 
 # The map between byteorders in NumPy and PyTables
 byteorders = {'>': 'big',
@@ -105,6 +105,8 @@ def convertToNPAtom(arr, atom, copy=False):
         nparr = nparr2.view(atom.dtype)
     return nparr
 
+convertToNPAtom = previous_api(convertToNPAtom)
+
 
 # The next is used in Array, EArray and VLArray, and it is a bit more
 # high level than convertToNPAtom
@@ -123,6 +125,8 @@ def convertToNPAtom2(object, atom):
         nparr = nparr.byteswap()
 
     return nparr
+
+convertToNPAtom2 = previous_api(convertToNPAtom2)
 
 
 def checkFileAccess(filename, mode='r'):
@@ -177,6 +181,8 @@ def checkFileAccess(filename, mode='r'):
                           % (filename,))
     else:
         raise ValueError("invalid mode: %r" % (mode,))
+
+checkFileAccess = previous_api(checkFileAccess)
 
 
 def lazyattr(fget):
@@ -274,6 +280,8 @@ def logInstanceCreation(instance, name=None):
             tracked_classes[name] = []
         tracked_classes[name].append(weakref.ref(instance))
 
+logInstanceCreation = previous_api(logInstanceCreation)
+
 def string_to_classes(s):
     if s == '*':
         c = sorted(tracked_classes.iterkeys())
@@ -285,9 +293,13 @@ def fetchLoggedInstances(classes="*"):
     classnames = string_to_classes(classes)
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
+fetchLoggedInstances = previous_api(fetchLoggedInstances)
+
 def countLoggedInstances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
+
+countLoggedInstances = previous_api(countLoggedInstances)
 
 def listLoggedInstances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
@@ -296,6 +308,8 @@ def listLoggedInstances(classes, file=sys.stdout):
             obj = ref()
             if obj is not None:
                 file.write('    %s\n' % repr(obj))
+
+listLoggedInstances = previous_api(listLoggedInstances)
 
 def dumpLoggedInstances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
@@ -306,6 +320,8 @@ def dumpLoggedInstances(classes, file=sys.stdout):
                 file.write('    %s:\n' % obj)
                 for key, value in obj.__dict__.iteritems():
                     file.write('        %20s : %s\n' % (key, value))
+
+dumpLoggedInstances = previous_api(dumpLoggedInstances)
 
 
 #
@@ -399,6 +415,7 @@ def detectNumberOfCores():
             return ncpus
     return 1 # Default
 
+detectNumberOfCores = previous_api(detectNumberOfCores)
 
 
 # Main part

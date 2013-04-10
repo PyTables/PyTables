@@ -29,7 +29,7 @@ Misc variables:
 """
 
 from tables.path import splitPath
-
+from tables._past import previous_api
 
 
 __docformat__ = 'reStructuredText'
@@ -76,6 +76,8 @@ def moveToShadow(file_, path):
     (shparent, shname) = file_._shadowName()
     node._g_move(shparent, shname)
 
+moveToShadow = previous_api(moveToShadow)
+
 
 def moveFromShadow(file_, path):
     (shparent, shname) = file_._shadowName()
@@ -85,18 +87,27 @@ def moveFromShadow(file_, path):
     parent = file_._getNode(pname)
     node._g_move(parent, name)
 
+moveFromShadow = previous_api(moveFromShadow)
 
 def undoCreate(file_, path):
     moveToShadow(file_, path)
 
+undoCreate = previous_api(undoCreate)
+
 def redoCreate(file_, path):
     moveFromShadow(file_, path)
+
+redoCreate = previous_api(redoCreate)
 
 def undoRemove(file_, path):
     moveFromShadow(file_, path)
 
+undoRemove = previous_api(undoRemove)
+
 def redoRemove(file_, path):
     moveToShadow(file_, path)
+
+redoRemove = previous_api(redoRemove)
 
 def undoMove(file_, origpath, destpath):
     (origpname, origname) = splitPath(origpath)
@@ -105,6 +116,8 @@ def undoMove(file_, origpath, destpath):
     origparent = file_._getNode(origpname)
     node._g_move(origparent, origname)
 
+undoMove = previous_api(undoMove)
+
 def redoMove(file_, origpath, destpath):
     (destpname, destname) = splitPath(destpath)
 
@@ -112,6 +125,7 @@ def redoMove(file_, origpath, destpath):
     destparent = file_._getNode(destpname)
     node._g_move(destparent, destname)
 
+redoMove = previous_api(redoMove)
 
 def attrToShadow(file_, path, name):
     node = file_._getNode(path)
@@ -128,6 +142,8 @@ def attrToShadow(file_, path, name):
 
     attrs._g__delattr(name)
 
+attrToShadow = previous_api(attrToShadow)
+
 
 def attrFromShadow(file_, path, name):
     (shparent, shname) = file_._shadowName()
@@ -140,19 +156,29 @@ def attrFromShadow(file_, path, name):
     # Keeping the attribute in the shadow allows reusing it on Undo/Redo.
     ##shattrs._g__delattr(shname)
 
+attrFromShadow = previous_api(attrFromShadow)
+
 
 def undoAddAttr(file_, path, name):
     attrToShadow(file_, path, name)
 
+undoAddAttr = previous_api(undoAddAttr)
+
 def redoAddAttr(file_, path, name):
     attrFromShadow(file_, path, name)
+
+redoAddAttr = previous_api(redoAddAttr)
 
 def undoDelAttr(file_, path, name):
     attrFromShadow(file_, path, name)
 
+undoDelAttr = previous_api(undoDelAttr)
+
+
 def redoDelAttr(file_, path, name):
     attrToShadow(file_, path, name)
 
+redoDelAttr = previous_api(redoDelAttr)
 
 
 ## Local Variables:

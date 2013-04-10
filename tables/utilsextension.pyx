@@ -29,6 +29,7 @@ from tables.exceptions import HDF5ExtError
 from tables.atom import Atom, EnumAtom
 
 from tables.utils import checkFileAccess
+from tables._past import previous_api
 
 from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
@@ -240,6 +241,7 @@ def setBloscMaxThreads(nthreads):
   """
   return blosc_set_nthreads(nthreads)
 
+setBloscMaxThreads = previous_api(setBloscMaxThreads)
 
 if sys.platform == "win32":
   # We need a different approach in Windows, because it complains when
@@ -346,6 +348,8 @@ def silenceHDF5Messages(silence=True):
         err = H5Eset_auto(H5E_DEFAULT, <H5E_auto_t>H5Eprint, stderr)
     if err < 0:
         raise HDF5ExtError("unable to configure HDF5 internal error handling")
+
+silenceHDF5Messages = previous_api(silenceHDF5Messages)
 
 # Disable automatic HDF5 error logging
 silenceHDF5Messages()
@@ -544,6 +548,8 @@ def isHDF5File(object filename):
     raise HDF5ExtError("problems identifying file ``%s``" % (filename,))
   return ret > 0
 
+isHDF5File = previous_api(isHDF5File)
+
 
 def isPyTablesFile(object filename):
   """isPyTablesFile(filename)
@@ -576,17 +582,22 @@ def isPyTablesFile(object filename):
 
   return isptf
 
+isPyTablesFile = previous_api(isPyTablesFile)
+
 
 def getHDF5Version():
   """Get the underlying HDF5 library version"""
 
   return getHDF5VersionInfo()[1]
 
+getHDF5Version = previous_api(getHDF5Version)
 
 def getPyTablesVersion():
   """Return this extension version."""
 
   return _getTablesVersion()
+
+getPyTablesVersion = previous_api(getPyTablesVersion)
 
 
 def whichLibVersion(str name):
@@ -636,6 +647,8 @@ def whichLibVersion(str name):
 
   # A supported library was specified, but no version is available.
   return None
+
+whichLibVersion = previous_api(whichLibVersion)
 
 
 def whichClass(hid_t loc_id, object name):
@@ -733,6 +746,8 @@ def whichClass(hid_t loc_id, object name):
   # Fallback
   return classId
 
+whichClass = previous_api(whichClass)
+
 
 def getNestedField(recarray, fieldname):
   """Get the maybe nested field named `fieldname` from the `recarray`.
@@ -756,6 +771,8 @@ def getNestedField(recarray, fieldname):
     raise KeyError("no such column: %s" % (fieldname,))
   return field
 
+getNestedField = previous_api(getNestedField)
+
 
 def getIndices(object start, object stop, object step, hsize_t length):
   cdef hssize_t o_start, o_stop, o_step
@@ -770,6 +787,8 @@ def getIndices(object start, object stop, object step, hsize_t length):
   if getIndicesExt(s, length, &o_start, &o_stop, &o_step, &slicelength) < 0:
     raise ValueError("Problems getting the indices on slice '%s'" % s)
   return (o_start, o_stop, o_step)
+
+getIndices = previous_api(getIndices)
 
 
 def read_f_attr(hid_t file_id, str attr_name):
@@ -819,6 +838,8 @@ def getFilters(parent_id, name):
 
   return get_filter_names(parent_id, encoded_name)
 
+getFilters = previous_api(getFilters)
+
 
 # This is used by several <Leaf>._convertTypes() methods.
 def getTypeEnum(hid_t h5type):
@@ -851,6 +872,8 @@ def getTypeEnum(hid_t h5type):
     raise TypeError(
       "enumerated values can not be stored using the given type")
   return enumId
+
+getTypeEnum = previous_api(getTypeEnum)
 
 
 def enumFromHDF5(hid_t enumId, str byteorder):
@@ -913,6 +936,8 @@ def enumFromHDF5(hid_t enumId, str byteorder):
   # Build an enumerated type from `enumDict` and return it.
   return Enum(enumDict), dtype
 
+enumFromHDF5 = previous_api(enumFromHDF5)
+
 
 def enumToHDF5(object enumAtom, str byteorder):
   """enumToHDF5(enumAtom, byteorder) -> hid_t
@@ -961,6 +986,7 @@ def enumToHDF5(object enumAtom, str byteorder):
   # Return the new, open HDF5 enumerated type.
   return enumId
 
+enumToHDF5 = previous_api(enumToHDF5)
 
 def AtomToHDF5Type(atom, str byteorder):
   cdef hid_t   tid = -1
@@ -1009,6 +1035,8 @@ def AtomToHDF5Type(atom, str byteorder):
 
   return tid
 
+AtomToHDF5Type = previous_api(AtomToHDF5Type)
+
 
 def loadEnum(hid_t type_id):
   """loadEnum() -> (Enum, npType)
@@ -1038,6 +1066,8 @@ def loadEnum(hid_t type_id):
     # (Yes, the ``finally`` clause *is* executed.)
     if H5Tclose(enumId) < 0:
       raise HDF5ExtError("failed to close HDF5 enumerated type")
+
+loadEnum = previous_api(loadEnum)
 
 def HDF5ToNPNestedType(hid_t type_id):
   """Given a HDF5 `type_id`, return a dtype string representation of it."""
@@ -1077,6 +1107,8 @@ def HDF5ToNPNestedType(hid_t type_id):
     free(c_colname)
 
   return desc
+
+HDF5ToNPNestedType = previous_api(HDF5ToNPNestedType)
 
 
 def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
@@ -1179,6 +1211,8 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
 
   return stype, shape
 
+HDF5ToNPExtType = previous_api(HDF5ToNPExtType)
+
 
 def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
   """Get an atom from a type_id.
@@ -1204,6 +1238,8 @@ def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
     atom_ = Atom.from_kind(kind, tsize, shape=shape)
 
   return atom_
+
+AtomFromHDF5Type = prveious_api(AtomFromHDF5Type)
 
 
 def createNestedType(object desc, str byteorder):
@@ -1231,6 +1267,8 @@ def createNestedType(object desc, str byteorder):
     H5Tclose(tid2)
 
   return tid
+
+createNestedType = previous_api(createNestedType)
 
 
 ## Local Variables:
