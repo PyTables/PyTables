@@ -269,12 +269,45 @@ old2newnames = dict([
     ('_f_getAttr', '_f_getattr'),
     ('_f_setAttr', '_f_setattr'),
     ('_f_delAttr', '_f_delattr'),
-    ('', ''),
-    ('', ''),
-    ('', ''),
-    ('', ''),
-    ('', ''),
-    ('', ''),
+    # from nodes/filenode.py
+    ('newNode', 'new_node'),
+    ('openNode', 'open_node'),
+    ('_lineChunkSize', '_line_chunksize'),
+    ('_lineSeparator', '_line_separator'),
+    ('getLineSeparator', 'get_line_separator'),
+    ('setLineSeparator', 'set_line_separator'),
+    ('delLineSeparator', 'del_line_separator'),
+    ('lineSeparator', 'line_separator'),
+    ('_notReadableError', '_not_readable_error'),
+    ('_appendZeros', '_append_zeros'),
+    ('getAttrs', 'get_attrs'),
+    ('setAttrs', 'set_attrs'),
+    ('delAttrs', 'del_attrs'),
+    ('_setAttributes', '_set_attributes'),
+    ('_checkAttributes', '_check_attributes'),
+    ('_checkNotClosed', '_check_not_closed'),
+    ('__allowedInitKwArgs', '__allowed_init_kwargs'),
+    # from path.py
+    ('_pythonIdRE', '_python_id_re'),
+    ('_reservedIdRE', '_reserved_id_re'),
+    ('_hiddenNameRE', '_hidden_name_re'),
+    ('_hiddenPathRE', '_hidden_path_re'),
+    ('checkNameValidity', 'check_name_validity'),
+    ('joinPath', 'join_path'),
+    ('splitPath', 'split_path'),
+    ('isVisibleName', 'isvisiblename'),
+    ('isVisiblePath', 'isvisiblepath'),
+    # from registry.py
+    ('classNameDict', 'class_name_dict'),
+    ('classIdDict', 'class_id_dict'),
+    ('getClassByName', 'get_class_by_name'),
+    # from scripts/ptdump.py
+    ('dumpLeaf', 'dump_leaf'),
+    ('dumpGroup', 'dump_group'),
+    # from scripts/ptrepack.py
+    ('newdstGroup', 'newdst_group'),
+    ('recreateIndexes', 'recreate_indexes'),
+    ('copyLeaf', 'copy_leaf'),
     ('', ''),
     ('', ''),
     ('', ''),
@@ -283,4 +316,5 @@ old2newnames = dict([
     ])
 
 new2oldnames = dict([(v, k) for k, v in old2newnames.iteritems()])
+
 

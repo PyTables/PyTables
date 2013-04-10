@@ -26,7 +26,7 @@ import warnings
 import keyword
 
 from tables.exceptions import NaturalNameWarning
-
+from tables._past import previous_api
 
 # Public variables
 # ================
@@ -114,6 +114,8 @@ def checkNameValidity(name):
     if name == '__members__':
         raise ValueError("``__members__`` is not allowed as an object name")
 
+checkNameValidity = previous_api(checkNameValidity)
+
 
 def joinPath(parentPath, name):
     """Join a *canonical* `parentPath` with a *non-empty* `name`.
@@ -140,6 +142,8 @@ def joinPath(parentPath, name):
         pstr = pstr[:-1]
     return pstr
 
+joinPath = previous_api(joinPath)
+
 
 def splitPath(path):
     """Split a *canonical* `path` into a parent path and a node name.
@@ -162,17 +166,22 @@ def splitPath(path):
 
     return (ppath, name)
 
+splitPath = previous_api(splitPath)
+
 
 def isVisibleName(name):
     """Does this `name` make the named node a visible one?"""
 
     return _hiddenNameRE.match(name) is None
 
+isVisibleName = previous_api(isVisibleName)
 
 def isVisiblePath(path):
     """Does this `path` make the named node a visible one?"""
 
     return _hiddenPathRE.search(path) is None
+
+isVisiblePath = previous_api(isVisiblePath)
 
 
 # Main part

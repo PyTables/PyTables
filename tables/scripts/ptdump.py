@@ -25,7 +25,7 @@ from tables.group import Group
 from tables.leaf import Leaf
 from tables.table import Table, Column
 from tables.unimplemented import UnImplemented
-
+from tables._past import previous_api
 
 # default options
 class Options(object):
@@ -82,6 +82,8 @@ def dumpLeaf(leaf):
                 idx = col.index
                 print repr(idx)
 
+dumpLeaf = previous_api(dumpLeaf)
+
 
 def dumpGroup(pgroup):
     node_kinds = pgroup._v_file._node_kinds[1:]
@@ -96,6 +98,8 @@ def dumpGroup(pgroup):
                 else:
                     print str(node)
 
+
+dumpGroup = previous_api(dumpGroup)
 
 
 def main():

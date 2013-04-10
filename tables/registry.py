@@ -26,6 +26,8 @@ Misc variables:
     The format of documentation strings in this module.
 """
 
+from tables._past import previous_api
+
 # Important: no modules from PyTables should be imported here
 # (but standard modules are OK), since the main reason for this module
 # is avoiding circular imports!
@@ -71,6 +73,7 @@ def getClassByName(className):
 
     return classNameDict[className]
 
+getClassByName = previous_api(getClassByName)
 
 ## Local Variables:
 ## mode: python

@@ -26,6 +26,7 @@ from tables.file import openFile
 from tables.group import Group
 from tables.leaf import Filters
 from tables.exceptions import  OldIndexWarning, NoSuchNodeError, FlavorWarning
+from tables._past import previous_api
 
 # Global variables
 verbose = False
@@ -50,6 +51,8 @@ def newdstGroup(dstfileh, dstgroup, title, filters):
         group = group2
     return group
 
+newdstGroup = previous_api(newdstGroup)
+
 
 def recreateIndexes(table, dstfileh, dsttable):
     listoldindexes = table._listoldindexes
@@ -69,6 +72,8 @@ def recreateIndexes(table, dstfileh, dsttable):
             colobj = dsttable.cols._f_col(colname)
             # We don't specify the filters for the indexes
             colobj.createIndex(filters = None)
+
+recreateIndexes = previous_api(recreateIndexes)
 
 
 def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
@@ -157,6 +162,8 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
     srcfileh.close()
     dstfileh.close()
 
+copyLeaf = previous_api(copyLeaf)
+
 
 def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                  recursive, filters, copyuserattrs, overwritefile,
@@ -244,6 +251,8 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
     # Close all the open files:
     srcfileh.close()
     dstfileh.close()
+
+copyChildren = previous_api(copyChildren)
 
 
 def main():

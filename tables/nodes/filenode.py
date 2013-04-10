@@ -29,6 +29,7 @@ import warnings
 import numpy
 
 import tables
+from tables._past import previous_api
 
 
 NodeType = 'file'
@@ -51,6 +52,8 @@ def newNode(h5file, **kwargs):
 
     return RAFileNode(None, h5file, **kwargs)
 
+newNode = previous_api(newNode)
+
 
 def openNode(node, mode='r'):
     """Opens an existing file node.
@@ -68,6 +71,8 @@ def openNode(node, mode='r'):
         return RAFileNode(node, None)
     else:
         raise IOError("invalid mode: %s" % (mode,))
+
+openNode = previous_api(openNode)
 
 
 class ReadableMixin:
@@ -96,6 +101,9 @@ class ReadableMixin:
 
         return self._lineSeparator
 
+    getLineSeparator = previous_api(getLineSeparator)
+
+
     def setLineSeparator(self, value):
         """Sets the line separator string.
 
@@ -112,15 +120,22 @@ class ReadableMixin:
         else:
             self._lineSeparator = value
 
+    setLineSeparator = previous_api(setLineSeparator)
+
+
     def delLineSeparator(self):
         "Deletes the 'lineSeparator' property."
 
         del self._lineSeparator
 
+    delLineSeparator = previous_api(delLineSeparator)
+
     # The line separator string property.
     lineSeparator = property(
         getLineSeparator, setLineSeparator, delLineSeparator,
         """A property containing the line separator string.""")
+
+    lineSeparator = previous_api(lineSeparator)
 
     def __iter__(self):
         return self
@@ -293,6 +308,8 @@ class NotReadableMixin:
         """
         raise IOError("the file is not readable")
 
+    _notReadableError = previous_api(_notReadableError)
+
     # The definition of those methods may seem odd
     # but it is the way Python (2.3) files work.
 
@@ -438,6 +455,8 @@ class AppendableMixin:
         self.node.append(
             numpy.zeros(dtype=self._vType, shape=self._vShape(size)))
 
+    _appendZeros = previous_api(_appendZeros)
+
     def truncate(self, size=None):
         """Truncates the file node to at most 'size' bytes.
 
@@ -543,15 +562,21 @@ class FileNode(object):
 
         return self.node.attrs
 
+    getAttrs = previous_api(getAttrs)
+
     def setAttrs(self, value):
         "setAttrs(string) -> None.  Raises ValueError."
 
         raise ValueError("changing the whole attribute set is not allowed")
 
+    setAttrs = previous_api(setAttrs)
+
     def delAttrs(self):
         "delAttrs() -> None.  Raises ValueError."
 
         raise ValueError("deleting the whole attribute set is not allowed")
+
+    delAttrs = previous_api(delAttrs)
 
     # The attribute set property.
     attrs = property(
@@ -590,6 +615,8 @@ class FileNode(object):
         attrs.NODE_TYPE = NodeType
         attrs.NODE_TYPE_VERSION = NodeTypeVersions[-1]
 
+    _setAttributes = previous_api(_setAttributes)
+
     def _checkAttributes(self, node):
         """Checks file node-specific attributes.
 
@@ -609,6 +636,8 @@ class FileNode(object):
             raise ValueError(
                 "unsupported type version of node object: %s" % (ltypever,))
 
+    _checkAttributes = previous_api(_checkAttributes)
+
     def _checkNotClosed(self):
         """Checks if file node is open.
 
@@ -621,6 +650,8 @@ class FileNode(object):
             raise ValueError("I/O operation on closed file")
         if getattr(self.node, '_v_file', None) is None:
             raise ValueError("host PyTables file is already closed!")
+
+    _checkNotClosed = previous_api(_checkNotClosed)
 
     def close(self):
         """Flushes the file and closes it.
