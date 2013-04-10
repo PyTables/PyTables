@@ -434,9 +434,6 @@ old2newnames = dict([
     ('HDF5ToNPExtType', 'hdf5_to_np_ext_type'),
     ('AtomFromHDF5Type', 'atom_from_hdf5_type'),
     ('createNestedType', 'create_nested_type'),
-    ('', ''),
-    ('', ''),
-    ('', ''),
     ])
 
 new2oldnames = dict([(v, k) for k, v in old2newnames.iteritems()])
