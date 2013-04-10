@@ -56,6 +56,8 @@ from tables.utilsExtension import (encode_filename, setBloscMaxThreads,
 
 from utilsExtension cimport malloc_dims, get_native_type
 
+from tables._past import previous_api
+
 
 # Types, constants, functions, classes & other objects from everywhere
 from libc.stdlib cimport malloc, free
@@ -579,16 +581,21 @@ cdef class File:
     descriptor = <uintptr_t *>file_handle
     return descriptor[0]
 
+  _getFileId = previous_api(_getFileId)
 
   def _flushFile(self, scope):
     # Close the file
     H5Fflush(self.file_id, scope)
+
+  _flushFile = previous_api(_flushFile)
 
 
   def _closeFile(self):
     # Close the file
     H5Fclose( self.file_id )
     self.file_id = 0    # Means file closed
+
+  _closeFile = previous_api(_closeFile)
 
 
   # This method is moved out of scope, until we provide code to delete
@@ -616,6 +623,7 @@ cdef class AttributeSet:
     a = Aiterate(node._v_objectID)
     return a
 
+  _g_listAttr = previous_api(_g_listAttr)
 
   def _g_setAttr(self, node, name, object value):
     """Save Python or NumPy objects as HDF5 attributes.
@@ -688,6 +696,8 @@ cdef class AttributeSet:
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
                            (name, self._v_node))
+
+  _g_setAttr = previous_api(_g_setAttr)
 
   # Get attributes
   def _g_getAttr(self, node, attrname):
@@ -844,6 +854,7 @@ cdef class AttributeSet:
 
     return retvalue
 
+  _g_getAttr = previous_api(_g_getAttr)
 
   def _g_remove(self, node, attrname):
     cdef int ret
@@ -974,6 +985,8 @@ cdef class Group(Node):
 
     return Giterate(parent._v_objectID, self._v_objectID, encoded_name)
 
+  _g_listGroup = previous_api(_g_listGroup)
+
 
   def _g_getGChildAttr(self, group_name, attr_name):
     """Return an attribute of a child `Group`.
@@ -1001,6 +1014,8 @@ cdef class Group(Node):
 
     return retvalue
 
+  _g_getGChildAttr = previous_api(_g_getGChildAttr)
+
 
   def _g_getLChildAttr(self, leaf_name, attr_name):
     """Return an attribute of a child `Leaf`.
@@ -1026,11 +1041,14 @@ cdef class Group(Node):
     H5Dclose(leaf_id)
     return retvalue
 
+  _g_getLChildAttr = previous_api(_g_getLChildAttr)
+
 
   def _g_flushGroup(self):
     # Close the group
     H5Fflush(self.group_id, H5F_SCOPE_GLOBAL)
 
+  _g_flushGroup = previous_api(_g_flushGroup)
 
   def _g_closeGroup(self):
     cdef int ret
@@ -1040,6 +1058,7 @@ cdef class Group(Node):
       raise HDF5ExtError("Problems closing the Group %s" % self.name)
     self.group_id = 0  # indicate that this group is closed
 
+  _g_closeGroup = previous_api(_g_closeGroup)
 
   def _g_moveNode(self, hid_t oldparent, oldname, hid_t newparent, newname,
                   oldpathname, newpathname):
@@ -1056,7 +1075,7 @@ cdef class Group(Node):
                          (oldpathname, newpathname) )
     return ret
 
-
+  _g_moveNode = previous_api(_g_moveNode)
 
 cdef class Leaf(Node):
   # Instance variables declared in .pxd
@@ -1113,6 +1132,8 @@ cdef class Leaf(Node):
 
     conv_float64_timeval32(
       t64buf, byteoffset, bytestride, nrecords, nelements, sense)
+
+  _convertTime64 = previous_api(_convertTime64)
 
 
   def _g_truncate(self, hsize_t size):
@@ -1222,6 +1243,8 @@ cdef class Array(Leaf):
 
     return (self.dataset_id, shape, atom)
 
+  _createArray = previous_api(_createArray)
+
 
   def _createCArray(self, object title):
     cdef int i
@@ -1293,6 +1316,7 @@ cdef class Array(Leaf):
 
     return self.dataset_id
 
+  _createCArray = previous_api(_createCArray)
 
   def _openArray(self):
     cdef size_t type_size, type_precision
@@ -1377,6 +1401,7 @@ cdef class Array(Leaf):
 
     return (self.dataset_id, atom, shape, chunkshapes)
 
+  _openArray = previous_api(_openArray)
 
   def _append(self, ndarray nparr):
     cdef int ret, extdim
@@ -1444,6 +1469,8 @@ cdef class Array(Leaf):
 
     return
 
+  _readArray = previous_api(_readArray)
+
 
   def _g_readSlice(self, ndarray startl, ndarray stopl, ndarray stepl,
                    ndarray nparr):
@@ -1477,6 +1504,7 @@ cdef class Array(Leaf):
 
     return
 
+  _g_readSlice = previous_api(_g_readSlice)
 
   def _g_readCoords(self, ndarray coords, ndarray nparr):
     """Read coordinates in an already created NumPy array."""
@@ -1524,6 +1552,8 @@ cdef class Array(Leaf):
       self._convertTime64(nparr, 1)
 
     return
+
+  _g_readCoords = previous_api(_g_readCoords)
 
 
   def perform_selection(self, space_id, start, count, step, idx, mode):
@@ -1617,6 +1647,8 @@ cdef class Array(Leaf):
 
     return
 
+  _g_readSelection = previous_api(_g_readSelection)
+
 
   def _g_writeSlice(self, ndarray startl, ndarray stepl, ndarray countl,
                     ndarray nparr):
@@ -1647,6 +1679,8 @@ cdef class Array(Leaf):
                 "(H5ARRAYwrite_records returned errorcode -%i)" % (-ret))
 
     return
+
+  _g_writeSlice = previous_api(_g_writeSlice)
 
 
   def _g_writeCoords(self, ndarray coords, ndarray nparr):
@@ -1690,6 +1724,8 @@ cdef class Array(Leaf):
     H5Sclose(space_id)
 
     return
+
+  _g_writeCoords = previous_api(_g_writeCoords)
 
 
   def _g_writeSelection(self, object selection, ndarray nparr):
@@ -1737,6 +1773,7 @@ cdef class Array(Leaf):
 
     return
 
+  _g_writeSelection = previous_api(_g_writeSelection)
 
   def __dealloc__(self):
     if self.dims:
@@ -1814,6 +1851,7 @@ cdef class VLArray(Leaf):
 
     return self.dataset_id
 
+  _createArray = previous_api(_createArray)
 
   def _openArray(self):
     cdef char cbyteorder[11]  # "irrelevant" fits easily here
@@ -1860,6 +1898,8 @@ cdef class VLArray(Leaf):
 
     self.nrecords = nrecords  # Initialize the number of records saved
     return self.dataset_id, SizeType(nrecords), (SizeType(chunksize),), atom
+
+  _openArray = previous_api(_openArray)
 
 
   def _append(self, ndarray nparr, int nobjects):
@@ -2013,6 +2053,7 @@ cdef class VLArray(Leaf):
 
     return datalist
 
+  _readArray = previous_api(_readArray)
 
 
 cdef class UnImplemented(Leaf):
