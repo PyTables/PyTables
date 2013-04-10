@@ -20,6 +20,8 @@ from tables.carray import CArray
 from tables.earray import EArray
 from tables import indexesExtension
 
+from tables._past import previous_api
+
 # Declarations for inheriting
 class CacheArray(NotLoggedMixin, EArray, indexesExtension.CacheArray):
     """Container for keeping index caches of 1st and 2nd level."""
@@ -160,6 +162,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
             result2 = self._bisect_right(chunk, item2, chunksize)
             result2 += chunksize*nchunk2
         return (result1, result2)
+
+    _searchBin = previous_api(_searchBin)
 
 
     def __str__(self):

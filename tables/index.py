@@ -38,6 +38,8 @@ from tables.exceptions import PerformanceWarning
 from tables.utils import is_idx, idx2long, lazyattr
 from tables.lrucacheExtension import ObjectCache
 
+from tables._past import previous_api
+
 
 # default version for INDEX objects
 #obversion = "1.0"    # Version of indexes in PyTables 1.x series
@@ -88,6 +90,8 @@ def _tableColumnPathnameOfIndex(indexpathname):
     tablepathname = "/".join(names[:i])+"/"+name[3:]
     colpathname = "/".join(names[i+1:])
     return (tablepathname, colpathname)
+
+_tableColumnPathnameOfIndex = previous_api(_tableColumnPathnameOfIndex)
 
 
 class Index(NotLoggedMixin, indexesExtension.Index, Group):
@@ -266,9 +270,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.compute_overlaps(self, None, False)
         return self.noverlaps == 0
 
+    _is_CSI = previous_api(_is_CSI)
+
     is_CSI = property(
         _is_CSI,  None, None,
         "Whether the index is completely sorted or not.")
+
+    is_CSI = previous_api(is_CSI)
 
     @lazyattr
     def nrowsinchunk(self):
@@ -529,6 +537,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.temp_required:
             self.create_temp()
 
+    _g_postInitHook = previous_api(_g_postInitHook)
+
 
     def initial_append(self, xarr, nrow, reduction):
         """Compute an initial indices arrays for data to be indexed."""
@@ -719,6 +729,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.nelementsSLR = nelementsSLR
         self.dirtycache = True   # the cache is dirty now
         if profile: show_stats("Exiting appendLR", tref)
+
+    appendLastRow = previous_api(appendLastRow)
 
 
     def optimize(self, verbose=False):
@@ -1213,6 +1225,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         stepl = numpy.array([1], dtype=numpy.uint64)
         where._g_writeSlice(startl, stepl, countl, buffer)
 
+    read_sliceLR = previous_api(read_sliceLR)
+
 
     def reorder_slice(self, nslice, sorted, indices, ssorted, sindices,
                       tmp_sorted, tmp_indices):
@@ -1656,6 +1670,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         return self.read_sorted_indices('sorted', start, stop, step)
 
+    readSorted = previous_api(readSorted)
+
 
     def readIndices(self, start=None, stop=None, step=None):
         """Return the indices values of index in the specified range.
@@ -1665,6 +1681,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """
 
         return self.read_sorted_indices('indices', start, stop, step)
+
+    readIndices = previous_api(readIndices)
 
 
     def _processRange(self, start, stop, step):
@@ -1686,6 +1704,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         else:
             step = idx2long(step)
         return (start, stop, step)
+
+    _processRange = previous_api(_processRange)
 
 
     def __getitem__(self, key):
@@ -1929,6 +1949,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             stop = 0
         return (start, stop)
 
+    searchLastRow = previous_api(searchLastRow)
+
 
     def get_chunkmap(self):
         """Compute a map with the interesting chunks in index"""
@@ -2033,6 +2055,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         return range_
 
+    getLookupRange = previous_api(getLookupRange)
+
 
     def _f_remove(self, recursive=False):
         """Remove this Index object"""
@@ -2101,6 +2125,8 @@ class IndexesDescG(NotLoggedMixin, Group):
             "and possibly slow I/O" % self._v_maxGroupWidth,
             PerformanceWarning )
 
+    _g_widthWarning = previous_api(_g_widthWarning)
+
 
 class IndexesTableG(NotLoggedMixin, Group):
     _c_classId = 'TINDEX'
@@ -2123,10 +2149,14 @@ class IndexesTableG(NotLoggedMixin, Group):
             "and possibly slow I/O" % self._v_maxGroupWidth,
             PerformanceWarning )
 
+    _g_widthWarning = previous_api(_g_widthWarning)
+
     def _g_checkName(self, name):
         if not name.startswith('_i_'):
             raise ValueError(
                 "names of index groups must start with ``_i_``: %s" % name )
+
+    _g_checkName = previous_api(_g_checkName)
 
     def _gettable(self):
         names = self._v_pathname.split("/")

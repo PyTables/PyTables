@@ -16,6 +16,8 @@ import sys
 import math
 import numpy
 
+from tables._past import previous_api
+
 
 # Hints for chunk/slice/block/superblock computations:
 # - The slicesize should not exceed 2**32 elements (because of
@@ -132,6 +134,7 @@ def calcChunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
     sizes = (superblocksize, blocksize, slicesize, chunksize)
     return sizes
 
+calcChunksize = previous_api(calcChunksize)
 
 def ccs_ultralight(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
@@ -375,6 +378,8 @@ def infType(dtype, itemsize, sign=+1):
     except KeyError:
         raise TypeError("Type %s is not supported" % dtype.name)
 
+infType = previous_api(infType)
+
 
 ## This check does not work for Python 2.2.x or 2.3.x (!)
 #def IsNaN(x):
@@ -511,6 +516,8 @@ def StringNextAfter(x, direction, itemsize):
     xlist.reverse()
     return b"".join(xlist)
 
+StringNextAfter = previous_api(StringNextAfter)
+
 
 def IntTypeNextAfter(x, direction, itemsize):
     """Return the next representable neighbor of x in the appropriate
@@ -532,6 +539,8 @@ def IntTypeNextAfter(x, direction, itemsize):
             #return int(PyNextAfter(x,x+1))+1
             return int(numpy.nextafter(x,x+1))+1
 
+IntTypeNextAfter = previous_api(IntTypeNextAfter)
+
 
 def BoolTypeNextAfter(x, direction, itemsize):
     """Return the next representable neighbor of x in the appropriate
@@ -544,6 +553,8 @@ def BoolTypeNextAfter(x, direction, itemsize):
         return False
     else:
         return True
+
+BoolTypeNextAfter = previous_api(BoolTypeNextAfter)
 
 
 def nextafter(x, direction, dtype, itemsize):
