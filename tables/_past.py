@@ -229,6 +229,21 @@ old2newnames = dict([
     ('_searchBinNA_f', '_search_bin_na_f'),
     ('_searchBinNA_d', '_search_bin_na_d'),
     ('_searchBinNA_g', '_search_bin_na_g'),
+    # from leaf.py
+    ('_processRangeRead', '_process_range_read'),
+    ('_pointSelection', '_point_selection'),
+    ('isVisible', 'isvisible'),
+    ('getAttr', 'get_attr'),
+    ('setAttr', 'set_attr'),
+    ('delAttr', 'del_attr'),
+    # from link.py
+    ('_g_getLinkClass', '_g_get_link_class'),
+    # from linkextension
+    ('linkExtension', 'linkextension'),
+    ('_getLinkClass', '_get_link_class'),
+    ('_g_createHardLink', '_g_create_hard_link'),
+    ('', ''),
+    ('', ''),
     ('', ''),
     ('', ''),
     ('', ''),

@@ -24,7 +24,7 @@ from tables.filters import Filters
 from tables.utils import byteorders, lazyattr, SizeType
 from tables.exceptions import PerformanceWarning
 from tables import utilsExtension
-
+from tables._past import previous_api
 
 def csformula(expectedsizeinMB):
     """Return the fitted chunksize for expectedsizeinMB."""
@@ -309,6 +309,8 @@ class Leaf(Node):
             else:
                 self._flavor = internal_flavor
 
+    _g_postInitHook = previous_api(_g_postInitHook)
+
 
     def _calc_chunkshape(self, expectedrows, rowsize, itemsize):
         """Calculate the shape for the HDF5 chunk."""
@@ -395,6 +397,8 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         return (start, stop, step)
 
+    _processRange = previous_api(_processRange)
+
 
     # This method is appropiate for calls to read() methods
     def _processRangeRead(self, start, stop, step, warn_negstep=True):
@@ -418,6 +422,8 @@ very small/large chunksize, you may want to increase/decrease it."""
             start, stop, step, warn_negstep=warn_negstep)
 
         return (start, stop, step)
+
+    _processRangeRead = previous_api(_processRangeRead)
 
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
@@ -553,6 +559,8 @@ very small/large chunksize, you may want to increase/decrease it."""
             coords = coords.copy()
         return coords
 
+    _pointSelection = previous_api(_pointSelection)
+
 
     # Public methods
     # ~~~~~~~~~~~~~~
@@ -664,6 +672,8 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         return self._f_isVisible()
 
+    isVisible = previous_api(isVisible)
+
 
     # Attribute handling
     # ``````````````````
@@ -674,6 +684,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
         return self._f_getAttr(name)
 
+    getAttr = previous_api(getAttr)
+
 
     def setAttr(self, name, value):
         """Set a PyTables attribute for this node.
@@ -683,6 +695,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_setAttr(name, value)
 
+    setAttr = previous_api(setAttr)
 
     def delAttr(self, name):
         """Delete a PyTables attribute from this node.
@@ -692,6 +705,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_delAttr(name)
 
+    delAttr = previous_api(delAttr)
 
     # Data handling
     # `````````````

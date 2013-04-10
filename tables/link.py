@@ -33,12 +33,14 @@ from tables.node import Node
 from tables.utils import lazyattr
 from tables.attributeset import AttributeSet
 import tables.file
-
+from tables._past import previous_api
 
 def _g_getLinkClass(parent_id, name):
     """Guess the link class."""
 
     return linkExtension._getLinkClass(parent_id, name)
+
+_g_getLinkClass = previous_api(_g_getLinkClass)
 
 
 class Link(Node):
