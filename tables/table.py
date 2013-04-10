@@ -48,6 +48,7 @@ profile = False
 if profile:
     from tables.utils import show_stats
 
+from tables._past import previous_version
 
 # 2.2: Added support for complex types. Introduced in version 0.9.
 # 2.2.1: Added suport for time types.
@@ -97,12 +98,18 @@ _npSizeType = numpy.array(SizeType(0)).dtype.type
 def _indexNameOf(node):
     return '_i_%s' % node._v_name
 
+_indexNameOf = previous_api(_indexNameOf)
+
 def _indexPathnameOf(node):
     nodeParentPath = splitPath(node._v_pathname)[0]
     return joinPath(nodeParentPath, _indexNameOf(node))
 
+_indexPathnameOf = previous_api(_indexPathnameOf)
+
 def _indexPathnameOfColumn(table, colpathname):
     return joinPath(_indexPathnameOf(table), colpathname)
+
+_indexPathnameOfColumn = previous_api(_indexPathnameOfColumn)
 
 # The next are versions that work with just paths (i.e. we don't need
 # a node instance for using them, which can be critical in certain
@@ -110,13 +117,18 @@ def _indexPathnameOfColumn(table, colpathname):
 def _indexNameOf_(nodeName):
     return '_i_%s' % nodeName
 
+_indexNameOf_ = previous_api(_indexNameOf_)
+
 def _indexPathnameOf_(nodePath):
     nodeParentPath, nodeName = splitPath(nodePath)
     return joinPath(nodeParentPath, _indexNameOf_(nodeName))
 
+_indexPathnameOf_ = previous_api(_indexPathnameOf_)
+
 def _indexPathnameOfColumn_(tablePath, colpathname):
     return joinPath(_indexPathnameOf_(tablePath), colpathname)
 
+_indexPathnameOfColumn_ = previous_api(_index_pathname_of_column_)
 
 def _table__setautoIndex(self, auto):
     auto = bool(auto)
@@ -127,6 +139,8 @@ def _table__setautoIndex(self, auto):
     indexgroup.auto = auto
     # Update the cache in table instance as well
     self._autoIndex = auto
+
+_table__setautoIndex = prveious_api(_table__setautoIndex)
 
 
 # **************** WARNING! ***********************
@@ -153,6 +167,8 @@ def _table__getautoIndex(self):
         # The value is in cache, return it
         return self._autoIndex
 
+_table__getautoIndex = previous_api(_table__getautoIndex)
+
 _table__autoIndex = property(
     _table__getautoIndex, _table__setautoIndex, None,
     """Automatically keep column indexes up to date?
@@ -170,6 +186,7 @@ _table__autoIndex = property(
     This value is persistent.
     """)
 
+_table__autoIndex = previous_api(_table__autoIndex)
 
 def restorecache(self):
     # Define a cache for sparse table reads
@@ -259,6 +276,7 @@ def _table__whereIndexed(self, compiled, condition, condvars,
     if profile: show_stats("Exiting table_whereIndexed", tref)
     return chunkmap
 
+_table__whereIndexed = previous_api(_table__whereIndexed)
 
 def createIndexesTable(table):
     itgroup = IndexesTableG(
@@ -266,6 +284,7 @@ def createIndexesTable(table):
         "Indexes container for table "+table._v_pathname, new=True)
     return itgroup
 
+createIndexesTable = previous_api(createIndexesTable)
 
 def createIndexesDescr(igroup, dname, iname, filters):
     idgroup = IndexesDescG(
@@ -273,6 +292,8 @@ def createIndexesDescr(igroup, dname, iname, filters):
         "Indexes container for sub-description "+dname,
         filters=filters, new=True)
     return idgroup
+
+createIndexesDescr = previous_api(createIndexesDescr)
 
 
 def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
@@ -368,6 +389,7 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
 
     return indexedrows
 
+_column__createIndex = previous_api(_column__createIndex)
 
 class _ColIndexes(dict):
     """Provides a nice representation of column indexes."""
@@ -880,6 +902,8 @@ class Table(tableExtension.Table, Leaf):
             # Put the autoIndex value in a cache variable
             self._autoIndex = self.autoIndex
 
+    _g_postInitHook = previous_api(_g_postInitHook)
+
 
     def _getemptyarray(self, dtype):
         # Acts as a cache for empty arrays
@@ -905,6 +929,8 @@ class Table(tableExtension.Table, Leaf):
                  for colobj in self.description._f_walk('Col')
                  if colobj.type == type_ ]
 
+    _getTypeColNames = previous_api(_getTypeColNames)
+
 
     def _getEnumMap(self):
         """Return mapping from enumerated column names to `Enum` instances."""
@@ -915,6 +941,7 @@ class Table(tableExtension.Table, Leaf):
                 enumMap[colobj._v_pathname] = colobj.enum
         return enumMap
 
+    _getEnumMap = previous_api(_getEnumMap)
 
     def _g_create(self):
         """Create a new table on disk."""
@@ -1075,6 +1102,8 @@ class Table(tableExtension.Table, Leaf):
         # Assign _v_dtype for this table
         self._v_dtype = self.description._v_dtype
 
+    _cacheDescriptionData = previous_api(_cacheDescriptionData)
+
 
     def _getColumnInstance(self, colpathname):
         """Get the instance of the column with the given `colpathname`.
@@ -1087,6 +1116,8 @@ class Table(tableExtension.Table, Leaf):
         except AttributeError:
             raise KeyError( "table ``%s`` does not have a column named ``%s``"
                             % (self._v_pathname, colpathname) )
+
+    _getColumnInstance = previous_api(_getColumnInstance)
 
     _checkColumn = _getColumnInstance
 
@@ -1101,6 +1132,8 @@ class Table(tableExtension.Table, Leaf):
         self._conditionCache.nail()
         self._enabledIndexingInQueries = False
 
+    _disableIndexingInQueries = previous_api(_disableIndexingInQueries)
+
 
     def _enableIndexingInQueries(self):
         """Allow queries to use indexing.  *Use only for testing.*"""
@@ -1109,6 +1142,8 @@ class Table(tableExtension.Table, Leaf):
             return  # already enabled
         self._conditionCache.unnail()
         self._enabledIndexingInQueries = True
+
+    _enableIndexingInQueries = previous_api(_enableIndexingInQueries)
 
 
     def _requiredExprVars(self, expression, uservars, depth=1):
@@ -1212,6 +1247,8 @@ class Table(tableExtension.Table, Leaf):
             reqvars[var] = val
         return reqvars
 
+    _requiredExprVars = previous_api(_requiredExprVars)
+
 
     def _getConditionKey(self, condition, condvars):
         """Get the condition cache key for `condition` with `condvars`.
@@ -1242,6 +1279,8 @@ class Table(tableExtension.Table, Leaf):
         colpaths, vartypes = tuple(colpaths), tuple(vartypes)
         condkey = (condition, colnames, varnames, colpaths, vartypes)
         return condkey
+
+    _getConditionKey = previous_api(_getConditionKey)
 
 
     def _compileCondition(self, condition, condvars):
@@ -1300,6 +1339,8 @@ class Table(tableExtension.Table, Leaf):
         condcache[condkey] = compiled
         return compiled.with_replaced_vars(condvars)
 
+    _compileCondition = previous_api(_compileCondition)
+
 
     def willQueryUseIndexing(self, condition, condvars=None):
         """Will a query for the condition use indexing?
@@ -1319,6 +1360,8 @@ class Table(tableExtension.Table, Leaf):
         # Return the columns in indexed expressions
         idxcols = [condvars[var].pathname for var in compiled.index_variables]
         return frozenset(idxcols)
+
+    willQueryUseIndexing = previous_api(willQueryUseIndexing)
 
 
     def where( self, condition, condvars=None,
@@ -1459,6 +1502,8 @@ class Table(tableExtension.Table, Leaf):
                     return self.read(cstart, cstop, field=field)
         return self.readCoordinates(coords, field)
 
+    readWhere = previous_api(readWhere)
+
 
     def whereAppend( self, dstTable, condition, condvars=None,
                      start=None, stop=None, step=None ):
@@ -1491,6 +1536,8 @@ class Table(tableExtension.Table, Leaf):
         dstTable.flush()
         return nrows
 
+    whereAppend = previous_api(whereAppend)
+
 
     def getWhereList( self, condition, condvars=None, sort=False,
                       start=None, stop=None, step=None ):
@@ -1514,6 +1561,8 @@ class Table(tableExtension.Table, Leaf):
         if sort:
             coords = numpy.sort(coords)
         return internal_to_flavor(coords, self.flavor)
+
+    getWhereList = previous_api(getWhereList)
 
 
     def itersequence(self, sequence):
@@ -1565,6 +1614,8 @@ class Table(tableExtension.Table, Leaf):
             raise ValueError(
                 "Field `%s` must have associated a 'full' index "
                 "in table `%s`." % (sortby, self))
+
+    _check_sortby_CSI = previous_api(_check_sortby_CSI)
 
 
     def itersorted(self, sortby, checkCSI=False,
