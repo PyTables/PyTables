@@ -217,7 +217,7 @@ class ReadFloatTestCase(common.PyTablesTestCase):
 
             # XXX: temporary change for debugging win32
             ds = getattr(self.fileh.root, dtype)
-            if hasattr(ds.dtype):
+            if hasattr(ds, "dtype"):
                 print
                 print 'ds.dtype:', ds.dtype
                 print
