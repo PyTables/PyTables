@@ -260,8 +260,8 @@ cdef class ExternalLink(Link):
       filename = PyUnicode_DecodeUTF8(cfilename, strlen(cfilename), NULL)
       obj_path = PyUnicode_DecodeUTF8(c_obj_path, strlen(c_obj_path), NULL)
     else:
-      filename = cfilename
-      obj_path = c_obj_path
+      filename = str(cfilename)
+      obj_path = str(c_obj_path)
 
     self.target = filename+':'+obj_path
 

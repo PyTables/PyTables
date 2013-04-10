@@ -35,7 +35,7 @@ def make_subs(ns):
     s = '({0})'.format('|'.join([k for k, v in names]))
     if ns.ignore_previous:
         s += '(?!\s*?=\s*?previous_api\()'
-        s += '(?![' + "'" + '"]{1,3}\s*?\))'
+        s += """(?!['"]{1,3}\s*?\))"""
     subs = re.compile(s, flags=re.MULTILINE)
     namesmap = dict(names)
     def repl(m):

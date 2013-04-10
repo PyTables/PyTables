@@ -1336,7 +1336,7 @@ cdef class Array(Leaf):
     if PY_MAJOR_VERSION > 2:
         byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
     else:
-        byteorder = cbyteorder
+        byteorder = str(cbyteorder)
 
     # Get the extendable dimension (if any)
     self.extdim = -1  # default is non-extensible Array
@@ -1844,7 +1844,7 @@ cdef class VLArray(Leaf):
     if PY_MAJOR_VERSION > 2:
         byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
     else:
-        byteorder = cbyteorder
+        byteorder = str(cbyteorder)
 
     # Get some properties of the atomic type
     self._atomicdtype = atom.dtype
@@ -2033,7 +2033,7 @@ cdef class UnImplemented(Leaf):
     if PY_MAJOR_VERSION > 2:
         byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
     else:
-        byteorder = cbyteorder
+        byteorder = str(cbyteorder)
 
     return (shape, byteorder, self.dataset_id)
 

@@ -281,7 +281,7 @@ cdef class Table(Leaf):
       if PY_MAJOR_VERSION > 2:
         colname = PyUnicode_DecodeUTF8(c_colname, strlen(c_colname), NULL)
       else:
-        colname = c_colname
+        colname = str(c_colname)
 
       # Get the member type
       member_type_id = H5Tget_member_type(type_id, i)
@@ -324,7 +324,7 @@ cdef class Table(Leaf):
                                               strlen(c_byteorder2),
                                               NULL)
           else:
-            byteorder2 = c_byteorder2
+            byteorder2 = str(c_byteorder2)
           if byteorder2 in ["little", "big"]:
             field_byteorders.append(byteorder2)
 
