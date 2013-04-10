@@ -19,7 +19,8 @@ import re
 import sys
 import argparse
 
-from tables._past import old2newnames, new2oldnames
+#from tables._past import old2newnames, new2oldnames
+from _past import old2newnames, new2oldnames
 
 # Note that it is tempting to use the ast module here, but then this 
 # breaks transforming cython files.  So instead we are going to do the 
@@ -27,7 +28,7 @@ from tables._past import old2newnames, new2oldnames
 
 def make_subs(ns):
     names = new2oldnames if ns.reverse else old2newnames
-    s = '\W({0})\W'.format('|'.join(names.keys()))
+    s = '(?<=\W)({0})(?=\W)'.format('|'.join(names.keys()))
     if ns.ignore_previous:
         s += '(?!\s*?=\s*?previous_api\()'
     subs = re.compile(s, flags=re.MULTILINE)
