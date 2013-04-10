@@ -54,6 +54,8 @@ from tables import lrucacheExtension
 
 from tables.link import SoftLink, ExternalLink
 
+from tables._past import previous_api
+
 
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
@@ -143,6 +145,8 @@ def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
     finally:
         # Close the source file.
         srcFileh.close()
+
+copyFile = previous_api(copyFile, 'copyFile')
 
 
 def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
