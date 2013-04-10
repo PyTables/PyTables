@@ -63,6 +63,8 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
 
 from lrucacheExtension cimport ObjectCache, NumCache
 
+from tables._past import previous_api
+
 
 #-----------------------------------------------------------------
 
@@ -1171,6 +1173,8 @@ cdef class Row:
     self._riterator = 0  # out of iterator
     return
 
+  _fillCol = previous_api(_fillCol)
+
 
   def append(self):
     """Add a new row of data to the end of the dataset.
@@ -1236,10 +1240,13 @@ cdef class Row:
       # Reset the buffer unsaved counter
       self._unsaved_nrows = 0
 
+  _flushBufferedRows = previous_api(_flushBufferedRows)
+
 
   def _getUnsavedNrows(self):
     return self._unsaved_nrows
 
+  _getUnsavedNrows = previous_api(_getUnsavedNrows)
 
   def update(self):
     """Change the data of the current row in the dataset.
@@ -1325,6 +1332,8 @@ cdef class Row:
     self._mod_nrows = 0
     # Mark the modified fields' indexes as dirty.
     table._markColumnsAsDirty(self.modified_fields)
+
+  _flushModRows = previous_api(_flushModRows)
 
 
   def __contains__(self, item):
