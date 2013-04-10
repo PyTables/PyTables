@@ -19,8 +19,7 @@ import re
 import sys
 import argparse
 
-#from tables._past import old2newnames, new2oldnames
-from _past import old2newnames, new2oldnames
+from tables._past import old2newnames, new2oldnames
 
 # Note that it is tempting to use the ast module here, but then this 
 # breaks transforming cython files.  So instead we are going to do the 
@@ -57,9 +56,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
