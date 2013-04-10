@@ -279,4 +279,4 @@ class CArray(Array):
 
         return (object, nbytes)
 
-    _g_copyWithStats = previous_api(_g_copyWithStats, '_g_copyWithStats')
+    _g_copyWithStats = previous_api(_g_copyWithStats)

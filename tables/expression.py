@@ -307,7 +307,7 @@ class Expr(object):
             reqvars[var] = val
         return reqvars
 
-    _requiredExprVars = previous_api(_requiredExprVars, '_requiredExprVars')
+    _requiredExprVars = previous_api(_requiredExprVars)
 
 
     def setInputsRange(self, start=None, stop=None, step=None):
@@ -323,7 +323,7 @@ class Expr(object):
         self.stop = stop
         self.step = step
 
-    setInputsRange = previous_api(setInputsRange, 'setInputsRange')
+    setInputsRange = previous_api(setInputsRange)
 
 
     def setOutput(self, out, append_mode=False):
@@ -356,7 +356,7 @@ class Expr(object):
                 "with an `append()` method (like the `EArray`)")
         self.append_mode = append_mode
 
-    setOutput = previous_api(setOutput, 'setOutput')
+    setOutput = previous_api(setOutput)
 
 
     def setOutputRange(self, start=None, stop=None, step=None):
@@ -375,7 +375,7 @@ class Expr(object):
         self.o_stop = stop
         self.o_step = step
 
-    setOutputRange = previous_api(setOutputRange, 'setOutputRange')
+    setOutputRange = previous_api(setOutputRange)
 
 
     # Although the next code is similar to the method in `Leaf`, it

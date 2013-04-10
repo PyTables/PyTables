@@ -900,7 +900,7 @@ class EnumAtom(Atom):
             raise NotImplementedError( "only scalar concrete values "
                                        "are supported for the moment, sorry" )
 
-    _checkBase = previous_api(_checkBase, '_checkBase')
+    _checkBase = previous_api(_checkBase)
 
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments."""
