@@ -1152,7 +1152,7 @@ class File(hdf5Extension.File, object):
         # ``util.isVisiblePath()`` is still recommended for internal use.
         return self.getNode(path)._f_isVisible()
 
-    isVisibleNode = previous_api(isVisibleNode, 'isVisibleNode')
+    isVisibleNode = previous_api(isVisibleNode)
 
 
     def renameNode(self, where, newname, name=None, overwrite=False):
@@ -1173,7 +1173,7 @@ class File(hdf5Extension.File, object):
         obj = self.getNode(where, name=name)
         obj._f_rename(newname, overwrite)
 
-    renameNode = previous_api(renameNode, 'renameNode')
+    renameNode = previous_api(renameNode)
 
     def moveNode(self, where, newparent=None, newname=None, name=None,
                  overwrite=False, createparents=False):
@@ -1203,8 +1203,7 @@ class File(hdf5Extension.File, object):
         obj = self.getNode(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
 
-    ### Stopped here 
-
+    moveNode = previous_api(moveNode)
 
     def copyNode(self, where, newparent=None, newname=None, name=None,
                  overwrite=False, recursive=False, createparents=False,
@@ -1266,6 +1265,7 @@ class File(hdf5Extension.File, object):
         return obj._f_copy( newparent, newname,
                             overwrite, recursive, createparents, **kwargs )
 
+    copyNode = previous_api(copyNode)
 
     def removeNode(self, where, name=None, recursive=False):
         """Remove the object node *name* under *where* location.
@@ -1286,6 +1286,8 @@ class File(hdf5Extension.File, object):
         obj = self.getNode(where, name=name)
         obj._f_remove(recursive)
 
+    removeNode = previous_api(removeNode)
+
 
     def getNodeAttr(self, where, attrname, name=None):
         """Get a PyTables attribute from the given node.
@@ -1302,6 +1304,8 @@ class File(hdf5Extension.File, object):
 
         obj = self.getNode(where, name=name)
         return obj._f_getAttr(attrname)
+
+    getNodeAttr = previous_api(getNodeAttr)
 
 
     def setNodeAttr(self, where, attrname, attrvalue, name=None):
@@ -1331,6 +1335,7 @@ class File(hdf5Extension.File, object):
         obj = self.getNode(where, name=name)
         obj._f_setAttr(attrname, attrvalue)
 
+    setNodeAttr = previous_api(setNodeAttr)
 
     def delNodeAttr(self, where, attrname, name=None):
         """Delete a PyTables attribute from the given node.
@@ -1347,6 +1352,8 @@ class File(hdf5Extension.File, object):
 
         obj = self.getNode(where, name=name)
         obj._f_delAttr(attrname)
+
+    delNodeAttr = previous_api(delNodeAttr)
 
 
     def copyNodeAttrs(self, where, dstnode, name=None):
@@ -1365,6 +1372,8 @@ class File(hdf5Extension.File, object):
         srcObject = self.getNode(where, name=name)
         dstObject = self.getNode(dstnode)
         srcObject._v_attrs._f_copy(dstObject)
+
+    copyNodeAttrs = previous_api(copyNodeAttrs)
 
 
     def copyChildren(self, srcgroup, dstgroup,
@@ -1400,6 +1409,7 @@ class File(hdf5Extension.File, object):
         srcGroup._f_copyChildren(
             dstgroup, overwrite, recursive, createparents, **kwargs )
 
+    copyChildren = previous_api(copyChildren)
 
     def copyFile(self, dstfilename, overwrite=False, **kwargs):
         """Copy the contents of this file to dstfilename.
@@ -1474,6 +1484,7 @@ class File(hdf5Extension.File, object):
         finally:
             dstFileh.close()
 
+    copyFile = previous_api(copyFile)
 
     def listNodes(self, where, classname=None):
         """Return a *list* with children nodes hanging from where.
@@ -1486,6 +1497,8 @@ class File(hdf5Extension.File, object):
         self._checkGroup(group)  # Is it a group?
 
         return group._f_listNodes(classname)
+
+    listNodes = previous_api(listNodes)
 
 
     def iterNodes(self, where, classname=None):
@@ -1512,6 +1525,8 @@ class File(hdf5Extension.File, object):
         self._checkGroup(group)  # Is it a group?
 
         return group._f_iterNodes(classname)
+
+    iterNodes = previous_api(iterNodes)
 
 
     def __contains__(self, path):
@@ -1595,6 +1610,8 @@ class File(hdf5Extension.File, object):
                 for leaf in self.iterNodes(group, classname):
                     yield leaf
 
+    walkNodes = previous_api(walkNodes)
+
 
     def walkGroups(self, where = "/"):
         """Recursively iterate over groups (not leaves) hanging from where.
@@ -1612,6 +1629,7 @@ class File(hdf5Extension.File, object):
         self._checkGroup(group)  # Is it a group?
         return group._f_walkGroups()
 
+    walkGroups = previous_api(walkGroups)
 
     def _checkOpen(self):
         """Check the state of the file.
@@ -1622,11 +1640,15 @@ class File(hdf5Extension.File, object):
         if not self.isopen:
             raise ClosedFileError("the file object is closed")
 
+    _checkOpen = previous_api(_checkOpen)
+
 
     def _isWritable(self):
         """Is this file writable?"""
 
         return self.mode in ('w', 'a', 'r+')
+
+    _isWritable = previous_api(_isWritable)
 
 
     def _checkWritable(self):
@@ -1638,11 +1660,14 @@ class File(hdf5Extension.File, object):
         if not self._isWritable():
             raise FileModeError("the file is not writable")
 
+    _checkWritable = previous_api(_checkWritable)
 
     def _checkGroup(self, node):
         # `node` must already be a node.
         if not isinstance(node, Group):
             raise TypeError("node ``%s`` is not a group" % (node._v_pathname,))
+
+    _checkGroup = previous_api(_checkGroup)
 
 
     # <Undo/Redo support>
@@ -1658,10 +1683,14 @@ class File(hdf5Extension.File, object):
         self._checkOpen()
         return self._undoEnabled
 
+    isUndoEnabled = previous_api(isUndoEnabled)
+
 
     def _checkUndoEnabled(self):
         if not self._undoEnabled:
             raise UndoRedoError("Undo/Redo feature is currently disabled!")
+
+    _checkUndoEnabled = previous_api(_checkUndoEnabled)
 
 
     def _createTransactionGroup(self):
@@ -1672,17 +1701,23 @@ class File(hdf5Extension.File, object):
         tgroup._v_attrs._g__setattr('FORMATVERSION', _transVersion)
         return tgroup
 
+    _createTransactionGroup = previous_api(_createTransactionGroup)
+
 
     def _createTransaction(self, troot, tid):
         return TransactionG(
             troot, _transName % tid,
             "Transaction number %d" % tid, new=True)
 
+    _createTransaction = previous_api(_createTransaction)
+
 
     def _createMark(self, trans, mid):
         return MarkG(
             trans, _markName % mid,
             "Mark number %d" % mid, new=True)
+
+    _createMark = previous_api(_createMark)
 
 
     def enableUndo(self, filters=Filters(complevel=1)):
@@ -1778,6 +1813,8 @@ class File(hdf5Extension.File, object):
         # The Undo/Redo mechanism has been enabled.
         self._undoEnabled = True
 
+    enableUndo = previous_api(enableUndo)
+
 
     def disableUndo(self):
         """Disable the Undo/Redo mechanism.
@@ -1812,6 +1849,8 @@ class File(hdf5Extension.File, object):
 
         # The Undo/Redo mechanism has been disabled.
         self._undoEnabled = False
+
+    disableUndo = previous_api(disableUndo)
 
 
     def mark(self, name=None):
@@ -1931,6 +1970,8 @@ class File(hdf5Extension.File, object):
         #print "markid, self._nmarks:", markid, self._nmarks
         return markid
 
+    _getMarkID = previous_api(_getMarkID)
+
 
     def _getFinalAction(self, markid):
         "Get the action to go. It does not touch the self private attributes"
@@ -1945,6 +1986,8 @@ class File(hdf5Extension.File, object):
             return 0
 
         return self._seqmarkers[markid]
+
+    _getFinalAction = previous_api(_getFinalAction)
 
 
     def _doundo(self, finalaction, direction):
@@ -2134,6 +2177,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         self._checkUndoEnabled()
         return self._curmark
 
+    getCurrentMark = previous_api(getCurrentMark)
+
 
     def _shadowName(self):
         """Compute and return a shadow name.
@@ -2148,6 +2193,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         name = _shadowName % (self._curaction,)
 
         return (parent, name)
+
+    _shadowName = previous_api(_shadowName)
 
     # </Undo/Redo support>
 
@@ -2310,6 +2357,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
             # Add the node to the set of referenced ones.
             aliveNodes[nodePath] = node
 
+    _refNode = previous_api(_refNode)
+
 
     def _unrefNode(self, nodePath):
         """Unregister `node` as alive and remove references to it."""
@@ -2322,6 +2371,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
             # Remove the node from the set of referenced ones.
             del aliveNodes[nodePath]
+
+    _unrefNode = previous_api(_unrefNode)
 
 
     def _killNode(self, node):
@@ -2348,6 +2399,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
             node._v__deleting = True
             node._f_close()
 
+    _killNode = previous_api(_killNode)
+
 
     def _reviveNode(self, nodePath):
         """Revive the node under `nodePath` and return it.
@@ -2368,6 +2421,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
         return node
 
+    _reviveNode = previous_api(_reviveNode)
+
 
     def _updateNodeLocations(self, oldPath, newPath):
         """Update location information of nodes under `oldPath`.
@@ -2387,6 +2442,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
                     newNodePPath = splitPath(newNodePath)[0]
                     descendentNode = self._getNode(nodePath)
                     descendentNode._g_updateLocation(newNodePPath)
+
+    _updateNodeLocations = previous_api(_updateNodeLocations)
 
 
 # If a user hits ^C during a run, it is wise to gracefully close the opened files.
