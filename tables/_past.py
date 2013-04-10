@@ -1,11 +1,14 @@
 """A module with no PyTables dependencies that helps with deprecation warnings.
 """
-from inspect import getmembers
+from inspect import getmembers, isclass
 from warnings import warn
 
-def previous_api(f, oldname):
+def previous_api(obj, oldname):
     """A decorator-like function for dealing with deprecations."""
-    for key, value in getmembers(f):
+    if isclass(obj):
+        # punt if not a function or method
+        return obj
+    for key, value in getmembers(obj):
         if key == '__name__':
             newname = value
             break
@@ -13,6 +16,6 @@ def previous_api(f, oldname):
     warnmsg = warnmsg.format(oldname, newname)
     def oldfunc(*args, **kwargs):
         warn(warnmsg, PendingDeprecationWarning)
-        return f(*args, **kwargs)
-    oldfunc.__doc__ = (f.__doc__ or '') + "\n\n.. warning::\n\n    " + warnmsg + "\n"
+        return obj(*args, **kwargs)
+    oldfunc.__doc__ = (obj.__doc__ or '') + "\n\n.. warning::\n\n    " + warnmsg + "\n"
     return oldfunc

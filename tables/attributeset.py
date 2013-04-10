@@ -26,6 +26,7 @@ from tables.path import checkNameValidity
 from tables.undoredo import attrToShadow
 from tables.filters import Filters
 
+from tables._past import previous_api
 
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
@@ -259,6 +260,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # hdf5Extension operations:
         self._g_new(node)
 
+    _g_updateNodeLocation = previous_api(_g_updateNodeLocation, '_g_updateNodeLocation')
+
 
     def _f_list(self, attrset='user'):
         """Get a list of attribute names.
@@ -459,6 +462,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_logAdd(self, name):
         self._v__nodeFile._log('ADDATTR', self._v__nodePath, name)
 
+    _g_logAdd = previous_api(_g_logAdd, '_g_logAdd')
+
 
     def _g_delAndLog(self, name):
         nodeFile = self._v__nodeFile
@@ -466,6 +471,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Log *before* moving to use the right shadow name.
         nodeFile._log('DELATTR', nodePathname, name)
         attrToShadow(nodeFile, nodePathname, name)
+
+    _g_delAndLog = previous_api(_g_delAndLog, '_g_delAndLog')
 
 
     def _g__delattr(self, name):
@@ -665,10 +672,12 @@ class NotLoggedAttributeSet(AttributeSet):
     def _g_logAdd(self, name):
         pass
 
+    _g_logAdd = previous_api(_g_logAdd, '_g_logAdd')
+
     def _g_delAndLog(self, name):
         self._g__delattr(name)
 
-
+    _g_delAndLog = previous_api(_g_delAndLog, '_g_delAndLog')
 
 ## Local Variables:
 ## mode: python

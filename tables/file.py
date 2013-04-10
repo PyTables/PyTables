@@ -121,6 +121,7 @@ def _checkfilters(filters):
                         "instance and the passed type is: '%s'" %
                                                                 type(filters))
 
+_checkfilters = previous_api(_checkfilters, '_checkfilters')
 
 def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
     """An easy way of copying one PyTables file to another.
@@ -233,6 +234,7 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
     # Finally, create the File instance, and return it
     return File(filename, mode, title, rootUEP, filters, **kwargs)
 
+openFile = previous_api(openFile, 'openFile')
 
 class _AliveNodes(dict):
     """Stores strong or weak references to nodes in a transparent way."""
@@ -293,6 +295,8 @@ class _NodeDict(tables.misc.proxydict.ProxyDict):
 
     def _getValueFromContainer(self, container, key):
         return container.getNode(key)
+
+    _getValueFromContainer = previous_api(_getValueFromContainer, '_getValueFromContainer')
 
 
     def _condition(self, node):
@@ -584,6 +588,8 @@ class File(hdf5Extension.File, object):
         # create the object tree
         return RootGroup(self, rootUEP, title=title, new=new, filters=filters)
 
+    __getRootGroup = previous_api(__getRootGroup, '__getRootGroup')
+
 
     def _getOrCreatePath(self, path, create):
         """Get the given `path` or create it if `create` is true.
@@ -595,6 +601,8 @@ class File(hdf5Extension.File, object):
             return self._createPath(path)
         else:
             return self.getNode(path)
+
+    _getOrCreatePath = previous_api(_getOrCreatePath, '_getOrCreatePath')
 
     def _createPath(self, path):
         """Create the groups needed for the `path` to exist.
@@ -616,6 +624,7 @@ class File(hdf5Extension.File, object):
             parent = child
         return parent
 
+    _createPath = previous_api(_createPath, '_createPath')
 
     def createGroup(self, where, name, title="", filters=None,
                     createparents=False):
@@ -654,6 +663,7 @@ class File(hdf5Extension.File, object):
         return Group(parentNode, name,
                      title=title, new=True, filters=filters)
 
+    createGroup = previous_api(createGroup, 'createGroup')
 
     def createTable(self, where, name, description, title="",
                     filters=None, expectedrows=10000,
@@ -731,6 +741,8 @@ class File(hdf5Extension.File, object):
                      filters=filters, expectedrows=expectedrows,
                      chunkshape=chunkshape, byteorder=byteorder)
 
+    createTable = previous_api(createTable, 'createTable')
+
 
     def createArray(self, where, name, object, title="",
                     byteorder=None, createparents=False):
@@ -776,6 +788,8 @@ class File(hdf5Extension.File, object):
         parentNode = self._getOrCreatePath(where, createparents)
         return Array(parentNode, name,
                      object=object, title=title, byteorder=byteorder)
+
+    createArray = previous_api(createArray, 'createArray')
 
 
     def createCArray(self, where, name, atom, shape, title="",
@@ -828,6 +842,7 @@ class File(hdf5Extension.File, object):
                       atom=atom, shape=shape, title=title, filters=filters,
                       chunkshape=chunkshape, byteorder=byteorder)
 
+    createCArray = previous_api(createCArray, 'createCArray')
 
     def createEArray(self, where, name, atom, shape, title="",
                      filters=None, expectedrows=1000,
@@ -889,6 +904,7 @@ class File(hdf5Extension.File, object):
                       filters=filters, expectedrows=expectedrows,
                       chunkshape=chunkshape, byteorder=byteorder)
 
+    createEArray = previous_api(createEArray, 'createEArray')
 
     def createVLArray(self, where, name, atom, title="",
                       filters=None, expectedsizeinMB=1.0,
@@ -948,6 +964,7 @@ class File(hdf5Extension.File, object):
                        expectedsizeinMB=expectedsizeinMB,
                        chunkshape=chunkshape, byteorder=byteorder)
 
+    createVLArray = previous_api(createVLArray, 'createVLArray')
 
     def createHardLink(self, where, name, target, createparents=False):
         """Create a hard link
@@ -969,6 +986,7 @@ class File(hdf5Extension.File, object):
         # Return the target node
         return self.getNode(parentNode, name)
 
+    createHardLink = previous_api(createHardLink, 'createHardLink')
 
     def createSoftLink(self, where, name, target, createparents=False):
         """
@@ -992,6 +1010,8 @@ class File(hdf5Extension.File, object):
         # Refresh children names in link's parent node
         parentNode._g_addChildrenNames()
         return slink
+
+    createSoftLink = previous_api(createSoftLink, 'createSoftLink')
 
 
     def createExternalLink(self, where, name, target, createparents=False):
@@ -1021,6 +1041,7 @@ class File(hdf5Extension.File, object):
         parentNode._g_addChildrenNames()
         return elink
 
+    createExternalLink = previous_api(createExternalLink, 'createExternalLink')
 
     # There is another version of _getNode in cython space, but only
     # marginally faster (5% or less, but sometimes slower!) than this one.
@@ -1049,6 +1070,7 @@ class File(hdf5Extension.File, object):
         node = self.root._g_loadChild(nodePath)
         return node
 
+    _getNode = previous_api(_getNode, '_getNode')
 
     def getNode(self, where, name=None, classname=None):
         """Get the node under where with the given name.
@@ -1119,6 +1141,7 @@ class File(hdf5Extension.File, object):
 
         return node
 
+    getNode = previous_api(getNode, 'getNode')
 
     def isVisibleNode(self, path):
         """Is the node under `path` visible?
@@ -1128,6 +1151,8 @@ class File(hdf5Extension.File, object):
 
         # ``util.isVisiblePath()`` is still recommended for internal use.
         return self.getNode(path)._f_isVisible()
+
+    isVisibleNode = previous_api(isVisibleNode, 'isVisibleNode')
 
 
     def renameNode(self, where, newname, name=None, overwrite=False):
@@ -1148,6 +1173,7 @@ class File(hdf5Extension.File, object):
         obj = self.getNode(where, name=name)
         obj._f_rename(newname, overwrite)
 
+    renameNode = previous_api(renameNode, 'renameNode')
 
     def moveNode(self, where, newparent=None, newname=None, name=None,
                  overwrite=False, createparents=False):
@@ -1176,6 +1202,8 @@ class File(hdf5Extension.File, object):
 
         obj = self.getNode(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
+
+    ### Stopped here 
 
 
     def copyNode(self, where, newparent=None, newname=None, name=None,

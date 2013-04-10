@@ -23,6 +23,7 @@ import numpy
 from tables import atom
 from tables.path import checkNameValidity
 
+from tables._past import previous_api
 
 # Public variables
 # ================
@@ -525,6 +526,8 @@ class Description(object):
                 # set the _v_is_nested flag
                 self._v_is_nested = True
 
+    _g_setNestedNamesDescr = previous_api(_g_setNestedNamesDescr, '_g_setNestedNamesDescr')
+
 
     def _g_setPathNames(self):
         """Compute the pathnames for arbitrary nested descriptions.
@@ -601,6 +604,8 @@ class Description(object):
                     parentCols.extend(colPaths)
                 # (Nothing is pushed, we are done with this description.)
 
+    _g_setPathNames = previous_api(_g_setPathNames, '_g_setPathNames')
+
 
     def _f_walk(self, type='All'):
         """Iterate over nested columns.
@@ -667,6 +672,7 @@ class metaIsDescription(type):
         # Return a new class with the "columns" attribute filled
         return type.__new__(cls, classname, bases, newdict)
 
+metaIsDescription = previous_api(metaIsDescription, 'metaIsDescription')
 
 class IsDescription(object):
     """Description of the structure of a table or nested column.
