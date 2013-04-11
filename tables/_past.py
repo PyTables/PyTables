@@ -29,7 +29,7 @@ def previous_api(obj):
                "You may use the pt2to3 tool to update your source code.")
     warnmsg = warnmsg.format(oldname, newname)
     def oldfunc(*args, **kwargs):
-        warn(warnmsg, PendingDeprecationWarning)
+        warn(warnmsg, PendingDeprecationWarning, stacklevel=2)
         return obj(*args, **kwargs)
     oldfunc.__doc__ = (obj.__doc__ or '') + "\n\n.. warning::\n\n    " + warnmsg + "\n"
     return oldfunc
