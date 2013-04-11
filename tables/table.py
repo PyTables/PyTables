@@ -140,7 +140,7 @@ def _table__setautoindex(self, auto):
     # Update the cache in table instance as well
     self._autoindex = auto
 
-_table__setautoindex = previous_api(_table__setautoindex)
+_table__setautoIndex = previous_api(_table__setautoindex)
 
 
 # **************** WARNING! ***********************
