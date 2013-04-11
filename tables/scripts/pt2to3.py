@@ -52,7 +52,7 @@ def main():
 
     subs, repl = make_subs(ns)
     targ = subs.sub(repl, src)
-    print targ
+    sys.stdout.write(targ)
 
 if __name__ == '__main__':
     main()
