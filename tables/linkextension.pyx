@@ -15,6 +15,7 @@
 from tables.exceptions import HDF5ExtError
 
 from hdf5extension cimport Node
+from utilsextension cimport cstr_to_pystr
 
 from libc.stdlib cimport malloc, free
 from libc.string cimport strlen
@@ -260,12 +261,8 @@ cdef class ExternalLink(Link):
     if ret < 0:
       raise HDF5ExtError("failed to unpack external link value")
 
-    if PY_MAJOR_VERSION > 2:
-      filename = PyUnicode_DecodeUTF8(cfilename, strlen(cfilename), NULL)
-      obj_path = PyUnicode_DecodeUTF8(c_obj_path, strlen(c_obj_path), NULL)
-    else:
-      filename = str(cfilename)
-      obj_path = str(c_obj_path)
+    filename = cstr_to_pystr(cfilename)
+    obj_path = cstr_to_pystr(c_obj_path)
 
     self.target = filename+':'+obj_path
 

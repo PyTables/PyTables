@@ -54,8 +54,6 @@ from tables.utilsextension import (encode_filename, set_blosc_max_threads,
   pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
   platform_byteorder)
 
-from utilsextension cimport malloc_dims, get_native_type
-
 from tables._past import previous_api
 
 
@@ -100,6 +98,9 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5_HAVE_IMAGE_FILE, pt_H5Pset_file_image, pt_H5Fget_file_image)
 
 cdef int H5T_CSET_DEFAULT = 16
+
+from utilsextension cimport malloc_dims, get_native_type, cstr_to_pystr
+
 
 #-------------------------------------------------------------------
 
@@ -1335,10 +1336,7 @@ cdef class Array(Leaf):
     if ret < 0:
       raise HDF5ExtError("Unable to get array info.")
 
-    if PY_MAJOR_VERSION > 2:
-        byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
-    else:
-        byteorder = str(cbyteorder)
+    byteorder = cstr_to_pystr(cbyteorder)
 
     # Get the extendable dimension (if any)
     self.extdim = -1  # default is non-extensible Array
@@ -1850,10 +1848,7 @@ cdef class VLArray(Leaf):
     H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
                       cbyteorder)
 
-    if PY_MAJOR_VERSION > 2:
-        byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
-    else:
-        byteorder = str(cbyteorder)
+    byteorder = cstr_to_pystr(cbyteorder)
 
     # Get some properties of the atomic type
     self._atomicdtype = atom.dtype
@@ -2037,10 +2032,7 @@ cdef class UnImplemented(Leaf):
     shape = H5UIget_info(self.parent_id, encoded_name, cbyteorder)
     shape = tuple(map(SizeType, shape))
     self.dataset_id = H5Dopen(self.parent_id, encoded_name, H5P_DEFAULT)
-    if PY_MAJOR_VERSION > 2:
-        byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
-    else:
-        byteorder = str(cbyteorder)
+    byteorder = cstr_to_pystr(cbyteorder)
 
     return (shape, byteorder, self.dataset_id)
 

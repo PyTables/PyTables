@@ -36,7 +36,7 @@ from tables.utilsextension import (get_nested_field, atom_from_hdf5_type,
   H5T_STD_I64)
 from tables.utils import SizeType
 
-from utilsextension cimport get_native_type
+from utilsextension cimport get_native_type, cstr_to_pystr
 
 # numpy functions & objects
 from hdf5extension cimport Leaf
@@ -283,10 +283,7 @@ cdef class Table(Leaf):
     for i from 0 <= i < nfields:
       # Get the member name
       c_colname = H5Tget_member_name(type_id, i)
-      if PY_MAJOR_VERSION > 2:
-        colname = PyUnicode_DecodeUTF8(c_colname, strlen(c_colname), NULL)
-      else:
-        colname = str(c_colname)
+      colname = cstr_to_pystr(c_colname)
 
       # Get the member type
       member_type_id = H5Tget_member_type(type_id, i)
@@ -324,12 +321,7 @@ cdef class Table(Leaf):
         elif colobj.kind in ['int', 'uint', 'float', 'complex', 'enum']:
           # Keep track of the byteorder for this column
           get_order(member_type_id, c_byteorder2)
-          if PY_MAJOR_VERSION > 2:
-            byteorder2 = PyUnicode_DecodeUTF8(c_byteorder2,
-                                              strlen(c_byteorder2),
-                                              NULL)
-          else:
-            byteorder2 = str(c_byteorder2)
+          byteorder2 = cstr_to_pystr(c_byteorder2)
           if byteorder2 in ["little", "big"]:
             field_byteorders.append(byteorder2)
 

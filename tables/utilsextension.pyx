@@ -192,6 +192,17 @@ cdef extern from "blosc.h" nogil:
   int blosc_set_nthreads(int nthreads)
 
 
+# @TODO: use the c_string_type and c_string_encoding global directives
+#        (new in cython 0.19)
+cdef str cstr_to_pystr(const_char* cstring):
+  if PY_MAJOR_VERSION > 2:
+    pystring = PyUnicode_DecodeUTF8(cstring, strlen(cstring), NULL)
+  else:
+    pystring = bytes(<char*>cstring)
+
+  return pystring
+
+
 #----------------------------------------------------------------------
 # Initialization code
 
@@ -957,10 +968,7 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
       raise HDF5ExtError(
         "failed to get element name from HDF5 enumerated type")
 
-    if PY_MAJOR_VERSION > 2:
-      pyename = PyUnicode_DecodeUTF8(ename, strlen(ename), NULL)
-    else:
-      pyename = str(ename)
+    pyename = cstr_to_pystr(ename)
 
     free(ename)
 
@@ -1096,12 +1104,10 @@ def load_enum(hid_t type_id):
 
   # Get the enumerated type
   enumId = get_type_enum(type_id)
+
   # Get the byteorder
   get_order(type_id, c_byteorder)
-  if PY_MAJOR_VERSION > 2:
-    byteorder = PyUnicode_DecodeUTF8(c_byteorder, strlen(c_byteorder), NULL)
-  else:
-    byteorder = str(c_byteorder)
+  byteorder = cstr_to_pystr(c_byteorder)
   # Get the Enum and NumPy types and close the HDF5 type.
   try:
     return enum_from_hdf5(enumId, byteorder)
@@ -1132,12 +1138,11 @@ def hdf5_to_np_nested_type(hid_t type_id):
   for i from 0 <= i < nfields:
     # Get the member name
     c_colname = H5Tget_member_name(type_id, i)
-    if PY_MAJOR_VERSION > 2:
-      colname = PyUnicode_DecodeUTF8(c_colname, strlen(c_colname), NULL)
-    else:
-      colname = str(c_colname)
+    colname = cstr_to_pystr(c_colname)
+
     # Get the member type
     member_type_id = H5Tget_member_type(type_id, i)
+
     # Get the HDF5 class
     class_id = H5Tget_class(member_type_id)
     if class_id == H5T_COMPOUND and not is_complex(member_type_id):
