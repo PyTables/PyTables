@@ -19,10 +19,11 @@ import numpy as np
 import tables as tb
 from numexpr.necompiler import getContext, getExprNames, getType, NumExpr
 from numexpr.expressions import functions as numexpr_functions
-from tables.utilsExtension import getIndices
+from tables.utilsextension import get_indices
 from tables.exceptions import PerformanceWarning
 from tables.parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 
+from tables._past import previous_api
 
 class Expr(object):
     """A class for evaluating expressions with arbitrary array-like objects.
@@ -66,8 +67,8 @@ class Expr(object):
     --------
     The following shows an example of using Expr.
 
-        >>> a = f.createArray('/', 'a', np.array([1,2,3]))
-        >>> b = f.createArray('/', 'b', np.array([3,4,5]))
+        >>> a = f.create_array('/', 'a', np.array([1,2,3]))
+        >>> b = f.create_array('/', 'b', np.array([3,4,5]))
         >>> c = np.array([4,5,6])
         >>> expr = tb.Expr("2*a+b*c")   # initialize the expression
         >>> expr.eval()                 # evaluate it
@@ -80,8 +81,8 @@ class Expr(object):
 
     You can also work with multidimensional arrays::
 
-        >>> a2 = f.createArray('/', 'a2', np.array([[1,2],[3,4]]))
-        >>> b2 = f.createArray('/', 'b2', np.array([[3,4],[5,6]]))
+        >>> a2 = f.create_array('/', 'a2', np.array([[1,2],[3,4]]))
+        >>> b2 = f.create_array('/', 'b2', np.array([[3,4],[5,6]]))
         >>> c2 = np.array([4,5])           # This will be broadcasted
         >>> expr = tb.Expr("2*a2+b2-c2")
         >>> expr.eval()
@@ -130,7 +131,7 @@ class Expr(object):
 
     """
 
-    _exprvarsCache = {}
+    _exprvars_cache = {}
     """Cache of variables participating in expressions."""
 
 
@@ -168,7 +169,7 @@ class Expr(object):
         """A sample of the output with just a single row."""
 
         # First, get the signature for the arrays in expression
-        vars_ = self._requiredExprVars(expr, uservars)
+        vars_ = self._required_expr_vars(expr, uservars)
         context = getContext(kwargs)
         self.names, _ = getExprNames(expr, context)
 
@@ -230,7 +231,7 @@ class Expr(object):
 
     # The next method is similar to their counterpart in `Table`, but
     # adapted to the `Expr` own requirements.
-    def _requiredExprVars(self, expression, uservars, depth=2):
+    def _required_expr_vars(self, expression, uservars, depth=2):
         """Get the variables required by the `expression`.
 
         A new dictionary defining the variables used in the `expression`
@@ -252,7 +253,7 @@ class Expr(object):
         """
 
         # Get the names of variables used in the expression.
-        exprvarsCache = self._exprvarsCache
+        exprvarsCache = self._exprvars_cache
         if not expression in exprvarsCache:
             # Protection against growing the cache too much
             if len(exprvarsCache) > 256:
@@ -306,8 +307,10 @@ class Expr(object):
             reqvars[var] = val
         return reqvars
 
+    _requiredExprVars = previous_api(_required_expr_vars)
 
-    def setInputsRange(self, start=None, stop=None, step=None):
+
+    def set_inputs_range(self, start=None, stop=None, step=None):
         """Define a range for all inputs in expression.
 
         The computation will only take place for the range defined by the
@@ -316,13 +319,14 @@ class Expr(object):
         NumPy container).  If not a common main dimension exists for all
         inputs, the leading dimension will be used instead.
         """
-
         self.start = start
         self.stop = stop
         self.step = step
 
+    setInputsRange = previous_api(set_inputs_range)
 
-    def setOutput(self, out, append_mode=False):
+
+    def set_output(self, out, append_mode=False):
         """Set out as container for output as well as the append_mode.
 
         The out must be a container that is meant to keep the outcome of the
@@ -335,7 +339,7 @@ class Expr(object):
         method (like an EArray, for example).
 
         If append_mode is false, the output is set via the __setitem__() method
-        (see the Expr.setOutputRange() for info on how to select the rows to be
+        (see the Expr.set_output_range() for info on how to select the rows to be
         updated).  If out is smaller than what is required by the expression,
         only the computations that are needed to fill up the container are
         carried out.  If it is larger, the excess elements are unaffected.
@@ -352,8 +356,10 @@ class Expr(object):
                 "with an `append()` method (like the `EArray`)")
         self.append_mode = append_mode
 
+    setOutput = previous_api(set_output)
 
-    def setOutputRange(self, start=None, stop=None, step=None):
+
+    def set_output_range(self, start=None, stop=None, step=None):
         """Define a range for user-provided output object.
 
         The output object will only be modified in the range specified by the
@@ -368,6 +374,8 @@ class Expr(object):
         self.o_start = start
         self.o_stop = stop
         self.o_step = step
+
+    setOutputRange = previous_api(set_output_range)
 
 
     # Although the next code is similar to the method in `Leaf`, it
@@ -461,7 +469,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         # in account new possible values of start, stop and step in
         # the inputs range
         if maindim is not None:
-            (start, stop, step) = getIndices(
+            (start, stop, step) = get_indices(
                 self.start, self.stop, self.step, shape[maindim])
             shape[maindim] = min(
                 shape[maindim], len(xrange(start, stop, step)))
@@ -490,7 +498,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 # account new possible values of start, stop and step in
                 # the output range
                 o_shape = list(out.shape)
-                (o_start, o_stop, o_step) = getIndices(
+                (o_start, o_stop, o_step) = get_indices(
                     self.o_start, self.o_stop, self.o_step, o_shape[o_maindim])
                 o_shape[o_maindim] = min(o_shape[o_maindim],
                                          len(xrange(o_start, o_stop, o_step)))
@@ -630,7 +638,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         """Iterate over the rows of the outcome of the expression.
 
         This iterator always returns rows as NumPy objects, so a possible out
-        container specified in :meth:`Expr.setOutput` method is ignored here.
+        container specified in :meth:`Expr.set_output` method is ignored here.
         """
 
         values, shape, maindim = self.values, self.shape, self.maindim
@@ -686,16 +694,16 @@ if __name__=="__main__":
     #shape = (10000,10000)
     shape = (10, 10000)
 
-    f = tb.openFile("/tmp/expression.h5", "w")
+    f = tb.open_file("/tmp/expression.h5", "w")
 
     # Create some arrays
-    a = f.createCArray(f.root, 'a', tb.Float32Atom(dflt=1.), shape)
-    b = f.createCArray(f.root, 'b', tb.Float32Atom(dflt=2.), shape)
-    c = f.createCArray(f.root, 'c', tb.Float32Atom(dflt=3.), shape)
-    out = f.createCArray(f.root, 'out', tb.Float32Atom(dflt=3.), shape)
+    a = f.create_carray(f.root, 'a', tb.Float32Atom(dflt=1.), shape)
+    b = f.create_carray(f.root, 'b', tb.Float32Atom(dflt=2.), shape)
+    c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3.), shape)
+    out = f.create_carray(f.root, 'out', tb.Float32Atom(dflt=3.), shape)
 
     expr = Expr("a*b+c")
-    expr.setOutput(out)
+    expr.set_output(out)
     d = expr.eval()
 
     print "returned-->", repr(d)
@@ -710,3 +718,9 @@ if __name__=="__main__":
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

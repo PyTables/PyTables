@@ -6,7 +6,7 @@
 
 
 hid_t
-createNestedType(void) {
+create_nested_type(void) {
     hid_t tid, tid2, tid3;
     size_t offset, offset2;
 
@@ -92,7 +92,7 @@ main(int argc, char **argv)
     plist_id = H5Pcreate (H5P_DATASET_CREATE);
     H5Pset_chunk(plist_id, 1, dims_chunk);
     // Get the nested type
-    type_id = createNestedType();
+    type_id = create_nested_type();
     // Create the dataset
     dataset_id = H5Dcreate(file_id, dset_name, type_id, space_id,
                            H5P_DEFAULT, plist_id, H5P_DEFAULT);
@@ -115,3 +115,9 @@ main(int argc, char **argv)
 
     return(1);
 }
+
+
+
+
+
+

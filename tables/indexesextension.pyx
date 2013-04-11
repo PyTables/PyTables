@@ -26,7 +26,7 @@ Misc variables:
 import numpy
 
 from tables.exceptions import HDF5ExtError
-from hdf5Extension cimport Array
+from hdf5extension cimport Array
 
 
 # Types, constants, functions, classes & other objects from everywhere
@@ -43,7 +43,9 @@ from numpy cimport (import_array, ndarray,
 ctypedef npy_uint16 npy_float16
 
 from definitions cimport hid_t, herr_t, hsize_t, H5Screate_simple, H5Sclose
-from lrucacheExtension cimport NumCache
+from lrucacheextension cimport NumCache
+
+from tables._past import previous_api
 
 
 #-------------------------------------------------------------------
@@ -197,7 +199,7 @@ cdef class CacheArray(Array):
   cdef hid_t mem_space_id
 
 
-  cdef initRead(self, int nbounds):
+  cdef initread(self, int nbounds):
     # "Actions to accelerate the reads afterwards."
 
     # Precompute the mem_space_id
@@ -207,7 +209,7 @@ cdef class CacheArray(Array):
     return
 
 
-  cdef readSlice(self, hsize_t nrow, hsize_t start, hsize_t stop, void *rbuf):
+  cdef read_slice(self, hsize_t nrow, hsize_t start, hsize_t stop, void *rbuf):
     # "Read an slice of bounds."
 
     if (H5ARRAYOread_readBoundsSlice(
@@ -236,7 +238,7 @@ cdef class IndexArray(Array):
   cdef ndarray bufferbc, bufferlb
 
 
-  def _readIndexSlice(self, hsize_t irow, hsize_t start, hsize_t stop,
+  def _read_index_slice(self, hsize_t irow, hsize_t start, hsize_t stop,
                       ndarray idx):
     cdef herr_t ret
 
@@ -248,8 +250,10 @@ cdef class IndexArray(Array):
     if ret < 0:
       raise HDF5ExtError("Problems reading the index indices.")
 
+  _readIndexSlice = previous_api(_read_index_slice)
 
-  def _initSortedSlice(self, index):
+
+  def _init_sorted_slice(self, index):
     """Initialize the structures for doing a binary search."""
 
     cdef long ndims
@@ -285,7 +289,7 @@ cdef class IndexArray(Array):
     # Init the bounds array for reading
     self.nbounds = index.bounds.shape[1]
     self.bounds_ext = <CacheArray>index.bounds
-    self.bounds_ext.initRead(self.nbounds)
+    self.bounds_ext.initread(self.nbounds)
     if str(dtype) in self._v_parent.opt_search_types:
       # The next caches should be defined only for optimized search types.
       # The 2nd level cache will replace the already existing ObjectCache and
@@ -305,8 +309,10 @@ cdef class IndexArray(Array):
       self.sortedcache = <NumCache>NumCache(
         (maxslots, self.chunksize), dtype, 'sorted')
 
+  _initSortedSlice = previous_api(_init_sorted_slice)
 
-  cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start,
+
+  cdef void *_g_read_sorted_slice(self, hsize_t irow, hsize_t start,
                                 hsize_t stop):
     """Read the sorted part of an index."""
 
@@ -320,13 +326,18 @@ cdef class IndexArray(Array):
 
     return self.rbuflb
 
+  # can't time machine since this function is cdef'd
+  #_g_read_sorted_slice = prveious_api(_g_read_sorted_slice)
+
 
   # This is callable from python
-  def _readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
+  def _read_sorted_slice(self, hsize_t irow, hsize_t start, hsize_t stop):
     """Read the sorted part of an index."""
 
-    self._g_readSortedSlice(irow, start, stop)
+    self._g_read_sorted_slice(irow, start, stop)
     return self.bufferlb
+
+  _readSortedSlice = previous_api(_read_sorted_slice)
 
 
 # This has been copied from the standard module bisect.
@@ -375,7 +386,7 @@ cdef class IndexArray(Array):
     return lo
 
 
-  cdef void *getLRUbounds(self, int nrow, int nbounds):
+  cdef void *get_lru_bounds(self, int nrow, int nbounds):
     """Get the bounds from the cache, or read them."""
 
     cdef void *vpointer
@@ -386,13 +397,14 @@ cdef class IndexArray(Array):
       vpointer = self.boundscache.getitem1_(nslot)
     else:
       # Bounds row is not in cache. Read it and put it in the LRU cache.
-      self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
+      self.bounds_ext.read_slice(nrow, 0, nbounds, self.rbufbc)
       self.boundscache.setitem_(nrow, self.rbufbc, 0)
       vpointer = self.rbufbc
     return vpointer
 
+  # can't time machine since get_lru_bounds() function is cdef'd
 
-  cdef void *getLRUsorted(self, int nrow, int ncs, int nchunk, int cs):
+  cdef void *get_lru_sorted(self, int nrow, int ncs, int nchunk, int cs):
     """Get the sorted row from the cache or read it."""
 
     cdef void *vpointer
@@ -408,13 +420,14 @@ cdef class IndexArray(Array):
     else:
       # The sorted chunk is not in cache. Read it and put it in the LRU cache.
       start = cs*nchunk;  stop = cs*(nchunk+1)
-      vpointer = self._g_readSortedSlice(nrow, start, stop)
+      vpointer = self._g_read_sorted_slice(nrow, start, stop)
       self.sortedcache.setitem_(nckey, vpointer, 0)
     return vpointer
 
+  # can't time machine since get_lru_sorted() function is cdef'd
 
   # Optimized version for int8
-  def _searchBinNA_b(self, long item1, long item2):
+  def _search_bin_na_b(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -431,11 +444,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_int8 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_int8 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_b(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_int8 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_int8 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_b(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -446,11 +459,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_int8 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_int8 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_b(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_int8 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_int8 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_b(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -460,9 +473,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_b = previous_api(_search_bin_na_b)
+
 
   # Optimized version for uint8
-  def _searchBinNA_ub(self, long item1, long item2):
+  def _search_bin_na_ub(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -479,11 +494,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_uint8 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_uint8 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_ub(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_uint8 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_uint8 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_ub(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -494,11 +509,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_uint8 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_uint8 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_ub(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_uint8 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_uint8 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_ub(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -508,9 +523,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_ub = previous_api(_search_bin_na_ub)
+
 
   # Optimized version for int16
-  def _searchBinNA_s(self, long item1, long item2):
+  def _search_bin_na_s(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -527,11 +544,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_int16 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_int16 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_s(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_int16 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_int16 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_s(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -542,11 +559,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_int16 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_int16 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_s(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_int16 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_int16 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_s(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -556,9 +573,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_s = previous_api(_search_bin_na_s)
+
 
   # Optimized version for uint16
-  def _searchBinNA_us(self, long item1, long item2):
+  def _search_bin_na_us(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -575,11 +594,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_uint16 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_uint16 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_us(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_uint16 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_uint16 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_us(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -590,11 +609,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_uint16 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_uint16 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_us(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_uint16 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_uint16 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_us(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -604,9 +623,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_us = previous_api(_search_bin_na_us)
+
 
   # Optimized version for int32
-  def _searchBinNA_i(self, long item1, long item2):
+  def _search_bin_na_i(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -623,11 +644,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_int32 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_int32 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_int32 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_int32 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_i(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -638,11 +659,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_int32 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_int32 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_i(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_int32 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_int32 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_i(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -652,9 +673,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_i = previous_api(_search_bin_na_i)
+
 
   # Optimized version for uint32
-  def _searchBinNA_ui(self, npy_uint32 item1, npy_uint32 item2):
+  def _search_bin_na_ui(self, npy_uint32 item1, npy_uint32 item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -671,11 +694,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_uint32 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_uint32 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_ui(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_uint32 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_uint32 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_ui(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -686,11 +709,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_uint32 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_uint32 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_ui(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_uint32 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_uint32 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_ui(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -700,9 +723,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_ui = previous_api(_search_bin_na_ui)
+
 
   # Optimized version for int64
-  def _searchBinNA_ll(self, npy_int64 item1, npy_int64 item2):
+  def _search_bin_na_ll(self, npy_int64 item1, npy_int64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -719,11 +744,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_int64 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_int64 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_ll(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_int64 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_int64 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_ll(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -734,11 +759,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_int64 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_int64 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_ll(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_int64 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_int64 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_ll(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -748,9 +773,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_ll = previous_api(_search_bin_na_ll)
+
 
   # Optimized version for uint64
-  def _searchBinNA_ull(self, npy_uint64 item1, npy_uint64 item2):
+  def _search_bin_na_ull(self, npy_uint64 item1, npy_uint64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -767,11 +794,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_uint64 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_uint64 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_ull(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_uint64 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_uint64 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_ull(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -782,11 +809,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_uint64 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_uint64 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_ull(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_uint64 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_uint64 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_ull(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -796,9 +823,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_ull = previous_api(_search_bin_na_ull)
+
 
   # Optimized version for float16
-  def _searchBinNA_e(self, npy_float64 item1, npy_float64 item2):
+  def _search_bin_na_e(self, npy_float64 item1, npy_float64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -816,11 +845,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_float16 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_float16 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_e(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_float16 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_float16 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_e(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -831,11 +860,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_float16 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_float16 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_e(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_float16 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_float16 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_e(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -845,9 +874,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_e = previous_api(_search_bin_na_e)
+
 
   # Optimized version for float32
-  def _searchBinNA_f(self, npy_float64 item1, npy_float64 item2):
+  def _search_bin_na_f(self, npy_float64 item1, npy_float64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -865,11 +896,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_float32 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_float32 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_f(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_float32 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_float32 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_f(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -880,11 +911,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_float32 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_float32 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_f(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_float32 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_float32 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_f(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -894,9 +925,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_f = previous_api(_search_bin_na_f)
+
 
   # Optimized version for float64
-  def _searchBinNA_d(self, npy_float64 item1, npy_float64 item2):
+  def _search_bin_na_d(self, npy_float64 item1, npy_float64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -914,11 +947,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_float64 *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_float64 *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_float64 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_float64 *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_d(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -929,11 +962,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_float64 *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_float64 *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_d(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_float64 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_float64 *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -943,9 +976,11 @@ cdef class IndexArray(Array):
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
 
+  _searchBinNA_d = previous_api(_search_bin_na_d)
+
 
   # Optimized version for npy_longdouble/float96/float128
-  def _searchBinNA_g(self, npy_longdouble item1, npy_longdouble item2):
+  def _search_bin_na_g(self, npy_longdouble item1, npy_longdouble item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -963,11 +998,11 @@ cdef class IndexArray(Array):
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <npy_longdouble *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_longdouble *>self.get_lru_bounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_g(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <npy_longdouble *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_longdouble *>self.get_lru_sorted(nrow, ncs, nchunk, cs)
           start = bisect_left_g(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -978,11 +1013,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <npy_longdouble *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_longdouble *>self.get_lru_bounds(nrow, nbounds)
           nchunk2 = bisect_right_g(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <npy_longdouble *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_longdouble *>self.get_lru_sorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_g(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -991,6 +1026,8 @@ cdef class IndexArray(Array):
       length = stop - start;  tlength = tlength + length
       rbufst[nrow] = start;  rbufln[nrow] = length;
     return tlength
+
+  _searchBinNA_g = previous_api(_search_bin_na_g)
 
 
   def _g_close(self):
@@ -1006,7 +1043,7 @@ cdef class LastRowArray(Array):
   Container for keeping sorted and indices values of last rows of an index.
   """
 
-  def _readIndexSlice(self, hsize_t start, hsize_t stop, ndarray idx):
+  def _read_index_slice(self, hsize_t start, hsize_t stop, ndarray idx):
     """Read the reverse index part of an LR index."""
 
     with nogil:
@@ -1016,8 +1053,10 @@ cdef class LastRowArray(Array):
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data in Last Row.")
 
+  _readIndexSlice = previous_api(_read_index_slice)
 
-  def _readSortedSlice(self, IndexArray sorted, hsize_t start, hsize_t stop):
+
+  def _read_sorted_slice(self, IndexArray sorted, hsize_t start, hsize_t stop):
     """Read the sorted part of an LR index."""
 
     cdef void  *rbuflb
@@ -1031,6 +1070,7 @@ cdef class LastRowArray(Array):
       raise HDF5ExtError("Problems reading the index data.")
     return sorted.bufferlb[:stop-start]
 
+  _readSortedSlice = previous_api(_read_sorted_slice)
 
 
 ## Local Variables:
@@ -1039,3 +1079,9 @@ cdef class LastRowArray(Array):
 ## tab-width: 2
 ## fill-column: 78
 ## End:
+
+
+
+
+
+

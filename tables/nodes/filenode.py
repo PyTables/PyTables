@@ -13,10 +13,10 @@
 """A file interface to nodes for PyTables databases.
 
 The FileNode module provides a file interface for using inside of
-PyTables database files.  Use the newNode() function to create a brand
+PyTables database files.  Use the new_node() function to create a brand
 new file node which can be read and written as any ordinary Python
-file.  Use the openNode() function to open an existing (i.e. created
-with newNode()) node for read-only or read-write access.  Read acces
+file.  Use the open_node() function to open an existing (i.e. created
+with new_node()) node for read-only or read-write access.  Read acces
 is always available.  Write access (enabled on new files and files
 opened with mode 'a+') only allows appending data to a file node.
 
@@ -29,6 +29,7 @@ import warnings
 import numpy
 
 import tables
+from tables._past import previous_api
 
 
 NodeType = 'file'
@@ -38,7 +39,7 @@ NodeTypeVersions = [1, 2]
 """Supported values for NODE_TYPE_VERSION node system attribute."""
 
 
-def newNode(h5file, **kwargs):
+def new_node(h5file, **kwargs):
     """Creates a new file node object in the specified PyTables file object.
 
     Additional named arguments where and name must be passed to specify where
@@ -51,8 +52,10 @@ def newNode(h5file, **kwargs):
 
     return RAFileNode(None, h5file, **kwargs)
 
+newNode = previous_api(new_node)
 
-def openNode(node, mode='r'):
+
+def open_node(node, mode='r'):
     """Opens an existing file node.
 
     Returns a file node object from the existing specified PyTables node.
@@ -69,34 +72,39 @@ def openNode(node, mode='r'):
     else:
         raise IOError("invalid mode: %s" % (mode,))
 
+openNode = previous_api(open_node)
+
 
 class ReadableMixin:
     """Mix-in class which provides reading methods for readable file nodes.
 
-    It also defines the 'lineSeparator' property, which contains the string
+    It also defines the 'line_separator' property, which contains the string
     used as a line separator, and defaults to os.linesep.
     It can be set to any reasonably-sized string you want.
 
     This class requires support for:
 
     * 'offset' and 'node' attributes
-    * _checkNotClosed() and seek() methods
+    * _check_not_closed() and seek() methods
 
     """
 
     # The number of bytes readline() reads at a time.
-    _lineChunkSize = 128
+    _line_chunksize = 128
 
     # The line separator string.
-    _lineSeparator = os.linesep.encode('ascii')
+    _line_separator = os.linesep.encode('ascii')
 
     # The line separator string property methods.
-    def getLineSeparator(self):
+    def get_line_separator(self):
         """Returns the line separator string."""
 
-        return self._lineSeparator
+        return self._line_separator
 
-    def setLineSeparator(self, value):
+    getLineSeparator = previous_api(get_line_separator)
+
+
+    def set_line_separator(self, value):
         """Sets the line separator string.
 
         Raises ValueError if the string is empty or too long.
@@ -107,20 +115,27 @@ class ReadableMixin:
 
         if value == b'':
             raise ValueError("line separator string is empty")
-        elif len(value) > self._lineChunkSize:
+        elif len(value) > self._line_chunksize:
             raise ValueError("sorry, line separator string is too long")
         else:
-            self._lineSeparator = value
+            self._line_separator = value
 
-    def delLineSeparator(self):
-        "Deletes the 'lineSeparator' property."
+    setLineSeparator = previous_api(set_line_separator)
 
-        del self._lineSeparator
+
+    def del_line_separator(self):
+        "Deletes the 'line_separator' property."
+
+        del self._line_separator
+
+    delLineSeparator = previous_api(del_line_separator)
 
     # The line separator string property.
-    lineSeparator = property(
-        getLineSeparator, setLineSeparator, delLineSeparator,
+    line_separator = property(
+        get_line_separator, set_line_separator, del_line_separator,
         """A property containing the line separator string.""")
+
+    lineSeparator = previous_api(line_separator)
 
     def __iter__(self):
         return self
@@ -144,7 +159,7 @@ class ReadableMixin:
         See file.read.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
 
         # 2004-08-03: Reading from beyond the last row raises an IndexError.
         #   Moreover, the pointer should not be incremented.
@@ -171,27 +186,27 @@ class ReadableMixin:
         See file.readline.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
 
         # Set the remaining bytes to read to the specified size.
         remsize = size
 
-        lseplen = len(self._lineSeparator)
+        lseplen = len(self._line_separator)
         partial = []
         finished = False
 
         while not finished:
             # Read a string limited by the remaining number of bytes.
             if size <= 0:
-                ibuff = self.read(self._lineChunkSize)
+                ibuff = self.read(self._line_chunksize)
             else:
-                ibuff = self.read(min(remsize, self._lineChunkSize))
+                ibuff = self.read(min(remsize, self._line_chunksize))
             ibufflen = len(ibuff)
             remsize -= ibufflen
 
             if ibufflen >= lseplen:
                 # Separator fits, look for EOL string.
-                eolindex = ibuff.find(self._lineSeparator)
+                eolindex = ibuff.find(self._line_separator)
             elif ibufflen == 0:
                 # EOF was immediately reached.
                 finished = True
@@ -282,16 +297,18 @@ class NotReadableMixin:
 
     This class requires support for:
 
-    * _checkNotClosed() method
+    * _check_not_closed() method
 
     """
 
-    def _notReadableError(self):
-        """_notReadableError() -> None
+    def _not_readable_error(self):
+        """_not_readable_error() -> None
 
         Raises a common IOError exception for non-readable file nodes.
         """
         raise IOError("the file is not readable")
+
+    _notReadableError = previous_api(_not_readable_error)
 
     # The definition of those methods may seem odd
     # but it is the way Python (2.3) files work.
@@ -309,8 +326,8 @@ class NotReadableMixin:
         See file.next.__doc__ for more information.
         """
 
-        self._checkNotClosed()
-        self._notReadableError()
+        self._check_not_closed()
+        self._not_readable_error()
 
     def read(self, size=None):
         """Reads at most 'size' bytes.
@@ -322,8 +339,8 @@ class NotReadableMixin:
         See file.read.__doc__ for more information.
         """
 
-        self._checkNotClosed()
-        self._notReadableError()
+        self._check_not_closed()
+        self._not_readable_error()
 
     def readline(self, size=-1):
         """Reads the next text line.
@@ -335,8 +352,8 @@ class NotReadableMixin:
         See file.readline.__doc__ for more information.
         """
 
-        self._checkNotClosed()
-        self._notReadableError()
+        self._check_not_closed()
+        self._not_readable_error()
 
     def readlines(self, sizehint=-1):
         """Reads the text lines.
@@ -348,8 +365,8 @@ class NotReadableMixin:
         See file.readlines.__doc__ for more information.
         """
 
-        self._checkNotClosed()
-        self._notReadableError()
+        self._check_not_closed()
+        self._not_readable_error()
 
     def xreadlines(self):
         """xreadlines() -> self.  For backward compatibility.
@@ -365,7 +382,7 @@ class NotWritableMixin:
 
     This class requires support for:
 
-        * _checkNotClosed() method
+        * _check_not_closed() method
 
     """
 
@@ -387,7 +404,7 @@ class NotWritableMixin:
         See file.truncate.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
         self._notWritableError()
 
     def write(self, string):
@@ -398,7 +415,7 @@ class NotWritableMixin:
         See file.write.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
         self._notWritableError()
 
     def writelines(self, sequence):
@@ -409,7 +426,7 @@ class NotWritableMixin:
         See file.writelines.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
         self._notWritableError()
 
 
@@ -419,12 +436,12 @@ class AppendableMixin:
     This class requires support for:
 
     * 'offset', 'node', '_vType' and '_vShape' attributes
-    * _checkNotClosed() method
+    * _check_not_closed() method
 
     """
 
-    def _appendZeros(self, size):
-        """_appendZeros(size) -> None.  Appends a string of zeros.
+    def _append_zeros(self, size):
+        """_append_zeros(size) -> None.  Appends a string of zeros.
 
         Appends a string of 'size' zeros to the array,
         without moving the file pointer.
@@ -438,6 +455,8 @@ class AppendableMixin:
         self.node.append(
             numpy.zeros(dtype=self._vType, shape=self._vShape(size)))
 
+    _appendZeros = previous_api(_append_zeros)
+
     def truncate(self, size=None):
         """Truncates the file node to at most 'size' bytes.
 
@@ -446,13 +465,13 @@ class AppendableMixin:
         See file.truncate.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
 
         if size is None:
             size = self.offset
         if size < self.node.nrows:
             raise IOError("truncating is only allowed for growing a file")
-        self._appendZeros(size - self.node.nrows)
+        self._append_zeros(size - self.node.nrows)
 
     def write(self, string):
         """Writes the string to the file.
@@ -461,7 +480,7 @@ class AppendableMixin:
         See file.write.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
 
         # This mimics the behaviour of normal Python (2.3) files,
         # where writing an empty string does absolutely nothing
@@ -473,7 +492,7 @@ class AppendableMixin:
         end2off = self.offset - self.node.nrows
         if end2off > 0:
             # Zero-fill the gap between the end of data and the pointer.
-            self._appendZeros(end2off)
+            self._append_zeros(end2off)
 
         # Move the pointer to the end of the (newly written) data.
         self.offset = self.node.nrows
@@ -498,8 +517,8 @@ class AppendableMixin:
 class FileNode(object):
     """This is the ancestor of ROFileNode and RAFileNode (see below).
 
-    Instances of these classes are returned when newNode() or
-    openNode() are called. It represents a new file node associated
+    Instances of these classes are returned when new_node() or
+    open_node() are called. It represents a new file node associated
     with a PyTables node, providing a standard Python file interface
     to it.
 
@@ -513,11 +532,11 @@ class FileNode(object):
     node. Please do not tamper with this object if it's avoidable, since you
     may break the operation of the file node object.
 
-    The lineSeparator property contains the string used as a line separator,
+    The line_separator property contains the string used as a line separator,
     and defaults to os.linesep. It can be set to any reasonably-sized string
     you want.
 
-    The constructor sets the closed, softspace and _lineSeparator attributes to
+    The constructor sets the closed, softspace and _line_separator attributes to
     their initial values, as well as the node attribute to None.  Sub-classes
     should set the node, mode and offset attributes.
 
@@ -538,24 +557,30 @@ class FileNode(object):
         lambda l: (l, )]
 
     # The attribute set property methods.
-    def getAttrs(self):
+    def get_attrs(self):
         """Returns the attribute set of the file node."""
 
         return self.node.attrs
 
-    def setAttrs(self, value):
-        "setAttrs(string) -> None.  Raises ValueError."
+    getAttrs = previous_api(get_attrs)
+
+    def set_attrs(self, value):
+        "set_attrs(string) -> None.  Raises ValueError."
 
         raise ValueError("changing the whole attribute set is not allowed")
 
-    def delAttrs(self):
-        "delAttrs() -> None.  Raises ValueError."
+    setAttrs = previous_api(set_attrs)
+
+    def del_attrs(self):
+        "del_attrs() -> None.  Raises ValueError."
 
         raise ValueError("deleting the whole attribute set is not allowed")
 
+    delAttrs = previous_api(del_attrs)
+
     # The attribute set property.
     attrs = property(
-        getAttrs, setAttrs, delAttrs,
+        get_attrs, set_attrs, del_attrs,
         "A property pointing to the attribute set of the file node.")
 
     def __init__(self):
@@ -576,8 +601,8 @@ class FileNode(object):
         if self.node is not None:
             self.close()
 
-    def _setAttributes(self, node):
-        """_setAttributes(node) -> None.  Adds file node-specific attributes.
+    def _set_attributes(self, node):
+        """_set_attributes(node) -> None.  Adds file node-specific attributes.
 
         Sets the system attributes 'NODE_TYPE' and 'NODE_TYPE_VERSION'
         in the specified PyTables node (leaf).
@@ -585,12 +610,14 @@ class FileNode(object):
 
         attrs = node.attrs
         # System attributes are now writable.  ivb(2004-12-30)
-        ##attrs._g_setAttr('NODE_TYPE', NodeType)
-        ##attrs._g_setAttr('NODE_TYPE_VERSION', NodeTypeVersions[-1])
+        ##attrs._g_setattr('NODE_TYPE', NodeType)
+        ##attrs._g_setattr('NODE_TYPE_VERSION', NodeTypeVersions[-1])
         attrs.NODE_TYPE = NodeType
         attrs.NODE_TYPE_VERSION = NodeTypeVersions[-1]
 
-    def _checkAttributes(self, node):
+    _setAttributes = previous_api(_set_attributes)
+
+    def _check_attributes(self, node):
         """Checks file node-specific attributes.
 
         Checks for the presence and validity
@@ -609,7 +636,9 @@ class FileNode(object):
             raise ValueError(
                 "unsupported type version of node object: %s" % (ltypever,))
 
-    def _checkNotClosed(self):
+    _checkAttributes = previous_api(_check_attributes)
+
+    def _check_not_closed(self):
         """Checks if file node is open.
 
         Checks whether the file node is open or has been closed.
@@ -621,6 +650,8 @@ class FileNode(object):
             raise ValueError("I/O operation on closed file")
         if getattr(self.node, '_v_file', None) is None:
             raise ValueError("host PyTables file is already closed!")
+
+    _checkNotClosed = previous_api(_check_not_closed)
 
     def close(self):
         """Flushes the file and closes it.
@@ -657,7 +688,7 @@ class FileNode(object):
         See file.seek.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
 
         if whence == 0:
             # Absolute positioning.
@@ -684,7 +715,7 @@ class FileNode(object):
         See file.tell.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
         return self.offset
 
 
@@ -694,17 +725,17 @@ class ROFileNode(ReadableMixin, NotWritableMixin, FileNode):
     Creates a new read-only file node associated with the specified
     PyTables node, providing a standard Python file interface to it.
     The node has to have been created on a previous occasion
-    using the newNode() function.
+    using the new_node() function.
 
     This constructor is not intended to be used directly.
-    Use the openNode() function in read-only mode ('r') instead.
+    Use the open_node() function in read-only mode ('r') instead.
     """
 
     # Since FileNode provides all methods for read-only access,
     # only the constructor method and failing writing methods are needed.
     def __init__(self, node):
         super(ROFileNode, self).__init__()
-        self._checkAttributes(node)
+        self._check_attributes(node)
 
         self.node = node
         self.mode = 'r'
@@ -720,7 +751,7 @@ class ROFileNode(ReadableMixin, NotWritableMixin, FileNode):
         See file.flush.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
         # Do nothing.
 
 
@@ -738,23 +769,23 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
     Write access means reading as well as appending data is allowed.
 
     This constructor is not intended to be used directly.
-    Use the newNode() or openNode() functions instead.
+    Use the new_node() or open_node() functions instead.
     """
 
-    __allowedInitKwArgs = ['where', 'name', 'title', 'filters', 'expectedsize']
+    __allowed_init_kwargs = ['where', 'name', 'title', 'filters', 'expectedsize']
 
     def __init__(self, node, h5file, **kwargs):
         super(RAFileNode, self).__init__()
 
         if node is not None:
             # Open an existing node and get its version.
-            self._checkAttributes(node)
+            self._check_attributes(node)
             self._version = node.attrs.NODE_TYPE_VERSION
         elif h5file is not None:
             # Check for allowed keyword arguments,
             # to avoid unwanted arguments falling through to array constructor.
             for kwarg in kwargs:
-                if kwarg not in self.__allowedInitKwArgs:
+                if kwarg not in self.__allowed_init_kwargs:
                     raise TypeError(
                         "%s keyword argument is not allowed" % repr(kwarg))
 
@@ -769,14 +800,14 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
             # Create a new array in the specified PyTables file.
             self._version = NodeTypeVersions[-1]
             shape = self._byteShape[self._version]
-            node = h5file.createEArray(
+            node = h5file.create_earray(
                 atom=tables.UInt8Atom(), shape=shape, **kwargs)
 
             # Set the node attributes, else remove the array itself.
             try:
-                self._setAttributes(node)
+                self._set_attributes(node)
             except RuntimeError:
-                h5file.removeNode(kwargs['where'], kwargs['name'])
+                h5file.remove_node(kwargs['where'], kwargs['name'])
                 raise
 
         # Set required attributes (besides of '_version').
@@ -801,7 +832,7 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
         See file.flush.__doc__ for more information.
         """
 
-        self._checkNotClosed()
+        self._check_not_closed()
         self.node.flush()
 
 
@@ -811,3 +842,9 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 ## py-indent-offset: 4
 ## tab-width: 4
 ## End:
+
+
+
+
+
+

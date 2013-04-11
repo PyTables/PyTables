@@ -21,44 +21,44 @@ from tables.tests import common
 
 
 class NewFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
-    "Tests creating a new file node with the newNode() function."
+    "Tests creating a new file node with the new_node() function."
 
     def test00_NewFile(self):
         "Creation of a brand new file node."
 
         try:
-            fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
-            node = self.h5file.getNode('/test')
+            fnode = filenode.new_node(self.h5file, where = '/', name = 'test')
+            node = self.h5file.get_node('/test')
         except LookupError:
-            self.fail("filenode.newNode() failed to create a new node.")
+            self.fail("filenode.new_node() failed to create a new node.")
         else:
             self.assertEqual(
                     fnode.node, node,
-                    "filenode.newNode() created a node in the wrong place.")
+                    "filenode.new_node() created a node in the wrong place.")
 
 
     def test01_NewFileTooFewArgs(self):
         "Creation of a new file node without arguments for node creation."
 
-        self.assertRaises(TypeError, filenode.newNode, self.h5file)
+        self.assertRaises(TypeError, filenode.new_node, self.h5file)
 
 
     def test02_NewFileWithExpectedSize(self):
         "Creation of a new file node with 'expectedsize' argument."
 
         try:
-            filenode.newNode(
+            filenode.new_node(
                     self.h5file, where = '/', name = 'test', expectedsize = 100000)
         except TypeError:
             self.fail("\
-filenode.newNode() failed to accept 'expectedsize' argument.")
+filenode.new_node() failed to accept 'expectedsize' argument.")
 
 
     def test03_NewFileWithExpectedRows(self):
         "Creation of a new file node with illegal 'expectedrows' argument."
 
         self.assertRaises(
-                TypeError, filenode.newNode,
+                TypeError, filenode.new_node,
                 self.h5file, where = '/', name = 'test', expectedrows = 100000)
 
 
@@ -75,7 +75,7 @@ class ClosedFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
           * 'fnode', the closed file node in '/test'
         """
         super(ClosedFileTestCase, self).setUp()
-        self.fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
+        self.fnode = filenode.new_node(self.h5file, where = '/', name = 'test')
         self.fnode.close()
 
 
@@ -190,7 +190,7 @@ class WriteFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
           * 'fnode', the writable file node in '/test'
         """
         super(WriteFileTestCase, self).setUp()
-        self.fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
+        self.fnode = filenode.new_node(self.h5file, where = '/', name = 'test')
         self.datafname = self._testFilename(self.datafname)
 
 
@@ -282,17 +282,17 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
           * 'h5file', the writable, temporary HDF5 file with a '/test' node
         """
         super(OpenFileTestCase, self).setUp()
-        fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
+        fnode = filenode.new_node(self.h5file, where = '/', name = 'test')
         fnode.close()
 
 
     def test00_OpenFileRead(self):
         "Opening an existing file node for reading."
 
-        node = self.h5file.getNode('/test')
-        fnode = filenode.openNode(node)
+        node = self.h5file.get_node('/test')
+        fnode = filenode.open_node(node)
         self.assertEqual(
-                fnode.node, node, "filenode.openNode() opened the wrong node.")
+                fnode.node, node, "filenode.open_node() opened the wrong node.")
         self.assertEqual(
                 fnode.mode, 'r',
                 "File was opened with an invalid mode %s." % repr(fnode.mode))
@@ -305,10 +305,10 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_OpenFileReadAppend(self):
         "Opening an existing file node for reading and appending."
 
-        node = self.h5file.getNode('/test')
-        fnode = filenode.openNode(node, 'a+')
+        node = self.h5file.get_node('/test')
+        fnode = filenode.open_node(node, 'a+')
         self.assertEqual(
-                fnode.node, node, "filenode.openNode() opened the wrong node.")
+                fnode.node, node, "filenode.open_node() opened the wrong node.")
         self.assertEqual(
                 fnode.mode, 'a+',
                 "File was opened with an invalid mode %s." % repr(fnode.mode))
@@ -323,7 +323,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Opening an existing file node with an invalid mode."
 
         self.assertRaises(
-                IOError, filenode.openNode, self.h5file.getNode('/test'), 'w')
+                IOError, filenode.open_node, self.h5file.get_node('/test'), 'w')
 
 
     # This no longer works since type and type version attributes
@@ -331,11 +331,11 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     ##def test03_OpenFileNoAttrs(self):
     ##      "Opening a node with no type attributes."
     ##
-    ##      node = self.h5file.getNode('/test')
-    ##      self.h5file.delNodeAttr('/test', '_type')
+    ##      node = self.h5file.get_node('/test')
+    ##      self.h5file.del_node_attr('/test', '_type')
     ##      # Another way to get the same result is changing the value.
-    ##      ##self.h5file.setNodeAttr('/test', '_type', 'foobar')
-    ##      self.assertRaises(ValueError, filenode.openNode, node)
+    ##      ##self.h5file.set_node_attr('/test', '_type', 'foobar')
+    ##      self.assertRaises(ValueError, filenode.open_node, node)
 
 
 
@@ -360,12 +360,12 @@ class ReadFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         super(ReadFileTestCase, self).setUp()
 
-        fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
+        fnode = filenode.new_node(self.h5file, where = '/', name = 'test')
         copyFileToFile(self.datafile, fnode)
         fnode.close()
 
         self.datafile.seek(0)
-        self.fnode = filenode.openNode(self.h5file.getNode('/test'))
+        self.fnode = filenode.open_node(self.h5file.get_node('/test'))
 
 
     def tearDown(self):
@@ -427,7 +427,7 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
     Base class for text line-reading test cases.
 
     It provides a set of tests independent of the line separator string.
-    Sub-classes must provide the 'lineSeparator' attribute.
+    Sub-classes must provide the 'line_separator' attribute.
     """
 
     def setUp(self):
@@ -441,11 +441,11 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         super(ReadlineTestCase, self).setUp()
 
-        linesep = self.lineSeparator
+        linesep = self.line_separator
 
         # Fill the node file with some text.
-        fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
-        fnode.lineSeparator = linesep
+        fnode = filenode.new_node(self.h5file, where = '/', name = 'test')
+        fnode.line_separator = linesep
         fnode.write(linesep)
         data = 'short line%sshort line%s%s' % ((linesep.decode('ascii'),) * 3)
         data = data.encode('ascii')
@@ -455,8 +455,8 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
         fnode.close()
 
         # Re-open it for reading.
-        self.fnode = filenode.openNode(self.h5file.getNode('/test'))
-        self.fnode.lineSeparator = linesep
+        self.fnode = filenode.open_node(self.h5file.get_node('/test'))
+        self.fnode.line_separator = linesep
 
 
     def tearDown(self):
@@ -473,7 +473,7 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_Readline(self):
         "Reading individual lines."
 
-        linesep = self.lineSeparator
+        linesep = self.line_separator
 
         line = self.fnode.readline()
         self.assertEqual(line, linesep)
@@ -500,7 +500,7 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_ReadlineSeek(self):
         "Reading individual lines and seeking back and forth."
 
-        linesep = self.lineSeparator
+        linesep = self.line_separator
         lseplen = len(linesep)
 
         self.fnode.readline()  # linesep
@@ -521,7 +521,7 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_Iterate(self):
         "Iterating over the lines."
 
-        linesep = self.lineSeparator
+        linesep = self.line_separator
 
         # Iterate to the end.
         for line in self.fnode:
@@ -541,7 +541,7 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_Readlines(self):
         "Reading a list of lines."
 
-        linesep = self.lineSeparator
+        linesep = self.line_separator
 
         lines = self.fnode.readlines()
         self.assertEqual(lines, [
@@ -552,7 +552,7 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test04_ReadlineSize(self):
         "Reading individual lines of limited size."
 
-        linesep = self.lineSeparator
+        linesep = self.line_separator
         lseplen = len(linesep)
 
         line = self.fnode.readline()  # linesep
@@ -581,7 +581,7 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test05_ReadlinesSize(self):
         "Reading a list of lines with a limited size."
 
-        linesep = self.lineSeparator
+        linesep = self.line_separator
 
         data = '%sshort line%sshort' % ((linesep.decode('ascii'),) * 2)
         data = data.encode('ascii')
@@ -596,14 +596,14 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class MonoReadlineTestCase(ReadlineTestCase):
     "Tests reading one-byte-separated text lines from an existing file node."
 
-    lineSeparator = b'\n'
+    line_separator = b'\n'
 
 
 
 class MultiReadlineTestCase(ReadlineTestCase):
     "Tests reading multibyte-separated text lines from an existing file node."
 
-    lineSeparator = b'<br/>'
+    line_separator = b'<br/>'
 
 
 
@@ -619,7 +619,7 @@ class LineSeparatorTestCase(common.TempFileMixin, common.PyTablesTestCase):
           * 'fnode', the writable file node in '/test'
         """
         super(LineSeparatorTestCase, self).setUp()
-        self.fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
+        self.fnode = filenode.new_node(self.h5file, where = '/', name = 'test')
 
 
     def tearDown(self):
@@ -636,7 +636,7 @@ class LineSeparatorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Default line separator."
 
         self.assertEqual(
-                self.fnode.lineSeparator, os.linesep.encode('ascii'),
+                self.fnode.line_separator, os.linesep.encode('ascii'),
                 "Default line separator does not match that in os.linesep.")
 
 
@@ -644,12 +644,12 @@ class LineSeparatorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Setting a valid line separator."
 
         try:
-            self.fnode.lineSeparator = b'SEPARATOR'
+            self.fnode.line_separator = b'SEPARATOR'
         except ValueError:
             self.fail("Valid line separator was not accepted.")
         else:
             self.assertEqual(
-                    self.fnode.lineSeparator, b'SEPARATOR',
+                    self.fnode.line_separator, b'SEPARATOR',
                     "Line separator was not correctly set.")
 
 
@@ -657,11 +657,11 @@ class LineSeparatorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Setting an invalid line separator."
 
         self.assertRaises(
-                ValueError, setattr, self.fnode, 'lineSeparator', b'')
+                ValueError, setattr, self.fnode, 'line_separator', b'')
         self.assertRaises(
-                ValueError, setattr, self.fnode, 'lineSeparator', b'x' * 1024)
+                ValueError, setattr, self.fnode, 'line_separator', b'x' * 1024)
         self.assertRaises(
-                TypeError, setattr, self.fnode, 'lineSeparator', u'x')
+                TypeError, setattr, self.fnode, 'line_separator', u'x')
 
 
 
@@ -677,7 +677,7 @@ class AttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
           * 'fnode', the writable file node in '/test'
         """
         super(AttrsTestCase, self).setUp()
-        self.fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
+        self.fnode = filenode.new_node(self.h5file, where = '/', name = 'test')
 
 
     def tearDown(self):
@@ -784,7 +784,7 @@ class ClosedH5FileTestCase(common.TempFileMixin, common.PyTablesTestCase):
           * 'fnode', the writable file node in '/test'
         """
         super(ClosedH5FileTestCase, self).setUp()
-        self.fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
+        self.fnode = filenode.new_node(self.h5file, where = '/', name = 'test')
         self.h5file.close()
 
     def tearDown(self):
@@ -838,14 +838,14 @@ class OldVersionTestCase(common.PyTablesTestCase):
         self.h5fname = tempfile.mktemp(suffix = '.h5')
 
         self.oldh5fname = self._testFilename(self.oldh5fname)
-        oldh5f = tables.openFile(self.oldh5fname)
-        oldh5f.copyFile(self.h5fname)
+        oldh5f = tables.open_file(self.oldh5fname)
+        oldh5f.copy_file(self.h5fname)
         oldh5f.close()
 
-        self.h5file = tables.openFile(
+        self.h5file = tables.open_file(
                 self.h5fname, 'r+',
                 title = "Test for file node old version compatibility")
-        self.fnode = filenode.openNode(self.h5file.root.test, 'a+')
+        self.fnode = filenode.open_node(self.h5file.root.test, 'a+')
 
 
     def tearDown(self):
@@ -861,7 +861,7 @@ class OldVersionTestCase(common.PyTablesTestCase):
     def test00_Read(self):
         "Reading an old version file node."
 
-        self.fnode.lineSeparator = '\n'
+        self.fnode.line_separator = '\n'
 
         line = self.fnode.readline()
         self.assertEqual(line, 'This is only\n')
@@ -883,7 +883,7 @@ class OldVersionTestCase(common.PyTablesTestCase):
     def test01_Write(self):
         "Writing an old version file node."
 
-        self.fnode.lineSeparator = '\n'
+        self.fnode.line_separator = '\n'
 
         self.fnode.write('foobar\n')
         self.fnode.seek(-7, 2)
@@ -953,3 +953,9 @@ if __name__ == '__main__':
 ## py-indent-offset: 4
 ## tab-width: 4
 ## End:
+
+
+
+
+
+

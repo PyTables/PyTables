@@ -31,7 +31,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, "w")
+        self.fileh = open_file(self.file, "w")
         self.rootgroup = self.fileh.root
         self.populateFile()
         self.fileh.close()
@@ -42,7 +42,7 @@ class BasicTestCase(unittest.TestCase):
                           complib = self.complib,
                           shuffle = self.shuffle,
                           fletcher32 = self.fletcher32)
-        vlarray = self.fileh.createVLArray(group, 'vlarray1',
+        vlarray = self.fileh.create_vlarray(group, 'vlarray1',
                                            Int32Atom(),
                                            "ragged array if ints",
                                            filters = filters,
@@ -68,8 +68,8 @@ class BasicTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test00_attributes(self):
-        self.fileh = openFile(self.file, "r")
-        obj = self.fileh.getNode("/vlarray1")
+        self.fileh = open_file(self.file, "r")
+        obj = self.fileh.get_node("/vlarray1")
 
         self.assertEqual(obj.flavor, self.flavor)
         self.assertEqual(obj.shape, (5,))
@@ -85,8 +85,8 @@ class BasicTestCase(unittest.TestCase):
             print "Running %s.test01_read..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "r")
-        vlarray = self.fileh.getNode("/vlarray1")
+        self.fileh = open_file(self.file, "r")
+        vlarray = self.fileh.get_node("/vlarray1")
 
         # Choose a small value for buffer size
         vlarray.nrowsinbuf = 3
@@ -116,7 +116,7 @@ class BasicTestCase(unittest.TestCase):
             print "Error in compress. Class:", self.__class__.__name__
             print "self, vlarray:", self.compress, vlarray.filters.complevel
         self.assertEqual(vlarray.filters.complevel, self.compress)
-        if self.compress > 0 and whichLibVersion(self.complib):
+        if self.compress > 0 and which_lib_version(self.complib):
             self.assertEqual(vlarray.filters.complib, self.complib)
         if self.shuffle != vlarray.filters.shuffle and common.verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
@@ -136,8 +136,8 @@ class BasicTestCase(unittest.TestCase):
             print "Running %s.test02a_getitem..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "r")
-        vlarray = self.fileh.getNode("/vlarray1")
+        self.fileh = open_file(self.file, "r")
+        vlarray = self.fileh.get_node("/vlarray1")
 
         rows = [[1, 2], [3, 4, 5], [], [6, 7, 8, 9], [10, 11, 12, 13, 14]]
 
@@ -179,8 +179,8 @@ class BasicTestCase(unittest.TestCase):
             return
 
         # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "r")
-        vlarray = self.fileh.getNode("/vlarray1")
+        self.fileh = open_file(self.file, "r")
+        vlarray = self.fileh.get_node("/vlarray1")
 
         # Get a numpy array of objects
         rows = numpy.array(vlarray[:], dtype=numpy.object)
@@ -207,8 +207,8 @@ class BasicTestCase(unittest.TestCase):
             print "Running %s.test03_append..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "a")
-        vlarray = self.fileh.getNode("/vlarray1")
+        self.fileh = open_file(self.file, "a")
+        vlarray = self.fileh.get_node("/vlarray1")
         # Append a new row
         vlarray.append([7, 8, 9, 10])
 
@@ -290,7 +290,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, self.mode)
+        self.fileh = open_file(self.file, self.mode)
 
     def tearDown(self):
         self.fileh.close()
@@ -306,7 +306,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_StringAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', 'stringAtom',
+        vlarray = self.fileh.create_vlarray('/', 'stringAtom',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "numpy"
@@ -316,8 +316,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -340,7 +340,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01a_StringAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', 'stringAtom',
+        vlarray = self.fileh.create_vlarray('/', 'stringAtom',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "numpy"
@@ -350,8 +350,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -373,7 +373,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01a_2_StringAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', 'stringAtom',
+        vlarray = self.fileh.create_vlarray('/', 'stringAtom',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "numpy"
@@ -383,8 +383,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -407,7 +407,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01b_StringAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', 'stringAtom2',
+        vlarray = self.fileh.create_vlarray('/', 'stringAtom2',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "python"
@@ -417,8 +417,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -441,7 +441,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01c_StringAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', 'stringAtom',
+        vlarray = self.fileh.create_vlarray('/', 'stringAtom',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "numpy"
@@ -455,8 +455,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -479,7 +479,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01d_StringAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', 'stringAtom2',
+        vlarray = self.fileh.create_vlarray('/', 'stringAtom2',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "python"
@@ -493,8 +493,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -517,7 +517,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_BoolAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', 'BoolAtom',
+        vlarray = self.fileh.create_vlarray('/', 'BoolAtom',
                                            BoolAtom(),
                                            "Ragged array of Booleans")
         vlarray.append([1, 0, 3])
@@ -526,8 +526,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -549,7 +549,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02b_BoolAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', 'BoolAtom',
+        vlarray = self.fileh.create_vlarray('/', 'BoolAtom',
                                            BoolAtom(),
                                            "Ragged array of Booleans")
         vlarray.append([1, 0, 3])
@@ -562,8 +562,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -595,7 +595,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
             vlarray.append([-1, 0])
@@ -603,8 +603,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -637,7 +637,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test03a_IntAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1, 2, 3], dtype=atype)
             a0 = a0.byteswap(); a0 = a0.newbyteorder()
@@ -649,8 +649,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -685,7 +685,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
             vlarray.append([-1, 0])
@@ -697,8 +697,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -731,7 +731,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test03c_IntAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1, 2, 3], dtype=atype)
             vlarray.append(a0)
@@ -750,8 +750,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -787,7 +787,7 @@ class TypesTestCase(unittest.TestCase):
 
         byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(ttypes[atype]),
                                                byteorder=byteorder)
             a0 = numpy.array([1, 2, 3], dtype=atype)
@@ -807,8 +807,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -846,7 +846,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04_FloatAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([1.3, 2.2, 3.3])
             vlarray.append([-1.3e34, 1.e-32])
@@ -854,8 +854,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -890,7 +890,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04a_FloatAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
             a0 = a0.byteswap(); a0 = a0.newbyteorder()
@@ -902,8 +902,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -937,7 +937,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04b_FloatAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([1.3, 2.2, 3.3])
             vlarray.append([-1.3e34, 1.e-32])
@@ -949,8 +949,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -986,7 +986,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04c_FloatAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
             vlarray.append(a0)
@@ -1005,8 +1005,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -1044,7 +1044,7 @@ class TypesTestCase(unittest.TestCase):
 
         byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(ttypes[atype]),
                                                byteorder = byteorder)
             a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
@@ -1064,8 +1064,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -1103,7 +1103,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04_ComplexAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([(1.3+0j), (0+2.2j), (3.3+3.3j)])
             vlarray.append([(0-1.3e34j), (1.e-32+0j)])
@@ -1111,8 +1111,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -1149,7 +1149,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray('/', atype,
+            vlarray = self.fileh.create_vlarray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([(1.3+0j), (0+2.2j), (3.3+3.3j)])
             vlarray.append([(0-1.3e34j), (1.e-32+0j)])
@@ -1161,8 +1161,8 @@ class TypesTestCase(unittest.TestCase):
             if self.reopen:
                 name = vlarray._v_pathname
                 self.fileh.close()
-                self.fileh = openFile(self.file, "a")
-                vlarray = self.fileh.getNode(name)
+                self.fileh = open_file(self.file, "a")
+                vlarray = self.fileh.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -1192,7 +1192,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05_VLStringAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', "VLStringAtom", VLStringAtom())
+        vlarray = self.fileh.create_vlarray('/', "VLStringAtom", VLStringAtom())
         vlarray.append("asd")
         vlarray.append("asd\xe4")
         vlarray.append(u"aaana")
@@ -1205,8 +1205,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1232,7 +1232,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05b_VLStringAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', "VLStringAtom", VLStringAtom())
+        vlarray = self.fileh.create_vlarray('/', "VLStringAtom", VLStringAtom())
         vlarray.append("asd")
         vlarray.append(u"aaana")
 
@@ -1245,8 +1245,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1269,7 +1269,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06a_Object..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
+        vlarray = self.fileh.create_vlarray('/', "Object", ObjectAtom())
         vlarray.append([[1, 2, 3], "aaa", u"aaaççç"])
         vlarray.append([3, 4, C()])
         vlarray.append(42)
@@ -1277,8 +1277,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1305,7 +1305,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06b_Object..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
+        vlarray = self.fileh.create_vlarray('/', "Object", ObjectAtom())
         # When updating an object, this seems to change the number
         # of bytes that pickle.dumps generates
         #vlarray.append(([1,2,3], "aaa", u"aaaççç"))
@@ -1322,8 +1322,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1349,7 +1349,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06c_Object..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
+        vlarray = self.fileh.create_vlarray('/', "Object", ObjectAtom())
         vlarray.append(numpy.array([[1, 2], [0, 4]], 'i4'))
         vlarray.append(numpy.array([0, 1, 2, 3], 'i8'))
         vlarray.append(numpy.array(42, 'i1'))
@@ -1357,8 +1357,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1379,7 +1379,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06d_Object..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
+        vlarray = self.fileh.create_vlarray('/', "Object", ObjectAtom())
         vlarray.append(numpy.array([[1, 2], [0, 4]], 'i4'))
         vlarray.append(numpy.array([0, 1, 2, 3], 'i8'))
         vlarray.append(numpy.array(42, 'i1'))
@@ -1394,8 +1394,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1420,7 +1420,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test07_VLUnicodeAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray(
+        vlarray = self.fileh.create_vlarray(
             '/', "VLUnicodeAtom", VLUnicodeAtom() )
         vlarray.append("asd")
         vlarray.append(u"asd\u0140")
@@ -1434,8 +1434,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1461,7 +1461,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test07b_VLUnicodeAtom..." % self.__class__.__name__
 
-        vlarray = self.fileh.createVLArray(
+        vlarray = self.fileh.create_vlarray(
             '/', "VLUnicodeAtom", VLUnicodeAtom() )
         vlarray.append("asd")
         vlarray.append(u"aaan\xe4")
@@ -1475,8 +1475,8 @@ class TypesTestCase(unittest.TestCase):
         if self.reopen:
             name = vlarray._v_pathname
             self.fileh.close()
-            self.fileh = openFile(self.file, "r")
-            vlarray = self.fileh.getNode(name)
+            self.fileh = open_file(self.file, "r")
+            vlarray = self.fileh.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1510,7 +1510,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, self.mode)
+        self.fileh = open_file(self.file, self.mode)
         self.rootgroup = self.fileh.root
 
     def tearDown(self):
@@ -1529,7 +1529,7 @@ class MDTypesTestCase(unittest.TestCase):
             print "Running %s.test01_StringAtom..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+        vlarray = self.fileh.create_vlarray(root, 'stringAtom',
                                            StringAtom(itemsize=3, shape=(2,)),
                                            "Ragged array of strings")
         vlarray.append([["123", "45"], ["45", "123"]])
@@ -1561,7 +1561,7 @@ class MDTypesTestCase(unittest.TestCase):
             print "Running %s.test01b_StringAtom..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+        vlarray = self.fileh.create_vlarray(root, 'stringAtom',
                                            StringAtom(itemsize=3, shape=(2,)),
                                            "Ragged array of strings")
         vlarray.flavor = "python"
@@ -1593,7 +1593,7 @@ class MDTypesTestCase(unittest.TestCase):
             print "Running %s.test01c_StringAtom..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+        vlarray = self.fileh.create_vlarray(root, 'stringAtom',
                                            StringAtom(itemsize=3, shape=(2,)),
                                            "Ragged array of strings")
         vlarray.flavor = "python"
@@ -1627,7 +1627,7 @@ class MDTypesTestCase(unittest.TestCase):
             print "Running %s.test01d_StringAtom..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+        vlarray = self.fileh.create_vlarray(root, 'stringAtom',
                                            StringAtom(itemsize=3, shape=(2,)),
                                            "Ragged array of strings")
         vlarray.flavor = "python"
@@ -1660,7 +1660,7 @@ class MDTypesTestCase(unittest.TestCase):
             print "Running %s.test02_BoolAtom..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'BoolAtom',
+        vlarray = self.fileh.create_vlarray(root, 'BoolAtom',
                                            BoolAtom(shape = (3,)),
                                            "Ragged array of Booleans")
         vlarray.append([(1, 0, 3), (1, 1, 1), (0, 0, 0)])
@@ -1691,7 +1691,7 @@ class MDTypesTestCase(unittest.TestCase):
             print "Running %s.test02b_BoolAtom..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'BoolAtom',
+        vlarray = self.fileh.create_vlarray(root, 'BoolAtom',
                                            BoolAtom(shape = (3,)),
                                            "Ragged array of Booleans")
         a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], dtype='bool')
@@ -1723,7 +1723,7 @@ class MDTypesTestCase(unittest.TestCase):
             print "Running %s.test02c_BoolAtom..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'BoolAtom',
+        vlarray = self.fileh.create_vlarray(root, 'BoolAtom',
                                            BoolAtom(shape = (3,)),
                                            "Ragged array of Booleans")
         a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], dtype='bool')
@@ -1765,7 +1765,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.create_vlarray(root, atype,
                                                Atom.from_sctype(atype, (2, 3)))
             vlarray.append([numpy.ones((2, 3), atype),
                             numpy.zeros((2, 3), atype)])
@@ -1809,7 +1809,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.create_vlarray(root, atype,
                                                Atom.from_sctype(atype, (5, 2, 6)))
             vlarray.append([numpy.ones((5, 2, 6), atype)*1.3,
                             numpy.zeros((5, 2, 6), atype)])
@@ -1844,7 +1844,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, self.mode)
+        self.fileh = open_file(self.file, self.mode)
         self.rootgroup = self.fileh.root
 
     def tearDown(self):
@@ -1863,7 +1863,7 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Running %s.test00_difinputs..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'vlarray',
+        vlarray = self.fileh.create_vlarray(root, 'vlarray',
                                            Int32Atom(),
                                            "Ragged array of ints")
         vlarray.flavor = "python"
@@ -1878,7 +1878,7 @@ class AppendShapeTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode = "r")
             vlarray = self.fileh.root.vlarray
 
         # Read all the vlarray
@@ -1902,7 +1902,7 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Running %s.test01_toomanydims..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'vlarray',
+        vlarray = self.fileh.create_vlarray(root, 'vlarray',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         # Adding an array with one dimensionality more than allowed
@@ -1920,7 +1920,7 @@ class AppendShapeTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode = "r")
             vlarray = self.fileh.root.vlarray
 
         # Read all the rows (there should be none)
@@ -1940,7 +1940,7 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Running %s.test02_zerodims..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'vlarray',
+        vlarray = self.fileh.create_vlarray(root, 'vlarray',
                                            Int32Atom(),
                                            "Ragged array of ints")
         vlarray.append(numpy.zeros(dtype='int32', shape=(6, 0)))
@@ -1949,7 +1949,7 @@ class AppendShapeTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode = "r")
             vlarray = self.fileh.root.vlarray
 
         # Read the only row in vlarray
@@ -1972,7 +1972,7 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Running %s.test03a_cast..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'vlarray',
+        vlarray = self.fileh.create_vlarray(root, 'vlarray',
                                            Int32Atom(),
                                            "Ragged array of ints")
         # This type has to be upgraded
@@ -1982,7 +1982,7 @@ class AppendShapeTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode = "r")
             vlarray = self.fileh.root.vlarray
 
         # Read the only row in vlarray
@@ -2005,7 +2005,7 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Running %s.test03b_cast..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'vlarray',
+        vlarray = self.fileh.create_vlarray(root, 'vlarray',
                                            Int32Atom(),
                                            "Ragged array of ints")
         # This type has to be downcasted
@@ -2015,7 +2015,7 @@ class AppendShapeTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode = "r")
             vlarray = self.fileh.root.vlarray
 
         # Read the only row in vlarray
@@ -2045,7 +2045,7 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, self.mode)
+        self.fileh = open_file(self.file, self.mode)
         self.rootgroup = self.fileh.root
 
     def tearDown(self):
@@ -2064,11 +2064,11 @@ class FlavorTestCase(unittest.TestCase):
             print "Running %s.test01_EmptyVLArray..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, "vlarray",
+        vlarray = self.fileh.create_vlarray(root, "vlarray",
                                            Atom.from_kind('int', itemsize=4))
         vlarray.flavor = self.flavor
         self.fileh.close()
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         # Read all the rows (it should be empty):
         vlarray = self.fileh.root.vlarray
         row = vlarray.read()
@@ -2089,7 +2089,7 @@ class FlavorTestCase(unittest.TestCase):
             print "Running %s.test01_EmptyVLArray..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, "vlarray",
+        vlarray = self.fileh.create_vlarray(root, "vlarray",
                                            Atom.from_kind('int', itemsize=4))
         vlarray.flavor = self.flavor
         # Read all the rows (it should be empty):
@@ -2111,7 +2111,7 @@ class FlavorTestCase(unittest.TestCase):
             print "Running %s.test02_BoolAtom..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, "Bool", BoolAtom())
+        vlarray = self.fileh.create_vlarray(root, "Bool", BoolAtom())
         vlarray.flavor = self.flavor
         vlarray.append([1, 2, 3])
         vlarray.append(())   # Empty row
@@ -2168,7 +2168,7 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.create_vlarray(root, atype,
                                                Atom.from_sctype(atype))
             vlarray.flavor = self.flavor
             vlarray.append([1, 2, 3])
@@ -2226,16 +2226,16 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.create_vlarray(root, atype,
                                                Atom.from_sctype(atype))
             vlarray.flavor = self.flavor
             vlarray.append([1, 2, 3])
             vlarray.append(())
             vlarray.append([100, 0])
             self.fileh.close()
-            self.fileh = openFile(self.file, "a")  # open in "a"ppend mode
+            self.fileh = open_file(self.file, "a")  # open in "a"ppend mode
             root = self.fileh.root  # Very important!
-            vlarray = self.fileh.getNode(root, str(atype))
+            vlarray = self.fileh.get_node(root, str(atype))
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
@@ -2288,7 +2288,7 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.create_vlarray(root, atype,
                                                Atom.from_sctype(atype))
             vlarray.flavor = self.flavor
             vlarray.append([1.3, 2.2, 3.3])
@@ -2341,7 +2341,7 @@ class ReadRangeTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, self.mode)
+        self.fileh = open_file(self.file, self.mode)
         self.rootgroup = self.fileh.root
         self.populateFile()
         self.fileh.close()
@@ -2350,7 +2350,7 @@ class ReadRangeTestCase(unittest.TestCase):
         group = self.rootgroup
         filters = Filters(complevel = self.compress,
                           complib = self.complib)
-        vlarray = self.fileh.createVLArray(group, 'vlarray', Int32Atom(),
+        vlarray = self.fileh.create_vlarray(group, 'vlarray', Int32Atom(),
                                            "ragged array if ints",
                                            filters = filters,
                                            expectedsizeinMB = 1)
@@ -2372,7 +2372,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_start..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         # Read some rows:
@@ -2398,7 +2398,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01b_start..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         # Read some rows:
@@ -2424,7 +2424,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01np_start..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         # Read some rows:
@@ -2450,7 +2450,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_stop..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2481,7 +2481,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02b_stop..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2513,7 +2513,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03_startstop..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2545,7 +2545,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03b_startstop..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2577,7 +2577,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04_startstopstep..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2611,7 +2611,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04np_startstopstep..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2645,7 +2645,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04b_slices..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2679,7 +2679,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04bnp_slices..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2713,7 +2713,7 @@ class ReadRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05_out_of_range..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         if common.verbose:
@@ -2742,7 +2742,7 @@ class GetItemRangeTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, self.mode)
+        self.fileh = open_file(self.file, self.mode)
         self.rootgroup = self.fileh.root
         self.populateFile()
         self.fileh.close()
@@ -2751,7 +2751,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         group = self.rootgroup
         filters = Filters(complevel = self.compress,
                           complib = self.complib)
-        vlarray = self.fileh.createVLArray(group, 'vlarray', Int32Atom(),
+        vlarray = self.fileh.create_vlarray(group, 'vlarray', Int32Atom(),
                                            "ragged array if ints",
                                            filters = filters,
                                            expectedsizeinMB = 1)
@@ -2773,7 +2773,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_start..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         # Read some rows:
@@ -2803,7 +2803,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01b_start..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         # Read some rows:
@@ -2829,7 +2829,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_stop..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2860,7 +2860,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02b_stop..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2892,7 +2892,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03_startstop..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2924,7 +2924,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03b_startstop..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2956,7 +2956,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04_slices..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -2990,7 +2990,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04np_slices..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
@@ -3024,7 +3024,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05_out_of_range..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         if common.verbose:
@@ -3049,7 +3049,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05np_out_of_range..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "r")
+        self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         if common.verbose:
@@ -3078,7 +3078,7 @@ class SetRangeTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, self.mode)
+        self.fileh = open_file(self.file, self.mode)
         self.rootgroup = self.fileh.root
         self.populateFile()
         self.fileh.close()
@@ -3087,7 +3087,7 @@ class SetRangeTestCase(unittest.TestCase):
         group = self.rootgroup
         filters = Filters(complevel = self.compress,
                           complib = self.complib)
-        vlarray = self.fileh.createVLArray(group, 'vlarray', Int32Atom(),
+        vlarray = self.fileh.create_vlarray(group, 'vlarray', Int32Atom(),
                                            "ragged array if ints",
                                            filters = filters,
                                            expectedsizeinMB = 1)
@@ -3109,7 +3109,7 @@ class SetRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_start..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "a")
+        self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
@@ -3140,7 +3140,7 @@ class SetRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01np_start..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "a")
+        self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
@@ -3171,7 +3171,7 @@ class SetRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_partial..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "a")
+        self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
@@ -3203,7 +3203,7 @@ class SetRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03a_several_rows..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "a")
+        self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
@@ -3234,7 +3234,7 @@ class SetRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03b_several_rows..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "a")
+        self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
@@ -3265,7 +3265,7 @@ class SetRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03c_several_rows..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "a")
+        self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
@@ -3296,7 +3296,7 @@ class SetRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04_out_of_range..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "a")
+        self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         if common.verbose:
@@ -3320,7 +3320,7 @@ class SetRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05_value_error..." % self.__class__.__name__
 
-        self.fileh = openFile(self.file, "a")
+        self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         if common.verbose:
@@ -3352,11 +3352,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an Vlarray
         arr = Int16Atom(shape=2)
-        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1")
+        array1 = fileh.create_vlarray(fileh.root, 'array1', arr, "title array1")
         array1.flavor = "python"
         array1.append([[2, 3]])
         array1.append(())  # an empty row
@@ -3366,7 +3366,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another location
@@ -3376,7 +3376,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -3413,11 +3413,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an Vlarray
         arr = VLStringAtom()
-        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1")
+        array1 = fileh.create_vlarray(fileh.root, 'array1', arr, "title array1")
         array1.flavor = "python"
         array1.append("a string")
         array1.append("")  # an empty row
@@ -3427,7 +3427,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another location
@@ -3437,7 +3437,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -3474,11 +3474,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an VLArray
         arr = Int16Atom(shape=2)
-        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1")
+        array1 = fileh.create_vlarray(fileh.root, 'array1', arr, "title array1")
         array1.flavor = "python"
         array1.append([[2, 3]])
         array1.append(())  # an empty row
@@ -3488,18 +3488,18 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy to another location
-        group1 = fileh.createGroup("/", "group1")
+        group1 = fileh.create_group("/", "group1")
         array2 = array1.copy(group1, 'array2')
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
@@ -3535,11 +3535,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an VLArray
         arr = Int16Atom(shape=2)
-        array1 = fileh.createVLArray(fileh.root, 'array1', arr,
+        array1 = fileh.create_vlarray(fileh.root, 'array1', arr,
                                      "title array1")
         array1.flavor = "python"
         array1.append(((2, 3),))
@@ -3550,7 +3550,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy to another location
@@ -3560,7 +3560,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -3589,11 +3589,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an VLArray
         atom = Int16Atom(shape=2)
-        array1 = fileh.createVLArray(fileh.root, 'array1', atom,
+        array1 = fileh.create_vlarray(fileh.root, 'array1', atom,
                                      "title array1")
         array1.append(((2, 3),))
         array1.append(())  # an empty row
@@ -3606,7 +3606,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another Array
@@ -3616,7 +3616,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -3638,11 +3638,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an Array
         atom=Int16Atom(shape=2)
-        array1 = fileh.createVLArray(fileh.root, 'array1', atom,
+        array1 = fileh.create_vlarray(fileh.root, 'array1', atom,
                                      "title array1")
         array1.append(((2, 3),))
         array1.append(())  # an empty row
@@ -3655,7 +3655,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another Array
@@ -3665,7 +3665,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -3690,11 +3690,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an VLArray
         atom=Int16Atom(shape=2)
-        array1 = fileh.createVLArray(fileh.root, 'array1', atom,
+        array1 = fileh.create_vlarray(fileh.root, 'array1', atom,
                                      "title array1")
         array1.append(((2, 3),))
         array1.append(())  # an empty row
@@ -3707,7 +3707,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy it to another Array
@@ -3717,7 +3717,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -3751,11 +3751,11 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Array
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an VLArray
         atom = Int32Atom(shape=(2,))
-        array1 = fileh.createVLArray(fileh.root, 'array1', atom, "t array1")
+        array1 = fileh.create_vlarray(fileh.root, 'array1', atom, "t array1")
         array1.flavor = "python"
         # The next creates 20 rows of variable length
         r = []
@@ -3767,7 +3767,7 @@ class CopyIndexTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "a")
+            fileh = open_file(file, mode = "a")
             array1 = fileh.root.array1
 
         # Copy to another array
@@ -3871,9 +3871,9 @@ class ChunkshapeTestCase(unittest.TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp('.h5')
-        self.fileh = openFile(self.file, 'w', title='Chunkshape test')
+        self.fileh = open_file(self.file, 'w', title='Chunkshape test')
         atom = Int32Atom(shape=(2,))
-        self.fileh.createVLArray('/', 'vlarray', atom, "t array1",
+        self.fileh.create_vlarray('/', 'vlarray', atom, "t array1",
                                  chunkshape=13)
 
     def tearDown(self):
@@ -3892,7 +3892,7 @@ class ChunkshapeTestCase(unittest.TestCase):
         """Test setting the chunkshape in a table (reopen)."""
 
         self.fileh.close()
-        self.fileh = openFile(self.file, 'r')
+        self.fileh = open_file(self.file, 'r')
         vla = self.fileh.root.vlarray
         if common.verbose:
             print "chunkshape-->", vla.chunkshape
@@ -3903,7 +3903,7 @@ class VLUEndianTestCase(common.PyTablesTestCase):
     def test(self):
         """Accessing ``vlunicode`` data of a different endianness."""
         h5fname = self._testFilename('vlunicode_endian.h5')
-        h5f = openFile(h5fname)
+        h5f = open_file(h5fname)
         try:
             bedata = h5f.root.vlunicode_big[0]
             ledata = h5f.root.vlunicode_little[0]
@@ -3918,11 +3918,11 @@ class TruncateTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, "w")
+        self.fileh = open_file(self.file, "w")
 
         # Create an EArray
         arr = Int16Atom(dflt=3)
-        array1 = self.fileh.createVLArray(
+        array1 = self.fileh.create_vlarray(
             self.fileh.root, 'array1', arr, "title array1")
         # Add a couple of rows
         array1.append(numpy.array([456, 2], dtype='Int16'))
@@ -3945,7 +3945,7 @@ class TruncateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode = "r")
             array1 = self.fileh.root.array1
 
         if common.verbose:
@@ -3965,7 +3965,7 @@ class TruncateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode = "r")
             array1 = self.fileh.root.array1
 
         if common.verbose:
@@ -3986,7 +3986,7 @@ class TruncateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode = "r")
             array1 = self.fileh.root.array1
 
         if common.verbose:
@@ -4008,7 +4008,7 @@ class TruncateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode = "r")
             array1 = self.fileh.root.array1
 
         if common.verbose:
@@ -4055,14 +4055,14 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 
         # Create an instance of an HDF5 Array
         self.file = tempfile.mktemp(".h5")
-        self.fileh = fileh = openFile(self.file, "w")
+        self.fileh = fileh = open_file(self.file, "w")
         # Create a sample array
         arr1 = numpy.array([5, 6], dtype="i4")
         arr2 = numpy.array([5, 6, 7], dtype="i4")
         arr3 = numpy.array([5, 6, 9, 8], dtype="i4")
         self.nparr = numpy.array([arr1, arr2, arr3], dtype="object")
         # Create the VLArray
-        self.vlarr = vlarr = fileh.createVLArray(
+        self.vlarr = vlarr = fileh.create_vlarray(
             fileh.root, 'vlarray', Int32Atom())
         vlarr.append(arr1)
         vlarr.append(arr2)
@@ -4101,7 +4101,7 @@ class SizeInMemoryPropertyTestCase(unittest.TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode = "w")
 
     def tearDown(self):
         self.fileh.close()
@@ -4111,7 +4111,7 @@ class SizeInMemoryPropertyTestCase(unittest.TestCase):
 
     def create_array(self, atom, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.array = self.fileh.createVLArray('/', 'vlarray', atom,
+        self.array = self.fileh.create_vlarray('/', 'vlarray', atom,
                                               filters=filters)
 
     def test_zero_length(self):
@@ -4169,7 +4169,7 @@ class SizeOnDiskPropertyTestCase(unittest.TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode = "w")
 
     def tearDown(self):
         self.fileh.close()
@@ -4179,8 +4179,8 @@ class SizeOnDiskPropertyTestCase(unittest.TestCase):
 
     def create_array(self, atom, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.fileh.createVLArray('/', 'vlarray', atom, filters=filters)
-        self.array = self.fileh.getNode('/', 'vlarray')
+        self.fileh.create_vlarray('/', 'vlarray', atom, filters=filters)
+        self.array = self.fileh.get_node('/', 'vlarray')
 
     def test_not_implemented(self):
         atom = IntAtom()
@@ -4194,7 +4194,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
-        self.array = self.h5file.createVLArray(self.h5file.root, 'array',
+        self.array = self.h5file.create_vlarray(self.h5file.root, 'array',
                                                StringAtom(8))
         self.array.append([str(i) for i in range(5, 5005, 100)])
 
@@ -4269,3 +4269,9 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main( defaultTest='suite' )
+
+
+
+
+
+

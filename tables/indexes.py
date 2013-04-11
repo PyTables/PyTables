@@ -18,24 +18,26 @@ from bisect import bisect_left, bisect_right
 from tables.node import NotLoggedMixin
 from tables.carray import CArray
 from tables.earray import EArray
-from tables import indexesExtension
+from tables import indexesextension
+
+from tables._past import previous_api
 
 # Declarations for inheriting
-class CacheArray(NotLoggedMixin, EArray, indexesExtension.CacheArray):
+class CacheArray(NotLoggedMixin, EArray, indexesextension.CacheArray):
     """Container for keeping index caches of 1st and 2nd level."""
 
     # Class identifier.
-    _c_classId = 'CACHEARRAY'
+    _c_classid = 'CACHEARRAY'
 
 
-class LastRowArray(NotLoggedMixin, CArray, indexesExtension.LastRowArray):
+class LastRowArray(NotLoggedMixin, CArray, indexesextension.LastRowArray):
     """Container for keeping sorted and indices values of last row of an index."""
 
     # Class identifier.
-    _c_classId = 'LASTROWARRAY'
+    _c_classid = 'LASTROWARRAY'
 
 
-class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
+class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
     All NumPy typecodes are supported except for complex datatypes.
@@ -59,7 +61,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     """
 
     # Class identifier.
-    _c_classId = 'INDEXARRAY'
+    _c_classid = 'INDEXARRAY'
 
 
     # Properties
@@ -104,7 +106,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     # bounds (2nd level) caches. It uses a cache for boundary rows,
     # but not for 'sorted' rows (this is only supported for the
     # 'optimized' types).
-    def _searchBin(self, nrow, item):
+    def _search_bin(self, nrow, item):
         item1, item2 = item
         result1 = -1; result2 = -1
         hi = self.shape[1]
@@ -146,7 +148,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         if result1 < 0:
             # Search the appropriate chunk in bounds cache
             nchunk = bisect_left(bounds, item1)
-            chunk = self._readSortedSlice(nrow, chunksize*nchunk,
+            chunk = self._read_sorted_slice(nrow, chunksize*nchunk,
                                           chunksize*(nchunk+1))
             result1 = self._bisect_left(chunk, item1, chunksize)
             result1 += chunksize*nchunk
@@ -155,11 +157,13 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
             # Search the appropriate chunk in bounds cache
             nchunk2 = bisect_right(bounds, item2)
             if nchunk2 != nchunk:
-                chunk = self._readSortedSlice(nrow, chunksize*nchunk2,
+                chunk = self._read_sorted_slice(nrow, chunksize*nchunk2,
                                               chunksize*(nchunk2+1))
             result2 = self._bisect_right(chunk, item2, chunksize)
             result2 += chunksize*nchunk2
         return (result1, result2)
+
+    _searchBin = previous_api(_search_bin)
 
 
     def __str__(self):
@@ -187,3 +191,9 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

@@ -26,7 +26,7 @@ import warnings
 import keyword
 
 from tables.exceptions import NaturalNameWarning
-
+from tables._past import previous_api
 
 # Public variables
 # ================
@@ -36,10 +36,10 @@ __docformat__ = 'reStructuredText'
 
 # Private variables
 # =================
-_pythonIdRE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
+_python_id_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 """Python identifier regular expression."""
 
-_reservedIdRE = re.compile('^_[cfgv]_')
+_reserved_id_re = re.compile('^_[cfgv]_')
 """PyTables reserved identifier regular expression.
 
 - c: class variables
@@ -48,13 +48,13 @@ _reservedIdRE = re.compile('^_[cfgv]_')
 - v: instance variables
 """
 
-_hiddenNameRE = re.compile('^_[pi]_')
+_hidden_name_re = re.compile('^_[pi]_')
 """Nodes with a name *matching* this expression are considered hidden.
 
 For instance, ``name`` whould be visible while ``_i_name`` would not.
 """
 
-_hiddenPathRE = re.compile('/_[pi]_')
+_hidden_path_re = re.compile('/_[pi]_')
 """Nodes with a path *containing* this expression are considered hidden.
 
 For instance, a node with a pathname like ``/a/b/c`` would be visible
@@ -65,7 +65,7 @@ not.
 
 # Public functions
 # ================
-def checkNameValidity(name):
+def check_name_validity(name):
     """Check the validity of the `name` of an object.
 
     If the name is not valid, a ``ValueError`` is raised.  If it is
@@ -91,10 +91,10 @@ def checkNameValidity(name):
                           "in object names: %r" % name )
 
     # Check whether `name` is a valid Python identifier.
-    if not _pythonIdRE.match(name):
+    if not _python_id_re.match(name):
         warnings.warn( "object name is not a valid Python identifier: %r; "
                        "it does not match the pattern ``%s``; %s"
-                       % (name, _pythonIdRE.pattern, warnInfo),
+                       % (name, _python_id_re.pattern, warnInfo),
                        NaturalNameWarning )
         return
 
@@ -105,26 +105,28 @@ def checkNameValidity(name):
         return
 
     # Still, names starting with reserved prefixes are not allowed.
-    if _reservedIdRE.match(name):
+    if _reserved_id_re.match(name):
         raise ValueError( "object name starts with a reserved prefix: %r; "
                           "it matches the pattern ``%s``"
-                          % (name, _reservedIdRE.pattern) )
+                          % (name, _reserved_id_re.pattern) )
 
     # ``__members__`` is the only exception to that rule.
     if name == '__members__':
         raise ValueError("``__members__`` is not allowed as an object name")
 
+checkNameValidity = previous_api(check_name_validity)
 
-def joinPath(parentPath, name):
+
+def join_path(parentPath, name):
     """Join a *canonical* `parentPath` with a *non-empty* `name`.
 
-    >>> joinPath('/', 'foo')
+    >>> join_path('/', 'foo')
     '/foo'
-    >>> joinPath('/foo', 'bar')
+    >>> join_path('/foo', 'bar')
     '/foo/bar'
-    >>> joinPath('/foo', '/foo2/bar')
+    >>> join_path('/foo', '/foo2/bar')
     '/foo/foo2/bar'
-    >>> joinPath('/foo', '/')
+    >>> join_path('/foo', '/')
     '/foo'
     """
 
@@ -140,16 +142,18 @@ def joinPath(parentPath, name):
         pstr = pstr[:-1]
     return pstr
 
+joinPath = previous_api(join_path)
 
-def splitPath(path):
+
+def split_path(path):
     """Split a *canonical* `path` into a parent path and a node name.
 
     The result is returned as a tuple.  The parent path does not
     include a trailing slash.
 
-    >>> splitPath('/')
+    >>> split_path('/')
     ('/', '')
-    >>> splitPath('/foo/bar')
+    >>> split_path('/foo/bar')
     ('/foo', 'bar')
     """
 
@@ -162,17 +166,22 @@ def splitPath(path):
 
     return (ppath, name)
 
+splitPath = previous_api(split_path)
 
-def isVisibleName(name):
+
+def isvisiblename(name):
     """Does this `name` make the named node a visible one?"""
 
-    return _hiddenNameRE.match(name) is None
+    return _hidden_name_re.match(name) is None
 
+isVisibleName = previous_api(isvisiblename)
 
-def isVisiblePath(path):
+def isvisiblepath(path):
     """Does this `path` make the named node a visible one?"""
 
-    return _hiddenPathRE.search(path) is None
+    return _hidden_path_re.search(path) is None
+
+isVisiblePath = previous_api(isvisiblepath)
 
 
 # Main part
@@ -186,3 +195,9 @@ def _test():
 
 if __name__ == '__main__':
     _test()
+
+
+
+
+
+

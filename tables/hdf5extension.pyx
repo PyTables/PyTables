@@ -41,20 +41,22 @@ import numpy
 
 from tables.exceptions import HDF5ExtError, DataTypeWarning
 
-from tables.utils import (checkFileAccess, byteorders, correct_byteorder,
+from tables.utils import (check_file_access, byteorders, correct_byteorder,
   SizeType)
 
 from tables.atom import Atom
 
 from tables.description import descr_from_dtype
 
-from tables.utilsExtension import (encode_filename, setBloscMaxThreads,
-  AtomToHDF5Type, AtomFromHDF5Type, HDF5ToNPExtType, createNestedType,
-  PTTypeToHDF5, PTSpecialKinds, NPExtPrefixesToPTKinds, HDF5ClassToString,
+from tables.utilsextension import (encode_filename, set_blosc_max_threads,
+  atom_to_hdf5_type, atom_from_hdf5_type, hdf5_to_np_ext_type, create_nested_type,
+  pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
   platform_byteorder)
 
 
-from utilsExtension cimport malloc_dims, get_native_type
+from utilsextension cimport malloc_dims, get_native_type
+
+from tables._past import previous_api
 
 
 # Types, constants, functions, classes & other objects from everywhere
@@ -322,7 +324,7 @@ cdef class File:
     # """Does this HDF5 file have a PyTables format?"""
 
     assert pymode in ('r', 'r+', 'a', 'w'), ("an invalid mode string ``%s`` "
-           "passed the ``checkFileAccess()`` test; "
+           "passed the ``check_file_access()`` test; "
            "please report this to the authors" % pymode)
 
     image = params.get('DRIVER_CORE_IMAGE')
@@ -341,7 +343,7 @@ cdef class File:
     # But only if we are using file backed storage.
     backing_store = params.get("DRIVER_CORE_BACKING_STORE", 1)
     if driver != "H5FD_CORE" or backing_store:
-      checkFileAccess(name, pymode)
+      check_file_access(name, pymode)
 
     # Should a new file be created?
     if image:
@@ -466,7 +468,7 @@ cdef class File:
     set_cache_size(self.file_id, params["METADATA_CACHE_SIZE"])
 
     # Set the maximum number of threads for Blosc
-    setBloscMaxThreads(params["MAX_BLOSC_THREADS"])
+    set_blosc_max_threads(params["MAX_BLOSC_THREADS"])
 
 
   # XXX: add the possibility to pass a pre-allocated buffer
@@ -557,7 +559,7 @@ cdef class File:
 
 
   # Accessor definitions
-  def _getFileId(self):
+  def _get_file_id(self):
     return self.file_id
 
 
@@ -579,16 +581,21 @@ cdef class File:
     descriptor = <uintptr_t *>file_handle
     return descriptor[0]
 
+  _getFileId = previous_api(_get_file_id)
 
-  def _flushFile(self, scope):
+  def _flush_file(self, scope):
     # Close the file
     H5Fflush(self.file_id, scope)
 
+  _flushFile = previous_api(_flush_file)
 
-  def _closeFile(self):
+
+  def _close_file(self):
     # Close the file
     H5Fclose( self.file_id )
     self.file_id = 0    # Means file closed
+
+  _closeFile = previous_api(_close_file)
 
 
   # This method is moved out of scope, until we provide code to delete
@@ -611,13 +618,14 @@ cdef class AttributeSet:
     self.name = node._v_name
 
 
-  def _g_listAttr(self, node):
+  def _g_list_attr(self, node):
     "Return a tuple with the attribute list"
-    a = Aiterate(node._v_objectID)
+    a = Aiterate(node._v_objectid)
     return a
 
+  _g_listAttr = previous_api(_g_list_attr)
 
-  def _g_setAttr(self, node, name, object value):
+  def _g_setattr(self, node, name, object value):
     """Save Python or NumPy objects as HDF5 attributes.
 
     Scalar Python objects, scalar NumPy & 0-dim NumPy objects will all be
@@ -639,7 +647,7 @@ cdef class AttributeSet:
     cname = encoded_name
 
     # The dataset id of the node
-    dset_id = node._v_objectID
+    dset_id = node._v_objectid
 
     # Convert a NumPy scalar into a NumPy 0-dim ndarray
     if isinstance(value, numpy.generic):
@@ -654,12 +662,12 @@ cdef class AttributeSet:
       if value.dtype.kind == 'V':
         description, rabyteorder = descr_from_dtype(value.dtype)
         byteorder = byteorders[rabyteorder]
-        type_id = createNestedType(description, byteorder)
+        type_id = create_nested_type(description, byteorder)
       else:
         # Get the associated native HDF5 type of the scalar type
         baseatom = Atom.from_dtype(value.dtype.base)
         byteorder = byteorders[value.dtype.byteorder]
-        type_id = AtomToHDF5Type(baseatom, byteorder)
+        type_id = atom_to_hdf5_type(baseatom, byteorder)
       # Get dimensionality info
       ndv = <ndarray>value
       dims = npy_malloc_dims(ndv.ndim, ndv.shape)
@@ -689,8 +697,10 @@ cdef class AttributeSet:
         raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
                            (name, self._v_node))
 
+  _g_setAttr = previous_api(_g_setattr)
+
   # Get attributes
-  def _g_getAttr(self, node, attrname):
+  def _g_getattr(self, node, attrname):
     """Get HDF5 attributes and retrieve them as NumPy objects.
 
     H5T_SCALAR types will be retrieved as scalar NumPy.
@@ -716,7 +726,7 @@ cdef class AttributeSet:
     cattrname = encoded_attrname
 
     # The dataset id of the node
-    dset_id = node._v_objectID
+    dset_id = node._v_objectid
     dims = NULL
 
     ret = H5ATTRget_type_ndims(dset_id, cattrname, &type_id, &class_id,
@@ -775,7 +785,7 @@ cdef class AttributeSet:
 
       # Get the NumPy dtype from the type_id
       try:
-        stype_, shape_ = HDF5ToNPExtType(type_id, pure_numpy_types=True)
+        stype_, shape_ = hdf5_to_np_ext_type(type_id, pure_numpy_types=True)
         dtype_ = numpy.dtype(stype_, shape_)
       except TypeError:
         if class_id == H5T_STRING and H5Tis_variable_str(type_id):
@@ -844,6 +854,7 @@ cdef class AttributeSet:
 
     return retvalue
 
+  _g_getAttr = previous_api(_g_getattr)
 
   def _g_remove(self, node, attrname):
     cdef int ret
@@ -856,7 +867,7 @@ cdef class AttributeSet:
     cattrname = encoded_attrname
 
     # The dataset id of the node
-    dset_id = node._v_objectID
+    dset_id = node._v_objectid
 
     ret = H5Adelete(dset_id, cattrname)
     if ret < 0:
@@ -873,7 +884,7 @@ cdef class Node:
   def _g_new(self, where, name, init):
     self.name = name
     # """The name of this node in its parent group."""
-    self.parent_id = where._v_objectID
+    self.parent_id = where._v_objectid
     # """The identifier of the parent group."""
 
 
@@ -884,7 +895,7 @@ cdef class Node:
     encoded_name = self.name.encode('utf-8')
 
     # Delete this node
-    ret = H5Ldelete(parent._v_objectID, encoded_name, H5P_DEFAULT)
+    ret = H5Ldelete(parent._v_objectid, encoded_name, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("problems deleting the node ``%s``" % self.name)
     return ret
@@ -965,17 +976,19 @@ cdef class Group(Node):
     return node_type
 
 
-  def _g_listGroup(self, parent):
+  def _g_list_group(self, parent):
     """Return a tuple with the groups and the leaves hanging from self."""
 
     cdef bytes encoded_name
 
     encoded_name = self.name.encode('utf-8')
 
-    return Giterate(parent._v_objectID, self._v_objectID, encoded_name)
+    return Giterate(parent._v_objectid, self._v_objectid, encoded_name)
+
+  _g_listGroup = previous_api(_g_list_group)
 
 
-  def _g_getGChildAttr(self, group_name, attr_name):
+  def _g_get_gchild_attr(self, group_name, attr_name):
     """Return an attribute of a child `Group`.
 
     If the attribute does not exist, ``None`` is returned.
@@ -1001,8 +1014,10 @@ cdef class Group(Node):
 
     return retvalue
 
+  _g_getGChildAttr = previous_api(_g_get_gchild_attr)
 
-  def _g_getLChildAttr(self, leaf_name, attr_name):
+
+  def _g_get_lchild_attr(self, leaf_name, attr_name):
     """Return an attribute of a child `Leaf`.
 
     If the attribute does not exist, ``None`` is returned.
@@ -1026,13 +1041,16 @@ cdef class Group(Node):
     H5Dclose(leaf_id)
     return retvalue
 
+  _g_getLChildAttr = previous_api(_g_get_lchild_attr)
 
-  def _g_flushGroup(self):
+
+  def _g_flush_group(self):
     # Close the group
     H5Fflush(self.group_id, H5F_SCOPE_GLOBAL)
 
+  _g_flushGroup = previous_api(_g_flush_group)
 
-  def _g_closeGroup(self):
+  def _g_close_group(self):
     cdef int ret
 
     ret = H5Gclose(self.group_id)
@@ -1040,8 +1058,9 @@ cdef class Group(Node):
       raise HDF5ExtError("Problems closing the Group %s" % self.name)
     self.group_id = 0  # indicate that this group is closed
 
+  _g_closeGroup = previous_api(_g_close_group)
 
-  def _g_moveNode(self, hid_t oldparent, oldname, hid_t newparent, newname,
+  def _g_move_node(self, hid_t oldparent, oldname, hid_t newparent, newname,
                   oldpathname, newpathname):
     cdef int ret
     cdef bytes encoded_oldname, encoded_newname
@@ -1056,7 +1075,7 @@ cdef class Group(Node):
                          (oldpathname, newpathname) )
     return ret
 
-
+  _g_moveNode = previous_api(_g_move_node)
 
 cdef class Leaf(Node):
   # Instance variables declared in .pxd
@@ -1088,7 +1107,7 @@ cdef class Leaf(Node):
     return (disk_type_id, native_type_id)
 
 
-  cdef _convertTime64(self, ndarray nparr, int sense):
+  cdef _convert_time64(self, ndarray nparr, int sense):
     """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
 
     NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
@@ -1113,6 +1132,9 @@ cdef class Leaf(Node):
 
     conv_float64_timeval32(
       t64buf, byteoffset, bytestride, nrecords, nelements, sense)
+
+  # can't do since cdef'd
+  #_convertTime64 = previous_api(_convert_time64)
 
 
   def _g_truncate(self, hsize_t size):
@@ -1162,7 +1184,7 @@ cdef class Array(Leaf):
   # Instance variables declared in .pxd
 
 
-  def _createArray(self, ndarray nparr, object title, object _atom):
+  def _create_array(self, ndarray nparr, object title, object _atom):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
@@ -1183,7 +1205,7 @@ cdef class Array(Leaf):
     else:
       atom = _atom
       shape = shape[:-len(atom.shape)]
-    self.disk_type_id = AtomToHDF5Type(atom, self.byteorder)
+    self.disk_type_id = atom_to_hdf5_type(atom, self.byteorder)
 
     # Allocate space for the dimension axis info and fill it
     dims = numpy.array(shape, dtype=numpy.intp)
@@ -1194,7 +1216,7 @@ cdef class Array(Leaf):
     # Save the array
     complib = (self.filters.complib or '').encode('utf-8')
     version = self._v_version.encode('utf-8')
-    class_ = self._c_classId.encode('utf-8')
+    class_ = self._c_classid.encode('utf-8')
     self.dataset_id = H5ARRAYmake(self.parent_id, encoded_name, version,
                                   self.rank, self.dims,
                                   self.extdim, self.disk_type_id, NULL, NULL,
@@ -1222,8 +1244,10 @@ cdef class Array(Leaf):
 
     return (self.dataset_id, shape, atom)
 
+  _createArray = previous_api(_create_array)
 
-  def _createCArray(self, object title):
+
+  def _create_carray(self, object title):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
@@ -1238,7 +1262,7 @@ cdef class Array(Leaf):
     encoded_name = self.name.encode('utf-8')
 
     atom = self.atom
-    self.disk_type_id = AtomToHDF5Type(atom, self.byteorder)
+    self.disk_type_id = atom_to_hdf5_type(atom, self.byteorder)
 
     self.rank = len(self.shape)
     self.dims = malloc_dims(self.shape)
@@ -1249,7 +1273,7 @@ cdef class Array(Leaf):
     # Encode strings
     complib = (self.filters.complib or '').encode('utf-8')
     version = self._v_version.encode('utf-8')
-    class_ = self._c_classId.encode('utf-8')
+    class_ = self._c_classid.encode('utf-8')
 
     # Get the fill values
     if isinstance(atom.dflt, numpy.ndarray) or atom.dflt:
@@ -1293,8 +1317,9 @@ cdef class Array(Leaf):
 
     return self.dataset_id
 
+  _createCArray = previous_api(_create_carray)
 
-  def _openArray(self):
+  def _open_array(self):
     cdef size_t type_size, type_precision
     cdef H5T_class_t class_id
     cdef char cbyteorder[11]  # "irrelevant" fits easily here
@@ -1318,7 +1343,7 @@ cdef class Array(Leaf):
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()
     # Get the atom for this type
-    atom = AtomFromHDF5Type(self.type_id)
+    atom = atom_from_hdf5_type(self.type_id)
 
     # Get the rank for this array object
     if H5ARRAYget_ndims(self.dataset_id, &self.rank) < 0:
@@ -1336,7 +1361,7 @@ cdef class Array(Leaf):
     if PY_MAJOR_VERSION > 2:
         byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
     else:
-        byteorder = cbyteorder
+        byteorder = str(cbyteorder)
 
     # Get the extendable dimension (if any)
     self.extdim = -1  # default is non-extensible Array
@@ -1377,6 +1402,7 @@ cdef class Array(Leaf):
 
     return (self.dataset_id, atom, shape, chunkshapes)
 
+  _openArray = previous_api(_open_array)
 
   def _append(self, ndarray nparr):
     cdef int ret, extdim
@@ -1390,7 +1416,7 @@ cdef class Array(Leaf):
     rbuf = nparr.data
     # Convert some NumPy types to HDF5 before storing.
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, 0)
+      self._convert_time64(nparr, 0)
 
     # Append the records
     extdim = self.extdim
@@ -1408,7 +1434,7 @@ cdef class Array(Leaf):
     self.shape = tuple(shape)
 
 
-  def _readArray(self, hsize_t start, hsize_t stop, hsize_t step,
+  def _read_array(self, hsize_t start, hsize_t stop, hsize_t step,
                  ndarray nparr):
     cdef herr_t ret
     cdef void *rbuf
@@ -1440,12 +1466,14 @@ cdef class Array(Leaf):
 
     # Convert some HDF5 types to NumPy after reading.
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, 1)
+      self._convert_time64(nparr, 1)
 
     return
 
+  _readArray = previous_api(_read_array)
 
-  def _g_readSlice(self, ndarray startl, ndarray stopl, ndarray stepl,
+
+  def _g_read_slice(self, ndarray startl, ndarray stopl, ndarray stepl,
                    ndarray nparr):
     cdef herr_t ret
     cdef hsize_t *start, *stop, *step
@@ -1473,12 +1501,13 @@ cdef class Array(Leaf):
 
     # Convert some HDF5 types to NumPy after reading
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, 1)
+      self._convert_time64(nparr, 1)
 
     return
 
+  _g_readSlice = previous_api(_g_read_slice)
 
-  def _g_readCoords(self, ndarray coords, ndarray nparr):
+  def _g_read_coords(self, ndarray coords, ndarray nparr):
     """Read coordinates in an already created NumPy array."""
 
     cdef herr_t ret
@@ -1521,9 +1550,11 @@ cdef class Array(Leaf):
 
     # Convert some HDF5 types to NumPy after reading
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, 1)
+      self._convert_time64(nparr, 1)
 
     return
+
+  _g_readCoords = previous_api(_g_read_coords)
 
 
   def perform_selection(self, space_id, start, count, step, idx, mode):
@@ -1567,7 +1598,7 @@ cdef class Array(Leaf):
                         startp, stepp, countp, NULL)
 
 
-  def _g_readSelection(self, object selection, ndarray nparr):
+  def _g_read_selection(self, object selection, ndarray nparr):
     """Read a selection in an already created NumPy array."""
 
     cdef herr_t ret
@@ -1613,12 +1644,14 @@ cdef class Array(Leaf):
 
     # Convert some HDF5 types to NumPy after reading
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, 1)
+      self._convert_time64(nparr, 1)
 
     return
 
+  _g_readSelection = previous_api(_g_read_selection)
 
-  def _g_writeSlice(self, ndarray startl, ndarray stepl, ndarray countl,
+
+  def _g_write_slice(self, ndarray startl, ndarray stepl, ndarray countl,
                     ndarray nparr):
     """Write a slice in an already created NumPy array."""
 
@@ -1635,7 +1668,7 @@ cdef class Array(Leaf):
 
     # Convert some NumPy types to HDF5 before storing.
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, 0)
+      self._convert_time64(nparr, 0)
 
     # Modify the elements:
     with nogil:
@@ -1648,8 +1681,10 @@ cdef class Array(Leaf):
 
     return
 
+  _g_writeSlice = previous_api(_g_write_slice)
 
-  def _g_writeCoords(self, ndarray coords, ndarray nparr):
+
+  def _g_write_coords(self, ndarray coords, ndarray nparr):
     """Write a selection in an already created NumPy array."""
 
     cdef herr_t ret
@@ -1674,7 +1709,7 @@ cdef class Array(Leaf):
 
     # Convert some NumPy types to HDF5 before storing.
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, 0)
+      self._convert_time64(nparr, 0)
 
     # Do the actual write
     with nogil:
@@ -1691,8 +1726,10 @@ cdef class Array(Leaf):
 
     return
 
+  _g_writeCoords = previous_api(_g_write_coords)
 
-  def _g_writeSelection(self, object selection, ndarray nparr):
+
+  def _g_write_selection(self, object selection, ndarray nparr):
     """Write a selection in an already created NumPy array."""
 
     cdef herr_t ret
@@ -1720,7 +1757,7 @@ cdef class Array(Leaf):
 
     # Convert some NumPy types to HDF5 before storing.
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, 0)
+      self._convert_time64(nparr, 0)
 
     # Do the actual write
     with nogil:
@@ -1737,6 +1774,7 @@ cdef class Array(Leaf):
 
     return
 
+  _g_writeSelection = previous_api(_g_write_selection)
 
   def __dealloc__(self):
     if self.dims:
@@ -1752,7 +1790,7 @@ cdef class VLArray(Leaf):
   # Instance variables
   cdef hsize_t nrecords
 
-  def _createArray(self, object title):
+  def _create_array(self, object title):
     cdef int rank
     cdef hsize_t *dims
     cdef herr_t ret
@@ -1771,7 +1809,7 @@ cdef class VLArray(Leaf):
 
     # Get the HDF5 type of the *scalar* atom
     scatom = atom.copy(shape=())
-    self.base_type_id = AtomToHDF5Type(scatom, self.byteorder)
+    self.base_type_id = atom_to_hdf5_type(scatom, self.byteorder)
 
     # Allocate space for the dimension axis info
     rank = len(atom.shape)
@@ -1782,7 +1820,7 @@ cdef class VLArray(Leaf):
     # Encode strings
     complib = (self.filters.complib or '').encode('utf-8')
     version = self._v_version.encode('utf-8')
-    class_ = self._c_classId.encode('utf-8')
+    class_ = self._c_classid.encode('utf-8')
 
     # Create the vlarray
     self.dataset_id = H5VLARRAYmake(self.parent_id, encoded_name, version,
@@ -1814,8 +1852,9 @@ cdef class VLArray(Leaf):
 
     return self.dataset_id
 
+  _createArray = previous_api(_create_array)
 
-  def _openArray(self):
+  def _open_array(self):
     cdef char cbyteorder[11]  # "irrelevant" fits easily here
     cdef int i, enumtype
     cdef int rank
@@ -1835,7 +1874,7 @@ cdef class VLArray(Leaf):
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()
     # Get the atom for this type
-    atom = AtomFromHDF5Type(self.type_id)
+    atom = atom_from_hdf5_type(self.type_id)
 
     # Get info on dimensions & types (of base class)
     H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
@@ -1844,7 +1883,7 @@ cdef class VLArray(Leaf):
     if PY_MAJOR_VERSION > 2:
         byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
     else:
-        byteorder = cbyteorder
+        byteorder = str(cbyteorder)
 
     # Get some properties of the atomic type
     self._atomicdtype = atom.dtype
@@ -1861,6 +1900,8 @@ cdef class VLArray(Leaf):
     self.nrecords = nrecords  # Initialize the number of records saved
     return self.dataset_id, SizeType(nrecords), (SizeType(chunksize),), atom
 
+  _openArray = previous_api(_open_array)
+
 
   def _append(self, ndarray nparr, int nobjects):
     cdef int ret
@@ -1871,7 +1912,7 @@ cdef class VLArray(Leaf):
       rbuf = nparr.data
       # Convert some NumPy types to HDF5 before storing.
       if self.atom.type == 'time64':
-        self._convertTime64(nparr, 0)
+        self._convert_time64(nparr, 0)
     else:
       rbuf = NULL
 
@@ -1895,7 +1936,7 @@ cdef class VLArray(Leaf):
     if nobjects:
       # Convert some NumPy types to HDF5 before storing.
       if self.atom.type == 'time64':
-        self._convertTime64(nparr, 0)
+        self._convert_time64(nparr, 0)
 
     # Append the records:
     with nogil:
@@ -1932,7 +1973,7 @@ cdef class VLArray(Leaf):
     return size
 
 
-  def _readArray(self, hsize_t start, hsize_t stop, hsize_t step):
+  def _read_array(self, hsize_t start, hsize_t stop, hsize_t step):
     cdef int i
     cdef size_t vllen
     cdef herr_t ret
@@ -1966,7 +2007,7 @@ cdef class VLArray(Leaf):
 
     if ret < 0:
       raise HDF5ExtError(
-        "VLArray._readArray: Problems reading the array data.")
+        "VLArray._read_array: Problems reading the array data.")
 
     datalist = []
     for i from 0 <= i < nrows:
@@ -1995,7 +2036,7 @@ cdef class VLArray(Leaf):
           nparr.byteswap(True)
       # Convert some HDF5 types to NumPy after reading.
       if self.atom.type == 'time64':
-        self._convertTime64(nparr, 1)
+        self._convert_time64(nparr, 1)
       # Append this array to the output list
       datalist.append(nparr)
 
@@ -2003,7 +2044,7 @@ cdef class VLArray(Leaf):
     # Reclaim all the (nested) VL data
     ret = H5Dvlen_reclaim(self.type_id, mem_space_id, H5P_DEFAULT, rdata)
     if ret < 0:
-      raise HDF5ExtError("VLArray._readArray: error freeing the data buffer.")
+      raise HDF5ExtError("VLArray._read_array: error freeing the data buffer.")
     # Terminate access to the memory dataspace
     H5Sclose(mem_space_id)
     # Terminate access to the dataspace
@@ -2013,6 +2054,7 @@ cdef class VLArray(Leaf):
 
     return datalist
 
+  _readArray = previous_api(_read_array)
 
 
 cdef class UnImplemented(Leaf):
@@ -2033,7 +2075,7 @@ cdef class UnImplemented(Leaf):
     if PY_MAJOR_VERSION > 2:
         byteorder = PyUnicode_DecodeUTF8(cbyteorder, strlen(cbyteorder), NULL)
     else:
-        byteorder = cbyteorder
+        byteorder = str(cbyteorder)
 
     return (shape, byteorder, self.dataset_id)
 
@@ -2049,3 +2091,9 @@ cdef class UnImplemented(Leaf):
 ## tab-width: 2
 ## fill-column: 78
 ## End:
+
+
+
+
+
+

@@ -33,7 +33,7 @@ import re
 from numexpr.necompiler import typecode_to_kind
 from numexpr.necompiler import expressionToAST, typeCompileAst
 from numexpr.necompiler import stringToExpression, NumExpr
-from tables.utilsExtension import getNestedField
+from tables.utilsextension import get_nested_field
 from tables.utils import lazyattr
 
 _no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")
@@ -421,6 +421,12 @@ def call_on_recarr(func, params, recarr, param2arg=None):
         else:
             arg = param
         if hasattr(arg, 'pathname'):  # looks like a column
-            arg = getNestedField(recarr, arg.pathname)
+            arg = get_nested_field(recarr, arg.pathname)
         args.append(arg)
     return func(*args)
+
+
+
+
+
+

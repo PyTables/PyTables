@@ -35,7 +35,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode = "w")
         self.root = self.fileh.root
 
         # Create the array under root and name 'somearray'
@@ -45,13 +45,13 @@ class BasicTestCase(unittest.TestCase):
             b.dtype = a.dtype.newbyteorder()
             a = b
 
-        self.fileh.createArray(self.root, 'somearray', a, "Some array")
+        self.fileh.create_array(self.root, 'somearray', a, "Some array")
 
         # Close the file
         self.fileh.close()
 
         # Re-open the file in read-only mode
-        self.fileh = openFile(self.file, mode = "r")
+        self.fileh = open_file(self.file, mode = "r")
         self.root = self.fileh.root
 
         # Read the saved array
@@ -111,7 +111,7 @@ class BasicTestCase(unittest.TestCase):
     def WriteRead_OutArgument(self, testArray):
         # Create an instance of HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode = "w")
         self.root = self.fileh.root
 
         # Create the array under root and name 'somearray'
@@ -121,13 +121,13 @@ class BasicTestCase(unittest.TestCase):
             b.dtype = a.dtype.newbyteorder()
             a = b
 
-        self.fileh.createArray(self.root, 'somearray', a, "Some array")
+        self.fileh.create_array(self.root, 'somearray', a, "Some array")
 
         # Close the file
         self.fileh.close()
 
         # Re-open the file in read-only mode
-        self.fileh = openFile(self.file, mode = "r")
+        self.fileh = open_file(self.file, mode = "r")
         self.root = self.fileh.root
 
         # Read the saved array
@@ -180,12 +180,12 @@ class BasicTestCase(unittest.TestCase):
         a = self.tupleChar
         # Create an instance of HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
-        fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        fileh = open_file(file, mode = "w")
+        fileh.create_array(fileh.root, 'somearray', a, "Some array")
         # Close the file
         fileh.close()
         # Re-open the file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode = "r")
         # Read the saved array
         b = fileh.root.somearray.read()
         if isinstance(a, bytes):
@@ -205,12 +205,12 @@ class BasicTestCase(unittest.TestCase):
         a = self.tupleChar
         # Create an instance of HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
-        fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        fileh = open_file(file, mode = "w")
+        fileh.create_array(fileh.root, 'somearray', a, "Some array")
         # Close the file
         fileh.close()
         # Re-open the file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode = "r")
         # Read the saved array
         b = numpy.empty_like(a)
         if fileh.root.somearray.flavor != 'numpy':
@@ -373,7 +373,7 @@ class ReadOutArgumentTests(unittest.TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode='w')
+        self.fileh = open_file(self.file, mode='w')
         self.size = 1000
 
     def tearDown(self):
@@ -382,7 +382,7 @@ class ReadOutArgumentTests(unittest.TestCase):
 
     def create_array(self):
         array = numpy.arange(self.size, dtype='f8')
-        disk_array = self.fileh.createArray('/', 'array', array)
+        disk_array = self.fileh.create_array('/', 'array', array)
         return array, disk_array
 
     def test_read_entire_array(self):
@@ -458,8 +458,8 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
     def setUp(self):
         self.array_size = (10, 10)
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode = "w")
-        self.array = self.fileh.createArray('/', 'somearray',
+        self.fileh = open_file(self.file, mode = "w")
+        self.array = self.fileh.create_array('/', 'somearray',
                                             numpy.zeros(self.array_size, 'i4'))
 
     def tearDown(self):
@@ -479,7 +479,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode = "w")
         self.root = self.fileh.root
 
     def tearDown(self):
@@ -502,13 +502,13 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         else:
             byteorder = sys.byteorder
 
-        self.fileh.createArray(self.root, 'somearray', a, "Some array",
+        self.fileh.create_array(self.root, 'somearray', a, "Some array",
                                byteorder = byteorder)
 
         if self.reopen:
             self.fileh.close()
             # Re-open the file in read-only mode
-            self.fileh = openFile(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode = "r")
             self.root = self.fileh.root
 
         # Read the saved array
@@ -639,12 +639,12 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Save an array with the reversed byteorder on it
         a = numpy.arange(25, dtype=numpy.int32).reshape(5, 5)
         a = a.byteswap()
         a = a.newbyteorder()
-        array = fileh.createArray(fileh.root, 'array', a, "byteorder (int)")
+        array = fileh.create_array(fileh.root, 'array', a, "byteorder (int)")
         # Read a subarray (got an array with the machine byteorder)
         b = array[2:4, 3:5]
         b = b.byteswap()
@@ -673,12 +673,12 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Save an array with the reversed byteorder on it
         a = numpy.arange(25, dtype=numpy.float64).reshape(5, 5)
         a = a.byteswap()
         a = a.newbyteorder()
-        array = fileh.createArray(fileh.root, 'array', a, "byteorder (float)")
+        array = fileh.create_array(fileh.root, 'array', a, "byteorder (float)")
         # Read a subarray (got an array with the machine byteorder)
         b = array[2:4, 3:5]
         b = b.byteswap()
@@ -732,7 +732,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
 
         # Get the root group
         group = fileh.root
@@ -755,14 +755,14 @@ class GroupsArrayTestCase(unittest.TestCase):
             dsetname = 'array_' + typecode
             if common.verbose:
                 print "Creating dataset:", group._g_join(dsetname)
-            fileh.createArray(group, dsetname, a, "Large array")
-            group = fileh.createGroup(group, 'group' + str(i))
+            fileh.create_array(group, dsetname, a, "Large array")
+            group = fileh.create_group(group, 'group' + str(i))
 
         # Close the file
         fileh.close()
 
         # Open the previous HDF5 file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode = "r")
         # Get the root group
         group = fileh.root
 
@@ -813,7 +813,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         # Open a new empty HDF5 file
         #file = tempfile.mktemp(".h5")
         file = "test_array.h5"
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         group = fileh.root
         if common.verbose:
             print "Rank array writing progress: ",
@@ -822,15 +822,15 @@ class GroupsArrayTestCase(unittest.TestCase):
             a = numpy.ones((1,) * rank, numpy.int32)
             if common.verbose:
                 print "%3d," % (rank),
-            fileh.createArray(group, "array", a, "Rank: %s" % rank)
-            group = fileh.createGroup(group, 'group' + str(rank))
+            fileh.create_array(group, "array", a, "Rank: %s" % rank)
+            group = fileh.create_group(group, 'group' + str(rank))
         # Flush the buffers
         fileh.flush()
         # Close the file
         fileh.close()
 
         # Open the previous HDF5 file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode = "r")
         group = fileh.root
         if common.verbose:
             print
@@ -856,7 +856,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 
             #print fileh
             # Iterate over the next group
-            group = fileh.getNode(group, 'group' + str(rank))
+            group = fileh.get_node(group, 'group' + str(rank))
 
         if common.verbose:
             print # This flush the stdout buffer
@@ -877,11 +877,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an Array
         arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
-        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+        array1 = fileh.create_array(fileh.root, 'array1', arr, "title array1")
 
         # Copy to another Array
         array2 = array1.copy('/', 'array2')
@@ -890,7 +890,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -923,21 +923,21 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an Array
         arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
-        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+        array1 = fileh.create_array(fileh.root, 'array1', arr, "title array1")
 
         # Copy to another Array
-        group1 = fileh.createGroup("/", "group1")
+        group1 = fileh.create_group("/", "group1")
         array2 = array1.copy(group1, 'array2')
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
@@ -970,11 +970,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an Array
         arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
-        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+        array1 = fileh.create_array(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -985,7 +985,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1007,11 +1007,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an Array
         arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
-        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+        array1 = fileh.create_array(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1022,7 +1022,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1047,11 +1047,11 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create an Array
         arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
-        array1 = fileh.createArray(fileh.root, 'array1', arr, "title array1")
+        array1 = fileh.create_array(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1062,7 +1062,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = openFile(file, mode = "r")
+            fileh = open_file(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1095,12 +1095,12 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Array
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create a numpy
         r = numpy.arange(200, dtype='int32'); r.shape = (100, 2)
         # Save it in a array:
-        array1 = fileh.createArray(fileh.root, 'array1', r, "title array1")
+        array1 = fileh.create_array(fileh.root, 'array1', r, "title array1")
 
         # Copy to another array
         array2 = array1.copy("/", 'array2',
@@ -1136,12 +1136,12 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Array
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        fileh = open_file(file, "w")
 
         # Create a numpy
         r = numpy.arange(200, dtype='int32'); r.shape = (100, 2)
         # Save it in a array:
-        array1 = fileh.createArray(fileh.root, 'array1', r, "title array1")
+        array1 = fileh.create_array(fileh.root, 'array1', r, "title array1")
 
         # Copy to another array
         array2 = array1.copy("/", 'array2',
@@ -1150,7 +1150,7 @@ class CopyIndexTestCase(unittest.TestCase):
                              step=self.step)
         # Close and reopen the file
         fileh.close()
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode = "r")
         array1 = fileh.root.array1
         array2 = fileh.root.array2
 
@@ -1242,14 +1242,14 @@ class GetItemTestCase(unittest.TestCase):
         "Single element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1269,14 +1269,14 @@ class GetItemTestCase(unittest.TestCase):
         "Single element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1296,14 +1296,14 @@ class GetItemTestCase(unittest.TestCase):
         "Range element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1322,14 +1322,14 @@ class GetItemTestCase(unittest.TestCase):
         "Range element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1348,14 +1348,14 @@ class GetItemTestCase(unittest.TestCase):
         "Range element access, strided (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1374,14 +1374,14 @@ class GetItemTestCase(unittest.TestCase):
         "Range element access, strided (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1399,14 +1399,14 @@ class GetItemTestCase(unittest.TestCase):
         "Negative Index element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1425,14 +1425,14 @@ class GetItemTestCase(unittest.TestCase):
         "Negative Index element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1454,14 +1454,14 @@ class GetItemTestCase(unittest.TestCase):
         "Negative range element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1479,14 +1479,14 @@ class GetItemTestCase(unittest.TestCase):
         "Negative range element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1547,14 +1547,14 @@ class SetItemTestCase(unittest.TestCase):
         "Single element update (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify a single element of a and arr:
@@ -1577,14 +1577,14 @@ class SetItemTestCase(unittest.TestCase):
         "Single element update (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
@@ -1607,14 +1607,14 @@ class SetItemTestCase(unittest.TestCase):
         "Range element update (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
@@ -1637,14 +1637,14 @@ class SetItemTestCase(unittest.TestCase):
         "Range element update (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
@@ -1669,14 +1669,14 @@ class SetItemTestCase(unittest.TestCase):
         "Range element update, strided (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
@@ -1700,14 +1700,14 @@ class SetItemTestCase(unittest.TestCase):
         "Range element update, strided (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
@@ -1732,14 +1732,14 @@ class SetItemTestCase(unittest.TestCase):
         "Negative Index element update (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
@@ -1763,14 +1763,14 @@ class SetItemTestCase(unittest.TestCase):
         "Negative Index element update (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
@@ -1797,14 +1797,14 @@ class SetItemTestCase(unittest.TestCase):
         "Negative range element update (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
@@ -1828,14 +1828,14 @@ class SetItemTestCase(unittest.TestCase):
         "Negative range element update (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify elements of a and arr:
@@ -1860,14 +1860,14 @@ class SetItemTestCase(unittest.TestCase):
         "Out of range update (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file, 'a')
+            fileh = open_file(file, 'a')
             arr = fileh.root.somearray
 
         # Modify elements of arr that are out of range:
@@ -1935,14 +1935,14 @@ class GeneratorTestCase(unittest.TestCase):
         "Testing generator access to Arrays, single elements (char)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1963,14 +1963,14 @@ class GeneratorTestCase(unittest.TestCase):
         "Testing generator access to Arrays, multiple elements (char)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -1993,14 +1993,14 @@ class GeneratorTestCase(unittest.TestCase):
         "Testing generator access to Arrays, single elements (numeric)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -2021,14 +2021,14 @@ class GeneratorTestCase(unittest.TestCase):
         "Testing generator access to Arrays, multiple elements (numeric)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
-            fileh = openFile(file)
+            fileh = open_file(file)
             arr = fileh.root.somearray
 
         # Get and compare an element
@@ -2090,15 +2090,15 @@ class NonHomogeneousTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Test for creation of non-homogeneous arrays."""
         # This checks ticket #12.
         h5file = self.h5file
-        self.assertRaises(ValueError, h5file.createArray, '/', 'test',
+        self.assertRaises(ValueError, h5file.create_array, '/', 'test',
                           [1, [2, 3]] )
-        self.assertRaises(NoSuchNodeError, h5file.removeNode, '/test')
+        self.assertRaises(NoSuchNodeError, h5file.remove_node, '/test')
 
 
 class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test(self):
         """Test for unability to truncate Array objects."""
-        array1 = self.h5file.createArray('/', 'array1', [0, 2])
+        array1 = self.h5file.create_array('/', 'array1', [0, 2])
         self.assertRaises(TypeError, array1.truncate, 0)
 
 
@@ -2114,12 +2114,12 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             ]
         # Create an instance of an HDF5 Array
         self.file = tempfile.mktemp(".h5")
-        self.fileh = fileh = openFile(self.file, "w")
+        self.fileh = fileh = open_file(self.file, "w")
         # Create a sample array
         size = numpy.prod(self.shape)
         nparr = numpy.arange(size, dtype=numpy.int32).reshape(self.shape)
         self.nparr = nparr
-        self.tbarr = fileh.createArray(fileh.root, 'array', nparr)
+        self.tbarr = fileh.create_array(fileh.root, 'array', nparr)
 
     def tearDown(self):
         self.fileh.close()
@@ -2297,14 +2297,14 @@ class FancySelectionTestCase(common.PyTablesTestCase):
 
         # Create an instance of an HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = fileh = openFile(self.file, "w")
+        self.fileh = fileh = open_file(self.file, "w")
         # Create a sample array
         nparr = numpy.empty(self.shape, dtype=numpy.int32)
         data = numpy.arange(N*O, dtype=numpy.int32).reshape(N, O)
         for i in xrange(M):
             nparr[i] = data*i
         self.nparr = nparr
-        self.tbarr = fileh.createArray(fileh.root, 'array', nparr)
+        self.tbarr = fileh.create_array(fileh.root, 'array', nparr)
 
     def tearDown(self):
         self.fileh.close()
@@ -2421,10 +2421,10 @@ class CopyNativeHDF5MDAtom(common.PyTablesTestCase):
 
     def setUp(self):
         filename = self._testFilename("array_mdatom.h5")
-        self.fileh = openFile(filename, "r")
+        self.fileh = open_file(filename, "r")
         self.arr = self.fileh.root.arr
         self.copy = tempfile.mktemp(".h5")
-        self.copyh = openFile(self.copy, mode = "w")
+        self.copyh = open_file(self.copy, mode = "w")
         self.arr2 = self.arr.copy(self.copyh.root, newname="arr2")
 
     def tearDown(self):
@@ -2442,7 +2442,7 @@ class CopyNativeHDF5MDAtom(common.PyTablesTestCase):
     def test02_reopen(self):
         """Checking that native MD atoms are copied as-is (re-open)"""
         self.copyh.close()
-        self.copyh = openFile(self.copy, mode = "r")
+        self.copyh = open_file(self.copy, mode = "r")
         self.arr2 = self.copyh.root.arr2
         self.assertEqual(self.arr.atom, self.arr2.atom)
         self.assertEqual(self.arr.shape, self.arr2.shape)
@@ -2454,7 +2454,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         super(AccessClosedTestCase, self).setUp()
 
         a = numpy.zeros((10, 10))
-        self.array = self.h5file.createArray(self.h5file.root, 'array', a)
+        self.array = self.h5file.create_array(self.h5file.root, 'array', a)
 
     def test_read(self):
         self.h5file.close()
@@ -2540,3 +2540,9 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main( defaultTest='suite' )
+
+
+
+
+
+

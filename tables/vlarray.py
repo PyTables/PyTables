@@ -16,15 +16,15 @@ import sys
 
 import numpy
 
-from tables import hdf5Extension
-from tables.utils import (convertToNPAtom, convertToNPAtom2, idx2long,
+from tables import hdf5extension
+from tables.utils import (convert_to_np_atom, convert_to_np_atom2, idx2long,
     correct_byteorder, SizeType, is_idx, lazyattr)
 
 
 from tables.atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
 from tables.flavor import internal_to_flavor
 from tables.leaf import Leaf, calc_chunksize
-
+from tables._past import previous_api
 
 # default version for VLARRAY objects
 #obversion = "1.0"    # initial version
@@ -33,7 +33,7 @@ from tables.leaf import Leaf, calc_chunksize
 #obversion = "1.2"    # This adds support for enumerated datatypes.
 obversion = "1.3"     # Introduced 'PSEUDOATOM' attribute.
 
-class VLArray(hdf5Extension.VLArray, Leaf):
+class VLArray(hdf5extension.VLArray, Leaf):
     """This class represents variable length (ragged) arrays in an HDF5 file.
 
     Instances of this class represent array objects in the object tree
@@ -87,8 +87,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         from numpy import *
 
         # Create a VLArray:
-        fileh = tables.openFile('vlarray1.h5', mode='w')
-        vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
+        fileh = tables.open_file('vlarray1.h5', mode='w')
+        vlarray = fileh.create_vlarray(fileh.root, 'vlarray1',
         tables.Int32Atom(shape=()),
                         "ragged array of ints",
                         filters=tables.Filters(1))
@@ -104,7 +104,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, x)
 
         # Now, do the same with native Python strings.
-        vlarray2 = fileh.createVLArray(fileh.root, 'vlarray2',
+        vlarray2 = fileh.create_vlarray(fileh.root, 'vlarray2',
         tables.StringAtom(itemsize=2),
                             "ragged array of strings",
                             filters=tables.Filters(1))
@@ -171,7 +171,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     """
 
     # Class identifier.
-    _c_classId = 'VLARRAY'
+    _c_classid = 'VLARRAY'
 
 
     # Lazy read-only attributes
@@ -290,8 +290,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         super(VLArray, self).__init__(parentNode, name, new, filters,
                                       byteorder, _log)
 
-    def _g_postInitHook(self):
-        super(VLArray, self)._g_postInitHook()
+    def _g_post_init_hook(self):
+        super(VLArray, self)._g_post_init_hook()
         self.nrowsinbuf = 100  # maybe enough for most applications
 
 
@@ -349,23 +349,23 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         if self.byteorder is None:
             self.byteorder = correct_byteorder(atom.type, sys.byteorder)
 
-        # After creating the vlarray, ``self._v_objectID`` needs to be
+        # After creating the vlarray, ``self._v_objectid`` needs to be
         # set because it is needed for setting attributes afterwards.
-        self._v_objectID = self._createArray(self._v_new_title)
+        self._v_objectid = self._create_array(self._v_new_title)
 
         # Add an attribute in case we have a pseudo-atom so that we
         # can retrieve the proper class after a re-opening operation.
         if not hasattr(atom, 'size'):  # it is a pseudo-atom
             self.attrs.PSEUDOATOM = atom.kind
 
-        return self._v_objectID
+        return self._v_objectid
 
 
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        self._v_objectID, self.nrows, self._v_chunkshape, atom = \
-                          self._openArray()
+        self._v_objectid, self.nrows, self._v_chunkshape, atom = \
+                          self._open_array()
 
         # Check if the atom can be a PseudoAtom
         if "PSEUDOATOM" in self.attrs:
@@ -387,7 +387,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
                 atom = ObjectAtom()
 
         self.atom = atom
-        return self._v_objectID
+        return self._v_objectid
 
 
     def _getnobjects(self, nparr):
@@ -428,7 +428,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         return nobjects
 
 
-    def getEnum(self):
+    def get_enum(self):
         """Get the enumerated type associated with this array.
 
         If this array is of an enumerated type, the corresponding Enum instance
@@ -442,6 +442,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
         return self.atom.enum
 
+    getEnum = previous_api(get_enum)
+
 
     def append(self, sequence):
         """Add a sequence of data to the end of the dataset.
@@ -453,8 +455,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         sequence.
         """
 
-        self._g_checkOpen()
-        self._v_file._checkWritable()
+        self._g_check_open()
+        self._v_file._check_writable()
 
         # Prepare the sequence to convert it into a NumPy object
         atom = self.atom
@@ -471,7 +473,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         if len(sequence) > 0:
             # The sequence needs to be copied to make the operation safe
             # to in-place conversion.
-            nparr = convertToNPAtom2(sequence, statom)
+            nparr = convert_to_np_atom2(sequence, statom)
             nobjects = self._getnobjects(nparr)
         else:
             nobjects = 0
@@ -503,8 +505,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         """
 
         (self._start, self._stop, self._step) = \
-                     self._processRangeRead(start, stop, step)
-        self._initLoop()
+                     self._process_range_read(start, stop, step)
+        self._init_loop()
         return self
 
 
@@ -532,11 +534,11 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             self._stop = self.nrows
             self._step = 1
             # and initialize the loop
-            self._initLoop()
+            self._init_loop()
         return self
 
 
-    def _initLoop(self):
+    def _init_loop(self):
         "Initialization for the __iter__ iterator"
 
         self._nrowsread = self._start
@@ -544,6 +546,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self._row = -1   # Sentinel
         self._init = True  # Sentinel
         self.nrow = SizeType(self._start - self._step)    # row number
+
+    _initLoop = previous_api(_init_loop)
 
 
     def next(self):
@@ -594,7 +598,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools
         """
 
-        self._g_checkOpen()
+        self._g_check_open()
         if is_idx(key):
             # Index out of range protection
             if key >= self.nrows:
@@ -602,16 +606,16 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            (start, stop, step) = self._processRange(key, key+1, 1)
+            (start, stop, step) = self._process_range(key, key+1, 1)
             return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
-            start, stop, step = self._processRange(
+            start, stop, step = self._process_range(
                 key.start, key.stop, key.step)
             return self.read(start, stop, step)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
-            coords = self._pointSelection(key)
-            return self._readCoordinates(coords)
+            coords = self._point_selection(key)
+            return self._read_coordinates(coords)
         else:
             raise IndexError("Invalid index or slice: %r" % (key,))
 
@@ -633,12 +637,12 @@ class VLArray(hdf5Extension.VLArray, Leaf):
                 statom = atom.base
             else:
                 statom = atom
-            value = convertToNPAtom(object_, statom)
+            value = convert_to_np_atom(object_, statom)
             nobjects = self._getnobjects(value)
 
             # Get the previous value
             nrow = idx2long(nrow)   # To convert any possible numpy scalar value
-            nparr = self._readArray(nrow, nrow+1, 1)[0]
+            nparr = self._read_array(nrow, nrow+1, 1)[0]
             nobjects = len(nparr)
             if len(value) > nobjects:
                 raise ValueError("Length of value (%s) is larger than number "
@@ -699,20 +703,20 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             vlarray[[1,3]] = new_1_and_3_rows
         """
 
-        self._g_checkOpen()
-        self._v_file._checkWritable()
+        self._g_check_open()
+        self._v_file._check_writable()
 
         if is_idx(key):
             # If key is not a sequence, convert to it
             coords = [key]
             value = [value]
         elif isinstance(key, slice):
-            (start, stop, step) = self._processRange(
+            (start, stop, step) = self._process_range(
                 key.start, key.stop, key.step )
             coords = range(start, stop, step)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
-            coords = self._pointSelection(key)
+            coords = self._point_selection(key)
         else:
             raise IndexError("Invalid index or slice: %r" % (key,))
 
@@ -720,7 +724,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self._assign_values(coords, value)
 
 
-    # Accessor for the _readArray method in superclass
+    # Accessor for the _read_array method in superclass
     def read(self, start=None, stop=None, step=1):
         """Get data in the array as a list of objects of the current flavor.
 
@@ -737,12 +741,12 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         the rows* in the array are selected.
         """
 
-        self._g_checkOpen()
-        start, stop, step = self._processRangeRead(start, stop, step)
+        self._g_check_open()
+        start, stop, step = self._process_range_read(start, stop, step)
         if start == stop:
             listarr = []
         else:
-            listarr = self._readArray(start, stop, step)
+            listarr = self._read_array(start, stop, step)
 
         atom = self.atom
         if not hasattr(atom, 'size'):  # it is a pseudo-atom
@@ -754,7 +758,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         return outlistarr
 
 
-    def _readCoordinates(self, coords):
+    def _read_coordinates(self, coords):
         """Read rows specified in `coords`."""
         rows = []
         for coord in coords:
@@ -762,7 +766,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         return rows
 
 
-    def _g_copyWithStats(self, group, name, start, stop, step,
+    def _g_copy_with_stats(self, group, name, start, stop, step,
                          title, filters, chunkshape, _log, **kwargs):
         "Private part of Leaf.copy() for each kind of leaf"
 
@@ -777,7 +781,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         # In the future, some analysis can be done in order to buffer
         # the copy process.
         nrowsinbuf = 1
-        (start, stop, step) = self._processRangeRead(start, stop, step)
+        (start, stop, step) = self._process_range_read(start, stop, step)
         # Optimized version (no conversions, no type and shape checks, etc...)
         nrowscopied = SizeType(0)
         nbytes = 0
@@ -790,13 +794,15 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
-            nparr = self._readArray(start=start2, stop=stop2, step=step)[0]
+            nparr = self._read_array(start=start2, stop=stop2, step=step)[0]
             nobjects = nparr.shape[0]
             object._append(nparr, nobjects)
             nbytes += nobjects*atomsize
             nrowscopied +=1
         object.nrows = nrowscopied
         return (object, nbytes)
+
+    _g_copyWithStats = previous_api(_g_copy_with_stats)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
@@ -807,3 +813,9 @@ class VLArray(hdf5Extension.VLArray, Leaf):
   nrows = %s
   flavor = %r""" % (self, self.atom, self.byteorder, self.nrows,
                     self.flavor)
+
+
+
+
+
+

@@ -21,6 +21,7 @@ from tables.atom import Atom
 from tables.array import Array
 from tables.utils import correct_byteorder, SizeType
 
+from tables._past import previous_api
 
 # default version for CARRAY objects
 obversion = "1.0"    # Support for time & enumerated datatypes.
@@ -82,15 +83,15 @@ class CArray(Array):
         atom = tables.UInt8Atom()
         filters = tables.Filters(complevel=5, complib='zlib')
 
-        h5f = tables.openFile(fileName, 'w')
-        ca = h5f.createCArray(h5f.root, 'carray', atom, shape, filters=filters)
+        h5f = tables.open_file(fileName, 'w')
+        ca = h5f.create_carray(h5f.root, 'carray', atom, shape, filters=filters)
 
         # Fill a hyperslab in ``ca``.
         ca[10:60, 20:70] = numpy.ones((50, 50))
         h5f.close()
 
         # Re-open a read another hyperslab
-        h5f = tables.openFile(fileName)
+        h5f = tables.open_file(fileName)
         print h5f
         print h5f.root.carray[8:12, 18:22]
         h5f.close()
@@ -110,7 +111,7 @@ class CArray(Array):
     """
 
     # Class identifier.
-    _c_classId = 'CARRAY'
+    _c_classid = 'CARRAY'
 
 
     # Properties
@@ -227,21 +228,21 @@ class CArray(Array):
             self.byteorder = correct_byteorder(self.atom.type, sys.byteorder)
 
         try:
-            # ``self._v_objectID`` needs to be set because would be
+            # ``self._v_objectid`` needs to be set because would be
             # needed for setting attributes in some descendants later
             # on
-            self._v_objectID = self._createCArray(self._v_new_title)
+            self._v_objectid = self._create_carray(self._v_new_title)
         except:  #XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
-        return self._v_objectID
+        return self._v_objectid
 
 
-    def _g_copyWithStats(self, group, name, start, stop, step,
+    def _g_copy_with_stats(self, group, name, start, stop, step,
                          title, filters, chunkshape, _log, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf"""
-        (start, stop, step) = self._processRangeRead(start, stop, step)
+        (start, stop, step) = self._process_range_read(start, stop, step)
         maindim = self.maindim
         shape = list(self.shape)
         shape[maindim] = len(xrange(start, stop, step))
@@ -277,3 +278,11 @@ class CArray(Array):
         nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.size
 
         return (object, nbytes)
+
+    _g_copyWithStats = previous_api(_g_copy_with_stats)
+
+
+
+
+
+

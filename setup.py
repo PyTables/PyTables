@@ -561,14 +561,14 @@ else:
 #------------------------------------------------------------------------------
 
 cython_extnames = [
-    'utilsExtension',
-    'hdf5Extension',
-    'tableExtension',
-    'linkExtension',
+    'utilsextension',
+    'hdf5extension',
+    'tableextension',
+    'linkextension',
     '_comp_lzo',
     '_comp_bzip2',
-    'lrucacheExtension',
-    'indexesExtension',
+    'lrucacheextension',
+    'indexesextension',
 ]
 
 
@@ -646,7 +646,7 @@ else:
         'tables.tests', 'tables.nodes.tests',
     ]
     setuptools_kwargs['scripts'] = [
-        'utils/ptdump', 'utils/ptrepack']
+        'utils/ptdump', 'utils/ptrepack', 'utils/pt2to3']
 # Copy additional data for packages that need it.
 setuptools_kwargs['package_data'] = {
     'tables.tests': ['*.h5', '*.mat'],
@@ -696,10 +696,10 @@ blosc_files = ["blosc/blosc.c", "blosc/blosclz.c", "blosc/shuffle.c",
                "blosc/blosc_filter.c"]
 
 extensions = [
-    Extension("tables.utilsExtension",
+    Extension("tables.utilsextension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['utilsExtension'],
+              sources=[cython_extfiles['utilsextension'],
                        "src/utils.c",
                        "src/H5ARRAY.c",
                        "src/H5ATTR.c",
@@ -709,10 +709,10 @@ extensions = [
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
-    Extension("tables.hdf5Extension",
+    Extension("tables.hdf5extension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['hdf5Extension'],
+              sources=[cython_extfiles['hdf5extension'],
                        "src/utils.c",
                        "src/typeconv.c",
                        "src/H5ARRAY.c",
@@ -725,10 +725,10 @@ extensions = [
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
-    Extension("tables.tableExtension",
+    Extension("tables.tableextension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['tableExtension'],
+              sources=[cython_extfiles['tableextension'],
                        "src/utils.c",
                        "src/typeconv.c",
                        "src/H5TB-opt.c",
@@ -759,28 +759,28 @@ extensions = [
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
-    Extension("tables.linkExtension",
+    Extension("tables.linkextension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['linkExtension']],
+              sources=[cython_extfiles['linkextension']],
               library_dirs=lib_dirs,
               libraries=tableExtension_libs,
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
-    Extension("tables.lrucacheExtension",
+    Extension("tables.lrucacheextension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['lrucacheExtension']],
+              sources=[cython_extfiles['lrucacheextension']],
               library_dirs=lib_dirs,
               libraries=lrucacheExtension_libs,
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
-    Extension("tables.indexesExtension",
+    Extension("tables.indexesextension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['indexesExtension'],
+              sources=[cython_extfiles['indexesextension'],
                        "src/H5ARRAY-opt.c",
                        "src/idx-opt.c"],
               library_dirs=lib_dirs,

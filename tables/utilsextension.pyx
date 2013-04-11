@@ -28,7 +28,8 @@ from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError
 from tables.atom import Atom, EnumAtom
 
-from tables.utils import checkFileAccess
+from tables.utils import check_file_access
+from tables._past import previous_api
 
 from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
@@ -110,7 +111,7 @@ else:  # sys.byteorder == "big"
 # Conversion from PyTables string types to HDF5 native types
 # List only types that are susceptible of changing byteorder
 # (complex & enumerated types are special and should not be listed here)
-PTTypeToHDF5 = {
+pttype_to_hdf5 = {
   'int8'   : H5T_STD_I8,   'uint8'  : H5T_STD_U8,
   'int16'  : H5T_STD_I16,  'uint16' : H5T_STD_U16,
   'int32'  : H5T_STD_I32,  'uint32' : H5T_STD_U32,
@@ -121,10 +122,10 @@ PTTypeToHDF5 = {
   }
 
 # Special cases whose byteorder cannot be directly changed
-PTSpecialKinds = ['complex', 'string', 'enum', 'bool']
+pt_special_kinds = ['complex', 'string', 'enum', 'bool']
 
 # Conversion table from NumPy extended codes prefixes to PyTables kinds
-NPExtPrefixesToPTKinds = {
+npext_prefixes_to_ptkinds = {
   "S": "string",
   "b": "bool",
   "i": "int",
@@ -136,7 +137,7 @@ NPExtPrefixesToPTKinds = {
   }
 
 # Names of HDF5 classes
-HDF5ClassToString = {
+hdf5_class_to_string = {
   H5T_NO_CLASS  : 'H5T_NO_CLASS',
   H5T_INTEGER   : 'H5T_INTEGER',
   H5T_FLOAT     : 'H5T_FLOAT',
@@ -226,8 +227,8 @@ else:
 
 # Important: Blosc calls that modifies global variables in Blosc must be
 # called from the same extension where Blosc is registered in HDF5.
-def setBloscMaxThreads(nthreads):
-  """setBloscMaxThreads(nthreads)
+def set_blosc_max_threads(nthreads):
+  """set_blosc_max_threads(nthreads)
 
   Set the maximum number of threads that Blosc can use.
 
@@ -240,6 +241,7 @@ def setBloscMaxThreads(nthreads):
   """
   return blosc_set_nthreads(nthreads)
 
+setBloscMaxThreads = previous_api(set_blosc_max_threads)
 
 if sys.platform == "win32":
   # We need a different approach in Windows, because it complains when
@@ -328,8 +330,8 @@ def _dump_h5_backtrace():
 # between modules.
 HDF5ExtError._dump_h5_backtrace = _dump_h5_backtrace
 
-def silenceHDF5Messages(silence=True):
-    """silenceHDF5Messages(silence=True)
+def silence_hdf5_messages(silence=True):
+    """silence_hdf5_messages(silence=True)
 
     Silence (or re-enable) messages from the HDF5 C library.
 
@@ -347,8 +349,10 @@ def silenceHDF5Messages(silence=True):
     if err < 0:
         raise HDF5ExtError("unable to configure HDF5 internal error handling")
 
+silenceHDF5Messages = previous_api(silence_hdf5_messages)
+
 # Disable automatic HDF5 error logging
-silenceHDF5Messages()
+silence_hdf5_messages()
 
 
 # Helper functions
@@ -523,8 +527,8 @@ def encode_filename(object filename):
 
 # Main functions
 
-def isHDF5File(object filename):
-  """isHDF5File(filename)
+def is_hdf5_file(object filename):
+  """is_hdf5_file(filename)
 
   Determine whether a file is in the HDF5 format.
 
@@ -537,16 +541,18 @@ def isHDF5File(object filename):
   encname = encode_filename(filename)
 
   # Check that the file exists and is readable.
-  checkFileAccess(encname)
+  check_file_access(encname)
 
   ret = H5Fis_hdf5(encname)
   if ret < 0:
     raise HDF5ExtError("problems identifying file ``%s``" % (filename,))
   return ret > 0
 
+isHDF5File = previous_api(is_hdf5_file)
 
-def isPyTablesFile(object filename):
-  """isPyTablesFile(filename)
+
+def is_pytables_file(object filename):
+  """is_pytables_file(filename)
 
   Determine whether a file is in the PyTables format.
 
@@ -558,7 +564,7 @@ def isPyTablesFile(object filename):
   cdef hid_t file_id
   cdef object isptf = None  # A PYTABLES_FORMAT_VERSION attribute was not found
 
-  if isHDF5File(filename):
+  if is_hdf5_file(filename):
     # Encode the filename in case it is unicode
     encname = encode_filename(filename)
     # The file exists and is HDF5, that's ok
@@ -576,21 +582,26 @@ def isPyTablesFile(object filename):
 
   return isptf
 
+isPyTablesFile = previous_api(is_pytables_file)
 
-def getHDF5Version():
+
+def get_hdf5_version():
   """Get the underlying HDF5 library version"""
 
   return getHDF5VersionInfo()[1]
 
+getHDF5Version = previous_api(get_hdf5_version)
 
-def getPyTablesVersion():
+def get_pytables_version():
   """Return this extension version."""
 
   return _getTablesVersion()
 
+getPyTablesVersion = previous_api(get_pytables_version)
 
-def whichLibVersion(str name):
-  """whichLibVersion(name)
+
+def which_lib_version(str name):
+  """which_lib_version(name)
 
   Get version information about a C library.
 
@@ -637,8 +648,10 @@ def whichLibVersion(str name):
   # A supported library was specified, but no version is available.
   return None
 
+whichLibVersion = previous_api(which_lib_version)
 
-def whichClass(hid_t loc_id, object name):
+
+def which_class(hid_t loc_id, object name):
   """Detects a class ID using heuristics."""
 
   cdef H5T_class_t  class_id
@@ -733,8 +746,10 @@ def whichClass(hid_t loc_id, object name):
   # Fallback
   return classId
 
+whichClass = previous_api(which_class)
 
-def getNestedField(recarray, fieldname):
+
+def get_nested_field(recarray, fieldname):
   """Get the maybe nested field named `fieldname` from the `recarray`.
 
   The `fieldname` may be a simple field name or a nested field name
@@ -756,8 +771,10 @@ def getNestedField(recarray, fieldname):
     raise KeyError("no such column: %s" % (fieldname,))
   return field
 
+getNestedField = previous_api(get_nested_field)
 
-def getIndices(object start, object stop, object step, hsize_t length):
+
+def get_indices(object start, object stop, object step, hsize_t length):
   cdef hssize_t o_start, o_stop, o_step
   cdef hsize_t slicelength
   cdef object s
@@ -770,6 +787,8 @@ def getIndices(object start, object stop, object step, hsize_t length):
   if getIndicesExt(s, length, &o_start, &o_stop, &o_step, &slicelength) < 0:
     raise ValueError("Problems getting the indices on slice '%s'" % s)
   return (o_start, o_stop, o_step)
+
+getIndices = previous_api(get_indices)
 
 
 def read_f_attr(hid_t file_id, str attr_name):
@@ -810,7 +829,7 @@ def read_f_attr(hid_t file_id, str attr_name):
   return retvalue
 
 
-def getFilters(parent_id, name):
+def get_filters(parent_id, name):
   """Get a dictionary with the filter names and cd_values"""
 
   cdef bytes encoded_name
@@ -819,9 +838,11 @@ def getFilters(parent_id, name):
 
   return get_filter_names(parent_id, encoded_name)
 
+getFilters = previous_api(get_filters)
 
-# This is used by several <Leaf>._convertTypes() methods.
-def getTypeEnum(hid_t h5type):
+
+# This is used by several <Leaf>._convert_types() methods.
+def get_type_enum(hid_t h5type):
   """_getTypeEnum(h5type) -> hid_t
 
   Get the native HDF5 enumerated type of `h5type`.
@@ -845,16 +866,18 @@ def getTypeEnum(hid_t h5type):
   elif typeClass in (H5T_ARRAY, H5T_VLEN):
     # The field is multi-dimensional or variable length.
     enumId2 = H5Tget_super(h5type)
-    enumId = getTypeEnum(enumId2)
+    enumId = get_type_enum(enumId2)
     H5Tclose(enumId2)
   else:
     raise TypeError(
       "enumerated values can not be stored using the given type")
   return enumId
 
+getTypeEnum = previous_api(get_type_enum)
 
-def enumFromHDF5(hid_t enumId, str byteorder):
-  """enumFromHDF5(enumId) -> (Enum, npType)
+
+def enum_from_hdf5(hid_t enumId, str byteorder):
+  """enum_from_hdf5(enumId) -> (Enum, npType)
 
   Convert an HDF5 enumerated type to a PyTables one.
 
@@ -872,7 +895,7 @@ def enumFromHDF5(hid_t enumId, str byteorder):
 
   # Find the base type of the enumerated type, and get the atom
   baseId = H5Tget_super(enumId)
-  atom = AtomFromHDF5Type(baseId)
+  atom = atom_from_hdf5_type(baseId)
   H5Tclose(baseId)
   if atom.kind not in ('int', 'uint'):
     raise NotImplementedError("sorry, only integer concrete values are "
@@ -900,7 +923,7 @@ def enumFromHDF5(hid_t enumId, str byteorder):
     if PY_MAJOR_VERSION > 2:
       pyename = PyUnicode_DecodeUTF8(ename, strlen(ename), NULL)
     else:
-      pyename = ename
+      pyename = str(ename)
 
     free(ename)
 
@@ -913,9 +936,11 @@ def enumFromHDF5(hid_t enumId, str byteorder):
   # Build an enumerated type from `enumDict` and return it.
   return Enum(enumDict), dtype
 
+enumFromHDF5 = previous_api(enum_from_hdf5)
 
-def enumToHDF5(object enumAtom, str byteorder):
-  """enumToHDF5(enumAtom, byteorder) -> hid_t
+
+def enum_to_hdf5(object enumAtom, str byteorder):
+  """enum_to_hdf5(enumAtom, byteorder) -> hid_t
 
   Convert a PyTables enumerated type to an HDF5 one.
 
@@ -934,7 +959,7 @@ def enumToHDF5(object enumAtom, str byteorder):
 
   # Get the base HDF5 type and create the enumerated type.
   baseAtom = Atom.from_dtype(enumAtom.dtype.base)
-  baseId = AtomToHDF5Type(baseAtom, byteorder)
+  baseId = atom_to_hdf5_type(baseAtom, byteorder)
 
   try:
     enumId = H5Tenum_create(baseId)
@@ -961,8 +986,9 @@ def enumToHDF5(object enumAtom, str byteorder):
   # Return the new, open HDF5 enumerated type.
   return enumId
 
+enumToHDF5 = previous_api(enum_to_hdf5)
 
-def AtomToHDF5Type(atom, str byteorder):
+def atom_to_hdf5_type(atom, str byteorder):
   cdef hid_t   tid = -1
   cdef hsize_t *dims = NULL
   cdef bytes   encoded_byteorder
@@ -973,14 +999,14 @@ def AtomToHDF5Type(atom, str byteorder):
   cbyteorder = encoded_byteorder
 
   # Create the base HDF5 type
-  if atom.type in PTTypeToHDF5:
-    tid = H5Tcopy(PTTypeToHDF5[atom.type])
+  if atom.type in pttype_to_hdf5:
+    tid = H5Tcopy(pttype_to_hdf5[atom.type])
     # Fix the byteorder
     if atom.kind != 'time':
       set_order(tid, cbyteorder)
   elif atom.type == 'float16':
     tid = create_ieee_float16(cbyteorder)
-  elif atom.kind in PTSpecialKinds:
+  elif atom.kind in pt_special_kinds:
     # Special cases (the byteorder doesn't need to be fixed afterwards)
     if atom.type == 'complex64':
       tid = create_ieee_complex64(cbyteorder)
@@ -996,7 +1022,7 @@ def AtomToHDF5Type(atom, str byteorder):
     elif atom.kind == 'bool':
       tid = H5Tcopy(H5T_STD_B8);
     elif atom.kind == 'enum':
-      tid = enumToHDF5(atom, byteorder)
+      tid = enum_to_hdf5(atom, byteorder)
   else:
     raise TypeError("Invalid type for atom %s" % (atom,))
   # Create an H5T_ARRAY in case of non-scalar atoms
@@ -1009,9 +1035,11 @@ def AtomToHDF5Type(atom, str byteorder):
 
   return tid
 
+AtomToHDF5Type = previous_api(atom_to_hdf5_type)
 
-def loadEnum(hid_t type_id):
-  """loadEnum() -> (Enum, npType)
+
+def load_enum(hid_t type_id):
+  """load_enum() -> (Enum, npType)
 
   Load the enumerated HDF5 type associated with this type_id.
 
@@ -1024,22 +1052,24 @@ def loadEnum(hid_t type_id):
   cdef str byteorder
 
   # Get the enumerated type
-  enumId = getTypeEnum(type_id)
+  enumId = get_type_enum(type_id)
   # Get the byteorder
   get_order(type_id, c_byteorder)
   if PY_MAJOR_VERSION > 2:
     byteorder = PyUnicode_DecodeUTF8(c_byteorder, strlen(c_byteorder), NULL)
   else:
-    byteorder = c_byteorder
+    byteorder = str(c_byteorder)
   # Get the Enum and NumPy types and close the HDF5 type.
   try:
-    return enumFromHDF5(enumId, byteorder)
+    return enum_from_hdf5(enumId, byteorder)
   finally:
     # (Yes, the ``finally`` clause *is* executed.)
     if H5Tclose(enumId) < 0:
       raise HDF5ExtError("failed to close HDF5 enumerated type")
 
-def HDF5ToNPNestedType(hid_t type_id):
+loadEnum = previous_api(load_enum)
+
+def hdf5_to_np_nested_type(hid_t type_id):
   """Given a HDF5 `type_id`, return a dtype string representation of it."""
 
   cdef hid_t   member_type_id
@@ -1060,16 +1090,16 @@ def HDF5ToNPNestedType(hid_t type_id):
     if PY_MAJOR_VERSION > 2:
       colname = PyUnicode_DecodeUTF8(c_colname, strlen(c_colname), NULL)
     else:
-      colname = c_colname
+      colname = str(c_colname)
     # Get the member type
     member_type_id = H5Tget_member_type(type_id, i)
     # Get the HDF5 class
     class_id = H5Tget_class(member_type_id)
     if class_id == H5T_COMPOUND and not is_complex(member_type_id):
-      desc[colname] = HDF5ToNPNestedType(member_type_id)
+      desc[colname] = hdf5_to_np_nested_type(member_type_id)
       desc[colname]["_v_pos"] = i  # Remember the position
     else:
-      atom = AtomFromHDF5Type(member_type_id, pure_numpy_types=True)
+      atom = atom_from_hdf5_type(member_type_id, pure_numpy_types=True)
       desc[colname] = Col.from_atom(atom, pos=i)
 
     # Release resources
@@ -1078,8 +1108,10 @@ def HDF5ToNPNestedType(hid_t type_id):
 
   return desc
 
+HDF5ToNPNestedType = previous_api(hdf5_to_np_nested_type)
 
-def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
+
+def hdf5_to_np_ext_type(hid_t type_id, pure_numpy_types=True, atom=False):
   """Map the atomic HDF5 type to a string repr of NumPy extended codes.
 
   If `pure_numpy_types` is true, detected HDF5 types that does not match pure
@@ -1124,10 +1156,10 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
     else:
       if atom:
         raise TypeError("the HDF5 class ``%s`` is not supported yet"
-                        % HDF5ClassToString[class_id])
+                        % hdf5_class_to_string[class_id])
       # Recursively remove possible padding on type_id.
       native_type_id = get_nested_native_type(type_id)
-      desc = Description(HDF5ToNPNestedType(native_type_id))
+      desc = Description(hdf5_to_np_nested_type(native_type_id))
       # stype here is not exactly a string, but the NumPy dtype factory
       # will deal with this.
       stype = desc._v_dtype
@@ -1139,28 +1171,28 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
   elif class_id == H5T_TIME:
     if pure_numpy_types:
       raise TypeError("the HDF5 class ``%s`` is not supported yet"
-                      % HDF5ClassToString[class_id])
+                      % hdf5_class_to_string[class_id])
     stype = "t%s" % itemsize
   elif class_id == H5T_ENUM:
     if pure_numpy_types:
       raise TypeError("the HDF5 class ``%s`` is not supported yet"
-                      % HDF5ClassToString[class_id])
+                      % hdf5_class_to_string[class_id])
     stype = "e"
   elif class_id == H5T_VLEN:
     if pure_numpy_types:
       raise TypeError("the HDF5 class ``%s`` is not supported yet"
-                      % HDF5ClassToString[class_id])
+                      % hdf5_class_to_string[class_id])
     # Get the variable length base component
     super_type_id = H5Tget_super(type_id)
     # Find the super member format
-    stype, shape = HDF5ToNPExtType(super_type_id, pure_numpy_types)
+    stype, shape = hdf5_to_np_ext_type(super_type_id, pure_numpy_types)
     # Release resources
     H5Tclose(super_type_id)
   elif class_id == H5T_ARRAY:
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
     # Find the super member format
-    stype, shape2 = HDF5ToNPExtType(super_type_id, pure_numpy_types)
+    stype, shape2 = hdf5_to_np_ext_type(super_type_id, pure_numpy_types)
     # Get shape
     shape = []
     ndims = H5Tget_array_ndims(type_id)
@@ -1175,38 +1207,42 @@ def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
   else:
     # Other types are not supported yet
     raise TypeError("the HDF5 class ``%s`` is not supported yet"
-                    % HDF5ClassToString[class_id])
+                    % hdf5_class_to_string[class_id])
 
   return stype, shape
 
+HDF5ToNPExtType = previous_api(hdf5_to_np_ext_type)
 
-def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
+
+def atom_from_hdf5_type(hid_t type_id, pure_numpy_types=False):
   """Get an atom from a type_id.
 
-  See `HDF5ToNPExtType` for an explanation of the `pure_numpy_types`
+  See `hdf5_to_np_ext_type` for an explanation of the `pure_numpy_types`
   parameter.
   """
 
   cdef object stype, shape, atom_, sctype, tsize, kind
   cdef object dflt, base, enum, nptype
 
-  stype, shape = HDF5ToNPExtType(type_id, pure_numpy_types, atom=True)
+  stype, shape = hdf5_to_np_ext_type(type_id, pure_numpy_types, atom=True)
   # Create the Atom
   if stype == 'e':
-    (enum, nptype) = loadEnum(type_id)
+    (enum, nptype) = load_enum(type_id)
     # Take one of the names as the default in the enumeration.
     dflt = next(iter(enum))[0]
     base = Atom.from_dtype(nptype)
     atom_ = EnumAtom(enum, dflt, base, shape=shape)
   else:
-    kind = NPExtPrefixesToPTKinds[stype[0]]
+    kind = npext_prefixes_to_ptkinds[stype[0]]
     tsize = int(stype[1:])
     atom_ = Atom.from_kind(kind, tsize, shape=shape)
 
   return atom_
 
+AtomFromHDF5Type = previous_api(atom_from_hdf5_type)
 
-def createNestedType(object desc, str byteorder):
+
+def create_nested_type(object desc, str byteorder):
   """Create a nested type based on a description and return an HDF5 type."""
 
   cdef hid_t tid, tid2
@@ -1221,9 +1257,9 @@ def createNestedType(object desc, str byteorder):
   for k in desc._v_names:
     obj = desc._v_colObjects[k]
     if isinstance(obj, Description):
-      tid2 = createNestedType(obj, byteorder)
+      tid2 = create_nested_type(obj, byteorder)
     else:
-      tid2 = AtomToHDF5Type(obj, byteorder)
+      tid2 = atom_to_hdf5_type(obj, byteorder)
     encoded_name = k.encode('utf-8')
     H5Tinsert(tid, encoded_name, offset, tid2)
     offset = offset + desc._v_dtype[k].itemsize
@@ -1232,6 +1268,8 @@ def createNestedType(object desc, str byteorder):
 
   return tid
 
+createNestedType = previous_api(create_nested_type)
+
 
 ## Local Variables:
 ## mode: python
@@ -1239,3 +1277,9 @@ def createNestedType(object desc, str byteorder):
 ## tab-width: 2
 ## fill-column: 78
 ## End:
+
+
+
+
+
+

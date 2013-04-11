@@ -14,12 +14,14 @@
 
 import weakref
 
+from tables._past import previous_api
+
 
 class ProxyDict(dict):
     """A dictionary which uses a container object to store its values."""
 
     def __init__(self, container):
-        self.containerRef = weakref.ref(container)
+        self.containerref = weakref.ref(container)
         """A weak reference to the container object."""
 
 
@@ -28,7 +30,7 @@ class ProxyDict(dict):
             raise KeyError(key)
 
         # Values are not actually stored to avoid extra references.
-        return self._getValueFromContainer(self._getContainer(), key)
+        return self._get_value_from_container(self._get_container(), key)
 
 
     def __setitem__(self, key, value):
@@ -77,8 +79,16 @@ class ProxyDict(dict):
         raise StopIteration
 
 
-    def _getContainer(self):
-        container = self.containerRef()
+    def _get_container(self):
+        container = self.containerref()
         if container is None:
             raise ValueError("the container object does no longer exist")
         return container
+
+    _getContainer = previous_api(_get_container)
+
+
+
+
+
+

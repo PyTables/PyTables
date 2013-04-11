@@ -67,18 +67,18 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Define other variables, if needed
         root = self.h5file.root
         if self.kind == "Array":
-            self.a = self.h5file.createArray(root, "a", a)
-            self.b = self.h5file.createArray(root, "b", b)
-            self.c = self.h5file.createArray(root, "c", c)
-            self.r1 = self.h5file.createArray(root, "r1", r1)
+            self.a = self.h5file.create_array(root, "a", a)
+            self.b = self.h5file.create_array(root, "b", b)
+            self.c = self.h5file.create_array(root, "c", c)
+            self.r1 = self.h5file.create_array(root, "r1", r1)
         elif self.kind == "CArray":
-            self.a = self.h5file.createCArray(
+            self.a = self.h5file.create_carray(
                 root, "a", tb.Atom.from_dtype(a.dtype), self.shape)
-            self.b = self.h5file.createCArray(
+            self.b = self.h5file.create_carray(
                 root, "b", tb.Atom.from_dtype(b.dtype), self.shape)
-            self.c = self.h5file.createCArray(
+            self.c = self.h5file.create_carray(
                 root, "c", tb.Atom.from_dtype(c.dtype), self.shape)
-            self.r1 = self.h5file.createCArray(
+            self.r1 = self.h5file.create_carray(
                 root, "r1", tb.Atom.from_dtype(r1.dtype), self.shape)
             self.a[:] = a
             self.b[:] = b
@@ -86,13 +86,13 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         elif self.kind == "EArray":
             shape = list(self.shape)
             shape[0] = 0
-            self.a = self.h5file.createEArray(
+            self.a = self.h5file.create_earray(
                 root, "a", tb.Atom.from_dtype(a.dtype), shape)
-            self.b = self.h5file.createEArray(
+            self.b = self.h5file.create_earray(
                 root, "b", tb.Atom.from_dtype(b.dtype), shape)
-            self.c = self.h5file.createEArray(
+            self.c = self.h5file.create_earray(
                 root, "c", tb.Atom.from_dtype(c.dtype), shape)
-            self.r1 = self.h5file.createEArray(
+            self.r1 = self.h5file.create_earray(
                 root, "r1", tb.Atom.from_dtype(r1.dtype), shape)
             self.a.append(a)
             self.b.append(b)
@@ -102,7 +102,7 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ra = np.rec.fromarrays(
                 [a, b, c, r1],
                 dtype="%si4,%si8,%si4,%si8" % ((self.shape[1:],)*4))
-            t = self.h5file.createTable(root, "t", ra)
+            t = self.h5file.create_table(root, "t", ra)
             self.a = t.cols.f0
             self.b = t.cols.f1
             self.c = t.cols.f2
@@ -125,7 +125,7 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking that expression is correctly evaluated (`out` param)"""
 
         expr = tb.Expr(self.expr, self.vars)
-        expr.setOutput(self.r1)
+        expr.set_output(self.r1)
         r1 = expr.eval()
         if self.kind != "NumPy":
             r1 = r1[:]
@@ -161,7 +161,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.expr = "2*a*b+c**2+d**2+e-f+g"
         # Create a directory in file for outputs
         root = self.h5file.root
-        outs = self.h5file.createGroup(root, "outs")
+        outs = self.h5file.create_group(root, "outs")
         # Define the NumPy variables to be used in expression
         N = np.prod(self.shape)
         # Initial values for variables
@@ -179,17 +179,17 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.a = a
         self.rnda = rnda
         # Array input and output
-        self.b = self.h5file.createArray(root, "b", b)
+        self.b = self.h5file.create_array(root, "b", b)
         self.rarr = self.b.copy(outs)
         # CArray input and output
-        self.c = self.h5file.createCArray(
+        self.c = self.h5file.create_carray(
             root, "c", tb.Atom.from_dtype(c.dtype), self.shape)
         self.c[:] = c
         self.rcarr = self.c.copy(outs)
         # EArray input and output
         eshape = list(self.shape)
         eshape[0] = 0
-        self.d = self.h5file.createEArray(
+        self.d = self.h5file.create_earray(
             root, "d", tb.Atom.from_dtype(d.dtype), eshape)
         self.d.append(d)
         self.rearr = self.d.copy(outs)
@@ -198,7 +198,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         colshape = self.shape[1:]
         for i, col in enumerate((a, b, c, d, e, rnda)):
             rtype['f%d'%i] = tb.Col.from_sctype(col.dtype.type, colshape)
-        t = self.h5file.createTable(root, "t", rtype)
+        t = self.h5file.create_table(root, "t", rtype)
         nrows = self.shape[0]
         row = t.row
         for nrow in range(nrows):
@@ -245,7 +245,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for r1 in self.rnda, self.rarr, self.rcarr, self.rearr, self.rcol:
             if common.verbose:
                 print "Checking output container:", type(r1)
-            expr.setOutput(r1)
+            expr.set_output(r1)
             r1 = expr.eval()
             if not isinstance(r1, type(self.rnda)):
                 r1 = r1[:]
@@ -267,7 +267,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for r1 in self.rnda, self.rarr, self.rcarr, self.rearr, self.rcol:
             if common.verbose:
                 print "Checking output container:", type(r1)
-            expr.setOutput(r1)
+            expr.set_output(r1)
             r1 = expr.eval()
             r1 = r1[()]  # convert a 0-dim array into a scalar
             r2 = eval(expr_str, self.npvars)
@@ -282,7 +282,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         start, stop, step = (self.start, self.stop, 1)
         expr = tb.Expr(self.expr, self.vars)
-        expr.setInputsRange(start, stop, step)
+        expr.set_inputs_range(start, stop, step)
         r1 = expr.eval()
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
@@ -298,7 +298,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         start, stop, step = (0, self.shape[0], self.step)
         expr = tb.Expr(self.expr, self.vars)
-        expr.setInputsRange(start, stop, step)
+        expr.set_inputs_range(start, stop, step)
         r1 = expr.eval()
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
@@ -313,7 +313,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         start, stop, step = (self.start, self.stop, self.step)
         expr = tb.Expr(self.expr, self.vars)
-        expr.setInputsRange(start, stop, step)
+        expr.set_inputs_range(start, stop, step)
         r1 = expr.eval()
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
@@ -329,7 +329,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         start, stop, step = [ np.int64(i) for i in
                               (self.start, self.stop, self.step) ]
         expr = tb.Expr(self.expr, self.vars)
-        expr.setInputsRange(start, stop, step)
+        expr.set_inputs_range(start, stop, step)
         r1 = expr.eval()
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
@@ -519,7 +519,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
             col1 = tb.Int32Col()
             col2 = tb.Int64Col()
 
-        t = self.h5file.createTable("/", "a", Rec)
+        t = self.h5file.create_table("/", "a", Rec)
         expr = "a*b+c"
         vars_ = {"a": t, "b": self.b, "c": self.c,}
         self.assertRaises(TypeError, tb.Expr, expr, vars_)
@@ -532,7 +532,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
             class col2(tb.IsDescription):
                 col3 = tb.Int64Col()
 
-        t = self.h5file.createTable("/", "a", Nested)
+        t = self.h5file.create_table("/", "a", Nested)
         expr = "a*b+c"
         # The next non-nested column should work
         a = t.cols.col2.col3
@@ -548,7 +548,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
     def test05_vlarray(self):
         """Checking that VLArrays in expression are detected"""
 
-        vla = self.h5file.createVLArray("/", "a", tb.Int32Col())
+        vla = self.h5file.create_vlarray("/", "a", tb.Int32Col())
         expr = "a*b+c"
         vars_ = {"a": vla, "b": self.b, "c": self.c,}
         self.assertRaises(TypeError, tb.Expr, expr, vars_)
@@ -568,13 +568,13 @@ class BroadcastTestCase(common.TempFileMixin, common.PyTablesTestCase):
         c = np.arange(np.prod(shapes[2]), dtype="i4").reshape(shapes[2])
         root = self.h5file.root
         if a.shape[0] > 0:
-            a1 = self.h5file.createArray(root, 'a1', a)
+            a1 = self.h5file.create_array(root, 'a1', a)
         else:
-            a1 = self.h5file.createEArray(root, 'a1', tb.Int32Col(), a.shape)
+            a1 = self.h5file.create_earray(root, 'a1', tb.Int32Col(), a.shape)
         self.assertTrue(a1 is not None)
-        b1 = self.h5file.createArray(root, 'b1', b)
+        b1 = self.h5file.create_array(root, 'b1', b)
         self.assertTrue(b1 is not None)
-        c1 = self.h5file.createArray(root, 'c1', c)
+        c1 = self.h5file.create_array(root, 'c1', c)
         self.assertTrue(c1 is not None)
         # The expression
         expr = tb.Expr("2*a1+b1-c1")
@@ -690,9 +690,9 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         a = np.array([True, False, True])
         b = np.array([False, True, False])
         root = self.h5file.root
-        a1 = self.h5file.createArray(root, 'a1', a)
+        a1 = self.h5file.create_array(root, 'a1', a)
         self.assertTrue(a1 is not None)
-        b1 = self.h5file.createArray(root, 'b1', b)
+        b1 = self.h5file.create_array(root, 'b1', b)
         self.assertTrue(b1 is not None)
         expr = tb.Expr("a | b")
         r1 = expr.eval()
@@ -714,8 +714,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = np.array([1, 2, 3], dtype)
             b = np.array([3, 4, 5], dtype)
             root = self.h5file.root
-            a1 = self.h5file.createArray(root, 'a1', a)
-            b1 = self.h5file.createArray(root, 'b1', b)
+            a1 = self.h5file.create_array(root, 'a1', a)
+            b1 = self.h5file.create_array(root, 'b1', b)
             two = np.int32(2)
             expr = tb.Expr("two*a1-b1")
             r1 = expr.eval()
@@ -742,8 +742,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = np.array([1, 2, 3], dtype)
             b = np.array([3, 4, 5], dtype)
             root = self.h5file.root
-            a1 = self.h5file.createArray(root, 'a1', a)
-            b1 = self.h5file.createArray(root, 'b1', b)
+            a1 = self.h5file.create_array(root, 'a1', a)
+            b1 = self.h5file.create_array(root, 'b1', b)
             expr = tb.Expr("2*a1-b1")
             r1 = expr.eval()
             a = np.array([1, 2, 3], 'int64')
@@ -769,8 +769,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = np.array([1, 2, 3], dtype)
             b = np.array([3, 4, 5], dtype)
             root = self.h5file.root
-            a1 = self.h5file.createArray(root, 'a1', a)
-            b1 = self.h5file.createArray(root, 'b1', b)
+            a1 = self.h5file.create_array(root, 'a1', a)
+            b1 = self.h5file.create_array(root, 'b1', b)
             expr = tb.Expr("2*a1-b1")
             r1 = expr.eval()
             a = np.array([1, 2, 3], dtype)
@@ -796,8 +796,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = np.array([1, 2j, 3+2j], dtype)
             b = np.array([3, 4j, 5+1j], dtype)
             root = self.h5file.root
-            a1 = self.h5file.createArray(root, 'a1', a)
-            b1 = self.h5file.createArray(root, 'b1', b)
+            a1 = self.h5file.create_array(root, 'a1', a)
+            b1 = self.h5file.create_array(root, 'b1', b)
             expr = tb.Expr("2*a1-b1")
             r1 = expr.eval()
             a = np.array([1, 2j, 3+2j], 'complex128')
@@ -820,9 +820,9 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         a = np.array(['a', 'bd', 'cd'], 'S')
         b = np.array(['a', 'bdcd', 'ccdc'], 'S')
         root = self.h5file.root
-        a1 = self.h5file.createArray(root, 'a1', a)
+        a1 = self.h5file.create_array(root, 'a1', a)
         self.assertTrue(a1 is not None)
-        b1 = self.h5file.createArray(root, 'b1', b)
+        b1 = self.h5file.create_array(root, 'b1', b)
         self.assertTrue(b1 is not None)
         expr = tb.Expr("(a1 > b'a') | ( b1 > b'b')")
         r1 = expr.eval()
@@ -844,9 +844,9 @@ class FunctionsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         a = np.array([.1, .2, .3])
         b = np.array([.3, .4, .5])
         root = self.h5file.root
-        a1 = self.h5file.createArray(root, 'a1', a)
+        a1 = self.h5file.create_array(root, 'a1', a)
         self.assertTrue(a1 is not None)
-        b1 = self.h5file.createArray(root, 'b1', b)
+        b1 = self.h5file.create_array(root, 'b1', b)
         self.assertTrue(b1 is not None)
         # The expression
         expr = tb.Expr("sin(a1) * sqrt(b1)")
@@ -872,9 +872,9 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         c = a.copy()
         root = self.h5file.root
         shape[self.maindim] = 0
-        a1 = self.h5file.createEArray(root, 'a1', tb.Int32Col(), shape)
-        b1 = self.h5file.createEArray(root, 'b1', tb.Int32Col(), shape)
-        c1 = self.h5file.createEArray(root, 'c1', tb.Int32Col(), shape)
+        a1 = self.h5file.create_earray(root, 'a1', tb.Int32Col(), shape)
+        b1 = self.h5file.create_earray(root, 'b1', tb.Int32Col(), shape)
+        c1 = self.h5file.create_earray(root, 'c1', tb.Int32Col(), shape)
         a1.append(a)
         b1.append(b)
         c1.append(c)
@@ -899,17 +899,17 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         c = a.copy()
         root = self.h5file.root
         shape[self.maindim] = 0
-        a1 = self.h5file.createEArray(root, 'a1', tb.Int32Col(), shape)
-        b1 = self.h5file.createEArray(root, 'b1', tb.Int32Col(), shape)
-        c1 = self.h5file.createEArray(root, 'c1', tb.Int32Col(), shape)
-        r1 = self.h5file.createEArray(root, 'r1', tb.Int32Col(), shape)
+        a1 = self.h5file.create_earray(root, 'a1', tb.Int32Col(), shape)
+        b1 = self.h5file.create_earray(root, 'b1', tb.Int32Col(), shape)
+        c1 = self.h5file.create_earray(root, 'c1', tb.Int32Col(), shape)
+        r1 = self.h5file.create_earray(root, 'r1', tb.Int32Col(), shape)
         a1.append(a)
         b1.append(b)
         c1.append(c)
         r1.append(c)
         # The expression
         expr = tb.Expr("2*a1+b1-c1")
-        expr.setOutput(r1)
+        expr.set_output(r1)
         expr.eval()
         r2 = eval("2*a+b-c")
         if common.verbose:
@@ -931,12 +931,12 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         shape2 = shape[:]
         shape[self.maindim] = 0
         shape2[0] = 0
-        a1 = self.h5file.createEArray(root, 'a1', tb.Int32Col(), shape)
+        a1 = self.h5file.create_earray(root, 'a1', tb.Int32Col(), shape)
         self.assertTrue(a1.maindim, self.maindim)
-        b1 = self.h5file.createEArray(root, 'b1', tb.Int32Col(), shape2)
+        b1 = self.h5file.create_earray(root, 'b1', tb.Int32Col(), shape2)
         self.assertEqual(b1.maindim, 0)
-        c1 = self.h5file.createEArray(root, 'c1', tb.Int32Col(), shape)
-        r1 = self.h5file.createEArray(root, 'r1', tb.Int32Col(), shape)
+        c1 = self.h5file.create_earray(root, 'c1', tb.Int32Col(), shape)
+        r1 = self.h5file.create_earray(root, 'r1', tb.Int32Col(), shape)
         a1.append(a)
         b1.append(b)
         c1.append(c)
@@ -964,11 +964,11 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         shape2 = shape[:]
         shape[self.maindim] = 0
         shape2[0] = 0
-        a1 = self.h5file.createEArray(root, 'a1', tb.Int32Col(), shape)
+        a1 = self.h5file.create_earray(root, 'a1', tb.Int32Col(), shape)
         self.assertTrue(a1.maindim, self.maindim)
-        b1 = self.h5file.createEArray(root, 'b1', tb.Int32Col(), shape)
-        c1 = self.h5file.createEArray(root, 'c1', tb.Int32Col(), shape)
-        r1 = self.h5file.createEArray(root, 'r1', tb.Int32Col(), shape2)
+        b1 = self.h5file.create_earray(root, 'b1', tb.Int32Col(), shape)
+        c1 = self.h5file.create_earray(root, 'c1', tb.Int32Col(), shape)
+        r1 = self.h5file.create_earray(root, 'r1', tb.Int32Col(), shape2)
         self.assertEqual(r1.maindim, 0)
         a1.append(a)
         b1.append(b)
@@ -976,7 +976,7 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1.append(c)
         # The expression
         expr = tb.Expr("2*a1+b1-c1")
-        expr.setOutput(r1)
+        expr.set_output(r1)
         expr.eval()
         r2 = eval("2*a+b-c")
         if common.verbose:
@@ -998,11 +998,11 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         shape2 = shape[:]
         shape[self.maindim] = 0
         shape2[0] = 0
-        a1 = self.h5file.createEArray(root, 'a1', tb.Int32Col(), shape)
+        a1 = self.h5file.create_earray(root, 'a1', tb.Int32Col(), shape)
         self.assertTrue(a1.maindim, self.maindim)
-        b1 = self.h5file.createEArray(root, 'b1', tb.Int32Col(), shape)
-        c1 = self.h5file.createEArray(root, 'c1', tb.Int32Col(), shape)
-        r1 = self.h5file.createEArray(root, 'r1', tb.Int32Col(), shape2)
+        b1 = self.h5file.create_earray(root, 'b1', tb.Int32Col(), shape)
+        c1 = self.h5file.create_earray(root, 'c1', tb.Int32Col(), shape)
+        r1 = self.h5file.create_earray(root, 'r1', tb.Int32Col(), shape2)
         self.assertEqual(r1.maindim, 0)
         a1.append(a)
         a1.append(a)
@@ -1013,7 +1013,7 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1.append(c)   # just once so that output is smaller
         # The expression
         expr = tb.Expr("2*a1+b1-c1")
-        expr.setOutput(r1)
+        expr.set_output(r1)
         # This should raise an error
         self.assertRaises(ValueError, expr.eval)
 
@@ -1035,11 +1035,11 @@ class Maindim3(MaindimTestCase):
     shape = (2, 3, 4)
 
 
-# Test `append` mode flag in `setOutput()`
+# Test `append` mode flag in `set_output()`
 class AppendModeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test01_append(self):
-        """Checking append mode in `setOutput()`"""
+        """Checking append mode in `set_output()`"""
 
         shape = [3, 2]
         # Build input arrays
@@ -1048,10 +1048,10 @@ class AppendModeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         c = a.copy()
         shape[1] = 0
         root = self.h5file.root
-        a1 = self.h5file.createEArray(root, 'a1', tb.Int32Col(), shape)
-        b1 = self.h5file.createEArray(root, 'b1', tb.Int32Col(), shape)
-        c1 = self.h5file.createEArray(root, 'c1', tb.Int32Col(), shape)
-        r1 = self.h5file.createEArray(root, 'r1', tb.Int32Col(), shape)
+        a1 = self.h5file.create_earray(root, 'a1', tb.Int32Col(), shape)
+        b1 = self.h5file.create_earray(root, 'b1', tb.Int32Col(), shape)
+        c1 = self.h5file.create_earray(root, 'c1', tb.Int32Col(), shape)
+        r1 = self.h5file.create_earray(root, 'r1', tb.Int32Col(), shape)
         a1.append(a)
         b1.append(b)
         c1.append(c)
@@ -1059,7 +1059,7 @@ class AppendModeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             r1.append(c)
         # The expression
         expr = tb.Expr("2*a1+b1-c1")
-        expr.setOutput(r1, append_mode=self.append)
+        expr.set_output(r1, append_mode=self.append)
         expr.eval()
         r2 = eval("2*a+b-c")
         if common.verbose:
@@ -1090,9 +1090,9 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.npvars = {'a': a, 'b': b, 'c': c}
         shape[self.maindim] = 0
         root = self.h5file.root
-        a1 = self.h5file.createEArray(root, 'a1', tb.Int32Col(), shape)
-        b1 = self.h5file.createEArray(root, 'b1', tb.Int32Col(), shape)
-        c1 = self.h5file.createEArray(root, 'c1', tb.Int32Col(), shape)
+        a1 = self.h5file.create_earray(root, 'a1', tb.Int32Col(), shape)
+        b1 = self.h5file.create_earray(root, 'b1', tb.Int32Col(), shape)
+        c1 = self.h5file.create_earray(root, 'c1', tb.Int32Col(), shape)
         a1.append(a)
         b1.append(b)
         c1.append(c)
@@ -1118,7 +1118,7 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         start, stop, step = self.range_[0], None, None
         expr = tb.Expr(self.sexpr, self.vars)
-        expr.setInputsRange(start, stop, step)
+        expr.set_inputs_range(start, stop, step)
         r1 = np.array([row for row in expr])
         npvars = get_sliced_vars2(
             self.npvars, start, stop, step, self.shape, self.maindim)
@@ -1135,7 +1135,7 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         start, stop, step = self.range_[0], self.range_[2], None
         expr = tb.Expr(self.sexpr, self.vars)
-        expr.setInputsRange(start, stop, step)
+        expr.set_inputs_range(start, stop, step)
         r1 = np.array([row for row in expr])
         npvars = get_sliced_vars2(
             self.npvars, start, stop, step, self.shape, self.maindim)
@@ -1152,7 +1152,7 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         start, stop, step = self.range_
         expr = tb.Expr(self.sexpr, self.vars)
-        expr.setInputsRange(start, stop, step)
+        expr.set_inputs_range(start, stop, step)
         r1 = np.array([row for row in expr])
         npvars = get_sliced_vars2(
             self.npvars, start, stop, step, self.shape, self.maindim)
@@ -1195,7 +1195,7 @@ class iter5(iterTestCase):
     range_ = (0, 4, 2)
 
 
-# Test for setOutputRange
+# Test for set_output_range
 class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_simple(self):
@@ -1208,15 +1208,15 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         b = a.copy()
         r = a.copy()
         root = self.h5file.root
-        a1 = self.h5file.createArray(root, 'a1', a)
+        a1 = self.h5file.create_array(root, 'a1', a)
         self.assertTrue(a1 is not None)
-        b1 = self.h5file.createArray(root, 'b1', b)
+        b1 = self.h5file.create_array(root, 'b1', b)
         self.assertTrue(b1 is not None)
-        r1 = self.h5file.createArray(root, 'r1', r)
+        r1 = self.h5file.create_array(root, 'r1', r)
         # The expression
         expr = tb.Expr("a1-b1-1")
-        expr.setOutput(r1)
-        expr.setOutputRange(start, stop, step)
+        expr.set_output(r1)
+        expr.set_output_range(start, stop, step)
         expr.eval()
         r2 = eval("a-b-1")
         r[start:stop:step] = r2[:len(xrange(start, stop, step))]
@@ -1238,16 +1238,16 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r = a.copy()
         shape[self.maindim] = 0
         root = self.h5file.root
-        a1 = self.h5file.createEArray(root, 'a1', tb.Int32Col(), shape)
-        b1 = self.h5file.createEArray(root, 'b1', tb.Int32Col(), shape)
-        r1 = self.h5file.createEArray(root, 'r1', tb.Int32Col(), shape)
+        a1 = self.h5file.create_earray(root, 'a1', tb.Int32Col(), shape)
+        b1 = self.h5file.create_earray(root, 'b1', tb.Int32Col(), shape)
+        r1 = self.h5file.create_earray(root, 'r1', tb.Int32Col(), shape)
         a1.append(a)
         b1.append(b)
         r1.append(r)
         # The expression
         expr = tb.Expr("a1-b1-1")
-        expr.setOutput(r1)
-        expr.setOutputRange(start, stop, step)
+        expr.set_output(r1)
+        expr.set_output_range(start, stop, step)
         expr.eval()
         r2 = eval("a-b-1")
         lsl = tuple([slice(None)] * self.maindim)
@@ -1321,25 +1321,25 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         shape = self.shape
         # Use filters so as to not use too much space
-        if tb.whichLibVersion("blosc") is not None:
+        if tb.which_lib_version("blosc") is not None:
             filters = tb.Filters(complevel=1, complib='blosc', shuffle=False)
-        elif tb.whichLibVersion("lzo") is not None:
+        elif tb.which_lib_version("lzo") is not None:
             filters = tb.Filters(complevel=1, complib='lzo', shuffle=False)
         else:
             filters = tb.Filters(complevel=1, shuffle=False)
         # Build input arrays
         root = self.h5file.root
-        a = self.h5file.createCArray(root, 'a', tb.Float64Atom(dflt=3),
+        a = self.h5file.create_carray(root, 'a', tb.Float64Atom(dflt=3),
                                      shape, filters=filters)
         self.assertTrue(a is not None)
-        b = self.h5file.createCArray(root, 'b', tb.Float64Atom(dflt=2),
+        b = self.h5file.create_carray(root, 'b', tb.Float64Atom(dflt=2),
                                      shape, filters=filters)
         self.assertTrue(b is not None)
-        r1 = self.h5file.createCArray(root, 'r1', tb.Float64Atom(dflt=3),
+        r1 = self.h5file.create_carray(root, 'r1', tb.Float64Atom(dflt=3),
                                       shape, filters=filters)
         # The expression
         expr = tb.Expr("a*b-6")   # Should give 0
-        expr.setOutput(r1)
+        expr.set_output(r1)
         expr.eval()
         r1 = r1[-10:]  # Get the last ten rows
         r2 = np.zeros(10, dtype='float64')
@@ -1361,19 +1361,19 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print "Skipping this *very* long test"
             return
         # Use filters so as to not use too much space
-        if tb.whichLibVersion("lzo") is not None:
+        if tb.which_lib_version("lzo") is not None:
             filters = tb.Filters(complevel=1, complib='lzo', shuffle=False)
         else:
             filters = tb.Filters(complevel=1, shuffle=False)
         # Build input arrays
         root = self.h5file.root
-        a = self.h5file.createCArray(root, 'a', tb.Int32Atom(dflt=1),
+        a = self.h5file.create_carray(root, 'a', tb.Int32Atom(dflt=1),
                                      shape, filters=filters)
         self.assertTrue(a is not None)
-        b = self.h5file.createCArray(root, 'b', tb.Int32Atom(dflt=2),
+        b = self.h5file.create_carray(root, 'b', tb.Int32Atom(dflt=2),
                                      shape, filters=filters)
         self.assertTrue(b is not None)
-        r1 = self.h5file.createCArray(root, 'r1', tb.Int32Atom(dflt=3),
+        r1 = self.h5file.create_carray(root, 'r1', tb.Int32Atom(dflt=3),
                                       shape, filters=filters)
         # The expression
         expr = tb.Expr("a-b+1")
@@ -1468,3 +1468,9 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

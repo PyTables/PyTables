@@ -355,7 +355,7 @@ class TempFileMixin:
         """
 
         self.h5fname = tempfile.mktemp(suffix='.h5')
-        self.h5file = tables.openFile(
+        self.h5file = tables.open_file(
             self.h5fname, 'w', title=self._getName())
 
 
@@ -375,7 +375,7 @@ class TempFileMixin:
         """
 
         self.h5file.close()
-        self.h5file = tables.openFile(self.h5fname, mode)
+        self.h5file = tables.open_file(self.h5fname, mode)
         return True
 
 
@@ -415,3 +415,9 @@ class ShowMemTime(PyTablesTestCase):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

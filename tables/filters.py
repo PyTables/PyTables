@@ -17,7 +17,7 @@
 import warnings
 import numpy
 
-from tables import utilsExtension
+from tables import utilsextension
 from tables.exceptions import FiltersWarning
 
 
@@ -87,10 +87,10 @@ class Filters(object):
         import numpy
         from tables import *
 
-        fileh = openFile('test5.h5', mode='w')
+        fileh = open_file('test5.h5', mode='w')
         atom = Float32Atom()
         filters = Filters(complevel=1, complib='blosc', fletcher32=True)
-        arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2),
+        arr = fileh.create_earray(fileh.root, 'earray', atom, (0,2),
                                  "A growable array", filters=filters)
 
         # Append several rows in only one call
@@ -141,7 +141,7 @@ class Filters(object):
     def _from_leaf(class_, leaf):
         # Get a dictionary with all the filters
         parent = leaf._v_parent
-        filtersDict = utilsExtension.getFilters( parent._v_objectID,
+        filtersDict = utilsextension.get_filters( parent._v_objectid,
                                                  leaf._v_name )
         if filtersDict is None:
             filtersDict = {}  # not chunked
@@ -235,7 +235,7 @@ class Filters(object):
                     "compression library ``%s`` is not supported; "
                     "it must be one of: %s"
                     % (complib, ", ".join(all_complibs)) )
-            if utilsExtension.whichLibVersion(complib) is None:
+            if utilsextension.which_lib_version(complib) is None:
                 warnings.warn( "compression library ``%s`` is not available; "
                                "using ``%s`` instead"
                                % (complib, default_complib), FiltersWarning )
@@ -339,3 +339,9 @@ def _test():
 
 if __name__ == '__main__':
     _test()
+
+
+
+
+
+

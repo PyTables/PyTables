@@ -15,9 +15,9 @@
 
 Variables:
 
-`classNameDict`
+`class_name_dict`
     Node class name to class object mapping.
-`classIdDict`
+`class_id_dict`
     Class identifier to class object mapping.
 
 Misc variables:
@@ -26,6 +26,8 @@ Misc variables:
     The format of documentation strings in this module.
 """
 
+from tables._past import previous_api
+
 # Important: no modules from PyTables should be imported here
 # (but standard modules are OK), since the main reason for this module
 # is avoiding circular imports!
@@ -33,7 +35,7 @@ Misc variables:
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
-classNameDict = {}
+class_name_dict = {}
 """Node class name to class object mapping.
 
 This dictionary maps class names (e.g. ``'Group'``) to actual class
@@ -42,17 +44,17 @@ defined, and they are not expected to be unregistered (by now), but they
 can be replaced when the module that defines them is reloaded.
 """
 
-classIdDict = {}
+class_id_dict = {}
 """Class identifier to class object mapping.
 
 This dictionary maps class identifiers (e.g. ``'GROUP'``) to actual
-class objects (e.g. `Group`).  Classes defining a new ``_c_classId``
+class objects (e.g. `Group`).  Classes defining a new ``_c_classid``
 attribute are registered here when they are defined, and they are not
 expected to be unregistered (by now), but they can be replaced when the
 module that defines them is reloaded.
 """
 
-def getClassByName(className):
+def get_class_by_name(className):
     """Get the node class matching the `className`.
 
     If the name is not registered, a ``TypeError`` is raised.  The empty
@@ -65,12 +67,13 @@ def getClassByName(className):
         className = 'Node'
 
     # Get the class object corresponding to `classname`.
-    if className not in classNameDict:
+    if className not in class_name_dict:
         raise TypeError( "there is no registered node class named ``%s``"
                          % (className,) )
 
-    return classNameDict[className]
+    return class_name_dict[className]
 
+getClassByName = previous_api(get_class_by_name)
 
 ## Local Variables:
 ## mode: python
@@ -78,3 +81,9 @@ def getClassByName(className):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

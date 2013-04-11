@@ -67,7 +67,7 @@ import_array()
 cdef class NodeCache:
   """Least-Recently-Used (LRU) cache for PyTables nodes."""
 
-  # This class variables are declared in utilsExtension.pxd
+  # This class variables are declared in utilsextension.pxd
 
 
   def __init__(self, nslots):
@@ -655,3 +655,9 @@ cdef class NumCache(BaseCache):
 ## tab-width: 2
 ## fill-column: 78
 ## End:
+
+
+
+
+
+

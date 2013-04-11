@@ -26,10 +26,10 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
 
         # Create an instance of an HDF5 Table
         warnings.filterwarnings("ignore", category=UserWarning)
-        self.fileh = openFile(self._testFilename(self.file), "r")
+        self.fileh = open_file(self._testFilename(self.file), "r")
         warnings.filterwarnings("default", category=UserWarning)
 
-        table = self.fileh.getNode("/tuple0")
+        table = self.fileh.get_node("/tuple0")
 
         # Read the 100 records
         result = [ rec['var2'] for rec in table]
@@ -70,8 +70,8 @@ class BackCompatAttrsTestCase(common.PyTablesTestCase):
 
         # Read old formats
         filename = self._testFilename(self.file)
-        self.fileh = openFile(filename % self.format, "r")
-        a = self.fileh.getNode("/a")
+        self.fileh = open_file(filename % self.format, "r")
+        a = self.fileh.get_node("/a")
         scalar = numpy.array(1, dtype="int32")
         vector = numpy.array([1], dtype="int32")
         if self.format == "1.3":
@@ -98,7 +98,7 @@ class VLArrayTestCase(common.PyTablesTestCase):
 
         # Open a PYTABLES_FORMAT_VERSION=1.6 file
         filename = self._testFilename("flavored_vlarrays-format1.6.h5")
-        fileh = openFile(filename, "r")
+        fileh = open_file(filename, "r")
         # Check that we can read the contents without problems (nor warnings!)
         vlarray1 = fileh.root.vlarray1
         self.assertEqual(vlarray1.flavor, "numeric")
@@ -116,7 +116,7 @@ class TimeTestCase(common.PyTablesTestCase):
     def setUp(self):
         # Open a PYTABLES_FORMAT_VERSION=1.x file
         filename = self._testFilename("time-table-vlarray-1_x.h5")
-        self.fileh = openFile(filename, "r")
+        self.fileh = open_file(filename, "r")
 
     def tearDown(self):
         self.fileh.close()
@@ -145,7 +145,7 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
-    lzo_avail = whichLibVersion("lzo") is not None
+    lzo_avail = which_lib_version("lzo") is not None
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(VLArrayTestCase))
         theSuite.addTest(unittest.makeSuite(TimeTestCase))
@@ -161,3 +161,9 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main( defaultTest='suite' )
+
+
+
+
+
+

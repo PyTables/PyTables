@@ -27,6 +27,8 @@ concrete values out of its enumerated type.  For that kind of use,
 standard variables and constants are more adequate.
 """
 
+from tables._past import previous_api
+
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
@@ -120,20 +122,20 @@ class Enum(object):
 
         if isinstance(enum, list) or isinstance(enum, tuple):
             for (value, name) in enumerate(enum):  # values become 0, 1, 2...
-                self._checkAndSetPair(name, value)
+                self._check_and_set_pair(name, value)
         elif isinstance(enum, dict):
             for (name, value) in enum.iteritems():
-                self._checkAndSetPair(name, value)
+                self._check_and_set_pair(name, value)
         elif isinstance(enum, Enum):
             for (name, value) in enum._names.iteritems():
-                self._checkAndSetPair(name, value)
+                self._check_and_set_pair(name, value)
         else:
             raise TypeError("""\
 enumerations can only be created from \
 sequences, mappings and other enumerations""")
 
 
-    def _checkAndSetPair(self, name, value):
+    def _check_and_set_pair(self, name, value):
         """Check validity of enumerated value and insert it into type."""
 
         names = self._names
@@ -159,6 +161,8 @@ sequences, mappings and other enumerations""")
         names[name] = value
         values[value] = name
         self.__dict__[name] = value
+
+    _checkAndSetPair = previous_api(_check_and_set_pair)
 
 
     def __getitem__(self, name):
@@ -471,3 +475,9 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

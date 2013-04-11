@@ -20,12 +20,12 @@ import sys
 import os.path
 import getopt
 
-from tables.file import openFile
+from tables.file import open_file
 from tables.group import Group
 from tables.leaf import Leaf
 from tables.table import Table, Column
 from tables.unimplemented import UnImplemented
-
+from tables._past import previous_api
 
 # default options
 class Options(object):
@@ -39,7 +39,7 @@ class Options(object):
 options = Options()
 
 
-def dumpLeaf(leaf):
+def dump_leaf(leaf):
     if options.verbose:
         print repr(leaf)
     else:
@@ -82,20 +82,24 @@ def dumpLeaf(leaf):
                 idx = col.index
                 print repr(idx)
 
+dumpLeaf = previous_api(dump_leaf)
 
-def dumpGroup(pgroup):
+
+def dump_group(pgroup):
     node_kinds = pgroup._v_file._node_kinds[1:]
-    for group in pgroup._f_walkGroups():
+    for group in pgroup._f_walk_groups():
         print str(group)
         if options.showattrs:
             print "  "+repr(group._v_attrs)
         for kind in node_kinds:
-            for node in group._f_listNodes(kind):
+            for node in group._f_list_nodes(kind):
                 if options.verbose or options.dump:
-                    dumpLeaf(node)
+                    dump_leaf(node)
                 else:
                     print str(node)
 
+
+dumpGroup = previous_api(dump_group)
 
 
 def main():
@@ -164,17 +168,23 @@ def main():
             nodename = "/"
 
     # Check whether the specified node is a group or a leaf
-    h5file = openFile(filename, 'r')
-    nodeobject = h5file.getNode(nodename)
+    h5file = open_file(filename, 'r')
+    nodeobject = h5file.get_node(nodename)
     if isinstance(nodeobject, Group):
-        # Close the file again and reopen using the rootUEP
-        dumpGroup(nodeobject)
+        # Close the file again and reopen using the root_uep
+        dump_group(nodeobject)
     elif isinstance(nodeobject, Leaf):
         # If it is not a Group, it must be a Leaf
-        dumpLeaf(nodeobject)
+        dump_leaf(nodeobject)
     else:
         # This should never happen
         print "Unrecognized object:", nodeobject
 
     # Close the file
     h5file.close()
+
+
+
+
+
+

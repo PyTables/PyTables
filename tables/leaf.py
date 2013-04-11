@@ -23,8 +23,8 @@ from tables.node import Node
 from tables.filters import Filters
 from tables.utils import byteorders, lazyattr, SizeType
 from tables.exceptions import PerformanceWarning
-from tables import utilsExtension
-
+from tables import utilsextension
+from tables._past import previous_api
 
 def csformula(expectedsizeinMB):
     """Return the fitted chunksize for expectedsizeinMB."""
@@ -151,9 +151,9 @@ class Leaf(Node):
         """ )
 
     objectID = property(
-        lambda self: self._v_objectID, None, None,
+        lambda self: self._v_objectid, None, None,
         """A node identifier, which may change from run to run.
-        (This is an easier-to-write alias of :attr:`Node._v_objectID`)""")
+        (This is an easier-to-write alias of :attr:`Node._v_objectid`)""")
 
     ndim = property(
         lambda self: len(self.shape), None, None,
@@ -191,7 +191,7 @@ class Leaf(Node):
         """ )
 
     def _setflavor(self, flavor):
-        self._v_file._checkWritable()
+        self._v_file._check_writable()
         check_flavor(flavor)
         self._v_attrs.FLAVOR = self._flavor = flavor  # logs the change
 
@@ -289,13 +289,13 @@ class Leaf(Node):
 
     # Private methods
     # ~~~~~~~~~~~~~~~
-    def _g_postInitHook(self):
+    def _g_post_init_hook(self):
         """Code to be run after node creation and before creation logging.
 
         This method gets or sets the flavor of the leaf.
         """
 
-        super(Leaf, self)._g_postInitHook()
+        super(Leaf, self)._g_post_init_hook()
         if self._v_new:  # set flavor of new node
             if self._flavor is None:
                 self._flavor = internal_flavor
@@ -308,6 +308,8 @@ class Leaf(Node):
                 self._flavor = flavor_alias_map.get(flavor, flavor)
             else:
                 self._flavor = internal_flavor
+
+    _g_postInitHook = previous_api(_g_post_init_hook)
 
 
     def _calc_chunkshape(self, expectedrows, rowsize, itemsize):
@@ -378,7 +380,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
 
     # This method is appropriate for calls to __getitem__ methods
-    def _processRange(self, start, stop, step, dim=None, warn_negstep=True):
+    def _process_range(self, start, stop, step, dim=None, warn_negstep=True):
         if dim is None:
             nrows = self.nrows  # self.shape[self.maindim]
         else:
@@ -390,14 +392,16 @@ very small/large chunksize, you may want to increase/decrease it."""
         # The next function is a substitute for slice().indices in order to
         # support full 64-bit integer for slices even in 32-bit machines.
         # F. Alted 2005-05-08
-        (start, stop, step) = utilsExtension.getIndices(
+        (start, stop, step) = utilsextension.get_indices(
             start, stop, step, long(nrows) )
 
         return (start, stop, step)
 
+    _processRange = previous_api(_process_range)
+
 
     # This method is appropiate for calls to read() methods
-    def _processRangeRead(self, start, stop, step, warn_negstep=True):
+    def _process_range_read(self, start, stop, step, warn_negstep=True):
         nrows = self.nrows
         if start is None and stop is None:
             start = 0
@@ -414,10 +418,12 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:
                 stop = start + 1
         # Finally, get the correct values (over the main dimension)
-        start, stop, step = self._processRange(
+        start, stop, step = self._process_range(
             start, stop, step, warn_negstep=warn_negstep)
 
         return (start, stop, step)
+
+    _processRangeRead = previous_api(_process_range_read)
 
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
@@ -441,24 +447,24 @@ very small/large chunksize, you may want to increase/decrease it."""
         if filters is None:  filters = self.filters
 
         # Create a copy of the object.
-        (newNode, bytes) = self._g_copyWithStats(
+        (new_node, bytes) = self._g_copy_with_stats(
             newParent, newName, start, stop, step,
             title, filters, chunkshape, _log, **kwargs)
 
         # Copy user attributes if requested (or the flavor at least).
         if copyuserattrs == True:
-            self._v_attrs._g_copy(newNode._v_attrs, copyClass=True)
+            self._v_attrs._g_copy(new_node._v_attrs, copyClass=True)
         elif 'FLAVOR' in self._v_attrs:
             if self._v_file.params['PYTABLES_SYS_ATTRS']:
-                newNode._v_attrs._g__setattr('FLAVOR', self._flavor)
-        newNode._flavor = self._flavor  # update cached value
+                new_node._v_attrs._g__setattr('FLAVOR', self._flavor)
+        new_node._flavor = self._flavor  # update cached value
 
         # Update statistics if needed.
         if stats is not None:
             stats['leaves'] += 1
             stats['bytes'] += bytes
 
-        return newNode
+        return new_node
 
 
     def _g_fix_byteorder_data(self, data, dbyteorder):
@@ -486,7 +492,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         return data
 
 
-    def _pointSelection(self, key):
+    def _point_selection(self, key):
         """Perform a point-wise selection.
 
         `key` can be any of the following items:
@@ -552,6 +558,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         if not coords.flags.contiguous:
             coords = coords.copy()
         return coords
+
+    _pointSelection = previous_api(_point_selection)
 
 
     # Public methods
@@ -656,42 +664,48 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._g_truncate(size)
 
 
-    def isVisible(self):
+    def isvisible(self):
         """Is this node visible?
 
-        This method has the behavior described in :meth:`Node._f_isVisible()`.
+        This method has the behavior described in :meth:`Node._f_isvisible()`.
         """
 
-        return self._f_isVisible()
+        return self._f_isvisible()
+
+    isVisible = previous_api(isvisible)
 
 
     # Attribute handling
     # ``````````````````
-    def getAttr(self, name):
+    def get_attr(self, name):
         """Get a PyTables attribute from this node.
 
-        This method has the behavior described in :meth:`Node._f_getAttr`.
+        This method has the behavior described in :meth:`Node._f_getattr`.
         """
-        return self._f_getAttr(name)
+        return self._f_getattr(name)
+
+    getAttr = previous_api(get_attr)
 
 
-    def setAttr(self, name, value):
+    def set_attr(self, name, value):
         """Set a PyTables attribute for this node.
 
-        This method has the behavior described in :meth:`Node._f_setAttr()`.
+        This method has the behavior described in :meth:`Node._f_setattr()`.
         """
 
-        self._f_setAttr(name, value)
+        self._f_setattr(name, value)
 
+    setAttr = previous_api(set_attr)
 
-    def delAttr(self, name):
+    def del_attr(self, name):
         """Delete a PyTables attribute from this node.
 
         This method has the behavior described in :meth:`Node_f_delAttr`.
         """
 
-        self._f_delAttr(name)
+        self._f_delattr(name)
 
+    delAttr = previous_api(del_attr)
 
     # Data handling
     # `````````````
@@ -747,3 +761,9 @@ very small/large chunksize, you may want to increase/decrease it."""
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

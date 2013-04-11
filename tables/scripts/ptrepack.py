@@ -22,10 +22,11 @@ import time
 import getopt
 import warnings
 
-from tables.file import openFile
+from tables.file import open_file
 from tables.group import Group
 from tables.leaf import Filters
 from tables.exceptions import  OldIndexWarning, NoSuchNodeError, FlavorWarning
+from tables._past import previous_api
 
 # Global variables
 verbose = False
@@ -33,7 +34,7 @@ regoldindexes = True
 createsysattrs = True
 
 
-def newdstGroup(dstfileh, dstgroup, title, filters):
+def newdst_group(dstfileh, dstgroup, title, filters):
     group = dstfileh.root
     # Now, create the new group. This works even if dstgroup == '/'
     for nodeName in dstgroup.split('/'):
@@ -41,17 +42,19 @@ def newdstGroup(dstfileh, dstgroup, title, filters):
             continue
         # First try if possible intermediate groups does already exist.
         try:
-            group2 = dstfileh.getNode(group, nodeName)
+            group2 = dstfileh.get_node(group, nodeName)
         except NoSuchNodeError:
             # The group does not exist. Create it.
-            group2 = dstfileh.createGroup(group, nodeName,
+            group2 = dstfileh.create_group(group, nodeName,
                                           title=title,
                                           filters=filters)
         group = group2
     return group
 
+newdstGroup = previous_api(newdst_group)
 
-def recreateIndexes(table, dstfileh, dsttable):
+
+def recreate_indexes(table, dstfileh, dsttable):
     listoldindexes = table._listoldindexes
     if listoldindexes != []:
         if not regoldindexes:
@@ -68,17 +71,19 @@ def recreateIndexes(table, dstfileh, dsttable):
                 print "[I]Indexing column: '%s'. Please wait..." % colname
             colobj = dsttable.cols._f_col(colname)
             # We don't specify the filters for the indexes
-            colobj.createIndex(filters = None)
+            colobj.create_index(filters = None)
+
+recreateIndexes = previous_api(recreate_indexes)
 
 
-def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
+def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
              filters, copyuserattrs, overwritefile, overwrtnodes, stats,
              start, stop, step, chunkshape, sortby, checkCSI,
              propindexes, upgradeflavors):
     # Open the source file
-    srcfileh = openFile(srcfile, 'r')
+    srcfileh = open_file(srcfile, 'r')
     # Get the source node (that should exist)
-    srcNode = srcfileh.getNode(srcnode)
+    srcNode = srcfileh.get_node(srcnode)
 
     # Get the destination node and its parent
     last_slash = dstnode.rindex('/')
@@ -94,12 +99,12 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
         dstleaf = srcNode.name
     # Check whether the destination group exists or not
     if os.path.isfile(dstfile) and not overwritefile:
-        dstfileh = openFile(dstfile, 'a', pytables_sys_attrs=createsysattrs)
+        dstfileh = open_file(dstfile, 'a', pytables_sys_attrs=createsysattrs)
         try:
-            dstGroup = dstfileh.getNode(dstgroup)
+            dstGroup = dstfileh.get_node(dstgroup)
         except:
             # The dstgroup does not seem to exist. Try creating it.
-            dstGroup = newdstGroup(dstfileh, dstgroup, title, filters)
+            dstGroup = newdst_group(dstfileh, dstgroup, title, filters)
         else:
             # The node exists, but it is really a group?
             if not isinstance(dstGroup, Group):
@@ -109,7 +114,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
                     last_slash = dstGroup._v_pathname.rindex('/')
                     dstgroupname = dstGroup._v_pathname[last_slash+1:]
                     dstGroup.remove()
-                    dstGroup = dstfileh.createGroup(parent, dstgroupname,
+                    dstGroup = dstfileh.create_group(parent, dstgroupname,
                                                     title=title,
                                                     filters=filters)
                 else:
@@ -119,9 +124,9 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
                                        "flag if desired.")
     else:
         # The destination file does not exist or will be overwritten.
-        dstfileh = openFile(dstfile, 'w', title=title, filters=filters,
+        dstfileh = open_file(dstfile, 'w', title=title, filters=filters,
                             pytables_sys_attrs=createsysattrs)
-        dstGroup = newdstGroup(dstfileh, dstgroup, title="", filters=filters)
+        dstGroup = newdst_group(dstfileh, dstgroup, title="", filters=filters)
 
     # Finally, copy srcNode to dstNode
     try:
@@ -147,37 +152,39 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
     # Upgrade flavors in dstNode, if required
     if upgradeflavors and srcfileh.format_version.startswith("1"):
         # Remove original flavor in case the source file has 1.x format
-        dstNode.delAttr('FLAVOR')
+        dstNode.del_attr('FLAVOR')
 
     # Recreate possible old indexes in destination node
-    if srcNode._c_classId == "TABLE":
-        recreateIndexes(srcNode, dstfileh, dstNode)
+    if srcNode._c_classid == "TABLE":
+        recreate_indexes(srcNode, dstfileh, dstNode)
 
     # Close all the open files:
     srcfileh.close()
     dstfileh.close()
 
+copyLeaf = previous_api(copy_leaf)
 
-def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
+
+def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                  recursive, filters, copyuserattrs, overwritefile,
                  overwrtnodes, stats, start, stop, step,
                  chunkshape, sortby, checkCSI, propindexes,
                  upgradeflavors):
     "Copy the children from source group to destination group"
-    # Open the source file with srcgroup as rootUEP
-    srcfileh = openFile(srcfile, 'r', rootUEP=srcgroup)
+    # Open the source file with srcgroup as root_uep
+    srcfileh = open_file(srcfile, 'r', root_uep=srcgroup)
     #  Assign the root to srcGroup
     srcGroup = srcfileh.root
 
     created_dstGroup = False
     # Check whether the destination group exists or not
     if os.path.isfile(dstfile) and not overwritefile:
-        dstfileh = openFile(dstfile, 'a', pytables_sys_attrs=createsysattrs)
+        dstfileh = open_file(dstfile, 'a', pytables_sys_attrs=createsysattrs)
         try:
-            dstGroup = dstfileh.getNode(dstgroup)
+            dstGroup = dstfileh.get_node(dstgroup)
         except:
             # The dstgroup does not seem to exist. Try creating it.
-            dstGroup = newdstGroup(dstfileh, dstgroup, title, filters)
+            dstGroup = newdst_group(dstfileh, dstgroup, title, filters)
             created_dstGroup = True
         else:
             # The node exists, but it is really a group?
@@ -188,7 +195,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                     last_slash = dstGroup._v_pathname.rindex('/')
                     dstgroupname = dstGroup._v_pathname[last_slash+1:]
                     dstGroup.remove()
-                    dstGroup = dstfileh.createGroup(parent, dstgroupname,
+                    dstGroup = dstfileh.create_group(parent, dstgroupname,
                                                     title=title,
                                                     filters=filters)
                 else:
@@ -198,9 +205,9 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                                        "flag if desired.")
     else:
         # The destination file does not exist or will be overwritten.
-        dstfileh = openFile(dstfile, 'w', title=title, filters=filters,
+        dstfileh = open_file(dstfile, 'w', title=title, filters=filters,
                             pytables_sys_attrs=createsysattrs)
-        dstGroup = newdstGroup(dstfileh, dstgroup, title="", filters=filters)
+        dstGroup = newdst_group(dstfileh, dstgroup, title="", filters=filters)
         created_dstGroup = True
 
     # Copy the attributes to dstGroup, if needed
@@ -209,7 +216,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
 
     # Finally, copy srcGroup children to dstGroup
     try:
-        srcGroup._f_copyChildren(
+        srcGroup._f_copy_children(
             dstGroup, recursive = recursive, filters = filters,
             copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
@@ -227,23 +234,25 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
         raise RuntimeError("Please check that the node names are not "
                            "duplicated in destination, and if so, add the "
                            "--overwrite-nodes flag if desired. In "
-                           "particular, pay attention that rootUEP is not "
+                           "particular, pay attention that root_uep is not "
                            "fooling you.")
 
     # Upgrade flavors in dstNode, if required
     if upgradeflavors and srcfileh.format_version.startswith("1"):
-        for dstNode in dstGroup._f_walkNodes("Leaf"):
+        for dstNode in dstGroup._f_walknodes("Leaf"):
             # Remove original flavor in case the source file has 1.x format
-            dstNode.delAttr('FLAVOR')
+            dstNode.del_attr('FLAVOR')
 
     # Convert the remaining tables with old indexes (if any)
-    for table in srcGroup._f_walkNodes("Table"):
-        dsttable = dstfileh.getNode(dstGroup, table._v_pathname)
-        recreateIndexes(table, dstfileh, dsttable)
+    for table in srcGroup._f_walknodes("Table"):
+        dsttable = dstfileh.get_node(dstGroup, table._v_pathname)
+        recreate_indexes(table, dstfileh, dsttable)
 
     # Close all the open files:
     srcfileh.close()
     dstfileh.close()
+
+copyChildren = previous_api(copy_children)
 
 
 def main():
@@ -465,14 +474,14 @@ def main():
         print "+=+"*20
 
     # Check whether the specified source node is a group or a leaf
-    h5srcfile = openFile(srcfile, 'r')
-    srcnodeobject = h5srcfile.getNode(srcnode)
+    h5srcfile = open_file(srcfile, 'r')
+    srcnodeobject = h5srcfile.get_node(srcnode)
     # Close the file again
     h5srcfile.close()
 
     stats = {'groups': 0, 'leaves': 0, 'links': 0, 'bytes': 0}
     if isinstance(srcnodeobject, Group):
-        copyChildren(
+        copy_children(
             srcfile, dstfile, srcnode, dstnode,
             title = title, recursive = recursive, filters = filters,
             copyuserattrs = copyuserattrs, overwritefile = overwritefile,
@@ -482,7 +491,7 @@ def main():
             upgradeflavors=upgradeflavors)
     else:
         # If not a Group, it should be a Leaf
-        copyLeaf(
+        copy_leaf(
             srcfile, dstfile, srcnode, dstnode,
             title = title, filters = filters, copyuserattrs = copyuserattrs,
             overwritefile = overwritefile, overwrtnodes = overwrtnodes,
@@ -518,3 +527,9 @@ def main():
               (tcopy, cpucopy, tpercent)
         print "Copied nodes/sec: ", round((nnodes) / float(tcopy), 1)
         print "Copied KB/s :", int(nbytescopied / (tcopy * 1024))
+
+
+
+
+
+

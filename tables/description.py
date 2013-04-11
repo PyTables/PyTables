@@ -21,8 +21,9 @@ import warnings
 import numpy
 
 from tables import atom
-from tables.path import checkNameValidity
+from tables.path import check_name_validity
 
+from tables._past import previous_api
 
 # Public variables
 # ================
@@ -449,7 +450,7 @@ class Description(object):
         for k in keys:
             if validate:
                 # Check for key name validity
-                checkNameValidity(k)
+                check_name_validity(k)
             # Class variables
             object = classdict[k]
             newdict[k] = object    # To allow natural naming
@@ -497,9 +498,9 @@ class Description(object):
         newdict['_v_itemsize'] = newdict['_v_dtype'].itemsize
         if self._v_nestedlvl == 0:
             # Get recursively nested _v_nestedNames and _v_nestedDescr attrs
-            self._g_setNestedNamesDescr()
+            self._g_set_nested_names_descr()
             # Get pathnames for nested groups
-            self._g_setPathNames()
+            self._g_set_path_names()
             # Check the _v_byteorder has been used an issue an Error
             if hasattr(self, "_v_byteorder"):
                 raise ValueError(
@@ -507,7 +508,7 @@ class Description(object):
                     "Use the byteorder parameter in the constructor instead.")
 
 
-    def _g_setNestedNamesDescr(self):
+    def _g_set_nested_names_descr(self):
         """Computes the nested names and descriptions for nested datatypes."""
 
         names = self._v_names
@@ -518,15 +519,17 @@ class Description(object):
             name = names[i]
             new_object = self._v_colObjects[name]
             if isinstance(new_object, Description):
-                new_object._g_setNestedNamesDescr()
+                new_object._g_set_nested_names_descr()
                 # replace the column nested name by a correct tuple
                 self._v_nestedNames[i] = (name, new_object._v_nestedNames)
                 self._v_nestedDescr[i] = (name, new_object._v_nestedDescr)
                 # set the _v_is_nested flag
                 self._v_is_nested = True
 
+    _g_setNestedNamesDescr = previous_api(_g_set_nested_names_descr)
 
-    def _g_setPathNames(self):
+
+    def _g_set_path_names(self):
         """Compute the pathnames for arbitrary nested descriptions.
 
         This method sets the ``_v_pathname`` and ``_v_pathnames``
@@ -534,11 +537,11 @@ class Description(object):
         in this nested description.
         """
 
-        def getColsInOrder(description):
+        def get_cols_in_order(description):
             return [description._v_colObjects[colname]
                     for colname in description._v_names]
 
-        def joinPaths(path1, path2):
+        def join_paths(path1, path2):
             if not path1:
                 return path2
             return '%s/%s' % (path1, path2)
@@ -562,7 +565,7 @@ class Description(object):
         # We start by pushing the top-level description
         # and its child columns.
         self._v_pathname = ''
-        stack.append((self, getColsInOrder(self)))
+        stack.append((self, get_cols_in_order(self)))
 
         while stack:
             desc, cols = stack.pop()
@@ -573,13 +576,13 @@ class Description(object):
                 # A nested description.  We remove it from the list and
                 # push it with its child columns.  This will be the next
                 # handled description.
-                head._v_pathname = joinPaths(desc._v_pathname, head._v_name)
+                head._v_pathname = join_paths(desc._v_pathname, head._v_name)
                 stack.append((desc, cols[1:]))  # alter the top
-                stack.append((head, getColsInOrder(head)))  # new top
+                stack.append((head, get_cols_in_order(head)))  # new top
             elif isinstance(head, Col):
                 # A non-nested column.  We simply remove it from the
                 # list and append its name to it.
-                head._v_pathname = joinPaths(desc._v_pathname, head._v_name)
+                head._v_pathname = join_paths(desc._v_pathname, head._v_name)
                 cols.append(head._v_name)  # alter the top
                 stack.append((desc, cols[1:]))  # alter the top
             else:
@@ -595,11 +598,13 @@ class Description(object):
                     # (including the path of the current description)
                     # and append them to its list.
                     descName = desc._v_name
-                    colPaths = [joinPaths(descName, path) for path in cols]
+                    colPaths = [join_paths(descName, path) for path in cols]
                     colPaths.insert(0, descName)
                     parentCols = stack[-1][1]
                     parentCols.extend(colPaths)
                 # (Nothing is pushed, we are done with this description.)
+
+    _g_setPathNames = previous_api(_g_set_path_names)
 
 
     def _f_walk(self, type='All'):
@@ -646,7 +651,7 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
         return 'Description(%s)' % self._v_nestedDescr
 
 
-class metaIsDescription(type):
+class MetaIsDescription(type):
     """Helper metaclass to return the class variables as a dictionary"""
 
     def __new__(cls, classname, bases, classdict):
@@ -667,6 +672,7 @@ class metaIsDescription(type):
         # Return a new class with the "columns" attribute filled
         return type.__new__(cls, classname, bases, newdict)
 
+metaIsDescription = previous_api(MetaIsDescription)
 
 class IsDescription(object):
     """Description of the structure of a table or nested column.
@@ -712,7 +718,7 @@ class IsDescription(object):
 
     """
 
-    __metaclass__ = metaIsDescription
+    __metaclass__ = MetaIsDescription
 
 
 def descr_from_dtype(dtype_):
@@ -881,3 +887,9 @@ if __name__=="__main__":
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+

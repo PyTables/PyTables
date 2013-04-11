@@ -69,7 +69,7 @@ SORTEDLR_MAX_SLOTS = 1 * _KB
 # --------------------------------------
 #
 # The next parameters will not be effective if passed to the
-# `openFile()` function (so, they can only be changed in a *global*
+# `open_file()` function (so, they can only be changed in a *global*
 # way).  You can change them in the file, but this is strongly
 # discouraged unless you know well what you are doing.
 
@@ -377,11 +377,11 @@ terminated in memory.
 
 The application is allowed to open an existing file with H5FD_CORE
 driver. In that case, if the DRIVER_CORE_BACKING_STORE is set to 1 and
-the flags for :func:`tables.openFile` is set to H5F_ACC_RDWR, any change
+the flags for :func:`tables.open_file` is set to H5F_ACC_RDWR, any change
 to the file contents are saved to the file when the file is closed.
-If backing_store is set to 0 and the flags for :func:`tables.openFile`
+If backing_store is set to 0 and the flags for :func:`tables.open_file`
 is set to H5F_ACC_RDWR, any change to the file contents will be lost
-when the file is closed. If the flags for :func:`tables.openFile` is
+when the file is closed. If the flags for :func:`tables.open_file` is
 set to H5F_ACC_RDONLY, no change to the file is allowed either in
 memory or on file.
 
@@ -392,7 +392,7 @@ memory or on file.
 DRIVER_CORE_IMAGE = None
 """String containing an HDF5 file image.
 
-If this oprion is passed to the :func:`tables.openFile` function then the
+If this oprion is passed to the :func:`tables.open_file` function then the
 returned file object is set up using the specified image.
 
 A file image can be retrieved from an existing (and opened) file object
@@ -411,3 +411,9 @@ using the :meth:`tables.File.get_file_image` method.
 ## tab-width: 4
 ## fill-column: 72
 ## End:
+
+
+
+
+
+
