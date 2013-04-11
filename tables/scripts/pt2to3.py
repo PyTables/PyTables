@@ -21,8 +21,8 @@ import argparse
 
 from tables._past import old2newnames, new2oldnames
 
-# Note that it is tempting to use the ast module here, but then this 
-# breaks transforming cython files.  So instead we are going to do the 
+# Note that it is tempting to use the ast module here, but then this
+# breaks transforming cython files.  So instead we are going to do the
 # dumb thing with replace.
 
 def make_subs(ns):
@@ -42,13 +42,13 @@ def main():
             'common to pipe this to another file:\n\n'
             '$ pt2to3 oldfile.py > newfile.py')
     parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument('-r', '--reverse', action='store_true', default=False, 
+    parser.add_argument('-r', '--reverse', action='store_true', default=False,
                         dest='reverse', help="reverts changes, going from 3.x -> 2.x.")
-    parser.add_argument('-p', '--no-ignore-previous', action='store_false', 
+    parser.add_argument('-p', '--no-ignore-previous', action='store_false',
                 default=True, dest='ignore_previous', help="ingores previous_api() calls.")
-    parser.add_argument('-o', default=None, dest='output', 
+    parser.add_argument('-o', default=None, dest='output',
                         help="output file to write to.")
-    parser.add_argument('-i', '--inplace', action='store_true', default=False, 
+    parser.add_argument('-i', '--inplace', action='store_true', default=False,
                         dest='inplace', help="overwrites the file in-place.")
     parser.add_argument('filename', help='path to input file.')
     ns = parser.parse_args()
@@ -66,7 +66,7 @@ def main():
         sys.stdout.write(targ)
     else:
         with open(ns.output, 'w') as f:
-            f.write(ns.output)
+            f.write(targ)
 
 if __name__ == '__main__':
     main()
