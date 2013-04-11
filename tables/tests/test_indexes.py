@@ -942,7 +942,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.table = self.fileh.create_table(root, 'table', TDescr, title,
                                             None, self.nrows,
                                             chunkshape=chunkshape)
-        self.table.autoIndex = self.iprops.auto
+        self.table.autoindex = self.iprops.auto
         for colname in self.colsToIndex:
             self.table.colinstances[colname].create_index(
                 _blocksizes = self.small_blocksizes)
@@ -1002,14 +1002,14 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Check the policy parameters
         if verbose:
             if table.indexed:
-                print "index props:", table.autoIndex
+                print "index props:", table.autoindex
             else:
                 print "Table is not indexed"
         # Check non-default values for index saving policy
         if self.iprops is NoAutoProps:
-            self.assertFalse(table.autoIndex)
+            self.assertFalse(table.autoindex)
         elif self.iprops is ChangeFiltersProps:
-            self.assertTrue(table.autoIndex)
+            self.assertTrue(table.autoindex)
 
         # Check Index() objects exists and are properly placed
         if self.iprops is DefaultProps:
@@ -1077,9 +1077,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 
         # Check non-default values for index saving policy
         if self.iprops is NoAutoProps:
-            self.assertFalse(table.autoIndex)
+            self.assertFalse(table.autoindex)
         elif self.iprops is ChangeFiltersProps:
-            self.assertTrue(table.autoIndex)
+            self.assertTrue(table.autoindex)
 
 
     def test05_icounters(self):
@@ -1119,9 +1119,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 
         # Check non-default values for index saving policy
         if self.iprops is NoAutoProps:
-            self.assertFalse(table.autoIndex)
+            self.assertFalse(table.autoindex)
         elif self.iprops is ChangeFiltersProps:
-            self.assertTrue(table.autoIndex)
+            self.assertTrue(table.autoindex)
 
 
     def test06_dirty(self):
@@ -1140,7 +1140,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             table = self.fileh.root.table
         # Check the dirty flag for indexes
         if verbose:
-            print "auto flag:", table.autoIndex
+            print "auto flag:", table.autoindex
             for colname in table.colnames:
                 if table.cols._f_col(colname).index:
                     print "dirty flag col %s: %s" % \
@@ -1148,7 +1148,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Check the flags
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
-                if not table.autoIndex:
+                if not table.autoindex:
                     self.assertEqual(table.cols._f_col(colname).index.dirty,
                                      True)
                 else:
@@ -1198,7 +1198,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                           (colname, table.cols._f_col(colname).index.dirty)
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
-                if not table.autoIndex:
+                if not table.autoindex:
                     self.assertEqual(table.cols._f_col(colname).index.dirty,
                                      True)
                 else:
@@ -1233,7 +1233,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         resq = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
         res_ = res + [3]
         if verbose:
-            print "AutoIndex?:", table.autoIndex
+            print "AutoIndex?:", table.autoindex
             print "Query results (original):", res
             print "Query results (after modifying table):", resq
             print "Should look like:", res_
@@ -1263,7 +1263,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         resq = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
         res_ = res + [table.nrows-3, table.nrows-2, table.nrows-1]
         if verbose:
-            print "AutoIndex?:", table.autoIndex
+            print "AutoIndex?:", table.autoindex
             print "Query results (original):", res
             print "Query results (after modifying table):", resq
             print "Should look like:", res_
@@ -1304,7 +1304,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                           (colname, table.cols._f_col(colname).index.dirty)
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
-                if not table.autoIndex:
+                if not table.autoindex:
                     if colname in ["var1"]:
                         self.assertEqual(
                             table.cols._f_col(colname).index.dirty, True)
@@ -1481,7 +1481,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                           (colname, table2.cols._f_col(colname).index.dirty)
         for colname in table2.colnames:
             if table2.cols._f_col(colname).index:
-                if table2.autoIndex:
+                if table2.autoindex:
                     # All the destination columns should be non-dirty because
                     # the copy removes the dirty state and puts the
                     # index in a sane state
@@ -1613,7 +1613,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
     def setUp(self):
         super(IndexPropsChangeTestCase, self).setUp()
         table = self.h5file.create_table('/', 'test', self.MyDescription)
-        table.autoIndex = self.oldIndexProps.auto
+        table.autoindex = self.oldIndexProps.auto
         row = table.row
         for i in xrange(100):
             row['icol'] = i % 25
@@ -1627,14 +1627,14 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
     def test_attributes(self):
         """Storing index properties as table attributes."""
         for refprops in [self.oldIndexProps, self.newIndexProps]:
-            self.assertEqual(self.table.autoIndex, refprops.auto)
-            self.table.autoIndex = self.newIndexProps.auto
+            self.assertEqual(self.table.autoindex, refprops.auto)
+            self.table.autoindex = self.newIndexProps.auto
 
     def test_copyattrs(self):
         """Copying index properties attributes."""
         oldtable = self.table
         newtable = oldtable.copy('/', 'test2')
-        self.assertEqual(oldtable.autoIndex, newtable.autoIndex)
+        self.assertEqual(oldtable.autoindex, newtable.autoindex)
 
 
 class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):

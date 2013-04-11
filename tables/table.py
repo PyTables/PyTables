@@ -624,7 +624,7 @@ class Table(tableextension.Table, Leaf):
 
     # Index-related properties
     # ````````````````````````
-    autoIndex = _table__autoindex
+    autoindex = _table__autoindex
     """Automatically keep column indexes up to date?
 
     Setting this value states whether existing indexes should be automatically
@@ -638,6 +638,8 @@ class Table(tableextension.Table, Leaf):
 
     This value is persistent.
     """
+
+    autoIndex = _table__autoIndex
 
     indexedcolpathnames = property(
         lambda self: [ _colpname for _colpname in self.colpathnames

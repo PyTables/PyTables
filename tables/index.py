@@ -64,7 +64,7 @@ defsort = "quicksort"
 # append operation, or automatically reindexing after an
 # index-invalidating operation like removing or modifying table rows.
 default_auto_index = True
-# Keep in sync with ``Table.autoIndex`` docstring.
+# Keep in sync with ``Table.autoindex`` docstring.
 
 # Default filters used to compress indexes.  This is quite fast and
 # compression is pretty good.

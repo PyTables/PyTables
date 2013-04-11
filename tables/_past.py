@@ -38,7 +38,7 @@ def previous_api(obj):
 old2newnames = dict([
     # from array.py
     ('getEnum', 'get_enum'),
-    ('_initLoop', '_init_loop'), 
+    ('_initLoop', '_init_loop'),
     ('_fancySelection', '_fancy_selection'),
     ('_checkShape', '_check_shape'),
     ('_readSlice', '_read_slice'),
@@ -326,6 +326,7 @@ old2newnames = dict([
     ('createIndexesDescr', 'create_indexes_descr'),
     ('_column__createIndex', '_column__create_index'),
     ('_autoIndex', '_autoindex'),
+    ('autoIndex', 'autoindex'),
     ('_useIndex', '_use_index'),
     ('_whereCondition', '_where_condition'),
     ('_conditionCache', '_condition_cache'),
