@@ -571,7 +571,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName(),
-            expectedrows=minRowIndex*2)
+            expectedrows=minRowIndex * 2)
         for i in range(minRowIndex):
             tbl.append(self._testAData)
         tbl.flush()
@@ -598,7 +598,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._testCondition, self._testCondVars(tbl))
         searchedCoords.sort()
 
-        expectedCoords = numpy.arange(0, minRowIndex*2, 2, SizeType)
+        expectedCoords = numpy.arange(0, minRowIndex * 2, 2, SizeType)
         if common.verbose:
             print "Searched coords:", searchedCoords
             print "Expected coords:", expectedCoords
@@ -1360,7 +1360,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         row = tbl.row
         for i in xrange(1000):
             row[i1] = i
-            row[i2] = i*2
+            row[i2] = i * 2
             row.append()
         tbl.flush()
 
@@ -1409,7 +1409,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         row = tbl.row
         for i in xrange(1000):
             row[i1] = i
-            row[i2] = i*2
+            row[i2] = i * 2
             row.append()
         tbl.flush()
 

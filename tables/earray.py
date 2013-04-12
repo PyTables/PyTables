@@ -222,9 +222,9 @@ class EArray(CArray):
         # when copying buffers
         self._v_convert = False
         # Start the copy itself
-        for start2 in xrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step * nrowsinbuf):
             # Save the records on disk
-            stop2 = start2+step*nrowsinbuf
+            stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
             # Set the proper slice in the extensible dimension

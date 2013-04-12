@@ -315,8 +315,8 @@ class Array(hdf5extension.Array, Leaf):
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
-            if self._row+1 >= self.nrowsinbuf or self._row < 0:
-                self._stopb = self._startb+self._step*self.nrowsinbuf
+            if self._row + 1 >= self.nrowsinbuf or self._row < 0:
+                self._stopb = self._startb + self._step * self.nrowsinbuf
                 # Protection for reading more elements than needed
                 if self._stopb > self._stop:
                     self._stopb = self._stop
@@ -372,7 +372,7 @@ class Array(hdf5extension.Array, Leaf):
                     # To support negative values (Fixes bug #968149)
                     key += self.shape[dim]
                 start, stop, step = self._process_range(
-                    key, key+1, 1, dim=dim)
+                    key, key + 1, 1, dim=dim)
                 stop_None[dim] = 1
             elif isinstance(key, slice):
                 start, stop, step = self._process_range(
@@ -449,7 +449,7 @@ class Array(hdf5extension.Array, Leaf):
             n_args = len(args)
             for idx, arg in enumerate(args):
                 if arg is Ellipsis:
-                    final_args.extend((slice(None),)*(rank-n_args+1))
+                    final_args.extend((slice(None),)*(rank-n_args + 1))
                 else:
                     final_args.append(arg)
 
@@ -485,9 +485,9 @@ class Array(hdf5extension.Array, Leaf):
             if stop < start:
                 raise IndexError("Reverse-order selections are not allowed")
             if start < 0:
-                start = length+start
+                start = length + start
             if stop < 0:
-                stop = length+stop
+                stop = length + stop
 
             if not 0 <= start <= (length-1):
                 raise IndexError(
@@ -500,10 +500,10 @@ class Array(hdf5extension.Array, Leaf):
             if (stop-start) % step != 0:
                 count += 1
 
-            if start+count > length:
+            if start + count > length:
                 raise IndexError(
                     "Selection out of bounds (%d; axis has %d)" %
-                    (start+count, length))
+                    (start + count, length))
 
             return start, count, step
 
@@ -543,7 +543,7 @@ class Array(hdf5extension.Array, Leaf):
                         list_seen = True
                 nexp = numpy.asarray(exp, dtype="i8")
                 # Convert negative values
-                nexp = numpy.where(nexp < 0, length+nexp, nexp)
+                nexp = numpy.where(nexp < 0, length + nexp, nexp)
                 # Check whether the list is ordered or not
                 # (only one unordered list is allowed)
                 if not len(nexp) == len(numpy.unique(nexp)):
@@ -828,7 +828,7 @@ class Array(hdf5extension.Array, Leaf):
         of rows* in the array.  Their meanings are the same as in the built-in
         range() Python function, except that negative values of step are not
         allowed yet. Moreover, if only start is specified, then stop will be
-        set to start+1. If you do not specify neither start nor stop, then *all
+        set to start + 1. If you do not specify neither start nor stop, then *all
         the rows* in the array are selected.
 
         The out parameter may be used to specify a NumPy array to receive the

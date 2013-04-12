@@ -91,7 +91,7 @@ class BasicTestCase(common.PyTablesTestCase):
         row = record[0]
         buflist = []
         # Fill the recarray
-        for i in xrange(self.expectedrows+1):
+        for i in xrange(self.expectedrows + 1):
             tmplist = []
             # Both forms (list or chararray) works
             var0 = ['%04d' % (self.expectedrows - i)] * 2
@@ -105,7 +105,7 @@ class BasicTestCase(common.PyTablesTestCase):
             var3 = i % self.maxshort
             tmplist.append(var3)
             if isinstance(row['var4'], np.ndarray):
-                tmplist.append([float(i), float(i*i)])
+                tmplist.append([float(i), float(i * i)])
             else:
                 tmplist.append(float(i))
             if isinstance(row['var5'], np.ndarray):
@@ -155,7 +155,7 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var2'] = ((i, 1), (1, 1))  # *-*
                     row['var3'] = i % self.maxshort
                     if isinstance(row['var4'], np.ndarray):
-                        row['var4'] = [float(i), float(i*i)]
+                        row['var4'] = [float(i), float(i * i)]
                     else:
                         row['var4'] = float(i)
                     if isinstance(row['var5'], np.ndarray):
@@ -389,7 +389,7 @@ class BasicTestCase(common.PyTablesTestCase):
             row['var2'] = ((i, 1), (1, 1))   # *-*
             row['var3'] = i % self.maxshort
             if isinstance(row['var4'], np.ndarray):
-                row['var4'] = [float(i), float(i*i)]
+                row['var4'] = [float(i), float(i * i)]
             else:
                 row['var4'] = float(i)
             if isinstance(row['var5'], np.ndarray):
@@ -593,7 +593,7 @@ class BasicRangeTestCase(unittest.TestCase):
                 row['var2'] = i
                 row['var3'] = i % self.maxshort
                 if isinstance(row['var4'], np.ndarray):
-                    row['var4'] = [float(i), float(i*i)]
+                    row['var4'] = [float(i), float(i * i)]
                 else:
                     row['var4'] = float(i)
                 if isinstance(row['var5'], np.ndarray):
@@ -698,7 +698,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_range..." % self.__class__.__name__
 
-        # Case where step < nrowsinbuf < 2*step
+        # Case where step < nrowsinbuf < 2 * step
         self.nrows = 21
         self.nrowsinbuf = 3
         self.start = 0
@@ -714,7 +714,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_range..." % self.__class__.__name__
 
-        # Case where step < nrowsinbuf < 10*step
+        # Case where step < nrowsinbuf < 10 * step
         self.nrows = 21
         self.nrowsinbuf = 31
         self.start = 11
@@ -730,7 +730,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03_range..." % self.__class__.__name__
 
-        # Case where step < nrowsinbuf < 1.1*step
+        # Case where step < nrowsinbuf < 1.1 * step
         self.nrows = self.expectedrows
         self.nrowsinbuf = 11  # Choose a small value for the buffer size
         self.start = 0
@@ -762,7 +762,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05_range..." % self.__class__.__name__
 
-        # Case where step > 1.1*nrowsinbuf
+        # Case where step > 1.1 * nrowsinbuf
         self.nrows = 21
         self.nrowsinbuf = 10  # Choose a small value for the buffer size
         self.start = 1
@@ -778,7 +778,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06_range..." % self.__class__.__name__
 
-        # Case where step > 3*nrowsinbuf
+        # Case where step > 3 * nrowsinbuf
         self.nrows = 3
         self.nrowsinbuf = 3  # Choose a small value for the buffer size
         self.start = 2
@@ -1033,7 +1033,7 @@ class RecArrayIO(unittest.TestCase):
         floatlist2 = np.array([[4.5, 2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1], [
             intlist2, arrlist2, floatlist2]]
-        r = np.rec.array(b*300,  formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
+        r = np.rec.array(b * 300,  formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
                          names='col1,col2,col3')
 
         # Get an slice of recarray
@@ -1062,7 +1062,7 @@ class RecArrayIO(unittest.TestCase):
         floatlist2 = np.array([[4.5, 2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1], [
             intlist2, arrlist2, floatlist2]]
-        r = np.rec.array(b*300, formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
+        r = np.rec.array(b * 300, formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
                          names='col1,col2,col3', shape=300)
 
         # Get an strided recarray
@@ -1234,7 +1234,7 @@ class DefaultValues(unittest.TestCase):
             ((1, 1), (1, 1)),
             2, 3.1, 4.2, 5, "e"]]
         r = np.rec.array(
-            buffer*nrows,
+            buffer * nrows,
             formats='(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,f8,f4,u2,a1',
             names=['var0', 'var1', 'var1_', 'var2', 'var3', 'var4', 'var5',
                    'var6', 'var7'])  # *-*
@@ -1628,7 +1628,7 @@ class setItem(common.PyTablesTestCase):
         # Modify just one existing column
         try:
             for row in table.iterrows():
-                row['col1'] = row.nrow+1
+                row['col1'] = row.nrow + 1
                 row.append()
             table.flush()
         except NotImplementedError:
@@ -1965,7 +1965,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Modify just one existing column
         for row in table.iterrows(1, 4):
-            row['col1'] = row.nrow+1
+            row['col1'] = row.nrow + 1
             row.update()
         # Create the modified recarray
         r1 = records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],

@@ -181,7 +181,7 @@ def fill_table(table, shape, nrows):
     Fill the given `table` with `nrows` rows of data.
 
     Values in the i-th row (where 0 <= i < `row_period`) for a
-    multidimensional field with M elements span from i to i+M-1.  For
+    multidimensional field with M elements span from i to i + M-1.  For
     subsequent rows, values repeat cyclically.
 
     The same goes for the ``c_extra`` column, but values range from
@@ -310,9 +310,9 @@ right_bound = row_period * 3 // 4
 """Operand of right side operator in comparisons with operator pairs."""
 extra_conditions = [
     '',                     # uses one index
-    '& ((c_extra+1) < 0)',  # uses one index
+    '& ((c_extra + 1) < 0)',  # uses one index
     '| (c_idxextra > 0)',   # uses two indexes
-    '| ((c_idxextra > 0) | ((c_extra+1) > 0))',  # can't use indexes
+    '| ((c_idxextra > 0) | ((c_extra + 1) > 0))',  # can't use indexes
 ]
 """Extra conditions to append to comparison conditions."""
 
@@ -893,7 +893,7 @@ class IndexedTableUsage11(IndexedTableUsage):
     """Complex operations are not eligible for indexing."""
     conditions = [
         'sin(c_int32) > 0',
-        '(c_int32*2.4) > 0',
+        '(c_int32 * 2.4) > 0',
         '(c_int32 + c_int32) > 0',
         'c_int32**2 > 0',
     ]

@@ -1702,7 +1702,7 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = slice(1, 3, None)
-        rng = numpy.arange(a[s].size)*2+3
+        rng = numpy.arange(a[s].size)*2 + 3
         rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
@@ -1766,7 +1766,7 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = slice(1, 4, 2)
-        rng = numpy.arange(a[s].size)*2+3
+        rng = numpy.arange(a[s].size)*2 + 3
         rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
@@ -1830,8 +1830,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = -2
-        a[s] = a[s]*2+3
-        arr[s] = arr[s]*2+3
+        a[s] = a[s]*2 + 3
+        arr[s] = arr[s]*2 + 3
 
         # Get and compare an element
         if common.verbose:
@@ -1895,7 +1895,7 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = slice(-3, -1, None)
-        rng = numpy.arange(a[s].size)*2+3
+        rng = numpy.arange(a[s].size)*2 + 3
         rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
@@ -1929,10 +1929,10 @@ class SetItemTestCase(unittest.TestCase):
         # Modify elements of arr that are out of range:
         s = slice(1, a.shape[0]+1, None)
         s2 = slice(1, 1000, None)
-        rng = numpy.arange(a[s].size)*2+3
+        rng = numpy.arange(a[s].size)*2 + 3
         rng.shape = a[s].shape
         a[s] = rng
-        rng2 = numpy.arange(a[s2].size)*2+3
+        rng2 = numpy.arange(a[s2].size)*2 + 3
         rng2.shape = a[s2].shape
         arr[s2] = rng2
 
@@ -2257,8 +2257,8 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             if common.verbose:
                 print "Selection to test:", key
             s = nparr[key]
-            nparr[key] = s*2
-            tbarr[key] = s*2
+            nparr[key] = s * 2
+            tbarr[key] = s * 2
             a = nparr[:]
             b = tbarr[:]
 #             if common.verbose:
@@ -2277,8 +2277,8 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             if common.verbose:
                 print "Selection to test:", key
             s = nparr[key]
-            nparr[key] = s*2
-            tbarr[key] = s*2
+            nparr[key] = s * 2
+            tbarr[key] = s * 2
             a = nparr[:]
             b = tbarr[:]
 #             if common.verbose:
@@ -2381,9 +2381,9 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         self.fileh = fileh = open_file(self.file, "w")
         # Create a sample array
         nparr = numpy.empty(self.shape, dtype=numpy.int32)
-        data = numpy.arange(N*O, dtype=numpy.int32).reshape(N, O)
+        data = numpy.arange(N * O, dtype=numpy.int32).reshape(N, O)
         for i in xrange(M):
-            nparr[i] = data*i
+            nparr[i] = data * i
         self.nparr = nparr
         self.tbarr = fileh.create_array(fileh.root, 'array', nparr)
 
@@ -2448,8 +2448,8 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             if common.verbose:
                 print "Selection to test:", key
             s = nparr[key]
-            nparr[key] = s*2
-            tbarr[key] = s*2
+            nparr[key] = s * 2
+            tbarr[key] = s * 2
             a = nparr[:]
             b = tbarr[:]
 #             if common.verbose:

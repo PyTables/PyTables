@@ -283,7 +283,7 @@ class CompareTestCase(common.PyTablesTestCase):
         # nrows = 10
 
         for i in xrange(nrows):
-            j = i*2
+            j = i * 2
             vla.append((j + 0.012, j + 1 + 0.012))
         h5file.close()
 
@@ -293,7 +293,7 @@ class CompareTestCase(common.PyTablesTestCase):
         h5file.close()
 
         arr = numpy.array(arr)
-        orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
+        orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 1, 2)
         if common.verbose:
             print "Original values:", orig_val
@@ -345,8 +345,8 @@ class CompareTestCase(common.PyTablesTestCase):
         row = tbl.row
         for i in xrange(nrows):
             row['t32col'] = i
-            j = i*2
-            row['t64col'] = (j+0.012, j+1+0.012)
+            j = i * 2
+            row['t64col'] = (j + 0.012, j+1+0.012)
             row.append()
         h5file.close()
 
@@ -364,7 +364,7 @@ class CompareTestCase(common.PyTablesTestCase):
                         "Stored and retrieved values do not match.")
 
         # Time64 column.
-        orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
+        orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 2)
         if common.verbose:
             print "Original values:", orig_val
@@ -417,7 +417,7 @@ class CompareTestCase(common.PyTablesTestCase):
         arr = h5file.root.test.read()
         h5file.close()
 
-        orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
+        orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 2)
         if common.verbose:
             print "Original values:", orig_val
@@ -472,7 +472,7 @@ class UnalignedTestCase(common.PyTablesTestCase):
             row['i8col'] = i
             row['t32col'] = i
             j = i * 2
-            row['t64col'] = (j+0.012, j+1+0.012)
+            row['t64col'] = (j + 0.012, j+1+0.012)
             row.append()
         h5file.close()
 
@@ -498,7 +498,7 @@ class UnalignedTestCase(common.PyTablesTestCase):
                         "Stored and retrieved values do not match.")
 
         # Time64 column.
-        orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
+        orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 2)
         if common.verbose:
             print "Original values:", orig_val
@@ -526,7 +526,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
         # Generate the expected Time32 array.
         start = 1178896298
         nrows = 10
-        orig_val = numpy.arange(start, start+nrows, dtype=numpy.int32)
+        orig_val = numpy.arange(start, start + nrows, dtype=numpy.int32)
 
         if common.verbose:
             print "Retrieved values:", earr
@@ -543,7 +543,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
         # Generate the expected Time64 array.
         start = 1178896298.832258
         nrows = 10
-        orig_val = numpy.arange(start, start+nrows, dtype=numpy.float64)
+        orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
 
         if common.verbose:
             print "Retrieved values:", earr
@@ -561,7 +561,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
         # Generate the expected Time32 array.
         start = 1178896298
         nrows = 10
-        orig_val = numpy.arange(start, start+nrows, dtype=numpy.int32)
+        orig_val = numpy.arange(start, start + nrows, dtype=numpy.int32)
 
         if common.verbose:
             print "Retrieved values:", t32
@@ -579,7 +579,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
         # Generate the expected Time64 array.
         start = 1178896298.832258
         nrows = 10
-        orig_val = numpy.arange(start, start+nrows, dtype=numpy.float64)
+        orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
 
         if common.verbose:
             print "Retrieved values:", t64
@@ -599,7 +599,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
         # Generate the expected Time64 array.
         start = 1178896298.832258
         nrows = 10
-        orig_val = numpy.arange(start, start+nrows, dtype=numpy.float64)
+        orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
 
         if common.verbose:
             print "Retrieved values:", t64

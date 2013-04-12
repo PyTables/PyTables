@@ -767,15 +767,15 @@ class ShuffleFletcher32ReadTestCase(BasicTestCase):
 
 
 class OneHalfTestCase(BasicTestCase):
-    nrows = small_ss+small_ss//2
+    nrows = small_ss + small_ss//2
 
 
 class UpperBoundTestCase(BasicTestCase):
-    nrows = small_ss+1
+    nrows = small_ss + 1
 
 
 class LowerBoundTestCase(BasicTestCase):
-    nrows = small_ss*2-1
+    nrows = small_ss * 2-1
 
 
 class DeepTableIndexTestCase(unittest.TestCase):
@@ -1530,7 +1530,7 @@ class AI4bTestCase(AutomaticIndexingTestCase):
 
 class AI5TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calc_chunksize(minRowIndex, memlevel=1)
-    nrows = ss*11-1
+    nrows = ss * 11-1
     reopen = 0
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
@@ -1538,7 +1538,7 @@ class AI5TestCase(AutomaticIndexingTestCase):
 
 class AI6TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calc_chunksize(minRowIndex, memlevel=1)
-    nrows = ss*21+1
+    nrows = ss * 21 + 1
     reopen = 1
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
@@ -1546,8 +1546,8 @@ class AI6TestCase(AutomaticIndexingTestCase):
 
 class AI7TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calc_chunksize(minRowIndex, memlevel=1)
-    nrows = ss*12-1
-    # nrows = ss*1-1  # faster test
+    nrows = ss * 12-1
+    # nrows = ss * 1-1  # faster test
     reopen = 0
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
@@ -1555,8 +1555,8 @@ class AI7TestCase(AutomaticIndexingTestCase):
 
 class AI8TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calc_chunksize(minRowIndex, memlevel=1)
-    nrows = ss*15+100
-    # nrows = ss*1+100  # faster test
+    nrows = ss * 15 + 100
+    # nrows = ss * 1 + 100  # faster test
     reopen = 1
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']

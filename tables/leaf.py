@@ -33,7 +33,7 @@ def csformula(expectedsizeinMB):
     # For a basesize of 8 KB, this will return:
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
-    basesize = 8*1024   # 8 KB is a good minimum
+    basesize = 8 * 1024   # 8 KB is a good minimum
     return basesize * int(2**math.log10(expectedsizeinMB))
 
 
@@ -67,7 +67,7 @@ def calc_chunksize(expectedsizeinMB):
     zone = int(math.log10(expectedsizeinMB))
     expectedsizeinMB = 10**zone
     chunksize = csformula(expectedsizeinMB)
-    return chunksize*8     # XXX: Multiply by 8 seems optimal for
+    return chunksize * 8     # XXX: Multiply by 8 seems optimal for
                            # sequential access
 
 

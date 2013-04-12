@@ -549,8 +549,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
-            if self._row+1 >= self.nrowsinbuf or self._row < 0:
-                self._stopb = self._startb+self._step*self.nrowsinbuf
+            if self._row + 1 >= self.nrowsinbuf or self._row < 0:
+                self._stopb = self._startb + self._step * self.nrowsinbuf
                 self.listarr = self.read(self._startb, self._stopb, self._step)
                 self._row = -1
                 self._startb = self._stopb
@@ -594,7 +594,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            (start, stop, step) = self._process_range(key, key+1, 1)
+            (start, stop, step) = self._process_range(key, key + 1, 1)
             return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
             start, stop, step = self._process_range(
@@ -630,7 +630,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             # Get the previous value
             nrow = idx2long(
                 nrow)   # To convert any possible numpy scalar value
-            nparr = self._read_array(nrow, nrow+1, 1)[0]
+            nparr = self._read_array(nrow, nrow + 1, 1)[0]
             nobjects = len(nparr)
             if len(value) > nobjects:
                 raise ValueError("Length of value (%s) is larger than number "
@@ -723,7 +723,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         of rows* in the array.  Their meanings are the same as in the built-in
         range() Python function, except that negative values of step are not
         allowed yet. Moreover, if only start is specified, then stop will be
-        set to start+1. If you do not specify neither start nor stop, then *all
+        set to start + 1. If you do not specify neither start nor stop, then *all
         the rows* in the array are selected.
         """
 
@@ -773,15 +773,15 @@ class VLArray(hdf5extension.VLArray, Leaf):
             atomsize = self.atom.base.size
         else:
             atomsize = self.atom.size
-        for start2 in xrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step * nrowsinbuf):
             # Save the records on disk
-            stop2 = start2+step*nrowsinbuf
+            stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
             nparr = self._read_array(start=start2, stop=stop2, step=step)[0]
             nobjects = nparr.shape[0]
             object._append(nparr, nobjects)
-            nbytes += nobjects*atomsize
+            nbytes += nobjects * atomsize
             nrowscopied += 1
         object.nrows = nrowscopied
         return (object, nbytes)

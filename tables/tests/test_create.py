@@ -197,8 +197,8 @@ class createTestCase(unittest.TestCase):
         for j in range(10):
             rowlist = []
             for i in range(len(table.colnames)):
-                row[varnames[i]] = i*j
-                rowlist.append(i*j)
+                row[varnames[i]] = i * j
+                rowlist.append(i * j)
 
             row.append()
             listrows.append(tuple(rowlist))

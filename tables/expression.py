@@ -30,7 +30,7 @@ class Expr(object):
     """A class for evaluating expressions with arbitrary array-like objects.
 
     Expr is a class for evaluating expressions containing array-like objects.
-    With it, you can evaluate expressions (like "3*a+4*b") that operate on
+    With it, you can evaluate expressions (like "3 * a + 4 * b") that operate on
     arbitrary large arrays while optimizing the resources required to perform
     them (basically main memory and CPU cache memory).  It is similar to the
     Numexpr package (see :ref:`[NUMEXPR] <NUMEXPR>`), but in addition to NumPy
@@ -48,7 +48,7 @@ class Expr(object):
     Parameters
     ----------
     expr : str
-        This specifies the expression to be evaluated, such as "2*a+3*b".
+        This specifies the expression to be evaluated, such as "2 * a + 3 * b".
     uservars : dict
         This can be used to define the variable names appearing in *expr*.
         This mapping should consist of identifier-like strings pointing to any
@@ -71,7 +71,7 @@ class Expr(object):
         >>> a = f.create_array('/', 'a', np.array([1,2,3]))
         >>> b = f.create_array('/', 'b', np.array([3,4,5]))
         >>> c = np.array([4,5,6])
-        >>> expr = tb.Expr("2*a+b*c")   # initialize the expression
+        >>> expr = tb.Expr("2 * a + b * c")   # initialize the expression
         >>> expr.eval()                 # evaluate it
         array([14, 24, 36])
         >>> sum(expr)                   # use as an iterator
@@ -85,7 +85,7 @@ class Expr(object):
         >>> a2 = f.create_array('/', 'a2', np.array([[1,2],[3,4]]))
         >>> b2 = f.create_array('/', 'b2', np.array([[3,4],[5,6]]))
         >>> c2 = np.array([4,5])           # This will be broadcasted
-        >>> expr = tb.Expr("2*a2+b2-c2")
+        >>> expr = tb.Expr("2 * a2 + b2-c2")
         >>> expr.eval()
         array([[1, 3],
                [7, 9]])
@@ -388,7 +388,7 @@ class Expr(object):
         # Compute the nrowsinbuf
         # Multiplying the I/O buffer size by 4 gives optimal results
         # in my benchmarks with `tables.Expr` (see ``bench/poly.py``)
-        buffersize = IO_BUFFER_SIZE*4
+        buffersize = IO_BUFFER_SIZE * 4
         nrowsinbuf = buffersize // rowsize
 
         # Safeguard against row sizes being extremely large
@@ -579,8 +579,8 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         # Create a key that selects every element in inputs and output
         # (including the main dimension)
-        i_slices = [slice(None)]*(maindim+1)
-        o_slices = [slice(None)]*(o_maindim+1)
+        i_slices = [slice(None)]*(maindim + 1)
+        o_slices = [slice(None)]*(o_maindim + 1)
 
         # This is a hack to prevent doing unnecessary flavor conversions
         # while reading buffers
@@ -589,7 +589,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 val._v_convert = False
 
         # Start the computation itself
-        for start2 in xrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step * nrowsinbuf):
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
@@ -612,7 +612,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             else:
                 # Compute the slice to be filled in output
                 start3 = o_start + (start2-start)/step
-                stop3 = start3 + nrowsinbuf*o_step
+                stop3 = start3 + nrowsinbuf * o_step
                 if stop3 > o_stop:
                     stop3 = o_stop
                 o_slices[o_maindim] = slice(start3, stop3, o_step)
@@ -645,7 +645,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         # Create a key that selects every element in inputs
         # (including the main dimension)
-        i_slices = [slice(None)]*(maindim+1)
+        i_slices = [slice(None)]*(maindim + 1)
 
         # This is a hack to prevent doing unnecessary flavor conversions
         # while reading buffers
@@ -654,7 +654,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 val._v_convert = False
 
         # Start the computation itself
-        for start2 in xrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step * nrowsinbuf):
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
@@ -694,7 +694,7 @@ if __name__ == "__main__":
     c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3.), shape)
     out = f.create_carray(f.root, 'out', tb.Float32Atom(dflt=3.), shape)
 
-    expr = Expr("a*b+c")
+    expr = Expr("a * b + c")
     expr.set_output(out)
     d = expr.eval()
 

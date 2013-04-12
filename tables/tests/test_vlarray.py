@@ -1131,8 +1131,8 @@ class TypesTestCase(unittest.TestCase):
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray('/', atype,
                                                 Atom.from_sctype(atype))
-            vlarray.append([(1.3+0j), (0+2.2j), (3.3+3.3j)])
-            vlarray.append([(0-1.3e34j), (1.e-32+0j)])
+            vlarray.append([(1.3 + 0j), (0+2.2j), (3.3+3.3j)])
+            vlarray.append([(0-1.3e34j), (1.e-32 + 0j)])
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -1150,10 +1150,10 @@ class TypesTestCase(unittest.TestCase):
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(
-                allequal(row[0], numpy.array([(1.3+0j), (0+2.2j), (3.3+3.3j)],
+                allequal(row[0], numpy.array([(1.3 + 0j), (0+2.2j), (3.3+3.3j)],
                                              atype)))
             self.assertTrue(
-                allequal(row[1], numpy.array([(0-1.3e34j), (1.e-32+0j)], atype)))
+                allequal(row[1], numpy.array([(0-1.3e34j), (1.e-32 + 0j)], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1177,12 +1177,12 @@ class TypesTestCase(unittest.TestCase):
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray('/', atype,
                                                 Atom.from_sctype(atype))
-            vlarray.append([(1.3+0j), (0+2.2j), (3.3+3.3j)])
-            vlarray.append([(0-1.3e34j), (1.e-32+0j)])
+            vlarray.append([(1.3 + 0j), (0+2.2j), (3.3+3.3j)])
+            vlarray.append([(0-1.3e34j), (1.e-32 + 0j)])
 
             # Modify the rows
-            vlarray[0] = ((1.4+0j), (0+4.2j), (3.3+4.3j))
-            vlarray[1] = ((4-1.3e34j), (1.e-32+4j))
+            vlarray[0] = ((1.4 + 0j), (0+4.2j), (3.3+4.3j))
+            vlarray[1] = ((4-1.3e34j), (1.e-32 + 4j))
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -1200,10 +1200,10 @@ class TypesTestCase(unittest.TestCase):
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(
-                allequal(row[0], numpy.array([(1.4+0j), (0+4.2j), (3.3+4.3j)],
+                allequal(row[0], numpy.array([(1.4 + 0j), (0+4.2j), (3.3+4.3j)],
                                              atype)))
             self.assertTrue(
-                allequal(row[1], numpy.array([(4-1.3e34j), (1.e-32+4j)], atype)))
+                allequal(row[1], numpy.array([(4-1.3e34j), (1.e-32 + 4j)], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -3168,9 +3168,9 @@ class SetRangeTestCase(unittest.TestCase):
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
-        vlarray[0] = vlarray[0]*2+3
-        vlarray[10] = vlarray[10]*2+3
-        vlarray[99] = vlarray[99]*2+3
+        vlarray[0] = vlarray[0]*2 + 3
+        vlarray[10] = vlarray[10]*2 + 3
+        vlarray[99] = vlarray[99]*2 + 3
 
         # Read some rows:
         row = []
@@ -3185,9 +3185,9 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')*2 + 3))
 
     def test01np_start(self):
         "Checking updates that modifies a complete row"
@@ -3199,9 +3199,9 @@ class SetRangeTestCase(unittest.TestCase):
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
-        vlarray[numpy.int8(0)] = vlarray[numpy.int16(0)]*2+3
-        vlarray[numpy.int8(10)] = vlarray[numpy.int8(10)]*2+3
-        vlarray[numpy.int32(99)] = vlarray[numpy.int64(99)]*2+3
+        vlarray[numpy.int8(0)] = vlarray[numpy.int16(0)]*2 + 3
+        vlarray[numpy.int8(10)] = vlarray[numpy.int8(10)]*2 + 3
+        vlarray[numpy.int32(99)] = vlarray[numpy.int64(99)]*2 + 3
 
         # Read some rows:
         row = []
@@ -3216,9 +3216,9 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')*2 + 3))
 
     def test02_partial(self):
         "Checking updates with only a part of a row"
@@ -3230,9 +3230,9 @@ class SetRangeTestCase(unittest.TestCase):
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
-        vlarray[0] = vlarray[0]*2+3
-        vlarray[10] = vlarray[10]*2+3
-        vlarray[96] = vlarray[99][3:]*2+3
+        vlarray[0] = vlarray[0]*2 + 3
+        vlarray[10] = vlarray[10]*2 + 3
+        vlarray[96] = vlarray[99][3:]*2 + 3
 
         # Read some rows:
         row = []
@@ -3247,10 +3247,10 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
         a = numpy.arange(3, 99, dtype='int32')
-        a = a*2+3
+        a = a * 2 + 3
         self.assertTrue(allequal(row[2], a))
 
     def test03a_several_rows(self):
@@ -3263,9 +3263,9 @@ class SetRangeTestCase(unittest.TestCase):
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
-        vlarray[3:6] = (vlarray[3]*2+3,
-                        vlarray[4]*2+3,
-                        vlarray[5]*2+3)
+        vlarray[3:6] = (vlarray[3]*2 + 3,
+                        vlarray[4]*2 + 3,
+                        vlarray[5]*2 + 3)
 
         # Read some rows:
         row = []
@@ -3280,9 +3280,9 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 4)
         self.assertEqual(len(row[2]), 5)
-        self.assertTrue(allequal(row[0], numpy.arange(3, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[1], numpy.arange(4, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[2], numpy.arange(5, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[0], numpy.arange(3, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[1], numpy.arange(4, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[2], numpy.arange(5, dtype='int32')*2 + 3))
 
     def test03b_several_rows(self):
         "Checking updating several rows at once (list style)"
@@ -3294,9 +3294,9 @@ class SetRangeTestCase(unittest.TestCase):
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
-        vlarray[[0, 10, 96]] = (vlarray[0]*2+3,
-                                vlarray[10]*2+3,
-                                vlarray[96]*2+3)
+        vlarray[[0, 10, 96]] = (vlarray[0]*2 + 3,
+                                vlarray[10]*2 + 3,
+                                vlarray[96]*2 + 3)
 
         # Read some rows:
         row = []
@@ -3311,9 +3311,9 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[2], numpy.arange(96, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[2], numpy.arange(96, dtype='int32')*2 + 3))
 
     def test03c_several_rows(self):
         "Checking updating several rows at once (NumPy's where style)"
@@ -3325,9 +3325,9 @@ class SetRangeTestCase(unittest.TestCase):
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
-        vlarray[(numpy.array([0, 10, 96]),)] = (vlarray[0]*2+3,
-                                                vlarray[10]*2+3,
-                                                vlarray[96]*2+3)
+        vlarray[(numpy.array([0, 10, 96]),)] = (vlarray[0]*2 + 3,
+                                                vlarray[10]*2 + 3,
+                                                vlarray[96]*2 + 3)
 
         # Read some rows:
         row = []
@@ -3342,9 +3342,9 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2+3))
-        self.assertTrue(allequal(row[2], numpy.arange(96, dtype='int32')*2+3))
+        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
+        self.assertTrue(allequal(row[2], numpy.arange(96, dtype='int32')*2 + 3))
 
     def test04_out_of_range(self):
         "Checking out of range updates (first index)"
@@ -3821,8 +3821,8 @@ class CopyIndexTestCase(unittest.TestCase):
         # The next creates 20 rows of variable length
         r = []
         for row in range(20):
-            r.append([[row, row+1]])
-            array1.append([row, row+1])
+            r.append([[row, row + 1]])
+            array1.append([row, row + 1])
 
         if self.close:
             if common.verbose:

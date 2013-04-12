@@ -95,7 +95,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
         dstgroup = dstnode[:last_slash]
     else:
         dstgroup = "/"
-    dstleaf = dstnode[last_slash+1:]
+    dstleaf = dstnode[last_slash + 1:]
     if dstleaf == "":
         dstleaf = srcNode.name
     # Check whether the destination group exists or not
@@ -113,7 +113,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
                 if overwrtnodes:
                     parent = dstGroup._v_parent
                     last_slash = dstGroup._v_pathname.rindex('/')
-                    dstgroupname = dstGroup._v_pathname[last_slash+1:]
+                    dstgroupname = dstGroup._v_pathname[last_slash + 1:]
                     dstGroup.remove()
                     dstGroup = dstfileh.create_group(parent, dstgroupname,
                                                      title=title,
@@ -194,7 +194,7 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                 if overwrtnodes:
                     parent = dstGroup._v_parent
                     last_slash = dstGroup._v_pathname.rindex('/')
-                    dstgroupname = dstGroup._v_pathname[last_slash+1:]
+                    dstgroupname = dstGroup._v_pathname[last_slash + 1:]
                     dstGroup.remove()
                     dstGroup = dstfileh.create_group(parent, dstgroupname,
                                                      title=title,

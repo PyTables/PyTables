@@ -486,7 +486,7 @@ class File(hdf5extension.File, object):
         kwargs = dict([(k.upper(), v) for k, v in kwargs.iteritems()])
         params.update(kwargs)
 
-        # If MAX_*_THREADS is not set yet, set it to the number of cores
+        # If MAX_ * _THREADS is not set yet, set it to the number of cores
         # on this machine.
 
         if params['MAX_NUMEXPR_THREADS'] is None:
@@ -1869,7 +1869,7 @@ class File(hdf5extension.File, object):
 
         # Create an explicit mark
         # Insert the mark in the action log
-        self._log("MARK", str(self._curmark+1), name)
+        self._log("MARK", str(self._curmark + 1), name)
         self._curmark += 1
         self._nmarks = self._curmark + 1
         self._seqmarkers.append(self._curaction)
@@ -1902,11 +1902,11 @@ class File(hdf5extension.File, object):
                                                self._curmark))
             mnode._g_reset()
             # Delete the marker groups with backup objects
-            for mark in xrange(self._curmark+1, self._nmarks):
+            for mark in xrange(self._curmark + 1, self._nmarks):
                 mnode = self.get_node(_markPath % (self._curtransaction, mark))
                 mnode._g_remove(recursive=1)
             # Update the new number of marks
-            self._nmarks = self._curmark+1
+            self._nmarks = self._curmark + 1
             self._seqmarkers = self._seqmarkers[:self._nmarks]
 
         if action not in _op_to_code:  # INTERNAL
@@ -1973,7 +1973,7 @@ class File(hdf5extension.File, object):
         """Undo/Redo actions up to final action in the specificed direction"""
 
         if direction < 0:
-            actionlog = self._actionlog[finalaction+1:self._curaction+1][::-1]
+            actionlog = self._actionlog[finalaction + 1:self._curaction + 1][::-1]
         else:
             actionlog = self._actionlog[self._curaction:finalaction]
 

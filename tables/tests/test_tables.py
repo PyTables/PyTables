@@ -141,7 +141,7 @@ class BasicTestCase(common.PyTablesTestCase):
             var3 = i % self.maxshort
             tmplist.append(var3)
             if isinstance(row['var4'], np.ndarray):
-                tmplist.append([float(i), float(i*i)])
+                tmplist.append([float(i), float(i * i)])
             else:
                 tmplist.append(float(i))
             if isinstance(row['var5'], np.ndarray):
@@ -161,9 +161,9 @@ class BasicTestCase(common.PyTablesTestCase):
             else:
                 tmplist.append(float(i)+0j)
             if isinstance(row['var10'], np.ndarray):
-                tmplist.append([float(i)+0j, 1+float(i)*1j])
+                tmplist.append([float(i)+0j, 1 + float(i)*1j])
             else:
-                tmplist.append(1+float(i)*1j)
+                tmplist.append(1 + float(i)*1j)
             if 'float16' in np.typeDict:
                 if isinstance(row['var11'], np.ndarray):
                     tmplist.append(np.array((float(i),)*4))
@@ -181,14 +181,14 @@ class BasicTestCase(common.PyTablesTestCase):
                     tmplist.append(float(i))
             if 'complex192' in np.typeDict:
                 if isinstance(row['var14'], np.ndarray):
-                    tmplist.append([float(i)+0j, 1+float(i)*1j])
+                    tmplist.append([float(i)+0j, 1 + float(i)*1j])
                 else:
-                    tmplist.append(1+float(i)*1j)
+                    tmplist.append(1 + float(i)*1j)
             if 'complex256' in np.typeDict:
                 if isinstance(row['var15'], np.ndarray):
-                    tmplist.append([float(i)+0j, 1+float(i)*1j])
+                    tmplist.append([float(i)+0j, 1 + float(i)*1j])
                 else:
-                    tmplist.append(1+float(i)*1j)
+                    tmplist.append(1 + float(i)*1j)
 
             buflist.append(tmplist)
 
@@ -228,7 +228,7 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var2'] = i
                     row['var3'] = i % self.maxshort
                     if isinstance(row['var4'], np.ndarray):
-                        row['var4'] = [float(i), float(i*i)]
+                        row['var4'] = [float(i), float(i * i)]
                     else:
                         row['var4'] = float(i)
                     if isinstance(row['var8'], np.ndarray):
@@ -264,14 +264,14 @@ class BasicTestCase(common.PyTablesTestCase):
                             row['var13'] = float(i)
                     if 'complex192' in np.typeDict:
                         if isinstance(row['var14'], np.ndarray):
-                            row['var14'] = [float(i)+0j, 1+float(i)*1j]
+                            row['var14'] = [float(i)+0j, 1 + float(i)*1j]
                         else:
-                            row['var14'] = 1+float(i)*1j
+                            row['var14'] = 1 + float(i)*1j
                     if 'complex256' in np.typeDict:
                         if isinstance(row['var15'], np.ndarray):
-                            row['var15'] = [float(i)+0j, 1+float(i)*1j]
+                            row['var15'] = [float(i)+0j, 1 + float(i)*1j]
                         else:
-                            row['var15'] = 1+float(i)*1j
+                            row['var15'] = 1 + float(i)*1j
 
                     # var6 will be like var3 but byteswaped
                     row['var6'] = (((row['var3'] >> 8) & 0xff) +
@@ -749,7 +749,7 @@ class BasicTestCase(common.PyTablesTestCase):
             row['var2'] = i
             row['var3'] = i % self.maxshort
             if isinstance(row['var4'], np.ndarray):
-                row['var4'] = [float(i), float(i*i)]
+                row['var4'] = [float(i), float(i * i)]
             else:
                 row['var4'] = float(i)
             if isinstance(row['var8'], np.ndarray):
@@ -785,14 +785,14 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var13'] = float(i)
             if 'complex192' in np.typeDict:
                 if isinstance(row['var14'], np.ndarray):
-                    row['var14'] = [float(i)+0j, 1+float(i)*1j]
+                    row['var14'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
-                    row['var14'] = 1+float(i)*1j
+                    row['var14'] = 1 + float(i)*1j
             if 'complex256' in np.typeDict:
                 if isinstance(row['var15'], np.ndarray):
-                    row['var15'] = [float(i)+0j, 1+float(i)*1j]
+                    row['var15'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
-                    row['var15'] = 1+float(i)*1j
+                    row['var15'] = 1 + float(i)*1j
 
             row.append()
 
@@ -847,7 +847,7 @@ class BasicTestCase(common.PyTablesTestCase):
                 row['var2'] = i
                 row['var3'] = i % self.maxshort
                 if isinstance(row['var4'], np.ndarray):
-                    row['var4'] = [float(i), float(i*i)]
+                    row['var4'] = [float(i), float(i * i)]
                 else:
                     row['var4'] = float(i)
                 if isinstance(row['var8'], np.ndarray):
@@ -883,14 +883,14 @@ class BasicTestCase(common.PyTablesTestCase):
                         row['var13'] = float(i)
                 if 'complex192' in np.typeDict:
                     if isinstance(row['var14'], np.ndarray):
-                        row['var14'] = [float(i)+0j, 1+float(i)*1j]
+                        row['var14'] = [float(i)+0j, 1 + float(i)*1j]
                     else:
-                        row['var14'] = 1+float(i)*1j
+                        row['var14'] = 1 + float(i)*1j
                 if 'complex256' in np.typeDict:
                     if isinstance(row['var15'], np.ndarray):
-                        row['var15'] = [float(i)+0j, 1+float(i)*1j]
+                        row['var15'] = [float(i)+0j, 1 + float(i)*1j]
                     else:
-                        row['var15'] = 1+float(i)*1j
+                        row['var15'] = 1 + float(i)*1j
 
                 row.append()
             table.flush()
@@ -938,9 +938,9 @@ class BasicTestCase(common.PyTablesTestCase):
         table.nrowsinbuf = 3
         # Get their row object
         row = table.row
-        # Append some rows (3*table.nrowsinbuf is enough for
+        # Append some rows (3 * table.nrowsinbuf is enough for
         # checking purposes)
-        for i in xrange(3*table.nrowsinbuf):
+        for i in xrange(3 * table.nrowsinbuf):
             s = '%04d' % (self.appendrows - i)
             row['var1'] = s.encode('ascii')
             row['var7'] = s[-1].encode('ascii')
@@ -948,7 +948,7 @@ class BasicTestCase(common.PyTablesTestCase):
             row['var2'] = i
             row['var3'] = i % self.maxshort
             if isinstance(row['var4'], np.ndarray):
-                row['var4'] = [float(i), float(i*i)]
+                row['var4'] = [float(i), float(i * i)]
             else:
                 row['var4'] = float(i)
             if isinstance(row['var8'], np.ndarray):
@@ -984,14 +984,14 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var13'] = float(i)
             if 'complex192' in np.typeDict:
                 if isinstance(row['var14'], np.ndarray):
-                    row['var14'] = [float(i)+0j, 1+float(i)*1j]
+                    row['var14'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
-                    row['var14'] = 1+float(i)*1j
+                    row['var14'] = 1 + float(i)*1j
             if 'complex256' in np.typeDict:
                 if isinstance(row['var15'], np.ndarray):
-                    row['var15'] = [float(i)+0j, 1+float(i)*1j]
+                    row['var15'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
-                    row['var15'] = 1+float(i)*1j
+                    row['var15'] = 1 + float(i)*1j
 
             row.append()
             # the next call can mislead the counters
@@ -1011,7 +1011,7 @@ class BasicTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "Result length ==>", len(result)
             print "Result contents ==>", result
-        self.assertEqual(len(result), 20+3*table.nrowsinbuf)
+        self.assertEqual(len(result), 20 + 3 * table.nrowsinbuf)
         self.assertEqual(result, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
                                   10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
                                   0, 1, 2, 3, 4, 5, 6, 7, 8])
@@ -1057,7 +1057,7 @@ class BasicTestCase(common.PyTablesTestCase):
         del table
         # Append some rows
         for i in xrange(22):
-            self.row['var2'] = 100+i
+            self.row['var2'] = 100 + i
             self.row.append()
         # del self.row # force the table object to be destroyed (and the user warned!)
         # convert a warning in an error
@@ -1112,13 +1112,13 @@ class BasicTestCase(common.PyTablesTestCase):
         row = table.row
         # Append some rows
         for i in xrange(10):
-            row['var2'] = 100+i
+            row['var2'] = 100 + i
             row.append()
         # Force a flush
         table.flush()
         # Add new rows
         for i in xrange(9):
-            row['var2'] = 110+i
+            row['var2'] = 110 + i
             row.append()
         table.flush()  # XXX al eliminar...
         result = [row['var2'] for row in table.iterrows()
@@ -1343,7 +1343,7 @@ class BasicTestCase(common.PyTablesTestCase):
             row['var2'] = i
             row['var3'] = i % self.maxshort
             if isinstance(row['var4'], np.ndarray):
-                row['var4'] = [float(i), float(i*i)]
+                row['var4'] = [float(i), float(i * i)]
             else:
                 row['var4'] = float(i)
             if isinstance(row['var8'], np.ndarray):
@@ -1379,14 +1379,14 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var13'] = float(i)
             if 'complex192' in np.typeDict:
                 if isinstance(row['var14'], np.ndarray):
-                    row['var14'] = [float(i)+0j, 1+float(i)*1j]
+                    row['var14'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
-                    row['var14'] = 1+float(i)*1j
+                    row['var14'] = 1 + float(i)*1j
             if 'complex256' in np.typeDict:
                 if isinstance(row['var15'], np.ndarray):
-                    row['var15'] = [float(i)+0j, 1+float(i)*1j]
+                    row['var15'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
-                    row['var15'] = 1+float(i)*1j
+                    row['var15'] = 1 + float(i)*1j
 
             row.append()
         # Flush the buffer for this table
@@ -1981,7 +1981,7 @@ class BasicRangeTestCase(unittest.TestCase):
                 row['var2'] = i
                 row['var3'] = i % self.maxshort
                 if isinstance(row['var4'], np.ndarray):
-                    row['var4'] = [float(i), float(i*i)]
+                    row['var4'] = [float(i), float(i * i)]
                 else:
                     row['var4'] = float(i)
                 if isinstance(row['var5'], np.ndarray):
@@ -2041,7 +2041,7 @@ class BasicRangeTestCase(unittest.TestCase):
             startr = self.start
 
         if self.stop == None:
-            stopr = startr+1
+            stopr = startr + 1
         elif self.stop < 0:
             stopr = self.expectedrows + self.stop
         else:
@@ -2088,7 +2088,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_range..." % self.__class__.__name__
 
-        # Case where step < nrowsinbuf < 2*step
+        # Case where step < nrowsinbuf < 2 * step
         self.nrows = 21
         self.nrowsinbuf = 3
         self.start = 0
@@ -2104,7 +2104,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_range..." % self.__class__.__name__
 
-        # Case where step < nrowsinbuf < 10*step
+        # Case where step < nrowsinbuf < 10 * step
         self.nrows = 21
         self.nrowsinbuf = 31
         self.start = 11
@@ -2120,7 +2120,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03_range..." % self.__class__.__name__
 
-        # Case where step < nrowsinbuf < 1.1*step
+        # Case where step < nrowsinbuf < 1.1 * step
         self.nrows = self.expectedrows
         self.nrowsinbuf = 11  # Choose a small value for the buffer size
         self.start = 0
@@ -2152,7 +2152,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05_range..." % self.__class__.__name__
 
-        # Case where step > 1.1*nrowsinbuf
+        # Case where step > 1.1 * nrowsinbuf
         self.nrows = 21
         self.nrowsinbuf = 10  # Choose a small value for the buffer size
         self.start = 1
@@ -2168,7 +2168,7 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06_range..." % self.__class__.__name__
 
-        # Case where step > 3*nrowsinbuf
+        # Case where step > 3 * nrowsinbuf
         self.nrows = 3
         self.nrowsinbuf = 3  # Choose a small value for the buffer size
         self.start = 2
@@ -2415,7 +2415,7 @@ class getItemTestCase(unittest.TestCase):
                 row['var2'] = i
                 row['var3'] = i % self.maxshort
                 if isinstance(row['var4'], np.ndarray):
-                    row['var4'] = [float(i), float(i*i)]
+                    row['var4'] = [float(i), float(i * i)]
                 else:
                     row['var4'] = float(i)
                 if isinstance(row['var5'], np.ndarray):
@@ -2954,7 +2954,7 @@ class setItem(common.PyTablesTestCase):
         # Modify just one existing column
         try:
             for row in table.iterrows():
-                row['col1'] = row.nrow+1
+                row['col1'] = row.nrow + 1
                 row.append()
             table.flush()
         except NotImplementedError:
@@ -3338,7 +3338,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Modify just one existing column
         for row in table.iterrows(1, 4):
-            row['col1'] = row.nrow+1
+            row['col1'] = row.nrow + 1
             row.update()
         # Create the modified recarray
         r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
@@ -5267,7 +5267,7 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]
+        values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1 + 0j]
         formats = 'a4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
 
         if 'float16' in np.typeDict:
@@ -5346,7 +5346,7 @@ class DefaultValues(unittest.TestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]
+        values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1 + 0j]
         formats = 'a4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
 
         if 'float16' in np.typeDict:

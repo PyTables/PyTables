@@ -1138,9 +1138,9 @@ class TypesTestCase(unittest.TestCase):
         """Checking setting Complex (python) attributes"""
 
         # Set some attrs
-        self.array.attrs.pq = 1.0+2j
-        self.array.attrs.qr = 2.0+3j
-        self.array.attrs.rs = 3.0+4j
+        self.array.attrs.pq = 1.0 + 2j
+        self.array.attrs.qr = 2.0 + 3j
+        self.array.attrs.rs = 3.0 + 4j
 
         # Check the results
         if common.verbose:
@@ -1159,9 +1159,9 @@ class TypesTestCase(unittest.TestCase):
         self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.complex_))
         self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.complex_))
         self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.complex_))
-        self.assertEqual(self.root.anarray.attrs.pq, 1.0+2j)
-        self.assertEqual(self.root.anarray.attrs.qr, 2.0+3j)
-        self.assertEqual(self.root.anarray.attrs.rs, 3.0+4j)
+        self.assertEqual(self.root.anarray.attrs.pq, 1.0 + 2j)
+        self.assertEqual(self.root.anarray.attrs.qr, 2.0 + 3j)
+        self.assertEqual(self.root.anarray.attrs.rs, 3.0 + 4j)
 
     def test05b_setComplexAttributes(self):
         """Checking setting Complex attributes (scalar, NumPy case)"""
@@ -1170,7 +1170,7 @@ class TypesTestCase(unittest.TestCase):
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype,
-                    numpy.array(1.1+2j, dtype=dtype))
+                    numpy.array(1.1 + 2j, dtype=dtype))
 
         # Check the results
         if common.verbose:
@@ -1186,9 +1186,9 @@ class TypesTestCase(unittest.TestCase):
             self.array = self.fileh.root.anarray
 
         for dtype in checktypes:
-            # assert getattr(self.array.attrs, dtype) == 1.1+2j
+            # assert getattr(self.array.attrs, dtype) == 1.1 + 2j
             # In order to make Complex32 tests pass.
-            assert_almost_equal(getattr(self.array.attrs, dtype), 1.1+2j)
+            assert_almost_equal(getattr(self.array.attrs, dtype), 1.1 + 2j)
 
     def test05c_setComplexAttributes(self):
         """Checking setting Complex attributes (unidimensional NumPy case)"""

@@ -1391,7 +1391,7 @@ class Table(tableextension.Table, Leaf):
         are used. The meaning of the start, stop and step parameters is the
         same as in the range() Python function, except that negative values of
         step are not allowed. Moreover, if only start is specified, then stop
-        will be set to start+1.
+        will be set to start + 1.
 
         When possible, indexed columns participating in the condition will be
         used to speed up the search. It is recommended that you place the
@@ -1815,7 +1815,7 @@ class Table(tableextension.Table, Leaf):
         of rows* in the table. Their meanings are the same as in the built-in
         range() Python function, except that negative values of step are not
         allowed yet. Moreover, if only start is specified, then stop will be
-        set to start+1. If you do not specify neither start nor stop, then *all
+        set to start + 1. If you do not specify neither start nor stop, then *all
         the rows* in the table are selected.
 
         If field is supplied only the named column will be selected.  If the
@@ -1999,7 +1999,7 @@ class Table(tableextension.Table, Leaf):
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            (start, stop, step) = self._process_range(key, key+1, 1)
+            (start, stop, step) = self._process_range(key, key + 1, 1)
             return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
             (start, stop, step) = self._process_range(
@@ -2067,7 +2067,7 @@ class Table(tableextension.Table, Leaf):
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            return self.modify_rows(key, key+1, 1, [value])
+            return self.modify_rows(key, key + 1, 1, [value])
         elif isinstance(key, slice):
             (start, stop, step) = self._process_range(
                 key.start, key.stop, key.step)
@@ -2124,9 +2124,9 @@ class Table(tableextension.Table, Leaf):
             table = fileh.create_table(fileh.root, 'table', Particle, "A table")
 
             # Append several rows in only one call
-            table.append([("Particle:     10", 10, 0, 10*10, 10**2),
-                          ("Particle:     11", 11, -1, 11*11, 11**2),
-                          ("Particle:     12", 12, -2, 12*12, 12**2)])
+            table.append([("Particle:     10", 10, 0, 10 * 10, 10**2),
+                          ("Particle:     11", 11, -1, 11 * 11, 11**2),
+                          ("Particle:     12", 12, -2, 12 * 12, 12**2)])
             fileh.close()
         """
 
@@ -2465,12 +2465,12 @@ class Table(tableextension.Table, Leaf):
         # deal with long ints (i.e. more than 32-bit integers)
         # This allows to index columns with more than 2**31 rows
         # F. Alted 2005-05-09
-        startLR = index.sorted.nrows*slicesize
+        startLR = index.sorted.nrows * slicesize
         indexedrows = startLR - start
-        stop = start+nrows-slicesize+1
+        stop = start + nrows-slicesize + 1
         while startLR < stop:
             index.append(
-                [self._read(startLR, startLR+slicesize, 1, colname)],
+                [self._read(startLR, startLR + slicesize, 1, colname)],
                 update=update)
             indexedrows += slicesize
             startLR += slicesize
@@ -2667,8 +2667,8 @@ class Table(tableextension.Table, Leaf):
         absstep = abs(step)
         if sortby is not None:
             index = self._check_sortby_csi(sortby, checkCSI)
-        for start2 in xrange(start, stop, absstep*lenbuf):
-            stop2 = start2+absstep*lenbuf
+        for start2 in xrange(start, stop, absstep * lenbuf):
+            stop2 = start2 + absstep * lenbuf
             if stop2 > stop:
                 stop2 = stop
             # The next 'if' is not needed, but it doesn't bother either
@@ -2689,9 +2689,9 @@ class Table(tableextension.Table, Leaf):
         nrowsinbuf = self.nrowsinbuf
         object._open_append(self._v_iobuf)
         nrowsdest = object.nrows
-        for start2 in xrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step * nrowsinbuf):
             # Save the records on disk
-            stop2 = start2+step*nrowsinbuf
+            stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
             # Optimized version (it saves some conversions)
@@ -3041,7 +3041,7 @@ class Cols(object):
             if key < 0:
                 # To support negative values
                 key += nrows
-            (start, stop, step) = table._process_range(key, key+1, 1)
+            (start, stop, step) = table._process_range(key, key + 1, 1)
             colgroup = self._v_desc._v_pathname
             if colgroup == "":  # The root group
                 return table.read(start, stop, step)[0]
@@ -3097,7 +3097,7 @@ class Cols(object):
             if key < 0:
                 # To support negative values
                 key += nrows
-            (start, stop, step) = table._process_range(key, key+1, 1)
+            (start, stop, step) = table._process_range(key, key + 1, 1)
         elif isinstance(key, slice):
             (start, stop, step) = table._process_range(
                 key.start, key.stop, key.step)
@@ -3337,7 +3337,7 @@ class Column(object):
             if key < 0:
                 # To support negative values
                 key += table.nrows
-            (start, stop, step) = table._process_range(key, key+1, 1)
+            (start, stop, step) = table._process_range(key, key + 1, 1)
             return table.read(start, stop, step, self.pathname)[0]
         elif isinstance(key, slice):
             (start, stop, step) = table._process_range(
@@ -3407,7 +3407,7 @@ class Column(object):
             if key < 0:
                 # To support negative values
                 key += table.nrows
-            return table.modify_column(key, key+1, 1,
+            return table.modify_column(key, key + 1, 1,
                                        [[value]], self.pathname)
         elif isinstance(key, slice):
             (start, stop, step) = table._process_range(

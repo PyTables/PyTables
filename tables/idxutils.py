@@ -142,7 +142,7 @@ def ccs_ultralight(optlevel, chunksize, slicesize):
 
     if optlevel in (0, 1, 2):
         slicesize //= 2
-        slicesize += optlevel*slicesize
+        slicesize += optlevel * slicesize
     elif optlevel in (3, 4, 5):
         slicesize *= optlevel-1
     elif optlevel in (6, 7, 8):
@@ -294,7 +294,7 @@ def get_reduction_level(indsize, optlevel, slicesize, chunksize):
     # The next cases should only happen in tests
     if rlevel >= slicesize:
         rlevel = 1
-    if slicesize <= chunksize*rlevel:
+    if slicesize <= chunksize * rlevel:
         rlevel = 1
     if indsize == 8:
         # Ensure that, for full indexes we will never perform a reduction.
@@ -314,8 +314,8 @@ def get_reduction_level(indsize, optlevel, slicesize, chunksize):
 #
 # Thanks to Shack Toms shack@livedata.com for NextAfter and NextAfterF
 # implementations in Python. 2004-10-01
-# epsilon  = math.ldexp(1.0, -53) # smallest double such that 0.5+epsilon != 0.5
-# epsilonF = math.ldexp(1.0, -24) # smallest float such that 0.5+epsilonF
+# epsilon  = math.ldexp(1.0, -53) # smallest double such that 0.5 + epsilon != 0.5
+# epsilonF = math.ldexp(1.0, -24) # smallest float such that 0.5 + epsilonF
 # != 0.5
 # maxFloat = float(2**1024 - 2**971)  # From the IEEE 754 standard
 # maxFloatF = float(2**128 - 2**104)  # From the IEEE 754 standard
@@ -537,10 +537,10 @@ def int_type_next_after(x, direction, itemsize):
             return int(numpy.nextafter(x, x-1))
     else:
         if isinstance(x, int):
-            return x+1
+            return x + 1
         else:
-            # return int(PyNextAfter(x,x+1))+1
-            return int(numpy.nextafter(x, x+1))+1
+            # return int(PyNextAfter(x,x + 1))+1
+            return int(numpy.nextafter(x, x + 1))+1
 
 IntTypeNextAfter = previous_api(int_type_next_after)
 
@@ -587,12 +587,12 @@ def nextafter(x, direction, dtype, itemsize):
     #    if direction < 0:
     #        return PyNextAfterF(x,x-1)
     #    else:
-    #        return PyNextAfterF(x,x+1)
+    #        return PyNextAfterF(x,x + 1)
     # elif dtype.name == "float64":
     #    if direction < 0:
     #        return PyNextAfter(x,x-1)
     #    else:
-    #        return PyNextAfter(x,x+1)
+    #        return PyNextAfter(x,x + 1)
 
     raise TypeError("data type ``%s`` is not supported" % dtype)
 

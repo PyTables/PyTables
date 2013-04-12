@@ -565,7 +565,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         record = table.read(coords[0])
         if common.verbose:
             print """Original row:
-['aasa', 'x', True, -24, 232, 232, 232, 232, 232L, 232, 232.0, 232.0, (232+0j), (232+0j), 232.0, (232+0j)]
+['aasa', 'x', True, -24, 232, 232, 232, 232, 232L, 232, 232.0, 232.0, (232 + 0j), (232+0j), 232.0, (232+0j)]
 """
             print "Read row:\n", record
         self.assertEqual(record['var1'], b'aasa')

@@ -1916,9 +1916,9 @@ class CopyIndex12TestCase(CopyIndexTestCase):
 
 
 class Rows64bitsTestCase(unittest.TestCase):
-    narows = 1000*1000   # each array will have 1 million entries
+    narows = 1000 * 1000   # each array will have 1 million entries
     # narows = 1000        # for testing only
-    nanumber = 1000*3    # That should account for more than 2**31-1
+    nanumber = 1000 * 3    # That should account for more than 2**31-1
 
     def setUp(self):
 
@@ -1926,7 +1926,7 @@ class Rows64bitsTestCase(unittest.TestCase):
         self.file = tempfile.mktemp(".h5")
         fileh = self.fileh = open_file(self.file, "a")
         # Create an CArray
-        shape = (self.narows*self.nanumber,)
+        shape = (self.narows * self.nanumber,)
         array = fileh.create_carray(fileh.root, 'array',
                                     Int8Atom(), shape,
                                     filters=Filters(complib='lzo',
@@ -1935,11 +1935,11 @@ class Rows64bitsTestCase(unittest.TestCase):
         # Fill the array
         na = numpy.arange(self.narows, dtype='int8')
         #~ for i in xrange(self.nanumber):
-            #~ s = slice(i*self.narows, (i+1)*self.narows)
+            #~ s = slice(i * self.narows, (i + 1)*self.narows)
             #~ array[s] = na
         s = slice(0, self.narows)
         array[s] = na
-        s = slice((self.nanumber-1)*self.narows, self.nanumber*self.narows)
+        s = slice((self.nanumber-1)*self.narows, self.nanumber * self.narows)
         array[s] = na
 
     def tearDown(self):
@@ -1960,7 +1960,7 @@ class Rows64bitsTestCase(unittest.TestCase):
                 # Check how many entries there are in the array
                 print "Before closing"
                 print "Entries:", array.nrows, type(array.nrows)
-                print "Entries:", array.nrows / (1000*1000), "Millions"
+                print "Entries:", array.nrows / (1000 * 1000), "Millions"
                 print "Shape:", array.shape
             # Close the file
             fileh.close()
@@ -1973,7 +1973,7 @@ class Rows64bitsTestCase(unittest.TestCase):
         # Check how many entries there are in the array
         if common.verbose:
             print "Entries:", array.nrows, type(array.nrows)
-            print "Entries:", array.nrows / (1000*1000), "Millions"
+            print "Entries:", array.nrows / (1000 * 1000), "Millions"
             print "Shape:", array.shape
             print "Last 10 elements-->", array[-10:]
             stop = self.narows % 256
@@ -1983,7 +1983,7 @@ class Rows64bitsTestCase(unittest.TestCase):
             # print "start, stop-->", start, stop
             print "Should look like:", numpy.arange(start, stop, dtype='int8')
 
-        nrows = self.narows*self.nanumber
+        nrows = self.narows * self.nanumber
         # check nrows
         self.assertEqual(array.nrows, nrows)
         # Check shape
@@ -2279,12 +2279,12 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Assign values
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2, 3, 2, 4))
-        ca[:] = [a*1, a*2, a*3]
+        a = numpy.arange(2 * 3*2*4, dtype='i4').reshape((2, 3, 2, 4))
+        ca[:] = [a * 1, a*2, a*3]
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
             print "Third row-->", ca[2]
-        self.assertTrue(allequal(ca[2], a*3))
+        self.assertTrue(allequal(ca[2], a * 3))
 
     def test03b_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom (II)."
@@ -2296,7 +2296,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Assign values
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2*3*3*2*4, dtype='i4').reshape((2, 3, 3, 2, 4))
+        a = numpy.arange(2 * 3*3*2*4, dtype='i4').reshape((2, 3, 3, 2, 4))
         ca[:] = a
         self.assertEqual(ca.nrows, 2)
         if common.verbose:
@@ -2313,7 +2313,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Assign values
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(3*1*2*2*4, dtype='i4').reshape((3, 1, 2, 2, 4))
+        a = numpy.arange(3 * 1*2*2*4, dtype='i4').reshape((3, 1, 2, 2, 4))
         ca[:] = a
         self.assertEqual(ca.nrows, 3)
         if common.verbose:

@@ -88,7 +88,7 @@ class BasicTestCase(unittest.TestCase):
             if self.type == "string":
                 earray.append(object)
             else:
-                earray.append(object*i)
+                earray.append(object * i)
 
     def tearDown(self):
         self.fileh.close()
@@ -158,7 +158,7 @@ class BasicTestCase(unittest.TestCase):
                 print "row in earray ==>", repr(row)
                 print "Should look like ==>", repr(object)
 
-            self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+            self.assertEqual(self.nappends * self.chunksize, earray.nrows)
             self.assertTrue(allequal(row, object, self.flavor))
             if hasattr(row, "shape"):
                 self.assertEqual(len(row.shape), len(self.shape) - 1)
@@ -231,7 +231,7 @@ class BasicTestCase(unittest.TestCase):
                 print "row in earray ==>", repr(row)
                 print "Should look like ==>", repr(object)
 
-            self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+            self.assertEqual(self.nappends * self.chunksize, earray.nrows)
             self.assertTrue(allequal(row, object, self.flavor))
             if hasattr(row, "shape"):
                 self.assertEqual(len(row.shape), len(self.shape) - 1)
@@ -289,9 +289,9 @@ class BasicTestCase(unittest.TestCase):
         for i in range(self.nappends):
             j = i * self.chunksize
             if self.type == "string":
-                object__[j:j+self.chunksize] = object_
+                object__[j:j + self.chunksize] = object_
             else:
-                object__[j:j+self.chunksize] = object_ * i
+                object__[j:j + self.chunksize] = object_ * i
 
         stop = self.stop
 
@@ -330,7 +330,7 @@ class BasicTestCase(unittest.TestCase):
             print "Object read ==>", repr(row)
             print "Should look like ==>", repr(object)
 
-        self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+        self.assertEqual(self.nappends * self.chunksize, earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
         if hasattr(row, "shape"):
             self.assertEqual(len(row.shape), len(self.shape))
@@ -381,9 +381,9 @@ class BasicTestCase(unittest.TestCase):
         for i in range(self.nappends):
             j = i * self.chunksize
             if self.type == "string":
-                object__[j:j+self.chunksize] = object_
+                object__[j:j + self.chunksize] = object_
             else:
-                object__[j:j+self.chunksize] = object_ * i
+                object__[j:j + self.chunksize] = object_ * i
 
         stop = self.stop
 
@@ -420,7 +420,7 @@ class BasicTestCase(unittest.TestCase):
         except IndexError:
             row = numpy.empty(shape=self.shape, dtype=self.dtype)
 
-        self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+        self.assertEqual(self.nappends * self.chunksize, earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
         if hasattr(row, "shape"):
             self.assertEqual(len(row.shape), len(self.shape))
@@ -484,9 +484,9 @@ class BasicTestCase(unittest.TestCase):
         for i in range(self.nappends):
             j = i * self.chunksize
             if self.type == "string":
-                object__[j:j+self.chunksize] = object_
+                object__[j:j + self.chunksize] = object_
             else:
-                object__[j:j+self.chunksize] = object_ * i
+                object__[j:j + self.chunksize] = object_ * i
 
         if self.nappends:
             # Swap the axes again to have normal ordering
@@ -514,7 +514,7 @@ class BasicTestCase(unittest.TestCase):
                 print "Shape read:", row.shape
                 print "shape should look as:", object.shape
 
-        self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+        self.assertEqual(self.nappends * self.chunksize, earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
         if not hasattr(row, "shape"):
             # Scalar case
@@ -579,11 +579,11 @@ class BasicTestCase(unittest.TestCase):
         for i in range(self.nappends):
             j = i * self.chunksize
             if self.type == "string":
-                object__[j:j+self.chunksize] = object_
+                object__[j:j + self.chunksize] = object_
             else:
-                object__[j:j+self.chunksize] = object_ * i
+                object__[j:j + self.chunksize] = object_ * i
                 # Modify the earray
-                # earray[j:j+self.chunksize] = object_ * i
+                # earray[j:j + self.chunksize] = object_ * i
                 # earray[self.slices] = 1
 
         if self.nappends:
@@ -637,7 +637,7 @@ class BasicTestCase(unittest.TestCase):
                 print "Shape read:", row.shape
                 print "shape should look as:", object.shape
 
-        self.assertEqual(self.nappends*self.chunksize, earray.nrows)
+        self.assertEqual(self.nappends * self.chunksize, earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
         if not hasattr(row, "shape"):
             # Scalar case
@@ -2212,9 +2212,9 @@ class TruncateCloseTestCase(TruncateTestCase):
 
 # The next test should be run only in **common.heavy** mode
 class Rows64bitsTestCase(unittest.TestCase):
-    narows = 1000*1000   # each numpy object will have 1 million entries
+    narows = 1000 * 1000   # each numpy object will have 1 million entries
     # narows = 1000   # for testing only
-    nanumber = 1000*3    # That should account for more than 2**31-1
+    nanumber = 1000 * 3    # That should account for more than 2**31-1
 
     def setUp(self):
 
@@ -2228,7 +2228,7 @@ class Rows64bitsTestCase(unittest.TestCase):
                                                     complevel=1),
                                     # Specifying expectedrows takes more
                                     # CPU, but less disk
-                                    expectedrows=self.narows*self.nanumber)
+                                    expectedrows=self.narows * self.nanumber)
 
         # Fill the array
         na = numpy.arange(self.narows, dtype='Int8')
@@ -2253,7 +2253,7 @@ class Rows64bitsTestCase(unittest.TestCase):
                 # Check how many entries there are in the array
                 print "Before closing"
                 print "Entries:", array.nrows, type(array.nrows)
-                print "Entries:", array.nrows / (1000*1000), "Millions"
+                print "Entries:", array.nrows / (1000 * 1000), "Millions"
                 print "Shape:", array.shape
             # Close the file
             fileh.close()
@@ -2266,7 +2266,7 @@ class Rows64bitsTestCase(unittest.TestCase):
         # Check how many entries there are in the array
         if common.verbose:
             print "Entries:", array.nrows, type(array.nrows)
-            print "Entries:", array.nrows / (1000*1000), "Millions"
+            print "Entries:", array.nrows / (1000 * 1000), "Millions"
             print "Shape:", array.shape
             print "Last 10 elements-->", array[-10:]
             stop = self.narows % 256
@@ -2276,7 +2276,7 @@ class Rows64bitsTestCase(unittest.TestCase):
             print "Should look like-->", numpy.arange(start, stop,
                                                       dtype='Int8')
 
-        nrows = self.narows*self.nanumber
+        nrows = self.narows * self.nanumber
         # check nrows
         self.assertEqual(array.nrows, nrows)
         # Check shape
@@ -2407,12 +2407,12 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ea = self.h5file.root.test
         # Append three rows
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2, 3, 2, 4))
-        ea.append([a*1, a*2, a*3])
+        a = numpy.arange(2 * 3*2*4, dtype='i4').reshape((2, 3, 2, 4))
+        ea.append([a * 1, a*2, a*3])
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[2]
-        self.assertTrue(allequal(ea[2], a*3))
+        self.assertTrue(allequal(ea[2], a * 3))
 
     def test03b_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom (II)."
@@ -2424,10 +2424,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ea = self.h5file.root.test
         # Append three rows
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2, 1, 3, 2, 4))
-        ea.append(a*1)
-        ea.append(a*2)
-        ea.append(a*3)
+        a = numpy.arange(2 * 3*2*4, dtype='i4').reshape((2, 1, 3, 2, 4))
+        ea.append(a * 1)
+        ea.append(a * 2)
+        ea.append(a * 3)
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[:, 2, ...]
@@ -2443,10 +2443,10 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ea = self.h5file.root.test
         # Append three rows
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2, 3, 1, 2, 4))
-        ea.append(a*1)
-        ea.append(a*2)
-        ea.append(a*3)
+        a = numpy.arange(2 * 3*2*4, dtype='i4').reshape((2, 3, 1, 2, 4))
+        ea.append(a * 1)
+        ea.append(a * 2)
+        ea.append(a * 3)
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[:, :, 2, ...]

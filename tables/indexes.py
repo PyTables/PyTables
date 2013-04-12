@@ -143,24 +143,24 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
         else:
             # No luck with cached data. Read the row and put it in the cache.
             bounds = self._v_parent.bounds[nrow]
-            size = bounds.size*bounds.itemsize
+            size = bounds.size * bounds.itemsize
             boundscache.setitem(nrow, bounds, size)
         if result1 < 0:
             # Search the appropriate chunk in bounds cache
             nchunk = bisect_left(bounds, item1)
-            chunk = self._read_sorted_slice(nrow, chunksize*nchunk,
-                                            chunksize*(nchunk+1))
+            chunk = self._read_sorted_slice(nrow, chunksize * nchunk,
+                                            chunksize*(nchunk + 1))
             result1 = self._bisect_left(chunk, item1, chunksize)
-            result1 += chunksize*nchunk
+            result1 += chunksize * nchunk
         # Lookup in the middle of slice for item2
         if result2 < 0:
             # Search the appropriate chunk in bounds cache
             nchunk2 = bisect_right(bounds, item2)
             if nchunk2 != nchunk:
-                chunk = self._read_sorted_slice(nrow, chunksize*nchunk2,
-                                                chunksize*(nchunk2+1))
+                chunk = self._read_sorted_slice(nrow, chunksize * nchunk2,
+                                                chunksize*(nchunk2 + 1))
             result2 = self._bisect_right(chunk, item2, chunksize)
-            result2 += chunksize*nchunk2
+            result2 += chunksize * nchunk2
         return (result1, result2)
 
     _searchBin = previous_api(_search_bin)
