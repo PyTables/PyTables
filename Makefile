@@ -29,7 +29,7 @@ clean:
 
 distclean:	clean
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
-	rm -f tables/_comp_*.c tables/*Extension.c
+	rm -f tables/_comp_*.c tables/*extension.c
 	#git clean -fdx
 
 html:
