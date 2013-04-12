@@ -79,10 +79,10 @@ _open_files = {}
 
 # Opcodes for do-undo actions
 _op_to_code = {
-    "MARK":    0,
-    "CREATE":  1,
-    "REMOVE":  2,
-    "MOVE":    3,
+    "MARK": 0,
+    "CREATE": 1,
+    "REMOVE": 2,
+    "MOVE": 3,
     "ADDATTR": 4,
     "DELATTR": 5,
 }

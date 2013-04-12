@@ -176,7 +176,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         Dirty indexes are out of sync with column data, so they exist but they
         are not usable.
-        """ )
+        """)
 
     def _getcolumn(self):
         tablepath, columnpath = _table_column_pathname_of_index(
@@ -273,8 +273,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     _is_CSI = previous_api(_is_csi)
 
-    is_csi = property(
-        _is_csi,  None, None,
+    is_csi = property(_is_csi, None, None,
         "Whether the index is completely sorted or not.")
 
     is_CSI = previous_api(is_csi)

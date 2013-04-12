@@ -340,28 +340,28 @@ infinityf = math.ldexp(1.0, 128)
 
 # "infinity" for several types
 infinitymap = {
-    'bool':    [0,          1],
-    'int8':    [-2**7,      2**7-1],
-    'uint8':   [0,          2**8-1],
-    'int16':   [-2**15,     2**15-1],
-    'uint16':  [0,          2**16-1],
-    'int32':   [-2**31,     2**31-1],
-    'uint32':  [0,          2**32-1],
-    'int64':   [-2**63,     2**63-1],
-    'uint64':  [0,          2**64-1],
+    'bool': [0, 1],
+    'int8': [-2**7, 2**7-1],
+    'uint8': [0, 2**8-1],
+    'int16': [-2**15, 2**15-1],
+    'uint16': [0, 2**16-1],
+    'int32': [-2**31, 2**31-1],
+    'uint32': [0, 2**32-1],
+    'int64': [-2**63, 2**63-1],
+    'uint64': [0, 2**64-1],
     'float32': [-infinityf, infinityf],
-    'float64': [-infinity,  infinity],
+    'float64': [-infinity, infinity],
 }
 
 if hasattr(numpy, 'float16'):
     infinitymap['float16'] = [-numpy.float16(
-        numpy.inf),  numpy.float16(numpy.inf)]
+        numpy.inf), numpy.float16(numpy.inf)]
 if hasattr(numpy, 'float96'):
     infinitymap['float96'] = [-numpy.float96(
-        numpy.inf),  numpy.float96(numpy.inf)]
+        numpy.inf), numpy.float96(numpy.inf)]
 if hasattr(numpy, 'float128'):
     infinitymap['float128'] = [-numpy.float128(
-        numpy.inf),  numpy.float128(numpy.inf)]
+        numpy.inf), numpy.float128(numpy.inf)]
 
 # Utility functions
 

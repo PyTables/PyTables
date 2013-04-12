@@ -187,7 +187,7 @@ class Group(hdf5extension.Group, Node):
         delete the FILTERS HDF5 attribute of the group, which stores a Filters
         instance (see :ref:`FiltersClassDescr`). When the group has no such
         attribute, a default Filters instance is used.
-        """ )
+        """)
 
     # </properties>
 

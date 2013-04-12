@@ -140,16 +140,15 @@ class Leaf(Node):
     name = property(
         lambda self: self._v_name, None, None,
         """The name of this node in its parent group
-        (This is an easier-to-write alias of :attr:`Node._v_name`).""" )
+        (This is an easier-to-write alias of :attr:`Node._v_name`).""")
 
     chunkshape = property(
         lambda self: self._v_chunkshape, None, None,
-        """
-        The HDF5 chunk size for chunked leaves (a tuple).
+        """The HDF5 chunk size for chunked leaves (a tuple).
 
         This is read-only because you cannot change the chunk size of a
         leaf once it has been created.
-        """ )
+        """)
 
     objectID = property(
         lambda self: self._v_objectid, None, None,
@@ -160,7 +159,7 @@ class Leaf(Node):
         lambda self: len(self.shape), None, None,
         """The number of dimensions of the leaf data.
 
-        .. versionadded: 2.4""" )
+        .. versionadded: 2.4""")
 
     # Lazy read-only attributes
     # `````````````````````````
@@ -189,7 +188,7 @@ class Leaf(Node):
 
         Its value is 0 (i.e. the first dimension) when the dataset is not
         extendable, and self.extdim (where available) for extendable ones.
-        """ )
+        """)
 
     def _setflavor(self, flavor):
         self._v_file._check_writable()

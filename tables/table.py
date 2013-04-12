@@ -659,7 +659,7 @@ class Table(tableextension.Table, Leaf):
         lambda self: [_colpname for _colpname in self.colpathnames
                       if self.colindexed[_colpname]],
         None, None,
-        """List of pathnames of indexed columns in the table.""" )
+        """List of pathnames of indexed columns in the table.""")
 
     colindexes = property(
         lambda self: _ColIndexes(
