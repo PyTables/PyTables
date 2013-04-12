@@ -214,14 +214,11 @@ class ReadFloatTestCase(common.PyTablesTestCase):
         else:
             # XXX: check
             #ds = self.assertWarns(UserWarning, getattr, self.fileh.root, dtype)
+            #self.assertTrue(isinstance(ds, UnImplemented))
 
-            # XXX: temporary change for debugging win32
             ds = getattr(self.fileh.root, dtype)
-            if hasattr(ds, "dtype"):
-                print
-                print 'ds.dtype:', ds.dtype
-                print
-            self.assertTrue(isinstance(ds, UnImplemented))
+            self.assertEqual(ds.dtype, "float64")
+
 
     def test05_read_quadprecision_float(self):
         #ds = self.assertWarns(UserWarning, getattr, self.fileh.root,
