@@ -39,6 +39,7 @@ from tables.utils import lazyattr
 _no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")
 # E.g. "gt" and "bfc" from "couldn't find matching opcode for 'gt_bfc'".
 
+
 def _unsupported_operation_error(exception):
     """Make the \"no matching opcode\" Numexpr `exception` more clear.
 
@@ -50,6 +51,7 @@ def _unsupported_operation_error(exception):
     newmessage = "unsupported operand types for *%s*: " % op
     newmessage += ', '.join([typecode_to_kind[t] for t in types[1:]])
     return exception.__class__(newmessage)
+
 
 def _check_indexable_cmp(getidxcmp):
     """Decorate `getidxcmp` to check the returned indexable comparison.
@@ -71,6 +73,7 @@ def _check_indexable_cmp(getidxcmp):
     newfunc.__doc__ = getidxcmp.__doc__
     return newfunc
 
+
 @_check_indexable_cmp
 def _get_indexable_cmp(exprnode, indexedcols):
     """Get the indexable variable-constant comparison in `exprnode`.
@@ -85,25 +88,25 @@ def _get_indexable_cmp(exprnode, indexedcols):
     """
 
     not_indexable = (None, None, None)
-    turncmp = { 'lt': 'gt',
-                'le': 'ge',
-                'eq': 'eq',
-                'ge': 'le',
-                'gt': 'lt', }
+    turncmp = {'lt': 'gt',
+               'le': 'ge',
+               'eq': 'eq',
+               'ge': 'le',
+               'gt': 'lt', }
 
     def get_cmp(var, const, op):
         var_value, const_value = var.value, const.value
-        if ( var.astType == 'variable' and var_value in indexedcols
-             and const.astType in ['constant', 'variable'] ):
+        if (var.astType == 'variable' and var_value in indexedcols
+           and const.astType in ['constant', 'variable']):
             if const.astType == 'variable':
                 const_value = (const_value, )
             return (var_value, op, const_value)
         return None
 
     def is_indexed_boolean(node):
-        return ( node.astType == 'variable'
-                 and node.astKind == 'bool'
-                 and node.value in indexedcols )
+        return (node.astType == 'variable'
+                and node.astKind == 'bool'
+                and node.value in indexedcols)
 
     # Boolean variables are indexable by themselves.
     if is_indexed_boolean(exprnode):
@@ -128,9 +131,11 @@ def _get_indexable_cmp(exprnode, indexedcols):
     # Look for a variable-constant comparison in both directions.
     left, right = exprnode.children
     cmp_ = get_cmp(left, right, cmpop)
-    if cmp_:  return cmp_
+    if cmp_:
+        return cmp_
     cmp_ = get_cmp(right, left, turncmp[cmpop])
-    if cmp_:  return cmp_
+    if cmp_:
+        return cmp_
 
     return not_indexable
 
@@ -147,14 +152,14 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     the tuple ([], ['']) so as to signal this.
     """
 
-    not_indexable =  ([], [''])
-    op_conv = { 'and': '&',
-                'or': '|',
-                'not': '~', }
-    negcmp = { 'lt': 'ge',
-               'le': 'gt',
-               'ge': 'lt',
-               'gt': 'le', }
+    not_indexable = ([], [''])
+    op_conv = {'and': '&',
+               'or': '|',
+               'not': '~', }
+    negcmp = {'lt': 'ge',
+              'le': 'gt',
+              'ge': 'lt',
+              'gt': 'le', }
 
     def fix_invert(idxcmp, exprnode, indexedcols):
         invert = False
@@ -225,10 +230,10 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
             lenexprs = len(idxexprs)
             # Mutate the strexpr string
             if lenexprs == 1:
-               strexpr[:] = ["e0"]
+                strexpr[:] = ["e0"]
             else:
                 strexpr[:] = [
-                    "(%s %s e%d)" % (strexpr[0], op_conv[op], lenexprs-1) ]
+                    "(%s %s e%d)" % (strexpr[0], op_conv[op], lenexprs-1)]
 
     # Add expressions to the indexable list when they are and'ed, or
     # they are both indexable.
@@ -293,7 +298,6 @@ class CompiledCondition(object):
                 idxvars.append(idxvar)
         return frozenset(idxvars)
 
-
     def __init__(self, func, params, idxexprs, strexpr):
         self.function = func
         """The compiled function object corresponding to this condition."""
@@ -305,10 +309,9 @@ class CompiledCondition(object):
         """The indexable expression in string format."""
 
     def __repr__(self):
-        return ( "idxexprs: %s\nstrexpr: %s\nidxvars: %s"
-                 % ( self.index_expressions, self.string_expression,
-                     self.index_variables) )
-
+        return ("idxexprs: %s\nstrexpr: %s\nidxvars: %s"
+                % (self.index_expressions, self.string_expression,
+                   self.index_variables))
 
     def with_replaced_vars(self, condvars):
         """Replace index limit variables with their values in-place.
@@ -332,7 +335,7 @@ class CompiledCondition(object):
             exprs2.append((var, ops, tuple(limit_values)))
         # Create a new container for the converted values
         newcc = CompiledCondition(
-            self.function, self.parameters, exprs2, self.string_expression )
+            self.function, self.parameters, exprs2, self.string_expression)
         return newcc
 
 
@@ -374,8 +377,8 @@ def compile_condition(condition, typemap, indexedcols, copycols):
     # Get the expression tree and extract index conditions.
     expr = stringToExpression(condition, typemap, {})
     if expr.astKind != 'bool':
-        raise TypeError( "condition ``%s`` does not have a boolean type"
-                         % condition )
+        raise TypeError("condition ``%s`` does not have a boolean type"
+                        % condition)
     idxexprs = _get_idx_expr(expr, indexedcols)
     # Post-process the answer
     if isinstance(idxexprs, list):
@@ -424,9 +427,3 @@ def call_on_recarr(func, params, recarr, param2arg=None):
             arg = get_nested_field(recarr, arg.pathname)
         args.append(arg)
     return func(*args)
-
-
-
-
-
-

@@ -50,14 +50,12 @@ class GarbageTestCase(common.PyTablesTestCase):
         self.fail("Possible leak: %d uncollected objects." % garbageLen)
 
 
-
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
     theSuite = unittest.TestSuite()
     theSuite.addTest(unittest.makeSuite(GarbageTestCase))
     return theSuite
-
 
 
 if __name__ == '__main__':
@@ -71,9 +69,3 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

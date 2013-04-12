@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import os, popen2, time
+import os
+import popen2
+import time
 import tables
 
 tref = time.time()
 trel = tref
+
 
 def show_mem(explain):
     global tref, trel
@@ -37,10 +40,10 @@ def show_mem(explain):
 
 def write_group(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "w")
+        fileh = tables.open_file(file, mode="w")
         for child in range(nchildren):
             fileh.create_group(fileh.root, 'group' + str(child),
-                              "child: %d" % child)
+                               "child: %d" % child)
         show_mem("After creating. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -48,11 +51,11 @@ def write_group(file, nchildren, niter):
 
 def read_group(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "r")
+        fileh = tables.open_file(file, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'group' + str(child))
             assert node is not None
-            #flavor = node._v_attrs.CLASS
+            # flavor = node._v_attrs.CLASS
 #         for child in fileh.walk_nodes():
 #             pass
         show_mem("After reading metadata. Iter %s" % i)
@@ -62,10 +65,10 @@ def read_group(file, nchildren, niter):
 
 def write_array(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "w")
+        fileh = tables.open_file(file, mode="w")
         for child in range(nchildren):
             fileh.create_array(fileh.root, 'array' + str(child),
-                              [1, 1], "child: %d" % child)
+                               [1, 1], "child: %d" % child)
         show_mem("After creating. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -73,17 +76,17 @@ def write_array(file, nchildren, niter):
 
 def read_array(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "r")
+        fileh = tables.open_file(file, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'array' + str(child))
-            #flavor = node._v_attrs.FLAVOR
+            # flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
             assert data is not None
         show_mem("After reading data. Iter %s" % i)
 #         for child in range(nchildren):
 #             node = fileh.get_node(fileh.root, 'array' + str(child))
 #             flavor = node._v_attrs.FLAVOR
-            #flavor = node._v_attrs
+            # flavor = node._v_attrs
 #         for child in fileh.walk_nodes():
 #             pass
 #         show_mem("After reading metadata. Iter %s" % i)
@@ -93,10 +96,10 @@ def read_array(file, nchildren, niter):
 
 def write_carray(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "w")
+        fileh = tables.open_file(file, mode="w")
         for child in range(nchildren):
             fileh.create_carray(fileh.root, 'array' + str(child),
-                               tables.IntAtom(), (2,), "child: %d" % child)
+                                tables.IntAtom(), (2,), "child: %d" % child)
         show_mem("After creating. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -104,24 +107,25 @@ def write_carray(file, nchildren, niter):
 
 def read_carray(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "r")
+        fileh = tables.open_file(file, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'array' + str(child))
-            #flavor = node._v_attrs.FLAVOR
+            # flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
             assert data is not None
-            #print "data-->", data
+            # print "data-->", data
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
 
+
 def write_earray(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "w")
+        fileh = tables.open_file(file, mode="w")
         for child in range(nchildren):
             ea = fileh.create_earray(fileh.root, 'array' + str(child),
-                                    tables.IntAtom(), shape=(0,),
-                                    title="child: %d" % child)
+                                     tables.IntAtom(), shape=(0,),
+                                     title="child: %d" % child)
             ea.append([1, 2, 3])
         show_mem("After creating. Iter %s" % i)
         fileh.close()
@@ -130,23 +134,24 @@ def write_earray(file, nchildren, niter):
 
 def read_earray(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "r")
+        fileh = tables.open_file(file, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'array' + str(child))
-            #flavor = node._v_attrs.FLAVOR
+            # flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
             assert data is not None
-            #print "data-->", data
+            # print "data-->", data
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
 
+
 def write_vlarray(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "w")
+        fileh = tables.open_file(file, mode="w")
         for child in range(nchildren):
             vl = fileh.create_vlarray(fileh.root, 'array' + str(child),
-                                     tables.IntAtom(), "child: %d" % child)
+                                      tables.IntAtom(), "child: %d" % child)
             vl.append([1, 2, 3])
         show_mem("After creating. Iter %s" % i)
         fileh.close()
@@ -155,16 +160,17 @@ def write_vlarray(file, nchildren, niter):
 
 def read_vlarray(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "r")
+        fileh = tables.open_file(file, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'array' + str(child))
-            #flavor = node._v_attrs.FLAVOR
+            # flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
             assert data is not None
-            #print "data-->", data
+            # print "data-->", data
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
+
 
 def write_table(file, nchildren, niter):
 
@@ -174,10 +180,10 @@ def write_table(file, nchildren, niter):
         var3 = tables.FloatCol(pos=3)
 
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "w")
+        fileh = tables.open_file(file, mode="w")
         for child in range(nchildren):
             t = fileh.create_table(fileh.root, 'table' + str(child),
-                                  Record, "child: %d" % child)
+                                   Record, "child: %d" % child)
             t.append([[1, "2", 3.]])
         show_mem("After creating. Iter %s" % i)
         fileh.close()
@@ -186,13 +192,13 @@ def write_table(file, nchildren, niter):
 
 def read_table(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "r")
+        fileh = tables.open_file(file, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'table' + str(child))
-            #klass = node._v_attrs.CLASS
+            # klass = node._v_attrs.CLASS
             data = node[:]  # Read data
             assert data is not None
-            #print "data-->", data
+            # print "data-->", data
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -206,10 +212,10 @@ def write_xtable(file, nchildren, niter):
         var3 = tables.FloatCol(pos=3)
 
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "w")
+        fileh = tables.open_file(file, mode="w")
         for child in range(nchildren):
             t = fileh.create_table(fileh.root, 'table' + str(child),
-                                  Record, "child: %d" % child)
+                                   Record, "child: %d" % child)
             t.append([[1, "2", 3.]])
             t.cols.var1.create_index()
         show_mem("After creating. Iter %s" % i)
@@ -219,12 +225,12 @@ def write_xtable(file, nchildren, niter):
 
 def read_xtable(file, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode = "r")
+        fileh = tables.open_file(file, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'table' + str(child))
-            #klass = node._v_attrs.CLASS
-            #data = node[:]  # Read data
-            #print "data-->", data
+            # klass = node._v_attrs.CLASS
+            # data = node[:]  # Read data
+            # print "data-->", data
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -232,7 +238,9 @@ def read_xtable(file, nchildren, niter):
 
 
 if __name__ == '__main__':
-    import sys, getopt, pstats
+    import sys
+    import getopt
+    import pstats
     import profile as prof
 
     usage = """usage: %s [-v] [-p] [-a] [-c] [-e] [-l] [-t] [-x] [-g] [-r] [-w] [-c nchildren] [-n iter] file
@@ -361,9 +369,3 @@ if __name__ == '__main__':
                 stats.print_stats(20)
         else:
             eval(fread+'(file, nchildren, niter)')
-
-
-
-
-
-

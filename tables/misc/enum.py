@@ -113,7 +113,6 @@ class Enum(object):
     strings as concrete values.)
     """
 
-
     def __init__(self, enum):
         mydict = self.__dict__
 
@@ -133,7 +132,6 @@ class Enum(object):
             raise TypeError("""\
 enumerations can only be created from \
 sequences, mappings and other enumerations""")
-
 
     def _check_and_set_pair(self, name, value):
         """Check validity of enumerated value and insert it into type."""
@@ -164,7 +162,6 @@ sequences, mappings and other enumerations""")
 
     _checkAndSetPair = previous_api(_check_and_set_pair)
 
-
     def __getitem__(self, name):
         """
         Get the concrete value of the enumerated value with that name.
@@ -194,16 +191,13 @@ sequences, mappings and other enumerations""")
         except KeyError:
             raise KeyError("no enumerated value with that name: %r" % (name,))
 
-
     def __setitem__(self, name, value):
         """This operation is forbidden."""
         raise IndexError("operation not allowed")
 
-
     def __delitem__(self, name):
         """This operation is forbidden."""
         raise IndexError("operation not allowed")
-
 
     def __getattr__(self, name):
         """
@@ -233,16 +227,13 @@ sequences, mappings and other enumerations""")
         except KeyError, ke:
             raise AttributeError(*ke.args)
 
-
     def __setattr__(self, name, value):
         """This operation is forbidden."""
         raise AttributeError("operation not allowed")
 
-
     def __delattr__(self, name):
         """This operation is forbidden."""
         raise AttributeError("operation not allowed")
-
 
     def __contains__(self, name):
         """
@@ -281,7 +272,6 @@ sequences, mappings and other enumerations""")
                 "name of enumerated value is not a string: %r" % (name,))
         return name in self._names
 
-
     def __call__(self, value, *default):
         """
         Get the name of the enumerated value with that concrete value.
@@ -319,7 +309,6 @@ sequences, mappings and other enumerations""")
             raise ValueError(
                 "no enumerated value with that concrete value: %r" % (value,))
 
-
     def __len__(self):
         """
         Return the number of enumerated values in the enumerated type.
@@ -331,7 +320,6 @@ sequences, mappings and other enumerations""")
         """
 
         return len(self._names)
-
 
     def __iter__(self):
         """
@@ -351,7 +339,6 @@ sequences, mappings and other enumerations""")
 
         for name_value in self._names.iteritems():
             yield name_value
-
 
     def __eq__(self, other):
         """
@@ -400,7 +387,6 @@ sequences, mappings and other enumerations""")
             return False
         return self._names == other._names
 
-
     def __ne__(self, other):
         """
         Is the `other` enumerated type different from this one?
@@ -437,12 +423,10 @@ sequences, mappings and other enumerations""")
 
         return not self.__eq__(other)
 
-
     # XXX: API incompatible change for PyTables 3 line
     # Overriding __eq__ blocks inheritance of __hash__ in 3.x
-    #def __hash__(self):
+    # def __hash__(self):
     #    return hash((self.__class__, tuple(self._names.items())))
-
     def __repr__(self):
         """
         Return the canonical string representation of the enumeration. The
@@ -456,7 +440,6 @@ sequences, mappings and other enumerations""")
         """
 
         return 'Enum(%s)' % self._names
-
 
 
 def _test():
@@ -475,9 +458,3 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

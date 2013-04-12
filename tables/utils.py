@@ -119,7 +119,7 @@ def convert_to_np_atom2(object, atom):
     nparr = convert_to_np_atom(object, atom, copy)
     # Finally, check the byteorder and change it if needed
     byteorder = byteorders[nparr.dtype.byteorder]
-    if ( byteorder in ['little', 'big'] and byteorder != sys.byteorder ):
+    if (byteorder in ['little', 'big'] and byteorder != sys.byteorder):
         # The byteorder needs to be fixed (a copy is made
         # so that the original array is not modified)
         nparr = nparr.byteswap()
@@ -226,6 +226,7 @@ def lazyattr(fget):
     """
 
     name = fget.__name__
+
     def newfget(self):
         mydict = self.__dict__
         if name in mydict:
@@ -273,6 +274,7 @@ def show_stats(explain, tref, encoding=None):
 tracked_classes = {}
 import weakref
 
+
 def log_instance_creation(instance, name=None):
     if name is None:
         name = instance.__class__.__name__
@@ -282,6 +284,7 @@ def log_instance_creation(instance, name=None):
 
 logInstanceCreation = previous_api(log_instance_creation)
 
+
 def string_to_classes(s):
     if s == '*':
         c = sorted(tracked_classes.iterkeys())
@@ -289,17 +292,20 @@ def string_to_classes(s):
     else:
         return s.split()
 
+
 def fetch_logged_instances(classes="*"):
     classnames = string_to_classes(classes)
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
 fetchLoggedInstances = previous_api(fetch_logged_instances)
 
+
 def count_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
 
 countLoggedInstances = previous_api(count_logged_instances)
+
 
 def list_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
@@ -310,6 +316,7 @@ def list_logged_instances(classes, file=sys.stdout):
                 file.write('    %s\n' % repr(obj))
 
 listLoggedInstances = previous_api(list_logged_instances)
+
 
 def dump_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
@@ -360,8 +367,10 @@ class NailedDict(object):
 
     def clear(self):
         self._cache.clear()
+
     def nail(self):
         self._nailcount += 1
+
     def unnail(self):
         self._nailcount -= 1
 
@@ -406,14 +415,14 @@ def detect_number_of_cores():
             ncpus = os.sysconf("SC_NPROCESSORS_ONLN")
             if isinstance(ncpus, int) and ncpus > 0:
                 return ncpus
-        else: # OSX:
+        else:  # OSX:
             return int(os.popen2("sysctl -n hw.ncpu")[1].read())
     # Windows:
     if "NUMBER_OF_PROCESSORS" in os.environ:
-        ncpus = int(os.environ["NUMBER_OF_PROCESSORS"]);
+        ncpus = int(os.environ["NUMBER_OF_PROCESSORS"])
         if ncpus > 0:
             return ncpus
-    return 1 # Default
+    return 1  # Default
 
 detectNumberOfCores = previous_api(detect_number_of_cores)
 
@@ -436,9 +445,3 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

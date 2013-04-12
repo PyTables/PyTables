@@ -203,12 +203,12 @@ class Col(atom.Atom):
 
             # XXX: API incompatible change for PyTables 3 line
             # Overriding __eq__ blocks inheritance of __hash__ in 3.x
-            #def __hash__(self):
+            # def __hash__(self):
             #    return hash((self._v_pos, self.atombase))
 
             if prefix == 'Enum':
                 _is_equal_to_enumatom = same_position(
-                    atombase._is_equal_to_enumatom )
+                    atombase._is_equal_to_enumatom)
 
         NewCol.__name__ = cname
 
@@ -234,6 +234,7 @@ class Col(atom.Atom):
         kwargs = dict((arg, getattr(self, arg)) for arg in ('shape', 'dflt'))
         kwargs['pos'] = getattr(self, '_v_pos', None)
         return kwargs
+
 
 def _generate_col_classes():
     """Generate all column classes."""
@@ -399,29 +400,29 @@ class Description(object):
         for (name, descr) in classdict.iteritems():
             if name.startswith('_v_'):
                 if name in newdict:
-                    #print "Warning!"
+                    # print "Warning!"
                     # special methods &c: copy to newdict, warn about conflicts
-                    warnings.warn("Can't set attr %r in description class %r" \
+                    warnings.warn("Can't set attr %r in description class %r"
                                   % (name, self))
                 else:
-                    #print "Special variable!-->", name, classdict[name]
+                    # print "Special variable!-->", name, classdict[name]
                     newdict[name] = descr
                 continue  # This variable is not needed anymore
 
             columns = None
             if (type(descr) == type(IsDescription) and
-                issubclass(descr, IsDescription)):
-                #print "Nested object (type I)-->", name
+                    issubclass(descr, IsDescription)):
+                # print "Nested object (type I)-->", name
                 columns = descr().columns
             elif (type(descr.__class__) == type(IsDescription) and
-                issubclass(descr.__class__, IsDescription)):
-                #print "Nested object (type II)-->", name
+                  issubclass(descr.__class__, IsDescription)):
+                # print "Nested object (type II)-->", name
                 columns = descr.columns
             elif isinstance(descr, dict):
-                #print "Nested object (type III)-->", name
+                # print "Nested object (type III)-->", name
                 columns = descr
             else:
-                #print "Nested object (type IV)-->", name
+                # print "Nested object (type IV)-->", name
                 descr = copy.copy(descr)
             # The copies above and below ensure that the structures
             # provided by the user will remain unchanged even if we
@@ -507,7 +508,6 @@ class Description(object):
                     "Using a ``_v_byteorder`` in the description is obsolete. "
                     "Use the byteorder parameter in the constructor instead.")
 
-
     def _g_set_nested_names_descr(self):
         """Computes the nested names and descriptions for nested datatypes."""
 
@@ -527,7 +527,6 @@ class Description(object):
                 self._v_is_nested = True
 
     _g_setNestedNamesDescr = previous_api(_g_set_nested_names_descr)
-
 
     def _g_set_path_names(self):
         """Compute the pathnames for arbitrary nested descriptions.
@@ -606,7 +605,6 @@ class Description(object):
 
     _g_setPathNames = previous_api(_g_set_path_names)
 
-
     def _f_walk(self, type='All'):
         """Iterate over nested columns.
 
@@ -635,15 +633,13 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
                     if type in ["All", "Col"]:
                         yield new_object  # yield column
 
-
     def __repr__(self):
         """Gives a detailed Description column representation."""
 
-        rep = [ '%s\"%s\": %r' %  \
-                ("  "*self._v_nestedlvl, k, self._v_colObjects[k])
-                for k in self._v_names]
+        rep = ['%s\"%s\": %r' %
+               ("  "*self._v_nestedlvl, k, self._v_colObjects[k])
+               for k in self._v_names]
         return '{\n  %s}' % (',\n  '.join(rep))
-
 
     def __str__(self):
         """Gives a brief Description representation."""
@@ -664,7 +660,7 @@ class MetaIsDescription(type):
             if "columns" in b.__dict__:
                 newdict["columns"].update(b.__dict__["columns"])
         for k in classdict:
-            #if not (k.startswith('__') or k.startswith('_v_')):
+            # if not (k.startswith('__') or k.startswith('_v_')):
             # We let pass _v_ variables to configure class behaviour
             if not (k.startswith('__')):
                 newdict["columns"][k] = classdict[k]
@@ -673,6 +669,7 @@ class MetaIsDescription(type):
         return type.__new__(cls, classname, bases, newdict)
 
 metaIsDescription = previous_api(MetaIsDescription)
+
 
 class IsDescription(object):
     """Description of the structure of a table or nested column.
@@ -726,7 +723,7 @@ def descr_from_dtype(dtype_):
 
     fields = {}
     fbyteorder = '|'
-    for name  in dtype_.names:
+    for name in dtype_.names:
         dtype, pos = dtype_.fields[name][:2]
         kind = dtype.base.kind
         byteorder = dtype.base.byteorder
@@ -734,7 +731,7 @@ def descr_from_dtype(dtype_):
             if fbyteorder not in ['|', byteorder]:
                 raise NotImplementedError(
                     "structured arrays with mixed byteorders "
-                    "are not supported yet, sorry" )
+                    "are not supported yet, sorry")
             fbyteorder = byteorder
         # Non-nested column
         if kind in 'biufSc':
@@ -746,7 +743,7 @@ def descr_from_dtype(dtype_):
         else:
             raise NotImplementedError(
                 "structured arrays with columns with type description ``%s`` "
-                "are not supported yet, sorry" % dtype )
+                "are not supported yet, sorry" % dtype)
         fields[name] = col
 
     return Description(fields), fbyteorder
@@ -763,7 +760,7 @@ def dtype_from_descr(descr, byteorder=None):
     if isinstance(descr, dict):
         descr = Description(descr)
     elif (type(descr) == type(IsDescription)
-                   and issubclass(descr, IsDescription)):
+          and issubclass(descr, IsDescription)):
         descr = Description(descr().columns)
     elif isinstance(descr, IsDescription):
         descr = Description(descr.columns)
@@ -778,7 +775,7 @@ def dtype_from_descr(descr, byteorder=None):
     return dtype_
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     """Test code"""
 
     class Info(IsDescription):
@@ -793,19 +790,22 @@ if __name__=="__main__":
         y = Col.from_kind('float', dflt=1, shape=(2, 3))
         z = UInt8Col(dflt=1)
         color = StringCol(2, dflt=" ")
-        #color = UInt32Col(2)
+        # color = UInt32Col(2)
         Info = Info()
+
         class info(IsDescription):
             _v_pos = 1
             name = UInt32Col()
             value = Float64Col(pos=0)
             y2 = Col.from_kind('float', dflt=1, shape=(2, 3), pos=1)
             z2 = UInt8Col(dflt=1)
+
             class info2(IsDescription):
                 y3 = Col.from_kind('float', dflt=1, shape=(2, 3))
                 z3 = UInt8Col(dflt=1)
                 name = UInt32Col()
                 value = Float64Col()
+
                 class info3(IsDescription):
                     name = UInt32Col()
                     value = Float64Col()
@@ -843,7 +843,7 @@ if __name__=="__main__":
 
     # example cases of class Test
     klass = Test()
-    #klass = Info()
+    # klass = Info()
     desc = Description(klass.columns)
     print "Description representation (short) ==>", desc
     print "Description representation (long) ==>", repr(desc)
@@ -858,20 +858,18 @@ if __name__=="__main__":
     print "Nested Descriptions (info) ==>", desc.info._v_nestedDescr
     print "Total size ==>", desc._v_dtype.itemsize
 
-
     # check _f_walk
     for object in desc._f_walk():
         if isinstance(object, Description):
             print "******begin object*************",
             print "name -->", object._v_name
-            #print "name -->", object._v_dtype.name
-            #print "object childs-->", object._v_names
-            #print "object nested childs-->", object._v_nestedNames
+            # print "name -->", object._v_dtype.name
+            # print "object childs-->", object._v_names
+            # print "object nested childs-->", object._v_nestedNames
             print "totalsize-->", object._v_dtype.itemsize
         else:
-            #pass
+            # pass
             print "leaf -->", object._v_name, object.dtype
-
 
     class testDescParent(IsDescription):
         c = Int32Col()
@@ -887,9 +885,3 @@ if __name__=="__main__":
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

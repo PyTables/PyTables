@@ -19,6 +19,8 @@ import tables as tb
 from tables.tests import common
 
 # An example of record
+
+
 class Record(tb.IsDescription):
     colInt32 = tb.Int32Col()
     colInt64 = tb.Int64Col()
@@ -37,6 +39,7 @@ def get_sliced_vars(npvars, start, stop, step):
             npvars_[name] = var
     return npvars_
 
+
 def get_sliced_vars2(npvars, start, stop, step, shape, maindim):
     npvars_ = {}
     slices = [slice(None) for dim in shape]
@@ -44,7 +47,6 @@ def get_sliced_vars2(npvars, start, stop, step, shape, maindim):
     for name, var in npvars.iteritems():
         npvars_[name] = var.__getitem__(tuple(slices))
     return npvars_
-
 
 
 # Basic tests
@@ -63,7 +65,7 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.b = b = np.arange(N, 2*N, dtype='int64').reshape(self.shape)
         self.c = c = np.arange(2*N, 3*N, dtype='int32').reshape(self.shape)
         self.r1 = r1 = np.empty(N, dtype='int64').reshape(self.shape)
-        self.npvars = {"a": a, "b": b, "c": c,}
+        self.npvars = {"a": a, "b": b, "c": c, }
         # Define other variables, if needed
         root = self.h5file.root
         if self.kind == "Array":
@@ -107,7 +109,7 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.b = t.cols.f1
             self.c = t.cols.f2
             self.d = t.cols.f3
-        self.vars = {"a": self.a, "b": self.b, "c": self.c,}
+        self.vars = {"a": self.a, "b": self.b, "c": self.c, }
 
     def test00_simple(self):
         """Checking that expression is correctly evaluated"""
@@ -136,17 +138,22 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
+
 class ExprNumPy(ExprTestCase):
     kind = "NumPy"
+
 
 class ExprArray(ExprTestCase):
     kind = "Array"
 
+
 class ExprCArray(ExprTestCase):
     kind = "CArray"
 
+
 class ExprEArray(ExprTestCase):
     kind = "EArray"
+
 
 class ExprColumn(ExprTestCase):
     kind = "Column"
@@ -197,20 +204,20 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         rtype = {}
         colshape = self.shape[1:]
         for i, col in enumerate((a, b, c, d, e, rnda)):
-            rtype['f%d'%i] = tb.Col.from_sctype(col.dtype.type, colshape)
+            rtype['f%d' % i] = tb.Col.from_sctype(col.dtype.type, colshape)
         t = self.h5file.create_table(root, "t", rtype)
         nrows = self.shape[0]
         row = t.row
         for nrow in range(nrows):
             for i, col in enumerate((a, b, c, d, e, rnda)):
-                row['f%d'%i] = col[nrow]
+                row['f%d' % i] = col[nrow]
             row.append()
         t.flush()
         self.e = t.cols.f4
         self.rcol = t.cols.f5
         # Input vars
         self.vars = {"a": self.a, "b": self.b, "c": self.c, "d": self.d,
-                     "e": self.e, "f": self.f, "g": self.g,}
+                     "e": self.e, "f": self.f, "g": self.g, }
 
     def test00a_simple(self):
         """Checking expressions with mixed objects"""
@@ -235,8 +242,9 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "Computed expression:", repr(r1), r1.dtype
             print "Should look like:", repr(r2), r2.dtype
-        self.assertTrue(r1.shape == r2.shape and r1.dtype == r2.dtype and r1 == r2,
-                        "Evaluate is returning a wrong value.")
+        self.assertTrue(
+            r1.shape == r2.shape and r1.dtype == r2.dtype and r1 == r2,
+            "Evaluate is returning a wrong value.")
 
     def test01a_out(self):
         """Checking expressions with mixed objects (`out` param)"""
@@ -292,7 +300,6 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
-
     def test02b_sss(self):
         """Checking mixed objects and start, stop, step (II)"""
 
@@ -326,8 +333,8 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_sss(self):
         """Checking start, stop, step as numpy.int64"""
 
-        start, stop, step = [ np.int64(i) for i in
-                              (self.start, self.stop, self.step) ]
+        start, stop, step = [np.int64(i) for i in
+                                     (self.start, self.stop, self.step)]
         expr = tb.Expr(self.expr, self.vars)
         expr.set_inputs_range(start, stop, step)
         r1 = expr.eval()
@@ -344,18 +351,20 @@ class MixedContainers0(MixedContainersTestCase):
     shape = (1,)
     start, stop, step = (0, 1, 1)
 
+
 class MixedContainers1(MixedContainersTestCase):
     shape = (10,)
     start, stop, step = (3, 6, 2)
+
 
 class MixedContainers2(MixedContainersTestCase):
     shape = (10, 5)
     start, stop, step = (2, 9, 3)
 
+
 class MixedContainers3(MixedContainersTestCase):
     shape = (10, 3, 2)
     start, stop, step = (2, -1, 1)
-
 
 
 # Test for unaligned objects
@@ -385,7 +394,6 @@ class UnalignedObject(common.PyTablesTestCase):
             print "Should look like:", repr(r2), r2.dtype
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
-
 
     def test01_md(self):
         """Checking expressions with unaligned objects (MD version)"""
@@ -436,7 +444,6 @@ class NonContiguousObject(common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
-
     def test01a_md(self):
         """Checking expressions with non-contiguous objects (MD version, I)"""
 
@@ -456,7 +463,6 @@ class NonContiguousObject(common.PyTablesTestCase):
             print "Should look like:", repr(r2), r2.dtype
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
-
 
     def test01b_md(self):
         """Checking expressions with non-contiguous objects (MD version, II)"""
@@ -479,7 +485,6 @@ class NonContiguousObject(common.PyTablesTestCase):
                         "Evaluate is returning a wrong value.")
 
 
-
 # Test for errors
 class ExprError(common.TempFileMixin, common.PyTablesTestCase):
 
@@ -500,7 +505,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
 
         self.b = self.b.reshape(self.shape+(1,))
         expr = "a*b+c"
-        vars_ = {"a": self.a, "b": self.b, "c": self.c,}
+        vars_ = {"a": self.a, "b": self.b, "c": self.c, }
         expr = tb.Expr(expr, vars_)
         self.assertRaises(ValueError, expr.eval)
 
@@ -509,7 +514,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
 
         self.b = self.b.view('uint64')
         expr = "a*b+c"
-        vars_ = {"a": self.a, "b": self.b, "c": self.c,}
+        vars_ = {"a": self.a, "b": self.b, "c": self.c, }
         self.assertRaises(NotImplementedError, tb.Expr, expr, vars_)
 
     def test03_table(self):
@@ -521,7 +526,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
 
         t = self.h5file.create_table("/", "a", Rec)
         expr = "a*b+c"
-        vars_ = {"a": t, "b": self.b, "c": self.c,}
+        vars_ = {"a": t, "b": self.b, "c": self.c, }
         self.assertRaises(TypeError, tb.Expr, expr, vars_)
 
     def test04_nestedcols(self):
@@ -529,6 +534,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
 
         class Nested(tb.IsDescription):
             col1 = tb.Int32Col()
+
             class col2(tb.IsDescription):
                 col3 = tb.Int64Col()
 
@@ -536,13 +542,13 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
         expr = "a*b+c"
         # The next non-nested column should work
         a = t.cols.col2.col3
-        vars_ = {"a": a, "b": self.b, "c": self.c,}
+        vars_ = {"a": a, "b": self.b, "c": self.c, }
         expr = tb.Expr(expr, vars_)
         r1 = expr.eval()
         self.assertTrue(r1 is not None)
         # But a nested column should not
         a = t.cols.col2
-        vars_ = {"a": a, "b": self.b, "c": self.c,}
+        vars_ = {"a": a, "b": self.b, "c": self.c, }
         self.assertRaises(TypeError, tb.Expr, expr, vars_)
 
     def test05_vlarray(self):
@@ -550,9 +556,8 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
 
         vla = self.h5file.create_vlarray("/", "a", tb.Int32Col())
         expr = "a*b+c"
-        vars_ = {"a": vla, "b": self.b, "c": self.c,}
+        vars_ = {"a": vla, "b": self.b, "c": self.c, }
         self.assertRaises(TypeError, tb.Expr, expr, vars_)
-
 
 
 # Test for broadcasting arrays
@@ -587,30 +592,36 @@ class BroadcastTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
+
 class Broadcast0(BroadcastTestCase):
     shape1 = (0, 3, 4)
     shape2 = (3, 4)
     shape3 = (4,)
+
 
 class Broadcast1(BroadcastTestCase):
     shape1 = (2, 3, 4)
     shape2 = (3, 4)
     shape3 = (4,)
 
+
 class Broadcast2(BroadcastTestCase):
     shape1 = (3, 4,)
     shape2 = (3, 4)
     shape3 = (4,)
+
 
 class Broadcast3(BroadcastTestCase):
     shape1 = (4,)
     shape2 = (3, 4)
     shape3 = (4,)
 
+
 class Broadcast4(BroadcastTestCase):
     shape1 = (1,)
     shape2 = (3, 4)
     shape3 = (4,)
+
 
 class Broadcast5(BroadcastTestCase):
     shape1 = (1,)
@@ -654,25 +665,30 @@ class DiffLengthTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
+
 class DiffLength0(DiffLengthTestCase):
     shape1 = (0,)
     shape2 = (10,)
     shape3 = (20,)
+
 
 class DiffLength1(DiffLengthTestCase):
     shape1 = (3,)
     shape2 = (10,)
     shape3 = (20,)
 
+
 class DiffLength2(DiffLengthTestCase):
     shape1 = (3, 4)
     shape2 = (2, 3, 4)
     shape3 = (4, 3, 4)
 
+
 class DiffLength3(DiffLengthTestCase):
     shape1 = (1, 3, 4)
     shape2 = (2, 3, 4)
     shape3 = (4, 3, 4)
+
 
 class DiffLength4(DiffLengthTestCase):
     shape1 = (0, 3, 4)
@@ -702,7 +718,6 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "Should look like:", repr(r2), r2.dtype
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
-
 
     def test01_shortint(self):
         """Checking int8,uint8,int16,uint16 and int32 in expression"""
@@ -1022,13 +1037,16 @@ class Maindim0(MaindimTestCase):
     maindim = 1
     shape = (1, 2)
 
+
 class Maindim1(MaindimTestCase):
     maindim = 1
     shape = (2, 3)
 
+
 class Maindim2(MaindimTestCase):
     maindim = 1
     shape = (2, 3, 4)
+
 
 class Maindim3(MaindimTestCase):
     maindim = 2
@@ -1072,6 +1090,7 @@ class AppendModeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 class AppendModeTrue(AppendModeTestCase):
     append = True
+
 
 class AppendModeFalse(AppendModeTestCase):
     append = False
@@ -1164,30 +1183,36 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(r1[:], r2),
                         "Evaluate is returning a wrong value.")
 
+
 class iter0(iterTestCase):
     maindim = 0
     shape = (0,)
     range_ = (1, 2, 1)
+
 
 class iter1(iterTestCase):
     maindim = 0
     shape = (3,)
     range_ = (1, 2, 1)
 
+
 class iter2(iterTestCase):
     maindim = 0
     shape = (3, 2)
     range_ = (0, 3, 2)
+
 
 class iter3(iterTestCase):
     maindim = 1
     shape = (3, 2)
     range_ = (0, 3, 2)
 
+
 class iter4(iterTestCase):
     maindim = 2
     shape = (3, 2, 1)
     range_ = (1, 3, 2)
+
 
 class iter5(iterTestCase):
     maindim = 2
@@ -1251,7 +1276,7 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr.eval()
         r2 = eval("a-b-1")
         lsl = tuple([slice(None)] * self.maindim)
-        #print "lsl-->", lsl + (slice(start,stop,step),)
+        # print "lsl-->", lsl + (slice(start,stop,step),)
         l = len(xrange(start, stop, step))
         r.__setitem__(lsl + (slice(start, stop, step),),
                       r2.__getitem__(lsl + (slice(0, l),)))
@@ -1262,50 +1287,60 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(r1[:], r),
                         "Evaluate is returning a wrong value.")
 
+
 class setOutputRange0(setOutputRangeTestCase):
     maindim = 0
     shape = (10,)
     range_ = (0, 1, 2)
+
 
 class setOutputRange1(setOutputRangeTestCase):
     maindim = 0
     shape = (10,)
     range_ = (0, 10, 2)
 
+
 class setOutputRange2(setOutputRangeTestCase):
     maindim = 0
     shape = (10,)
     range_ = (1, 10, 2)
+
 
 class setOutputRange3(setOutputRangeTestCase):
     maindim = 0
     shape = (10, 1)
     range_ = (1, 10, 3)
 
+
 class setOutputRange4(setOutputRangeTestCase):
     maindim = 0
     shape = (10, 2)
     range_ = (1, 10, 3)
+
 
 class setOutputRange5(setOutputRangeTestCase):
     maindim = 0
     shape = (5, 3, 1)
     range_ = (1, 5, 1)
 
+
 class setOutputRange6(setOutputRangeTestCase):
     maindim = 1
     shape = (2, 5)
     range_ = (1, 3, 2)
+
 
 class setOutputRange7(setOutputRangeTestCase):
     maindim = 1
     shape = (2, 5, 1)
     range_ = (1, 3, 2)
 
+
 class setOutputRange8(setOutputRangeTestCase):
     maindim = 2
     shape = (1, 3, 5)
     range_ = (1, 5, 2)
+
 
 class setOutputRange9(setOutputRangeTestCase):
     maindim = 3
@@ -1330,13 +1365,13 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Build input arrays
         root = self.h5file.root
         a = self.h5file.create_carray(root, 'a', tb.Float64Atom(dflt=3),
-                                     shape, filters=filters)
+                                      shape, filters=filters)
         self.assertTrue(a is not None)
         b = self.h5file.create_carray(root, 'b', tb.Float64Atom(dflt=2),
-                                     shape, filters=filters)
+                                      shape, filters=filters)
         self.assertTrue(b is not None)
         r1 = self.h5file.create_carray(root, 'r1', tb.Float64Atom(dflt=3),
-                                      shape, filters=filters)
+                                       shape, filters=filters)
         # The expression
         expr = tb.Expr("a*b-6")   # Should give 0
         expr.set_output(r1)
@@ -1368,13 +1403,13 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Build input arrays
         root = self.h5file.root
         a = self.h5file.create_carray(root, 'a', tb.Int32Atom(dflt=1),
-                                     shape, filters=filters)
+                                      shape, filters=filters)
         self.assertTrue(a is not None)
         b = self.h5file.create_carray(root, 'b', tb.Int32Atom(dflt=2),
-                                     shape, filters=filters)
+                                      shape, filters=filters)
         self.assertTrue(b is not None)
         r1 = self.h5file.create_carray(root, 'r1', tb.Int32Atom(dflt=3),
-                                      shape, filters=filters)
+                                       shape, filters=filters)
         # The expression
         expr = tb.Expr("a-b+1")
         r1 = sum(expr)     # Should give 0
@@ -1385,11 +1420,15 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(r1, 0, "Evaluate is returning a wrong value.")
 
 # The next can go on regular tests, as it should be light enough
+
+
 class VeryLargeInputs1(VeryLargeInputsTestCase):
     shape = (2**20,)    # larger than any internal I/O buffers
 
 # The next is only meant for 'heavy' mode as it can take more than 1 minute
 # on modern machines
+
+
 class VeryLargeInputs2(VeryLargeInputsTestCase):
     shape = (2**32+1,)    # check that arrays > 32-bit are supported
 
@@ -1401,7 +1440,7 @@ def suite():
 
     theSuite = unittest.TestSuite()
     niter = 1
-    #common.heavy = 1  # uncomment this only for testing purposes
+    # common.heavy = 1  # uncomment this only for testing purposes
 
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(ExprNumPy))
@@ -1458,7 +1497,7 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
+    unittest.main(defaultTest='suite')
 
 
 
@@ -1468,9 +1507,3 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

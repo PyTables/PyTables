@@ -15,7 +15,8 @@
 import sys
 from bisect import bisect_left, bisect_right
 from time import time, clock
-import os, os.path
+import os
+import os.path
 import tempfile
 import math
 import warnings
@@ -23,7 +24,7 @@ import warnings
 import numpy
 
 from tables.idxutils import (calc_chunksize, calcoptlevels,
-    get_reduction_level, nextafter, inftype)
+                             get_reduction_level, nextafter, inftype)
 
 from tables import indexesextension
 from tables.node import NotLoggedMixin
@@ -42,23 +43,23 @@ from tables._past import previous_api
 
 
 # default version for INDEX objects
-#obversion = "1.0"    # Version of indexes in PyTables 1.x series
-#obversion = "2.0"    # Version of indexes in PyTables Pro 2.0 series
+# obversion = "1.0"    # Version of indexes in PyTables 1.x series
+# obversion = "2.0"    # Version of indexes in PyTables Pro 2.0 series
 obversion = "2.1"     # Version of indexes in PyTables Pro 2.1 and up series,
                       # including the join 2.3 Std+Pro version
 
 
 debug = False
-#debug = True  # Uncomment this for printing sizes purposes
+# debug = True  # Uncomment this for printing sizes purposes
 profile = False
-#profile = True  # Uncomment for profiling
+# profile = True  # Uncomment for profiling
 if profile:
     from tables.utils import show_stats
 
 
 # The default method for sorting
 defsort = "quicksort"
-#defsort = "mergesort"
+# defsort = "mergesort"
 
 # Default policy for automatically updating indexes after a table
 # append operation, or automatically reindexing after an
@@ -69,8 +70,8 @@ default_auto_index = True
 # Default filters used to compress indexes.  This is quite fast and
 # compression is pretty good.
 # Remember to keep these defaults in sync with the docstrings and UG.
-default_index_filters = Filters( complevel=1, complib='zlib',
-                               shuffle=True, fletcher32=False )
+default_index_filters = Filters(complevel=1, complib='zlib',
+                                shuffle=True, fletcher32=False)
 
 # The list of types for which an optimised search in cython and C has
 # been implemented. Always add here the name of a new optimised type.
@@ -140,12 +141,10 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     _c_classid = 'INDEX'
 
-
     # <properties>
-
     kind = property(
-        lambda self: {1:'ultralight', 2:'light',
-                      4:'medium', 8:'full'}[self.indsize],
+        lambda self: {1: 'ultralight', 2: 'light',
+                      4: 'medium', 8: 'full'}[self.indsize],
         None, None,
         "The kind of this index.")
 
@@ -180,7 +179,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         """ )
 
     def _getcolumn(self):
-        tablepath, columnpath = _table_column_pathname_of_index(self._v_pathname)
+        tablepath, columnpath = _table_column_pathname_of_index(
+            self._v_pathname)
         table = self._v_file._get_node(tablepath)
         column = table.cols._g_col(columnpath)
         return column
@@ -191,7 +191,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         column.""")
 
     def _gettable(self):
-        tablepath, columnpath = _table_column_pathname_of_index(self._v_pathname)
+        tablepath, columnpath = _table_column_pathname_of_index(
+            self._v_pathname)
         table = self._v_file._get_node(tablepath)
         return table
 
@@ -219,7 +220,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             nblocks += 1
         return nblocks
     nsuperblocks = property(_g_nsuperblocks, None, None,
-        "The total number of superblocks in index.")
+                            "The total number of superblocks in index.")
 
     def _g_nblocks(self):
         # Last row should not be considered as a block
@@ -229,7 +230,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             nblocks += 1
         return nblocks
     nblocks = property(_g_nblocks, None, None,
-        "The total number of blocks in index.")
+                       "The total number of blocks in index.")
 
     nslices = property(
         lambda self: self.nelements // self.slicesize, None, None,
@@ -308,10 +309,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             pass
         return lbucket
 
-
     # </properties>
-
-
     def __init__(self, parentNode, name,
                  atom=None, title="",
                  kind=None,
@@ -341,12 +339,13 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             self.type = atom.type
             """The datatypes to be stored by the sorted index array."""
             ############### Important note ###########################
-            #The datatypes saved as index values are NumPy native
-            #types, so we get rid of type metainfo like Time* or Enum*
-            #that belongs to HDF5 types (actually, this metainfo is
-            #not needed for sorting and looking-up purposes).
+            # The datatypes saved as index values are NumPy native
+            # types, so we get rid of type metainfo like Time* or Enum*
+            # that belongs to HDF5 types (actually, this metainfo is
+            # not needed for sorting and looking-up purposes).
             ##########################################################
-            indsize = {'ultralight':1, 'light':2, 'medium':4, 'full':8}[kind]
+            indsize = {
+                'ultralight': 1, 'light': 2, 'medium': 4, 'full': 8}[kind]
             assert indsize in (1, 2, 4, 8), "indsize should be 1, 2, 4 or 8!"
             self.indsize = indsize
             """The itemsize for the indices part of the index."""
@@ -384,7 +383,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         super(Index, self).__init__(
             parentNode, name, title, new, filters)
 
-
     def _g_post_init_hook(self):
         if self._v_new:
             # The version for newly created indexes
@@ -412,7 +410,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             self.indsize = indices.atom.itemsize
             # Some sanity checks for slicesize, chunksize and indsize
             assert self.slicesize == indices.shape[1], "Wrong slicesize"
-            assert self.chunksize == indices._v_chunkshape[1], "Wrong chunksize"
+            assert self.chunksize == indices._v_chunkshape[
+                1], "Wrong chunksize"
             assert self.indsize in (1, 2, 4, 8), "Wrong indices itemsize"
             if idxversion > "2.0":
                 self.reduction = int(attrs.reduction)
@@ -430,10 +429,10 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                 self.nrows += 1
             # Get the bounds as a cache (this has to remain here!)
             rchunksize = self.chunksize // self.reduction
-            nboundsLR = (nelementsSLR - 1 ) // rchunksize
+            nboundsLR = (nelementsSLR - 1) // rchunksize
             if nboundsLR < 0:
-                nboundsLR = 0 # correction for -1 bounds
-            nboundsLR += 2 # bounds + begin + end
+                nboundsLR = 0  # correction for -1 bounds
+            nboundsLR += 2  # bounds + begin + end
             # All bounds values (+begin+end) are at the end of sortedLR
             self.bebounds = self.sortedLR[nelementsSLR:nelementsSLR+nboundsLR]
             return
@@ -539,17 +538,19 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     _g_postInitHook = previous_api(_g_post_init_hook)
 
-
     def initial_append(self, xarr, nrow, reduction):
         """Compute an initial indices arrays for data to be indexed."""
 
-        if profile: tref = time()
-        if profile: show_stats("Entering initial_append", tref)
+        if profile:
+            tref = time()
+        if profile:
+            show_stats("Entering initial_append", tref)
         arr = xarr.pop()
         indsize = self.indsize
         slicesize = self.slicesize
         nelementsILR = self.nelementsILR
-        if profile: show_stats("Before creating idx", tref)
+        if profile:
+            show_stats("Before creating idx", tref)
         if indsize == 8:
             idx = numpy.arange(0, len(arr), dtype="uint64") + nrow*slicesize
         elif indsize == 4:
@@ -573,17 +574,17 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             # F. Alted 2008-09-15
             idx = numpy.arange(0, len(arr), dtype="uint32")
         else:
-            idx = numpy.empty(len(arr), "uint%d"%(indsize*8))
+            idx = numpy.empty(len(arr), "uint%d" % (indsize*8))
             lbucket = self.lbucket
             # Fill the idx with the bucket indices
-            offset = lbucket-((nrow*(slicesize%lbucket))%lbucket)
+            offset = lbucket-((nrow*(slicesize % lbucket)) % lbucket)
             idx[0:offset] = 0
             for i in xrange(offset, slicesize, lbucket):
                 idx[i:i+lbucket] = (i+lbucket-1)//lbucket
             if indsize == 2:
                 # Add a second offset in this case
                 # First normalize the number of rows
-                offset2 = (nrow%self.nslicesblock)*slicesize//lbucket
+                offset2 = (nrow % self.nslicesblock)*slicesize//lbucket
                 idx += offset2
         # Add the last row at the beginning of arr & idx (if needed)
         if (indsize == 8 and nelementsILR > 0):
@@ -593,30 +594,36 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             self.read_slice_lr(self.sortedLR, arr[:nelementsILR])
             self.read_slice_lr(self.indicesLR, idx[:nelementsILR])
         # In-place sorting
-        if profile: show_stats("Before keysort", tref)
+        if profile:
+            show_stats("Before keysort", tref)
         indexesextension.keysort(arr, idx)
         larr = arr[-1]
         if reduction > 1:
             # It's important to do a copy() here in order to ensure that
             # sorted._append() will receive a contiguous array.
-            if profile: show_stats("Before reduction", tref)
+            if profile:
+                show_stats("Before reduction", tref)
             reduc = arr[::reduction].copy()
-            if profile: show_stats("After reduction", tref)
+            if profile:
+                show_stats("After reduction", tref)
             arr = reduc
-            if profile: show_stats("After arr <-- reduc", tref)
+            if profile:
+                show_stats("After arr <-- reduc", tref)
         # A completely sorted index is not longer possible after an
         # append of an index with already one slice.
         if nrow > 0:
             self._v_attrs.is_csi = False
-        if profile: show_stats("Exiting initial_append", tref)
+        if profile:
+            show_stats("Exiting initial_append", tref)
         return larr, arr, idx
-
 
     def final_idx32(self, idx, offset):
         """Perform final operations in 32-bit indices."""
 
-        if profile: tref = time()
-        if profile: show_stats("Entering final_idx32", tref)
+        if profile:
+            tref = time()
+        if profile:
+            show_stats("Entering final_idx32", tref)
         # Do an upcast first in order to add the offset.
         idx = idx.astype('uint64')
         idx += offset
@@ -626,15 +633,17 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         idx //= self.lbucket
         # After the division, we can downsize the indexes to 'uint32'
         idx = idx.astype('uint32')
-        if profile: show_stats("Exiting final_idx32", tref)
+        if profile:
+            show_stats("Exiting final_idx32", tref)
         return idx
-
 
     def append(self, xarr, update=False):
         """Append the array to the index objects"""
 
-        if profile: tref = time()
-        if profile: show_stats("Entering append", tref)
+        if profile:
+            tref = time()
+        if profile:
+            show_stats("Entering append", tref)
         if not update and self.temp_required:
             where = self.tmp
             # The reduction will take place *after* the optimization process
@@ -642,11 +651,16 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         else:
             where = self
             reduction = self.reduction
-        sorted = where.sorted; indices = where.indices
-        ranges = where.ranges; mranges = where.mranges
-        bounds = where.bounds; mbounds = where.mbounds
-        abounds = where.abounds; zbounds = where.zbounds
-        sortedLR = where.sortedLR; indicesLR = where.indicesLR
+        sorted = where.sorted
+        indices = where.indices
+        ranges = where.ranges
+        mranges = where.mranges
+        bounds = where.bounds
+        mbounds = where.mbounds
+        abounds = where.abounds
+        zbounds = where.zbounds
+        sortedLR = where.sortedLR
+        indicesLR = where.indicesLR
         nrows = sorted.nrows  # before sorted.append()
         larr, arr, idx = self.initial_append(xarr, nrows, reduction)
         # Save the sorted array
@@ -662,14 +676,17 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         smedian = arr[cs//2::cs]
         mbounds.append(smedian)
         mranges.append([smedian[ncs//2]])
-        if profile: show_stats("Before deleting arr & smedian", tref)
+        if profile:
+            show_stats("Before deleting arr & smedian", tref)
         del arr, smedian   # delete references
-        if profile: show_stats("After deleting arr & smedian", tref)
+        if profile:
+            show_stats("After deleting arr & smedian", tref)
         # Now that arr is gone, we can upcast the indices and add the offset
         if self.indsize == 4:
             idx = self.final_idx32(idx, nrows*self.slicesize)
         indices.append(idx.reshape(1, idx.size))
-        if profile: show_stats("Before deleting idx", tref)
+        if profile:
+            show_stats("Before deleting idx", tref)
         del idx
         # Update counters after a successful append
         self.nrows = nrows + 1
@@ -682,14 +699,16 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         sortedLR.attrs.nelements = self.nelementsSLR
         indicesLR.attrs.nelements = self.nelementsILR
         self.dirtycache = True   # the cache is dirty now
-        if profile: show_stats("Exiting append", tref)
-
+        if profile:
+            show_stats("Exiting append", tref)
 
     def append_last_row(self, xarr, update=False):
         """Append the array to the last row index objects"""
 
-        if profile: tref = time()
-        if profile: show_stats("Entering appendLR", tref)
+        if profile:
+            tref = time()
+        if profile:
+            show_stats("Entering appendLR", tref)
         # compute the elements in the last row sorted & bounds array
         nrows = self.nslices
         if not update and self.temp_required:
@@ -728,10 +747,10 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self.nelementsILR = nelementsILR
         self.nelementsSLR = nelementsSLR
         self.dirtycache = True   # the cache is dirty now
-        if profile: show_stats("Exiting appendLR", tref)
+        if profile:
+            show_stats("Exiting appendLR", tref)
 
     appendLastRow = previous_api(append_last_row)
-
 
     def optimize(self, verbose=False):
         """Optimize an index so as to allow faster searches.
@@ -766,21 +785,29 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         while True:
             if optfull:
                 for niter in range(optfull):
-                    if self.swap('chunks', 'median'): break
+                    if self.swap('chunks', 'median'):
+                        break
                     if self.nblocks > 1:
                         # Swap slices only in the case that we have
                         # several blocks
-                        if self.swap('slices', 'median'): break
-                        if self.swap('chunks', 'median'): break
-                    if self.swap('chunks', 'start'): break
-                    if self.swap('chunks', 'stop'): break
+                        if self.swap('slices', 'median'):
+                            break
+                        if self.swap('chunks', 'median'):
+                            break
+                    if self.swap('chunks', 'start'):
+                        break
+                    if self.swap('chunks', 'stop'):
+                        break
             else:
                 if optmedian:
-                    if self.swap('chunks', 'median'): break
+                    if self.swap('chunks', 'median'):
+                        break
                 if optstarts:
-                    if self.swap('chunks', 'start'): break
+                    if self.swap('chunks', 'start'):
+                        break
                 if optstops:
-                    if self.swap('chunks', 'stop'): break
+                    if self.swap('chunks', 'stop'):
+                        break
             break  # If we reach this, exit the loop
 
         # Check if we require a complete sort.  Important: this step
@@ -794,18 +821,18 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             if self.noverlaps > 0:
                 warnings.warn(
                     "OPSI was not able to achieve a completely sorted index."
-                    "  Please report this to the authors.", UserWarning )
+                    "  Please report this to the authors.", UserWarning)
 
         # Close and delete the temporal optimization index file
         self.cleanup_temp()
         return
 
-
     def do_complete_sort(self):
         """Bring an already optimized index into a complete sorted state."""
 
         if self.verbose:
-            t1 = time();  c1 = clock()
+            t1 = time()
+            c1 = clock()
         ss = self.slicesize
         tmp = self.tmp
         ranges = tmp.ranges[:]
@@ -818,29 +845,31 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             ranges = numpy.concatenate((ranges, [rangeslr]))
             nslices += 1
 
-        sorted = tmp.sorted;  indices = tmp.indices
-        sortedLR = tmp.sortedLR;  indicesLR = tmp.indicesLR
+        sorted = tmp.sorted
+        indices = tmp.indices
+        sortedLR = tmp.sortedLR
+        indicesLR = tmp.indicesLR
         sremain = numpy.array([], dtype=self.dtype)
-        iremain = numpy.array([], dtype='u%d'%self.indsize)
+        iremain = numpy.array([], dtype='u%d' % self.indsize)
         starts = numpy.zeros(shape=nslices, dtype=numpy.int_)
         for i in xrange(nslices):
             # Find the overlapping elements for slice i
             sover = numpy.array([], dtype=self.dtype)
-            iover = numpy.array([], dtype='u%d'%self.indsize)
+            iover = numpy.array([], dtype='u%d' % self.indsize)
             prev_end = ranges[i, 1]
             for j in xrange(i+1, nslices):
                 stj = starts[j]
                 if ((j < self.nslices and stj == ss) or
-                    (j == self.nslices and stj == nelementsLR)):
+                        (j == self.nslices and stj == nelementsLR)):
                     # This slice has been already dealt with
                     continue
                 if j < self.nslices:
                     assert stj < ss, \
-                           "Two slices cannot overlap completely at this stage!"
+                        "Two slices cannot overlap completely at this stage!"
                     next_beg = sorted[j, stj]
                 else:
                     assert stj < nelementsLR, \
-                           "Two slices cannot overlap completely at this stage!"
+                        "Two slices cannot overlap completely at this stage!"
                     next_beg = sortedLR[stj]
                 next_end = ranges[j, 1]
                 if prev_end > next_end:
@@ -878,18 +907,21 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             indexesextension.keysort(ssorted, sindices)
             # Save the first elements of extended slices in the slice i
             if i < self.nslices:
-                sorted[i] = ssorted[:ss];  indices[i] = sindices[:ss]
+                sorted[i] = ssorted[:ss]
+                indices[i] = sindices[:ss]
                 # Update caches for this slice
                 self.update_caches(i, ssorted[:ss])
                 # Save the remaining values in a separate array
                 send = len(sover)+len(sremain)
-                sremain = ssorted[ss:ss+send];  iremain = sindices[ss:ss+send]
+                sremain = ssorted[ss:ss+send]
+                iremain = sindices[ss:ss+send]
             else:
                 # Still some elements remain for the last row
                 n = len(ssorted)
                 assert n == nelementsLR
                 send = 0
-                sortedLR[:n] = ssorted;  indicesLR[:n] = sindices
+                sortedLR[:n] = ssorted
+                indicesLR[:n] = sindices
                 # Update the caches for last row
                 sortedlr = sortedLR[:nelementsLR]
                 bebounds = numpy.concatenate(
@@ -905,21 +937,22 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         # in verbose mode!).
         self.compute_overlaps(self.tmp, "do_complete_sort()", self.verbose)
         if self.verbose:
-            t = round(time()-t1, 4);  c = round(clock()-c1, 4)
+            t = round(time()-t1, 4)
+            c = round(clock()-c1, 4)
             print "time: %s. clock: %s" % (t, c)
-
 
     def swap(self, what, mode=None):
         "Swap chunks or slices using a certain bounds reference."
 
         # Thresholds for avoiding continuing the optimization
-        ##thnover = 4*self.slicesize  # minimum number of overlapping elements
+        # thnover = 4*self.slicesize  # minimum number of overlapping elements
         thnover = 40
         thmult = 0.1      # minimum ratio of multiplicity (a 10%)
         thtover = 0.01    # minimum overlaping index for slices (a 1%)
 
         if self.verbose:
-            t1 = time();  c1 = clock()
+            t1 = time()
+            c1 = clock()
         if what == "chunks":
             self.swap_chunks(mode)
         elif what == "slices":
@@ -932,7 +965,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             self.tmp, message, self.verbose)
         rmult = len(mult.nonzero()[0]) / float(len(mult))
         if self.verbose:
-            t = round(time()-t1, 4);  c = round(clock()-c1, 4)
+            t = round(time()-t1, 4)
+            c = round(clock()-c1, 4)
             print "time: %s. clock: %s" % (t, c)
         # Check that entropy is actually decreasing
         if what == "chunks" and self.last_tover > 0. and self.last_nover > 0:
@@ -952,7 +986,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         if tover >= 0. and tover < thtover:
             return True
         return False
-
 
     def create_temp(self):
         "Create some temporary objects for slice sorting purposes."
@@ -1006,7 +1039,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                shape, "Temp Last Row indices",
                filters, chunkshape=(cs,))
 
-
     def create_temp2(self):
         """Create some temporary objects for slice sorting purposes."""
 
@@ -1043,7 +1075,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         CArray(tmp, 'mranges2', atom, (self.nslices,),
                "Median ranges 2", filters, chunkshape=(cs,))
 
-
     def cleanup_temp(self):
         """Copy the data and delete the temporaries for sorting purposes."""
 
@@ -1076,7 +1107,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         # Now it is the last row turn (if needed)
         if self.nelementsSLR > 0:
             # First, the sorted values
-            sortedLR = self.sortedLR;  indicesLR = self.indicesLR
+            sortedLR = self.sortedLR
+            indicesLR = self.indicesLR
             nelementsLR = self.nelementsILR
             sortedlr = tmp.sortedLR[:nelementsLR][::reduction].copy()
             nelementsSLR = len(sortedlr)
@@ -1105,7 +1137,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         # ...but the memory data cache is dirty now
         self.dirtycache = True
 
-
     def get_neworder(self, neworder, src_disk, tmp_disk,
                      lastrow, nslices, offset, dtype):
         """Get sorted & indices values in new order."""
@@ -1115,7 +1146,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self_nslices = self.nslices
         tmp = numpy.empty(shape=self.slicesize, dtype=dtype)
         for i in xrange(nslices):
-            ns = offset + i;
+            ns = offset + i
             if ns == self_nslices:
                 # The number of complete chunks in the last row
                 ncs2 = self.nelementsILR // cs
@@ -1143,15 +1174,18 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             else:
                 tmp_disk[ns] = tmp
 
-
     def swap_chunks(self, mode="median"):
         """Swap & reorder the different chunks in a block."""
 
-        boundsnames = {'start':'abounds', 'stop':'zbounds', 'median':'mbounds'}
+        boundsnames = {
+            'start': 'abounds', 'stop': 'zbounds', 'median': 'mbounds'}
         tmp = self.tmp
-        sorted = tmp.sorted;  indices = tmp.indices
-        tmp_sorted = tmp.sorted2;  tmp_indices = tmp.indices2
-        sortedLR = tmp.sortedLR;  indicesLR = tmp.indicesLR
+        sorted = tmp.sorted
+        indices = tmp.indices
+        tmp_sorted = tmp.sorted2
+        tmp_indices = tmp.indices2
+        sortedLR = tmp.sortedLR
+        indicesLR = tmp.indicesLR
         cs = self.chunksize
         ncs = self.nchunkslice
         nsb = self.nslicesblock
@@ -1171,7 +1205,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             bounds = boundsobj[nblock*ncb:nblock*ncb+ncb2]
             # Do this only if lastrow elements can cross block boundaries
             if (nblock == self.nblocks - 1 and  # last block
-                can_cross_bbounds):
+                    can_cross_bbounds):
                 nslices += 1
                 ul = self.nelementsILR // cs
                 bounds = numpy.concatenate((bounds, self.bebounds[:ul]))
@@ -1185,7 +1219,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         # Reorder completely the index at slice level
         self.reorder_slices(tmp=True)
 
-
     def read_slice(self, where, nslice, buffer, start=0):
         """Read a slice from the `where` dataset and put it in `buffer`."""
 
@@ -1194,7 +1227,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self.stopl = numpy.array([nslice+1, start+buffer.size], numpy.uint64)
         self.stepl = numpy.ones(shape=2, dtype=numpy.uint64)
         where._g_read_slice(self.startl, self.stopl, self.stepl, buffer)
-
 
     def write_slice(self, where, nslice, buffer, start=0):
         """Write a `slice` to the `where` dataset with the `buffer` data."""
@@ -1205,7 +1237,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         countl = self.stopl - self.startl   # (1, self.slicesize)
         where._g_write_slice(self.startl, self.stepl, countl, buffer)
 
-
     # Read version for LastRow
     def read_slice_lr(self, where, buffer, start=0):
         """Read a slice from the `where` dataset and put it in `buffer`."""
@@ -1214,7 +1245,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         stopl = numpy.array([start+buffer.size], dtype=numpy.uint64)
         stepl = numpy.array([1], dtype=numpy.uint64)
         where._g_read_slice(startl, stopl, stepl, buffer)
-
 
     # Write version for LastRow
     def write_sliceLR(self, where, buffer, start=0):
@@ -1226,7 +1256,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         where._g_write_slice(startl, stepl, countl, buffer)
 
     read_sliceLR = previous_api(read_slice_lr)
-
 
     def reorder_slice(self, nslice, sorted, indices, ssorted, sindices,
                       tmp_sorted, tmp_indices):
@@ -1243,8 +1272,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         # Update caches
         self.update_caches(nslice-1, ssorted[:ss])
         # Shift the slice in the end to the beginning
-        ssorted[:ss] = ssorted[ss:]; sindices[:ss] = sindices[ss:]
-
+        ssorted[:ss] = ssorted[ss:]
+        sindices[:ss] = sindices[ss:]
 
     def update_caches(self, nslice, ssorted):
         """Update the caches for faster lookups."""
@@ -1262,7 +1291,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         smedian = ssorted[cs//2::cs]
         tmp.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
         tmp.mranges[nslice] = smedian[ncs//2]
-
 
     def reorder_slices(self, tmp):
         """Reorder completely the index at slice level.
@@ -1288,11 +1316,14 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         """
 
         tmp = self.tmp
-        sorted = tmp.sorted; indices = tmp.indices
+        sorted = tmp.sorted
+        indices = tmp.indices
         if tmp:
-            tmp_sorted = tmp.sorted2; tmp_indices = tmp.indices2
+            tmp_sorted = tmp.sorted2
+            tmp_indices = tmp.indices2
         else:
-            tmp_sorted = tmp.sorted; tmp_indices = tmp.indices
+            tmp_sorted = tmp.sorted
+            tmp_indices = tmp.indices
         cs = self.chunksize
         ss = self.slicesize
         nsb = self.blocksize // self.slicesize
@@ -1319,7 +1350,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
             # End the process (enrolling the lastrow if necessary)
             if nelementsLR > 0:
-                sortedLR = self.tmp.sortedLR; indicesLR = self.tmp.indicesLR
+                sortedLR = self.tmp.sortedLR
+                indicesLR = self.tmp.indicesLR
                 # Shrink the ssorted and sindices arrays to the minimum
                 ssorted2 = ssorted[:ss+nelementsLR]
                 sortedlr = ssorted2[ss:]
@@ -1367,7 +1399,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                 # Update caches for this slice
                 self.update_caches(nslice, ssorted[:ss])
 
-
     def swap_slices(self, mode="median"):
         """Swap slices in a superblock."""
 
@@ -1407,7 +1438,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             for i in xrange(nss2):
                 idx = sranges_idx[i]
                 # Swap sorted & indices slices
-                oi = ns+i; oidx = ns+idx
+                oi = ns+i
+                oidx = ns+idx
                 tmp_sorted[oi] = sorted[oidx]
                 tmp_indices[oi] = indices[oidx]
                 # Swap start, stop & median ranges
@@ -1416,8 +1448,10 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                 # Swap chunk bounds
                 tmp.bounds2[oi] = tmp.bounds[oidx]
                 # Swap start, stop & median bounds
-                j = oi*ncs; jn = (oi+1)*ncs
-                xj = oidx*ncs; xjn = (oidx+1)*ncs
+                j = oi*ncs
+                jn = (oi+1)*ncs
+                xj = oidx*ncs
+                xjn = (oidx+1)*ncs
                 tmp.abounds2[j:jn] = tmp.abounds[xj:xjn]
                 tmp.zbounds2[j:jn] = tmp.zbounds[xj:xjn]
                 tmp.mbounds2[j:jn] = tmp.mbounds[xj:xjn]
@@ -1433,11 +1467,11 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                 # Copy chunk bounds
                 tmp.bounds[oi] = tmp.bounds2[oi]
                 # Copy start, stop & median bounds
-                j = oi*ncs; jn = (oi+1)*ncs
+                j = oi*ncs
+                jn = (oi+1)*ncs
                 tmp.abounds[j:jn] = tmp.abounds2[j:jn]
                 tmp.zbounds[j:jn] = tmp.zbounds2[j:jn]
                 tmp.mbounds[j:jn] = tmp.mbounds2[j:jn]
-
 
     def search_item_lt(self, where, item, nslice, limits, start=0):
         """Search a single item in a specific sorted slice."""
@@ -1446,7 +1480,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         # *is to be found* in the nslice.
         assert limits[0] < item <= limits[1]
         cs = self.chunksize
-        ss = self.slicesize;  nelementsLR = self.nelementsILR
+        ss = self.slicesize
+        nelementsLR = self.nelementsILR
         bstart = start // cs
 
         # Find the chunk
@@ -1472,7 +1507,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         assert pos > 0
         return pos
 
-
     def compute_overlaps_finegrain(self, where, message, verbose):
         """Compute some statistics about overlaping of slices in index.
 
@@ -1490,7 +1524,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         ss = self.slicesize
         ranges = where.ranges[:]
-        sorted = where.sorted;  sortedLR = where.sortedLR
+        sorted = where.sorted
+        sortedLR = where.sortedLR
         nslices = self.nslices
         nelementsLR = self.nelementsILR
         if nelementsLR > 0:
@@ -1498,7 +1533,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             rangeslr = numpy.array([self.bebounds[0], self.bebounds[-1]])
             ranges = numpy.concatenate((ranges, [rangeslr]))
             nslices += 1
-        soverlap = 0.; toverlap = -1.
+        soverlap = 0.
+        toverlap = -1.
         multiplicity = numpy.zeros(shape=nslices, dtype="int_")
         overlaps = multiplicity.copy()
         starts = multiplicity.copy()
@@ -1563,7 +1599,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self.noverlaps = noverlaps
         return (noverlaps, multiplicity, toverlap)
 
-
     def compute_overlaps(self, where, message, verbose):
         """Compute some statistics about overlaping of slices in index.
 
@@ -1586,7 +1621,9 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             rangeslr = numpy.array([self.bebounds[0], self.bebounds[-1]])
             ranges = numpy.concatenate((ranges, [rangeslr]))
             nslices += 1
-        noverlaps = 0; soverlap = 0.; toverlap = -1.
+        noverlaps = 0
+        soverlap = 0.
+        toverlap = -1.
         multiplicity = numpy.zeros(shape=nslices, dtype="int_")
         for i in xrange(nslices):
             for j in xrange(i+1, nslices):
@@ -1623,7 +1660,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self.noverlaps = noverlaps
         return (noverlaps, multiplicity, toverlap)
 
-
     def read_sorted_indices(self, what, start, stop, step):
         """Return the sorted or indices values in the specified range."""
 
@@ -1636,15 +1672,20 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             start = self.nelements - stop
             stop = self.nelements - tmp
         if what == "sorted":
-            values = self.sorted;  valuesLR = self.sortedLR
+            values = self.sorted
+            valuesLR = self.sortedLR
             buffer_ = numpy.empty(stop-start, dtype=self.dtype)
         else:
-            values = self.indices;  valuesLR = self.indicesLR
-            buffer_ = numpy.empty(stop-start, dtype="u%d"%self.indsize)
+            values = self.indices
+            valuesLR = self.indicesLR
+            buffer_ = numpy.empty(stop-start, dtype="u%d" % self.indsize)
         ss = self.slicesize
-        nrow_start = start // ss;  istart = start % ss
-        nrow_stop = stop // ss;  tlen = stop - start
-        bstart = 0;  ilen = 0
+        nrow_start = start // ss
+        istart = start % ss
+        nrow_stop = stop // ss
+        tlen = stop - start
+        bstart = 0
+        ilen = 0
         for nrow in xrange(nrow_start, nrow_stop+1):
             blen = ss - istart
             if ilen+blen > tlen:
@@ -1657,9 +1698,10 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             else:
                 self.read_slice_lr(
                     valuesLR, buffer_[bstart:bstart+blen], istart)
-            istart = 0;  bstart += blen;  ilen += blen
+            istart = 0
+            bstart += blen
+            ilen += blen
         return buffer_[::step]
-
 
     def read_sorted(self, start=None, stop=None, step=None):
         """Return the sorted values of index in the specified range.
@@ -1672,7 +1714,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     readSorted = previous_api(read_sorted)
 
-
     def read_indices(self, start=None, stop=None, step=None):
         """Return the indices values of index in the specified range.
 
@@ -1683,7 +1724,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         return self.read_sorted_indices('indices', start, stop, step)
 
     readIndices = previous_api(read_indices)
-
 
     def _process_range(self, start, stop, step):
         """Get a range specifc for the index usage."""
@@ -1707,7 +1747,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     _processRange = previous_api(_process_range)
 
-
     def __getitem__(self, key):
         """Return the indices values of index in the specified range.
 
@@ -1727,10 +1766,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         elif isinstance(key, slice):
             return self.read_indices(key.start, key.stop, key.step)
 
-
     def __len__(self):
         return self.nelements
-
 
     def restorecache(self):
         "Clean the limits cache and resize starts and lengths arrays"
@@ -1763,7 +1800,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.int32)
         self.sorted._init_sorted_slice(self)
         self.dirtycache = False
-
 
     def search(self, item):
         """Do a binary search in this index for an item"""
@@ -1861,9 +1897,9 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             # Put this startlengths list in cache
             self.limboundscache.setitem(item, startlengths, size)
 
-        if profile: show_stats("Exiting search", tref)
+        if profile:
+            show_stats("Exiting search", tref)
         return tlen
-
 
     # This is an scalar version of search. It works with strings as well.
     def search_scalar(self, item, sorted):
@@ -1877,7 +1913,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             self.lengths[i] = stop - start
             tlen += stop - start
         return tlen
-
 
     def search_last_row(self, item):
         # Variable initialization
@@ -1951,15 +1986,18 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     searchLastRow = previous_api(search_last_row)
 
-
     def get_chunkmap(self):
         """Compute a map with the interesting chunks in index"""
 
-        if profile: tref = time()
-        if profile: show_stats("Entering get_chunkmap", tref)
+        if profile:
+            tref = time()
+        if profile:
+            show_stats("Entering get_chunkmap", tref)
         ss = self.slicesize
-        nsb = self.nslicesblock;  nslices = self.nslices
-        lbucket = self.lbucket;  indsize = self.indsize
+        nsb = self.nslicesblock
+        nslices = self.nslices
+        lbucket = self.lbucket
+        indsize = self.indsize
         bucketsinblock = float(self.blocksize)/lbucket
         nchunks = long(math.ceil(float(self.nelements)/lbucket))
         chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
@@ -1969,7 +2007,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         starts[starts < 0] = 0    # All negative values set to zero
         indices = self.indices
         for nslice in xrange(self.nrows):
-            start = starts[nslice];  stop = stops[nslice]
+            start = starts[nslice]
+            stop = stops[nslice]
             if stop > start:
                 idx = numpy.empty(shape=stop-start, dtype='u%d' % indsize)
                 if nslice < nslices:
@@ -2003,9 +2042,9 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             for i in range(len(idx)):
                 tchunkmap[starts[i]:stops[i]] = True
             chunkmap = tchunkmap
-        if profile: show_stats("Exiting get_chunkmap", tref)
+        if profile:
+            show_stats("Exiting get_chunkmap", tref)
         return chunkmap
-
 
     def get_lookup_range(self, ops, limits):
         assert len(ops) in [1, 2]
@@ -2057,14 +2096,12 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     getLookupRange = previous_api(get_lookup_range)
 
-
     def _f_remove(self, recursive=False):
         """Remove this Index object"""
 
         # Index removal is always recursive,
         # no matter what `recursive` says.
         super(Index, self)._f_remove(True)
-
 
     def __str__(self):
         """This provides a more compact representation than __repr__"""
@@ -2078,7 +2115,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                                      self.filters.complevel)
         return "Index(%s, %s%s).is_csi=%s" % \
                (self.optlevel, self.kind, filters, self.is_csi)
-
 
     def __repr__(self):
         """This provides more metainfo than standard __repr__"""
@@ -2113,7 +2149,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         return retstr
 
 
-
 class IndexesDescG(NotLoggedMixin, Group):
     _c_classid = 'DINDEX'
 
@@ -2123,7 +2158,7 @@ class IndexesDescG(NotLoggedMixin, Group):
             "is exceeding the recommended maximum (%d); "
             "be ready to see PyTables asking for *lots* of memory "
             "and possibly slow I/O" % self._v_max_group_width,
-            PerformanceWarning )
+            PerformanceWarning)
 
     _g_widthWarning = previous_api(_g_width_warning)
 
@@ -2135,8 +2170,10 @@ class IndexesTableG(NotLoggedMixin, Group):
         if 'AUTO_INDEX' not in self._v_attrs:
             return default_auto_index
         return self._v_attrs.AUTO_INDEX
+
     def _setauto(self, auto):
         self._v_attrs.AUTO_INDEX = bool(auto)
+
     def _delauto(self):
         del self._v_attrs.AUTO_INDEX
     auto = property(_getauto, _setauto, _delauto)
@@ -2147,14 +2184,14 @@ class IndexesTableG(NotLoggedMixin, Group):
             "is exceeding the recommended maximum (%d); "
             "be ready to see PyTables asking for *lots* of memory "
             "and possibly slow I/O" % self._v_max_group_width,
-            PerformanceWarning )
+            PerformanceWarning)
 
     _g_widthWarning = previous_api(_g_width_warning)
 
     def _g_check_name(self, name):
         if not name.startswith('_i_'):
             raise ValueError(
-                "names of index groups must start with ``_i_``: %s" % name )
+                "names of index groups must start with ``_i_``: %s" % name)
 
     _g_checkName = previous_api(_g_check_name)
 
@@ -2171,7 +2208,6 @@ class IndexesTableG(NotLoggedMixin, Group):
         "Accessor for the `Table` object of this `IndexesTableG` container.")
 
 
-
 class OldIndex(NotLoggedMixin, Group):
     """This is meant to hide indexes of PyTables 1.x files."""
 
@@ -2185,9 +2221,3 @@ class OldIndex(NotLoggedMixin, Group):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

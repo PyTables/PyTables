@@ -335,7 +335,7 @@ A value of 0 (zero) means to use HDF5 Library’s default value.
 
 """
 
-#DRIVER_LOG_FLAGS = 0x0001ffff
+# DRIVER_LOG_FLAGS = 0x0001ffff
 #"""Flags specifying the types of logging activity.
 #
 #.. versionadded:: 3.0
@@ -345,13 +345,13 @@ A value of 0 (zero) means to use HDF5 Library’s default value.
 #
 #"""
 #
-#DRIVER_LOG_BUF_SIZE = 4 * _KB
+# DRIVER_LOG_BUF_SIZE = 4 * _KB
 #"""The size of the logging buffers, in bytes.
 #
-#One buffer of size DRIVER_LOG_BUF_SIZE will be created for each of
-#H5FD_LOG_FILE_READ, H5FD_LOG_FILE_WRITE and H5FD_LOG_FLAVOR when those
-#flags are set; these buffers will not grow as the file increases in
-#size.
+# One buffer of size DRIVER_LOG_BUF_SIZE will be created for each of
+# H5FD_LOG_FILE_READ, H5FD_LOG_FILE_WRITE and H5FD_LOG_FLAVOR when those
+# flags are set; these buffers will not grow as the file increases in
+# size.
 #
 #.. versionadded:: 3.0
 #
@@ -411,9 +411,3 @@ using the :meth:`tables.File.get_file_image` method.
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

@@ -136,6 +136,7 @@ def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
 
 calcChunksize = previous_api(calc_chunksize)
 
+
 def ccs_ultralight(optlevel, chunksize, slicesize):
     """Correct the slicesize and the chunksize based on optlevel."""
 
@@ -163,7 +164,8 @@ def ccs_light(optlevel, chunksize, slicesize):
     elif optlevel == 9:
         # Reducing the chunksize and enlarging the slicesize is the
         # best way to reduce the entropy with the current algorithm.
-        chunksize /= 2; slicesize *= 2
+        chunksize /= 2
+        slicesize *= 2
     return chunksize, slicesize
 
 
@@ -286,8 +288,8 @@ def get_reduction_level(indsize, optlevel, slicesize, chunksize):
         [4, 4, 4, 4, 2, 2, 2, 1, 1, 1],  # 16-bit indices (light)
         [2, 2, 2, 2, 1, 1, 1, 1, 1, 1],  # 32-bit indices (medium)
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 64-bit indices (full)
-        ]
-    isizes = {1:0, 2:1, 4:2, 8:3}
+    ]
+    isizes = {1: 0, 2: 1, 4: 2, 8: 3}
     rlevel = rlevels[isizes[indsize]][optlevel]
     # The next cases should only happen in tests
     if rlevel >= slicesize:
@@ -301,7 +303,6 @@ def get_reduction_level(indsize, optlevel, slicesize, chunksize):
     return rlevel
 
 
-
 # Python implementations of NextAfter and NextAfterF
 #
 # These implementations exist because the standard function
@@ -313,22 +314,19 @@ def get_reduction_level(indsize, optlevel, slicesize, chunksize):
 #
 # Thanks to Shack Toms shack@livedata.com for NextAfter and NextAfterF
 # implementations in Python. 2004-10-01
-
-#epsilon  = math.ldexp(1.0, -53) # smallest double such that 0.5+epsilon != 0.5
-#epsilonF = math.ldexp(1.0, -24) # smallest float such that 0.5+epsilonF != 0.5
-
-#maxFloat = float(2**1024 - 2**971)  # From the IEEE 754 standard
-#maxFloatF = float(2**128 - 2**104)  # From the IEEE 754 standard
-
-#minFloat  = math.ldexp(1.0, -1022) # min positive normalized double
-#minFloatF = math.ldexp(1.0, -126)  # min positive normalized float
-
-#smallEpsilon  = math.ldexp(1.0, -1074) # smallest increment for doubles < minFloat
-#smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for floats < minFloatF
-
+# epsilon  = math.ldexp(1.0, -53) # smallest double such that 0.5+epsilon != 0.5
+# epsilonF = math.ldexp(1.0, -24) # smallest float such that 0.5+epsilonF
+# != 0.5
+# maxFloat = float(2**1024 - 2**971)  # From the IEEE 754 standard
+# maxFloatF = float(2**128 - 2**104)  # From the IEEE 754 standard
+# minFloat  = math.ldexp(1.0, -1022) # min positive normalized double
+# minFloatF = math.ldexp(1.0, -126)  # min positive normalized float
+# smallEpsilon  = math.ldexp(1.0, -1074) # smallest increment for doubles < minFloat
+# smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for floats <
+# minFloatF
 infinity = math.ldexp(1.0, 1023) * 2
 infinityf = math.ldexp(1.0, 128)
-#Finf = float("inf")  # Infinite in the IEEE 754 standard (not avail in Win)
+# Finf = float("inf")  # Infinite in the IEEE 754 standard (not avail in Win)
 
 # A portable representation of NaN
 # if sys.byteorder == "little":
@@ -338,7 +336,7 @@ infinityf = math.ldexp(1.0, 128)
 # else:
 #     raise ValueError("Byteorder '%s' not supported!" % sys.byteorder)
 # This one seems better
-#testNaN = infinity - infinity
+# testNaN = infinity - infinity
 
 # "infinity" for several types
 infinitymap = {
@@ -356,13 +354,18 @@ infinitymap = {
 }
 
 if hasattr(numpy, 'float16'):
-    infinitymap['float16'] = [-numpy.float16(numpy.inf),  numpy.float16(numpy.inf)]
+    infinitymap['float16'] = [-numpy.float16(
+        numpy.inf),  numpy.float16(numpy.inf)]
 if hasattr(numpy, 'float96'):
-    infinitymap['float96'] = [-numpy.float96(numpy.inf),  numpy.float96(numpy.inf)]
+    infinitymap['float96'] = [-numpy.float96(
+        numpy.inf),  numpy.float96(numpy.inf)]
 if hasattr(numpy, 'float128'):
-    infinitymap['float128'] = [-numpy.float128(numpy.inf),  numpy.float128(numpy.inf)]
+    infinitymap['float128'] = [-numpy.float128(
+        numpy.inf),  numpy.float128(numpy.inf)]
 
 # Utility functions
+
+
 def inftype(dtype, itemsize, sign=+1):
     """Return a superior limit for maximum representable data type"""
 
@@ -382,12 +385,12 @@ infType = previous_api(inftype)
 
 
 ## This check does not work for Python 2.2.x or 2.3.x (!)
-#def IsNaN(x):
+# def IsNaN(x):
 #    """a simple check for x is NaN, assumes x is float"""
 #    return x != x
 
 
-#def PyNextAfter(x, y):
+# def PyNextAfter(x, y):
 #    """returns the next float after x in the direction of y if possible, else returns x"""
 #    # if x or y is Nan, we don't do much
 #    if IsNaN(x) or IsNaN(y):
@@ -421,7 +424,7 @@ infType = previous_api(inftype)
 #    return math.ldexp(m, e)
 
 
-#def PyNextAfterF(x, y):
+# def PyNextAfterF(x, y):
 #    """returns the next IEEE single after x in the direction of y if possible, else returns x"""
 #
 #    # if x or y is Nan, we don't do much
@@ -487,7 +490,7 @@ def string_next_after(x, direction, itemsize):
         xlist = list(x)
     else:
         # int.to_bytes is not available in Python < 3.2
-        #xlist = [i.to_bytes(1, sys.byteorder) for i in x]
+        # xlist = [i.to_bytes(1, sys.byteorder) for i in x]
         xlist = [bytes([i]) for i in x]
     xlist.reverse()
     i = 0
@@ -530,14 +533,14 @@ def int_type_next_after(x, direction, itemsize):
         if isinstance(x, int):
             return x-1
         else:
-            #return int(PyNextAfter(x,x-1))
-            return int(numpy.nextafter(x,x-1))
+            # return int(PyNextAfter(x,x-1))
+            return int(numpy.nextafter(x, x-1))
     else:
         if isinstance(x, int):
             return x+1
         else:
-            #return int(PyNextAfter(x,x+1))+1
-            return int(numpy.nextafter(x,x+1))+1
+            # return int(PyNextAfter(x,x+1))+1
+            return int(numpy.nextafter(x, x+1))+1
 
 IntTypeNextAfter = previous_api(int_type_next_after)
 
@@ -580,12 +583,12 @@ def nextafter(x, direction, dtype, itemsize):
         else:
             return numpy.nextafter(x, x + 1)
 
-    #elif dtype.name == "float32":
+    # elif dtype.name == "float32":
     #    if direction < 0:
     #        return PyNextAfterF(x,x-1)
     #    else:
     #        return PyNextAfterF(x,x+1)
-    #elif dtype.name == "float64":
+    # elif dtype.name == "float64":
     #    if direction < 0:
     #        return PyNextAfter(x,x-1)
     #    else:
@@ -601,9 +604,3 @@ def nextafter(x, direction, dtype, itemsize):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

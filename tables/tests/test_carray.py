@@ -48,13 +48,13 @@ class BasicTestCase(unittest.TestCase):
         else:
             atom = Atom.from_type(self.type)
         title = self.__class__.__name__
-        filters = Filters(complevel = self.compress,
-                          complib = self.complib,
-                          shuffle = self.shuffle,
-                          fletcher32 = self.fletcher32)
+        filters = Filters(complevel=self.compress,
+                          complib=self.complib,
+                          shuffle=self.shuffle,
+                          fletcher32=self.fletcher32)
         carray = self.fileh.create_carray(group, 'carray1', atom, self.shape,
-                                         title, filters=filters,
-                                         chunkshape = self.chunkshape)
+                                          title, filters=filters,
+                                          chunkshape=self.chunkshape)
         carray.flavor = self.flavor
 
         # Fill it with data
@@ -73,7 +73,6 @@ class BasicTestCase(unittest.TestCase):
             print "Object to append -->", repr(object)
 
         carray[...] = object
-
 
     def tearDown(self):
         self.fileh.close()
@@ -132,7 +131,7 @@ class BasicTestCase(unittest.TestCase):
             else:
                 stop = self.start + 1
         # Protection against number of elements less than existing
-        #if rowshape[self.extdim] < self.stop or self.stop == 0:
+        # if rowshape[self.extdim] < self.stop or self.stop == 0:
         if carray.nrows < stop:
             # self.stop == 0 means last row only in read()
             # and not in [::] slicing notation
@@ -193,7 +192,7 @@ class BasicTestCase(unittest.TestCase):
             else:
                 stop = self.start + 1
         # Protection against number of elements less than existing
-        #if rowshape[self.extdim] < self.stop or self.stop == 0:
+        # if rowshape[self.extdim] < self.stop or self.stop == 0:
         if carray.nrows < stop:
             # self.stop == 0 means last row only in read()
             # and not in [::] slicing notation
@@ -266,8 +265,8 @@ class BasicTestCase(unittest.TestCase):
                 data = numpy.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
-            print "Object read:\n", repr(data) #, data.info()
-            print "Should look like:\n", repr(object) #, object.info()
+            print "Object read:\n", repr(data)  # , data.info()
+            print "Should look like:\n", repr(object)  # , object.info()
             if hasattr(object, "shape"):
                 print "Original object shape:", self.shape
                 print "Shape read:", data.shape
@@ -320,7 +319,7 @@ class BasicTestCase(unittest.TestCase):
             if hasattr(self, "wslice"):
                 object[self.wslize] = "xXx"
                 carray[self.wslice] = "xXx"
-            elif sum(object[self.slices].shape) != 0 :
+            elif sum(object[self.slices].shape) != 0:
                 object[:] = "xXx"
                 if object.size > 0:
                     carray[self.slices] = object
@@ -345,8 +344,8 @@ class BasicTestCase(unittest.TestCase):
                 data = numpy.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
-            print "Object read:\n", repr(data) #, data.info()
-            print "Should look like:\n", repr(object) #, object.info()
+            print "Object read:\n", repr(data)  # , data.info()
+            print "Should look like:\n", repr(object)  # , object.info()
             if hasattr(object, "shape"):
                 print "Original object shape:", self.shape
                 print "Shape read:", data.shape
@@ -366,6 +365,7 @@ class BasicWriteTestCase(BasicTestCase):
     step = 1
     wslice = 1  # single element case
 
+
 class BasicWrite2TestCase(BasicTestCase):
     type = 'int32'
     shape = (2,)
@@ -374,6 +374,7 @@ class BasicWrite2TestCase(BasicTestCase):
     wslice = slice(shape[0]-2, shape[0], 2)  # range of elements
     reopen = 0  # This case does not reopen files
 
+
 class EmptyCArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 2)
@@ -381,6 +382,7 @@ class EmptyCArrayTestCase(BasicTestCase):
     start = 0
     stop = 10
     step = 1
+
 
 class EmptyCArray2TestCase(BasicTestCase):
     type = 'int32'
@@ -391,6 +393,7 @@ class EmptyCArray2TestCase(BasicTestCase):
     step = 1
     reopen = 0  # This case does not reopen files
 
+
 class SlicesCArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -399,12 +402,14 @@ class SlicesCArrayTestCase(BasicTestCase):
     chunkshape = (5, 5)
     slices = (slice(1, 2, 1), slice(1, 3, 1))
 
+
 class EllipsisCArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 2)
     chunkshape = (5, 5)
-    #slices = (slice(1,2,1), Ellipsis)
+    # slices = (slice(1,2,1), Ellipsis)
     slices = (Ellipsis, slice(1, 2, 1))
+
 
 class Slices2CArrayTestCase(BasicTestCase):
     compress = 1
@@ -414,11 +419,13 @@ class Slices2CArrayTestCase(BasicTestCase):
     chunkshape = (5, 5, 5)
     slices = (slice(1, 2, 1), slice(None, None, None), slice(1, 4, 2))
 
+
 class Ellipsis2CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 2, 4)
     chunkshape = (5, 5, 5)
     slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
+
 
 class Slices3CArrayTestCase(BasicTestCase):
     compress = 1      # To show the chunks id DEBUG is on
@@ -426,15 +433,18 @@ class Slices3CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 2)
     chunkshape = (5, 5, 5, 5)
-    slices = (slice(1, 2, 1), slice(0, None, None), slice(1, 4, 2))  # Don't work
-    #slices = (slice(None, None, None), slice(0, None, None), slice(1,4,1)) # W
-    #slices = (slice(None, None, None), slice(None, None, None), slice(1,4,2)) # N
-    #slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2)) # N
+    slices = (slice(1, 2, 1), slice(
+        0, None, None), slice(1, 4, 2))  # Don't work
+    # slices = (slice(None, None, None), slice(0, None, None), slice(1,4,1)) # W
+    # slices = (slice(None, None, None), slice(None, None, None), slice(1,4,2)) # N
+    # slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2)) # N
     # Disable the failing test temporarily with a working test case
-    slices = (slice(1, 2, 1), slice(1, 4, None), slice(1, 4, 2)) # Y
-    #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,1)) # Y
-    slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2)) # N
-    #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), slice(0,100,1)) # N
+    slices = (slice(1, 2, 1), slice(1, 4, None), slice(1, 4, 2))  # Y
+    # slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,1)) # Y
+    slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2))  # N
+    # slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), slice(0,100,1))
+    # # N
+
 
 class Slices4CArrayTestCase(BasicTestCase):
     type = 'int32'
@@ -443,12 +453,14 @@ class Slices4CArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(0, None, None), slice(1, 4, 2),
               slice(0, 4, 2), slice(3, 5, 2), slice(2, 7, 1))
 
+
 class Ellipsis3CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 2)
     chunkshape = (5, 5, 5, 5)
     slices = (Ellipsis, slice(0, 4, None), slice(1, 4, 2))
     slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2), Ellipsis)
+
 
 class Ellipsis4CArrayTestCase(BasicTestCase):
     type = 'int32'
@@ -457,11 +469,13 @@ class Ellipsis4CArrayTestCase(BasicTestCase):
     slices = (Ellipsis, slice(0, 4, None), slice(1, 4, 2))
     slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
+
 class Ellipsis5CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 5)
     chunkshape = (5, 5, 5, 5)
     slices = (slice(1, 2, 1), slice(0, 4, None), Ellipsis)
+
 
 class Ellipsis6CArrayTestCase(BasicTestCase):
     type = 'int32'
@@ -472,11 +486,13 @@ class Ellipsis6CArrayTestCase(BasicTestCase):
     # code, though. See # see test_earray.py Ellipsis6EArrayTestCase
     slices = (slice(1, 2, 1), slice(0, 4, None), 2, Ellipsis)
 
+
 class Ellipsis7CArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 3, 4, 5)
     chunkshape = (5, 5, 5, 5)
     slices = (slice(1, 2, 1), slice(0, 4, None), slice(2, 3), Ellipsis)
+
 
 class MD3WriteTestCase(BasicTestCase):
     type = 'int32'
@@ -484,16 +500,18 @@ class MD3WriteTestCase(BasicTestCase):
     chunkshape = (4, 4, 4)
     step = 2
 
+
 class MD5WriteTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 2, 3, 4, 5)  # ok
-    #shape = (1, 1, 2, 1)  # Minimum shape that shows problems with HDF5 1.6.1
-    #shape = (2, 3, 2, 4, 5)  # Floating point exception (HDF5 1.6.1)
-    #shape = (2, 3, 3, 2, 5, 6) # Segmentation fault (HDF5 1.6.1)
+    # shape = (1, 1, 2, 1)  # Minimum shape that shows problems with HDF5 1.6.1
+    # shape = (2, 3, 2, 4, 5)  # Floating point exception (HDF5 1.6.1)
+    # shape = (2, 3, 3, 2, 5, 6) # Segmentation fault (HDF5 1.6.1)
     chunkshape = (1, 1, 1, 1, 1)
     start = 1
     stop = 10
     step = 10
+
 
 class MD6WriteTestCase(BasicTestCase):
     type = 'int32'
@@ -503,6 +521,7 @@ class MD6WriteTestCase(BasicTestCase):
     stop = 10
     step = 3
 
+
 class MD6WriteTestCase__(BasicTestCase):
     type = 'int32'
     shape = (2, 2)
@@ -510,6 +529,7 @@ class MD6WriteTestCase__(BasicTestCase):
     start = 1
     stop = 3
     step = 1
+
 
 class MD7WriteTestCase(BasicTestCase):
     type = 'int32'
@@ -519,6 +539,7 @@ class MD7WriteTestCase(BasicTestCase):
     stop = 10
     step = 2
 
+
 class MD10WriteTestCase(BasicTestCase):
     type = 'int32'
     shape = (1, 2, 3, 4, 5, 5, 4, 3, 2, 2)
@@ -527,13 +548,15 @@ class MD10WriteTestCase(BasicTestCase):
     stop = -1
     step = 10
 
+
 class ZlibComprTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     start = 3
-    #stop = 0   # means last row
+    # stop = 0   # means last row
     stop = None   # means last row from 0.8 on
     step = 10
+
 
 class ZlibShuffleTestCase(BasicTestCase):
     shuffle = 1
@@ -544,6 +567,7 @@ class ZlibShuffleTestCase(BasicTestCase):
     stop = 1
     step = 10
 
+
 class BloscComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "blosc"
@@ -551,6 +575,7 @@ class BloscComprTestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 3
+
 
 class BloscShuffleTestCase(BasicTestCase):
     shape = (20, 30)
@@ -562,6 +587,7 @@ class BloscShuffleTestCase(BasicTestCase):
     stop = 10
     step = 7
 
+
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
@@ -569,6 +595,7 @@ class LZOComprTestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 3
+
 
 class LZOShuffleTestCase(BasicTestCase):
     shape = (20, 30)
@@ -580,6 +607,7 @@ class LZOShuffleTestCase(BasicTestCase):
     stop = 10
     step = 7
 
+
 class Bzip2ComprTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -588,6 +616,7 @@ class Bzip2ComprTestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 8
+
 
 class Bzip2ShuffleTestCase(BasicTestCase):
     shape = (20, 30)
@@ -599,6 +628,7 @@ class Bzip2ShuffleTestCase(BasicTestCase):
     stop = 10
     step = 6
 
+
 class Fletcher32TestCase(BasicTestCase):
     shape = (60, 50)
     compress = 0
@@ -607,6 +637,7 @@ class Fletcher32TestCase(BasicTestCase):
     start = 4
     stop = 20
     step = 7
+
 
 class AllFiltersTestCase(BasicTestCase):
     compress = 1
@@ -618,6 +649,7 @@ class AllFiltersTestCase(BasicTestCase):
     stop = 99
     step = 6
 
+
 class FloatTypeTestCase(BasicTestCase):
     type = 'float64'
     shape = (2, 2)
@@ -625,6 +657,7 @@ class FloatTypeTestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 20
+
 
 class ComplexTypeTestCase(BasicTestCase):
     type = 'complex128'
@@ -634,16 +667,18 @@ class ComplexTypeTestCase(BasicTestCase):
     stop = 10
     step = 20
 
+
 class StringTestCase(BasicTestCase):
     type = "string"
     length = 20
     shape = (2, 2)
-    #shape = (2,2,20)
+    # shape = (2,2,20)
     chunkshape = (5, 5)
     start = 3
     stop = 10
     step = 20
     slices = (slice(0, 1), slice(1, 2))
+
 
 class String2TestCase(BasicTestCase):
     type = "string"
@@ -654,47 +689,52 @@ class String2TestCase(BasicTestCase):
     stop = 10
     step = 2
 
+
 class StringComprTestCase(BasicTestCase):
     type = "string"
     length = 20
     shape = (20, 2, 10)
-    #shape = (20,0,10,20)
+    # shape = (20,0,10,20)
     compr = 1
-    #shuffle = 1  # this shouldn't do nothing on chars
+    # shuffle = 1  # this shouldn't do nothing on chars
     chunkshape = (50, 50, 2)
     start = -1
     stop = 100
     step = 20
 
+
 class Int8TestCase(BasicTestCase):
     type = "int8"
-    shape = (2,2)
+    shape = (2, 2)
     compress = 1
     shuffle = 1
-    chunkshape = (50,50)
+    chunkshape = (50, 50)
     start = -1
     stop = 100
     step = 20
 
+
 class Int16TestCase(BasicTestCase):
     type = "int16"
-    shape = (2,2)
+    shape = (2, 2)
     compress = 1
     shuffle = 1
-    chunkshape = (50,50)
+    chunkshape = (50, 50)
     start = 1
     stop = 100
     step = 1
 
+
 class Int32TestCase(BasicTestCase):
     type = "int32"
-    shape = (2,2)
+    shape = (2, 2)
     compress = 1
     shuffle = 1
-    chunkshape = (50,50)
+    chunkshape = (50, 50)
     start = -1
     stop = 100
     step = 20
+
 
 class Float16TestCase(BasicTestCase):
     type = "float16"
@@ -706,6 +746,7 @@ class Float16TestCase(BasicTestCase):
     stop = 100
     step = 20
 
+
 class Float32TestCase(BasicTestCase):
     type = "float32"
     shape = (200,)
@@ -715,6 +756,7 @@ class Float32TestCase(BasicTestCase):
     start = -1
     stop = 100
     step = 20
+
 
 class Float64TestCase(BasicTestCase):
     type = "float64"
@@ -726,6 +768,7 @@ class Float64TestCase(BasicTestCase):
     stop = 100
     step = 20
 
+
 class Float96TestCase(BasicTestCase):
     type = "float96"
     shape = (200,)
@@ -735,6 +778,7 @@ class Float96TestCase(BasicTestCase):
     start = -1
     stop = 100
     step = 20
+
 
 class Float128TestCase(BasicTestCase):
     type = "float128"
@@ -746,6 +790,7 @@ class Float128TestCase(BasicTestCase):
     stop = 100
     step = 20
 
+
 class Complex64TestCase(BasicTestCase):
     type = "complex64"
     shape = (4,)
@@ -755,6 +800,7 @@ class Complex64TestCase(BasicTestCase):
     start = -1
     stop = 100
     step = 20
+
 
 class Complex128TestCase(BasicTestCase):
     type = "complex128"
@@ -766,6 +812,7 @@ class Complex128TestCase(BasicTestCase):
     stop = 100
     step = 20
 
+
 class Complex192TestCase(BasicTestCase):
     type = "complex192"
     shape = (20,)
@@ -776,6 +823,7 @@ class Complex192TestCase(BasicTestCase):
     stop = 100
     step = 20
 
+
 class Complex256TestCase(BasicTestCase):
     type = "complex256"
     shape = (20,)
@@ -785,6 +833,7 @@ class Complex256TestCase(BasicTestCase):
     start = -1
     stop = 100
     step = 20
+
 
 class ComprTestCase(BasicTestCase):
     type = "float64"
@@ -816,7 +865,7 @@ class ReadOutArgumentTests(unittest.TestCase):
         array = numpy.arange(self.size, dtype='i8')
         disk_array = self.fileh.create_carray('/', 'array', Int64Atom(),
                                              (self.size, ),
-                                             filters=self.filters)
+                                              filters=self.filters)
         disk_array[:] = array
         return array, disk_array
 
@@ -860,7 +909,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         # approximate size (in bytes) of non-data portion of hdf5 file
         self.hdf_overhead = 6000
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode="w")
 
     def tearDown(self):
         self.fileh.close()
@@ -871,9 +920,9 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
     def create_array(self, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
         self.array = self.fileh.create_carray('/', 'somearray', Int16Atom(),
-                                             self.array_size,
-                                             filters=filters,
-                                             chunkshape=self.chunkshape)
+                                              self.array_size,
+                                              filters=filters,
+                                              chunkshape=self.chunkshape)
 
     def test_no_data(self):
         complevel = 0
@@ -918,7 +967,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
 
 class OffsetStrideTestCase(unittest.TestCase):
-    mode  = "w"
+    mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
@@ -947,12 +996,14 @@ class OffsetStrideTestCase(unittest.TestCase):
         shape = (3, 2, 2)
         # Create an string atom
         carray = self.fileh.create_carray(root, 'strings',
-                                         StringAtom(itemsize=3), shape,
-                                         "Array of strings",
-                                         chunkshape=(1, 2, 2))
-        a = numpy.array([[["a", "b"], ["123", "45"], ["45", "123"]]], dtype="S3")
+                                          StringAtom(itemsize=3), shape,
+                                          "Array of strings",
+                                          chunkshape=(1, 2, 2))
+        a = numpy.array([[["a", "b"], [
+                        "123", "45"], ["45", "123"]]], dtype="S3")
         carray[0] = a[0, 1:]
-        a = numpy.array([[["s", "a"], ["ab", "f"], ["s", "abc"], ["abc", "f"]]])
+        a = numpy.array([[["s", "a"], [
+                        "ab", "f"], ["s", "abc"], ["abc", "f"]]])
         carray[1] = a[0, 2:]
 
         # Read all the data:
@@ -979,12 +1030,14 @@ class OffsetStrideTestCase(unittest.TestCase):
         shape = (3, 2, 2)
         # Create an string atom
         carray = self.fileh.create_carray(root, 'strings',
-                                         StringAtom(itemsize=3), shape,
-                                         "Array of strings",
-                                         chunkshape=(1, 2, 2))
-        a = numpy.array([[["a", "b"], ["123", "45"], ["45", "123"]]], dtype="S3")
+                                          StringAtom(itemsize=3), shape,
+                                          "Array of strings",
+                                          chunkshape=(1, 2, 2))
+        a = numpy.array([[["a", "b"], [
+                        "123", "45"], ["45", "123"]]], dtype="S3")
         carray[0] = a[0, ::2]
-        a = numpy.array([[["s", "a"], ["ab", "f"], ["s", "abc"], ["abc", "f"]]])
+        a = numpy.array([[["s", "a"], [
+                        "ab", "f"], ["s", "abc"], ["abc", "f"]]])
         carray[1] = a[0, ::2]
 
         # Read all the rows:
@@ -1011,10 +1064,11 @@ class OffsetStrideTestCase(unittest.TestCase):
         shape = (3, 3)
         # Create an string atom
         carray = self.fileh.create_carray(root, 'CAtom',
-                                         Int32Atom(), shape,
-                                         "array of ints",
-                                         chunkshape=(1, 3))
-        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], dtype='int32')
+                                          Int32Atom(), shape,
+                                          "array of ints",
+                                          chunkshape=(1, 3))
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (
+            1, 1, 1), (0, 0, 0)], dtype='int32')
         carray[0:2] = a[2:]  # Introduce an offset
         a = numpy.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
         carray[2:3] = a[1:]  # Introduce an offset
@@ -1027,9 +1081,12 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Third row in carray ==>", data[2]
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([1, 1, 1], dtype='int32')))
-        self.assertTrue(allequal(data[1], numpy.array([0, 0, 0], dtype='int32')))
-        self.assertTrue(allequal(data[2], numpy.array([-1, 0, 0], dtype='int32')))
+        self.assertTrue(allequal(data[
+                        0], numpy.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(allequal(data[
+                        1], numpy.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(allequal(data[
+                        2], numpy.array([-1, 0, 0], dtype='int32')))
 
     def test02b_int(self):
         """Checking carray with strided NumPy ints appends"""
@@ -1042,10 +1099,11 @@ class OffsetStrideTestCase(unittest.TestCase):
         shape = (3, 3)
         # Create an string atom
         carray = self.fileh.create_carray(root, 'CAtom',
-                                         Int32Atom(), shape,
-                                         "array of ints",
-                                         chunkshape=(1, 3))
-        a = numpy.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype='int32')
+                                          Int32Atom(), shape,
+                                          "array of ints",
+                                          chunkshape=(1, 3))
+        a = numpy.array([(0, 0, 0), (1, 0, 3), (
+            1, 1, 1), (3, 3, 3)], dtype='int32')
         carray[0:2] = a[::3]  # Create an offset
         a = numpy.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
         carray[2:3] = a[::2]  # Create an offset
@@ -1058,9 +1116,12 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Third row in carray ==>", data[2]
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[0], numpy.array([0, 0, 0], dtype='int32')))
-        self.assertTrue(allequal(data[1], numpy.array([3, 3, 3], dtype='int32')))
-        self.assertTrue(allequal(data[2], numpy.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(allequal(data[
+                        0], numpy.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(allequal(data[
+                        1], numpy.array([3, 3, 3], dtype='int32')))
+        self.assertTrue(allequal(data[
+                        2], numpy.array([1, 1, 1], dtype='int32')))
 
 
 class CopyTestCase(unittest.TestCase):
@@ -1080,14 +1141,14 @@ class CopyTestCase(unittest.TestCase):
         shape = (2, 2)
         arr = Int16Atom()
         array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "a")
+            fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
 
         # Copy it to another location
@@ -1097,14 +1158,14 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
-            #print "dirs-->", dir(array1), dir(array2)
+            # print "dirs-->", dir(array1), dir(array2)
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1123,7 +1184,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #self.assertEqual(array1.chunkshape, array2.chunkshape)
+        # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1144,14 +1205,14 @@ class CopyTestCase(unittest.TestCase):
         shape = (2, 2)
         arr = Int16Atom()
         array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                    "title array1", chunkshape=(5, 5))
+                                     "title array1", chunkshape=(5, 5))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "a")
+            fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
 
         # Copy it to another location
@@ -1161,14 +1222,14 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
-            #print "dirs-->", dir(array1), dir(array2)
+            # print "dirs-->", dir(array1), dir(array2)
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1206,14 +1267,14 @@ class CopyTestCase(unittest.TestCase):
         shape = (5, 5)
         arr = Int16Atom()
         array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "a")
+            fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
 
         # Copy it to another location
@@ -1223,14 +1284,14 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
-            #print "dirs-->", dir(array1), dir(array2)
+            # print "dirs-->", dir(array1), dir(array2)
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1249,7 +1310,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #self.assertEqual(array1.chunkshape, array2.chunkshape)
+        # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1270,14 +1331,14 @@ class CopyTestCase(unittest.TestCase):
         shape = (5, 5)
         arr = Int16Atom()
         array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "a")
+            fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
 
         # Copy to another location
@@ -1288,14 +1349,14 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
         if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
-            #print "dirs-->", dir(array1), dir(array2)
+            # print "dirs-->", dir(array1), dir(array2)
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1314,7 +1375,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #self.assertEqual(array1.chunkshape, array2.chunkshape)
+        # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1334,7 +1395,7 @@ class CopyTestCase(unittest.TestCase):
         shape = (2, 2)
         arr = Int16Atom()
         array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         array1.flavor = "python"
         array1[...] = [[456, 2], [3, 457]]
 
@@ -1342,7 +1403,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "a")
+            fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
 
         # Copy to another location
@@ -1352,7 +1413,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1366,7 +1427,7 @@ class CopyTestCase(unittest.TestCase):
         self.assertEqual(array1.nrows, array2.nrows)
         self.assertEqual(array1.shape, array2.shape)
         self.assertEqual(array1.extdim, array2.extdim)
-        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.flavor, array2.flavor)  # Very important here!
         self.assertEqual(array1.atom.dtype, array2.atom.dtype)
         self.assertEqual(array1.atom.type, array2.atom.type)
         self.assertEqual(array1.title, array2.title)
@@ -1374,7 +1435,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #self.assertEqual(array1.chunkshape, array2.chunkshape)
+        # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1394,7 +1455,7 @@ class CopyTestCase(unittest.TestCase):
         shape = (2, 2)
         arr = StringAtom(itemsize=4)
         array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         array1.flavor = "python"
         array1[...] = [["456", "2"], ["3", "457"]]
 
@@ -1402,7 +1463,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "a")
+            fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
 
         # Copy to another location
@@ -1412,7 +1473,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1429,7 +1490,7 @@ class CopyTestCase(unittest.TestCase):
         self.assertEqual(array1.nrows, array2.nrows)
         self.assertEqual(array1.shape, array2.shape)
         self.assertEqual(array1.extdim, array2.extdim)
-        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.flavor, array2.flavor)  # Very important here!
         self.assertEqual(array1.atom.dtype, array2.atom.dtype)
         self.assertEqual(array1.atom.type, array2.atom.type)
         self.assertEqual(array1.title, array2.title)
@@ -1437,7 +1498,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #self.assertEqual(array1.chunkshape, array2.chunkshape)
+        # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1457,14 +1518,14 @@ class CopyTestCase(unittest.TestCase):
         shape = (2, 2)
         arr = StringAtom(itemsize=4)
         array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([["456", "2"], ["3", "457"]], dtype="S4")
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "a")
+            fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
 
         # Copy to another location
@@ -1474,7 +1535,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1488,7 +1549,7 @@ class CopyTestCase(unittest.TestCase):
         self.assertEqual(array1.nrows, array2.nrows)
         self.assertEqual(array1.shape, array2.shape)
         self.assertEqual(array1.extdim, array2.extdim)
-        self.assertEqual(array1.flavor, array2.flavor) # Very important here!
+        self.assertEqual(array1.flavor, array2.flavor)  # Very important here!
         self.assertEqual(array1.atom.dtype, array2.atom.dtype)
         self.assertEqual(array1.atom.type, array2.atom.type)
         self.assertEqual(array1.title, array2.title)
@@ -1496,7 +1557,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #self.assertEqual(array1.chunkshape, array2.chunkshape)
+        # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
         # Close the file
         fileh.close()
@@ -1517,7 +1578,7 @@ class CopyTestCase(unittest.TestCase):
         shape = (2, 2)
         atom = Int16Atom()
         array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1527,7 +1588,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "a")
+            fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
 
         # Copy it to another Array
@@ -1537,7 +1598,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1565,7 +1626,7 @@ class CopyTestCase(unittest.TestCase):
         shape = (2, 2)
         atom = Int16Atom()
         array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1575,7 +1636,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "a")
+            fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
 
         # Copy it to another Array
@@ -1585,7 +1646,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1616,7 +1677,7 @@ class CopyTestCase(unittest.TestCase):
         shape = (2, 2)
         atom = Int16Atom()
         array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1626,7 +1687,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "a")
+            fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
 
         # Copy it to another Array
@@ -1636,7 +1697,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1656,8 +1717,10 @@ class CopyTestCase(unittest.TestCase):
 class CloseCopyTestCase(CopyTestCase):
     close = 1
 
+
 class OpenCopyTestCase(CopyTestCase):
     close = 0
+
 
 class CopyIndexTestCase(unittest.TestCase):
     nrowsinbuf = 2
@@ -1677,7 +1740,7 @@ class CopyIndexTestCase(unittest.TestCase):
         shape = (100, 2)
         atom = Int32Atom()
         array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
         array1[...] = r
@@ -1708,7 +1771,7 @@ class CopyIndexTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
-        #assert array1.chunkshape == array2.chunkshape
+        # assert array1.chunkshape == array2.chunkshape
         self.assertEqual(r2.shape[0], array2.nrows)
 
         # Close the file
@@ -1730,7 +1793,7 @@ class CopyIndexTestCase(unittest.TestCase):
         shape = (100, 2)
         atom = Int32Atom()
         array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
-                                    "title array1", chunkshape=(2, 2))
+                                     "title array1", chunkshape=(2, 2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
         array1[...] = r
@@ -1745,7 +1808,7 @@ class CopyIndexTestCase(unittest.TestCase):
                              step=self.step)
         # Close and reopen the file
         fileh.close()
-        fileh = open_file(file, mode = "r")
+        fileh = open_file(file, mode="r")
         array1 = fileh.root.array1
         array2 = fileh.root.array2
 
@@ -1770,11 +1833,13 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
+
 class CopyIndex1TestCase(CopyIndexTestCase):
     nrowsinbuf = 1
     start = 0
     stop = 7
     step = 1
+
 
 class CopyIndex2TestCase(CopyIndexTestCase):
     nrowsinbuf = 2
@@ -1782,11 +1847,13 @@ class CopyIndex2TestCase(CopyIndexTestCase):
     stop = -1
     step = 1
 
+
 class CopyIndex3TestCase(CopyIndexTestCase):
     nrowsinbuf = 3
     start = 1
     stop = 7
     step = 1
+
 
 class CopyIndex4TestCase(CopyIndexTestCase):
     nrowsinbuf = 4
@@ -1794,11 +1861,13 @@ class CopyIndex4TestCase(CopyIndexTestCase):
     stop = 6
     step = 1
 
+
 class CopyIndex5TestCase(CopyIndexTestCase):
     nrowsinbuf = 2
     start = 3
     stop = 7
     step = 1
+
 
 class CopyIndex6TestCase(CopyIndexTestCase):
     nrowsinbuf = 2
@@ -1806,20 +1875,24 @@ class CopyIndex6TestCase(CopyIndexTestCase):
     stop = 6
     step = 2
 
+
 class CopyIndex7TestCase(CopyIndexTestCase):
     start = 0
     stop = 7
     step = 10
+
 
 class CopyIndex8TestCase(CopyIndexTestCase):
     start = 6
     stop = -1  # Negative values means starting from the end
     step = 1
 
+
 class CopyIndex9TestCase(CopyIndexTestCase):
     start = 3
     stop = 4
     step = 1
+
 
 class CopyIndex10TestCase(CopyIndexTestCase):
     nrowsinbuf = 1
@@ -1827,10 +1900,12 @@ class CopyIndex10TestCase(CopyIndexTestCase):
     stop = 4
     step = 2
 
+
 class CopyIndex11TestCase(CopyIndexTestCase):
     start = -3
     stop = -1
     step = 2
+
 
 class CopyIndex12TestCase(CopyIndexTestCase):
     start = -1   # Should point to the last element
@@ -1838,9 +1913,11 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     step = 1
 
 # The next test should be run only in **heavy** mode
+
+
 class Rows64bitsTestCase(unittest.TestCase):
     narows = 1000*1000   # each array will have 1 million entries
-    #narows = 1000        # for testing only
+    # narows = 1000        # for testing only
     nanumber = 1000*3    # That should account for more than 2**31-1
 
     def setUp(self):
@@ -1851,9 +1928,9 @@ class Rows64bitsTestCase(unittest.TestCase):
         # Create an CArray
         shape = (self.narows*self.nanumber,)
         array = fileh.create_carray(fileh.root, 'array',
-                                   Int8Atom(), shape,
-                                   filters=Filters(complib='lzo',
-                                                   complevel=1))
+                                    Int8Atom(), shape,
+                                    filters=Filters(complib='lzo',
+                                                    complevel=1))
 
         # Fill the array
         na = numpy.arange(self.narows, dtype='int8')
@@ -1864,7 +1941,6 @@ class Rows64bitsTestCase(unittest.TestCase):
         array[s] = na
         s = slice((self.nanumber-1)*self.narows, self.nanumber*self.narows)
         array[s] = na
-
 
     def tearDown(self):
         self.fileh.close()
@@ -1900,11 +1976,11 @@ class Rows64bitsTestCase(unittest.TestCase):
             print "Entries:", array.nrows / (1000*1000), "Millions"
             print "Shape:", array.shape
             print "Last 10 elements-->", array[-10:]
-            stop = self.narows%256
+            stop = self.narows % 256
             if stop > 127:
                 stop -= 256
             start = stop - 10
-            #print "start, stop-->", start, stop
+            # print "start, stop-->", start, stop
             print "Should look like:", numpy.arange(start, stop, dtype='int8')
 
         nrows = self.narows*self.nanumber
@@ -1915,7 +1991,7 @@ class Rows64bitsTestCase(unittest.TestCase):
         # check the 10 first elements
         self.assertTrue(allequal(array[:10], numpy.arange(10, dtype='int8')))
         # check the 10 last elements
-        stop = self.narows%256
+        stop = self.narows % 256
         if stop > 127:
             stop -= 256
         start = stop - 10
@@ -1926,8 +2002,10 @@ class Rows64bitsTestCase(unittest.TestCase):
 class Rows64bitsTestCase1(Rows64bitsTestCase):
     close = 0
 
+
 class Rows64bitsTestCase2(Rows64bitsTestCase):
     close = 1
+
 
 class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     shape = (3000000000,)  # more than 2**31-1
@@ -1952,8 +2030,8 @@ class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if sys.version_info[:2] > (2, 4):
                 # This can't be avoided in 32-bit platforms.
                 self.assertTrue(self.shape[0] > numpy.iinfo(int).max,
-                              "Array length overflowed but ``int`` "
-                              "is wide enough." )
+                                "Array length overflowed but ``int`` "
+                                "is wide enough.")
 
     def test01_shape_reopen(self):
         """Check that the shape doesn't overflow after reopening."""
@@ -2014,6 +2092,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 class DfltAtomNoReopen(DfltAtomTestCase):
     reopen = False
+
 
 class DfltAtomReopen(DfltAtomTestCase):
     reopen = True
@@ -2115,6 +2194,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class AtomDefaultReprNoReopen(AtomDefaultReprTestCase):
     reopen = False
 
+
 class AtomDefaultReprReopen(AtomDefaultReprTestCase):
     reopen = True
 
@@ -2169,7 +2249,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ca.nrows, 1)
         if common.verbose:
             print "First row-->", ca[0]
-        self.assertTrue(allequal(ca[0], numpy.array([[1, 3], [4, 5], [7, 9]], 'i4')))
+        self.assertTrue(allequal(ca[0], numpy.array(
+            [[1, 3], [4, 5], [7, 9]], 'i4')))
 
     def test02b_assign(self):
         "Assign several rows to a (multidimensional) CArray with a MD atom."
@@ -2191,7 +2272,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03a_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.create_carray('/', 'test', Int32Atom((2, 4)), (3, 2, 3))
+        ca = self.h5file.create_carray(
+            '/', 'test', Int32Atom((2, 4)), (3, 2, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2207,7 +2289,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03b_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom (II)."
         # Create an CArray
-        ca = self.h5file.create_carray('/', 'test', Int32Atom((2, 4)), (2, 3, 3))
+        ca = self.h5file.create_carray(
+            '/', 'test', Int32Atom((2, 4)), (2, 3, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2223,7 +2306,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03c_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom (III)."
         # Create an CArray
-        ca = self.h5file.create_carray('/', 'test', Int32Atom((2, 4)), (3, 1, 2))
+        ca = self.h5file.create_carray(
+            '/', 'test', Int32Atom((2, 4)), (3, 1, 2))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2233,12 +2317,13 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ca[:] = a
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
-            print "Second row-->", ca[:,:, 1, ...]
-        self.assertTrue(allequal(ca[:,:, 1, ...], a[:,:, 1, ...]))
+            print "Second row-->", ca[:, :, 1, ...]
+        self.assertTrue(allequal(ca[:, :, 1, ...], a[:, :, 1, ...]))
 
 
 class MDAtomNoReopen(MDAtomTestCase):
     reopen = False
+
 
 class MDAtomReopen(MDAtomTestCase):
     reopen = True
@@ -2263,6 +2348,7 @@ class MDLargeAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class MDLargeAtomNoReopen(MDLargeAtomTestCase):
     reopen = False
 
+
 class MDLargeAtomReopen(MDLargeAtomTestCase):
     reopen = True
 
@@ -2272,7 +2358,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
         self.array = self.h5file.create_carray(self.h5file.root, 'array',
-                                              Int32Atom(), (10, 10))
+                                               Int32Atom(), (10, 10))
         self.array[...] = numpy.zeros((10, 10))
 
     def test_read(self):
@@ -2294,9 +2380,9 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-    #common.heavy = 1  # uncomment this only for testing purposes
+    # common.heavy = 1  # uncomment this only for testing purposes
 
-    #theSuite.addTest(unittest.makeSuite(BasicTestCase))
+    # theSuite.addTest(unittest.makeSuite(BasicTestCase))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(BasicWrite2TestCase))
@@ -2342,7 +2428,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
         theSuite.addTest(unittest.makeSuite(ReadOutArgumentTests))
-        theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
+        theSuite.addTest(unittest.makeSuite(
+            SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
@@ -2386,16 +2473,10 @@ def suite():
     return theSuite
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
+    unittest.main(defaultTest='suite')
 
 ## Local Variables:
 ## mode: python
 ## py-indent-offset: 4
 ## tab-width: 4
 ## End:
-
-
-
-
-
-

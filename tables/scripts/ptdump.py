@@ -28,6 +28,8 @@ from tables.unimplemented import UnImplemented
 from tables._past import previous_api
 
 # default options
+
+
 class Options(object):
     rng = slice(None)
     showattrs = 0
@@ -104,7 +106,7 @@ dumpGroup = previous_api(dump_group)
 
 def main():
     usage = \
-    """usage: %s [-d] [-v] [-a] [-c] [-i] [-R start,stop,step] [-h] file[:nodepath]
+        """usage: %s [-d] [-v] [-a] [-c] [-i] [-R start,stop,step] [-h] file[:nodepath]
       -d -- Dump data information on leaves
       -v -- Dump more metainformation on nodes
       -a -- Show attributes in nodes (only useful when -v or -d are active)
@@ -182,9 +184,3 @@ def main():
 
     # Close the file
     h5file.close()
-
-
-
-
-
-

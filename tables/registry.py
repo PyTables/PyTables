@@ -54,6 +54,7 @@ expected to be unregistered (by now), but they can be replaced when the
 module that defines them is reloaded.
 """
 
+
 def get_class_by_name(className):
     """Get the node class matching the `className`.
 
@@ -68,8 +69,8 @@ def get_class_by_name(className):
 
     # Get the class object corresponding to `classname`.
     if className not in class_name_dict:
-        raise TypeError( "there is no registered node class named ``%s``"
-                         % (className,) )
+        raise TypeError("there is no registered node class named ``%s``"
+                        % (className,))
 
     return class_name_dict[className]
 
@@ -81,9 +82,3 @@ getClassByName = previous_api(get_class_by_name)
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

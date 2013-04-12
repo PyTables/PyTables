@@ -72,30 +72,31 @@ class OpenFileTestCase(common.PyTablesTestCase):
     def setUp(self):
         # Create an HDF5 file
         self.file = tempfile.mktemp(".h5")
-        fileh = open_file(self.file, mode = "w", title="File title",
-                         node_cache_slots=self.nodeCacheSlots)
+        fileh = open_file(self.file, mode="w", title="File title",
+                          node_cache_slots=self.nodeCacheSlots)
         root = fileh.root
         # Create an array
         fileh.create_array(root, 'array', [1, 2],
-                          title = "Array example")
-        fileh.create_table(root, 'table', {'var1':IntCol()}, "Table example")
+                           title="Array example")
+        fileh.create_table(root, 'table', {'var1': IntCol()}, "Table example")
         root._v_attrs.testattr = 41
 
         # Create another array object
         fileh.create_array(root, 'anarray', [1], "Array title")
-        fileh.create_table(root, 'atable', {'var1':IntCol()}, "Table title")
+        fileh.create_table(root, 'atable', {'var1': IntCol()}, "Table title")
 
         # Create a group object
         group = fileh.create_group(root, 'agroup',
-                                  "Group title")
+                                   "Group title")
         group._v_attrs.testattr = 42
 
         # Create a some objects there
         array1 = fileh.create_array(group, 'anarray1',
-                                   [1, 2, 3, 4, 5, 6, 7], "Array title 1")
+                                    [1, 2, 3, 4, 5, 6, 7], "Array title 1")
         array1.attrs.testattr = 42
         fileh.create_array(group, 'anarray2', [2], "Array title 2")
-        fileh.create_table(group, 'atable1', {'var1':IntCol()}, "Table title 1")
+        fileh.create_table(group, 'atable1', {
+                           'var1': IntCol()}, "Table title 1")
         ra = numpy.rec.array([(1, 11, 'a')], formats='u1,f4,a1')
         fileh.create_table(group, 'atable2', ra, "Table title 2")
 
@@ -110,7 +111,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Create an array in the root with the same name as one in 'agroup'
         fileh.create_array(root, 'anarray1', [1, 2],
-                          title = "Array example")
+                           title="Array example")
 
         fileh.close()
 
@@ -125,8 +126,9 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Create an HDF5 file
         file = tempfile.mktemp(".h5")
         fileh = open_file(
-            file, mode = "w", node_cache_slots=self.nodeCacheSlots)
-        fileh.create_array(fileh.root, 'array', [1, 2], title = "Array example")
+            file, mode="w", node_cache_slots=self.nodeCacheSlots)
+        fileh.create_array(fileh.root, 'array', [
+                           1, 2], title="Array example")
         # Get the CLASS attribute of the arr object
         class_ = fileh.root.array.attrs.CLASS
 
@@ -162,7 +164,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Open the old HDF5 file
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Get the CLASS attribute of the arr object
         title = fileh.root.array.get_attr("TITLE")
 
@@ -174,14 +176,14 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Append a new array to the existing file
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.create_array(fileh.root, 'array2', [3, 4],
-                          title = "Title example 2")
+                           title="Title example 2")
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Get the CLASS attribute of the arr object
         title = fileh.root.array2.get_attr("TITLE")
 
@@ -193,14 +195,14 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Append a new array to the existing file
         fileh = open_file(
-            self.file, mode = "a", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="a", node_cache_slots=self.nodeCacheSlots)
         fileh.create_array(fileh.root, 'array2', [3, 4],
-                          title = "Title example 2")
+                           title="Title example 2")
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Get the CLASS attribute of the arr object
         title = fileh.root.array2.get_attr("TITLE")
 
@@ -215,14 +217,14 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Append a new array to the existing file but in write mode
         # so, the existing file should be deleted!
         fileh = open_file(
-            self.file, mode = "w", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="w", node_cache_slots=self.nodeCacheSlots)
         fileh.create_array(fileh.root, 'array2', [3, 4],
-                          title = "Title example 2")
+                           title="Title example 2")
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
 
         try:
             # Try to get the 'array' object in the old existing file
@@ -240,8 +242,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking opening a non-existing file for reading"""
 
         try:
-            open_file("nonexistent.h5", mode = "r",
-                     node_cache_slots=self.nodeCacheSlots)
+            open_file("nonexistent.h5", mode="r",
+                      node_cache_slots=self.nodeCacheSlots)
         except IOError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -254,8 +256,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking alternate root access to the object tree"""
 
         # Open the existent HDF5 file
-        fileh = open_file(self.file, mode = "r", root_uep="/agroup",
-                         node_cache_slots=self.nodeCacheSlots)
+        fileh = open_file(self.file, mode="r", root_uep="/agroup",
+                          node_cache_slots=self.nodeCacheSlots)
         # Get the CLASS attribute of the arr object
         if common.verbose:
             print "\nFile tree dump:", fileh
@@ -273,8 +275,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking non-existent alternate root access to the object tree"""
 
         try:
-            open_file(self.file, mode = "r", root_uep="/nonexistent",
-                     node_cache_slots=self.nodeCacheSlots)
+            open_file(self.file, mode="r", root_uep="/nonexistent",
+                      node_cache_slots=self.nodeCacheSlots)
         except RuntimeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -288,7 +290,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Delete a group with leafs
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         try:
             fileh.remove_node(fileh.root.agroup)
@@ -307,7 +309,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Try to get the removed object
         try:
             fileh.root.agroup
@@ -339,7 +341,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Delete a group with leafs
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         try:
             fileh.remove_node(fileh.root, 'agroup')
@@ -380,7 +382,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking removing a node using ``__delattr__()``"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         try:
             # This should fail because there is no *Python attribute*
@@ -400,13 +402,13 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking removing a lonely group from an existing file"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.remove_node(fileh.root, 'agroup2')
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Try to get the removed object
         try:
             fileh.root.agroup2
@@ -423,13 +425,13 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking removing Leaves from an existing file"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.remove_node(fileh.root, 'anarray')
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Try to get the removed object
         try:
             fileh.root.anarray
@@ -446,7 +448,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking removing Leaves and access it immediately"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.remove_node(fileh.root, 'anarray')
 
         # Try to get the removed object
@@ -465,7 +467,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking removing a non-existent node"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # Try to get the removed object
         try:
@@ -483,13 +485,13 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking removing Tables from an existing file"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.remove_node(fileh.root, 'atable')
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Try to get the removed object
         try:
             fileh.root.atable
@@ -506,13 +508,13 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking renaming a leave and access it after a close/open"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.rename_node(fileh.root.anarray, 'anarray2')
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Ensure that the new name exists
         array_ = fileh.root.anarray2
         self.assertEqual(array_.name, "anarray2")
@@ -534,7 +536,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking renaming Leaves and accesing them immediately"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.rename_node(fileh.root.anarray, 'anarray2')
 
         # Ensure that the new name exists
@@ -558,7 +560,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking renaming Leaves and modify attributes after that"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.rename_node(fileh.root.anarray, 'anarray2')
         array_ = fileh.root.anarray2
         array_.attrs.TITLE = "hello"
@@ -571,7 +573,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking renaming a Group under a nested group"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.rename_node(fileh.root.agroup.anarray2, 'anarray3')
 
         # Ensure that we can access n attributes in the new group
@@ -584,7 +586,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Open this file
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         # Try to get the previous object with the old name
         try:
             fileh.rename_node(fileh.root.anarray, 'array')
@@ -607,7 +609,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Open this file
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         warnings.filterwarnings("error", category=NaturalNameWarning)
         # Try to get the previous object with the old name
         try:
@@ -627,13 +629,13 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking renaming a Group and access it after a close/open"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.rename_node(fileh.root.agroup, 'agroup3')
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Ensure that the new name exists
         group = fileh.root.agroup3
         self.assertEqual(group._v_name, "agroup3")
@@ -669,7 +671,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking renaming a Group and access it immediately"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.rename_node(fileh.root.agroup, 'agroup3')
 
         # Ensure that the new name exists
@@ -707,7 +709,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking renaming a Group and modify attributes afterwards"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.rename_node(fileh.root.agroup, 'agroup3')
 
         # Ensure that we can modify attributes in the new group
@@ -721,7 +723,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking renaming a Group under a nested group"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         fileh.rename_node(fileh.root.agroup.agroup3, 'agroup4')
 
         # Ensure that we can access n attributes in the new group
@@ -734,15 +736,15 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # This checks for ticket #126.
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         # Load intermediate groups and keep a nested one alive.
         g = fileh.root.agroup.agroup3.agroup4
         self.assertTrue(g is not None)
         fileh.rename_node('/', name='agroup', newname='agroup_')
         self.assertTrue('/agroup_/agroup4' not in fileh)  # see ticket #126
         self.assertTrue('/agroup' not in fileh)
-        for newpath in [ '/agroup_', '/agroup_/agroup3',
-                         '/agroup_/agroup3/agroup4' ]:
+        for newpath in ['/agroup_', '/agroup_/agroup3',
+                        '/agroup_/agroup3/agroup4']:
             self.assertTrue(newpath in fileh)
             self.assertEqual(newpath, fileh.get_node(newpath)._v_pathname)
         fileh.close()
@@ -751,14 +753,14 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a leave and access it after a close/open"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         newgroup = fileh.create_group("/", "newgroup")
         fileh.move_node(fileh.root.anarray, newgroup, 'anarray2')
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Ensure that the new name exists
         array_ = fileh.root.newgroup.anarray2
         self.assertEqual(array_.name, "anarray2")
@@ -780,7 +782,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a leave and access it without a close/open"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         newgroup = fileh.create_group("/", "newgroup")
         fileh.move_node(fileh.root.anarray, newgroup, 'anarray2')
 
@@ -805,7 +807,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving Leaves and modify attributes after that"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         newgroup = fileh.create_group("/", "newgroup")
         fileh.move_node(fileh.root.anarray, newgroup, 'anarray2')
         array_ = fileh.root.newgroup.anarray2
@@ -820,7 +822,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Open this file
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         # Try to get the previous object with the old name
         try:
             fileh.move_node(fileh.root.anarray, fileh.root, 'array')
@@ -837,14 +839,14 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a table and access it after a close/open"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         newgroup = fileh.create_group("/", "newgroup")
         fileh.move_node(fileh.root.atable, newgroup, 'atable2')
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Ensure that the new name exists
         table_ = fileh.root.newgroup.atable2
         self.assertEqual(table_.name, "atable2")
@@ -866,7 +868,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a table and access it without a close/open"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         newgroup = fileh.create_group("/", "newgroup")
         fileh.move_node(fileh.root.atable, newgroup, 'atable2')
 
@@ -891,7 +893,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a table and use cached row without a close/open"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         newgroup = fileh.create_group("/", "newgroup")
         # Cache the Row attribute prior to the move
         row = fileh.root.atable.row
@@ -916,7 +918,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving tables and modify attributes after that"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         newgroup = fileh.create_group("/", "newgroup")
         fileh.move_node(fileh.root.atable, newgroup, 'atable2')
         table_ = fileh.root.newgroup.atable2
@@ -931,7 +933,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Open this file
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         # Try to get the previous object with the old name
         try:
             fileh.move_node(fileh.root.atable, fileh.root, 'table')
@@ -948,10 +950,10 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a table to an existing name, overwriting it"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         srcNode = fileh.root.atable
-        fileh.move_node(srcNode, fileh.root, 'table', overwrite = True)
+        fileh.move_node(srcNode, fileh.root, 'table', overwrite=True)
         dstNode = fileh.root.table
 
         self.assertTrue(srcNode is dstNode)
@@ -961,14 +963,14 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a Group and access it after a close/open"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         newgroup = fileh.create_group(fileh.root, 'newgroup')
         fileh.move_node(fileh.root.agroup, newgroup, 'agroup3')
         fileh.close()
 
         # Open this file in read-only mode
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Ensure that the new name exists
         group = fileh.root.newgroup.agroup3
         self.assertEqual(group._v_name, "agroup3")
@@ -1006,7 +1008,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a Group and access it immediately"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         newgroup = fileh.create_group(fileh.root, 'newgroup')
         fileh.move_node(fileh.root.agroup, newgroup, 'agroup3')
         # Ensure that the new name exists
@@ -1046,7 +1048,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a Group and modify attributes afterwards"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         newgroup = fileh.create_group(fileh.root, 'newgroup')
         fileh.move_node(fileh.root.agroup, newgroup, 'agroup3')
 
@@ -1064,7 +1066,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Open this file
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         # Try to get the previous object with the old name
         try:
             fileh.move_node(fileh.root.agroup, fileh.root, 'agroup2')
@@ -1081,11 +1083,11 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a group to an existing name, overwriting it"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # agroup2 -> agroup
         srcNode = fileh.root.agroup2
-        fileh.move_node(srcNode, fileh.root, 'agroup', overwrite = True)
+        fileh.move_node(srcNode, fileh.root, 'agroup', overwrite=True)
         dstNode = fileh.root.agroup
 
         self.assertTrue(srcNode is dstNode)
@@ -1095,7 +1097,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking moving a node over itself"""
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # array -> array
         srcNode = fileh.root.array
@@ -1110,7 +1112,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Open this file
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         try:
             # agroup2 -> agroup2/
             fileh.move_node(fileh.root.agroup2, fileh.root.agroup2)
@@ -1127,7 +1129,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying a leaf."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # array => agroup2/
         new_node = fileh.copy_node(fileh.root.array, fileh.root.agroup2)
@@ -1140,7 +1142,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying a group."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # agroup2 => agroup/
         new_node = fileh.copy_node(fileh.root.agroup2, fileh.root.agroup)
@@ -1153,7 +1155,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying a group into itself."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # agroup2 => agroup2/
         new_node = fileh.copy_node(fileh.root.agroup2, fileh.root.agroup2)
@@ -1166,11 +1168,11 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Recursively copying a group."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # agroup => agroup2/
         new_node = fileh.copy_node(
-            fileh.root.agroup, fileh.root.agroup2, recursive = True)
+            fileh.root.agroup, fileh.root.agroup2, recursive=True)
         dstNode = fileh.root.agroup2.agroup
 
         self.assertTrue(new_node is dstNode)
@@ -1186,14 +1188,14 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Recursively copying the root group into the root of another file."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         file2 = tempfile.mktemp(".h5")
         fileh2 = open_file(
-            file2, mode = "w", node_cache_slots=self.nodeCacheSlots)
+            file2, mode="w", node_cache_slots=self.nodeCacheSlots)
 
         # fileh.root => fileh2.root
         new_node = fileh.copy_node(
-            fileh.root, fileh2.root, recursive = True)
+            fileh.root, fileh2.root, recursive=True)
         dstNode = fileh2.root
 
         self.assertTrue(new_node is dstNode)
@@ -1209,15 +1211,15 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Recursively copying the root group into a group in another file."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         file2 = tempfile.mktemp(".h5")
         fileh2 = open_file(
-            file2, mode = "w", node_cache_slots=self.nodeCacheSlots)
+            file2, mode="w", node_cache_slots=self.nodeCacheSlots)
         fileh2.create_group('/', 'agroup2')
 
         # fileh.root => fileh2.root.agroup2
         new_node = fileh.copy_node(
-            fileh.root, fileh2.root.agroup2, recursive = True)
+            fileh.root, fileh2.root.agroup2, recursive=True)
         dstNode = fileh2.root.agroup2
 
         self.assertTrue(new_node is dstNode)
@@ -1233,23 +1235,23 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Recursively copying the root group into itself."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         agroup2 = fileh.root
         self.assertTrue(agroup2 is not None)
 
         # fileh.root => fileh.root
         self.assertRaises(IOError, fileh.copy_node,
-                          fileh.root, fileh.root, recursive = True)
+                          fileh.root, fileh.root, recursive=True)
         fileh.close()
 
     def test14a_copyNodeExisting(self):
         "Copying over an existing node."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         try:
             # agroup2 => agroup
-            fileh.copy_node(fileh.root.agroup2, newname = 'agroup')
+            fileh.copy_node(fileh.root.agroup2, newname='agroup')
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -1263,11 +1265,11 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying over an existing node, overwriting it."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # agroup2 => agroup
-        new_node = fileh.copy_node(fileh.root.agroup2, newname = 'agroup',
-                                 overwrite = True)
+        new_node = fileh.copy_node(fileh.root.agroup2, newname='agroup',
+                                   overwrite=True)
         dstNode = fileh.root.agroup
 
         self.assertTrue(new_node is dstNode)
@@ -1277,18 +1279,18 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying over an existing node in other file, overwriting it."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         file2 = tempfile.mktemp(".h5")
         fileh2 = open_file(
-            file2, mode = "w", node_cache_slots=self.nodeCacheSlots)
+            file2, mode="w", node_cache_slots=self.nodeCacheSlots)
 
         # file1:/anarray1 => file2:/anarray1
         new_node = fileh.copy_node(fileh.root.agroup.anarray1,
-                                 newparent = fileh2.root)
+                                   newparent=fileh2.root)
         # file1:/ => file2:/
         new_node = fileh.copy_node(fileh.root, fileh2.root,
-                                 overwrite = True, recursive=True)
+                                   overwrite=True, recursive=True)
         dstNode = fileh2.root
 
         self.assertTrue(new_node is dstNode)
@@ -1300,10 +1302,10 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying over self."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         try:
             # agroup => agroup
-            fileh.copy_node(fileh.root.agroup, newname = 'agroup')
+            fileh.copy_node(fileh.root.agroup, newname='agroup')
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -1317,11 +1319,11 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying over self, trying to overwrite."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         try:
             # agroup => agroup
             fileh.copy_node(
-                fileh.root.agroup, newname = 'agroup', overwrite = True)
+                fileh.root.agroup, newname='agroup', overwrite=True)
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -1335,11 +1337,11 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Recursively copying a group into itself."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         try:
             # agroup => agroup/
             fileh.copy_node(
-                fileh.root.agroup, fileh.root.agroup, recursive = True)
+                fileh.root.agroup, fileh.root.agroup, recursive=True)
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -1353,7 +1355,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Moving and renaming a node in a single action."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # anarray1 -> agroup/array
         srcNode = fileh.root.anarray1
@@ -1367,7 +1369,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying and renaming a node in a single action."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # anarray1 => agroup/array
         new_node = fileh.copy_node(
@@ -1381,12 +1383,12 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying full data and user attributes."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # agroup => groupcopy
         srcNode = fileh.root.agroup
         new_node = fileh.copy_node(
-            srcNode, newname = 'groupcopy', recursive = True)
+            srcNode, newname='groupcopy', recursive=True)
         dstNode = fileh.root.groupcopy
 
         self.assertTrue(new_node is dstNode)
@@ -1400,36 +1402,37 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying partial data and no user attributes."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         # agroup => groupcopy
         srcNode = fileh.root.agroup
         new_node = fileh.copy_node(
-            srcNode, newname = 'groupcopy',
-            recursive = True, copyuserattrs = False,
-            start = 0, stop = 5, step = 2)
+            srcNode, newname='groupcopy',
+            recursive=True, copyuserattrs=False,
+            start=0, stop=5, step=2)
         dstNode = fileh.root.groupcopy
 
         self.assertTrue(new_node is dstNode)
         self.assertFalse(hasattr(dstNode._v_attrs, 'testattr'))
         self.assertFalse(hasattr(dstNode.anarray1.attrs, 'testattr'))
-        self.assertEqual(srcNode.anarray1.read()[0:5:2], dstNode.anarray1.read())
+        self.assertEqual(srcNode.anarray1.read()[
+                         0:5:2], dstNode.anarray1.read())
         fileh.close()
 
     def test16c_fullCopy(self):
         "Copying full data and user attributes (from file to file)."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
 
         file2 = tempfile.mktemp(".h5")
         fileh2 = open_file(
-            file2, mode = "w", node_cache_slots=self.nodeCacheSlots)
+            file2, mode="w", node_cache_slots=self.nodeCacheSlots)
 
         # file1:/ => file2:groupcopy
         srcNode = fileh.root
         new_node = fileh.copy_node(
-            srcNode, fileh2.root, newname = 'groupcopy', recursive = True)
+            srcNode, fileh2.root, newname='groupcopy', recursive=True)
         dstNode = fileh2.root.groupcopy
 
         self.assertTrue(new_node is dstNode)
@@ -1448,10 +1451,10 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying dataset with a chunkshape."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         srcTable = fileh.root.table
         newTable = fileh.copy_node(
-            srcTable, newname = 'tablecopy', chunkshape=11)
+            srcTable, newname='tablecopy', chunkshape=11)
 
         self.assertEqual(newTable.chunkshape, (11,))
         self.assertNotEqual(srcTable.chunkshape, newTable.chunkshape)
@@ -1461,10 +1464,10 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying dataset with a chunkshape with 'keep' value."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         srcTable = fileh.root.table
         newTable = fileh.copy_node(
-            srcTable, newname = 'tablecopy', chunkshape='keep')
+            srcTable, newname='tablecopy', chunkshape='keep')
 
         self.assertEqual(srcTable.chunkshape, newTable.chunkshape)
         fileh.close()
@@ -1473,12 +1476,12 @@ class OpenFileTestCase(common.PyTablesTestCase):
         "Copying dataset with a chunkshape with 'auto' value."
 
         fileh = open_file(
-            self.file, mode = "r+", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
         srcTable = fileh.root.table
         newTable = fileh.copy_node(
-            srcTable, newname = 'tablecopy', chunkshape=11)
+            srcTable, newname='tablecopy', chunkshape=11)
         newTable2 = fileh.copy_node(
-            newTable, newname = 'tablecopy2', chunkshape='auto')
+            newTable, newname='tablecopy2', chunkshape='auto')
 
         self.assertEqual(srcTable.chunkshape, newTable2.chunkshape)
         fileh.close()
@@ -1498,7 +1501,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         # Open the old HDF5 file
         fileh = open_file(
-            self.file, mode = "r", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="r", node_cache_slots=self.nodeCacheSlots)
         # Get the file descriptor for this file
         fd = fileh.fileno()
         if common.verbose:
@@ -1506,11 +1509,14 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertTrue(fd >= 0)
         fileh.close()
 
+
 class NodeCacheOpenFile(OpenFileTestCase):
     nodeCacheSlots = NODE_CACHE_SLOTS
 
+
 class NoNodeCacheOpenFile(OpenFileTestCase):
     nodeCacheSlots = 0
+
 
 class DictNodeCacheOpenFile(OpenFileTestCase):
     nodeCacheSlots = -NODE_CACHE_SLOTS
@@ -1523,8 +1529,9 @@ class CheckFileTestCase(common.PyTablesTestCase):
 
         # Create a PyTables file (and by so, an HDF5 file)
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
-        fileh.create_array(fileh.root, 'array', [1, 2], title = "Title example")
+        fileh = open_file(file, mode="w")
+        fileh.create_array(fileh.root, 'array', [
+                           1, 2], title="Title example")
 
         # For this method to run, it needs a closed file
         fileh.close()
@@ -1554,11 +1561,9 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # Then, delete the file
         os.remove(file)
 
-
     def test01x_isHDF5File_nonexistent(self):
         """Identifying a nonexistent HDF5 file."""
         self.assertRaises(IOError, is_hdf5_file, 'nonexistent')
-
 
     def test01x_isHDF5File_unreadable(self):
         """Identifying an unreadable HDF5 file."""
@@ -1572,14 +1577,14 @@ class CheckFileTestCase(common.PyTablesTestCase):
             finally:
                 os.remove(h5fname)
 
-
     def test02_isPyTablesFile(self):
         """Checking is_pytables_file function (TRUE case)"""
 
         # Create a PyTables file
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
-        fileh.create_array(fileh.root, 'array', [1, 2], title = "Title example")
+        fileh = open_file(file, mode="w")
+        fileh.create_array(fileh.root, 'array', [
+                           1, 2], title="Title example")
 
         # For this method to run, it needs a closed file
         fileh.close()
@@ -1590,12 +1595,11 @@ class CheckFileTestCase(common.PyTablesTestCase):
         if common.verbose:
             print
             print "\nPyTables format version number ==> %s" % \
-              version
+                version
         self.assertTrue(version >= "1.0")
 
         # Then, delete the file
         os.remove(file)
-
 
     def test03_isPyTablesFile(self):
         """Checking is_pytables_file function (FALSE case)"""
@@ -1612,7 +1616,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         if common.verbose:
             print
             print "\nPyTables format version number ==> %s" % \
-              version
+                version
         self.assertTrue(version is None)
 
         # Then, delete the file
@@ -1691,7 +1695,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
 
         # Check that it cannot be copied to another file
         file2 = tempfile.mktemp(".h5")
-        fileh2 = open_file(file2, mode = "w")
+        fileh2 = open_file(file2, mode="w")
         # Force the userwarning to issue an error
         warnings.filterwarnings("error", category=UserWarning)
         try:
@@ -1707,7 +1711,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # Reset the warnings
         # Be careful with that, because this enables all the warnings
         # on the rest of the tests!
-        #warnings.resetwarnings()
+        # warnings.resetwarnings()
         # better use:
         warnings.filterwarnings("default", category=UserWarning)
 
@@ -1735,7 +1739,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
 
         # Check that it cannot be copied to another file
         file2 = tempfile.mktemp(".h5")
-        fileh2 = open_file(file2, mode = "w")
+        fileh2 = open_file(file2, mode="w")
         # Force the userwarning to issue an error
         warnings.filterwarnings("error", category=UserWarning)
         try:
@@ -1751,7 +1755,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # Reset the warnings
         # Be careful with that, because this enables all the warnings
         # on the rest of the tests!
-        #warnings.resetwarnings()
+        # warnings.resetwarnings()
         # better use:
         warnings.filterwarnings("default", category=UserWarning)
 
@@ -1760,7 +1764,6 @@ class CheckFileTestCase(common.PyTablesTestCase):
         os.remove(file2)
 
         fileh.close()
-
 
 
 class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -1790,7 +1793,6 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(AttributeError,
                           delattr, root, 'test')
 
-
     def test01_childUnderAttr(self):
         """Creating a child node under a Python attribute."""
 
@@ -1816,7 +1818,6 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(AttributeError,
                           delattr, root, 'test')
 
-
     def test02_nodeAttrInLeaf(self):
         """Assigning a ``Node`` value as an attribute to a ``Leaf``."""
 
@@ -1836,7 +1837,6 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           h5file.get_node, '/array1/array2')
         self.assertRaises(NoSuchNodeError,  # ``/array2`` is not a group
                           h5file.get_node, '/array2/array3')
-
 
     def test03_nodeAttrInGroup(self):
         """Assigning a ``Node`` value as an attribute to a ``Group``."""
@@ -1865,7 +1865,6 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           delattr, root, 'array')
 
 
-
 class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     """
@@ -1888,7 +1887,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 self.fail("a (maybe incomplete) copy "
                           "of a closed file was created")
 
-
     def test01_fileCloseClosed(self):
         """Test closing an already closed file."""
 
@@ -1899,13 +1897,11 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except ClosedFileError:
             self.fail("could not close an already closed file")
 
-
     def test02_fileFlushClosed(self):
         """Test flushing a closed file."""
 
         self.h5file.close()
         self.assertRaises(ClosedFileError, self.h5file.flush)
-
 
     def test03_fileFlushRO(self):
         """Flushing a read-only file."""
@@ -1917,7 +1913,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except FileModeError:
             self.fail("could not flush a read-only file")
 
-
     def test04_fileCreateNodeClosed(self):
         """Test creating a node in a closed file."""
 
@@ -1925,14 +1920,12 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedFileError,
                           self.h5file.create_group, '/', 'test')
 
-
     def test05_fileCreateNodeRO(self):
         """Test creating a node in a read-only file."""
 
         self._reopen('r')
         self.assertRaises(FileModeError,
                           self.h5file.create_group, '/', 'test')
-
 
     def test06_fileRemoveNodeClosed(self):
         """Test removing a node from a closed file."""
@@ -1942,7 +1935,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedFileError,
                           self.h5file.remove_node, '/', 'test')
 
-
     def test07_fileRemoveNodeRO(self):
         """Test removing a node from a read-only file."""
 
@@ -1950,7 +1942,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen('r')
         self.assertRaises(FileModeError,
                           self.h5file.remove_node, '/', 'test')
-
 
     def test08_fileMoveNodeClosed(self):
         """Test moving a node in a closed file."""
@@ -1961,7 +1952,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedFileError,
                           self.h5file.move_node, '/test1', '/', 'test2')
 
-
     def test09_fileMoveNodeRO(self):
         """Test moving a node in a read-only file."""
 
@@ -1970,7 +1960,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen('r')
         self.assertRaises(FileModeError,
                           self.h5file.move_node, '/test1', '/', 'test2')
-
 
     def test10_fileCopyNodeClosed(self):
         """Test copying a node in a closed file."""
@@ -1981,7 +1970,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedFileError,
                           self.h5file.copy_node, '/test1', '/', 'test2')
 
-
     def test11_fileCopyNodeRO(self):
         """Test copying a node in a read-only file."""
 
@@ -1990,14 +1978,12 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(FileModeError,
                           self.h5file.copy_node, '/test1', '/', 'test2')
 
-
     def test13_fileGetNodeClosed(self):
         """Test getting a node from a closed file."""
 
         self.h5file.create_group('/', 'test')
         self.h5file.close()
         self.assertRaises(ClosedFileError, self.h5file.get_node, '/test')
-
 
     def test14_fileWalkNodesClosed(self):
         """Test walking a closed file."""
@@ -2006,7 +1992,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.create_group('/', 'test2')
         self.h5file.close()
         self.assertRaises(ClosedFileError, self.h5file.walk_nodes().next)
-
 
     def test15_fileAttrClosed(self):
         """Test setting and deleting a node attribute in a closed file."""
@@ -2017,7 +2002,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           self.h5file.set_node_attr, '/test', 'foo', 'bar')
         self.assertRaises(ClosedFileError,
                           self.h5file.del_node_attr, '/test', 'foo')
-
 
     def test16_fileAttrRO(self):
         """Test setting and deleting a node attribute in a read-only file."""
@@ -2030,7 +2014,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(FileModeError,
                           self.h5file.del_node_attr, '/test', 'foo')
 
-
     def test17_fileUndoClosed(self):
         """Test undo operations in a closed file."""
 
@@ -2042,7 +2025,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedFileError, self.h5file.undo)
         self.assertRaises(ClosedFileError, self.h5file.disable_undo)
 
-
     def test18_fileUndoRO(self):
         """Test undo operations in a read-only file."""
 
@@ -2050,9 +2032,8 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.create_group('/', 'test')
         self._reopen('r')
         self.assertEqual(self.h5file._undoEnabled, False)
-        #self.assertRaises(FileModeError, self.h5file.undo)
-        #self.assertRaises(FileModeError, self.h5file.disable_undo)
-
+        # self.assertRaises(FileModeError, self.h5file.undo)
+        # self.assertRaises(FileModeError, self.h5file.disable_undo)
 
     def test19a_getNode(self):
         """Test getting a child of a closed node."""
@@ -2087,16 +2068,14 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(g1_._v_isopen is True,
                         "newly opened group is still closed")
 
-
     def test19b_getNode(self):
         """Test getting a node that does not start with a slash ('/')."""
 
         # Create an array in the root
-        self.h5file.create_array('/', 'array', [1, 2], title = "Title example")
+        self.h5file.create_array('/', 'array', [1, 2], title="Title example")
 
         # Get the array without specifying a leading slash
         self.assertRaises(NameError, self.h5file.get_node, "array")
-
 
     def test20_removeNode(self):
         """Test removing a closed node."""
@@ -2125,7 +2104,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue('/group/array' not in self.h5file)  # just in case
         self.assertTrue('/group' not in self.h5file)  # just in case
 
-
     def test21_attrsOfNode(self):
         """Test manipulating the attributes of a closed node."""
 
@@ -2141,7 +2119,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.assertEqual(self.h5file.get_node_attr('/test', 'test'), attr)
 
-
     def test21b_attrsOfNode(self):
         """Test manipulating the attributes of a node in a read-only file."""
 
@@ -2151,7 +2128,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen('r')
         self.assertRaises(FileModeError,
                           self.h5file.set_node_attr, '/test', 'test', 'bar')
-
 
     def test22_fileClosesNode(self):
         """Test node closing because of file closing."""
@@ -2183,7 +2159,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "(file2) test[1]:", file2.root.test[1]
         self.assertEqual(file2.root.test[1], 2)
         file2.close()
-
 
 
 class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -2218,9 +2193,9 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_readonly(self):
         """Setting a flavor in a read-only file."""
         self._reopen(mode='r')
-        self.assertRaises( FileModeError,
-                           setattr, self.array, 'flavor',
-                           tables.flavor.internal_flavor )
+        self.assertRaises(FileModeError,
+                          setattr, self.array, 'flavor',
+                          tables.flavor.internal_flavor)
 
     def test02_change(self):
         """Changing the flavor and reading data."""
@@ -2273,9 +2248,9 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     node = snode.copy('/', dname)
                 elif fmode == 'r':
                     node = self.h5file.get_node('/', dname)
-                self.assertEqual( node.flavor, tables.flavor.internal_flavor,
-                                  "flavor of node ``%s`` is not internal: %r"
-                                  % (node._v_pathname, node.flavor) )
+                self.assertEqual(node.flavor, tables.flavor.internal_flavor,
+                                 "flavor of node ``%s`` is not internal: %r"
+                                 % (node._v_pathname, node.flavor))
 
     def test07_restrict_flavors(self):
         # regression test for gh-163
@@ -2289,7 +2264,8 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         try:
             tables.flavor.restrict_flavors(keep=[])
             self.assertTrue(len(tables.flavor.alias_map) < len(alias_map))
-            self.assertTrue(len(tables.flavor.converter_map) < len(converter_map))
+            self.assertTrue(len(
+                tables.flavor.converter_map) < len(converter_map))
         finally:
             tables.flavor.all_flavors[:] = all_flavors[:]
             tables.flavor.alias_map.update(alias_map)
@@ -2332,7 +2308,6 @@ class UnicodeFilename(common.PyTablesTestCase):
             print "Filename:", self.h5fname
             print "is_hdf5_file?:", tables.is_hdf5_file(self.h5fname)
         self.assertTrue(tables.is_hdf5_file(self.h5fname))
-
 
     def test03(self):
         """Checking is_pytables_file with a Unicode filename."""
@@ -2385,21 +2360,21 @@ class FilePropertyTestCase(common.PyTablesTestCase):
     def test03_null_userblock_size(self):
         USER_BLOCK_SIZE = 0
         self.h5file = open_file(self.h5fname, mode="w",
-                               user_block_size=USER_BLOCK_SIZE)
+                                user_block_size=USER_BLOCK_SIZE)
         self.h5file.create_array(self.h5file.root, 'array', [1, 2])
         self.assertEqual(self.h5file.get_userblock_size(), 0)
 
     def test01_userblock_size(self):
         USER_BLOCK_SIZE = 512
         self.h5file = open_file(self.h5fname, mode="w",
-                               user_block_size=USER_BLOCK_SIZE)
+                                user_block_size=USER_BLOCK_SIZE)
         self.h5file.create_array(self.h5file.root, 'array', [1, 2])
         self.assertEqual(self.h5file.get_userblock_size(), USER_BLOCK_SIZE)
 
     def test02_userblock_size(self):
         USER_BLOCK_SIZE = 512
         self.h5file = open_file(self.h5fname, mode="w",
-                               user_block_size=USER_BLOCK_SIZE)
+                                user_block_size=USER_BLOCK_SIZE)
         self.h5file.create_array(self.h5file.root, 'array', [1, 2])
         self.h5file.close()
         self.h5file = open_file(self.h5fname, mode="r")
@@ -2426,7 +2401,6 @@ class BloscBigEndian(common.PyTablesTestCase):
     def tearDown(self):
         self.fileh.close()
 
-
     def test00_bigendian(self):
         """Checking compatibility with Blosc on big-endian machines."""
 
@@ -2442,7 +2416,7 @@ class BloscBigEndian(common.PyTablesTestCase):
 
 # The worker function for the subprocess (needs to be here because Windows
 # has problems pickling nested functions with the multiprocess module :-/)
-def _worker(fn, qout = None):
+def _worker(fn, qout=None):
     fp = tables.open_file(fn)
     if common.verbose:
         print "About to load: ", fn
@@ -2457,10 +2431,11 @@ def _worker(fn, qout = None):
     if qout is not None:
         qout.put("Done")
 
+
 class BloscSubprocess(common.PyTablesTestCase):
     def test_multiprocess(self):
-        #From: Yaroslav Halchenko <debian@onerussian.com>
-        #Subject: Skip the unittest on kFreeBSD and Hurd -- locking seems to
+        # From: Yaroslav Halchenko <debian@onerussian.com>
+        # Subject: Skip the unittest on kFreeBSD and Hurd -- locking seems to
         #         be N/A
         #
         #  on kfreebsd /dev/shm is N/A
@@ -2475,11 +2450,11 @@ class BloscSubprocess(common.PyTablesTestCase):
         fn = tempfile.mktemp(prefix="multiproc-blosc9-", suffix=".h5")
         size = int(3e5)
         sa = numpy.fromiter(((i, i**2, i//3)
-                                        for i in xrange(size)), 'i4,i8,f8')
+                             for i in xrange(size)), 'i4,i8,f8')
         fp = open_file(fn, 'w')
         fp.create_table(fp.root, 'table', sa,
-                       filters=Filters(complevel=9, complib="blosc"),
-                       chunkshape = (size // 3,))
+                        filters=Filters(complevel=9, complib="blosc"),
+                        chunkshape=(size // 3,))
         fp.close()
 
         if common.verbose:
@@ -2633,7 +2608,7 @@ class TestDescription(common.PyTablesTestCase):
 
     def test_descr_from_dtype_rich_dtype(self):
         header = [(('timestamp', 't'), 'u4'),
-                  (('unit (cluster) id', 'unit'),'u2')]
+                  (('unit (cluster) id', 'unit'), 'u2')]
         t = numpy.dtype(header)
 
         descr, byteorder = descr_from_dtype(t)
@@ -2733,7 +2708,7 @@ class TestAtom(common.PyTablesTestCase):
         self.assertEqual(a.itemsize, a.dtype.base.itemsize)
         self.assertEqual(a.kind, 'float')
         self.assertEqual(a.ndim, len(shape))
-        #self.assertEqual(a.recarrtype, )
+        # self.assertEqual(a.recarrtype, )
         self.assertEqual(a.shape, shape)
         self.assertEqual(a.size, a.itemsize * numpy.prod(shape))
         self.assertEqual(a.type, 'float64')
@@ -2830,14 +2805,8 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
+    unittest.main(defaultTest='suite')
 
 ## Local Variables:
 ## mode: python
 ## End:
-
-
-
-
-
-

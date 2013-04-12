@@ -13,7 +13,9 @@
 """Test module for compatibility with plain HDF files"""
 
 import unittest
-import tempfile, shutil, os
+import tempfile
+import shutil
+import os
 
 import numpy
 
@@ -35,12 +37,10 @@ class HDF5CompatibilityTestCase(common.PyTablesTestCase):
     def setUp(self):
         self.h5file = None
 
-
     def tearDown(self):
         if self.h5file is not None:
             self.h5file.close()
         self.h5file = None
-
 
     def test(self):
         self.h5fname = self._testFilename(self.h5fname)
@@ -76,7 +76,6 @@ class EnumTestCase(HDF5CompatibilityTestCase):
         self.assertEqual(data, expectedData)
 
 
-
 class NumericTestCase(HDF5CompatibilityTestCase):
 
     """
@@ -107,37 +106,40 @@ class NumericTestCase(HDF5CompatibilityTestCase):
         self.assertTrue(common.areArraysEqual(data, expectedData))
 
 
-
 class F64BETestCase(NumericTestCase):
     h5fname = 'smpl_f64be.h5'
     type = 'float64'
     byteorder = 'big'
+
 
 class F64LETestCase(NumericTestCase):
     h5fname = 'smpl_f64le.h5'
     type = 'float64'
     byteorder = 'little'
 
+
 class I64BETestCase(NumericTestCase):
     h5fname = 'smpl_i64be.h5'
     type = 'int64'
     byteorder = 'big'
+
 
 class I64LETestCase(NumericTestCase):
     h5fname = 'smpl_i64le.h5'
     type = 'int64'
     byteorder = 'little'
 
+
 class I32BETestCase(NumericTestCase):
     h5fname = 'smpl_i32be.h5'
     type = 'int32'
     byteorder = 'big'
 
+
 class I32LETestCase(NumericTestCase):
     h5fname = 'smpl_i32le.h5'
     type = 'int32'
     byteorder = 'little'
-
 
 
 class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
@@ -182,7 +184,7 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
         for m in range(len(tbl)):
             row = tbl[m]
         # This version of the loop seems to fail because of ``iterrows()``.
-        #for (m, row) in enumerate(tbl):
+        # for (m, row) in enumerate(tbl):
             self.assertEqual(row['a_name'], m)
             self.assertEqual(row['c_name'], b"Hello!")
             dRow = row['d_name']
@@ -232,7 +234,7 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
             self.assertEqual(row['a'], 3.0)
             self.assertEqual(row['b'], 4.0)
             self.assertTrue(allequal(row['c'], numpy.array([2.0, 3.0],
-                                                        dtype="float64")))
+                                                           dtype="float64")))
             self.assertEqual(row['d'], b"d")
 
         self.h5file.close()
@@ -267,7 +269,6 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
         # Remove the file copy
         self.h5file.close()  # Close the handler first
         os.remove(h5fname_copy)
-
 
 
 class ExtendibleTestCase(HDF5CompatibilityTestCase):
@@ -383,9 +384,3 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

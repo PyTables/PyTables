@@ -35,6 +35,7 @@ from tables.attributeset import AttributeSet
 import tables.file
 from tables._past import previous_api
 
+
 def _g_get_link_class(parent_id, name):
     """Guess the link class."""
 
@@ -75,24 +76,23 @@ class Link(Node):
             def __getattr__(self, name):
                 raise KeyError("you cannot get attributes from this "
                                "`%s` instance" % self.__class__.__name__)
+
             def __setattr__(self, name, value):
                 raise KeyError("you cannot set attributes to this "
                                "`%s` instance" % self.__class__.__name__)
+
             def _g_close(self):
                 pass
         return NoAttrs(self)
 
-
-    def __init__(self, parentNode, name, target=None, _log = False):
+    def __init__(self, parentNode, name, target=None, _log=False):
         self._v_new = target is not None
         self.target = target
         """The path string to the pointed node."""
 
         super(Link, self).__init__(parentNode, name, _log)
 
-
     # Public and tailored versions for copy, move, rename and remove methods
-
     def copy(self, newparent=None, newname=None,
              overwrite=False, createparents=False):
         """Copy this link and return the new one.
@@ -108,7 +108,6 @@ class Link(Node):
         newnode._v_parent._g_refnode(newnode, newname, True)
         return newnode
 
-
     def move(self, newparent=None, newname=None, overwrite=False):
         """Move or rename this link.
 
@@ -118,12 +117,10 @@ class Link(Node):
         return self._f_move(newparent=newparent, newname=newname,
                             overwrite=overwrite)
 
-
     def remove(self):
         """Remove this link from the hierarchy."""
 
         return self._f_remove()
-
 
     def rename(self, newname=None, overwrite=False):
         """Rename this link in place.
@@ -131,7 +128,6 @@ class Link(Node):
         See :meth:`Node._f_rename` for a complete explanation of the arguments.
         """
         return self._f_rename(newname=newname, overwrite=overwrite)
-
 
     def __repr__(self):
         return str(self)
@@ -168,7 +164,6 @@ class SoftLink(linkextension.SoftLink, Link):
         if not self.target.startswith('/'):
             target = self._v_parent._g_join(self.target)
         return self._v_file._get_node(target)
-
 
     def __str__(self):
         """Return a short string representation of the link.
@@ -217,13 +212,12 @@ class ExternalLink(linkextension.ExternalLink, Link):
     # Class identifier.
     _c_classid = 'EXTERNALLINK'
 
-    def __init__(self, parentNode, name, target=None, _log = False):
+    def __init__(self, parentNode, name, target=None, _log=False):
         self.extfile = None
         """The external file handler, if the link has been dereferenced.
         In case the link has not been dereferenced yet, its value is
         None."""
         super(ExternalLink, self).__init__(parentNode, name, target, _log)
-
 
     def _get_filename_node(self):
         """Return the external filename and nodepath from `self.target`."""
@@ -231,7 +225,6 @@ class ExternalLink(linkextension.ExternalLink, Link):
         # This is needed for avoiding the 'C:\\file.h5' filepath notation
         filename, target = self.target.split(':/')
         return filename, '/'+target
-
 
     def __call__(self, **kwargs):
         """Dereference self.target and return the object.
@@ -271,7 +264,6 @@ class ExternalLink(linkextension.ExternalLink, Link):
             self.extfile = t.open_file(filename, **kwargs)
         return self.extfile._get_node(target)
 
-
     def umount(self):
         """Safely unmount self.extfile, if opened."""
 
@@ -281,13 +273,11 @@ class ExternalLink(linkextension.ExternalLink, Link):
             extfile.close()
             self.extfile = None
 
-
     def _f_close(self):
         """Especific close for external links."""
 
         self.umount()
         super(ExternalLink, self)._f_close()
-
 
     def __str__(self):
         """Return a short string representation of the link.
@@ -313,9 +303,3 @@ class ExternalLink(linkextension.ExternalLink, Link):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

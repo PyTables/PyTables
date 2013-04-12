@@ -20,9 +20,9 @@ from tables.carray import CArray
 from tables._past import previous_api
 
 # default version for EARRAY objects
-#obversion = "1.0"    # initial version
-#obversion = "1.1"    # support for complex datatypes
-#obversion = "1.2"    # This adds support for time datatypes.
+# obversion = "1.0"    # initial version
+# obversion = "1.1"    # support for complex datatypes
+# obversion = "1.2"    # This adds support for time datatypes.
 obversion = "1.3"    # This adds support for enumerated datatypes.
 
 
@@ -118,14 +118,13 @@ class EArray(CArray):
     # Class identifier.
     _c_classid = 'EARRAY'
 
-
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__( self, parentNode, name,
-                  atom=None, shape=None, title="",
-                  filters=None, expectedrows=None,
-                  chunkshape=None, byteorder=None,
-                  _log=True ):
+    def __init__(self, parentNode, name,
+                 atom=None, shape=None, title="",
+                 filters=None, expectedrows=None,
+                 chunkshape=None, byteorder=None,
+                 _log=True):
 
         # Specific of EArray
         if expectedrows is None:
@@ -136,7 +135,6 @@ class EArray(CArray):
         # Call the parent (CArray) init code
         super(EArray, self).__init__(parentNode, name, atom, shape, title,
                                      filters, chunkshape, byteorder, _log)
-
 
     # Public and private methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -159,7 +157,6 @@ class EArray(CArray):
 
         # Finish the common part of the creation process
         return self._g_create_common(self._v_expectedrows)
-
 
     def _check_shape_append(self, nparr):
         "Test that nparr shape is consistent with underlying EArray."
@@ -201,9 +198,8 @@ class EArray(CArray):
         if nparr.size > 0:
             self._append(nparr)
 
-
     def _g_copy_with_stats(self, group, name, start, stop, step,
-                         title, filters, chunkshape, _log, **kwargs):
+                           title, filters, chunkshape, _log, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)
@@ -248,9 +244,3 @@ class EArray(CArray):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

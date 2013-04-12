@@ -25,7 +25,7 @@ import warnings
 from tables.file import open_file
 from tables.group import Group
 from tables.leaf import Filters
-from tables.exceptions import  OldIndexWarning, NoSuchNodeError, FlavorWarning
+from tables.exceptions import OldIndexWarning, NoSuchNodeError, FlavorWarning
 from tables._past import previous_api
 
 # Global variables
@@ -46,8 +46,8 @@ def newdst_group(dstfileh, dstgroup, title, filters):
         except NoSuchNodeError:
             # The group does not exist. Create it.
             group2 = dstfileh.create_group(group, nodeName,
-                                          title=title,
-                                          filters=filters)
+                                           title=title,
+                                           filters=filters)
         group = group2
     return group
 
@@ -71,15 +71,15 @@ def recreate_indexes(table, dstfileh, dsttable):
                 print "[I]Indexing column: '%s'. Please wait..." % colname
             colobj = dsttable.cols._f_col(colname)
             # We don't specify the filters for the indexes
-            colobj.create_index(filters = None)
+            colobj.create_index(filters=None)
 
 recreateIndexes = previous_api(recreate_indexes)
 
 
 def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
-             filters, copyuserattrs, overwritefile, overwrtnodes, stats,
-             start, stop, step, chunkshape, sortby, checkCSI,
-             propindexes, upgradeflavors):
+              filters, copyuserattrs, overwritefile, overwrtnodes, stats,
+              start, stop, step, chunkshape, sortby, checkCSI,
+              propindexes, upgradeflavors):
     # Open the source file
     srcfileh = open_file(srcfile, 'r')
     # Get the source node (that should exist)
@@ -88,7 +88,8 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
     # Get the destination node and its parent
     last_slash = dstnode.rindex('/')
     if last_slash == len(dstnode)-1:
-        # print "Detected a trailing slash in destination node. Interpreting it as a destination group."
+        # print "Detected a trailing slash in destination node. Interpreting it
+        # as a destination group."
         dstgroup = dstnode[:-1]
     elif last_slash > 0:
         dstgroup = dstnode[:last_slash]
@@ -115,8 +116,8 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
                     dstgroupname = dstGroup._v_pathname[last_slash+1:]
                     dstGroup.remove()
                     dstGroup = dstfileh.create_group(parent, dstgroupname,
-                                                    title=title,
-                                                    filters=filters)
+                                                     title=title,
+                                                     filters=filters)
                 else:
                     raise RuntimeError("Please check that the node names are "
                                        "not duplicated in destination, and "
@@ -125,17 +126,17 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
     else:
         # The destination file does not exist or will be overwritten.
         dstfileh = open_file(dstfile, 'w', title=title, filters=filters,
-                            pytables_sys_attrs=createsysattrs)
+                             pytables_sys_attrs=createsysattrs)
         dstGroup = newdst_group(dstfileh, dstgroup, title="", filters=filters)
 
     # Finally, copy srcNode to dstNode
     try:
         dstNode = srcNode.copy(
-            dstGroup, dstleaf, filters = filters,
-            copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
-            stats = stats, start = start, stop = stop, step = step,
-            chunkshape = chunkshape,
-            sortby = sortby, checkCSI = checkCSI, propindexes = propindexes)
+            dstGroup, dstleaf, filters=filters,
+            copyuserattrs=copyuserattrs, overwrite=overwrtnodes,
+            stats=stats, start=start, stop=stop, step=step,
+            chunkshape=chunkshape,
+            sortby=sortby, checkCSI=checkCSI, propindexes=propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -166,10 +167,10 @@ copyLeaf = previous_api(copy_leaf)
 
 
 def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
-                 recursive, filters, copyuserattrs, overwritefile,
-                 overwrtnodes, stats, start, stop, step,
-                 chunkshape, sortby, checkCSI, propindexes,
-                 upgradeflavors):
+                  recursive, filters, copyuserattrs, overwritefile,
+                  overwrtnodes, stats, start, stop, step,
+                  chunkshape, sortby, checkCSI, propindexes,
+                  upgradeflavors):
     "Copy the children from source group to destination group"
     # Open the source file with srcgroup as root_uep
     srcfileh = open_file(srcfile, 'r', root_uep=srcgroup)
@@ -196,8 +197,8 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                     dstgroupname = dstGroup._v_pathname[last_slash+1:]
                     dstGroup.remove()
                     dstGroup = dstfileh.create_group(parent, dstgroupname,
-                                                    title=title,
-                                                    filters=filters)
+                                                     title=title,
+                                                     filters=filters)
                 else:
                     raise RuntimeError("Please check that the node names are "
                                        "not duplicated in destination, and "
@@ -206,7 +207,7 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
     else:
         # The destination file does not exist or will be overwritten.
         dstfileh = open_file(dstfile, 'w', title=title, filters=filters,
-                            pytables_sys_attrs=createsysattrs)
+                             pytables_sys_attrs=createsysattrs)
         dstGroup = newdst_group(dstfileh, dstgroup, title="", filters=filters)
         created_dstGroup = True
 
@@ -217,11 +218,11 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
     # Finally, copy srcGroup children to dstGroup
     try:
         srcGroup._f_copy_children(
-            dstGroup, recursive = recursive, filters = filters,
-            copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
-            stats = stats, start = start, stop = stop, step = step,
-            chunkshape = chunkshape,
-            sortby = sortby, checkCSI = checkCSI, propindexes = propindexes)
+            dstGroup, recursive=recursive, filters=filters,
+            copyuserattrs=copyuserattrs, overwrite=overwrtnodes,
+            stats=stats, start=start, stop=stop, step=step,
+            chunkshape=chunkshape,
+            sortby=sortby, checkCSI=checkCSI, propindexes=propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -302,7 +303,6 @@ def main():
          default is to not propagate them.  Only applies to table objects.
     \n""" % os.path.basename(sys.argv[0])
 
-
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], 'hvoR:',
                                     ['non-recursive',
@@ -377,9 +377,9 @@ def main():
         elif option[0] == '--keep-source-filters':
             keepfilters = True
         elif option[0] == '--chunkshape':
-             chunkshape = option[1]
-             if chunkshape.isdigit() or chunkshape.startswith('('):
-                 chunkshape = eval(chunkshape)
+            chunkshape = option[1]
+            if chunkshape.isdigit() or chunkshape.startswith('('):
+                chunkshape = eval(chunkshape)
         elif option[0] == '--upgrade-flavors':
             upgradeflavors = True
         elif option[0] == '--dont-regenerate-old-indexes':
@@ -440,14 +440,17 @@ def main():
     if ((complevel, complib, shuffle, fletcher32) == (None,)*4 or keepfilters):
         filters = None
     else:
-        if complevel is None: complevel = 0
+        if complevel is None:
+            complevel = 0
         if shuffle is None:
             if complevel > 0:
                 shuffle = True
             else:
                 shuffle = False
-        if complib is None: complib = "zlib"
-        if fletcher32 is None: fletcher32 = False
+        if complib is None:
+            complib = "zlib"
+        if fletcher32 is None:
+            fletcher32 = False
         filters = Filters(complevel=complevel, complib=complib,
                           shuffle=shuffle, fletcher32=fletcher32)
 
@@ -483,21 +486,21 @@ def main():
     if isinstance(srcnodeobject, Group):
         copy_children(
             srcfile, dstfile, srcnode, dstnode,
-            title = title, recursive = recursive, filters = filters,
-            copyuserattrs = copyuserattrs, overwritefile = overwritefile,
-            overwrtnodes = overwrtnodes, stats = stats,
-            start = start, stop = stop, step = step, chunkshape = chunkshape,
-            sortby = sortby, checkCSI = checkCSI, propindexes = propindexes,
+            title=title, recursive=recursive, filters=filters,
+            copyuserattrs=copyuserattrs, overwritefile=overwritefile,
+            overwrtnodes=overwrtnodes, stats=stats,
+            start=start, stop=stop, step=step, chunkshape=chunkshape,
+            sortby=sortby, checkCSI=checkCSI, propindexes=propindexes,
             upgradeflavors=upgradeflavors)
     else:
         # If not a Group, it should be a Leaf
         copy_leaf(
             srcfile, dstfile, srcnode, dstnode,
-            title = title, filters = filters, copyuserattrs = copyuserattrs,
-            overwritefile = overwritefile, overwrtnodes = overwrtnodes,
-            stats = stats, start = start, stop = stop, step = step,
-            chunkshape = chunkshape,
-            sortby = sortby, checkCSI = checkCSI, propindexes = propindexes,
+            title=title, filters=filters, copyuserattrs=copyuserattrs,
+            overwritefile=overwritefile, overwrtnodes=overwrtnodes,
+            stats=stats, start=start, stop=stop, step=step,
+            chunkshape=chunkshape,
+            sortby=sortby, checkCSI=checkCSI, propindexes=propindexes,
             upgradeflavors=upgradeflavors)
 
     # Gather some statistics
@@ -515,9 +518,9 @@ def main():
         nnodes = ngroups + nleaves + nlinks
 
         print \
-              "Groups copied:", ngroups, \
-              " Leaves copied:", nleaves, \
-              " Links copied:", nlinks
+            "Groups copied:", ngroups, \
+            " Leaves copied:", nleaves, \
+            " Links copied:", nlinks
         if copyuserattrs:
             print "User attrs copied"
         else:
@@ -527,9 +530,3 @@ def main():
               (tcopy, cpucopy, tpercent)
         print "Copied nodes/sec: ", round((nnodes) / float(tcopy), 1)
         print "Copied KB/s :", int(nbytescopied / (tcopy * 1024))
-
-
-
-
-
-

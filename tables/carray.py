@@ -113,17 +113,15 @@ class CArray(Array):
     # Class identifier.
     _c_classid = 'CARRAY'
 
-
     # Properties
     # ~~~~~~~~~~
-
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__( self, parentNode, name,
-                  atom=None, shape=None,
-                  title="", filters=None,
-                  chunkshape=None, byteorder = None,
-                  _log=True ):
+    def __init__(self, parentNode, name,
+                 atom=None, shape=None,
+                 title="", filters=None,
+                 chunkshape=None, byteorder=None,
+                 _log=True):
 
         self.atom = atom
         """An `Atom` instance representing the shape, type of the atomic
@@ -170,7 +168,7 @@ class CArray(Array):
             if not isinstance(atom, Atom):
                 raise ValueError("atom parameter should be an instance of "
                                  "tables.Atom and you passed a %s." %
-                                                                  type(atom))
+                                 type(atom))
             if shape is None:
                 raise ValueError("you must specify a non-empty shape")
             try:
@@ -178,7 +176,7 @@ class CArray(Array):
             except TypeError:
                 raise TypeError(
                     "`shape` parameter must be a sequence "
-                    "and you passed a %s" % type(shape) )
+                    "and you passed a %s" % type(shape))
             self.shape = tuple(SizeType(s) for s in shape)
 
             if chunkshape is not None:
@@ -187,11 +185,11 @@ class CArray(Array):
                 except TypeError:
                     raise TypeError(
                         "`chunkshape` parameter must be a sequence "
-                        "and you passed a %s" % type(chunkshape) )
+                        "and you passed a %s" % type(chunkshape))
                 if len(shape) != len(chunkshape):
                     raise ValueError("the shape (%s) and chunkshape (%s) "
                                      "ranks must be equal." %
-                                                        (shape, chunkshape))
+                                    (shape, chunkshape))
                 elif min(chunkshape) < 1:
                     raise ValueError("chunkshape parameter cannot have "
                                      "zero-dimensions.")
@@ -201,7 +199,6 @@ class CArray(Array):
         super(Array, self).__init__(parentNode, name, new, filters,
                                     byteorder, _log)
 
-
     def _g_create(self):
         """Create a new array in file (specific part)."""
 
@@ -210,7 +207,6 @@ class CArray(Array):
                 "shape parameter cannot have zero-dimensions.")
         # Finish the common part of creation process
         return self._g_create_common(self.nrows)
-
 
     def _g_create_common(self, expectedrows):
         """Create a new array in file (common part)."""
@@ -232,15 +228,14 @@ class CArray(Array):
             # needed for setting attributes in some descendants later
             # on
             self._v_objectid = self._create_carray(self._v_new_title)
-        except:  #XXX
+        except:  # XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
         return self._v_objectid
 
-
     def _g_copy_with_stats(self, group, name, start, stop, step,
-                         title, filters, chunkshape, _log, **kwargs):
+                           title, filters, chunkshape, _log, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf"""
         (start, stop, step) = self._process_range_read(start, stop, step)
         maindim = self.maindim
@@ -280,9 +275,3 @@ class CArray(Array):
         return (object, nbytes)
 
     _g_copyWithStats = previous_api(_g_copy_with_stats)
-
-
-
-
-
-

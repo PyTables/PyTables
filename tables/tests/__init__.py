@@ -19,9 +19,3 @@ PyTables functionality.
 """
 
 from tables.tests.test_all import print_versions, test, suite
-
-
-
-
-
-

@@ -15,6 +15,7 @@
 from inspect import getmembers, isclass, ismethod, isfunction
 from warnings import warn
 
+
 def previous_api(obj):
     """A decorator-like function for dealing with deprecations."""
     if not (ismethod(obj) or isfunction(obj)):
@@ -28,10 +29,12 @@ def previous_api(obj):
     warnmsg = ("{0}() is pending deprecation, use {1}() instead. "
                "You may use the pt2to3 tool to update your source code.")
     warnmsg = warnmsg.format(oldname, newname)
+
     def oldfunc(*args, **kwargs):
         warn(warnmsg, PendingDeprecationWarning, stacklevel=2)
         return obj(*args, **kwargs)
-    oldfunc.__doc__ = (obj.__doc__ or '') + "\n\n.. warning::\n\n    " + warnmsg + "\n"
+    oldfunc.__doc__ = (
+        obj.__doc__ or '') + "\n\n.. warning::\n\n    " + warnmsg + "\n"
     return oldfunc
 
 # old name, new name
@@ -437,8 +440,6 @@ old2newnames = dict([
     ('HDF5ToNPExtType', 'hdf5_to_np_ext_type'),
     ('AtomFromHDF5Type', 'atom_from_hdf5_type'),
     ('createNestedType', 'create_nested_type'),
-    ])
+])
 
 new2oldnames = dict([(v, k) for k, v in old2newnames.iteritems()])
-
-

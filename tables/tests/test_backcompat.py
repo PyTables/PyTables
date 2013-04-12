@@ -13,6 +13,8 @@ from tables.tests.common import allequal
 unittest.TestCase.tearDown = common.cleanup
 
 # Check read Tables from pytables version 0.8
+
+
 class BackCompatTablesTestCase(common.PyTablesTestCase):
 
     #----------------------------------------
@@ -32,7 +34,7 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
         table = self.fileh.get_node("/tuple0")
 
         # Read the 100 records
-        result = [ rec['var2'] for rec in table]
+        result = [rec['var2'] for rec in table]
         if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
@@ -45,19 +47,25 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
 class Table2_1LZO(BackCompatTablesTestCase):
     file = "Table2_1_lzo_nrv2e_shuffle.h5"  # pytables 0.8.x versions and after
 
+
 class Tables_LZO1(BackCompatTablesTestCase):
     file = "Tables_lzo1.h5"  # files compressed with LZO1
+
 
 class Tables_LZO1_shuffle(BackCompatTablesTestCase):
     file = "Tables_lzo1_shuffle.h5"  # files compressed with LZO1 and shuffle
 
+
 class Tables_LZO2(BackCompatTablesTestCase):
     file = "Tables_lzo2.h5"  # files compressed with LZO2
+
 
 class Tables_LZO2_shuffle(BackCompatTablesTestCase):
     file = "Tables_lzo2_shuffle.h5"  # files compressed with LZO2 and shuffle
 
 # Check read attributes from PyTables >= 1.0 properly
+
+
 class BackCompatAttrsTestCase(common.PyTablesTestCase):
     file = "zerodim-attrs-%s.h5"
 
@@ -85,11 +93,14 @@ class BackCompatAttrsTestCase(common.PyTablesTestCase):
 
         self.fileh.close()
 
+
 class Attrs_1_3(BackCompatAttrsTestCase):
     format = "1.3"    # pytables 1.0.x versions and earlier
 
+
 class Attrs_1_4(BackCompatAttrsTestCase):
     format = "1.4"    # pytables 1.1.x versions and later
+
 
 class VLArrayTestCase(common.PyTablesTestCase):
 
@@ -120,7 +131,6 @@ class TimeTestCase(common.PyTablesTestCase):
 
     def tearDown(self):
         self.fileh.close()
-
 
     def test00_table(self):
         """Checking backward compatibility with old TimeXX types (tables)."""
@@ -160,10 +170,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
-
-
-
-
-
-
+    unittest.main(defaultTest='suite')

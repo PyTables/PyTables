@@ -25,12 +25,14 @@ from tables._past import old2newnames, new2oldnames
 # breaks transforming cython files.  So instead we are going to do the
 # dumb thing with replace.
 
+
 def make_subs(ns):
     names = new2oldnames if ns.reverse else old2newnames
     s = '(?<=\W)({0})(?=\W)'.format('|'.join(names.keys()))
     if ns.ignore_previous:
         s += '(?!\s*?=\s*?previous_api\()'
     subs = re.compile(s, flags=re.MULTILINE)
+
     def repl(m):
         return names.get(m.group(1), m.group(0))
     return subs, repl
@@ -45,7 +47,7 @@ def main():
     parser.add_argument('-r', '--reverse', action='store_true', default=False,
                         dest='reverse', help="reverts changes, going from 3.x -> 2.x.")
     parser.add_argument('-p', '--no-ignore-previous', action='store_false',
-                default=True, dest='ignore_previous', help="ingores previous_api() calls.")
+                        default=True, dest='ignore_previous', help="ingores previous_api() calls.")
     parser.add_argument('-o', default=None, dest='output',
                         help="output file to write to.")
     parser.add_argument('-i', '--inplace', action='store_true', default=False,

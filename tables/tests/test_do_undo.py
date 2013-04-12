@@ -28,17 +28,16 @@ class BasicTestCase(unittest.TestCase):
             self.fileh.close()
             self.fileh = open_file(self.file, mode='r+')
 
-
     def setUp(self):
         # Create an HDF5 file
-        #self.file = "/tmp/test.h5"
+        # self.file = "/tmp/test.h5"
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w", title="File title")
+        self.fileh = open_file(self.file, mode="w", title="File title")
         fileh = self.fileh
         root = fileh.root
 
         # Create an array
-        fileh.create_array(root, 'array', [1, 2], title = "Title example")
+        fileh.create_array(root, 'array', [1, 2], title="Title example")
 
         # Create another array object
         fileh.create_array(root, 'anarray', [1], "Array title")
@@ -55,7 +54,6 @@ class BasicTestCase(unittest.TestCase):
 
         # Create a new group in the second level
         fileh.create_group(group, 'agroup3', "Group title 3")
-
 
     def tearDown(self):
         # Remove the temporary file
@@ -547,7 +545,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray.title, "Another array")
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
 
-
     def test08_marknames(self):
         """Checking mark names"""
 
@@ -626,7 +623,6 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.fileh.root.otherarray.title, "Another array")
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
-
 
     def test09_marknames(self):
         """Checking mark names (wrong direction)"""
@@ -904,12 +900,12 @@ class createArrayTestCase(unittest.TestCase):
     def setUp(self):
         # Create an HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w", title="File title")
+        self.fileh = open_file(self.file, mode="w", title="File title")
         fileh = self.fileh
         root = fileh.root
 
         # Create an array
-        fileh.create_array(root, 'array', [1, 2], title = "Title example")
+        fileh.create_array(root, 'array', [1, 2], title="Title example")
 
         # Create another array object
         fileh.create_array(root, 'anarray', [1], "Array title")
@@ -927,13 +923,11 @@ class createArrayTestCase(unittest.TestCase):
         # Create a new group in the second level
         fileh.create_group(group, 'agroup3', "Group title 3")
 
-
     def tearDown(self):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
         common.cleanup(self)
-
 
     def test00(self):
         """Checking one action"""
@@ -956,7 +950,6 @@ class createArrayTestCase(unittest.TestCase):
         self.assertTrue("/otherarray1" in self.fileh)
         self.assertEqual(self.fileh.root.otherarray1.title, "Another array 1")
         self.assertEqual(self.fileh.root.otherarray1.read(), [1, 2])
-
 
     def test01(self):
         """Checking two actions"""
@@ -984,7 +977,6 @@ class createArrayTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
         self.assertEqual(self.fileh.root.otherarray1.read(), [1, 2])
         self.assertEqual(self.fileh.root.otherarray2.read(), [2, 3])
-
 
     def test02(self):
         """Checking three actions"""
@@ -1029,8 +1021,10 @@ class createArrayTestCase(unittest.TestCase):
         self.fileh.enable_undo()
         # Create a new array
         self.fileh.create_array('/', 'otherarray1', [1, 2], "Another array 1")
-        self.fileh.create_array('/agroup', 'otherarray2', [2, 3], "Another array 2")
-        self.fileh.create_array('/agroup/agroup3', 'otherarray3', [3, 4], "Another array 3")
+        self.fileh.create_array('/agroup', 'otherarray2', [
+                                2, 3], "Another array 2")
+        self.fileh.create_array('/agroup/agroup3', 'otherarray3', [
+                                3, 4], "Another array 3")
         # Now undo the past operation
         self.fileh.undo()
         # Check that otherarray does not exist in the object tree
@@ -1060,12 +1054,12 @@ class createGroupTestCase(unittest.TestCase):
     def setUp(self):
         # Create an HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w", title="File title")
+        self.fileh = open_file(self.file, mode="w", title="File title")
         fileh = self.fileh
         root = fileh.root
 
         # Create an array
-        fileh.create_array(root, 'array', [1, 2], title = "Title example")
+        fileh.create_array(root, 'array', [1, 2], title="Title example")
 
         # Create another array object
         fileh.create_array(root, 'anarray', [1], "Array title")
@@ -1083,13 +1077,11 @@ class createGroupTestCase(unittest.TestCase):
         # Create a new group in the second level
         fileh.create_group(group, 'agroup3', "Group title 3")
 
-
     def tearDown(self):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
         common.cleanup(self)
-
 
     def test00(self):
         """Checking one action"""
@@ -1112,7 +1104,6 @@ class createGroupTestCase(unittest.TestCase):
         self.assertTrue("/othergroup1" in self.fileh)
         self.assertEqual(self.fileh.root.othergroup1._v_title,
                          "Another group 1")
-
 
     def test01(self):
         """Checking two actions"""
@@ -1140,7 +1131,6 @@ class createGroupTestCase(unittest.TestCase):
                          "Another group 1")
         self.assertEqual(self.fileh.root.othergroup2._v_title,
                          "Another group 2")
-
 
     def test02(self):
         """Checking three actions"""
@@ -1174,7 +1164,6 @@ class createGroupTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.othergroup3._v_title,
                          "Another group 3")
 
-
     def test03(self):
         """Checking three actions in different depth levels"""
 
@@ -1186,14 +1175,17 @@ class createGroupTestCase(unittest.TestCase):
         self.fileh.enable_undo()
         # Create a new group
         self.fileh.create_group('/', 'othergroup1', "Another group 1")
-        self.fileh.create_group('/othergroup1', 'othergroup2', "Another group 2")
-        self.fileh.create_group('/othergroup1/othergroup2', 'othergroup3', "Another group 3")
+        self.fileh.create_group(
+            '/othergroup1', 'othergroup2', "Another group 2")
+        self.fileh.create_group(
+            '/othergroup1/othergroup2', 'othergroup3', "Another group 3")
         # Now undo the past operation
         self.fileh.undo()
         # Check that othergroup* does not exist in the object tree
         self.assertTrue("/othergroup1" not in self.fileh)
         self.assertTrue("/othergroup1/othergroup2" not in self.fileh)
-        self.assertTrue("/othergroup1/othergroup2/othergroup3" not in self.fileh)
+        self.assertTrue(
+            "/othergroup1/othergroup2/othergroup3" not in self.fileh)
         # Redo the operation
         self.fileh.redo()
         # Check that othergroup* has come back to life in a sane state
@@ -1210,6 +1202,8 @@ class createGroupTestCase(unittest.TestCase):
 
 
 minRowIndex = 10
+
+
 def populateTable(where, name):
     "Create a table under where with name name"
 
@@ -1221,7 +1215,7 @@ def populateTable(where, name):
 
     nrows = minRowIndex
     table = where._v_file.create_table(where, name, Indexed, "Indexed",
-                                      None, nrows)
+                                       None, nrows)
     for i in range(nrows):
         table.row['var1'] = str(i)
         # table.row['var2'] = i > 2
@@ -1236,11 +1230,12 @@ def populateTable(where, name):
     indexrows = table.cols.var2.create_index()
     indexrows = table.cols.var3.create_index()
     # Do not index the var4 column
-    #indexrows = table.cols.var4.create_index()
+    # indexrows = table.cols.var4.create_index()
     if common.verbose:
         print "Number of written rows:", nrows
         print "Number of indexed rows:", table.cols.var1.index.nelements
         print "Number of indexed rows(2):", indexrows
+
 
 class renameNodeTestCase(unittest.TestCase):
     "Test for rename_node operations"
@@ -1248,12 +1243,12 @@ class renameNodeTestCase(unittest.TestCase):
     def setUp(self):
         # Create an HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w", title="File title")
+        self.fileh = open_file(self.file, mode="w", title="File title")
         fileh = self.fileh
         root = fileh.root
 
         # Create an array
-        fileh.create_array(root, 'array', [1, 2], title = "Title example")
+        fileh.create_array(root, 'array', [1, 2], title="Title example")
 
         # Create another array object
         fileh.create_array(root, 'anarray', [1], "Array title")
@@ -1440,12 +1435,12 @@ class moveNodeTestCase(unittest.TestCase):
     def setUp(self):
         # Create an HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w", title="File title")
+        self.fileh = open_file(self.file, mode="w", title="File title")
         fileh = self.fileh
         root = fileh.root
 
         # Create an array
-        fileh.create_array(root, 'array', [1, 2], title = "Title example")
+        fileh.create_array(root, 'array', [1, 2], title="Title example")
 
         # Create another array object
         fileh.create_array(root, 'anarray', [1], "Array title")
@@ -1471,7 +1466,6 @@ class moveNodeTestCase(unittest.TestCase):
         self.fileh.close()
         os.remove(self.file)
         common.cleanup(self)
-
 
     def test00(self):
         """Checking move_node (over Leaf)"""
@@ -1635,14 +1629,14 @@ class removeNodeTestCase(unittest.TestCase):
 
     def setUp(self):
         # Create an HDF5 file
-        #self.file = "/tmp/test.h5"
+        # self.file = "/tmp/test.h5"
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w", title="File title")
+        self.fileh = open_file(self.file, mode="w", title="File title")
         fileh = self.fileh
         root = fileh.root
 
         # Create an array
-        fileh.create_array(root, 'array', [1, 2], title = "Title example")
+        fileh.create_array(root, 'array', [1, 2], title="Title example")
 
         # Create another array object
         fileh.create_array(root, 'anarray', [1], "Array title")
@@ -1663,13 +1657,11 @@ class removeNodeTestCase(unittest.TestCase):
         # Create a table in root
         populateTable(self.fileh.root, 'table')
 
-
     def tearDown(self):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
         common.cleanup(self)
-
 
     def test00(self):
         """Checking remove_node (over Leaf)"""
@@ -1710,7 +1702,8 @@ class removeNodeTestCase(unittest.TestCase):
         self.assertTrue("/anarray" in self.fileh)
         self.assertTrue("/agroup/anarray2" in self.fileh)
         self.assertEqual(self.fileh.root.anarray.title, "Array title")
-        self.assertEqual(self.fileh.root.agroup.anarray2.title, "Array title 2")
+        self.assertEqual(
+            self.fileh.root.agroup.anarray2.title, "Array title 2")
         # Redo the operation
         self.fileh.redo()
         # Check that arrays has disappeared again
@@ -1812,12 +1805,12 @@ class copyNodeTestCase(unittest.TestCase):
     def setUp(self):
         # Create an HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w", title="File title")
+        self.fileh = open_file(self.file, mode="w", title="File title")
         fileh = self.fileh
         root = fileh.root
 
         # Create an array
-        fileh.create_array(root, 'array', [1, 2], title = "Title example")
+        fileh.create_array(root, 'array', [1, 2], title="Title example")
 
         # Create another array object
         fileh.create_array(root, 'anarray', [1], "Array title")
@@ -1838,13 +1831,11 @@ class copyNodeTestCase(unittest.TestCase):
         # Create a table in root
         populateTable(self.fileh.root, 'table')
 
-
     def tearDown(self):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
         common.cleanup(self)
-
 
     def test00_copyLeaf(self):
         """Checking copy_node (over Leaves)"""
@@ -1868,7 +1859,6 @@ class copyNodeTestCase(unittest.TestCase):
         # Check that the copied node exists again in the object tree.
         self.assertTrue('/agroup/agroup3/anarray' in self.fileh)
         self.assertTrue(self.fileh.root.agroup.agroup3.anarray is new_node)
-
 
     def test00b_copyTable(self):
         """Checking copy_node (over Tables)"""
@@ -1933,7 +1923,7 @@ class copyNodeTestCase(unittest.TestCase):
         self.fileh.enable_undo()
         # /agroup => /acopy
         new_node = self.fileh.copy_node(
-            '/agroup', newname = 'acopy', recursive = True)
+            '/agroup', newname='acopy', recursive=True)
 
         # Undo the copy.
         self.fileh.undo()
@@ -1952,7 +1942,6 @@ class copyNodeTestCase(unittest.TestCase):
         self.assertTrue('/acopy/agroup3' in self.fileh)
         self.assertTrue(self.fileh.root.acopy is new_node)
 
-
     def test02_copyLeafOverwrite(self):
         "Copying a leaf, overwriting destination."
 
@@ -1965,7 +1954,7 @@ class copyNodeTestCase(unittest.TestCase):
         # /anarray => /agroup/agroup
         oldNode = self.fileh.root.agroup
         new_node = self.fileh.copy_node(
-            '/anarray', newname = 'agroup', overwrite = True)
+            '/anarray', newname='agroup', overwrite=True)
 
         # Undo the copy.
         self.fileh.undo()
@@ -1979,7 +1968,6 @@ class copyNodeTestCase(unittest.TestCase):
         # Check that the overwritten node does not exist in the object tree.
         self.assertTrue(self.fileh.root.agroup is new_node)
 
-
     def test03_copyChildren(self):
         "Copying the children of a group."
 
@@ -1990,7 +1978,7 @@ class copyNodeTestCase(unittest.TestCase):
         # Enable undo/redo.
         self.fileh.enable_undo()
         # /agroup/* => /agroup/
-        self.fileh.copy_children('/agroup', '/agroup2', recursive = True)
+        self.fileh.copy_children('/agroup', '/agroup2', recursive=True)
 
         # Undo the copy.
         self.fileh.undo()
@@ -2012,13 +2000,13 @@ class ComplexTestCase(unittest.TestCase):
 
     def setUp(self):
         # Create an HDF5 file
-        #self.file = "/tmp/test.h5"
+        # self.file = "/tmp/test.h5"
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w", title="File title")
+        self.fileh = open_file(self.file, mode="w", title="File title")
         fileh = self.fileh
         root = fileh.root
         # Create an array
-        fileh.create_array(root, 'array', [1, 2], title = "Title example")
+        fileh.create_array(root, 'array', [1, 2], title="Title example")
 
         # Create another array object
         fileh.create_array(root, 'anarray', [1], "Array title")
@@ -2036,13 +2024,11 @@ class ComplexTestCase(unittest.TestCase):
         # Create a new group in the second level
         fileh.create_group(group, 'agroup3', "Group title 3")
 
-
     def tearDown(self):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
         common.cleanup(self)
-
 
     def test00(self):
         """Mix of create_array, create_group, renameNone, move_node, remove_node,
@@ -2056,7 +2042,7 @@ class ComplexTestCase(unittest.TestCase):
         self.fileh.enable_undo()
         # Create an array
         self.fileh.create_array(self.fileh.root, 'anarray3',
-                               [1], "Array title 3")
+                                [1], "Array title 3")
         # Create a group
         self.fileh.create_group(self.fileh.root, 'agroup3', "Group title 3")
         # /anarray => /agroup/agroup3/
@@ -2101,17 +2087,17 @@ class ComplexTestCase(unittest.TestCase):
         self.fileh.remove_node('/anarray')
         # Create an array in the same place
         self.fileh.create_array(self.fileh.root, 'anarray',
-                                        [2], "Array title 2")
+                                [2], "Array title 2")
         # remove the array again
         self.fileh.remove_node('/anarray')
         # Create an array
         self.fileh.create_array(self.fileh.root, 'anarray',
-                               [3], "Array title 3")
+                                [3], "Array title 3")
         # remove the array again
         self.fileh.remove_node('/anarray')
         # Create an array
         self.fileh.create_array(self.fileh.root, 'anarray',
-                               [4], "Array title 4")
+                                [4], "Array title 4")
         # Undo the actions
         self.fileh.undo()
         # Check that /anarray is in the correct state before redoing
@@ -2145,7 +2131,7 @@ class ComplexTestCase(unittest.TestCase):
         self.fileh.create_group(self.fileh.root, 'agroup2', "Group title 4")
         # Create a child group
         self.fileh.create_group(self.fileh.root.agroup2, 'agroup5',
-                               "Group title 5")
+                                "Group title 5")
         # Undo the actions
         self.fileh.undo()
         # Check that /agroup is in the state before enabling do/undo
@@ -2180,7 +2166,7 @@ class ComplexTestCase(unittest.TestCase):
         self.fileh.create_group(self.fileh.root, 'agroup', "Group title 4")
         # Create a child group
         self.fileh.create_group(self.fileh.root.agroup, 'agroup5',
-                               "Group title 5")
+                                "Group title 5")
         # Undo the actions
         self.fileh.undo()
         # Check that /agroup is in the state before enabling do/undo
@@ -2195,7 +2181,8 @@ class ComplexTestCase(unittest.TestCase):
         self.assertTrue('/agroup' in self.fileh)
         self.assertEqual(self.fileh.root.agroup._v_title, "Group title 4")
         self.assertTrue('/agroup/agroup5' in self.fileh)
-        self.assertEqual(self.fileh.root.agroup.agroup5._v_title, "Group title 5")
+        self.assertEqual(
+            self.fileh.root.agroup.agroup5._v_title, "Group title 5")
 
     def test03b(self):
         "Test with multiple generations (Group case, recursive remove, case 2)"
@@ -2209,7 +2196,7 @@ class ComplexTestCase(unittest.TestCase):
         # Create a new group with a child
         self.fileh.create_group(self.fileh.root, 'agroup3', "Group title 3")
         self.fileh.create_group(self.fileh.root.agroup3, 'agroup4',
-                               "Group title 4")
+                                "Group title 4")
         # remove /agroup3
         self.fileh.remove_node('/agroup3', recursive=1)
         # Create a group in the same place
@@ -2225,7 +2212,6 @@ class ComplexTestCase(unittest.TestCase):
         self.assertTrue('/agroup/agroup4' not in self.fileh)
 
 
-
 class AttributesTestCase(unittest.TestCase):
     "Tests for operation on attributes"
 
@@ -2233,7 +2219,7 @@ class AttributesTestCase(unittest.TestCase):
         # Create an HDF5 file
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(
-            self.file, mode = "w", title = "Attribute operations")
+            self.file, mode="w", title="Attribute operations")
 
         # Create an array.
         array = self.fileh.create_array('/', 'array', [1, 2])
@@ -2244,13 +2230,11 @@ class AttributesTestCase(unittest.TestCase):
         attrs.attr_2 = 20
         attrs.attr_3 = 30
 
-
     def tearDown(self):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
         common.cleanup(self)
-
 
     def test00_setAttr(self):
         "Setting a nonexistent attribute."
@@ -2271,7 +2255,6 @@ class AttributesTestCase(unittest.TestCase):
         self.fileh.redo()
         self.assertTrue('attr_0' in attrs)
         self.assertEqual(attrs.attr_0, 0)
-
 
     def test01_setAttrExisting(self):
         "Setting an existing attribute."
@@ -2294,7 +2277,6 @@ class AttributesTestCase(unittest.TestCase):
         self.assertTrue('attr_1' in attrs)
         self.assertEqual(attrs.attr_1, 11)
 
-
     def test02_delAttr(self):
         "Removing an attribute."
 
@@ -2313,7 +2295,6 @@ class AttributesTestCase(unittest.TestCase):
         self.assertEqual(attrs.attr_1, 10)
         self.fileh.redo()
         self.assertTrue('attr_1' not in attrs)
-
 
     def test03_copyNodeAttrs(self):
         "Copying an attribute set."
@@ -2346,7 +2327,6 @@ class AttributesTestCase(unittest.TestCase):
         self.assertEqual(rattrs.attr_2, 20)
         self.assertEqual(rattrs.attr_3, 30)
 
-
     def test04_replaceNode(self):
         "Replacing a node with a rewritten attribute."
 
@@ -2377,7 +2357,6 @@ class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     class NotLoggedArray(NotLoggedMixin, Array):
         pass
 
-
     def test00_hierarchy(self):
         """Performing hierarchy operations on a not logged node."""
 
@@ -2385,8 +2364,8 @@ class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.enable_undo()
 
         # Node creation is not undone.
-        arr = self.NotLoggedArray( self.h5file.root, 'test',
-                                   [1], self._getMethodName() )
+        arr = self.NotLoggedArray(self.h5file.root, 'test',
+                                  [1], self._getMethodName())
         self.h5file.undo()
         self.assertTrue('/test' in self.h5file)
 
@@ -2400,12 +2379,11 @@ class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.undo()
         self.assertTrue('/tgroup/test' not in self.h5file)
 
-
     def test01_attributes(self):
         """Performing attribute operations on a not logged node."""
 
-        arr = self.NotLoggedArray( self.h5file.root, 'test',
-                                   [1], self._getMethodName() )
+        arr = self.NotLoggedArray(self.h5file.root, 'test',
+                                  [1], self._getMethodName())
         self.h5file.enable_undo()
 
         # Attribute creation is not undone.
@@ -2441,7 +2419,7 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         pre()
         self.h5file.enable_undo()
 
-        paths =  ['/g1', '/g1/g2', '/g1/g2/g3', '/g1/g2/g3/g4']
+        paths = ['/g1', '/g1/g2', '/g1/g2/g3', '/g1/g2/g3/g4']
         for newpath in paths:
             before = self.existing(paths)
             doit(newpath)
@@ -2457,9 +2435,11 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Test creating a node."""
         def pre():
             pass
+
         def doit(newpath):
             self.h5file.create_array(newpath, 'array', [1], createparents=True)
             self.assertTrue(join_path(newpath, 'array') in self.h5file)
+
         def post(newpath):
             self.assertTrue(join_path(newpath, 'array') not in self.h5file)
         self.basetest(doit, pre, post)
@@ -2468,10 +2448,12 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Test moving a node."""
         def pre():
             self.h5file.create_array('/', 'array', [1])
+
         def doit(newpath):
             self.h5file.move_node('/array', newpath, createparents=True)
             self.assertTrue('/array' not in self.h5file)
             self.assertTrue(join_path(newpath, 'array') in self.h5file)
+
         def post(newpath):
             self.assertTrue('/array' in self.h5file)
             self.assertTrue(join_path(newpath, 'array') not in self.h5file)
@@ -2481,9 +2463,11 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Test copying a node."""
         def pre():
             self.h5file.create_array('/', 'array', [1])
+
         def doit(newpath):
             self.h5file.copy_node('/array', newpath, createparents=True)
             self.assertTrue(join_path(newpath, 'array') in self.h5file)
+
         def post(newpath):
             self.assertTrue(join_path(newpath, 'array') not in self.h5file)
         self.basetest(doit, pre, post)
@@ -2494,10 +2478,12 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             g = self.h5file.create_group('/', 'group')
             self.h5file.create_array(g, 'array1', [1])
             self.h5file.create_array(g, 'array2', [1])
+
         def doit(newpath):
             self.h5file.copy_children('/group', newpath, createparents=True)
             self.assertTrue(join_path(newpath, 'array1') in self.h5file)
             self.assertTrue(join_path(newpath, 'array2') in self.h5file)
+
         def post(newpath):
             self.assertTrue(join_path(newpath, 'array1') not in self.h5file)
             self.assertTrue(join_path(newpath, 'array2') not in self.h5file)
@@ -2507,7 +2493,7 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-    #common.heavy = 1  # uncomment this only for testing purposes
+    # common.heavy = 1  # uncomment this only for testing purposes
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicTestCase))
@@ -2529,14 +2515,8 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
+    unittest.main(defaultTest='suite')
 
 ## Local Variables:
 ## mode: python
 ## End:
-
-
-
-
-
-

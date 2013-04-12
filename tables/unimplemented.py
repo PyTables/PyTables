@@ -64,16 +64,14 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
 
         super(UnImplemented, self).__init__(parentNode, name)
 
-
     def _g_open(self):
         (self.shape, self.byteorder, objectID) = \
-                     self._openUnImplemented()
+            self._openUnImplemented()
         try:
             self.nrows = SizeType(self.shape[0])
         except IndexError:
             self.nrows = SizeType(0)
         return objectID
-
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         """Do nothing.
@@ -87,7 +85,6 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
             "UnImplemented node %r does not know how to copy itself; skipping"
             % (self._v_pathname,))
         return None  # Can you see it?
-
 
     def _f_copy(self, newparent=None, newname=None,
                 overwrite=False, recursive=False, createparents=False,
@@ -103,7 +100,6 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         self._g_copy(newparent, newname, recursive, **kwargs)
         return None  # Can you see it?
 
-
     def __repr__(self):
         return """%s
   NOTE: <The UnImplemented object represents a PyTables unimplemented
@@ -111,7 +107,6 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
          kind of HDF5 dataset implemented in PyTables, please contact the
          developers.>
 """ % (str(self), self._v_file.filename)
-
 
 
 # Classes reported as H5G_UNKNOWN by HDF5
@@ -157,13 +152,6 @@ class Unknown(Node):
 """ % (str(self))
 
 
-
 # These are listed here for backward compatibility with PyTables 0.9.x indexes
 class OldIndexArray(UnImplemented):
     _c_classid = 'IndexArray'
-
-
-
-
-
-

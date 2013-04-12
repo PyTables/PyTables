@@ -40,7 +40,6 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'larr2', arr2)
         self.assertTrue(larr2 is not None)
 
-
     def test00_create(self):
         """Creating hard links"""
         self._createFile()
@@ -53,7 +52,6 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._checkEqualityLeaf(self.h5file.root.lgroup1.arr2,
                                 self.h5file.root.larr2,
                                 hardlink=True)
-
 
     def test01_open(self):
         """Opening a file with hard links"""
@@ -70,7 +68,6 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 self.h5file.root.larr2,
                                 hardlink=True)
 
-
     def test02_removeLeaf(self):
         """Removing a hard link to a Leaf"""
 
@@ -85,7 +82,6 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Remove the second link
         self.h5file.root.group1.larr1.remove()
         self.assertTrue('/group1/larr1' not in self.h5file)
-
 
     def test03_removeGroup(self):
         """Removing a hard link to a Group"""
@@ -108,7 +104,6 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "Final object tree:", self.h5file
 
 
-
 # Test for soft links
 class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
@@ -126,7 +121,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'larr2', arr2)
         self.assertTrue(larr2 is not None)
 
-
     def test00_create(self):
         """Creating soft links"""
         self._createFile()
@@ -136,7 +130,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 self.h5file.root.group1.larr1())
         self._checkEqualityLeaf(self.h5file.root.lgroup1().arr2,
                                 self.h5file.root.larr2())
-
 
     def test01_open(self):
         """Opening a file with soft links"""
@@ -149,7 +142,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 self.h5file.root.group1.larr1())
         self._checkEqualityLeaf(self.h5file.root.lgroup1().arr2,
                                 self.h5file.root.larr2())
-
 
     def test02_remove(self):
         """Removing a soft link."""
@@ -165,7 +157,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Remove the soft link itself
         self.h5file.root.group1.larr1.remove()
         self.assertTrue('/group1/larr1' not in self.h5file)
-
 
     def test03_copy(self):
         """Copying a soft link."""
@@ -206,7 +197,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.lgroup2())
 
-
     def test04_move(self):
         """Moving a soft link."""
 
@@ -223,7 +213,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.group2.lgroup2())
 
-
     def test05_rename(self):
         """Renaming a soft link."""
 
@@ -238,7 +227,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue('/lgroup2' in self.h5file)
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.lgroup2())
-
 
     def test06a_relative_path(self):
         """Using soft links with relative paths."""
@@ -255,7 +243,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._checkEqualityGroup(self.h5file.root.group1.group3,
                                  self.h5file.root.group1.lgroup3())
 
-
     def test06b_relative_path(self):
         """Using soft links with relative paths (./ version)"""
 
@@ -270,7 +257,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue('/group1/lgroup3' in self.h5file)
         self._checkEqualityGroup(self.h5file.root.group1.group3,
                                  self.h5file.root.group1.lgroup3())
-
 
     def test07_walkNodes(self):
         """Checking `walk_nodes` with `classname` option."""
@@ -287,7 +273,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "detected links (classname='SoftLink'):", links
         self.assertEqual(links, ['/larr2', '/lgroup1', '/group1/larr1'])
 
-
     def test08__v_links(self):
         """Checking `Group._v_links`."""
 
@@ -300,7 +285,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "detected links (under /group1):", links
         self.assertEqual(links, ['larr1'])
-
 
     def test09_link_to_link(self):
         """Checking linked links."""
@@ -316,7 +300,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(lgroup2()() is self.h5file.get_node('/group1'))
         if common.verbose:
             print "Second dereference is correct:", lgroup2()()
-
 
     def test10_copy_link_to_file(self):
         """Checking copying a link to another file."""
@@ -336,7 +319,6 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         os.remove(fname)
 
 
-
 # Test for external links
 class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
@@ -345,7 +327,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.exth5file.close()
         os.remove(self.extfname)   # comment this for debugging purposes only
         super(ExternalLinkTestCase, self).tearDown()
-
 
     def _createFile(self):
         self.h5file.create_array('/', 'arr1', [1, 2])
@@ -360,17 +341,16 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         extarr2 = self.exth5file.create_array(extgroup1, 'arr2', [1, 2, 3])
         # Create external links
         lgroup1 = self.h5file.create_external_link(
-            '/', 'lgroup1', '%s:/group1'%self.extfname)
+            '/', 'lgroup1', '%s:/group1' % self.extfname)
         self.assertTrue(lgroup1 is not None)
         larr1 = self.h5file.create_external_link(
-            group1, 'larr1', '%s:/arr1'%self.extfname)
+            group1, 'larr1', '%s:/arr1' % self.extfname)
         self.assertTrue(larr1 is not None)
         larr2 = self.h5file.create_external_link('/', 'larr2', extarr2)
         self.assertTrue(larr2 is not None)
         # Re-open the external file in 'r'ead-only mode
         self.exth5file.close()
         self.exth5file = t.open_file(self.extfname, "r")
-
 
     def test00_create(self):
         """Creating soft links"""
@@ -381,7 +361,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 self.h5file.root.group1.larr1())
         self._checkEqualityLeaf(self.h5file.root.lgroup1().arr2,
                                 self.h5file.root.larr2())
-
 
     def test01_open(self):
         """Opening a file with soft links"""
@@ -394,7 +373,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 self.h5file.root.group1.larr1())
         self._checkEqualityLeaf(self.h5file.root.lgroup1().arr2,
                                 self.h5file.root.larr2())
-
 
     def test02_remove(self):
         """Removing an external link."""
@@ -414,8 +392,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.root.group1.larr1.remove()
         self.assertTrue('/group1/larr1' not in self.h5file)
 
-
-
     def test03_copy(self):
         """Copying an external link."""
 
@@ -434,7 +410,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         lgroup1.remove()
         self._checkEqualityGroup(self.exth5file.root.group1,
                                  self.h5file.root.lgroup2())
-
 
     def test03_overwrite(self):
         """Overwrite an external link."""
@@ -456,7 +431,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._checkEqualityGroup(self.exth5file.root.group1,
                                  self.h5file.root.lgroup2())
 
-
     def test04_move(self):
         """Moving an external link."""
 
@@ -473,7 +447,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._checkEqualityGroup(self.exth5file.root.group1,
                                  self.h5file.root.group2.lgroup2())
 
-
     def test05_rename(self):
         """Renaming an external link."""
 
@@ -488,7 +461,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue('/lgroup2' in self.h5file)
         self._checkEqualityGroup(self.exth5file.root.group1,
                                  self.h5file.root.lgroup2())
-
 
     def test07_walkNodes(self):
         """Checking `walk_nodes` with `classname` option."""
@@ -508,7 +480,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "detected links (classname='ExternalLink'):", links
         self.assertEqual(links, ['/larr2', '/lgroup1', '/group1/larr1'])
 
-
     def test08__v_links(self):
         """Checking `Group._v_links`."""
 
@@ -521,7 +492,6 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "detected links (under /group1):", links
         self.assertEqual(links, ['larr1'])
-
 
     def test09_umount(self):
         """Checking `umount()` method."""
@@ -555,12 +525,13 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 #----------------------------------------------------------------------
 
+
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
     theSuite = unittest.TestSuite()
     niter = 1
-    #common.heavy = 1  # uncomment this only for testing purposes
+    # common.heavy = 1  # uncomment this only for testing purposes
 
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(HardLinkTestCase))
@@ -571,7 +542,7 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
+    unittest.main(defaultTest='suite')
 
 
 
@@ -581,9 +552,3 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

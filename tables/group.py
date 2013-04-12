@@ -162,7 +162,6 @@ class Group(hdf5extension.Group, Node):
     _v_nchildren = property(_g_getnchildren, None, None,
                             "The number of children hanging from this group.")
 
-
     # `_v_filters` is a direct read-write shorthand for the ``FILTERS``
     # attribute with the default `Filters` instance as a default value.
     def _g_getfilters(self):
@@ -192,7 +191,6 @@ class Group(hdf5extension.Group, Node):
 
     # </properties>
 
-
     def __init__(self, parentNode, name,
                  title="", new=False, filters=None,
                  _log=True):
@@ -216,7 +214,6 @@ class Group(hdf5extension.Group, Node):
 
         # Finally, set up this object as a node.
         super(Group, self).__init__(parentNode, name, _log)
-
 
     def _g_post_init_hook(self):
         if self._v_new:
@@ -249,11 +246,10 @@ class Group(hdf5extension.Group, Node):
 
     _g_postInitHook = previous_api(_g_post_init_hook)
 
-
     def __del__(self):
         if (self._v_isopen and
             self._v_pathname in self._v_file._aliveNodes and
-            '_v_children' in self.__dict__):
+                '_v_children' in self.__dict__):
             # The group is going to be killed.  Rebuild weak references
             # (that Python cancelled just before calling this method) so
             # that they are still usable if the object is revived later.
@@ -266,7 +262,6 @@ class Group(hdf5extension.Group, Node):
             self._v_hidden.containerref = selfRef
 
         super(Group, self).__del__()
-
 
     def _g_get_child_group_class(self, childname):
         """Get the class of a not-yet-loaded group child.
@@ -284,7 +279,6 @@ class Group(hdf5extension.Group, Node):
             return Group  # default group class
 
     _g_getChildGroupClass = previous_api(_g_get_child_group_class)
-
 
     def _g_get_child_leaf_class(self, childname, warn=True):
         """Get the class of a not-yet-loaded leaf child.
@@ -350,7 +344,7 @@ class Group(hdf5extension.Group, Node):
 
         # Get the names of *all* child groups and leaves.
         (groupNames, leafNames, linkNames, unknownNames) = \
-                     self._g_list_group(self._v_parent)
+            self._g_list_group(self._v_parent)
 
         # Separate groups into visible groups and hidden nodes,
         # and leaves into visible leaves and hidden nodes.
@@ -358,7 +352,7 @@ class Group(hdf5extension.Group, Node):
             (groupNames, groups),
             (leafNames, leaves),
             (linkNames, links),
-            (unknownNames, unknown)):
+                (unknownNames, unknown)):
 
             for childname in childNames:
                 # See whether the name implies that the node is hidden.
@@ -374,7 +368,6 @@ class Group(hdf5extension.Group, Node):
 
     _g_addChildrenNames = previous_api(_g_add_children_names)
 
-
     def _g_check_has_child(self, name):
         """Check whether 'name' is a children of 'self' and return its type."""
 
@@ -387,7 +380,6 @@ class Group(hdf5extension.Group, Node):
         return node_type
 
     _g_checkHasChild = previous_api(_g_check_has_child)
-
 
     def __iter__(self):
         """Iterate over the child nodes hanging directly from the group.
@@ -407,7 +399,6 @@ class Group(hdf5extension.Group, Node):
 
         return self._f_iter_nodes()
 
-
     def __contains__(self, name):
         """Is there a child with that `name`?
 
@@ -421,7 +412,6 @@ class Group(hdf5extension.Group, Node):
         except NoSuchNodeError:
             return False
         return True
-
 
     def _f_walknodes(self, classname=None):
         """Iterate over descendant nodes.
@@ -463,7 +453,6 @@ class Group(hdf5extension.Group, Node):
 
     _f_walkNodes = previous_api(_f_walknodes)
 
-
     def _g_join(self, name):
         """Helper method to correctly concatenate a name child object
         with the pathname of this group."""
@@ -472,7 +461,6 @@ class Group(hdf5extension.Group, Node):
             # This case can happen when doing copies
             return self._v_pathname
         return join_path(self._v_pathname, name)
-
 
     def _g_width_warning(self):
         """Issue a :exc:`PerformanceWarning` on too many children."""
@@ -484,7 +472,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                       PerformanceWarning)
 
     _g_widthWarning = previous_api(_g_width_warning)
-
 
     def _g_refnode(self, childNode, childname, validate=True):
         """Insert references to a `childNode` via a `childname`.
@@ -544,7 +531,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     _g_refNode = previous_api(_g_refnode)
 
-
     def _g_unrefnode(self, childname):
         """Remove references to a node.
 
@@ -553,7 +539,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # This can *not* be triggered because of the user.
         assert childname in self, \
-               ("group ``%s`` does not have a child node named ``%s``"
+            ("group ``%s`` does not have a child node named ``%s``"
                 % (self._v_pathname, childname))
 
         # Update members information, if needed
@@ -575,7 +561,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     _g_unrefNode = previous_api(_g_unrefnode)
 
-
     def _g_move(self, newParent, newName):
         # Move the node to the new location.
         oldPath = self._v_pathname
@@ -585,7 +570,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # Update location information in children.  This node shouldn't
         # be affected since it has already been relocated.
         self._v_file._update_node_locations(oldPath, newPath)
-
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         # Compute default arguments.
@@ -603,7 +587,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # Create a copy of the object.
         new_node = Group(newParent, newName,
-                        title, new=True, filters=filters, _log=_log)
+                         title, new=True, filters=filters, _log=_log)
 
         # Copy user attributes if needed.
         if kwargs.get('copyuserattrs', True):
@@ -622,7 +606,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         return new_node
 
-
     def _g_copy_children(self, newParent, **kwargs):
         """Copy child nodes.
 
@@ -633,7 +616,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         logged.
         """
         # Recursive version of children copy.
-        ##for srcChild in self._v_children.itervalues():
+        # for srcChild in self._v_children.itervalues():
         ##    srcChild._g_copy_as_child(newParent, **kwargs)
 
         # Non-recursive version of children copy.
@@ -646,7 +629,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                     parentStack.append((srcChild, dstChild))
 
     _g_copyChildren = previous_api(_g_copy_children)
-
 
     def _f_get_child(self, childname):
         """Get the child called childname of this group.
@@ -668,7 +650,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     _f_getChild = previous_api(_f_get_child)
 
-
     def _f_list_nodes(self, classname=None):
         """Return a *list* with children nodes.
 
@@ -677,7 +658,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         return list(self._f_iter_nodes(classname))
 
     _f_listNodes = previous_api(_f_list_nodes)
-
 
     def _f_iter_nodes(self, classname=None):
         """Iterate over children nodes.
@@ -728,7 +708,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     _f_iterNodes = previous_api(_f_iter_nodes)
 
-
     def _f_walk_groups(self):
         """Recursively iterate over descendent groups (not leaves).
 
@@ -743,7 +722,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         yield self
         # Iterate over the descendants
         while stack:
-            objgroup=stack.pop()
+            objgroup = stack.pop()
             groupnames = sorted(objgroup._v_groups.iterkeys())
             # Sort the groups before delivering. This uses the groups names
             # for groups in tree (in order to sort() can classify them).
@@ -752,7 +731,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                 yield objgroup._v_groups[groupname]
 
     _f_walkGroups = previous_api(_f_walk_groups)
-
 
     def __delattr__(self, name):
         """Delete a Python attribute called name.
@@ -774,7 +752,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             hint = " (use ``node._f_remove()`` if you want to remove a node)"
             raise ae.__class__(str(ae) + hint)
 
-
     def __getattr__(self, name):
         """Get a Python attribute or child node called name.
 
@@ -791,7 +768,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             self._g_add_children_names()
             return myDict[name]
         return self._f_get_child(name)
-
 
     def __setattr__(self, name, value):
         """Set a Python attribute called name with the given value.
@@ -841,13 +817,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         super(Group, self).__setattr__(name, value)
 
-
     def _f_flush(self):
         """Flush this Group"""
 
         self._g_check_open()
         self._g_flush_group()
-
 
     def _g_close_descendents(self):
         """Close all the *loaded* descendent nodes of this group."""
@@ -902,7 +876,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     _g_closeDescendents = previous_api(_g_close_descendents)
 
-
     def _g_close(self):
         """Close this (open) group."""
 
@@ -912,7 +885,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # Close myself as a node.
         super(Group, self)._f_close()
-
 
     def _f_close(self):
         """Close this group and all its descendents.
@@ -943,7 +915,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # open until the very end.
         self._g_close()
 
-
     def _g_remove(self, recursive=False, force=False):
         """Remove (recursively if needed) the Group.
 
@@ -963,7 +934,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # Remove the node itself from the hierarchy.
         super(Group, self)._g_remove(recursive, force)
-
 
     def _f_copy(self, newparent=None, newname=None,
                 overwrite=False, recursive=False, createparents=False,
@@ -998,9 +968,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             newparent, newname,
             overwrite, recursive, createparents, **kwargs)
 
-
     def _f_copy_children(self, dstgroup, overwrite=False, recursive=False,
-                        createparents=False, **kwargs):
+                         createparents=False, **kwargs):
         """Copy the children of this group into another group.
 
         Children hanging directly from this group are copied into dstgroup,
@@ -1043,13 +1012,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                         "destination group ``%s`` already has "
                         "a node named ``%s``; "
                         "you may want to use the ``overwrite`` argument"
-                        % (dstParent._v_pathname, childname) )
+                        % (dstParent._v_pathname, childname))
 
         for child in self._v_children.itervalues():
             child._f_copy(dstParent, None, overwrite, recursive, **kwargs)
 
     _f_copyChildren = previous_api(_f_copy_children)
-
 
     def __str__(self):
         """Return a short string representation of the group.
@@ -1069,7 +1037,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         title = self._v_title
         return "%s (%s) %r" % (pathname, classname, title)
 
-
     def __repr__(self):
         """Return a detailed string representation of the group.
 
@@ -1084,9 +1051,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
               children := ['tuple1' (Table), 'group1' (Group)]
         """
 
-        rep = [ '%r (%s)' %  \
-                (childname, child.__class__.__name__)
-                for (childname, child) in self._v_children.iteritems() ]
+        rep = ['%r (%s)' %
+               (childname, child.__class__.__name__)
+               for (childname, child) in self._v_children.iteritems()]
         childlist = '[%s]' % (', '.join(rep))
 
         return "%s\n  children := %s" % \
@@ -1135,8 +1102,7 @@ class RootGroup(Group):
         # to be created and bound to ``File.root``.
         # This is an exception to the rule, handled by ``File.__init()__``.
         #
-        ##self._g_post_init_hook()
-
+        # self._g_post_init_hook()
 
     def _g_load_child(self, childname):
         """Load a child node from disk.
@@ -1168,10 +1134,10 @@ class RootGroup(Group):
             childClass = self._g_get_child_leaf_class(childname, warn=True)
             # Building a leaf may still fail because of unsupported types
             # and other causes.
-            ###return childClass(self, childname)  # uncomment for debugging
+            # return childClass(self, childname)  # uncomment for debugging
             try:
                 return childClass(self, childname)
-            except Exception, exc:  #XXX
+            except Exception, exc:  # XXX
                 warnings.warn(
                     "problems loading leaf ``%s``::\n\n"
                     "  %s\n\n"
@@ -1188,16 +1154,14 @@ class RootGroup(Group):
 
     _g_loadChild = previous_api(_g_load_child)
 
-
     def _f_rename(self, newname):
         raise NodeError("the root node can not be renamed")
 
     def _f_move(self, newparent=None, newname=None, createparents=False):
         raise NodeError("the root node can not be moved")
 
-    def _f_remove(self, recursive = False):
+    def _f_remove(self, recursive=False):
         raise NodeError("the root node can not be removed")
-
 
 
 class TransactionGroupG(NotLoggedMixin, Group):
@@ -1267,9 +1231,3 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

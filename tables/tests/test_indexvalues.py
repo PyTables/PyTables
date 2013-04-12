@@ -26,11 +26,13 @@ small_blocksizes = (16, 8, 4, 2)  # The smaller set of parameters...
 # The size for medium indexes
 minRowIndex = 1000
 
+
 class Small(IsDescription):
     var1 = StringCol(itemsize=4, dflt=b"")
     var2 = BoolCol(dflt=0)
     var3 = IntCol(dflt=0)
     var4 = FloatCol(dflt=0)
+
 
 class SelectValuesTestCase(unittest.TestCase):
     compress = 1
@@ -60,10 +62,10 @@ class SelectValuesTestCase(unittest.TestCase):
         group = self.rootgroup
         # Create an table
         title = "This is the IndexArray title"
-        filters = Filters(complevel = self.compress,
-                          complib = self.complib,
-                          shuffle = self.shuffle,
-                          fletcher32 = self.fletcher32)
+        filters = Filters(complevel=self.compress,
+                          complib=self.complib,
+                          shuffle=self.shuffle,
+                          fletcher32=self.fletcher32)
         table1 = self.fileh.create_table(group, 'table1', Small, title,
                                         filters, self.nrows,
                                         chunkshape=(self.chunkshape,))
@@ -141,7 +143,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     table1.where('(il<=t1var1)&(t1var1<=sl)')]
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] <= sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Superior & inferior limits:", il, sl
 #             print "Selection results (index):", results1
@@ -157,7 +160,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     table1.where('(il<=t1var1)&(t1var1<sl)')]
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] < sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -172,7 +176,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     table1.where('(il<t1var1)&(t1var1<=sl)')]
         results2 = [p["var1"] for p in table2
                     if il < p["var1"] <= sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -188,7 +193,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     table1.where('(il<t1var1)&(t1var1<sl)')]
         results2 = [p["var1"] for p in table2
                     if il < p["var1"] < sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -208,7 +214,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        #il = str(self.il).encode('ascii')
+        # il = str(self.il).encode('ascii')
         sl = str(self.sl).encode('ascii')
 
         # Do some selections and check the results
@@ -217,7 +223,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var1"] for p in table1.where('t1var1 < sl')]
         results2 = [p["var1"] for p in table2
                     if p["var1"] < sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -232,7 +239,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var1"] for p in table1.where('t1var1 <= sl')]
         results2 = [p["var1"] for p in table2
                     if p["var1"] <= sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -247,7 +255,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var1"] for p in table1.where('t1var1 > sl')]
         results2 = [p["var1"] for p in table2
                     if p["var1"] > sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -263,7 +272,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var1"] for p in table1.where('t1var1 >= sl')]
         results2 = [p["var1"] for p in table2
                     if p["var1"] >= sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -345,7 +355,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -360,7 +371,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -375,7 +387,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -390,7 +403,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -410,7 +424,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        #il = int(self.il)
+        # il = int(self.il)
         sl = int(self.sl)
 
         # Do some selections and check the results
@@ -423,7 +437,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -439,7 +454,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -455,7 +471,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -471,7 +488,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -492,7 +510,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        #il = long(self.il)
+        # il = long(self.il)
         sl = long(self.sl)
 
         # Do some selections and check the results
@@ -505,7 +523,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -521,7 +540,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -537,7 +557,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -553,7 +574,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -574,7 +596,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        #il = int(self.il)
+        # il = int(self.il)
         sl = long(self.sl)
 
         # Do some selections and check the results
@@ -587,7 +609,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -603,7 +626,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -619,7 +643,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -635,7 +660,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -669,7 +695,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -684,7 +711,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -699,7 +727,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -716,7 +745,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -736,7 +766,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        #il = float(self.il)
+        # il = float(self.il)
         sl = float(self.sl)
 
         # Do some selections and check the results
@@ -749,7 +779,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -765,7 +796,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -781,7 +813,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -797,7 +830,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -834,7 +868,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -854,7 +889,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var1"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -874,7 +910,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -896,7 +933,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var1"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -916,7 +954,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        #il = numpy.string_(self.il)
+        # il = numpy.string_(self.il)
         sl = numpy.string_(self.sl)
 
         # Do some selections and check the results
@@ -933,7 +971,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -953,7 +992,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -973,7 +1013,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -993,7 +1034,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -1088,7 +1130,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -1108,7 +1151,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -1128,7 +1172,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -1143,14 +1188,15 @@ class SelectValuesTestCase(unittest.TestCase):
         condition = '(il<t1col)&(t1col<sl)'
         self.assertTrue(
             table1.will_query_use_indexing(condition) == fzset([t1col.pathname]))
-        table1.flavor="python"
+        table1.flavor = "python"
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if il < p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -1170,7 +1216,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        #il = numpy.int32(self.il)
+        # il = numpy.int32(self.il)
         sl = numpy.uint16(self.sl)
 
         # Do some selections and check the results
@@ -1180,14 +1226,15 @@ class SelectValuesTestCase(unittest.TestCase):
         condition = 't1col<sl'
         self.assertTrue(
             table1.will_query_use_indexing(condition) == fzset([t1col.pathname]))
-        table1.flavor="python"
+        table1.flavor = "python"
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -1207,7 +1254,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -1227,7 +1275,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -1247,7 +1296,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -1275,7 +1325,7 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var4
         # First selection
         condition = '(il<=t1col)&(t1col<=sl)'
-        #results1 = [p["var4"] for p in table1.where(condition)]
+        # results1 = [p["var4"] for p in table1.where(condition)]
         self.assertTrue(
             table1.will_query_use_indexing(condition) == fzset([t1col.pathname]))
         table1.flavor = "python"
@@ -1285,7 +1335,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -1305,7 +1356,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -1325,7 +1377,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -1347,7 +1400,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -1367,7 +1421,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        #il = numpy.float32(self.il)
+        # il = numpy.float32(self.il)
         sl = numpy.float64(self.sl)
 
         # Do some selections and check the results
@@ -1383,7 +1437,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -1403,7 +1458,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -1423,7 +1479,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -1443,7 +1500,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limit:", sl
 #             print "Selection results (index):", results1
@@ -1452,7 +1510,6 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Should be:", len(results2)
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
-
 
     def test09a(self):
         """Checking non-indexed where() (string flavor)"""
@@ -1477,7 +1534,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # First selection
         condition = 't1col<=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var1'] for p in table1.where(condition, start=2, stop=10)]
+        results1 = [p['var1'] for p in table1.where(
+            condition, start=2, stop=10)]
         results2 = [p["var1"] for p in table2.iterrows(2, 10)
                     if p["var1"] <= sl]
         if verbose:
@@ -1495,7 +1553,7 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
         results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
-                    if il<p["var1"]<sl]
+                    if il < p["var1"] < sl]
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (in-kernel):", results1
@@ -1538,7 +1596,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #         self.assertEqual(results1, results2)
 
         # Fourth selection
-        #results1 = [p['var1'] for p in table1.where(condition,start=2,stop=-1,step=3)]
+        # results1 = [p['var1'] for p in
+        # table1.where(condition,start=2,stop=-1,step=3)]
         condition = 't1col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
         results1 = [p['var1'] for p in
@@ -1677,7 +1736,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1688,7 +1748,7 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
         # Second selection
-        condition= 't1col>=sl'
+        condition = 't1col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
         results1 = [p['var1'] for p in
                     table1.where(condition, start=5, stop=-1, step=10)]
@@ -1696,7 +1756,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1715,7 +1776,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1734,7 +1796,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1778,7 +1841,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1797,7 +1861,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1816,7 +1881,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1835,7 +1901,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1876,7 +1943,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1893,10 +1961,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(2, 30, 1)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1913,10 +1982,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
         results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
             print "Selection results (indexed):", results1
@@ -1936,7 +2006,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if (il < p["var1"] < sl)]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1956,7 +2027,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -1992,7 +2064,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2009,10 +2082,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var3'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
         results2 = [p["var3"] for p in table2.iterrows(2, 30, 2)
-                    if il<=p["var3"]<=sl]
+                    if il <= p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2032,7 +2106,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if (il < p["var3"] < sl)]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2052,7 +2127,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2089,7 +2165,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2109,7 +2186,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2129,7 +2207,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2149,7 +2228,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2186,7 +2266,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2206,7 +2287,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2226,7 +2308,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2246,7 +2329,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2280,7 +2364,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = table1.read_coordinates(coords1, field="var1")
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] <= sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Superior & inferior limits:", il, sl
 #             print "Selection results (index):", results1
@@ -2289,7 +2374,6 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Should be:", len(results2)
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
-
 
     def test12a(self):
         """Checking selecting values after a Table.append() operation."""
@@ -2347,7 +2431,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     table1.where('(il<=t1var1)&(t1var1<=sl)')]
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] <= sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Superior & inferior limits:", il, sl
 #             print "Selection results (index):", results1
@@ -2375,12 +2460,14 @@ class SelectValuesTestCase(unittest.TestCase):
         sl = int(self.sl)
 
         t1var3 = table1.cols.var3
-        results1 = [p["var3"] for p in table1.where('(il<=t1var3)&(t1var3<=sl)')]
+        results1 = [p["var3"] for p in table1.where(
+            '(il<=t1var3)&(t1var3<=sl)')]
         results2 = [p["var3"] for p in table2
                     if il <= p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -2395,12 +2482,14 @@ class SelectValuesTestCase(unittest.TestCase):
         sl = float(self.sl)
 
         # Do some selections and check the results
-        results1 = [p["var4"] for p in table1.where('(il<=t1var4)&(t1var4<=sl)')]
+        results1 = [p["var4"] for p in table1.where(
+            '(il<=t1var4)&(t1var4<=sl)')]
         results2 = [p["var4"] for p in table2
                     if il <= p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -2431,10 +2520,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(2, 30, 1)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2451,10 +2541,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
         results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2486,10 +2577,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(2, 30, 1)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2506,10 +2598,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=2, stop=30, step=2)]
         results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2541,10 +2634,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=1, step=2)]
         results2 = [p["var1"] for p in table2.iterrows(0, 1, 2)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2561,10 +2655,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=5, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0, 5, 1)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2596,10 +2691,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=1, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0, 1, 1)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2616,10 +2712,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=1, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0, 1, 1)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #            print "Selection results (indexed):", results1
@@ -2651,10 +2748,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2673,10 +2771,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il<=p["var1"]<=sl and p["var2"]==True]
+                    if il <= p["var1"] <= sl and p["var2"] == True]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2714,10 +2813,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il<=p["var1"]<=sl and p["var2"]==True]
+                    if il <= p["var1"] <= sl and p["var2"] == True]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2734,10 +2834,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2755,10 +2856,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il<=p["var1"]<=sl and p["var2"]==constant]
+                    if il <= p["var1"] <= sl and p["var2"] == constant]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2790,10 +2892,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2804,7 +2907,8 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
         # Repeat the selection with different limits
-        il, sl = (str(self.il+1).encode('ascii'), str(self.sl-2).encode('ascii'))
+        il, sl = (str(self.il+1).encode(
+            'ascii'), str(self.sl-2).encode('ascii'))
         t2col = table1.cols.var2
         self.assertTrue(t2col is not None)
         condition = '(il<=t1col)&(t1col<=sl)'
@@ -2813,10 +2917,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il<=p["var1"]<=sl]
+                    if il <= p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
             print "Limits:", il, sl
 #             print "Selection results (indexed):", results1
@@ -2831,16 +2936,19 @@ class SV1aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
     chunkshape = 1
     buffersize = 2
-    ss = blocksizes[2]; nrows = ss
+    ss = blocksizes[2]
+    nrows = ss
     reopen = 0
     nrep = ss
     il = 0
     sl = ss
 
+
 class SV1bTestCase(SV1aTestCase):
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = blocksizes[2]//2**9
     buffersize = chunkshape*5
+
 
 class SV2aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
@@ -2852,10 +2960,12 @@ class SV2aTestCase(SelectValuesTestCase):
     il = 0
     sl = 2
 
+
 class SV2bTestCase(SV2aTestCase):
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = blocksizes[2]//2**7
     buffersize = chunkshape*20
+
 
 class SV3aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
@@ -2867,6 +2977,7 @@ class SV3aTestCase(SelectValuesTestCase):
     il = 0
     sl = 3
 
+
 class SV3bTestCase(SV3aTestCase):
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
 #    chunkshape = 4
@@ -2874,20 +2985,23 @@ class SV3bTestCase(SV3aTestCase):
     chunkshape = 3
     buffersize = 9
 
+
 class SV4aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
     buffersize = 10
     ss = blocksizes[2]; nrows = ss*3
     reopen = 0
     nrep = 1
-    #il = nrows-cs
+    # il = nrows-cs
     il = 0
     sl = nrows
+
 
 class SV4bTestCase(SV4aTestCase):
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = 500
     buffersize = 1000
+
 
 class SV5aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
@@ -2897,8 +3011,10 @@ class SV5aTestCase(SelectValuesTestCase):
     il = 0
     sl = nrows
 
+
 class SV5bTestCase(SV5aTestCase):
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+
 
 class SV6aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
@@ -2909,8 +3025,10 @@ class SV6aTestCase(SelectValuesTestCase):
     il = -1
     sl = nrows
 
+
 class SV6bTestCase(SV6aTestCase):
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+
 
 class SV7aTestCase(SelectValuesTestCase):
     random = 1
@@ -2922,8 +3040,10 @@ class SV7aTestCase(SelectValuesTestCase):
     il = -10
     sl = nrows
 
+
 class SV7bTestCase(SV7aTestCase):
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+
 
 class SV8aTestCase(SelectValuesTestCase):
     random = 0
@@ -2936,9 +3056,11 @@ class SV8aTestCase(SelectValuesTestCase):
     il = 10
     sl = nrows-10
 
+
 class SV8bTestCase(SV8aTestCase):
     random = 0
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+
 
 class SV9aTestCase(SelectValuesTestCase):
     random = 1
@@ -2950,8 +3072,10 @@ class SV9aTestCase(SelectValuesTestCase):
     il = 10
     sl = nrows-10
 
+
 class SV9bTestCase(SV9aTestCase):
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+
 
 class SV10aTestCase(SelectValuesTestCase):
     random = 1
@@ -2964,10 +3088,12 @@ class SV10aTestCase(SelectValuesTestCase):
     il = 0
     sl = ss
 
+
 class SV10bTestCase(SV10aTestCase):
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = 5
     buffersize = 6
+
 
 class SV11aTestCase(SelectValuesTestCase):
     # This checks a special case that failed. It was discovered in a
@@ -2983,6 +3109,7 @@ class SV11aTestCase(SelectValuesTestCase):
     il = 0
     sl = ss
 
+
 class SV11bTestCase(SelectValuesTestCase):
     # This checks a special case that failed. It was discovered in a
     # random test above (SV10a). It is explicitely put here as a way
@@ -2997,11 +3124,12 @@ class SV11bTestCase(SelectValuesTestCase):
     il = 0
     sl = ss
 
+
 class SV12aTestCase(SelectValuesTestCase):
     # This checks a special case that failed. It was discovered in a
     # random test above (SV10b). It is explicitely put here as a way
     # to always check that specific case.
-    #values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
+    # values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
     blocksizes = small_blocksizes
     chunkshape = 1
@@ -3012,11 +3140,12 @@ class SV12aTestCase(SelectValuesTestCase):
     il = 0
     sl = ss
 
+
 class SV12bTestCase(SelectValuesTestCase):
     # This checks a special case that failed. It was discovered in a
     # random test above (SV10b). It is explicitely put here as a way
     # to always check that specific case.
-    #values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
+    # values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = 2
@@ -3026,6 +3155,7 @@ class SV12bTestCase(SelectValuesTestCase):
     nrep = ss
     il = 0
     sl = ss
+
 
 class SV13aTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
@@ -3038,6 +3168,7 @@ class SV13aTestCase(SelectValuesTestCase):
     il = 0
     sl = ss
 
+
 class SV13bTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
@@ -3048,6 +3179,7 @@ class SV13bTestCase(SelectValuesTestCase):
     nrep = ss
     il = 0
     sl = ss
+
 
 class SV14aTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
@@ -3061,6 +3193,7 @@ class SV14aTestCase(SelectValuesTestCase):
     il = -5
     sl = 500
 
+
 class SV14bTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
@@ -3073,13 +3206,14 @@ class SV14bTestCase(SelectValuesTestCase):
     cs = blocksizes[3]
     sl = ss-cs+1
 
+
 class SV15aTestCase(SelectValuesTestCase):
     # Test that checks for case where there are not valid values in
     # the indexed part, but they exist in the non-indexed region.
     # At least, test01b takes account of that
     random = 1
     # Both values of seed below triggers a fail in indexing code
-    #seed = 1885
+    # seed = 1885
     seed = 183
     blocksizes = small_blocksizes
     ss = blocksizes[2]; nrows = ss*5+1
@@ -3089,6 +3223,7 @@ class SV15aTestCase(SelectValuesTestCase):
     il = -10
     sl = nrows
 
+
 class SV15bTestCase(SelectValuesTestCase):
     # Test that checks for case where there are not valid values in
     # the indexed part, but they exist in the non-indexed region.
@@ -3096,7 +3231,7 @@ class SV15bTestCase(SelectValuesTestCase):
     random = 1
     # Both values of seed below triggers a fail in indexing code
     seed = 1885
-    #seed = 183
+    # seed = 183
     blocksizes = calc_chunksize(minRowIndex, memlevel=1)
     ss = blocksizes[2]; nrows = ss*5+1
     reopen = 1
@@ -3136,7 +3271,6 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
         fp.close()
         os.remove(filename)
 
-
     def test01_nocache(self):
         filename = tempfile.mktemp(".h5")
         fp = open_file(filename, 'w', node_cache_slots=0)
@@ -3157,7 +3291,6 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
 
         fp.close()
         os.remove(filename)
-
 
     def test02_dictcache(self):
         filename = tempfile.mktemp(".h5")
@@ -3203,10 +3336,16 @@ heavy_tests = (
 # Base classes for the different type indexes.
 class UltraLightITableMixin:
     kind = "ultralight"
+
+
 class LightITableMixin:
     kind = "light"
+
+
 class MediumITableMixin:
     kind = "medium"
+
+
 class FullITableMixin:
     kind = "full"
 
@@ -3218,14 +3357,16 @@ testlevels = ['Normal', 'Heavy']
 #
 # 1. U is for 'UltraLight', L for 'Light', M for 'Medium', F for 'Full' indexes
 # 2. N is for 'Normal', H for 'Heavy' tests
+
+
 def iclassdata():
     for ckind in ckinds:
         for ctest in normal_tests + heavy_tests:
             classname = '%sI%s%s' % (ckind[0], testlevels[heavy][0], ctest)
             # Uncomment the next one and comment the past one if one
             # don't want to include the methods (testing purposes only)
-            ###cbasenames = ( '%sITableMixin' % ckind, "object")
-            cbasenames = ( '%sITableMixin' % ckind, ctest)
+            # cbasenames = ( '%sITableMixin' % ckind, "object")
+            cbasenames = ('%sITableMixin' % ckind, ctest)
             classdict = dict(heavy=bool(ctest in heavy_tests))
             yield (classname, cbasenames, classdict)
 
@@ -3258,10 +3399,4 @@ def suite():
     return theSuite
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
-
-
-
-
-
-
+    unittest.main(defaultTest='suite')

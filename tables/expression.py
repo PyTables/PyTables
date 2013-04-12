@@ -25,6 +25,7 @@ from tables.parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 
 from tables._past import previous_api
 
+
 class Expr(object):
     """A class for evaluating expressions with arbitrary array-like objects.
 
@@ -134,7 +135,6 @@ class Expr(object):
     _exprvars_cache = {}
     """Cache of variables participating in expressions."""
 
-
     def __init__(self, expr, uservars=None, **kwargs):
 
         self.append_mode = False
@@ -228,7 +228,6 @@ class Expr(object):
         # Guess the shape for the outcome and the maindim of inputs
         self.shape, self.maindim = self._guess_shape()
 
-
     # The next method is similar to their counterpart in `Table`, but
     # adapted to the `Expr` own requirements.
     def _required_expr_vars(self, expression, uservars, depth=2):
@@ -261,9 +260,9 @@ class Expr(object):
                 for k in exprvarsCache.keys()[:10]:
                     del exprvarsCache[k]
             cexpr = compile(expression, '<string>', 'eval')
-            exprvars = [ var for var in cexpr.co_names
-                         if var not in ['None', 'False', 'True']
-                         and var not in numexpr_functions ]
+            exprvars = [var for var in cexpr.co_names
+                        if var not in ['None', 'False', 'True']
+                        and var not in numexpr_functions]
             exprvarsCache[expression] = exprvars
         else:
             exprvars = exprvarsCache[expression]
@@ -295,7 +294,7 @@ class Expr(object):
                 raise NotImplementedError(
                     "variable ``%s`` refers to "
                     "a 64-bit unsigned integer object, that is "
-                    "not yet supported in expressions, sorry; " % var )
+                    "not yet supported in expressions, sorry; " % var)
             elif hasattr(val, '_v_colpathnames'):  # nested column
                 # This branch is never reached because the compile step
                 # above already raise a ``TypeError`` for nested
@@ -303,12 +302,11 @@ class Expr(object):
                 # is best to let this here.
                 raise TypeError(
                     "variable ``%s`` refers to a nested column, "
-                    "not allowed in expressions" % var )
+                    "not allowed in expressions" % var)
             reqvars[var] = val
         return reqvars
 
     _requiredExprVars = previous_api(_required_expr_vars)
-
 
     def set_inputs_range(self, start=None, stop=None, step=None):
         """Define a range for all inputs in expression.
@@ -324,7 +322,6 @@ class Expr(object):
         self.step = step
 
     setInputsRange = previous_api(set_inputs_range)
-
 
     def set_output(self, out, append_mode=False):
         """Set out as container for output as well as the append_mode.
@@ -358,7 +355,6 @@ class Expr(object):
 
     setOutput = previous_api(set_output)
 
-
     def set_output_range(self, start=None, stop=None, step=None):
         """Define a range for user-provided output object.
 
@@ -376,7 +372,6 @@ class Expr(object):
         self.o_step = step
 
     setOutputRange = previous_api(set_output_range)
-
 
     # Although the next code is similar to the method in `Leaf`, it
     # allows the use of pure NumPy objects.
@@ -409,10 +404,9 @@ possibly slow I/O.  You may want to reduce the rowsize by trimming the
 value of dimensions that are orthogonal (and preferably close) to the
 *leading* dimension of this object."""
                               % (object, maxrowsize),
-                                 PerformanceWarning)
+                              PerformanceWarning)
 
         return nrowsinbuf
-
 
     def _guess_shape(self):
         """Guess the shape of the output of the expression."""
@@ -441,7 +435,8 @@ value of dimensions that are orthogonal (and preferably close) to the
         slices = (slice(None),)*maindim + (0,)
 
         # Now, collect the values in first row of arrays with maximum dims
-        vals = []; lens = []
+        vals = []
+        lens = []
         for val in self.values:
             shape = val.shape
             # Warning: don't use len(val) below or it will raise an
@@ -460,7 +455,6 @@ value of dimensions that are orthogonal (and preferably close) to the
         if minlen > 0:
             shape.insert(maindim, minlen)
         return shape, maindim
-
 
     def _get_info(self, shape, maindim, itermode=False):
         """Return various info needed for evaluating the computation loop."""
@@ -541,7 +535,6 @@ value of dimensions that are orthogonal (and preferably close) to the
             # For itermode, we don't need the out info
             return (i_nrows, slice_pos, start, stop, step, nrowsinbuf)
 
-
     def eval(self):
         """Evaluate the expression and return the outcome.
 
@@ -578,7 +571,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         # Get different info we need for the main computation loop
         (i_nrows, slice_pos, start, stop, step, nrowsinbuf,
          out, o_maindim, o_start, o_stop, o_step) = \
-         self._get_info(shape, maindim)
+            self._get_info(shape, maindim)
 
         if i_nrows == 0:
             # No elements to compute
@@ -633,7 +626,6 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         return out
 
-
     def __iter__(self):
         """Iterate over the rows of the outcome of the expression.
 
@@ -645,7 +637,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         # Get different info we need for the main computation loop
         (i_nrows, slice_pos, start, stop, step, nrowsinbuf) = \
-                  self._get_info(shape, maindim, itermode=True)
+            self._get_info(shape, maindim, itermode=True)
 
         if i_nrows == 0:
             # No elements to compute
@@ -689,9 +681,9 @@ value of dimensions that are orthogonal (and preferably close) to the
                 val._v_convert = True
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
-    #shape = (10000,10000)
+    # shape = (10000,10000)
     shape = (10, 10000)
 
     f = tb.open_file("/tmp/expression.h5", "w")
@@ -707,7 +699,7 @@ if __name__=="__main__":
     d = expr.eval()
 
     print "returned-->", repr(d)
-    #print `d[:]`
+    # print `d[:]`
 
     f.close()
 
@@ -718,9 +710,3 @@ if __name__=="__main__":
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

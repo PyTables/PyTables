@@ -27,7 +27,6 @@ from tables.description import Description
 minRowIndex = 10
 
 
-
 # This is the structure of the table used for testing (DON'T PANIC!):
 #
 # +-+---------------------------------+-----+----------+-+-+
@@ -40,31 +39,33 @@ minRowIndex = 10
 #
 # Please note that some fields are explicitly ordered while others are
 # ordered alphabetically by name.
-
 # The declaration of the nested table:
 class Info(t.IsDescription):
     _v_pos = 3
     Name = t.StringCol(itemsize=2)
     Value = t.ComplexCol(itemsize=16)
 
+
 class TestTDescr(t.IsDescription):
 
     """A description that has several nested columns."""
 
-    x = t.Int32Col(dflt=0, shape=2, pos=0) #0
+    x = t.Int32Col(dflt=0, shape=2, pos=0)  # 0
     y = t.Float64Col(dflt=1, shape=(2, 2))
     z = t.UInt8Col(dflt=1)
     color = t.StringCol(itemsize=2, dflt=b" ", pos=2)
     info = Info()
-    class Info(t.IsDescription): #1
+
+    class Info(t.IsDescription):  # 1
         _v_pos = 1
         name = t.StringCol(itemsize=2)
-        value = t.ComplexCol(itemsize=16, pos=0) #0
-        y2 = t.Float64Col(dflt=1, pos=1) #1
+        value = t.ComplexCol(itemsize=16, pos=0)  # 0
+        y2 = t.Float64Col(dflt=1, pos=1)  # 1
         z2 = t.UInt8Col(dflt=1)
+
         class Info2(t.IsDescription):
             y3 = t.Time64Col(dflt=1, shape=2)
-            z3 = t.EnumCol({'r':4, 'g':2, 'b':1}, 'r', 'int32', shape=2)
+            z3 = t.EnumCol({'r': 4, 'g': 2, 'b': 1}, 'r', 'int32', shape=2)
             name = t.StringCol(itemsize=2)
             value = t.ComplexCol(itemsize=16, shape=2)
 
@@ -113,9 +114,11 @@ testABuffer = [
     # x     Info                                                color info        y                  z
     #       value y2 Info2                            name z2         Name Value
     #                name   value    y3       z3
-    ((3, 2), (6j, 6., ('nn', (6j, 4j), (6., 4.), (1, 2)), 'NN', 8), 'cc', ('NN', 6j), ((6., 4.), (6., 4.)), 8),
-    ((4, 3), (7j, 7., ('oo', (7j, 5j), (7., 5.), (2, 1)), 'OO', 9), 'dd', ('OO', 7j), ((7., 5.), (7., 5.)), 9),
-    ]
+    ((3, 2), (6j, 6., ('nn', (6j, 4j), (6., 4.), (1, 2)),
+     'NN', 8), 'cc', ('NN', 6j), ((6., 4.), (6., 4.)), 8),
+    ((4, 3), (7j, 7., ('oo', (7j, 5j), (7., 5.), (2, 1)),
+     'OO', 9), 'dd', ('OO', 7j), ((7., 5.), (7., 5.)), 9),
+]
 testAData = numpy.array(testABuffer, dtype=testADescr)
 # The name of the column to be searched:
 testCondCol = 'Info/z2'
@@ -123,7 +126,6 @@ testCondCol = 'Info/z2'
 testNestedCol = 'Info'
 # The condition to be applied on the column (all but the last row match it):
 testCondition = '(2 < col) & (col < 9)'
-
 
 
 def areDescriptionsEqual(desc1, desc2):
@@ -139,7 +141,7 @@ def areDescriptionsEqual(desc1, desc2):
         return (desc1.type == desc2.type
                 and desc2.dtype == desc2.dtype
                 and desc1._v_pos == desc2._v_pos
-                #and desc1.dflt == desc2.dflt)
+                # and desc1.dflt == desc2.dflt)
                 and common.areArraysEqual(desc1.dflt, desc2.dflt))
 
     if hasattr(desc1, '_v_colObjects'):  # quacks like a Description
@@ -170,7 +172,6 @@ def areDescriptionsEqual(desc1, desc2):
     return True
 
 
-
 # Test creating nested column descriptions
 class DescriptionTestCase(common.PyTablesTestCase):
 
@@ -197,14 +198,12 @@ class DescriptionTestCase(common.PyTablesTestCase):
                          "Description._v_nestedDescr does not match.")
 
 
-
 # Test creating a nested table and opening it
 class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     _TestTDescr = TestTDescr
     _testABuffer = testABuffer
     _testAData = testAData
-
 
     def _checkColumns(self, cols, desc):
         """
@@ -226,7 +225,6 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         return True
 
-
     def _checkDescription(self, table):
         """
         Check that description of `table` matches `self._TestTDescr`.
@@ -239,7 +237,6 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check access to columns.
         self._checkColumns(table.cols, table.description)
 
-
     def _checkColinstances(self, table):
         """
         Check that ``colinstances`` and ``cols`` of `table` match.
@@ -248,7 +245,6 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(table.colinstances[colpathname]
                             is table.cols._f_col(colpathname))
 
-
     def test00_create(self):
         """Creating a nested table."""
 
@@ -256,7 +252,6 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         self._checkDescription(tbl)
         self._checkColinstances(tbl)
-
 
     def test01_open(self):
         """Opening a nested table."""
@@ -268,7 +263,6 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._checkDescription(tbl)
         self._checkColinstances(tbl)
 
-
     def test02_NestedRecArrayCompat(self):
         """Creating a compatible nested record array``."""
 
@@ -278,7 +272,6 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         self.assertTrue(common.areArraysEqual(nrarr, self._testAData),
                         "Can not create a compatible structured array.")
-
 
     def test03_NRA(self):
         """Creating a table from a nested record array object."""
@@ -322,11 +315,9 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Get condition variables for the given `table`."""
         return {'col': table.cols._f_col(self._testCondCol)}
 
-
     def _testNestedCondVars(self, table):
         """Get condition variables for the given `table`."""
         return {'col': table.cols._f_col(self._testNestedCol)}
-
 
     def _appendRow(self, row, index):
         """
@@ -339,7 +330,6 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for fieldName in self._testAData.dtype.names:
             row[fieldName] = record[fieldName]
         row.append()
-
 
     def test00_append(self):
         """Appending a set of rows."""
@@ -356,7 +346,6 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         readAData = tbl.read()
         self.assertTrue(common.areArraysEqual(self._testAData, readAData),
                         "Written and read values differ.")
-
 
     def test01_row(self):
         """Appending individual rows."""
@@ -380,7 +369,6 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(self._testAData, readAData),
                         "Written and read values differ.")
 
-
     def test02_where(self):
         """Searching nested data."""
 
@@ -401,7 +389,6 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(searchedCoords.tolist(),
                          range(len(self._testAData) - 1),
                          "Search returned incorrect results.")
-
 
     def test02b_whereAppend(self):
         """Searching nested data and appending it to another table."""
@@ -430,7 +417,6 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
                          range(len(self._testAData) - 1),
                          "Search returned incorrect results.")
 
-
     def test03_colscond(self):
         """Searching on a column with nested columns."""
 
@@ -446,7 +432,6 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(
             TypeError, tbl.get_where_list,
             self._testCondition, self._testNestedCondVars(tbl))
-
 
     def test04_modifyColumn(self):
         """Modifying one single nested column (modify_column)."""
@@ -526,7 +511,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         raCols = numpy.rec.fromarrays([self._testAData['x'].copy(),
                                        self._testAData['color'].copy()],
                                       dtype=[('x', '(2,)i4'), ('color', '1a2')])
-                               #descr=tbl.description._v_nestedDescr[0:2])
+                               # descr=tbl.description._v_nestedDescr[0:2])
                                # or...
                                # names=tbl.description._v_nestedNames[0:2],
                                # formats=tbl.description._v_nestedFormats[0:2])
@@ -586,7 +571,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName(),
-            expectedrows = minRowIndex*2)
+            expectedrows=minRowIndex*2)
         for i in range(minRowIndex):
             tbl.append(self._testAData)
         tbl.flush()
@@ -606,7 +591,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check indexing flags:
         self.assertEqual(tbl.indexed, True, "Table not indexed")
         self.assertNotEqual(coltoindex.index, None, "Column not indexed")
-        self.assertTrue(tbl.colindexed[self._testCondCol], "Column not indexed")
+        self.assertTrue(tbl.colindexed[
+                        self._testCondCol], "Column not indexed")
         # Do a look-up for values
         searchedCoords = tbl.get_where_list(
             self._testCondition, self._testCondVars(tbl))
@@ -644,6 +630,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class WriteNoReopen(WriteTestCase):
     reopen = 0
 
+
 class WriteReopen(WriteTestCase):
     reopen = 1
 
@@ -654,7 +641,6 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
     _testABuffer = testABuffer
     _testAData = testAData
     _testNestedCol = testNestedCol
-
 
     def test00a_repr(self):
         """Checking representation of a nested Table"""
@@ -718,7 +704,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
   "z": UInt8Col(shape=(), dflt=1, pos=5)}
 """
         values = [template % ', '.join(items)
-            for items in itertools.permutations(("'r': 4", "'b': 1", "'g': 2"))]
+                  for items in itertools.permutations(("'r': 4", "'b': 1", "'g': 2"))]
         self.assertTrue(tblrepr in values)
 
     def test00b_repr(self):
@@ -824,7 +810,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 dtype=tbl.description._v_nestedDescr)
         nrarrcols = nrarr['Info']['value'][0::2]
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
-                     "Original array are retrieved doesn't match.")
+                        "Original array are retrieved doesn't match.")
 
     def test02_read_out_arg(self):
         """Checking Table.read with a nested Column."""
@@ -843,11 +829,12 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 dtype=tbl.description._v_nestedDescr)
         nrarrcols = nrarr['Info']['value'][0::2]
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
-                     "Original array are retrieved doesn't match.")
+                        "Original array are retrieved doesn't match.")
 
 
 class ReadNoReopen(ReadTestCase):
     reopen = 0
+
 
 class ReadReopen(ReadTestCase):
     reopen = 1
@@ -860,7 +847,6 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     _testABuffer = testABuffer
     _testAData = testAData
     _testNestedCol = testNestedCol
-
 
     def test00a_repr(self):
         """Checking string representation of Cols."""
@@ -879,7 +865,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(str(tbl.cols), "/test.cols (Cols), 6 columns")
         try:
             self.assertEqual(repr(tbl.cols),
-"""/test.cols (Cols), 6 columns
+                             """/test.cols (Cols), 6 columns
   x (Column(0, 2), ('int32',(2,)))
   Info (Cols(), Description)
   color (Column(0,), |S2)
@@ -887,10 +873,10 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
   y (Column(0, 2, 2), ('float64',(2, 2)))
   z (Column(0,), uint8)
 """
-)
+                             )
         except AssertionError:
             self.assertEqual(repr(tbl.cols),
-"""/test.cols (Cols), 6 columns
+                             """/test.cols (Cols), 6 columns
   x (Column(0, 2), ('<i4', (2,)))
   Info (Cols(), Description)
   color (Column(0,), |S2)
@@ -898,7 +884,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
   y (Column(0, 2, 2), ('<f8', (2, 2)))
   z (Column(0,), uint8)
 """
-)
+                             )
 
     def test00b_repr(self):
         """Checking string representation of nested Cols."""
@@ -914,9 +900,10 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "str(tbl.cols.Info)-->", str(tbl.cols.Info)
             print "repr(tbl.cols.Info)-->", repr(tbl.cols.Info)
 
-        self.assertEqual(str(tbl.cols.Info), "/test.cols.Info (Cols), 5 columns")
+        self.assertEqual(str(
+            tbl.cols.Info), "/test.cols.Info (Cols), 5 columns")
         self.assertEqual(repr(tbl.cols.Info),
-"""/test.cols.Info (Cols), 5 columns
+                         """/test.cols.Info (Cols), 5 columns
   value (Column(0,), complex128)
   y2 (Column(0,), float64)
   Info2 (Cols(), Description)
@@ -1060,7 +1047,6 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
-
     def test04a__getitem__(self):
         """Checking cols.__getitem__() with subgroups with a single index."""
 
@@ -1201,6 +1187,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class ColsNoReopen(ColsTestCase):
     reopen = 0
 
+
 class ColsReopen(ColsTestCase):
     reopen = 1
 
@@ -1209,13 +1196,16 @@ class Nested(t.IsDescription):
     uid = t.IntCol(pos=1)
     value = t.FloatCol(pos=2)
 
+
 class A_Candidate(t.IsDescription):
     nested1 = Nested()
     nested2 = Nested()
 
+
 class B_Candidate(t.IsDescription):
     nested1 = Nested
     nested2 = Nested
+
 
 class C_Candidate(t.IsDescription):
     nested1 = Nested()
@@ -1238,6 +1228,8 @@ F_Candidate = {"nested1": Nested(),
                }
 
 # Checking several nested columns declared in the same way
+
+
 class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     correct_names = ['',  # The root of columns
@@ -1254,7 +1246,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(
+            type="All")]
         if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
@@ -1271,7 +1264,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(
+            type="All")]
         if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
@@ -1288,7 +1282,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(
+            type="All")]
         if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
@@ -1305,7 +1300,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(
+            type="All")]
         if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
@@ -1322,7 +1318,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(
+            type="All")]
         if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
@@ -1339,13 +1336,13 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(
+            type="All")]
         if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
         self.assertEqual(names, self.correct_names,
                          "Column nested names doesn't match.")
-
 
     def test02a(self):
         """Indexing two simple columns under the same nested column."""
@@ -1353,7 +1350,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         desc = {
             'nested': {
             'i1': t.Int32Col(),
-            'i2': t.Int32Col() } }
+            'i2': t.Int32Col()}}
 
         i1 = 'nested/i1'
         i2 = 'nested/i2'
@@ -1368,7 +1365,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.flush()
 
         cols = {'i1': tbl.cols.nested.i1,
-                'i2': tbl.cols.nested.i2,}
+                'i2': tbl.cols.nested.i2, }
         cols['i1'].create_index()
         cols['i2'].create_index()
 
@@ -1377,16 +1374,16 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
             # Redefine the cols dictionary
             cols = {'i1': tbl.cols.nested.i1,
-                    'i2': tbl.cols.nested.i2,}
+                    'i2': tbl.cols.nested.i2, }
 
         i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
         i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
 
         if common.verbose:
-           print "Retrieved values (i1):", i1res
-           print "Should look like:", range(10)
-           print "Retrieved values (i2):", i2res
-           print "Should look like:", range(0, 10, 2)
+            print "Retrieved values (i1):", i1res
+            print "Should look like:", range(10)
+            print "Retrieved values (i2):", i2res
+            print "Should look like:", range(0, 10, 2)
 
         self.assertEqual(i1res, range(10),
                          "Select for nested column (i1) doesn't match.")
@@ -1401,7 +1398,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             'nested2': {
             'nested3': {
             'i1': t.Int32Col(),
-            'i2': t.Int32Col() } } } }
+            'i2': t.Int32Col()}}}}
 
         i1 = 'nested1/nested2/nested3/i1'
         i2 = 'nested1/nested2/nested3/i2'
@@ -1417,7 +1414,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.flush()
 
         cols = {'i1': tbl.cols.nested1.nested2.nested3.i1,
-                'i2': tbl.cols.nested1.nested2.nested3.i2,}
+                'i2': tbl.cols.nested1.nested2.nested3.i2, }
         cols['i1'].create_index()
         cols['i2'].create_index()
 
@@ -1426,16 +1423,16 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
             # Redefine the cols dictionary
             cols = {'i1': tbl.cols.nested1.nested2.nested3.i1,
-                    'i2': tbl.cols.nested1.nested2.nested3.i2,}
+                    'i2': tbl.cols.nested1.nested2.nested3.i2, }
 
         i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
         i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
 
         if common.verbose:
-           print "Retrieved values (i1):", i1res
-           print "Should look like:", range(10)
-           print "Retrieved values (i2):", i2res
-           print "Should look like:", range(0, 10, 2)
+            print "Retrieved values (i1):", i1res
+            print "Should look like:", range(10)
+            print "Retrieved values (i2):", i2res
+            print "Should look like:", range(0, 10, 2)
 
         self.assertEqual(i1res, range(10),
                          "Select for nested column (i1) doesn't match.")
@@ -1446,13 +1443,15 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class SameNestedNoReopen(SameNestedTestCase):
     reopen = 0
 
+
 class SameNestedReopen(SameNestedTestCase):
     reopen = 1
+
 
 class NestedTypesWithGaps(common.PyTablesTestCase):
 
     correct_descr = \
-"""{
+        """{
   "float": Float32Col(shape=(), dflt=0.0, pos=0),
   "compound": {
     "char": Int8Col(shape=(), dflt=0, pos=0),
@@ -1479,18 +1478,16 @@ class NestedTypesWithGaps(common.PyTablesTestCase):
         h5file.close()
 
 
-
 #----------------------------------------------------------------------
-
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
     theSuite = unittest.TestSuite()
     niter = 1
-    #common.heavy = 1  # uncomment this only for testing purposes
+    # common.heavy = 1  # uncomment this only for testing purposes
 
-    #theSuite.addTest(unittest.makeSuite(DescriptionTestCase))
-    #theSuite.addTest(unittest.makeSuite(WriteReopen))
+    # theSuite.addTest(unittest.makeSuite(DescriptionTestCase))
+    # theSuite.addTest(unittest.makeSuite(WriteReopen))
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(DescriptionTestCase))
         theSuite.addTest(unittest.makeSuite(CreateTestCase))
@@ -1508,7 +1505,7 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
+    unittest.main(defaultTest='suite')
 
 
 
@@ -1518,9 +1515,3 @@ if __name__ == '__main__':
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

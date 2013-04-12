@@ -18,13 +18,14 @@ import math
 import numpy
 
 from tables.flavor import (check_flavor, internal_flavor,
-    alias_map as flavor_alias_map)
+                           alias_map as flavor_alias_map)
 from tables.node import Node
 from tables.filters import Filters
 from tables.utils import byteorders, lazyattr, SizeType
 from tables.exceptions import PerformanceWarning
 from tables import utilsextension
 from tables._past import previous_api
+
 
 def csformula(expectedsizeinMB):
     """Return the fitted chunksize for expectedsizeinMB."""
@@ -211,7 +212,7 @@ class Leaf(Node):
         """)
 
     size_on_disk = property(lambda self: self._get_storage_size(), None, None,
-        """
+                            """
         The size of this leaf's data in bytes as it is stored on disk.  If the
         data is compressed, this shows the compressed size.  In the case of
         uncompressed, chunked data, this may be slightly larger than the amount
@@ -253,7 +254,6 @@ class Leaf(Node):
 
         super(Leaf, self).__init__(parentNode, name, _log)
 
-
     def __len__(self):
         """Return the length of the main dimension of the leaf data.
 
@@ -262,7 +262,6 @@ class Leaf(Node):
         Python that you can work around by using the nrows or shape attributes.
         """
         return self.nrows
-
 
     def __str__(self):
         """
@@ -285,7 +284,6 @@ class Leaf(Node):
                                      self.filters.complevel)
         return "%s (%s%s%s) %r" % \
                (self._v_pathname, classname, self.shape, filters, title)
-
 
     # Private methods
     # ~~~~~~~~~~~~~~~
@@ -310,7 +308,6 @@ class Leaf(Node):
                 self._flavor = internal_flavor
 
     _g_postInitHook = previous_api(_g_post_init_hook)
-
 
     def _calc_chunkshape(self, expectedrows, rowsize, itemsize):
         """Calculate the shape for the HDF5 chunk."""
@@ -352,7 +349,6 @@ class Leaf(Node):
 
         return tuple(SizeType(s) for s in chunkshape)
 
-
     def _calc_nrowsinbuf(self):
         """Calculate the number of rows that fits on a PyTables buffer."""
 
@@ -375,9 +371,8 @@ dimensions that are orthogonal (and preferably close) to the *main*
 dimension of this leave.  Alternatively, in case you have specified a
 very small/large chunksize, you may want to increase/decrease it."""
                               % (self._v_pathname, maxrowsize),
-                                 PerformanceWarning)
+                              PerformanceWarning)
         return nrowsinbuf
-
 
     # This method is appropriate for calls to __getitem__ methods
     def _process_range(self, start, stop, step, dim=None, warn_negstep=True):
@@ -386,19 +381,18 @@ very small/large chunksize, you may want to increase/decrease it."""
         else:
             nrows = self.shape[dim]
 
-        if warn_negstep and step and step < 0 :
+        if warn_negstep and step and step < 0:
             raise ValueError("slice step cannot be negative")
         # (start, stop, step) = slice(start, stop, step).indices(nrows)
         # The next function is a substitute for slice().indices in order to
         # support full 64-bit integer for slices even in 32-bit machines.
         # F. Alted 2005-05-08
         (start, stop, step) = utilsextension.get_indices(
-            start, stop, step, long(nrows) )
+            start, stop, step, long(nrows))
 
         return (start, stop, step)
 
     _processRange = previous_api(_process_range)
-
 
     # This method is appropiate for calls to read() methods
     def _process_range_read(self, start, stop, step, warn_negstep=True):
@@ -410,8 +404,8 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Protection against start greater than available records
             # nrows == 0 is a special case for empty objects
             if nrows > 0 and start >= nrows:
-                raise IndexError( "start of range (%s) is greater than "
-                                  "number of rows (%s)" % (start, nrows) )
+                raise IndexError("start of range (%s) is greater than "
+                                 "number of rows (%s)" % (start, nrows))
             step = 1
             if start == -1:  # corner case
                 stop = nrows
@@ -424,7 +418,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         return (start, stop, step)
 
     _processRangeRead = previous_api(_process_range_read)
-
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         # Compute default arguments.
@@ -444,7 +437,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Fix arguments with explicit None values for backwards compatibility.
         if title is None:
             title = self._v_title
-        if filters is None:  filters = self.filters
+        if filters is None:
+            filters = self.filters
 
         # Create a copy of the object.
         (new_node, bytes) = self._g_copy_with_stats(
@@ -465,7 +459,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             stats['bytes'] += bytes
 
         return new_node
-
 
     def _g_fix_byteorder_data(self, data, dbyteorder):
         "Fix the byteorder of data passed in constructors."
@@ -490,7 +483,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             # specified the user in the constructor.
             self.byteorder = "irrelevant"
         return data
-
 
     def _point_selection(self, key):
         """Perform a point-wise selection.
@@ -561,7 +553,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     _pointSelection = previous_api(_point_selection)
 
-
     # Public methods
     # ~~~~~~~~~~~~~~
     # Tree manipulation
@@ -576,7 +567,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_remove(False)
 
-
     def rename(self, newname):
         """Rename this node in place.
 
@@ -584,9 +574,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
         self._f_rename(newname)
 
-
-    def move( self, newparent=None, newname=None,
-              overwrite=False, createparents=False ):
+    def move(self, newparent=None, newname=None,
+             overwrite=False, createparents=False):
         """Move or rename this node.
 
         This method has the behavior described in :meth:`Node._f_move`
@@ -594,9 +583,8 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_move(newparent, newname, overwrite, createparents)
 
-
-    def copy( self, newparent=None, newname=None,
-              overwrite=False, createparents=False, **kwargs ):
+    def copy(self, newparent=None, newname=None,
+             overwrite=False, createparents=False, **kwargs):
         """Copy this node and return the new one.
 
         This method has the behavior described in :meth:`Node._f_copy`. Please
@@ -643,8 +631,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         return self._f_copy(
-            newparent, newname, overwrite, createparents, **kwargs )
-
+            newparent, newname, overwrite, createparents, **kwargs)
 
     def truncate(self, size):
         """Truncate the main dimension to be size rows.
@@ -663,7 +650,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise TypeError("non-enlargeable datasets cannot be truncated")
         self._g_truncate(size)
 
-
     def isvisible(self):
         """Is this node visible?
 
@@ -673,7 +659,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         return self._f_isvisible()
 
     isVisible = previous_api(isvisible)
-
 
     # Attribute handling
     # ``````````````````
@@ -685,7 +670,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         return self._f_getattr(name)
 
     getAttr = previous_api(get_attr)
-
 
     def set_attr(self, name, value):
         """Set a PyTables attribute for this node.
@@ -720,7 +704,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._g_flush()
 
-
     def _f_close(self, flush=True):
         """Close this node in the tree.
 
@@ -745,7 +728,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Close myself as a node.
         super(Leaf, self)._f_close()
 
-
     def close(self, flush=True):
         """Close this node in the tree.
 
@@ -761,9 +743,3 @@ very small/large chunksize, you may want to increase/decrease it."""
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

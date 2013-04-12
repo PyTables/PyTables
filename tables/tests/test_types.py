@@ -13,41 +13,44 @@ from tables.tests import common
 unittest.TestCase.tearDown = common.cleanup
 
 # Test Record class
+
+
 class Record(IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
     var2 = Col.from_kind('int')   # integer
-    var3 = Col.from_kind('int', itemsize=2) # short integer
-    var4 = Col.from_kind('float') # double (double-precision)
-    var5 = Col.from_kind('float', itemsize=4) # float  (single-precision)
-    var6 = Col.from_kind('complex') # double-precision
-    var7 = Col.from_kind('complex', itemsize=8) # single-precision
+    var3 = Col.from_kind('int', itemsize=2)  # short integer
+    var4 = Col.from_kind('float')  # double (double-precision)
+    var5 = Col.from_kind('float', itemsize=4)  # float  (single-precision)
+    var6 = Col.from_kind('complex')  # double-precision
+    var7 = Col.from_kind('complex', itemsize=8)  # single-precision
     if hasattr(numpy, "float16"):
-        var8 = Col.from_kind('float', itemsize=2) # half-precision
+        var8 = Col.from_kind('float', itemsize=2)  # half-precision
     if hasattr(numpy, "float96"):
-        var9 = Col.from_kind('float', itemsize=12) # extended-precision
+        var9 = Col.from_kind('float', itemsize=12)  # extended-precision
     if hasattr(numpy, "float128"):
-        var10 = Col.from_kind('float', itemsize=16) # extended-precision
+        var10 = Col.from_kind('float', itemsize=16)  # extended-precision
     if hasattr(numpy, "complex192"):
-        var11 = Col.from_kind('complex', itemsize=24) # extended-precision
+        var11 = Col.from_kind('complex', itemsize=24)  # extended-precision
     if hasattr(numpy, "complex256"):
-        var12 = Col.from_kind('complex', itemsize=32) # extended-precision
+        var12 = Col.from_kind('complex', itemsize=32)  # extended-precision
+
 
 class RangeTestCase(unittest.TestCase):
-    file  = "test.h5"
+    file = "test.h5"
     title = "This is the table title"
     expectedrows = 100
     maxshort = 2 ** 15
-    maxint   = 2147483648   # (2 ** 31)
+    maxint = 2147483648   # (2 ** 31)
     compress = 0
 
     def setUp(self):
         # Create an instance of HDF5 Table
-        self.fileh = open_file(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode="w")
         self.rootgroup = self.fileh.root
 
         # Create a table
         self.table = self.fileh.create_table(self.rootgroup, 'table',
-                                            Record, self.title)
+                                             Record, self.title)
 
     def tearDown(self):
         self.fileh.close()
@@ -174,7 +177,7 @@ class ReadFloatTestCase(common.PyTablesTestCase):
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
             self.assertEqual(ds.dtype, dtype)
             self.assertTrue(common.allequal(
-                ds.read(),self.values.astype(dtype)))
+                ds.read(), self.values.astype(dtype)))
         else:
             ds = self.assertWarns(UserWarning, getattr, self.fileh.root, dtype)
             self.assertTrue(isinstance(ds, UnImplemented))
@@ -213,17 +216,16 @@ class ReadFloatTestCase(common.PyTablesTestCase):
                 self.assertEqual(ds.dtype, "float128")
         else:
             # XXX: check
-            #ds = self.assertWarns(UserWarning, getattr, self.fileh.root, dtype)
-            #self.assertTrue(isinstance(ds, UnImplemented))
+            # ds = self.assertWarns(UserWarning, getattr, self.fileh.root, dtype)
+            # self.assertTrue(isinstance(ds, UnImplemented))
 
             ds = getattr(self.fileh.root, dtype)
             self.assertEqual(ds.dtype, "float64")
 
-
     def test05_read_quadprecision_float(self):
-        #ds = self.assertWarns(UserWarning, getattr, self.fileh.root,
+        # ds = self.assertWarns(UserWarning, getattr, self.fileh.root,
         #                     "quadprecision")
-        #self.assertTrue(isinstance(ds, UnImplemented))
+        # self.assertTrue(isinstance(ds, UnImplemented))
 
         # NOTE: it would be nice to have some sort of message that warns
         #       against the potential precision loss: the quad-precision
@@ -245,7 +247,7 @@ class AtomTestCase(common.PyTablesTestCase):
         atom1 = StringAtom(itemsize=12)
         atom2 = atom1.copy(itemsize=100, shape=(2, 2))
         self.assertEqual(atom2,
-            StringAtom(itemsize=100, shape=(2, 2), dflt=b''))
+                         StringAtom(itemsize=100, shape=(2, 2), dflt=b''))
 
     def test_init_parameters_03(self):
         atom1 = StringAtom(itemsize=12)
@@ -321,10 +323,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
-
-
-
-
-
-
+    unittest.main(defaultTest='suite')

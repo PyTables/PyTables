@@ -33,7 +33,7 @@ from tables import hdf5extension
 from tables import utilsextension
 from tables import parameters
 from tables.exceptions import (ClosedFileError, FileModeError,
-     NodeError, NoSuchNodeError, UndoRedoError, PerformanceWarning)
+                               NodeError, NoSuchNodeError, UndoRedoError, PerformanceWarning)
 from tables.registry import get_class_by_name
 from tables.path import join_path, split_path
 from tables import undoredo
@@ -57,21 +57,21 @@ from tables.link import SoftLink, ExternalLink
 from tables._past import previous_api
 
 
-#format_version = "1.0" # Initial format
-#format_version = "1.1" # Changes in ucl compression
-#format_version = "1.2"  # Support for enlargeable arrays and VLA's
+# format_version = "1.0" # Initial format
+# format_version = "1.1" # Changes in ucl compression
+# format_version = "1.2"  # Support for enlargeable arrays and VLA's
 #                        # 1.2 was introduced in PyTables 0.8
-#format_version = "1.3"  # Support for indexes in Tables
+# format_version = "1.3"  # Support for indexes in Tables
 #                        # 1.3 was introduced in PyTables 0.9
-#format_version = "1.4"  # Support for multidimensional attributes
+# format_version = "1.4"  # Support for multidimensional attributes
 #                        # 1.4 was introduced in PyTables 1.1
-#format_version = "1.5"  # Support for persistent defaults in tables
+# format_version = "1.5"  # Support for persistent defaults in tables
 #                        # 1.5 was introduced in PyTables 1.2
-#format_version = "1.6"  # Support for NumPy objects and new flavors for objects
+# format_version = "1.6"  # Support for NumPy objects and new flavors for objects
 #                        # 1.6 was introduced in pytables 1.3
 format_version = "2.0"  # Pickles are not used anymore in system attrs
                         # 2.0 was introduced in PyTables 2.0
-compatible_formats = [] # Old format versions we can read
+compatible_formats = []  # Old format versions we can read
                         # Empty means that we support all the old formats
 
 # Dict of opened files (keys are filenames and values filehandlers)
@@ -85,7 +85,7 @@ _op_to_code = {
     "MOVE":    3,
     "ADDATTR": 4,
     "DELATTR": 5,
-    }
+}
 
 _code_to_op = ["MARK", "CREATE", "REMOVE", "MOVE", "ADDATTR", "DELATTR"]
 
@@ -94,24 +94,24 @@ _code_to_op = ["MARK", "CREATE", "REMOVE", "MOVE", "ADDATTR", "DELATTR"]
 _trans_version = '1.0'
 
 _trans_group_parent = '/'
-_trans_group_name   = '_p_transactions'
-_trans_group_path   = join_path(_trans_group_parent, _trans_group_name)
+_trans_group_name = '_p_transactions'
+_trans_group_path = join_path(_trans_group_parent, _trans_group_name)
 
 _action_log_parent = _trans_group_path
-_action_log_name   = 'actionlog'
-_action_log_path   = join_path(_action_log_parent, _action_log_name)
+_action_log_name = 'actionlog'
+_action_log_path = join_path(_action_log_parent, _action_log_name)
 
 _trans_parent = _trans_group_path
-_trans_name   = 't%d'  # %d -> transaction number
-_trans_path   = join_path(_trans_parent, _trans_name)
+_trans_name = 't%d'  # %d -> transaction number
+_trans_path = join_path(_trans_parent, _trans_name)
 
 _markParent = _trans_path
-_markName   = 'm%d'  # %d -> mark number
-_markPath   = join_path(_markParent, _markName)
+_markName = 'm%d'  # %d -> mark number
+_markPath = join_path(_markParent, _markName)
 
 _shadow_parent = _markPath
-_shadow_name   = 'a%d'  # %d -> action number
-_shadow_path   = join_path(_shadow_parent, _shadow_name)
+_shadow_name = 'a%d'  # %d -> action number
+_shadow_path = join_path(_shadow_parent, _shadow_name)
 
 
 def _checkfilters(filters):
@@ -119,7 +119,7 @@ def _checkfilters(filters):
             isinstance(filters, Filters)):
         raise TypeError("filter parameter has to be None or a Filter "
                         "instance and the passed type is: '%s'" %
-                                                                type(filters))
+                        type(filters))
 
 
 def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
@@ -150,7 +150,7 @@ copyFile = previous_api(copy_file)
 
 
 def open_file(filename, mode="r", title="", root_uep="/", filters=None,
-             **kwargs):
+              **kwargs):
     """Open a PyTables (or generic HDF5) file and return a File object.
 
     Parameters
@@ -235,6 +235,7 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
 
 openFile = previous_api(open_file)
 
+
 class _AliveNodes(dict):
     """Stores strong or weak references to nodes in a transparent way."""
 
@@ -267,10 +268,9 @@ class _AliveNodes(dict):
                 warnings.warn("""\
 the dictionary of alive nodes is exceeding the recommended maximum number (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
-                      % (-self.nodeCacheSlots),
-                      PerformanceWarning)
+                              % (-self.nodeCacheSlots),
+                              PerformanceWarning)
         super(_AliveNodes, self).__setitem__(key, ref)
-
 
 
 class _DeadNodes(lrucacheextension.NodeCache):
@@ -281,8 +281,10 @@ class _DeadNodes(lrucacheextension.NodeCache):
 class _NoDeadNodes(object):
     def __len__(self):
         return 0
+
     def __contains__(self, key):
         return False
+
     def __iter__(self):
         return iter([])
 
@@ -297,13 +299,12 @@ class _NodeDict(tables.misc.proxydict.ProxyDict):
 
     _getValueFromContainer = previous_api(_get_value_from_container)
 
-
     def _condition(self, node):
         """Nodes fulfilling the condition are considered to belong here."""
         raise NotImplementedError
 
 
-    #def __len__(self):
+    # def __len__(self):
     #    return len(list(self.iterkeys()))
 
 
@@ -434,8 +435,10 @@ class File(hdf5extension.File, object):
 
     def _gettitle(self):
         return self.root._v_title
+
     def _settitle(self, title):
         self.root._v_title = title
+
     def _deltitle(self):
         del self.root._v_title
 
@@ -445,8 +448,10 @@ class File(hdf5extension.File, object):
 
     def _getfilters(self):
         return self.root._v_filters
+
     def _setfilters(self, filters):
         self.root._v_filters = filters
+
     def _delfilters(self):
         del self.root._v_filters
 
@@ -550,7 +555,6 @@ class File(hdf5extension.File, object):
         # Set the maximum number of threads for Numexpr
         numexpr.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
 
-
     def __get_root_group(self, root_uep, title, filters):
         """Returns a Group instance which will act as the root group
         in the hierarchical tree. If file is opened in "r", "r+" or
@@ -563,7 +567,7 @@ class File(hdf5extension.File, object):
         if root_uep in [None, ""]:
             root_uep = "/"
         # Save the User Entry Point in a variable class
-        self.root_uep=root_uep
+        self.root_uep = root_uep
 
         new = self._v_new
 
@@ -588,7 +592,6 @@ class File(hdf5extension.File, object):
         return RootGroup(self, root_uep, title=title, new=new, filters=filters)
 
     __getRootGroup = previous_api(__get_root_group)
-
 
     def _get_or_create_path(self, path, create):
         """Get the given `path` or create it if `create` is true.
@@ -626,7 +629,7 @@ class File(hdf5extension.File, object):
     _createPath = previous_api(_create_path)
 
     def create_group(self, where, name, title="", filters=None,
-                    createparents=False):
+                     createparents=False):
         """Create a new group.
 
         Parameters
@@ -665,9 +668,9 @@ class File(hdf5extension.File, object):
     createGroup = previous_api(create_group)
 
     def create_table(self, where, name, description, title="",
-                    filters=None, expectedrows=10000,
-                    chunkshape=None, byteorder=None,
-                    createparents=False):
+                     filters=None, expectedrows=10000,
+                     chunkshape=None, byteorder=None,
+                     createparents=False):
         """Create a new table with the given name in where location.
 
         Parameters
@@ -742,9 +745,8 @@ class File(hdf5extension.File, object):
 
     createTable = previous_api(create_table)
 
-
     def create_array(self, where, name, object, title="",
-                    byteorder=None, createparents=False):
+                     byteorder=None, createparents=False):
         """Create a new array.
 
         Parameters
@@ -790,10 +792,9 @@ class File(hdf5extension.File, object):
 
     createArray = previous_api(create_array)
 
-
     def create_carray(self, where, name, atom, shape, title="",
-                     filters=None, chunkshape=None,
-                     byteorder=None, createparents=False):
+                      filters=None, chunkshape=None,
+                      byteorder=None, createparents=False):
         """Create a new chunked array.
 
         Parameters
@@ -844,9 +845,9 @@ class File(hdf5extension.File, object):
     createCArray = previous_api(create_carray)
 
     def create_earray(self, where, name, atom, shape, title="",
-                     filters=None, expectedrows=1000,
-                     chunkshape=None, byteorder=None,
-                     createparents=False):
+                      filters=None, expectedrows=1000,
+                      chunkshape=None, byteorder=None,
+                      createparents=False):
         """Create a new enlargeable array.
 
         Parameters
@@ -906,9 +907,9 @@ class File(hdf5extension.File, object):
     createEArray = previous_api(create_earray)
 
     def create_vlarray(self, where, name, atom, title="",
-                      filters=None, expectedsizeinMB=1.0,
-                      chunkshape=None, byteorder=None,
-                      createparents=False):
+                       filters=None, expectedsizeinMB=1.0,
+                       chunkshape=None, byteorder=None,
+                       createparents=False):
         """Create a new variable-length array.
 
         Parameters
@@ -1003,7 +1004,8 @@ class File(hdf5extension.File, object):
             if hasattr(target, '_v_pathname'):   # quacks like a Node
                 target = target._v_pathname
             else:
-                raise ValueError("`target` has to be a string or a node object")
+                raise ValueError(
+                    "`target` has to be a string or a node object")
         parentNode = self._get_or_create_path(where, createparents)
         slink = SoftLink(parentNode, name, target)
         # Refresh children names in link's parent node
@@ -1011,7 +1013,6 @@ class File(hdf5extension.File, object):
         return slink
 
     createSoftLink = previous_api(create_soft_link)
-
 
     def create_external_link(self, where, name, target, createparents=False):
         """Create an external link.
@@ -1030,7 +1031,8 @@ class File(hdf5extension.File, object):
             if hasattr(target, '_v_pathname'):   # quacks like a Node
                 target = target._v_file.filename+':'+target._v_pathname
             else:
-                raise ValueError("`target` has to be a string or a node object")
+                raise ValueError(
+                    "`target` has to be a string or a node object")
         elif target.find(':/') == -1:
             raise ValueError(
                 "`target` must expressed as 'file:/path/to/node'")
@@ -1057,7 +1059,7 @@ class File(hdf5extension.File, object):
             # The parent node is in memory and alive, so get it.
             node = aliveNodes[nodePath]
             assert node is not None, \
-                   "stale weak reference to dead node ``%s``" % nodePath
+                "stale weak reference to dead node ``%s``" % nodePath
             return node
         if nodePath in deadNodes:
             # The parent node is in memory but dead, so revive it.
@@ -1153,7 +1155,6 @@ class File(hdf5extension.File, object):
 
     isVisibleNode = previous_api(is_visible_node)
 
-
     def rename_node(self, where, newname, name=None, overwrite=False):
         """Change the name of the node specified by where and name to newname.
 
@@ -1175,7 +1176,7 @@ class File(hdf5extension.File, object):
     renameNode = previous_api(rename_node)
 
     def move_node(self, where, newparent=None, newname=None, name=None,
-                 overwrite=False, createparents=False):
+                  overwrite=False, createparents=False):
         """Move the node specified by where and name to newparent/newname.
 
         Parameters
@@ -1205,8 +1206,8 @@ class File(hdf5extension.File, object):
     moveNode = previous_api(move_node)
 
     def copy_node(self, where, newparent=None, newname=None, name=None,
-                 overwrite=False, recursive=False, createparents=False,
-                 **kwargs):
+                  overwrite=False, recursive=False, createparents=False,
+                  **kwargs):
         """Copy the node specified by where and name to newparent/newname.
 
         Parameters
@@ -1257,12 +1258,13 @@ class File(hdf5extension.File, object):
             if obj._v_file is not npobj._v_file:
                 # Special case for copying file1:/ --> file2:/path
                 self.root._f_copy_children(npobj, overwrite=overwrite,
-                                          recursive=recursive, **kwargs)
+                                           recursive=recursive, **kwargs)
                 return npobj
             else:
-                raise IOError("You cannot copy a root group over the same file")
-        return obj._f_copy( newparent, newname,
-                            overwrite, recursive, createparents, **kwargs )
+                raise IOError(
+                    "You cannot copy a root group over the same file")
+        return obj._f_copy(newparent, newname,
+                           overwrite, recursive, createparents, **kwargs)
 
     copyNode = previous_api(copy_node)
 
@@ -1287,7 +1289,6 @@ class File(hdf5extension.File, object):
 
     removeNode = previous_api(remove_node)
 
-
     def get_node_attr(self, where, attrname, name=None):
         """Get a PyTables attribute from the given node.
 
@@ -1305,7 +1306,6 @@ class File(hdf5extension.File, object):
         return obj._f_getattr(attrname)
 
     getNodeAttr = previous_api(get_node_attr)
-
 
     def set_node_attr(self, where, attrname, attrvalue, name=None):
         """Set a PyTables attribute for the given node.
@@ -1354,7 +1354,6 @@ class File(hdf5extension.File, object):
 
     delNodeAttr = previous_api(del_node_attr)
 
-
     def copy_node_attrs(self, where, dstnode, name=None):
         """Copy PyTables attributes from one node to another.
 
@@ -1374,10 +1373,9 @@ class File(hdf5extension.File, object):
 
     copyNodeAttrs = previous_api(copy_node_attrs)
 
-
     def copy_children(self, srcgroup, dstgroup,
-                     overwrite=False, recursive=False,
-                     createparents=False, **kwargs):
+                      overwrite=False, recursive=False,
+                      createparents=False, **kwargs):
         """Copy the children of a group into another group.
 
         Parameters
@@ -1406,7 +1404,7 @@ class File(hdf5extension.File, object):
         self._check_group(srcGroup)  # Is it a group?
 
         srcGroup._f_copy_children(
-            dstgroup, overwrite, recursive, createparents, **kwargs )
+            dstgroup, overwrite, recursive, createparents, **kwargs)
 
     copyChildren = previous_api(copy_children)
 
@@ -1499,7 +1497,6 @@ class File(hdf5extension.File, object):
 
     listNodes = previous_api(list_nodes)
 
-
     def iter_nodes(self, where, classname=None):
         """Iterate over children nodes hanging from where.
 
@@ -1527,7 +1524,6 @@ class File(hdf5extension.File, object):
 
     iterNodes = previous_api(iter_nodes)
 
-
     def __contains__(self, path):
         """Is there a node with that path?
 
@@ -1541,7 +1537,6 @@ class File(hdf5extension.File, object):
             return False
         else:
             return True
-
 
     def __iter__(self):
         """Recursively iterate over the nodes in the tree.
@@ -1561,7 +1556,6 @@ class File(hdf5extension.File, object):
         """
 
         return self.walk_nodes('/')
-
 
     def walk_nodes(self, where="/", classname=None):
         """Recursively iterate over nodes hanging from where.
@@ -1611,8 +1605,7 @@ class File(hdf5extension.File, object):
 
     walkNodes = previous_api(walk_nodes)
 
-
-    def walk_groups(self, where = "/"):
+    def walk_groups(self, where="/"):
         """Recursively iterate over groups (not leaves) hanging from where.
 
         The where group itself is listed first (preorder), then each of its
@@ -1641,14 +1634,12 @@ class File(hdf5extension.File, object):
 
     _checkOpen = previous_api(_check_open)
 
-
     def _iswritable(self):
         """Is this file writable?"""
 
         return self.mode in ('w', 'a', 'r+')
 
     _isWritable = previous_api(_iswritable)
-
 
     def _check_writable(self):
         """Check whether the file is writable.
@@ -1668,9 +1659,7 @@ class File(hdf5extension.File, object):
 
     _checkGroup = previous_api(_check_group)
 
-
     # <Undo/Redo support>
-
     def is_undo_enabled(self):
         """Is the Undo/Redo mechanism enabled?
 
@@ -1684,13 +1673,11 @@ class File(hdf5extension.File, object):
 
     isUndoEnabled = previous_api(is_undo_enabled)
 
-
     def _check_undo_enabled(self):
         if not self._undoEnabled:
             raise UndoRedoError("Undo/Redo feature is currently disabled!")
 
     _checkUndoEnabled = previous_api(_check_undo_enabled)
-
 
     def _create_transaction_group(self):
         tgroup = TransactionGroupG(
@@ -1702,7 +1689,6 @@ class File(hdf5extension.File, object):
 
     _createTransactionGroup = previous_api(_create_transaction_group)
 
-
     def _create_transaction(self, troot, tid):
         return TransactionG(
             troot, _trans_name % tid,
@@ -1710,14 +1696,12 @@ class File(hdf5extension.File, object):
 
     _createTransaction = previous_api(_create_transaction)
 
-
     def _create_mark(self, trans, mid):
         return MarkG(
             trans, _markName % mid,
             "Mark number %d" % mid, new=True)
 
     _createMark = previous_api(_create_mark)
-
 
     def enable_undo(self, filters=Filters(complevel=1)):
         """Enable the Undo/Redo mechanism.
@@ -1739,13 +1723,14 @@ class File(hdf5extension.File, object):
         """
 
         maxUndo = self.params['MAX_UNDO_PATH_LENGTH']
+
         class ActionLog(NotLoggedMixin, Table):
             pass
 
         class ActionLogDesc(IsDescription):
             opcode = UInt8Col(pos=0)
-            arg1   = StringCol(maxUndo, pos=1, dflt=b"")
-            arg2   = StringCol(maxUndo, pos=2, dflt=b"")
+            arg1 = StringCol(maxUndo, pos=1, dflt=b"")
+            arg2 = StringCol(maxUndo, pos=2, dflt=b"")
 
         self._check_open()
 
@@ -1784,7 +1769,7 @@ class File(hdf5extension.File, object):
             # Create an implicit mark
             self._actionlog.append([(_op_to_code["MARK"], str(0), '')])
             self._nmarks += 1
-            self._seqmarkers.append(0) # current action is 0
+            self._seqmarkers.append(0)  # current action is 0
 
             # Create a group for mark 0
             self._create_mark(self._trans, 0)
@@ -1813,7 +1798,6 @@ class File(hdf5extension.File, object):
         self._undoEnabled = True
 
     enableUndo = previous_api(enable_undo)
-
 
     def disable_undo(self):
         """Disable the Undo/Redo mechanism.
@@ -1850,7 +1834,6 @@ class File(hdf5extension.File, object):
         self._undoEnabled = False
 
     disableUndo = previous_api(disable_undo)
-
 
     def mark(self, name=None):
         """Mark the state of the database.
@@ -1894,7 +1877,6 @@ class File(hdf5extension.File, object):
         self._create_mark(self._trans, self._curmark)
         return self._curmark
 
-
     def _log(self, action, *args):
         """Log an action.
 
@@ -1914,10 +1896,10 @@ class File(hdf5extension.File, object):
         if self._curaction != self._actionlog.nrows - 1:
             # We are not, so delete the trailing actions
             self._actionlog.remove_rows(self._curaction + 1,
-                                       self._actionlog.nrows)
+                                        self._actionlog.nrows)
             # Reset the current marker group
             mnode = self.get_node(_markPath % (self._curtransaction,
-                                              self._curmark))
+                                               self._curmark))
             mnode._g_reset()
             # Delete the marker groups with backup objects
             for mark in xrange(self._curmark+1, self._nmarks):
@@ -1927,29 +1909,29 @@ class File(hdf5extension.File, object):
             self._nmarks = self._curmark+1
             self._seqmarkers = self._seqmarkers[:self._nmarks]
 
-        if action not in _op_to_code:  #INTERNAL
+        if action not in _op_to_code:  # INTERNAL
             raise UndoRedoError("Action ``%s`` not in ``_op_to_code`` "
-                                "dictionary: %r" %  (action, _op_to_code))
+                                "dictionary: %r" % (action, _op_to_code))
 
-        arg1 = ""; arg2 = ""
+        arg1 = ""
+        arg2 = ""
         if len(args) <= 1:
             arg1 = args[0]
         elif len(args) <= 2:
             arg1 = args[0]
             arg2 = args[1]
-        else:  #INTERNAL
+        else:  # INTERNAL
             raise UndoRedoError("Too many parameters for action log: "
                                 "%r").with_traceback(args)
         if (len(arg1) > maxUndo
-            or len(arg2) > maxUndo):  #INTERNAL
+                or len(arg2) > maxUndo):  # INTERNAL
             raise UndoRedoError("Parameter arg1 or arg2 is too long: "
                                 "(%r, %r)" % (arg1, arg2))
-        #print "Logging-->", (action, arg1, arg2)
+        # print "Logging-->", (action, arg1, arg2)
         self._actionlog.append([(_op_to_code[action],
                                  arg1.encode('utf-8'),
                                  arg2.encode('utf-8'))])
         self._curaction += 1
-
 
     def _get_mark_id(self, mark):
         """Get an integer markid from a mark sequence number or name"""
@@ -1966,11 +1948,10 @@ class File(hdf5extension.File, object):
         else:
             raise TypeError("Parameter mark can only be an integer or a "
                             "string, and you passed a type <%s>" % type(mark))
-        #print "markid, self._nmarks:", markid, self._nmarks
+        # print "markid, self._nmarks:", markid, self._nmarks
         return markid
 
     _getMarkID = previous_api(_get_mark_id)
-
 
     def _get_final_action(self, markid):
         "Get the action to go. It does not touch the self private attributes"
@@ -1987,7 +1968,6 @@ class File(hdf5extension.File, object):
         return self._seqmarkers[markid]
 
     _getFinalAction = previous_api(_get_final_action)
-
 
     def _doundo(self, finalaction, direction):
         """Undo/Redo actions up to final action in the specificed direction"""
@@ -2010,19 +1990,19 @@ class File(hdf5extension.File, object):
 #                           actionlog['arg1'][i],\
 #                           actionlog['arg2'][i]
                     undoredo.redo(self,
-                                  #_code_to_op[actionlog['opcode'][i]],
+                                  # _code_to_op[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
                                   _code_to_op[int(actionlog['opcode'][i])],
                                   actionlog['arg1'][i].decode('utf8'),
                                   actionlog['arg2'][i].decode('utf8'))
                 else:
                     # Uncomment this for debugging
-                    #print "undo-->", \
+                    # print "undo-->", \
                     #       _code_to_op[actionlog['opcode'][i]],\
                     #       actionlog['arg1'][i].decode('utf8'),\
                     #       actionlog['arg2'][i].decode('utf8')
                     undoredo.undo(self,
-                                  #_code_to_op[actionlog['opcode'][i]],
+                                  # _code_to_op[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
                                   _code_to_op[int(actionlog['opcode'][i])],
                                   actionlog['arg1'][i].decode('utf8'),
@@ -2036,7 +2016,6 @@ class File(hdf5extension.File, object):
                     if self._curmark < 0:
                         self._curmark = 0
             self._curaction += direction
-
 
     def undo(self, mark=None):
         """Go to a past state of the database.
@@ -2082,7 +2061,6 @@ class File(hdf5extension.File, object):
         self._curmark = int(self._actionlog.cols.arg1[self._curaction])
 #         print "(post)UNDO: (curaction, curmark) = (%s,%s)" % \
 #               (self._curaction, self._curmark)
-
 
     def redo(self, mark=None):
         """Go to a future state of the database.
@@ -2134,7 +2112,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 #         print "(post)REDO: (curaction, curmark) = (%s,%s)" % \
 #               (self._curaction, self._curmark)
 
-
     def goto(self, mark):
         """Go to a specific mark of the database.
 
@@ -2158,7 +2135,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         else:
             self.redo(mark)
 
-
     def get_current_mark(self):
         """Get the identifier of the current mark.
 
@@ -2178,7 +2154,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
     getCurrentMark = previous_api(get_current_mark)
 
-
     def _shadow_name(self):
         """Compute and return a shadow name.
 
@@ -2196,7 +2171,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
     _shadowName = previous_api(_shadow_name)
 
     # </Undo/Redo support>
-
 
     def flush(self):
         """Flush all the alive leaves in the object tree."""
@@ -2217,7 +2191,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
         # Flush the cache to disk
         self._flush_file(0)  # 0 means local scope, 1 global (virtual) scope
-
 
     def close(self):
         """Flush all the alive leaves in object tree and close the file."""
@@ -2244,12 +2217,12 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
         # Post-conditions
         assert len(self._deadNodes) == 0, \
-               ("dead nodes remain after closing dead nodes: %s"
+            ("dead nodes remain after closing dead nodes: %s"
                 % [path for path in self._deadNodes])
 
         # No other nodes should have been revived.
         assert len(self._aliveNodes) == 0, \
-               ("alive nodes remain after closing dead nodes: %s"
+            ("alive nodes remain after closing dead nodes: %s"
                 % [path for path in self._aliveNodes])
 
         # Close the file
@@ -2263,19 +2236,16 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # Delete the entry in the dictionary of opened files
         del _open_files[filename]
 
-
     def __enter__(self):
         """Enter a context and return the same file."""
 
         return self
-
 
     def __exit__(self, *exc_info):
         """Exit a context and close the file."""
 
         self.close()
         return False  # do not hide exceptions
-
 
     def __str__(self):
         """Return a short string representation of the object tree.
@@ -2308,7 +2278,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         except OSError:
             # in-memory file
             date = ""
-        astring =  self.filename + ' (File) ' + repr(self.title) + '\n'
+        astring = self.filename + ' (File) ' + repr(self.title) + '\n'
 #         astring += 'root_uep :=' + repr(self.root_uep) + '; '
 #         astring += 'format_version := ' + self.format_version + '\n'
 #         astring += 'filters :=' + repr(self.filters) + '\n'
@@ -2321,7 +2291,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
                 for node in self.list_nodes(group, kind):
                     astring += str(node) + '\n'
         return astring
-
 
     def __repr__(self):
         """Return a detailed string representation of the object tree."""
@@ -2343,7 +2312,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
                     astring += repr(node) + '\n'
         return astring
 
-
     def _refnode(self, node, nodePath):
         """Register `node` as alive and insert references to it."""
 
@@ -2351,13 +2319,12 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
             # The root group does not participate in alive/dead stuff.
             aliveNodes = self._aliveNodes
             assert nodePath not in aliveNodes, \
-                   "file already has a node with path ``%s``" % nodePath
+                "file already has a node with path ``%s``" % nodePath
 
             # Add the node to the set of referenced ones.
             aliveNodes[nodePath] = node
 
     _refNode = previous_api(_refnode)
-
 
     def _unrefnode(self, nodePath):
         """Unregister `node` as alive and remove references to it."""
@@ -2366,13 +2333,12 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
             # The root group does not participate in alive/dead stuff.
             aliveNodes = self._aliveNodes
             assert nodePath in aliveNodes, \
-                   "file does not have a node with path ``%s``" % nodePath
+                "file does not have a node with path ``%s``" % nodePath
 
             # Remove the node from the set of referenced ones.
             del aliveNodes[nodePath]
 
     _unrefNode = previous_api(_unrefnode)
-
 
     def _killnode(self, node):
         """Kill the `node`.
@@ -2383,7 +2349,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
         nodePath = node._v_pathname
         assert nodePath in self._aliveNodes, \
-               "trying to kill non-alive node ``%s``" % nodePath
+            "trying to kill non-alive node ``%s``" % nodePath
 
         node._g_pre_kill_hook()
 
@@ -2400,7 +2366,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
     _killNode = previous_api(_killnode)
 
-
     def _revivenode(self, nodePath):
         """Revive the node under `nodePath` and return it.
 
@@ -2409,7 +2374,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         """
 
         assert nodePath in self._deadNodes, \
-               "trying to revive non-dead node ``%s``" % nodePath
+            "trying to revive non-dead node ``%s``" % nodePath
 
         # Take the node out of the limbo.
         node = self._deadNodes.pop(nodePath)
@@ -2421,7 +2386,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         return node
 
     _reviveNode = previous_api(_revivenode)
-
 
     def _update_node_locations(self, oldPath, newPath):
         """Update location information of nodes under `oldPath`.
@@ -2445,7 +2409,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
     _updateNodeLocations = previous_api(_update_node_locations)
 
 
-# If a user hits ^C during a run, it is wise to gracefully close the opened files.
+# If a user hits ^C during a run, it is wise to gracefully close the
+# opened files.
 def close_open_files():
     are_open_files = len(_open_files) > 0
     if are_open_files:
@@ -2467,9 +2432,3 @@ atexit.register(close_open_files)
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

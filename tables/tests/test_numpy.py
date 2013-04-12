@@ -33,6 +33,7 @@ if 'complex192' in typeDict or 'conplex256' in typeDict:
 
 byteorder = {'little': '<', 'big': '>'}[sys.byteorder]
 
+
 class BasicTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in NumPy.
     All of them are included on PyTables.
@@ -48,7 +49,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode="w")
         self.root = self.fileh.root
         # Create the array under root and name 'somearray'
         a = testArray
@@ -58,7 +59,7 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.close()
 
         # Re-open the file in read-only mode
-        self.fileh = open_file(self.file, mode = "r")
+        self.fileh = open_file(self.file, mode="r")
         self.root = self.fileh.root
 
         # Read the saved array
@@ -68,7 +69,7 @@ class BasicTestCase(unittest.TestCase):
             b = array(b, dtype=a.dtype.str)
 
         # Compare them. They should be equal.
-        #if not allequal(a,b, "numpy") and common.verbose:
+        # if not allequal(a,b, "numpy") and common.verbose:
         if common.verbose:
             print "Array written:", a
             print "Array written shape:", a.shape
@@ -157,11 +158,13 @@ class Basic0DOneTestCase(BasicTestCase):
     tupleInt = array(3)
     tupleChar = "4"
 
+
 class Basic0DTwoTestCase(BasicTestCase):
     # Rank-0 case
     title = "Rank-0 case 2"
     tupleInt = array(33)
     tupleChar = "44"
+
 
 class Basic1DOneTestCase(BasicTestCase):
     # 1D case
@@ -169,11 +172,13 @@ class Basic1DOneTestCase(BasicTestCase):
     tupleInt = array((3,))
     tupleChar = ("a",)
 
+
 class Basic1DTwoTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 2"
     tupleInt = array((0, 4))
     tupleChar = ("aaa",)
+
 
 class Basic1DThreeTestCase(BasicTestCase):
     # 1D case
@@ -181,19 +186,21 @@ class Basic1DThreeTestCase(BasicTestCase):
     tupleInt = array((3, 4, 5))
     tupleChar = ("aaaa", "bbb",)
 
+
 class Basic2DTestCase(BasicTestCase):
     # 2D case
     title = "Rank-2 case 1"
-    #tupleInt = reshape(array(arange((4)**2)), (4,)*2)
+    # tupleInt = reshape(array(arange((4)**2)), (4,)*2)
     tupleInt = ones((4,)*2)
     tupleChar = [["aaa", "ddddd"], ["d", "ss"], ["s", "tt"]]
+
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 case 1"
-    #tupleInt = reshape(array(arange((2)**10)), (2,)*10)
+    # tupleInt = reshape(array(arange((2)**10)), (2,)*10)
     tupleInt = ones((2,)*10)
-    #tupleChar = reshape(array([1],dtype="S1"),(1,)*10)
+    # tupleChar = reshape(array([1],dtype="S1"),(1,)*10)
     # The next tuple consumes far more time, so this
     # test should be run in common.heavy mode.
     tupleChar = array(tupleInt, dtype="S1")
@@ -225,7 +232,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Get the root group
         group = fileh.root
 
@@ -247,7 +254,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         fileh.close()
 
         # Open the previous HDF5 file in read-only mode
-        fileh = open_file(file, mode = "r")
+        fileh = open_file(file, mode="r")
         # Get the root group
         group = fileh.root
 
@@ -323,7 +330,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             print "Maximum rank for tested arrays:", maxrank
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         group = fileh.root
         if common.verbose:
             print "Rank array writing progress: ",
@@ -340,7 +347,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         fileh.close()
 
         # Open the previous HDF5 file in read-only mode
-        fileh = open_file(file, mode = "r")
+        fileh = open_file(file, mode="r")
         group = fileh.root
         if common.verbose:
             print
@@ -374,7 +381,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             group = fileh.get_node(group, 'group' + str(rank))
 
         if common.verbose:
-            print # This flush the stdout buffer
+            print  # This flush the stdout buffer
         # Close the file
         fileh.close()
         # Delete the file
@@ -383,15 +390,15 @@ class GroupsArrayTestCase(unittest.TestCase):
 
 # Test Record class
 class Record(IsDescription):
-    var1  = StringCol(itemsize=4, dflt=b"abcd", pos=0)
-    var2  = StringCol(itemsize=1, dflt=b"a", pos=1)
-    var3  = BoolCol(dflt=1)
-    var4  = Int8Col(dflt=1)
-    var5  = UInt8Col(dflt=1)
-    var6  = Int16Col(dflt=1)
-    var7  = UInt16Col(dflt=1)
-    var8  = Int32Col(dflt=1)
-    var9  = UInt32Col(dflt=1)
+    var1 = StringCol(itemsize=4, dflt=b"abcd", pos=0)
+    var2 = StringCol(itemsize=1, dflt=b"a", pos=1)
+    var3 = BoolCol(dflt=1)
+    var4 = Int8Col(dflt=1)
+    var5 = UInt8Col(dflt=1)
+    var6 = Int16Col(dflt=1)
+    var7 = UInt16Col(dflt=1)
+    var8 = Int32Col(dflt=1)
+    var9 = UInt32Col(dflt=1)
     var10 = Int64Col(dflt=1)
     var11 = Float32Col(dflt=1.0)
     var12 = Float64Col(dflt=1.0)
@@ -427,7 +434,6 @@ class TableReadTestCase(common.PyTablesTestCase):
         self.fileh.close()
         os.remove(self.file)
         common.cleanup(self)
-
 
     def test01_readTableChar(self):
         """Checking column conversion into NumPy in read(). Char flavor"""
@@ -470,7 +476,6 @@ class TableReadTestCase(common.PyTablesTestCase):
                 orignumcol = ones(shape=self.nrows, dtype=numcol.dtype.char)
                 # Check that both NumPy objects are equal
                 self.assertTrue(allequal(numcol, orignumcol, "numpy"))
-
 
     def test02_readCoordsChar(self):
         """Column conversion into NumPy in readCoords(). Chars"""
@@ -526,7 +531,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         coords = numpy.array([1, 2, 3], dtype='int8')
         for colname in table.colnames:
-            numcol = [ table[coord][colname] for coord in coords ]
+            numcol = [table[coord][colname] for coord in coords]
             typecol = table.coltypes[colname]
             if typecol != "string":
                 if typecol == "int64":
@@ -551,12 +556,12 @@ class TableReadTestCase(common.PyTablesTestCase):
         # Modify row 1
         # From PyTables 2.0 on, assignments to records can be done
         # only as tuples (see http://projects.scipy.org/scipy/numpy/ticket/315)
-        #table[coords[0]] = ["aasa","x"]+[232]*12
+        # table[coords[0]] = ["aasa","x"]+[232]*12
 
         n = len(Record.columns) - 2
 
         table[coords[0]] = tuple(["aasa", "x"]+[232]*n)     # XXX
-        #record = list(table[coords[0]])
+        # record = list(table[coords[0]])
         record = table.read(coords[0])
         if common.verbose:
             print """Original row:
@@ -576,22 +581,25 @@ class Info(IsDescription):
     Name = StringCol(itemsize=2)
     Value = ComplexCol(itemsize=16)
 
+
 class TestTDescr(IsDescription):
 
     """A description that has several nested columns."""
 
-    x = Int32Col(dflt=0, shape=2, pos=0) #0
+    x = Int32Col(dflt=0, shape=2, pos=0)  # 0
     y = FloatCol(dflt=1, shape=(2, 2))
     z = UInt8Col(dflt=1)
-    z3 = EnumCol({'r':4, 'g':2, 'b':1}, 'r', 'int32', shape=2)
+    z3 = EnumCol({'r': 4, 'g': 2, 'b': 1}, 'r', 'int32', shape=2)
     color = StringCol(itemsize=4, dflt=b"ab", pos=2)
     info = Info()
-    class Info(IsDescription): #1
+
+    class Info(IsDescription):  # 1
         _v_pos = 1
         name = StringCol(itemsize=2)
-        value = ComplexCol(itemsize=16, pos=0) #0
-        y2 = FloatCol(pos=1) #1
+        value = ComplexCol(itemsize=16, pos=0)  # 0
+        y2 = FloatCol(pos=1)  # 1
         z2 = UInt8Col()
+
         class Info2(IsDescription):
             y3 = Time64Col(shape=2)
             name = StringCol(itemsize=2)
@@ -607,7 +615,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         self.file = tempfile.mktemp(".h5")
         fileh = open_file(self.file, "w")
         table = fileh.create_table(fileh.root, 'table', TestTDescr,
-                                  expectedrows=self.nrows)
+                                   expectedrows=self.nrows)
         table.flavor = "numpy"
         for i in range(self.nrows):
             table.row.append()  # Fill 100 rows with default values
@@ -618,7 +626,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         self.fileh.close()
         os.remove(self.file)
         common.cleanup(self)
-
 
     def test01a_basicTableRead(self):
         """Checking the return of a NumPy in read()."""
@@ -866,7 +873,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         """Checking modifying several columns using a single numpy buffer."""
 
         table = self.fileh.root.table
-        dtype=[('x', 'i4', (2,)), ('y', 'f8', (2, 2)), ('z', 'u1')]
+        dtype = [('x', 'i4', (2,)), ('y', 'f8', (2, 2)), ('z', 'u1')]
         nparray = zeros((3,), dtype=dtype)
         table.modify_columns(3, 6, 1, nparray, ['x', 'y', 'z'])
         if self.close:
@@ -1161,11 +1168,14 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             else:
                 self.assertEqual(idata, array("a  ", dtype="|S4"))
 
+
 class TableNativeFlavorOpenTestCase(TableNativeFlavorTestCase):
     close = 0
 
+
 class TableNativeFlavorCloseTestCase(TableNativeFlavorTestCase):
     close = 1
+
 
 class AttributesTestCase(common.PyTablesTestCase):
 
@@ -1228,11 +1238,14 @@ class AttributesTestCase(common.PyTablesTestCase):
             print "data-->", data
         self.assertTrue(allequal(npcomp, data, "numpy"))
 
+
 class AttributesOpenTestCase(AttributesTestCase):
     close = 0
 
+
 class AttributesCloseTestCase(AttributesTestCase):
     close = 1
+
 
 class StrlenTestCase(common.PyTablesTestCase):
 
@@ -1242,7 +1255,7 @@ class StrlenTestCase(common.PyTablesTestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, "w")
         group = self.fileh.create_group(self.fileh.root, 'group')
-        tablelayout = {'Text': StringCol(itemsize=1000),}
+        tablelayout = {'Text': StringCol(itemsize=1000), }
         self.table = self.fileh.create_table(group, 'table', tablelayout)
         self.table.flavor = 'numpy'
         row = self.table.row
@@ -1290,7 +1303,6 @@ class StrlenTestCase(common.PyTablesTestCase):
         self.assertEqual(str1, b'Hello Francesc!')
         self.assertEqual(str2, b'Hola Francesc!')
 
-
     def test03(self):
         """Checking the lengths of strings (read recarray, row by row)."""
         if self.close:
@@ -1310,6 +1322,7 @@ class StrlenTestCase(common.PyTablesTestCase):
 class StrlenOpenTestCase(StrlenTestCase):
     close = 0
 
+
 class StrlenCloseTestCase(StrlenTestCase):
     close = 1
 
@@ -1320,9 +1333,9 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
-    #theSuite.addTest(unittest.makeSuite(StrlenOpenTestCase))
-    #theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
-    #theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
+    # theSuite.addTest(unittest.makeSuite(StrlenOpenTestCase))
+    # theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
+    # theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
         theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
@@ -1346,10 +1359,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
-
-
-
-
-
-
+    unittest.main(defaultTest='suite')

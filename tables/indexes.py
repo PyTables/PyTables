@@ -23,6 +23,8 @@ from tables import indexesextension
 from tables._past import previous_api
 
 # Declarations for inheriting
+
+
 class CacheArray(NotLoggedMixin, EArray, indexesextension.CacheArray):
     """Container for keeping index caches of 1st and 2nd level."""
 
@@ -63,7 +65,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
     # Class identifier.
     _c_classid = 'INDEXARRAY'
 
-
     # Properties
     # ~~~~~~~~~~
     chunksize = property(
@@ -73,7 +74,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
     slicesize = property(
         lambda self: self.shape[1], None, None,
         """The slicesize for this object.""")
-
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -101,14 +101,14 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             parentNode, name, atom, shape, title, filters,
             chunkshape=chunkshape, byteorder=byteorder)
 
-
     # This version of searchBin uses both ranges (1st level) and
     # bounds (2nd level) caches. It uses a cache for boundary rows,
     # but not for 'sorted' rows (this is only supported for the
     # 'optimized' types).
     def _search_bin(self, nrow, item):
         item1, item2 = item
-        result1 = -1; result2 = -1
+        result1 = -1
+        result2 = -1
         hi = self.shape[1]
         ranges = self._v_parent.rvcache
         boundscache = self.boundscache
@@ -119,7 +119,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             result1 = 0
         if item2 < begin:
             result2 = 0
-        if result1 >=0 and result2 >= 0:
+        if result1 >= 0 and result2 >= 0:
             return (result1, result2)
         # Then, look for items at the end of the sorted slice
         end = ranges[nrow, 1]
@@ -133,7 +133,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             return (result1, result2)
         # Finally, do a lookup for item1 and item2 if they were not found
         # Lookup in the middle of slice for item1
-        chunksize = self.chunksize # Number of elements/chunksize
+        chunksize = self.chunksize  # Number of elements/chunksize
         nchunk = -1
         # Try to get the bounds row from the LRU cache
         nslot = boundscache.getslot(nrow)
@@ -149,7 +149,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             # Search the appropriate chunk in bounds cache
             nchunk = bisect_left(bounds, item1)
             chunk = self._read_sorted_slice(nrow, chunksize*nchunk,
-                                          chunksize*(nchunk+1))
+                                            chunksize*(nchunk+1))
             result1 = self._bisect_left(chunk, item1, chunksize)
             result1 += chunksize*nchunk
         # Lookup in the middle of slice for item2
@@ -158,18 +158,16 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             nchunk2 = bisect_right(bounds, item2)
             if nchunk2 != nchunk:
                 chunk = self._read_sorted_slice(nrow, chunksize*nchunk2,
-                                              chunksize*(nchunk2+1))
+                                                chunksize*(nchunk2+1))
             result2 = self._bisect_right(chunk, item2, chunksize)
             result2 += chunksize*nchunk2
         return (result1, result2)
 
     _searchBin = previous_api(_search_bin)
 
-
     def __str__(self):
         "A compact representation of this class"
         return "IndexArray(path=%s)" % self._v_pathname
-
 
     def __repr__(self):
         """A verbose representation of this class"""
@@ -191,9 +189,3 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
 ## tab-width: 4
 ## fill-column: 72
 ## End:
-
-
-
-
-
-

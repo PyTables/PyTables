@@ -5,6 +5,7 @@
 
 from tables import *
 
+
 class Descr(IsDescription):
     var1 = StringCol(itemsize=4, shape=(), dflt='', pos=0)
     var2 = BoolCol(shape=(), dflt=False, pos=1)
@@ -38,9 +39,3 @@ t1.cols.var3.create_index(6, 'medium', _blocksizes=small_blocksizes)
 t1.cols.var4.create_index(9, 'full', _blocksizes=small_blocksizes)
 
 f.close()
-
-
-
-
-
-

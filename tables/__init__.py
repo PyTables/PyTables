@@ -35,7 +35,8 @@ if os.name == 'nt':
 
         """
         try:
-            dllpaths = (os.path.abspath(os.path.dirname(__file__)), ) + dllpaths
+            dllpaths = (os.path.abspath(
+                os.path.dirname(__file__)), ) + dllpaths
         except NameError:
             pass  # PyPy and frozen distributions have no __file__ attribute
         for path in dllpaths:
@@ -88,11 +89,11 @@ __version__ = get_pytables_version()
 hdf5version = hdf5Version = get_hdf5_version()
 """The underlying HDF5 library version number."""
 
-from tables.utilsextension import (is_hdf5_file, is_pytables_file, 
-    which_lib_version, set_blosc_max_threads, silence_hdf5_messages,
-    # Pending Deprecation!
-    isHDF5File, isPyTablesFile, whichLibVersion, setBloscMaxThreads,
-    silenceHDF5Messages)
+from tables.utilsextension import (is_hdf5_file, is_pytables_file,
+                                   which_lib_version, set_blosc_max_threads, silence_hdf5_messages,
+                                   # Pending Deprecation!
+                                   isHDF5File, isPyTablesFile, whichLibVersion, setBloscMaxThreads,
+                                   silenceHDF5Messages)
 
 from tables.misc.enum import Enum
 from tables.atom import *
@@ -159,14 +160,14 @@ __all__ = [
     'File',
     # Expr class
     'Expr',
-    # 
+    #
     # Pending deprecation!!!
     #
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
     'copyFile', 'openFile', 'print_versions', 'test',
     'split_type', 'restrict_flavors', 'setBloscMaxThreads',
     'silenceHDF5Messages',
-    ]
+]
 
 if 'Float16Atom' in locals():
     # float16 is new in numpy 1.6.0

@@ -35,7 +35,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode="w")
         self.root = self.fileh.root
 
         # Create the array under root and name 'somearray'
@@ -51,7 +51,7 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.close()
 
         # Re-open the file in read-only mode
-        self.fileh = open_file(self.file, mode = "r")
+        self.fileh = open_file(self.file, mode="r")
         self.root = self.fileh.root
 
         # Read the saved array
@@ -60,11 +60,11 @@ class BasicTestCase(unittest.TestCase):
         # Compare them. They should be equal.
         if common.verbose and not allequal(a, b):
             print "Write and read arrays differ!"
-            #print "Array written:", a
+            # print "Array written:", a
             print "Array written shape:", a.shape
             print "Array written itemsize:", a.itemsize
             print "Array written type:", a.dtype.type
-            #print "Array read:", b
+            # print "Array read:", b
             print "Array read shape:", b.shape
             print "Array read itemsize:", b.itemsize
             print "Array read type:", b.dtype.type
@@ -111,7 +111,7 @@ class BasicTestCase(unittest.TestCase):
     def WriteRead_OutArgument(self, testArray):
         # Create an instance of HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode="w")
         self.root = self.fileh.root
 
         # Create the array under root and name 'somearray'
@@ -127,7 +127,7 @@ class BasicTestCase(unittest.TestCase):
         self.fileh.close()
 
         # Re-open the file in read-only mode
-        self.fileh = open_file(self.file, mode = "r")
+        self.fileh = open_file(self.file, mode="r")
         self.root = self.fileh.root
 
         # Read the saved array
@@ -180,12 +180,12 @@ class BasicTestCase(unittest.TestCase):
         a = self.tupleChar
         # Create an instance of HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         fileh.create_array(fileh.root, 'somearray', a, "Some array")
         # Close the file
         fileh.close()
         # Re-open the file in read-only mode
-        fileh = open_file(file, mode = "r")
+        fileh = open_file(file, mode="r")
         # Read the saved array
         b = fileh.root.somearray.read()
         if isinstance(a, bytes):
@@ -205,12 +205,12 @@ class BasicTestCase(unittest.TestCase):
         a = self.tupleChar
         # Create an instance of HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         fileh.create_array(fileh.root, 'somearray', a, "Some array")
         # Close the file
         fileh.close()
         # Re-open the file in read-only mode
-        fileh = open_file(file, mode = "r")
+        fileh = open_file(file, mode="r")
         # Read the saved array
         b = numpy.empty_like(a)
         if fileh.root.somearray.flavor != 'numpy':
@@ -273,7 +273,7 @@ class BasicTestCase(unittest.TestCase):
         typecodes = ['int8', 'int16', 'int32', 'int64',
                      'uint8', 'uint16', 'uint32', 'uint64',
                      'float32', 'float64',
-                     'complex64', 'complex128',]
+                     'complex64', 'complex128', ]
 
         for name in ('float16', 'float96', 'float128',
                      'complex192', 'complex256'):
@@ -304,12 +304,14 @@ class Basic0DOneTestCase(BasicTestCase):
     tupleChar = b"3"
     endiancheck = True
 
+
 class Basic0DTwoTestCase(BasicTestCase):
     # Scalar case
     title = "Rank-0 case 2"
     tupleInt = 33
     tupleChar = b"33"
     endiancheck = True
+
 
 class Basic1DZeroTestCase(BasicTestCase):
     # This test case is not supported by PyTables (HDF5 limitations)
@@ -319,6 +321,7 @@ class Basic1DZeroTestCase(BasicTestCase):
     tupleChar = ()
     endiancheck = False
 
+
 class Basic1DOneTestCase(BasicTestCase):
     "Method doc"
     # 1D case
@@ -327,12 +330,14 @@ class Basic1DOneTestCase(BasicTestCase):
     tupleChar = (b"a",)
     endiancheck = True
 
+
 class Basic1DTwoTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 2"
     tupleInt = (3, 4)
     tupleChar = (b"aaa",)
     endiancheck = True
+
 
 class Basic1DThreeTestCase(BasicTestCase):
     # 1D case
@@ -341,12 +346,16 @@ class Basic1DThreeTestCase(BasicTestCase):
     tupleChar = (b"aaa", b"bbb",)
     endiancheck = True
 
+
 class Basic2DOneTestCase(BasicTestCase):
     # 2D case
     title = "Rank-2 case 1"
-    tupleInt = numpy.array(numpy.arange((4)**2)); tupleInt.shape = (4,)*2
-    tupleChar = numpy.array(["abc"]*3**2, dtype="S3"); tupleChar.shape = (3,)*2
+    tupleInt = numpy.array(numpy.arange((4)**2))
+    tupleInt.shape = (4,)*2
+    tupleChar = numpy.array(["abc"]*3**2, dtype="S3")
+    tupleChar.shape = (3,)*2
     endiancheck = True
+
 
 class Basic2DTwoTestCase(BasicTestCase):
     # 2D case, with a multidimensional dtype
@@ -355,18 +364,25 @@ class Basic2DTwoTestCase(BasicTestCase):
     tupleChar = numpy.array(["abc"]*3, dtype=("S3", (3,)))
     endiancheck = True
 
+
 class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 test"
-    tupleInt = numpy.array(numpy.arange((2)**10)); tupleInt.shape = (2,)*10
-    tupleChar = numpy.array(["abc"]*2**10, dtype="S3"); tupleChar.shape=(2,)*10
+    tupleInt = numpy.array(numpy.arange((2)**10))
+    tupleInt.shape = (2,)*10
+    tupleChar = numpy.array(
+        ["abc"]*2**10, dtype="S3")
+    tupleChar.shape = (2,)*10
     endiancheck = True
+
 
 class Basic32DTestCase(BasicTestCase):
     # 32D case (maximum)
     title = "Rank-32 test"
-    tupleInt = numpy.array((32,)); tupleInt.shape = (1,)*32
-    tupleChar = numpy.array(["121"], dtype="S3"); tupleChar.shape = (1,)*32
+    tupleInt = numpy.array((32,))
+    tupleInt.shape = (1,)*32
+    tupleChar = numpy.array(["121"], dtype="S3")
+    tupleChar.shape = (1,)*32
 
 
 class ReadOutArgumentTests(unittest.TestCase):
@@ -458,9 +474,9 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
     def setUp(self):
         self.array_size = (10, 10)
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode="w")
         self.array = self.fileh.create_array('/', 'somearray',
-                                            numpy.zeros(self.array_size, 'i4'))
+                                             numpy.zeros(self.array_size, 'i4'))
 
     def tearDown(self):
         self.fileh.close()
@@ -471,6 +487,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.assertEqual(self.array.size_on_disk, 10 * 10 * 4)
         self.assertEqual(self.array.size_in_memory, 10 * 10 * 4)
 
+
 class UnalignedAndComplexTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in numpy.
     Most of them are included on PyTables.
@@ -479,7 +496,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of HDF5 file
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode = "w")
+        self.fileh = open_file(self.file, mode="w")
         self.root = self.fileh.root
 
     def tearDown(self):
@@ -498,17 +515,17 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Create the array under root and name 'somearray'
         a = testArray
         if self.endiancheck:
-            byteorder = {"little":"big","big":"little"}[sys.byteorder]
+            byteorder = {"little": "big", "big": "little"}[sys.byteorder]
         else:
             byteorder = sys.byteorder
 
         self.fileh.create_array(self.root, 'somearray', a, "Some array",
-                               byteorder = byteorder)
+                                byteorder=byteorder)
 
         if self.reopen:
             self.fileh.close()
             # Re-open the file in read-only mode
-            self.fileh = open_file(self.file, mode = "r")
+            self.fileh = open_file(self.file, mode="r")
             self.root = self.fileh.root
 
         # Read the saved array
@@ -567,7 +584,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test03_byte_offset(self):
         "Checking an offsetted byte array"
 
-        r = numpy.arange(100, dtype=numpy.int8); r.shape = (10, 10)
+        r = numpy.arange(100, dtype=numpy.int8)
+        r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -575,7 +593,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test04_short_offset(self):
         "Checking an offsetted unsigned short int precision array"
 
-        r = numpy.arange(100, dtype=numpy.uint32); r.shape = (10, 10)
+        r = numpy.arange(100, dtype=numpy.uint32)
+        r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -583,7 +602,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test05_int_offset(self):
         "Checking an offsetted integer array"
 
-        r = numpy.arange(100, dtype=numpy.int32); r.shape = (10, 10)
+        r = numpy.arange(100, dtype=numpy.int32)
+        r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -591,7 +611,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test06_longlongint_offset(self):
         "Checking an offsetted long long integer array"
 
-        r = numpy.arange(100, dtype=numpy.int64); r.shape = (10, 10)
+        r = numpy.arange(100, dtype=numpy.int64)
+        r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -599,7 +620,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test07_float_offset(self):
         "Checking an offsetted single precision array"
 
-        r = numpy.arange(100, dtype=numpy.float32); r.shape = (10, 10)
+        r = numpy.arange(100, dtype=numpy.float32)
+        r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -607,7 +629,8 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     def test08_double_offset(self):
         "Checking an offsetted double precision array"
 
-        r = numpy.arange(100, dtype=numpy.float64); r.shape = (10, 10)
+        r = numpy.arange(100, dtype=numpy.float64)
+        r.shape = (10, 10)
         a = r[2]
         self.WriteRead(a)
         return
@@ -639,7 +662,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Save an array with the reversed byteorder on it
         a = numpy.arange(25, dtype=numpy.int32).reshape(5, 5)
         a = a.byteswap()
@@ -673,7 +696,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Save an array with the reversed byteorder on it
         a = numpy.arange(25, dtype=numpy.float64).reshape(5, 5)
         a = a.byteswap()
@@ -702,21 +725,26 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Then, delete the file
         os.remove(file)
 
+
 class ComplexNotReopenNotEndianTestCase(UnalignedAndComplexTestCase):
     endiancheck = False
     reopen = False
+
 
 class ComplexReopenNotEndianTestCase(UnalignedAndComplexTestCase):
     endiancheck = False
     reopen = True
 
+
 class ComplexNotReopenEndianTestCase(UnalignedAndComplexTestCase):
     endiancheck = True
     reopen = False
 
+
 class ComplexReopenEndianTestCase(UnalignedAndComplexTestCase):
     endiancheck = True
     reopen = True
+
 
 class GroupsArrayTestCase(unittest.TestCase):
     """This test class checks combinations of arrays with groups.
@@ -732,7 +760,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
 
         # Get the root group
         group = fileh.root
@@ -762,7 +790,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         fileh.close()
 
         # Open the previous HDF5 file in read-only mode
-        fileh = open_file(file, mode = "r")
+        fileh = open_file(file, mode="r")
         # Get the root group
         group = fileh.root
 
@@ -811,9 +839,9 @@ class GroupsArrayTestCase(unittest.TestCase):
                   self.__class__.__name__
             print "Maximum rank for tested arrays:", maxrank
         # Open a new empty HDF5 file
-        #file = tempfile.mktemp(".h5")
+        # file = tempfile.mktemp(".h5")
         file = "test_array.h5"
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         group = fileh.root
         if common.verbose:
             print "Rank array writing progress: ",
@@ -830,7 +858,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         fileh.close()
 
         # Open the previous HDF5 file in read-only mode
-        fileh = open_file(file, mode = "r")
+        fileh = open_file(file, mode="r")
         group = fileh.root
         if common.verbose:
             print
@@ -854,17 +882,18 @@ class GroupsArrayTestCase(unittest.TestCase):
             self.assertEqual(a.dtype, b.dtype)
             self.assertTrue(allequal(a, b))
 
-            #print fileh
+            # print fileh
             # Iterate over the next group
             group = fileh.get_node(group, 'group' + str(rank))
 
         if common.verbose:
-            print # This flush the stdout buffer
+            print  # This flush the stdout buffer
         # Close the file
         fileh.close()
 
         # Delete the file
         os.remove(file)
+
 
 class CopyTestCase(unittest.TestCase):
 
@@ -880,7 +909,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         # Create an Array
-        arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
+        arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
         array1 = fileh.create_array(fileh.root, 'array1', arr, "title array1")
 
         # Copy to another Array
@@ -890,14 +919,14 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
-            #print "dirs-->", dir(array1), dir(array2)
+            # print "dirs-->", dir(array1), dir(array2)
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -926,7 +955,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         # Create an Array
-        arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
+        arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
         array1 = fileh.create_array(fileh.root, 'array1', arr, "title array1")
 
         # Copy to another Array
@@ -937,14 +966,14 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
         if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
-            #print "dirs-->", dir(array1), dir(array2)
+            # print "dirs-->", dir(array1), dir(array2)
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -973,7 +1002,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         # Create an Array
-        arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
+        arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
         array1 = fileh.create_array(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -985,7 +1014,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1010,7 +1039,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         # Create an Array
-        arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
+        arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
         array1 = fileh.create_array(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1022,7 +1051,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1050,7 +1079,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         # Create an Array
-        arr=numpy.array([[456, 2], [3, 457]], dtype='int16')
+        arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
         array1 = fileh.create_array(fileh.root, 'array1', arr, "title array1")
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1062,7 +1091,7 @@ class CopyTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             fileh.close()
-            fileh = open_file(file, mode = "r")
+            fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
@@ -1078,11 +1107,14 @@ class CopyTestCase(unittest.TestCase):
         fileh.close()
         os.remove(file)
 
+
 class CloseCopyTestCase(CopyTestCase):
     close = 1
 
+
 class OpenCopyTestCase(CopyTestCase):
     close = 0
+
 
 class CopyIndexTestCase(unittest.TestCase):
 
@@ -1098,7 +1130,8 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         # Create a numpy
-        r = numpy.arange(200, dtype='int32'); r.shape = (100, 2)
+        r = numpy.arange(200, dtype='int32')
+        r.shape = (100, 2)
         # Save it in a array:
         array1 = fileh.create_array(fileh.root, 'array1', r, "title array1")
 
@@ -1139,7 +1172,8 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         # Create a numpy
-        r = numpy.arange(200, dtype='int32'); r.shape = (100, 2)
+        r = numpy.arange(200, dtype='int32')
+        r.shape = (100, 2)
         # Save it in a array:
         array1 = fileh.create_array(fileh.root, 'array1', r, "title array1")
 
@@ -1150,7 +1184,7 @@ class CopyIndexTestCase(unittest.TestCase):
                              step=self.step)
         # Close and reopen the file
         fileh.close()
-        fileh = open_file(file, mode = "r")
+        fileh = open_file(file, mode="r")
         array1 = fileh.root.array1
         array2 = fileh.root.array2
 
@@ -1180,55 +1214,66 @@ class CopyIndex1TestCase(CopyIndexTestCase):
     stop = 7
     step = 1
 
+
 class CopyIndex2TestCase(CopyIndexTestCase):
     start = 0
     stop = -1
     step = 1
+
 
 class CopyIndex3TestCase(CopyIndexTestCase):
     start = 1
     stop = 7
     step = 1
 
+
 class CopyIndex4TestCase(CopyIndexTestCase):
     start = 0
     stop = 6
     step = 1
+
 
 class CopyIndex5TestCase(CopyIndexTestCase):
     start = 3
     stop = 7
     step = 1
 
+
 class CopyIndex6TestCase(CopyIndexTestCase):
     start = 3
     stop = 6
     step = 2
+
 
 class CopyIndex7TestCase(CopyIndexTestCase):
     start = 0
     stop = 7
     step = 10
 
+
 class CopyIndex8TestCase(CopyIndexTestCase):
     start = 6
     stop = -1  # Negative values means starting from the end
     step = 1
+
 
 class CopyIndex9TestCase(CopyIndexTestCase):
     start = 3
     stop = 4
     step = 1
 
+
 class CopyIndex10TestCase(CopyIndexTestCase):
     start = 3
     stop = 4
     step = 2
 
+
 class CopyIndex11TestCase(CopyIndexTestCase):
     start = -3
     stop = -1
     step = 2
+
 
 class CopyIndex12TestCase(CopyIndexTestCase):
     start = -1   # Should point to the last element
@@ -1242,10 +1287,10 @@ class GetItemTestCase(unittest.TestCase):
         "Single element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1269,10 +1314,10 @@ class GetItemTestCase(unittest.TestCase):
         "Single element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1296,10 +1341,10 @@ class GetItemTestCase(unittest.TestCase):
         "Range element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1322,10 +1367,10 @@ class GetItemTestCase(unittest.TestCase):
         "Range element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1348,10 +1393,10 @@ class GetItemTestCase(unittest.TestCase):
         "Range element access, strided (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1374,10 +1419,10 @@ class GetItemTestCase(unittest.TestCase):
         "Range element access, strided (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1399,10 +1444,10 @@ class GetItemTestCase(unittest.TestCase):
         "Negative Index element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1425,10 +1470,10 @@ class GetItemTestCase(unittest.TestCase):
         "Negative Index element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1454,10 +1499,10 @@ class GetItemTestCase(unittest.TestCase):
         "Negative range element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1479,10 +1524,10 @@ class GetItemTestCase(unittest.TestCase):
         "Negative range element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1507,35 +1552,43 @@ class GI1NATestCase(GetItemTestCase):
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
     charList = numpy.array(["3"], 'S')
-    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"], 'S')
+    charListME = numpy.array(
+        ["321", "221", "121", "021", "421", "521", "621"], 'S')
+
 
 class GI1NAOpenTestCase(GI1NATestCase):
     close = 0
 
+
 class GI1NACloseTestCase(GI1NATestCase):
     close = 1
+
 
 class GI2NATestCase(GetItemTestCase):
     # A more complex example
     title = "Rank-1,2 case 2"
     numericalList = numpy.array([3, 4])
     numericalListME = numpy.array([[3, 2, 1, 0, 4, 5, 6],
-                                      [2, 1, 0, 4, 5, 6, 7],
-                                      [4, 3, 2, 1, 0, 4, 5],
-                                      [3, 2, 1, 0, 4, 5, 6],
-                                      [3, 2, 1, 0, 4, 5, 6]])
+                                   [2, 1, 0, 4, 5, 6, 7],
+                                   [4, 3, 2, 1, 0, 4, 5],
+                                   [3, 2, 1, 0, 4, 5, 6],
+                                   [3, 2, 1, 0, 4, 5, 6]])
 
     charList = numpy.array(["a", "b"], 'S')
-    charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
-                              ["21", "21", "11", "02", "42", "21", "61"],
-                              ["31", "21", "12", "21", "41", "51", "621"],
-                              ["321", "221", "121", "021", "421", "521", "621"],
-                              ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
+    charListME = numpy.array(
+        [["321", "221", "121", "021", "421", "521", "621"],
+         ["21", "21", "11", "02", "42", "21", "61"],
+         ["31", "21", "12", "21", "41", "51", "621"],
+         ["321", "221", "121", "021",
+          "421", "521", "621"],
+         ["3241", "2321", "13216",
+          "0621", "4421", "5421", "a621"],
+         ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 
 class GI2NAOpenTestCase(GI2NATestCase):
     close = 0
+
 
 class GI2NACloseTestCase(GI2NATestCase):
     close = 1
@@ -1547,10 +1600,10 @@ class SetItemTestCase(unittest.TestCase):
         "Single element update (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1577,10 +1630,10 @@ class SetItemTestCase(unittest.TestCase):
         "Single element update (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1607,10 +1660,10 @@ class SetItemTestCase(unittest.TestCase):
         "Range element update (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1637,10 +1690,10 @@ class SetItemTestCase(unittest.TestCase):
         "Range element update (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1649,7 +1702,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = slice(1, 3, None)
-        rng = numpy.arange(a[s].size)*2+3; rng.shape = a[s].shape
+        rng = numpy.arange(a[s].size)*2+3
+        rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
 
@@ -1669,10 +1723,10 @@ class SetItemTestCase(unittest.TestCase):
         "Range element update, strided (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1700,10 +1754,10 @@ class SetItemTestCase(unittest.TestCase):
         "Range element update, strided (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1712,7 +1766,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = slice(1, 4, 2)
-        rng = numpy.arange(a[s].size)*2+3; rng.shape = a[s].shape
+        rng = numpy.arange(a[s].size)*2+3
+        rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
 
@@ -1732,10 +1787,10 @@ class SetItemTestCase(unittest.TestCase):
         "Negative Index element update (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1763,10 +1818,10 @@ class SetItemTestCase(unittest.TestCase):
         "Negative Index element update (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1797,10 +1852,10 @@ class SetItemTestCase(unittest.TestCase):
         "Negative range element update (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1828,10 +1883,10 @@ class SetItemTestCase(unittest.TestCase):
         "Negative range element update (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1840,7 +1895,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Modify elements of a and arr:
         s = slice(-3, -1, None)
-        rng = numpy.arange(a[s].size)*2+3; rng.shape = a[s].shape
+        rng = numpy.arange(a[s].size)*2+3
+        rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
 
@@ -1860,10 +1916,10 @@ class SetItemTestCase(unittest.TestCase):
         "Out of range update (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1873,9 +1929,11 @@ class SetItemTestCase(unittest.TestCase):
         # Modify elements of arr that are out of range:
         s = slice(1, a.shape[0]+1, None)
         s2 = slice(1, 1000, None)
-        rng = numpy.arange(a[s].size)*2+3; rng.shape = a[s].shape
+        rng = numpy.arange(a[s].size)*2+3
+        rng.shape = a[s].shape
         a[s] = rng
-        rng2 = numpy.arange(a[s2].size)*2+3; rng2.shape = a[s2].shape
+        rng2 = numpy.arange(a[s2].size)*2+3
+        rng2.shape = a[s2].shape
         arr[s2] = rng2
 
         # Get and compare an element
@@ -1896,34 +1954,43 @@ class SI1NATestCase(SetItemTestCase):
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
     charList = numpy.array(["3"], 'S')
-    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"], 'S')
+    charListME = numpy.array(
+        ["321", "221", "121", "021", "421", "521", "621"], 'S')
+
 
 class SI1NAOpenTestCase(SI1NATestCase):
     close = 0
 
+
 class SI1NACloseTestCase(SI1NATestCase):
     close = 1
+
 
 class SI2NATestCase(SetItemTestCase):
     # A more complex example
     title = "Rank-1,2 case 2"
     numericalList = numpy.array([3, 4])
     numericalListME = numpy.array([[3, 2, 1, 0, 4, 5, 6],
-                                      [2, 1, 0, 4, 5, 6, 7],
-                                      [4, 3, 2, 1, 0, 4, 5],
-                                      [3, 2, 1, 0, 4, 5, 6],
-                                      [3, 2, 1, 0, 4, 5, 6]])
+                                   [2, 1, 0, 4, 5, 6, 7],
+                                   [4, 3, 2, 1, 0, 4, 5],
+                                   [3, 2, 1, 0, 4, 5, 6],
+                                   [3, 2, 1, 0, 4, 5, 6]])
 
     charList = numpy.array(["a", "b"], 'S')
-    charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
-                              ["21", "21", "11", "02", "42", "21", "61"],
-                              ["31", "21", "12", "21", "41", "51", "621"],
-                              ["321", "221", "121", "021", "421", "521", "621"],
-                              ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
+    charListME = numpy.array(
+        [["321", "221", "121", "021", "421", "521", "621"],
+         ["21", "21", "11", "02", "42", "21", "61"],
+         ["31", "21", "12", "21", "41", "51", "621"],
+         ["321", "221", "121", "021",
+          "421", "521", "621"],
+         ["3241", "2321", "13216",
+          "0621", "4421", "5421", "a621"],
+         ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
+
 
 class SI2NAOpenTestCase(SI2NATestCase):
     close = 0
+
 
 class SI2NACloseTestCase(SI2NATestCase):
     close = 1
@@ -1935,10 +2002,10 @@ class GeneratorTestCase(unittest.TestCase):
         "Testing generator access to Arrays, single elements (char)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1963,10 +2030,10 @@ class GeneratorTestCase(unittest.TestCase):
         "Testing generator access to Arrays, multiple elements (char)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -1993,10 +2060,10 @@ class GeneratorTestCase(unittest.TestCase):
         "Testing generator access to Arrays, single elements (numeric)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -2021,10 +2088,10 @@ class GeneratorTestCase(unittest.TestCase):
         "Testing generator access to Arrays, multiple elements (numeric)"
 
         file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         if self.close:
             fileh.close()
@@ -2046,40 +2113,49 @@ class GeneratorTestCase(unittest.TestCase):
         os.remove(file)
         return
 
+
 class GE1NATestCase(GeneratorTestCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
     charList = numpy.array(["3"], 'S')
-    charListME = numpy.array(["321", "221", "121", "021", "421", "521", "621"], 'S')
+    charListME = numpy.array(
+        ["321", "221", "121", "021", "421", "521", "621"], 'S')
+
 
 class GE1NAOpenTestCase(GE1NATestCase):
     close = 0
 
+
 class GE1NACloseTestCase(GE1NATestCase):
     close = 1
+
 
 class GE2NATestCase(GeneratorTestCase):
     # A more complex example
     title = "Rank-1,2 case 2"
     numericalList = numpy.array([3, 4])
     numericalListME = numpy.array([[3, 2, 1, 0, 4, 5, 6],
-                                      [2, 1, 0, 4, 5, 6, 7],
-                                      [4, 3, 2, 1, 0, 4, 5],
-                                      [3, 2, 1, 0, 4, 5, 6],
-                                      [3, 2, 1, 0, 4, 5, 6]])
+                                   [2, 1, 0, 4, 5, 6, 7],
+                                   [4, 3, 2, 1, 0, 4, 5],
+                                   [3, 2, 1, 0, 4, 5, 6],
+                                   [3, 2, 1, 0, 4, 5, 6]])
 
     charList = numpy.array(["a", "b"], 'S')
-    charListME = numpy.array([["321", "221", "121", "021", "421", "521", "621"],
-                              ["21", "21", "11", "02", "42", "21", "61"],
-                              ["31", "21", "12", "21", "41", "51", "621"],
-                              ["321", "221", "121", "021", "421", "521", "621"],
-                              ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                              ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
+    charListME = numpy.array(
+        [["321", "221", "121", "021", "421", "521", "621"],
+         ["21", "21", "11", "02", "42", "21", "61"],
+         ["31", "21", "12", "21", "41", "51", "621"],
+         ["321", "221", "121", "021",
+          "421", "521", "621"],
+         ["3241", "2321", "13216",
+          "0621", "4421", "5421", "a621"],
+         ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 
 class GE2NAOpenTestCase(GE2NATestCase):
     close = 0
+
 
 class GE2NACloseTestCase(GE2NATestCase):
     close = 1
@@ -2091,7 +2167,7 @@ class NonHomogeneousTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # This checks ticket #12.
         h5file = self.h5file
         self.assertRaises(ValueError, h5file.create_array, '/', 'test',
-                          [1, [2, 3]] )
+                          [1, [2, 3]])
         self.assertRaises(NoSuchNodeError, h5file.remove_node, '/test')
 
 
@@ -2111,7 +2187,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             (20, -10),  # no elements
             (-10, 4),  # several elements
             (0, 10),   # several elements (again)
-            ]
+        ]
         # Create an instance of an HDF5 Array
         self.file = tempfile.mktemp(".h5")
         self.fileh = fileh = open_file(self.file, "w")
@@ -2168,7 +2244,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             key = numpy.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
                 print "Selection to test:", key
-            #a = nparr[key]
+            # a = nparr[key]
             fkey = numpy.array(key, "f4")
             self.assertRaises(IndexError, tbarr.__getitem__, fkey)
 
@@ -2220,7 +2296,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             key = numpy.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
                 print "Selection to test:", key
-            #s = nparr[key]
+            # s = nparr[key]
             nparr[key] = 2   # force a broadcast
             tbarr[key] = 2   # force a broadcast
             a = nparr[:]
@@ -2236,11 +2312,14 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 class PointSelection1(PointSelectionTestCase):
     shape = (5, 3, 3)
 
+
 class PointSelection2(PointSelectionTestCase):
     shape = (7, 3)
 
+
 class PointSelection3(PointSelectionTestCase):
     shape = (4, 3, 2, 1)
+
 
 class PointSelection4(PointSelectionTestCase):
     shape = (1, 3, 2, 5, 6)
@@ -2263,37 +2342,39 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             ([1, -2], 2, -1),     # more negative indices
             ([1, -2], 2, Ellipsis),     # one ellipsis
             (Ellipsis, [1, 2]),    # one ellipsis
-            (numpy.array([1, -2], 'i4'), 2, -1),  # array 32-bit instead of list
-            (numpy.array([-1, 2], 'i8'), 2, -1),  # array 64-bit instead of list
-            ]
+            (numpy.array(
+                [1, -2], 'i4'), 2, -1),  # array 32-bit instead of list
+            (numpy.array(
+                [-1, 2], 'i8'), 2, -1),  # array 64-bit instead of list
+        ]
 
         # Tests for keys that have to support the __index__ attribute
         if (sys.version_info[0] >= 2 and sys.version_info[1] >= 5):
             self.working_keyset.append(
-                (False, True), # equivalent to (0,1) ;-)
-                )
+                (False, True),  # equivalent to (0,1) ;-)
+            )
 
         # Valid selections for NumPy, but not for PyTables (yet)
         # The next should raise an IndexError
         self.not_working_keyset = [
-            numpy.array([False, True], dtype="b1"), # boolean arrays
+            numpy.array([False, True], dtype="b1"),  # boolean arrays
             ([1, 2, 1], 2, 1),    # repeated values
             ([1, 2], 2, [1, 2]),  # several lists
             ([], 2, 1),         # empty selections
             (Ellipsis, [1, 2], Ellipsis),  # several ellipsis
             ([False, True]),    # boolean values with incompatible shape
-            ]
+        ]
 
         # The next should raise an IndexError in both NumPy and PyTables
         self.not_working_oob = [
             ([1, 2], 2, 1000),         # out-of-bounds selections
             ([1, 2], 2000, 1),         # out-of-bounds selections
-            ]
+        ]
 
         # The next should raise a IndexError in both NumPy and PyTables
         self.not_working_too_many = [
             ([1, 2], 2, 1, 1),
-            ]
+        ]
 
         # Create an instance of an HDF5 file
         self.file = tempfile.mktemp(".h5")
@@ -2329,12 +2410,12 @@ class FancySelectionTestCase(common.PyTablesTestCase):
 
     def test01b_read(self):
         """Test for fancy-selections (not working selections, read)."""
-        #nparr = self.nparr
+        # nparr = self.nparr
         tbarr = self.tbarr
         for key in self.not_working_keyset:
             if common.verbose:
                 print "Selection to test:", key
-            #a = nparr[key]
+            # a = nparr[key]
             self.assertRaises(IndexError, tbarr.__getitem__, key)
 
     def test01c_read(self):
@@ -2385,7 +2466,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         for key in self.working_keyset:
             if common.verbose:
                 print "Selection to test:", key
-            #s = nparr[key]
+            # s = nparr[key]
             nparr[key] = 2   # broadcast value
             tbarr[key] = 2   # broadcast value
             a = nparr[:]
@@ -2424,7 +2505,7 @@ class CopyNativeHDF5MDAtom(common.PyTablesTestCase):
         self.fileh = open_file(filename, "r")
         self.arr = self.fileh.root.arr
         self.copy = tempfile.mktemp(".h5")
-        self.copyh = open_file(self.copy, mode = "w")
+        self.copyh = open_file(self.copy, mode="w")
         self.arr2 = self.arr.copy(self.copyh.root, newname="arr2")
 
     def tearDown(self):
@@ -2432,17 +2513,15 @@ class CopyNativeHDF5MDAtom(common.PyTablesTestCase):
         self.copyh.close()
         os.remove(self.copy)
 
-
     def test01_copy(self):
         """Checking that native MD atoms are copied as-is"""
         self.assertEqual(self.arr.atom, self.arr2.atom)
         self.assertEqual(self.arr.shape, self.arr2.shape)
 
-
     def test02_reopen(self):
         """Checking that native MD atoms are copied as-is (re-open)"""
         self.copyh.close()
-        self.copyh = open_file(self.copy, mode = "r")
+        self.copyh = open_file(self.copy, mode="r")
         self.arr2 = self.copyh.root.arr2
         self.assertEqual(self.arr.atom, self.arr2.atom)
         self.assertEqual(self.arr.shape, self.arr2.shape)
@@ -2480,7 +2559,7 @@ def suite():
         # The scalar case test should be refined in order to work
         theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
         theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
-        #theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
+        # theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))
@@ -2488,9 +2567,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Basic2DTwoTestCase))
         theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
         # The 32 dimensions case is tested on GroupsArray
-        #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
+        # theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
         theSuite.addTest(unittest.makeSuite(ReadOutArgumentTests))
-        theSuite.addTest(unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase))
+        theSuite.addTest(unittest.makeSuite(
+            SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexNotReopenNotEndianTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexReopenNotEndianTestCase))
@@ -2539,10 +2619,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
-
-
-
-
-
-
+    unittest.main(defaultTest='suite')

@@ -21,9 +21,7 @@ class IndexesTestCase(common.PyTablesTestCase):
         self.fileh.close()
         cleanup(self)
 
-
     #----------------------------------------
-
     def test00_version(self):
         """Checking index version."""
 
@@ -32,7 +30,6 @@ class IndexesTestCase(common.PyTablesTestCase):
             self.assertEqual(t1var1.index._v_version, "2.0")
         elif "2_1" in self.file_:
             self.assertEqual(t1var1.index._v_version, "2.1")
-
 
     def test01_string(self):
         """Checking string indexes"""
@@ -55,7 +52,8 @@ class IndexesTestCase(common.PyTablesTestCase):
         results1 = [p["var1"] for p in
                     table1.where('(il<=t1var1)&(t1var1<=sl)')]
         results2 = [p["var1"] for p in table2 if il <= p["var1"] <= sl]
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Superior & inferior limits:", il, sl
 #             print "Selection results (index):", results1
@@ -64,7 +62,6 @@ class IndexesTestCase(common.PyTablesTestCase):
             print "Should be:", len(results2)
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
-
 
     def test02_bool(self):
         """Checking bool indexes"""
@@ -90,7 +87,6 @@ class IndexesTestCase(common.PyTablesTestCase):
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
-
     def test03_int(self):
         """Checking int indexes"""
 
@@ -115,7 +111,8 @@ class IndexesTestCase(common.PyTablesTestCase):
                     if il <= p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -123,7 +120,6 @@ class IndexesTestCase(common.PyTablesTestCase):
             print "Should be:", len(results2)
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
-
 
     def test04_float(self):
         """Checking float indexes"""
@@ -149,7 +145,8 @@ class IndexesTestCase(common.PyTablesTestCase):
                     if il <= p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
-        results1.sort(); results2.sort()
+        results1.sort()
+        results2.sort()
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -164,6 +161,8 @@ class Indexes2_0TestCase(IndexesTestCase):
     file_ = "indexes_2_0.h5"
 
 # Check indexes from PyTables version 2.1
+
+
 class Indexes2_1TestCase(IndexesTestCase):
     file_ = "indexes_2_1.h5"
 
@@ -182,10 +181,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
-
-
-
-
-
-
+    unittest.main(defaultTest='suite')

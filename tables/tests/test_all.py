@@ -16,12 +16,10 @@ from tables.tests import common
 from tables.utils import detect_number_of_cores
 
 
-
 def get_tuple_version(hexversion):
     """Get a tuple from a compact version in hex."""
     h = hexversion
     return(h & 0xff0000) >> 16, (h & 0xff00) >> 8, h & 0xff
-
 
 
 def suite():
@@ -55,7 +53,7 @@ def suite():
         'tables.nodes.tests.test_filenode',
     ]
 
-    #print '-=' * 38
+    # print '-=' * 38
 
     # The test for garbage must be run *in the last place*.
     # Else, it is not as useful.
@@ -68,7 +66,7 @@ def suite():
     for name in test_modules:
         # Unexpectedly, the following code doesn't seem to work anymore
         # in python 3
-        #exec('from %s import suite as test_suite' % name)
+        # exec('from %s import suite as test_suite' % name)
         __import__(name)
         test_suite = sys.modules[name].suite
 
@@ -192,9 +190,3 @@ if __name__ == '__main__':
     if not only_versions:
         print_heavy(common.heavy)
         unittest.main(defaultTest='tables.tests.suite')
-
-
-
-
-
-

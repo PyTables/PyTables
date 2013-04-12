@@ -103,7 +103,6 @@ class ReadableMixin:
 
     getLineSeparator = previous_api(get_line_separator)
 
-
     def set_line_separator(self, value):
         """Sets the line separator string.
 
@@ -121,7 +120,6 @@ class ReadableMixin:
             self._line_separator = value
 
     setLineSeparator = previous_api(set_line_separator)
-
 
     def del_line_separator(self):
         "Deletes the 'line_separator' property."
@@ -610,8 +608,8 @@ class FileNode(object):
 
         attrs = node.attrs
         # System attributes are now writable.  ivb(2004-12-30)
-        ##attrs._g_setattr('NODE_TYPE', NodeType)
-        ##attrs._g_setattr('NODE_TYPE_VERSION', NodeTypeVersions[-1])
+        # attrs._g_setattr('NODE_TYPE', NodeType)
+        # attrs._g_setattr('NODE_TYPE_VERSION', NodeTypeVersions[-1])
         attrs.NODE_TYPE = NodeType
         attrs.NODE_TYPE_VERSION = NodeTypeVersions[-1]
 
@@ -772,7 +770,8 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
     Use the new_node() or open_node() functions instead.
     """
 
-    __allowed_init_kwargs = ['where', 'name', 'title', 'filters', 'expectedsize']
+    __allowed_init_kwargs = [
+        'where', 'name', 'title', 'filters', 'expectedsize']
 
     def __init__(self, node, h5file, **kwargs):
         super(RAFileNode, self).__init__()
@@ -842,9 +841,3 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 ## py-indent-offset: 4
 ## tab-width: 4
 ## End:
-
-
-
-
-
-
