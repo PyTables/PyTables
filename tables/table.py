@@ -62,7 +62,7 @@ obversion = "2.6"  # The Table VERSION number
 try:
     # int_, long_ are only available in numexpr >= 2.1
     from numexpr.necompiler import int_, long_
-except ImporError:
+except ImportError:
     int_ = int
     long_ = long
 
