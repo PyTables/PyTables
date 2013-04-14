@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PyTables'
-copyright = u'2011-2012, The PyTables Governance Team'
+copyright = u'2011-2013, The PyTables Governance Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -274,7 +274,7 @@ autosummary_generate = []
 epub_title = u'PyTables'
 epub_author = u'The PyTables Governance Team'
 epub_publisher = u'The PyTables Governance Team'
-epub_copyright = u'2011-2012, The PyTables Governance Team'
+epub_copyright = u'2011-2013, The PyTables Governance Team'
 
 # -- External link oOptions ----------------------------------------------------
 extlinks = {

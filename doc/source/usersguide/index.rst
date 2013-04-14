@@ -13,7 +13,7 @@ Hierarchical datasets in Python
 
             |copy| 2008, 2009, 2010 - Francesc Alted
 
-            |copy| 2011-2012 - PyTables maintainers
+            |copy| 2011-2013 - PyTables maintainers
 
 --------
 Contents
