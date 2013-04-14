@@ -77,7 +77,7 @@ Improvements
 - Improved compatibility with numexpr_ 2.1
 
 - Improved compatibility with development versions of numpy_
-  (see :issue:`193)
+  (see :issue:`193`)
 
 - Packaging: since this release the standard tar-ball package no more includes
   the PDF version of the "PyTables User Guide", so it is a little bit smaller
@@ -85,7 +85,7 @@ Improvements
   and PDF format is available on the file `download area`_ on SourceForge.net.
   Closes: :issue:`172`.
 
-- Now PyTables_ also uses `Travis-CI`_ as continuous integration service.
+- Now PyTables also uses `Travis-CI`_ as continuous integration service.
   All branches and all pull requests are automatically tested with different
   Python_ versions.  Closes :issue:`212`.
 
@@ -171,8 +171,8 @@ Bugs fixed
 - Fixed ptdump failure on data with nested columns (closes :issue:`213`).
   Thanks to Alexander Ford.
 
-- Fixed an Error in :func:`open_file` when filename is a :class:`numpy.str_`
-  (closes :issue:`
+- Fixed an error in :func:`open_file` when filename is a :class:`numpy.str_`
+  (closes :issue:`204`)
 
 
 .. _Python: http://www.python.org
@@ -182,7 +182,7 @@ Bugs fixed
 .. _bzip2: http://www.bzip.org
 .. _Cython: http://www.cython.org
 .. _Numexpr: http://code.google.com/p/numexpr
-.. _numpy: http://numpy.scipy.org
+.. _numpy: http://www.numpy.org
 .. _`download area`: http://sourceforge.net/projects/pytables/files/pytables
 .. _`Travis-CI`: https://travis-ci.org
 
