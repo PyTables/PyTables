@@ -14,6 +14,13 @@ Changes from 2.4 to X.Y.Z (in development)
 New features
 ------------
 
+- Since this release PyTables provides full support to Python_ 3
+  (closes :issue`188`).
+
+- The entire code base is now more compliant with coding style guidelines
+  describe in the PEP8_ (closes :issue:`103` and :issue:`224`).
+  See `API changes`_ for more details.
+
 - Basic support for HDF5 drivers.  Now it is possible to open/create an
   HDF5 file using one of the SEC2, DIRECT, LOG, WINDOWS, STDIO or CORE
   drivers and also set the main parameters (closes :issue:`166`).
@@ -45,27 +52,42 @@ New features
 Improvements
 ------------
 
+- Improved runtime checks on dynamic loading of libraries: meaningful error
+  messages are generated in case of failure.
+  Also, now PyTables no more alters the system PATH.
+  Closes :issue:`178` and :issue:`179` (thanks to Christoph Gohlke).
+
+- Improved list of search paths for libraries as suggested by Nicholaus
+  Halecky (see :issue:`219`).
+
+- Removed deprecated Cython_ include (.pxi) files. Contents of
+  :file:`convtypetables.pxi` have been moved in :file:`utilsextension.pyx`.
+  Closes :issue:`217`.
+
+- The internal Blosc_ library has been upgraded to version 1.1.5.
+
+- Pre-load the bzip2_ library on windows (closes :issue:`205`)
+
+- The :meth:`File.get_node` method now accepts unicode paths
+  (closes :issue:`203`)
+
+- Improved compatibility with Cython_ 0.19 (see :issue:`220` and
+  :issue:`221`)
+
+- Improved compatibility with numexpr_ 2.1
+
+- Improved compatibility with development versions of numpy_
+  (see :issue:`193)
+
 - Packaging: since this release the standard tar-ball package no more includes
   the PDF version of the "PyTables User Guide", so it is a little bit smaller
   now.  The complete and pre-build version of the documentation both in HTML
   and PDF format is available on the file `download area`_ on SourceForge.net.
   Closes: :issue:`172`.
 
-- Improved runtime checks on dynamic loading of libraries: meaningful error
-  messages are generated in case of failure.
-  Also, now PyTables no more alters the system PATH.
-  Closes :issue:`178` and :issue:`179` (thanks to Christoph Gohlke).
-
-- The internal Blosc_ library has been upgraded to version 1.1.5.
-
-- Pre-load the bzip2 library on windows (closes :issue:`205`)
-
-- Removed deprecated cython include (.pxi) files. Contents of
-  :file:`convtypetables.pxi` have been moved in :file:`utilsExtension.pyx`.
-  Closes :issue:`217`.
-
-- Improved list of search paths for libraries as suggested by Nicholaus
-  Halecky (see :issue:`219`).
+- Now PyTables_ also uses `Travis-CI`_ as continuous integration service.
+  All branches and all pull requests are automatically tested with different
+  Python_ versions.  Closes :issue:`212`.
 
 
 Other changes
@@ -77,15 +99,19 @@ Other changes
 Deprecations
 ------------
 
-- The use of upper-case keyword arguments in the :func:`openFile` function
+- The use of upper-case keyword arguments in the :func:`open_file` function
   and the :class:`File` class initializer is now deprecated.  All parameters
   defined in the :file:`tables/parameters.py` module can still be passed as
-  keyword argument to the :func:`openFile` function just using a lower-case
+  keyword argument to the :func:`open_file` function just using a lower-case
   version of the parameter name.
 
 
 API changes
 -----------
+
+The entire PyTables API as been made more PEP8_ compliant (see :issue:`224`).
+
+The old API is till usable XXX
 
 Many deprecated features and support for obsolete modules has been dropped:
 
@@ -99,22 +125,23 @@ Many deprecated features and support for obsolete modules has been dropped:
 
 - The tables.netcdf3 module has been removed (closes :issue:`68`).
 
+- The deprecated :exc:`exceptions.Incompat16Warning` exception has been
+  removed
+
+- The `__version__` module constants has been removed from almost all the
+  modules (it was no more used after the switch to Git).
+  Of course the package level constant (:data:`tables.__version__`) still
+  remains.  Closes :issue:`112`.
+
+- The :func:`lrange` has been dropped in favour of xrange (:issue:`181`)
+
 - The :data:`parameters.MAX_THREADS` configuration parameter has been dropped
   in favour of :data:`parameters.MAX_BLOSC_THREADS` and
   :data:`parameters.MAX_NUMEXPR_THREADS` (closes :issue:`147`).
 
-- The `__version__` module constants has been removed from almost all the
-  modules (it was no ore used after the switch to Git).
-  Of course the package level constant (:data:`tables.__version__`) still
-  remains.  Closes :issue:`112`.
+- The :meth:`File.create_external_link` method no more has a keyword
+  parameter named *warn16incompat*.  It was deprecated since PyTables 2.4.
 
-- The :meth:`File.createExternalLink` method no more has a keyword parameter
-  named *warn16incompat*.  It was deprecated since PyTables 2.4.
-
-- The deprecated :exc:`exceptions.Incompat16Warning` exception has been
-  removed
-
-- The :func:`lrange` has been dropped in favour of xrange (:issue:`181`)
 
 
 Other possibly incompatible changes
@@ -144,9 +171,20 @@ Bugs fixed
 - Fixed ptdump failure on data with nested columns (closes :issue:`213`).
   Thanks to Alexander Ford.
 
+- Fixed an Error in :func:`open_file` when filename is a :class:`numpy.str_`
+  (closes :issue:`
 
+
+.. _Python: http://www.python.org
+.. _PEP8: http://www.python.org/dev/peps/pep-0008
 .. _PyInstaller: http://www.pyinstaller.org
+.. _Blosc: https://github.com/FrancescAlted/blosc
+.. _bzip2: http://www.bzip.org
+.. _Cython: http://www.cython.org
+.. _Numexpr: http://code.google.com/p/numexpr
+.. _numpy: http://numpy.scipy.org
 .. _`download area`: http://sourceforge.net/projects/pytables/files/pytables
+.. _`Travis-CI`: https://travis-ci.org
 
 
 Changes from 2.3.1 to 2.4
@@ -278,11 +316,7 @@ Deprecations
   argument of the :meth:`File.createExternalLink` method and the
   :exc:`exceptions.Incompat16Warning` exception class are now deprecated.
 
-.. _numpy: http://numpy.scipy.org
-.. _Blosc: https://github.com/FrancescAlted/blosc
-.. _Numexpr: http://code.google.com/p/numexpr
 .. _pyflakes: https://launchpad.net/pyflakes
-.. _Cython: http://www.cython.org
 
 
   **Enjoy data!**
