@@ -150,10 +150,12 @@ class Leaf(Node):
         leaf once it has been created.
         """)
 
-    objectID = property(
+    object_id = property(
         lambda self: self._v_objectid, None, None,
         """A node identifier, which may change from run to run.
         (This is an easier-to-write alias of :attr:`Node._v_objectid`)""")
+
+    objectID = previous_api(object_id)
 
     ndim = property(
         lambda self: len(self.shape), None, None,

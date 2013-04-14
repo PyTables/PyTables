@@ -39,6 +39,8 @@ def previous_api(obj):
 
 # old name, new name
 old2newnames = dict([
+    # from __init__.py
+    ('hdf5Version', 'hdf5_version'),
     # from array.py
     ('getEnum', 'get_enum'),
     ('_initLoop', '_init_loop'),
@@ -234,6 +236,7 @@ old2newnames = dict([
     ('_searchBinNA_d', '_search_bin_na_d'),
     ('_searchBinNA_g', '_search_bin_na_g'),
     # from leaf.py
+    ('objectID', 'objectid'),
     ('_processRangeRead', '_process_range_read'),
     ('_pointSelection', '_point_selection'),
     ('isVisible', 'isvisible'),
@@ -440,6 +443,8 @@ old2newnames = dict([
     ('HDF5ToNPExtType', 'hdf5_to_np_ext_type'),
     ('AtomFromHDF5Type', 'atom_from_hdf5_type'),
     ('createNestedType', 'create_nested_type'),
+    # from unimlemented.py
+    ('_openUnImplemented', '_open_unimplemented'),
 ])
 
 new2oldnames = dict([(v, k) for k, v in old2newnames.iteritems()])

@@ -86,7 +86,7 @@ from tables.utilsextension import get_pytables_version, get_hdf5_version, \
 __version__ = get_pytables_version()
 """The PyTables version number."""
 
-hdf5version = hdf5Version = get_hdf5_version()
+hdf5_version = hdf5Version = get_hdf5_version()
 """The underlying HDF5 library version number."""
 
 from tables.utilsextension import (is_hdf5_file, is_pytables_file,

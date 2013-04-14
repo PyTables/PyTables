@@ -65,13 +65,12 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         super(UnImplemented, self).__init__(parentNode, name)
 
     def _g_open(self):
-        (self.shape, self.byteorder, objectID) = \
-            self._openUnImplemented()
+        (self.shape, self.byteorder, object_id) =  self._open_unimplemented()
         try:
             self.nrows = SizeType(self.shape[0])
         except IndexError:
             self.nrows = SizeType(0)
-        return objectID
+        return object_id
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         """Do nothing.

@@ -22,7 +22,7 @@ import numpy
 
 from tables import *
 # important objects to test
-from tables import Group, Leaf, Table, Array, hdf5Version
+from tables import Group, Leaf, Table, Array, hdf5_version
 from tables.tests import common
 from tables.parameters import MAX_COLUMNS
 from tables.hdf5extension import HAVE_DIRECT_DRIVER, HAVE_WINDOWS_DRIVER
@@ -1644,7 +1644,7 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
 class Sec2DriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_SEC2"
 
-    if hdf5Version >= "1.8.9":
+    if hdf5_version >= "1.8.9":
         def test_get_file_image(self):
             image = self.h5file.get_file_image()
             self.assertTrue(len(image) > 0)
@@ -1658,7 +1658,7 @@ class Sec2DriverTestCase(DefaultDriverTestCase):
 class StdioDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_STDIO"
 
-    if hdf5Version >= "1.8.9":
+    if hdf5_version >= "1.8.9":
         def test_get_file_image(self):
             image = self.h5file.get_file_image()
             self.assertTrue(len(image) > 0)
@@ -1672,7 +1672,7 @@ class StdioDriverTestCase(DefaultDriverTestCase):
 class CoreDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_CORE"
 
-    if hdf5Version >= "1.8.9":
+    if hdf5_version >= "1.8.9":
         def test_get_file_image(self):
             image = self.h5file.get_file_image()
             self.assertTrue(len(image) > 0)
@@ -1902,7 +1902,7 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
         # ensure that there is no change on the file on disk
         self.assertEqual(hexdigest, self._get_digest(self.h5fname))
 
-    if hdf5Version >= "1.8.9":
+    if hdf5_version >= "1.8.9":
         def test_get_file_image(self):
             self.h5file = tables.open_file(self.h5fname, mode="w",
                                            driver=self.DRIVER,
@@ -2323,7 +2323,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(MpiPosixDriverTestCase))
         theSuite.addTest(unittest.makeSuite(StreamDriverTestCase))
 
-        if hdf5Version >= "1.8.9":
+        if hdf5_version >= "1.8.9":
             theSuite.addTest(unittest.makeSuite(InMemoryCoreDriverTestCase))
 
     if common.heavy:

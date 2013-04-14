@@ -2060,7 +2060,7 @@ cdef class VLArray(Leaf):
 cdef class UnImplemented(Leaf):
 
 
-  def _openUnImplemented(self):
+  def _open_unimplemented(self):
     cdef object shape
     cdef char cbyteorder[11]  # "irrelevant" fits easily here
     cdef bytes encoded_name
