@@ -16,9 +16,9 @@ Module constants
 
 Module functions
 ----------------
-.. autofunction:: newNode
+.. autofunction:: new_node
 
-.. autofunction:: openNode
+.. autofunction:: open_node
 
 The FileNode abstract class
 ---------------------------

@@ -36,7 +36,7 @@ The Table class
 
 Table properties
 ~~~~~~~~~~~~~~~~
-.. autoattribute:: Table.autoIndex
+.. autoattribute:: Table.autoindex
 
 .. autoattribute:: Table.colindexes
 
@@ -59,7 +59,7 @@ Table methods - reading
 
 .. automethod:: Table.read
 
-.. automethod:: Table.readCoordinates
+.. automethod:: Table.read_coordinates
 
 .. automethod:: Table.readSorted
 
@@ -72,15 +72,15 @@ Table methods - writing
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: Table.append
 
-.. automethod:: Table.modifyColumn
+.. automethod:: Table.modify_column
 
-.. automethod:: Table.modifyColumns
+.. automethod:: Table.modify_columns
 
-.. automethod:: Table.modifyCoordinates
+.. automethod:: Table.modify_coordinates
 
-.. automethod:: Table.modifyRows
+.. automethod:: Table.modify_rows
 
-.. automethod:: Table.removeRows
+.. automethod:: Table.remove_rows
 
 .. automethod:: Table.__setitem__
 
@@ -89,28 +89,28 @@ Table methods - writing
 
 Table methods - querying
 ~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: Table.getWhereList
+.. automethod:: Table.get_where_list
 
-.. automethod:: Table.readWhere
+.. automethod:: Table.read_where
 
 .. automethod:: Table.where
 
-.. automethod:: Table.whereAppend
+.. automethod:: Table.where_append
 
-.. automethod:: Table.willQueryUseIndexing
+.. automethod:: Table.will_query_use_indexing
 
 
 Table methods - other
 ~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: Table.copy
 
-.. automethod:: Table.flushRowsToIndex
+.. automethod:: Table.flush_rows_to_index
 
-.. automethod:: Table.getEnum
+.. automethod:: Table.get_enum
 
-.. automethod:: Table.reIndex
+.. automethod:: Table.reindex
 
-.. automethod:: Table.reIndexDirty
+.. automethod:: Table.reindex_dirty
 
 
 .. _DescriptionClassDescr:
@@ -122,7 +122,7 @@ The Description class
 ..  These are defined in the class docstring
     Description instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    .. autoattribute:: Description._v_colObjects
+    .. autoattribute:: Description._v_col_objects
     .. autoattribute:: Description._v_dflts
     .. autoattribute:: Description._v_dtype
     .. autoattribute:: Description._v_dtypes
@@ -130,10 +130,10 @@ The Description class
     .. autoattribute:: Description._v_itemsize
     .. autoattribute:: Description._v_name
     .. autoattribute:: Description._v_names
-    .. autoattribute:: Description._v_nestedDescr
-    .. autoattribute:: Description._v_nestedFormats
+    .. autoattribute:: Description._v_nested_descr
+    .. autoattribute:: Description._v_nested_formats
     .. autoattribute:: Description._v_nestedlvl
-    .. autoattribute:: Description._v_nestedNames
+    .. autoattribute:: Description._v_nested_names
     .. autoattribute:: Description._v_pathname
     .. autoattribute:: Description._v_pathnames
     .. autoattribute:: Description._v_types
@@ -237,15 +237,15 @@ Column instance variables
 
 Column methods
 ^^^^^^^^^^^^^^
-.. automethod:: Column.createIndex
+.. automethod:: Column.create_index
 
-.. automethod:: Column.createCSIndex
+.. automethod:: Column.create_csindex
 
-.. automethod:: Column.reIndex
+.. automethod:: Column.reindex
 
-.. automethod:: Column.reIndexDirty
+.. automethod:: Column.reindex_dirty
 
-.. automethod:: Column.removeIndex
+.. automethod:: Column.remove_index
 
 
 Column special methods

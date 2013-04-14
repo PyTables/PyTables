@@ -25,11 +25,11 @@ Expr methods
 ~~~~~~~~~~~~
 .. automethod:: Expr.eval
 
-.. automethod:: Expr.setInputsRange
+.. automethod:: Expr.set_inputs_range
 
-.. automethod:: Expr.setOutput
+.. automethod:: Expr.set_output
 
-.. automethod:: Expr.setOutputRange
+.. automethod:: Expr.set_output_range
 
 
 Expr special methods

@@ -53,9 +53,9 @@ proceeding.
 
 .. _Python: http://www.python.org
 .. _HDF5: http://www.hdfgroup.org/HDF5
-.. _NumPy: http://numpy.scipy.org
+.. _NumPy: http://www.numpy.org
 .. _Numexpr: http://code.google.com/p/numexpr
-.. _Cython: http://cython.org
+.. _Cython: http://www.cython.org
 
 .. note::
 

@@ -22,7 +22,7 @@ The File Class
     .. autoattribute:: File.isopen
     .. autoattribute:: File.mode
     .. autoattribute:: File.root
-    .. autoattribute:: File.rootUEP
+    .. autoattribute:: File.root_uep
 
 
 File properties
@@ -38,7 +38,7 @@ File methods - file handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: File.close
 
-.. automethod:: File.copyFile
+.. automethod:: File.copy_file
 
 .. automethod:: File.flush
 
@@ -61,48 +61,48 @@ File methods - file handling
 
 File methods - hierarchy manipulation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: File.copyChildren
+.. automethod:: File.copy_children
 
-.. automethod:: File.copyNode
+.. automethod:: File.copy_node
 
-.. automethod:: File.createArray
+.. automethod:: File.create_array
 
-.. automethod:: File.createCArray
+.. automethod:: File.create_carray
 
-.. automethod:: File.createEArray
+.. automethod:: File.create_earray
 
-.. automethod:: File.createExternalLink
+.. automethod:: File.create_external_link
 
-.. automethod:: File.createGroup
+.. automethod:: File.create_group
 
-.. automethod:: File.createHardLink
+.. automethod:: File.create_hard_link
 
-.. automethod:: File.createSoftLink
+.. automethod:: File.create_soft_link
 
-.. automethod:: File.createTable
+.. automethod:: File.create_table
 
-.. automethod:: File.createVLArray
+.. automethod:: File.create_vlarray
 
-.. automethod:: File.moveNode
+.. automethod:: File.move_node
 
-.. automethod:: File.removeNode
+.. automethod:: File.remove_node
 
-.. automethod:: File.renameNode
+.. automethod:: File.rename_node
 
 
 File methods - tree traversal
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: File.getNode
+.. automethod:: File.get_node
 
-.. automethod:: File.isVisibleNode
+.. automethod:: File.is_visible_node
 
-.. automethod:: File.iterNodes
+.. automethod:: File.iter_nodes
 
-.. automethod:: File.listNodes
+.. automethod:: File.list_nodes
 
-.. automethod:: File.walkGroups
+.. automethod:: File.walk_groups
 
-.. automethod:: File.walkNodes
+.. automethod:: File.walk_nodes
 
 .. automethod:: File.__contains__
 
@@ -111,15 +111,15 @@ File methods - tree traversal
 
 File methods - Undo/Redo support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: File.disableUndo
+.. automethod:: File.disable_undo
 
-.. automethod:: File.enableUndo
+.. automethod:: File.enable_undo
 
-.. automethod:: File.getCurrentMark
+.. automethod:: File.get_current_mark
 
 .. automethod:: File.goto
 
-.. automethod:: File.isUndoEnabled
+.. automethod:: File.is_undo_enabled
 
 .. automethod:: File.mark
 
@@ -130,10 +130,10 @@ File methods - Undo/Redo support
 
 File methods - attribute handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: File.copyNodeAttrs
+.. automethod:: File.copy_node_attrs
 
-.. automethod:: File.delNodeAttr
+.. automethod:: File.del_node_attr
 
-.. automethod:: File.getNodeAttr
+.. automethod:: File.get_node_attr
 
-.. automethod:: File.setNodeAttr
+.. automethod:: File.set_node_attr

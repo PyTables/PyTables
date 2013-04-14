@@ -535,13 +535,13 @@ uninstall `Numeric`.
 
 .. _HDF5: http://www.hdfgroup.org/HDF5
 .. _`Python language`: http://www.python.org
-.. _NumPy: http://numpy.scipy.org
+.. _NumPy: http://www.numpy.org
 .. _`users mailing list`: https://lists.sourceforge.net/lists/listinfo/pytables-users
 .. _`archives of the user's list`: http://sourceforge.net/mailarchive/forum.php?forum_id=13760
 .. _`Gmane archives`: http://www.mail-archive.com/pytables-users@lists.sourceforge.net/
 .. _`R&D 100 Award`: http://www.hdfgroup.org/HDF5/RD100-2002/
 .. _ViTables: http://vitables.org
-.. _Cython: http://cython.org
+.. _Cython: http://www.cython.org
 .. _`Francesc Alted`: http://www.pytables.org/moin/FrancescAlted
 .. _netCDF3: http://www.unidata.ucar.edu/software/netcdf
 .. _`Scientific Python`: http://dirac.cnrs-orleans.fr/plone/software/scientificpython
@@ -550,7 +550,7 @@ uninstall `Numeric`.
 .. _OPeNDAP: http://opendap.org
 .. _`PyTables plugin`: http://pydap.org/plugins/hdf5.html
 .. _`PyTables Manual`: http://www.pytables.org/docs/manual
-.. _h5py: http://h5py.alfven.org
+.. _h5py: http://www.h5py.org
 .. _`efficient computational kernel`: http://www.pytables.org/moin/ComputingKernel
 .. _`advanced indexing capabilities`: http://www.pytables.org/moin/PyTablesPro
 .. _`automatic computation of optimal chunk sizes`: http://www.pytables.org/docs/manual/ch05.html#chunksizeFineTune

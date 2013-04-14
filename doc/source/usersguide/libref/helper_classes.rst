@@ -44,7 +44,7 @@ Index instance variables
 
 .. autoattribute:: tables.index.Index.filters
 
-.. autoattribute:: tables.index.Index.is_CSI
+.. autoattribute:: tables.index.Index.is_csi
 
 .. attribute:: tables.index.Index.nelements
 
@@ -53,9 +53,9 @@ Index instance variables
 
 Index methods
 ~~~~~~~~~~~~~
-.. automethod:: tables.index.Index.readSorted
+.. automethod:: tables.index.Index.read_sorted
 
-.. automethod:: tables.index.Index.readIndices
+.. automethod:: tables.index.Index.read_indices
 
 
 Index special methods

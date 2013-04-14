@@ -8,20 +8,20 @@ Global variables
 
 .. autodata:: __version__
 
-.. autodata:: hdf5Version
+.. autodata:: hdf5_version
 
 
 Global functions
 ----------------
-.. autofunction:: copyFile
+.. autofunction:: copy_file
 
-.. autofunction:: isHDF5File
+.. autofunction:: is_hdf5_file
 
-.. autofunction:: isPyTablesFile
+.. autofunction:: is_pytables_file
 
-.. autofunction:: openFile
+.. autofunction:: open_file
 
-.. autofunction:: setBloscMaxThreads
+.. autofunction:: set_blosc_max_threads
 
 .. autofunction:: print_versions
 
@@ -31,6 +31,6 @@ Global functions
 
 .. autofunction:: test
 
-.. autofunction:: whichLibVersion
+.. autofunction:: which_lib_version
 
-.. autofunction:: silenceHDF5Messages
+.. autofunction:: silence_hdf5_messages

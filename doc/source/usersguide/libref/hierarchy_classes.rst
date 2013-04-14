@@ -15,7 +15,7 @@ The Node class
     .. autoattribute:: Node._v_file
     .. autoattribute:: Node._v_name
     .. autoattribute:: Node._v_pathname
-    .. autoattribute:: Node._v_objectID (location independent)
+    .. autoattribute:: Node._v_objectid (location independent)
 
 Node instance variables - location dependent
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -40,7 +40,7 @@ Node methods - hierarchy manipulation
 
 .. automethod:: Node._f_copy
 
-.. automethod:: Node._f_isVisible
+.. automethod:: Node._f_isvisible
 
 .. automethod:: Node._f_move
 
@@ -51,11 +51,11 @@ Node methods - hierarchy manipulation
 
 Node methods - attribute handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: Node._f_delAttr
+.. automethod:: Node._f_delattr
 
-.. automethod:: Node._f_getAttr
+.. automethod:: Node._f_getattr
 
-.. automethod:: Node._f_setAttr
+.. automethod:: Node._f_setattr
 
 
 .. _GroupClassDescr:
@@ -103,17 +103,17 @@ Node (see :ref:`NodeClassDescr`):
 
 .. automethod:: Group._f_copy
 
-.. automethod:: Group._f_copyChildren
+.. automethod:: Group._f_copy_children
 
-.. automethod:: Group._f_getChild
+.. automethod:: Group._f_get_child
 
-.. automethod:: Group._f_iterNodes
+.. automethod:: Group._f_iter_nodes
 
-.. automethod:: Group._f_listNodes
+.. automethod:: Group._f_list_nodes
 
-.. automethod:: Group._f_walkGroups
+.. automethod:: Group._f_walk_groups
 
-.. automethod:: Group._f_walkNodes
+.. automethod:: Group._f_walknodes
 
 
 Group special methods
@@ -133,7 +133,7 @@ the names of child nodes. For instance::
     nchild = group._v_nchildren
 
     # Add a Table child called 'table' under 'group'.
-    h5file.createTable(group, 'table', myDescription)
+    h5file.create_table(group, 'table', my_description)
     table = group.table          # get the table child instance
     group.table = 'foo'          # set a Python attribute
 
@@ -208,7 +208,7 @@ The following are just easier-to-write aliases to their Node (see
 
 .. autoattribute:: Leaf.name
 
-.. autoattribute:: Leaf.objectID
+.. autoattribute:: Leaf.object_id
 
 .. autoattribute:: Leaf.title
 
@@ -219,13 +219,9 @@ Leaf methods
 
 .. automethod:: Leaf.copy
 
-.. automethod:: Leaf.delAttr
-
 .. automethod:: Leaf.flush
 
-.. automethod:: Leaf.getAttr
-
-.. automethod:: Leaf.isVisible
+.. automethod:: Leaf.isvisible
 
 .. automethod:: Leaf.move
 
@@ -233,7 +229,11 @@ Leaf methods
 
 .. automethod:: Leaf.remove
 
-.. automethod:: Leaf.setAttr
+.. automethod:: Leaf.get_attr
+
+.. automethod:: Leaf.set_attr
+
+.. automethod:: Leaf.del_attr
 
 .. automethod:: Leaf.truncate
 

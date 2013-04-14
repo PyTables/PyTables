@@ -34,7 +34,7 @@ Bibliography
 :ref:`[CYTHON] <CYTHON>`
     Stefan Behnel, Robert Bradshaw, Dag Sverre Seljebotn, and Greg Ewing.
     Cython. A language that makes writing C extensions for the Python
-    language as easy as Python itself. `<http://cython.org>`_.
+    language as easy as Python itself. `<http://www.cython.org>`_.
 
 .. _NUMPY:
 
@@ -44,7 +44,7 @@ Bibliography
     date.
     It implements all the features that can be found in Numeric and numarray,
     plus a bunch of new others. In general, it is more efficient as well.
-    `<http://numpy.scipy.org/>`_.
+    `<http://www.numpy.org>`_.
 
 .. _NUMEXPR:
 

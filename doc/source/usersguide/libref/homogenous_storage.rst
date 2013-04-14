@@ -28,7 +28,7 @@ Array instance variables
 
 Array methods
 ~~~~~~~~~~~~~
-.. automethod:: Array.getEnum
+.. automethod:: Array.get_enum
 
 .. automethod:: Array.iterrows
 
@@ -101,7 +101,7 @@ VLArray methods
 ~~~~~~~~~~~~~~~
 .. automethod:: VLArray.append
 
-.. automethod:: VLArray.getEnum
+.. automethod:: VLArray.get_enum
 
 .. automethod:: VLArray.iterrows
 
