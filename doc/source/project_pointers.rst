@@ -16,7 +16,7 @@ Project pointers
   - `Shining Panda <https://jenkins.shiningpanda.com/pytables/>`_ (development branch)
   - `Travis-CI <https://travis-ci.org/PyTables/PyTables>`_ (all branches)
 
-* `Project page on PyPi <http://pypi.python.org/pypi/tables>`_
+* `Project page on PyPi <https://pypi.python.org/pypi/tables>`_
 * `Project Page on SourceForge.net <http://sourceforge.net/projects/pytables>`_
   (needs update)
 * `Project page on Launchpad <https://launchpad.net/pytables>`_

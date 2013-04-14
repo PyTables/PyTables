@@ -64,8 +64,8 @@ Installing HDF5
 Installing NumArray
 -------------------
 
-* From the `NumArray SourceForge page 
-  <http://sourceforge.net/project/showfiles.php?group_id=1369>`_ download
+* From the `NumArray SourceForge page
+  <http://sourceforge.net/projects/numpy/files>`_ download
   NumArray 1.5.2 to our temporary folder.
 * Extract the archive::
 
@@ -101,7 +101,7 @@ However, I do recommend that you install NumPy as well, because PyTables
 can optionally use it.
 
 * From the `NumPy SourceForge page
-  <http://sourceforge.net/project/showfiles.php?group_id=1369>`_ download
+  <http://sourceforge.net/projects/numpy/files>`_ download
   NumPy 1.0 (at time of writing) to our temporary folder.
 * Extract the archive::
 
@@ -169,7 +169,7 @@ help a bit.
 Installing PyTables
 -------------------
 
-* From the `SourceForge page <http://sourceforge.net/project/showfiles.php?group_id=63486>`_
+* From the `SourceForge page <http://sourceforge.net/projects/pytables/files>`_
   download PyTables 1.3.3 (at time of writing) to our temporary folder.
 * Extract the archive::
 

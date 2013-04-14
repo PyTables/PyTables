@@ -35,7 +35,7 @@ using :program:`pip`. For example, for the stable 2.3 series, you can do::
 .. _`tags page`: https://github.com/PyTables/PyTables/tags
 .. _`Python(x,y)`: http://code.google.com/p/pythonxy
 .. _ActiveState: http://www.activestate.com/activepython
-.. _Enthought: http://www.enthought.com/products/epd.php
+.. _Enthought: https://www.enthought.com/products/epd
 
 
 Bleeding Edge Versions

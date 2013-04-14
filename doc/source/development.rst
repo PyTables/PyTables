@@ -43,7 +43,7 @@ Other resources for developers:
 * `Old trac site <http://www.pytables.org/trac-bck>`_
 
 .. _OME: http://www.openmicroscopy.org
-.. _`Shining Panda`: https://www.shiningpanda.com
+.. _`Shining Panda`: https://www.shiningpanda-ci.com
 
 
 .. toctree::

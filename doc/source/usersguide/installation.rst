@@ -31,7 +31,7 @@ scratch if you have Cython installed, but this is not necessary, as the Cython
 compiled source is included in the source distribution.
 
 To compile PyTables you will need a recent version of Python, the HDF5 (C
-flavor) library from http://hdfgroup.org, and the NumPy (see
+flavor) library from http://www.hdfgroup.org, and the NumPy (see
 :ref:`[NUMPY] <NUMPY>`) and Numexpr (see :ref:`[NUMEXPR] <NUMEXPR>`)
 packages.
 
@@ -62,8 +62,8 @@ proceeding.
     Currently PyTables does not use setuptools_ so do not expect that the
     setup.py script automatically install all packages PyTables depends on.
 
-.. _setuptools: http://pypi.python.org/pypi/setuptools
-.. _ctypes: http://pypi.python.org/pypi/ctypes
+.. _setuptools: https://pypi.python.org/pypi/setuptools
+.. _ctypes: https://pypi.python.org/pypi/ctypes
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
 instructions on how to install precompiled binaries if you are not willing to

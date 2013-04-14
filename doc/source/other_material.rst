@@ -9,7 +9,7 @@ These are the videos of a series dedicated to introduce the main features of
 PyTables in a visual and easy to grasp manner.
 More videos will be made available with the time:
 
-* `HDF5 is for Lovers, SciPy 2012 Tutorial <http://www.youtube.com/watch?v=Nzx0HAd3FiI>`_: 
+* `HDF5 is for Lovers, SciPy 2012 Tutorial <http://www.youtube.com/watch?v=Nzx0HAd3FiI>`_:
   a beginer's introduction to PyTables and HDF5.
 * `PyTables, part I: Introduction
   <http://showmedo.com/videos/video?name=1780000&fromSeriesID=178>`_:
@@ -27,7 +27,7 @@ Presentations
 Here are the slides of some presentations about PyTables that you may find
 useful:
 
-* HDF5 is for Lovers, SciPy 2012 Tutorial, July 2012, Austin, TX, USA, 
+* HDF5 is for Lovers, SciPy 2012 Tutorial, July 2012, Austin, TX, USA,
   `slides (pdf) <https://raw.github.com/scopatz/scipy2012/master/hdf5/scopatz_scipy2012_hdf5.pdf>`_,
   `video <http://www.youtube.com/watch?v=Nzx0HAd3FiI>`_,
   `exercises <https://github.com/scopatz/scipy2012/tree/master/hdf5/exer>`_,
@@ -41,7 +41,7 @@ useful:
   Munich, Germany (November 2010).
 * `Highly Efficient Computations In Python: Well Beyond NumPy
   <http://pytables.org/EuroSciPy2010/HighlyEfficientComputations.pdf>`_.
-  Tutorial given at `EuroSciPy 2010 <http://www.euroscipy.org/conference/euroscipy2010>`_
+  Tutorial given at `EuroSciPy 2010 <https://www.euroscipy.org/conference/euroscipy2010>`_
   conference in Paris, France (July 2010).
 * `Starving CPUs (and coping with that in PyTables)
   <http://www.pytables.org/docs/StarvingCPUs-PyTablesUsages.pdf>`_.
@@ -49,7 +49,7 @@ useful:
   The Netherlands (September 2009).
 * `On The Data Access Issue (or Why Modern CPUs Are Starving)
   <http://www.pytables.org/docs/StarvingCPUs.pdf>`_.
-  Keynote presented at `EuroSciPy 2009 <http://www.euroscipy.org/>`_ conference
+  Keynote presented at `EuroSciPy 2009 <https://www.euroscipy.org/>`_ conference
   in Leipzig, Germany (July 2009).
 * `An Overview of Future Improvements to OPSI
   <http://www.pytables.org/docs/THG-2007-PlansForNewOPSI.pdf>`_.
@@ -62,7 +62,7 @@ useful:
 * `Presentation given at the "HDF Workshop 2005"
   <http://www.pytables.org/docs/HDF_IX_Workshop.pdf>`_, held at San Francisco,
   USA (December 2005).
-* `I <http://www.pytables.org/docs/taller-sf1-color.pdf>`_ and 
+* `I <http://www.pytables.org/docs/taller-sf1-color.pdf>`_ and
   `II <http://www.pytables.org/docs/taller-sf2-color.pdf>`_ **Workshop in Free
   Software and Scientific Computing** given at the Universitat Jaume I,
   Castelló, Spain (October 2004). In Catalan.

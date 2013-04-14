@@ -6,7 +6,7 @@ Bibliography
 :ref:`[HDFG1] <HDFG1>`
     The HDF Group. What is HDF5?. Concise description about HDF5 capabilities
     and its differences from earlier versions (HDF4).
-    `<http://www.hdfgroup.org/whatishdf5.html>`_.
+    `<http://www.hdfgroup.org/HDF5/whatishdf5.html>`_.
 
 .. _HDFG2:
 
@@ -154,7 +154,7 @@ Bibliography
 :ref:`[SPHINX] <SPHINX>`
     Sphinx is a tool that makes it easy to create intelligent and beautiful
     documentation, written by Georg Brandl and licensed under the BSD license
-    `<http://sphinx.pocoo.org/>`_.
+    `<http://sphinx-doc.org>`_.
 
 .. |Kuepper| unicode:: K U+00FC pper .. Kuepper
 

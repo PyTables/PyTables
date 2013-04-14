@@ -546,7 +546,7 @@ uninstall `Numeric`.
 .. _netCDF3: http://www.unidata.ucar.edu/software/netcdf
 .. _`Scientific Python`: http://dirac.cnrs-orleans.fr/plone/software/scientificpython
 .. _netCDF4: http://www.unidata.ucar.edu/software/netcdf
-.. _pydap: http://pydap.org
+.. _pydap: http://www.pydap.org
 .. _OPeNDAP: http://opendap.org
 .. _`PyTables plugin`: http://pydap.org/plugins/hdf5.html
 .. _`PyTables Manual`: http://www.pytables.org/docs/manual
