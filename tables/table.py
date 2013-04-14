@@ -59,17 +59,24 @@ from tables._past import previous_api
 obversion = "2.6"  # The Table VERSION number
 
 
+try:
+    # int_, long_ are only available in numexpr >= 2.1
+    from numexpr.necompiler import int_, long_
+except ImporError:
+    int_ = int
+    long_ = long
+
 # Maps NumPy types to the types used by Numexpr.
 _nxtype_from_nptype = {
     numpy.bool_: bool,
-    numpy.int8: int,
-    numpy.int16: int,
-    numpy.int32: int,
-    numpy.int64: long,
-    numpy.uint8: int,
-    numpy.uint16: int,
-    numpy.uint32: long,
-    numpy.uint64: long,
+    numpy.int8: int_,
+    numpy.int16: int_,
+    numpy.int32: int_,
+    numpy.int64: long_,
+    numpy.uint8: int_,
+    numpy.uint16: int_,
+    numpy.uint32: long_,
+    numpy.uint64: long_,
     numpy.float32: float,
     numpy.float64: double,
     numpy.complex64: complex,
