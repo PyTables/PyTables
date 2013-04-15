@@ -5,11 +5,12 @@
 VERSION = $(shell cat VERSION)
 SRCDIRS = src doc
 PYTHON = python
+PYVER = $(shell $(PYTHON) -V 2>&1 | cut -c 8-10)
 GENERATED = ANNOUNCE.txt
 OPT = PYTHONPATH=$(CURDIR)
 
 
-.PHONY:		all dist clean distclean html
+.PHONY:		all dist check check clean distclean html
 
 all:		$(GENERATED)
 	$(PYTHON) setup.py build_ext --inplace
@@ -38,3 +39,9 @@ html:
 
 %:		%.in VERSION
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
+
+build:
+	$(PYTHON) setup.py build
+
+check: build
+	cd build/lib.*-$(PYVER) && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py
