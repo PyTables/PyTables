@@ -527,8 +527,7 @@ class Array(hdf5extension.Array, Leaf):
                 try:
                     exp = list(exp)
                 except TypeError:
-                    exp = [
-                        exp]      # Handle scalar index as a list of length 1
+                    exp = [exp]  # Handle scalar index as a list of length 1
                     mshape.append(0)  # Keep track of scalar index for NumPy
                 else:
                     mshape.append(len(exp))
