@@ -62,7 +62,7 @@ type_info = {
     'time32': (numpy.int32, int),
     'time64': (numpy.float64, float),
     'enum': (numpy.uint8, int),  # just for these tests
-    'string': ('S%s' % _strlen, str),  # just for these tests
+    'string': ('S%s' % _strlen, numpy.string_),  # just for these tests
 }
 """NumPy and Numexpr type for each PyTables type that will be tested."""
 
