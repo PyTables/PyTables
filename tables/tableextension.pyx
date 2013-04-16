@@ -146,7 +146,7 @@ cdef class Table(Leaf):
   # instance variables
   cdef void     *wbuf
 
-  def _createTable(self, title, complib, obversion):
+  def _create_table(self, title, complib, obversion):
     cdef int     offset
     cdef int     ret
     cdef long    buflen
@@ -590,7 +590,7 @@ cdef class Table(Leaf):
     return nrecords
 
 
-  cdef hsize_t _read_chunk(self, hsize_t nchunk, ndarray IObuf, long cstart):
+  cdef hsize_t _read_chunk(self, hsize_t nchunk, ndarray iobuf, long cstart):
     cdef long nslot
     cdef hsize_t start, nrecords, chunkshape
     cdef int ret
@@ -604,7 +604,7 @@ cdef class Table(Leaf):
     nrecords = chunkshape
     if (start + nrecords) > self.nrows:
       nrecords = self.nrows - start
-    rbuf = <char *>IObuf.data + cstart * chunkcache.itemsize
+    rbuf = <char *>iobuf.data + cstart * chunkcache.itemsize
     # Try to see if the chunk is in cache
     nslot = chunkcache.getslot_(nchunk)
     if nslot >= 0:
@@ -704,19 +704,19 @@ cdef class Row:
   cdef hsize_t nrowsinbuf, nrows, nrowsread
   cdef hsize_t chunksize, nchunksinbuf, totalchunks
   cdef hsize_t startb, stopb, lenbuf
-  cdef long long indexChunk
+  cdef long long indexchunk
   cdef int     bufcounter, counter
   cdef int     exist_enum_cols
   cdef int     _riterator, _stride, _rowsize
-  cdef int     whereCond, indexed
+  cdef int     wherecond, indexed
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done, sss_on
-  cdef int     iterseqMaxElements
-  cdef ndarray bufcoords, indexValid, indexValues, chunkmap
-  cdef hsize_t *bufcoordsData, *indexValuesData
-  cdef char    *chunkmapData, *indexValidData
+  cdef int     iterseq_max_elements
+  cdef ndarray bufcoords, indexvalid, indexvalues, chunkmap
+  cdef hsize_t *bufcoords_data, *index_values_data
+  cdef char    *chunkmap_data, *index_valid_data
   cdef object  dtype
-  cdef object  IObuf, IObufcpy
+  cdef object  iobuf, iobufcpy
   cdef object  wrec, wreccpy
   cdef object  wfields, rfields
   cdef object  coords
@@ -802,7 +802,7 @@ cdef class Row:
       self.wfields[name] = self.wrec[name]
 
     # Get the read buffer for this instance (it is private, remember!)
-    buff = self.IObuf = table._get_container(self.nrowsinbuf)
+    buff = self.iobuf = table._get_container(self.nrowsinbuf)
     # Build the rfields dictionary for faster access to columns
     # This is quite fast, as it only takes around 5 us per column
     # in my laptop (Pentium 4 @ 2 GHz).
@@ -833,7 +833,7 @@ cdef class Row:
     self.nrowsread = start
     self._nrow = start - self.step
     self._row = -1  # a sentinel
-    self.whereCond = 0
+    self.wherecond = 0
     self.indexed = 0
 
     self.nrows = table.nrows   # Update the row counter
@@ -846,7 +846,7 @@ cdef class Row:
       return
 
     if table._where_condition:
-      self.whereCond = 1
+      self.wherecond = 1
       self.condfunc, self.condargs = table._where_condition
       table._where_condition = None
 
@@ -860,12 +860,12 @@ cdef class Row:
       self.nrowsread = 0
       self.nextelement = 0
       self.chunkmap = chunkmap
-      self.chunkmapData = <char*>self.chunkmap.data
+      self.chunkmap_data = <char*>self.chunkmap.data
       table._use_index = False
       self.lenbuf = self.nrowsinbuf
       # Check if we have limitations on start, stop, step
       self.sss_on = (self.start > 0 or self.stop < self.nrows or self.step > 1)
-      self.iterseqMaxElements = table._v_file.params['ITERSEQ_MAX_ELEMENTS']
+      self.iterseq_max_elements = table._v_file.params['ITERSEQ_MAX_ELEMENTS']
       self.seq_available = True
 
   def __next__(self):
@@ -878,7 +878,7 @@ cdef class Row:
         return self.__next__indexed()
     elif self.coords is not None:
         return self.__next__coords()
-    elif self.whereCond:
+    elif self.wherecond:
       return self.__next__inkernel()
     else:
       return self.__next__general()
@@ -891,7 +891,7 @@ cdef class Row:
     cdef hsize_t nchunksread
     cdef object tmp_range
     cdef Table table
-    cdef ndarray IObuf
+    cdef ndarray iobuf
     cdef void *IObufData
     cdef long nslot
     cdef object seq
@@ -906,24 +906,24 @@ cdef class Row:
           self.nextelement = self.nextelement + self.nrowsinbuf
 
         table = self.table
-        IObuf = self.IObuf
+        iobuf = self.iobuf
         j = 0;  recout = 0;  cs = self.chunksize
         nchunksread = self.nrowsread / cs
         tmp_range = numpy.arange(0, cs, dtype='int64')
         self.bufcoords = numpy.empty(self.nrowsinbuf, dtype='int64')
         # Fetch valid chunks until the I/O buffer is full
         while nchunksread < self.totalchunks:
-          if self.chunkmapData[nchunksread]:
+          if self.chunkmap_data[nchunksread]:
             self.bufcoords[j*cs:(j+1)*cs] = tmp_range + self.nrowsread
             # Not optimized read
             #  recout = recout + table._read_records(
-            #    nchunksread*cs, cs, IObuf[j*cs:])
+            #    nchunksread*cs, cs, iobuf[j*cs:])
             #
             # Optimized read through the use of a chunk cache.  This cache has
             # more or less the same speed than the integrated HDF5 chunk
             # cache, but using the PyTables one has the advantage that the
             # user can easily change this parameter.
-            recout = recout + table._read_chunk(nchunksread, IObuf, j*cs)
+            recout = recout + table._read_chunk(nchunksread, iobuf, j*cs)
             j = j + 1
           self.nrowsread = (nchunksread+1)*cs
           if self.nrowsread > self.stop:
@@ -934,30 +934,30 @@ cdef class Row:
           nchunksread = nchunksread + 1
 
         # Evaluate the condition on this table fragment.
-        IObuf = IObuf[:recout]
-        self.indexValid = call_on_recarr(
-          self.condfunc, self.condargs, IObuf)
-        self.indexValidData = <char *>self.indexValid.data
+        iobuf = iobuf[:recout]
+        self.indexvalid = call_on_recarr(
+          self.condfunc, self.condargs, iobuf)
+        self.index_valid_data = <char *>self.indexvalid.data
         # Get the valid coordinates
-        self.indexValues = self.bufcoords[:recout][self.indexValid]
-        self.indexValuesData = <hsize_t *>self.indexValues.data
-        self.lenbuf = self.indexValues.size
+        self.indexvalues = self.bufcoords[:recout][self.indexvalid]
+        self.index_values_data = <hsize_t *>self.indexvalues.data
+        self.lenbuf = self.indexvalues.size
         # Place the valid results at the beginning of the buffer
-        IObuf[:self.lenbuf] = IObuf[self.indexValid]
+        iobuf[:self.lenbuf] = iobuf[self.indexvalid]
 
         # Initialize the internal buffer row counter
         self._row = -1
 
-        # Feed the indexValues into the seqcache
+        # Feed the indexvalues into the seqcache
         seqcache = table._seqcache
         nslot = table._nslotseq
         # See if we have a buffer available to place results
         if nslot >= 0 and self.seq_available:
           seq = seqcache.getitem_(nslot)
-          if self.lenbuf + len(seq) < self.iterseqMaxElements:
-            seq.extend(self.indexValues)
+          if self.lenbuf + len(seq) < self.iterseq_max_elements:
+            seq.extend(self.indexvalues)
             # Update the size of sequence in cache
-            # Each element in indexValues should take at least 8 bytes
+            # Each element in indexvalues should take at least 8 bytes
             seqcache.rsizes[nslot] = len(seq) * 8
           else:
             seqcache.removeslot_(nslot)
@@ -971,7 +971,7 @@ cdef class Row:
         # (this is useful for accessing the last row after an iterator loop)
         self._row = self._row - 1
         continue
-      self._nrow = self.indexValuesData[self._row]
+      self._nrow = self.index_values_data[self._row]
       # Check additional conditions on start, stop, step params
       if self.sss_on:
         if (self._nrow < self.start or self._nrow >= self.stop):
@@ -1008,16 +1008,16 @@ cdef class Row:
         self.bufcoords = numpy.array(tmp, dtype="uint64")
         self._row = -1
         if self.bufcoords.size > 0:
-          recout = self.table._read_elements(self.bufcoords, self.IObuf)
+          recout = self.table._read_elements(self.bufcoords, self.iobuf)
         else:
           recout = 0
-        self.bufcoordsData = <hsize_t*>self.bufcoords.data
+        self.bufcoords_data = <hsize_t*>self.bufcoords.data
         self.nrowsread = self.nrowsread + lenbuf
         if recout == 0:
           # no items were read, skip out
           continue
       self._row = self._row + 1
-      self._nrow = self.bufcoordsData[self._row]
+      self._nrow = self.bufcoords_data[self._row]
       self.nextelement = self.nextelement + self.absstep
       return self
     else:
@@ -1044,16 +1044,16 @@ cdef class Row:
         self._row = self.startb - self.step
         # Read a chunk
         recout = self.table._read_records(self.nextelement, self.nrowsinbuf,
-                                          self.IObuf)
+                                          self.iobuf)
         self.nrowsread = self.nrowsread + recout
-        self.indexChunk = -self.step
+        self.indexchunk = -self.step
 
         # Evaluate the condition on this table fragment.
-        self.indexValid = call_on_recarr(
-          self.condfunc, self.condargs, self.IObuf[:recout] )
+        self.indexvalid = call_on_recarr(
+          self.condfunc, self.condargs, self.iobuf[:recout] )
 
         # Is there any interesting information in this buffer?
-        if not numpy.sometrue(self.indexValid):
+        if not numpy.sometrue(self.indexvalid):
           # No, so take the next one
           if self.step >= self.nrowsinbuf:
             self.nextelement = self.nextelement + self.step
@@ -1064,7 +1064,7 @@ cdef class Row:
               correct = (self.nextelement - self.start) % self.step
               self.nextelement = self.nextelement + self.step - correct
           continue
-        self.indexValidData = <char *>self.indexValid.data
+        self.index_valid_data = <char *>self.indexvalid.data
 
       self._row = self._row + self.step
       self._nrow = self.nextelement
@@ -1074,8 +1074,8 @@ cdef class Row:
 
       self.nextelement = self._nrow + self.step
       # Return only if this value is interesting
-      self.indexChunk = self.indexChunk + self.step
-      if self.indexValidData[self.indexChunk]:
+      self.indexchunk = self.indexchunk + self.step
+      if self.index_valid_data[self.indexchunk]:
         return self
     else:
       self._finish_riterator()
@@ -1100,7 +1100,7 @@ cdef class Row:
         self._row = self.startb - self.step
         # Read a chunk
         recout = self.table._read_records(self.nrowsread, self.nrowsinbuf,
-                                          self.IObuf)
+                                          self.iobuf)
         self.nrowsread = self.nrowsread + recout
 
       self._row = self._row + self.step
@@ -1124,7 +1124,7 @@ cdef class Row:
     # Make a copy of the last read row in the private record
     # (this is useful for accessing the last row after an iterator loop)
     if self._row >= 0:
-      self.wrec[:] = self.IObuf[self._row]
+      self.wrec[:] = self.iobuf[self._row]
     self._riterator = 0        # out of iterator
     if self._mod_nrows > 0:    # Check if there is some modified row
       self._flush_mod_rows()     # Flush any possible modified row
@@ -1157,9 +1157,9 @@ cdef class Row:
       stopr = startr + ((istopb - istartb - 1) / istep) + 1
       # Read a chunk
       inrowsread = inrowsread + self.table._read_records(i, inrowsinbuf,
-                                                         self.IObuf)
+                                                         self.iobuf)
       # Assign the correct part to result
-      fields = self.IObuf
+      fields = self.iobuf
       if field:
         fields = get_nested_field(fields, field)
       result[startr:stopr] = fields[istartb:istopb:istep]
@@ -1205,7 +1205,7 @@ cdef class Row:
             row.append()
         table.flush()
     """
-    cdef ndarray IObuf, wrec, wreccpy
+    cdef ndarray iobuf, wrec, wreccpy
 
     if self.ro_filemode:
       raise IOError("Attempt to write over a file opened in read-only mode")
@@ -1218,10 +1218,10 @@ cdef class Row:
       raise NotImplementedError("You cannot append rows when in middle of a table iterator. If what you want is to update records, use Row.update() instead.")
 
     # Commit the private record into the write buffer
-    # self.IObuf[self._unsaved_nrows] = self.wrec
+    # self.iobuf[self._unsaved_nrows] = self.wrec
     # The next is faster
-    IObuf = <ndarray>self.IObuf; wrec = <ndarray>self.wrec
-    memcpy(IObuf.data + self._unsaved_nrows * self._stride,
+    iobuf = <ndarray>self.iobuf; wrec = <ndarray>self.wrec
+    memcpy(iobuf.data + self._unsaved_nrows * self._stride,
            wrec.data, self._rowsize)
     # Restore the defaults for the private record
     # self.wrec[:] = self.wreccpy
@@ -1236,7 +1236,7 @@ cdef class Row:
 
   def _flush_buffered_rows(self):
     if self._unsaved_nrows > 0:
-      self.table._save_buffered_rows(self.IObuf, self._unsaved_nrows)
+      self.table._save_buffered_rows(self.iobuf, self._unsaved_nrows)
       # Reset the buffer unsaved counter
       self._unsaved_nrows = 0
 
@@ -1292,7 +1292,7 @@ cdef class Row:
     column.
     """
 
-    cdef ndarray IObufcpy, IObuf
+    cdef ndarray iobufcpy, iobuf
 
     if self.ro_filemode:
       raise IOError("Attempt to write over a file opened in read-only mode")
@@ -1304,17 +1304,17 @@ cdef class Row:
       # Initialize an array for keeping the modified elements
       # (just in case Row.update() would be used)
       self.mod_elements = numpy.empty(shape=self.nrowsinbuf, dtype=SizeType)
-      # We need a different copy for self.IObuf here
-      self.IObufcpy = self.IObuf.copy()
+      # We need a different copy for self.iobuf here
+      self.iobufcpy = self.iobuf.copy()
 
     # Add this row to the list of elements to be modified
     self.mod_elements[self._mod_nrows] = self._nrow
     # Copy the current buffer row in input to the output buffer
-    # self.IObufcpy[self._mod_nrows] = self.IObuf[self._row]
+    # self.iobufcpy[self._mod_nrows] = self.iobuf[self._row]
     # The next is faster
-    IObufcpy = <ndarray>self.IObufcpy; IObuf = <ndarray>self.IObuf
-    memcpy(IObufcpy.data + self._mod_nrows * self._stride,
-           IObuf.data + self._row * self._stride, self._rowsize)
+    iobufcpy = <ndarray>self.iobufcpy; iobuf = <ndarray>self.iobuf
+    memcpy(iobufcpy.data + self._mod_nrows * self._stride,
+           iobuf.data + self._row * self._stride, self._rowsize)
     # Increase the modified buffer count by one
     self._mod_nrows = self._mod_nrows + 1
     # When the buffer is full, flush it
@@ -1327,7 +1327,7 @@ cdef class Row:
 
     table = self.table
     # Save the records on disk
-    table._update_elements(self._mod_nrows, self.mod_elements, self.IObufcpy)
+    table._update_elements(self._mod_nrows, self.mod_elements, self.iobufcpy)
     # Reset the counter of modified rows to 0
     self._mod_nrows = 0
     # Mark the modified fields' indexes as dirty.
@@ -1409,7 +1409,7 @@ cdef class Row:
         # No luck yet. Still, the key can be a slice.
         # Fetch the complete row and convert it into a tuple
         if self._riterator:
-          row = self.IObuf[self._row].copy().item()
+          row = self.iobuf[self._row].copy().item()
         else:
           row = self.wrec[0].copy().item()
         # Try with __getitem__()
@@ -1517,8 +1517,8 @@ cdef class Row:
               "contexts." % self.table)
 
     # Always return a copy of the row so that new data that is written
-    # in self.IObuf doesn't overwrite the original returned data.
-    return self.IObuf[self._row].copy()
+    # in self.iobuf doesn't overwrite the original returned data.
+    return self.iobuf[self._row].copy()
 
 
   def __str__(self):

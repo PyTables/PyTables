@@ -162,7 +162,7 @@ _table__setautoIndex = previous_api(_table__setautoindex)
 # This function can be called during the destruction time of a table
 # so measures have been taken so that it doesn't have to revive
 # another node (which can fool the LRU cache). The solution devised
-# has been to add a cache for autoIndex (Table._autoindex), populate
+# has been to add a cache for autoindex (Table._autoindex), populate
 # it in creation time of the cache (which is a safe period) and then
 # update the cache whenever it changes.
 # This solves the error when running test_indexes.py ManyNodesTestCase.
@@ -727,7 +727,7 @@ class Table(tableextension.Table, Leaf):
         self._listoldindexes = []
         """The list of columns with old indexes."""
         self._autoindex = None
-        """Private variable that caches the value for autoIndex."""
+        """Private variable that caches the value for autoindex."""
 
         self.colnames = []
         """A list containing the names of *top-level* columns in the table."""
@@ -920,8 +920,8 @@ class Table(tableextension.Table, Leaf):
         if self.indexed:
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
-            # Put the autoIndex value in a cache variable
-            self._autoindex = self.autoIndex
+            # Put the autoindex value in a cache variable
+            self._autoindex = self.autoindex
 
     _g_postInitHook = previous_api(_g_post_init_hook)
 
@@ -999,7 +999,7 @@ class Table(tableextension.Table, Leaf):
 
         # After creating the table, ``self._v_objectid`` needs to be
         # set because it is needed for setting attributes afterwards.
-        self._v_objectid = self._createTable(
+        self._v_objectid = self._create_table(
             self._v_new_title, self.filters.complib or '', obversion)
         self._v_recarray = None  # not useful anymore
         self._rabyteorder = None  # not useful anymore
@@ -2095,7 +2095,7 @@ class Table(tableextension.Table, Leaf):
             self._unsaved_indexedrows += lenrows
             # The table caches for indexed queries are dirty now
             self._dirtycache = True
-            if self.autoIndex:
+            if self.autoindex:
                 # Flush the unindexed rows
                 self.flush_rows_to_index(_lastrow=False)
             else:
@@ -2439,7 +2439,7 @@ class Table(tableextension.Table, Leaf):
         """Add remaining rows in buffers to non-dirty indexes.
 
         This can be useful when you have chosen non-automatic indexing
-        for the table (see the :attr:`Table.autoIndex` property in
+        for the table (see the :attr:`Table.autoindex` property in
         :class:`Table`) and you want to update the indexes on it.
         """
 
@@ -2616,7 +2616,7 @@ class Table(tableextension.Table, Leaf):
                     col.index.dirty = True
                     colstoindex.append(colname)
             # Now, re-index the dirty ones
-            if self.autoIndex and colstoindex:
+            if self.autoindex and colstoindex:
                 self._do_reindex(dirty=True)
             # The table caches for indexed queries are dirty now
             self._dirtycache = True
@@ -2655,7 +2655,7 @@ class Table(tableextension.Table, Leaf):
     def reindex_dirty(self):
         """Recompute the existing indexes in table, *if* they are dirty.
 
-        This can be useful when you have set :attr:`Table.autoIndex`
+        This can be useful when you have set :attr:`Table.autoindex`
         (see :class:`Table`) to false for the table and you want to
         update the indexes after a invalidating index operation
         (:meth:`Table.remove_rows`, for example).
@@ -2793,7 +2793,7 @@ class Table(tableextension.Table, Leaf):
         # Flush rows that remains to be appended
         if 'row' in self.__dict__:
             self.row._flush_buffered_rows()
-        if self.indexed and self.autoIndex:
+        if self.indexed and self.autoindex:
             # Flush any unindexed row
             rowsadded = self.flush_rows_to_index(_lastrow=True)
             assert rowsadded <= 0 or self._indexedrows == self.nrows, \
@@ -2828,7 +2828,7 @@ class Table(tableextension.Table, Leaf):
         # call self.flush() before the table is being preempted.
         # F. Alted 2006-08-03
         if (('row' in self.__dict__ and self.row._get_unsaved_nrows() > 0) or
-            (self.indexed and self.autoIndex and
+            (self.indexed and self.autoindex and
              (self._unsaved_indexedrows > 0 or self._dirtyindexes))):
             warnings.warn(("table ``%s`` is being preempted from alive nodes "
                            "without its buffers being flushed or with some "
@@ -2883,10 +2883,10 @@ class Table(tableextension.Table, Leaf):
   description := %r
   byteorder := %r
   chunkshape := %r
-  autoIndex := %r
+  autoindex := %r
   colindexes := %r"""
             return format % (str(self), self.description, self.byteorder,
-                             self.chunkshape, self.autoIndex,
+                             self.chunkshape, self.autoindex,
                              _ColIndexes(self.colindexes))
         else:
             return """\
@@ -3563,7 +3563,7 @@ class Column(object):
     def reindex_dirty(self):
         """Recompute the associated index only if it is dirty.
 
-        This can be useful when you have set :attr:`Table.autoIndex` to false
+        This can be useful when you have set :attr:`Table.autoindex` to false
         for the table and you want to update the column's index after an
         invalidating index operation (like :meth:`Table.remove_rows`).
 
