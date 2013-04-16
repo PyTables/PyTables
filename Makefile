@@ -10,7 +10,7 @@ GENERATED = ANNOUNCE.txt
 OPT = PYTHONPATH=$(CURDIR)
 
 
-.PHONY:		all dist check check clean distclean html
+.PHONY:		all dist build check check clean distclean html
 
 all:		$(GENERATED)
 	$(PYTHON) setup.py build_ext --inplace
