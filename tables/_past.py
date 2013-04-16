@@ -236,7 +236,7 @@ old2newnames = dict([
     ('_searchBinNA_d', '_search_bin_na_d'),
     ('_searchBinNA_g', '_search_bin_na_g'),
     # from leaf.py
-    ('objectID', 'objectid'),
+    ('objectID', 'object_id'),
     ('_processRangeRead', '_process_range_read'),
     ('_pointSelection', '_point_selection'),
     ('isVisible', 'isvisible'),
