@@ -1724,6 +1724,7 @@ class OldIndexTestCase(PyTablesTestCase):
         self.assertWarns(OldIndexWarning, f.get_node, "/table")
         f.close()
 
+
 # Sensible parameters for indexing with small blocksizes
 small_blocksizes = (512, 128, 32, 8)
 
@@ -2218,7 +2219,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(t2.colindexes['rcol'].is_csi, False)
 
 
-class readSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
+class ReadSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     """Test case for testing sorted reading in a "full" sorted column."""
 
     nrows = 100
@@ -2229,7 +2230,7 @@ class readSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         icol = IntCol(pos=2)
 
     def setUp(self):
-        super(readSortedIndexTestCase, self).setUp()
+        super(ReadSortedIndexTestCase, self).setUp()
         table = self.h5file.create_table('/', 'table', self.MyDescription)
         row = table.row
         nrows = self.nrows
@@ -2242,8 +2243,7 @@ class readSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.icol = self.table.cols.icol
         # A full index with maximum optlevel should always be completely sorted
         self.icol.create_index(optlevel=self.optlevel, kind="full",
-                               _blocksizes=small_blocksizes,
-                               )
+                               _blocksizes=small_blocksizes)
 
     def test01_readSorted1(self):
         """Testing the Table.read_sorted() method with no arguments."""
@@ -2300,19 +2300,19 @@ class readSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.assertTrue(allequal(sortedtable, sortedtable2))
 
 
-class readSortedIndex0(readSortedIndexTestCase):
+class ReadSortedIndex0(ReadSortedIndexTestCase):
     optlevel = 0
 
 
-class readSortedIndex3(readSortedIndexTestCase):
+class ReadSortedIndex3(ReadSortedIndexTestCase):
     optlevel = 3
 
 
-class readSortedIndex6(readSortedIndexTestCase):
+class ReadSortedIndex6(ReadSortedIndexTestCase):
     optlevel = 6
 
 
-class readSortedIndex9(readSortedIndexTestCase):
+class ReadSortedIndex9(ReadSortedIndexTestCase):
     optlevel = 9
 
 
@@ -2351,7 +2351,7 @@ class Issue156TestBase(PyTablesTestCase):
         self.file.close()
         os.remove(self.filename)
 
-    def _copysort(self):
+    def test_copysort(self):
         # copy table
         oldNode = self.file.get_node('/foo')
 
@@ -2373,16 +2373,14 @@ class Issue156TestBase(PyTablesTestCase):
         self.assertTrue(new_node.colindexes[self.sort_field].is_csi)
 
 
-class Issue156_1(Issue156TestBase):
+class Issue156TestCase01(Issue156TestBase):
     # sort by field from non nested entry
     sort_field = 'frame'
-    test_copysort = Issue156TestBase._copysort
 
 
-class Issue156_2(Issue156TestBase):
+class Issue156TestCase02(Issue156TestBase):
     # sort by field from nested entry
     sort_field = 'Bar/code'
-    test_copysort = Issue156TestBase._copysort
 
 
 class Issue119Time32ColTestCase(PyTablesTestCase):
@@ -2470,12 +2468,12 @@ def suite():
         theSuite.addTest(unittest.makeSuite(OldIndexTestCase))
         theSuite.addTest(unittest.makeSuite(CompletelySortedIndexTestCase))
         theSuite.addTest(unittest.makeSuite(ManyNodesTestCase))
-        theSuite.addTest(unittest.makeSuite(readSortedIndex0))
-        theSuite.addTest(unittest.makeSuite(readSortedIndex3))
-        theSuite.addTest(unittest.makeSuite(readSortedIndex6))
-        theSuite.addTest(unittest.makeSuite(readSortedIndex9))
-        theSuite.addTest(unittest.makeSuite(Issue156_1))
-        theSuite.addTest(unittest.makeSuite(Issue156_2))
+        theSuite.addTest(unittest.makeSuite(ReadSortedIndex0))
+        theSuite.addTest(unittest.makeSuite(ReadSortedIndex3))
+        theSuite.addTest(unittest.makeSuite(ReadSortedIndex6))
+        theSuite.addTest(unittest.makeSuite(ReadSortedIndex9))
+        theSuite.addTest(unittest.makeSuite(Issue156TestCase01))
+        theSuite.addTest(unittest.makeSuite(Issue156TestCase02))
         theSuite.addTest(unittest.makeSuite(Issue119Time32ColTestCase))
         theSuite.addTest(unittest.makeSuite(Issue119Time64ColTestCase))
     if heavy:
