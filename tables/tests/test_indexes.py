@@ -2385,6 +2385,62 @@ class Issue156_2(Issue156TestBase):
     test_copysort = Issue156TestBase._copysort
 
 
+class Issue119Time32ColTestCase(PyTablesTestCase):
+    """ TimeCol not properly indexing """
+
+    col_typ = Time32Col
+    values = [
+        0.93240451618785880,
+        0.76322375510776170,
+        0.16695030056300875,
+        0.91259117097807850,
+        0.93977847053454630,
+        0.51450406513503090,
+        0.24452129962257563,
+        0.85475938924825230,
+        0.32512326762476930,
+        0.75127635627046820,
+    ]
+
+
+    def setUp(self):
+        # create hdf5 file
+        self.filename = tempfile.mktemp(".hdf5")
+        self.file = open_file(self.filename, mode="w")
+
+        class Descr(IsDescription):
+            when = self.col_typ(pos = 1)
+            value = Float32Col(pos = 2)
+
+        self.table = self.file.create_table('/', 'test', Descr)
+
+        self.t = 1321031471.0  # 11/11/11 11:11:11
+        data = [(self.t + i, item) for i, item in enumerate(self.values)]
+        self.table.append(data)
+        self.file.flush()
+
+    def tearDown(self):
+        self.file.close()
+        os.remove(self.filename)
+
+    def test_timecol_issue(self):
+        tbl = self.table
+        t = self.t
+
+        wherestr = '(when >= %d) & (when < %d)'%(t, t+5)
+
+        no_index = tbl.read_where(wherestr)
+
+        tbl.cols.when.create_index(_verbose = False)
+        with_index = tbl.read_where(wherestr)
+
+        self.assertTrue((no_index == with_index).all())
+
+
+class Issue119Time64ColTestCase(Issue119Time32ColTestCase):
+    col_typ = Time64Col
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -2420,6 +2476,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(readSortedIndex9))
         theSuite.addTest(unittest.makeSuite(Issue156_1))
         theSuite.addTest(unittest.makeSuite(Issue156_2))
+        theSuite.addTest(unittest.makeSuite(Issue119Time32ColTestCase))
+        theSuite.addTest(unittest.makeSuite(Issue119Time64ColTestCase))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))

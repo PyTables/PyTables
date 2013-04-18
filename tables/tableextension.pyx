@@ -31,7 +31,7 @@ from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
 from tables.utilsextension import (get_nested_field, atom_from_hdf5_type,
   create_nested_type, hdf5_to_np_ext_type, create_nested_type, platform_byteorder,
-  pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string, 
+  pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
   H5T_STD_I64)
 from tables.utils import SizeType
 
@@ -441,7 +441,7 @@ cdef class Table(Leaf):
       t64buf, byteoffset, bytestride, nrecords, nelements, sense)
 
 
-  cdef _convert_types(self, ndarray recarr, hsize_t nrecords, int sense):
+  cpdef _convert_types(self, ndarray recarr, hsize_t nrecords, int sense):
     """Converts columns in 'recarr' between NumPy and HDF5 formats.
 
     NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
@@ -935,6 +935,8 @@ cdef class Row:
 
         # Evaluate the condition on this table fragment.
         iobuf = iobuf[:recout]
+
+        self.table._convert_types(iobuf, len(iobuf), 1)
         self.indexvalid = call_on_recarr(
           self.condfunc, self.condargs, iobuf)
         self.index_valid_data = <char *>self.indexvalid.data
