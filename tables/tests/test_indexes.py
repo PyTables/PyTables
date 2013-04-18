@@ -2384,7 +2384,56 @@ class Issue156_2(Issue156TestBase):
     sort_field = 'Bar/code'
     test_copysort = Issue156TestBase._copysort
 
+class Issue119_base(PyTablesTestCase):
+    """ TimeCol not properly indexing """
+    col_typ = None
 
+    def setUp(self):
+
+        import random
+
+        # create hdf5 file
+        self.filename = tempfile.mktemp(".hdf5")
+        self.file = open_file(self.filename, mode="w")
+
+        class Descr(IsDescription):
+            Awhen = self.col_typ(pos = 1)
+            value = Float32Col(pos = 2)
+ 
+        self.table = self.file.createTable('/', 'test', Descr)
+ 
+        self.table.cols.Awhen.createIndex(_verbose = True)
+ 
+        self.t = 1321031471.0  # 11/11/11 11:11:11
+        self.table.append([(self.t + i, random.random()) for i in range(10)])
+
+        self.file.flush()
+
+    def tearDown(self):
+        self.file.close()
+        os.remove(self.filename)
+
+    def test_timecol_issue(self):
+ 
+        tbl = self.table
+        t = self.t
+
+        wherestr = '(Awhen >= %d) & (Awhen < %d)'%(t, t+5)
+ 
+        tbl.cols.Awhen.removeIndex()
+        no_index = tbl.readWhere(wherestr)
+
+        tbl.cols.Awhen.createIndex(_verbose = False)
+        with_index = tbl.readWhere(wherestr)
+
+        self.assertTrue((no_index == with_index).all())
+ 
+class Issue119_1(Issue119_base):
+    col_typ = Time32Col
+
+class Issue119_2(Issue119_base):
+    col_typ = Time64Col
+ 
 #----------------------------------------------------------------------
 
 def suite():

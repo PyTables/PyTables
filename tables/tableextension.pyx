@@ -466,6 +466,9 @@ cdef class Table(Leaf):
       column = get_nested_field(recarr, t64cname)
       self._convert_time64_(column, nrecords, sense)
 
+  def _convert_types_from_hdf(self, ndarray recarr):
+    # convert types (inplace) for the recarr
+    self._convert_types(recarr, len(recarr), 1)
 
   def _open_append(self, ndarray recarr):
     self._v_recarray = <object>recarr
@@ -935,6 +938,8 @@ cdef class Row:
 
         # Evaluate the condition on this table fragment.
         iobuf = iobuf[:recout]
+
+        self.table._convert_types_from_hdf(iobuf)
         self.indexvalid = call_on_recarr(
           self.condfunc, self.condargs, iobuf)
         self.index_valid_data = <char *>self.indexvalid.data
