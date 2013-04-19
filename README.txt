@@ -121,7 +121,7 @@ http://www.pytables.org/moin/HowToUse).
         >>> import tables
         >>> tables.test()
 
-   If there is some test that does not pass, please run send the
+   If there is some test that does not pass, please send the
    complete output for tests back to us.
 
 4. To install the entire PyTables Python package, run this command as
