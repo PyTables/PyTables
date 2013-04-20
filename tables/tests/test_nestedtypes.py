@@ -672,7 +672,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
       "name": StringCol(itemsize=2, shape=(), dflt='', pos=0),
       "value": ComplexCol(itemsize=16, shape=(2,), dflt=0j, pos=1),
       "y3": Time64Col(shape=(2,), dflt=1.0, pos=2),
-      "z3": EnumCol(enum=Enum({%s}), dflt='r', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
+      "z3": EnumCol(enum=Enum({%(value)s}), dflt='r', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
     "name": StringCol(itemsize=2, shape=(), dflt='', pos=3),
     "z2": UInt8Col(shape=(), dflt=1, pos=4)},
   "color": StringCol(itemsize=2, shape=(), dflt=' ', pos=2),
@@ -693,7 +693,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
       "name": StringCol(itemsize=2, shape=(), dflt=b'', pos=0),
       "value": ComplexCol(itemsize=16, shape=(2,), dflt=0j, pos=1),
       "y3": Time64Col(shape=(2,), dflt=1.0, pos=2),
-      "z3": EnumCol(enum=Enum({%s}), dflt='r', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
+      "z3": EnumCol(enum=Enum({%(value)s}), dflt='%(default)s', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
     "name": StringCol(itemsize=2, shape=(), dflt=b'', pos=3),
     "z2": UInt8Col(shape=(), dflt=1, pos=4)},
   "color": StringCol(itemsize=2, shape=(), dflt=b' ', pos=2),
@@ -703,8 +703,27 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
   "y": Float64Col(shape=(2, 2), dflt=1.0, pos=4),
   "z": UInt8Col(shape=(), dflt=1, pos=5)}
 """
-        values = [template % ', '.join(items)
-                  for items in itertools.permutations(("'r': 4", "'b': 1", "'g': 2"))]
+
+        # The problem here is that the order in which items are stored in a
+        # dict can't be assumed to be stable.
+        # From python 3.3 on it is actually no more stable since the
+        # "Hash randomization" feature is enable by default.
+        #
+        # For this reason we generate a representation string for each of the
+        # prmutations of the Enum items.
+        #
+        # Also the default value of enum types is not preserved in HDF5.
+        # It is assumed that the default value is the first one in the array
+        # of Enum names and hence it is also affected by the issue related to
+        # the "Hash randomization" feature.
+        #
+        # Also in this case it is genereted a representation string for each
+        # of the possible default values.
+        enums = [', '.join(items) for items in
+                        itertools.permutations(("'r': 4", "'b': 1", "'g': 2"))]
+        defaults = ('r', 'b', 'g')
+        values = [template % {'value': v, 'default': d}
+                                for v, d in itertools.product(enums, defaults)]
         self.assertTrue(tblrepr in values)
 
     def test00b_repr(self):
