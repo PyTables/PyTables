@@ -191,7 +191,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
     """
 
     def _g_getnode(self):
-        return self._v__nodeFile._get_node(self._v__nodePath)
+        return self._v__nodefile._get_node(self._v__nodepath)
 
     _v_node = property(_g_getnode, None, None,
                        "The :class:`Node` instance this attribute set is associated with.")
@@ -215,8 +215,8 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         mydict = self.__dict__
 
         self._g_new(node)
-        mydict["_v__nodeFile"] = node._v_file
-        mydict["_v__nodePath"] = node._v_pathname
+        mydict["_v__nodefile"] = node._v_file
+        mydict["_v__nodepath"] = node._v_pathname
         mydict["_v_attrnames"] = self._g_list_attr(node)
         # The list of unimplemented attribute names
         mydict["_v_unimplemented"] = []
@@ -254,8 +254,8 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         """Updates the location information about the associated `node`."""
 
         myDict = self.__dict__
-        myDict['_v__nodeFile'] = node._v_file
-        myDict['_v__nodePath'] = node._v_pathname
+        myDict['_v__nodefile'] = node._v_file
+        myDict['_v__nodepath'] = node._v_pathname
         # hdf5extension operations:
         self._g_new(node)
 
@@ -283,7 +283,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         # If attribute does not exist, raise AttributeError
         if not name in self._v_attrnames:
             raise AttributeError("Attribute '%s' does not exist in node: "
-                                 "'%s'" % (name, self._v__nodePath))
+                                 "'%s'" % (name, self._v__nodepath))
 
         # Read the attribute from disk. This is an optimization to read
         # quickly system attributes that are _string_ values, but it
@@ -424,7 +424,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         number of attributes in a node is going to be exceeded.
         """
 
-        nodeFile = self._v__nodeFile
+        nodeFile = self._v__nodefile
         attrnames = self._v_attrnames
 
         # Check for name validity
@@ -438,7 +438,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             warnings.warn("""\
 node ``%s`` is exceeding the recommended maximum number of attributes (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (self._v__nodePath, maxNodeAttrs),
+                          % (self._v__nodepath, maxNodeAttrs),
                           PerformanceWarning)
 
         undoEnabled = nodeFile.is_undo_enabled()
@@ -454,13 +454,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             self._g_log_add(name)
 
     def _g_log_add(self, name):
-        self._v__nodeFile._log('ADDATTR', self._v__nodePath, name)
+        self._v__nodefile._log('ADDATTR', self._v__nodepath, name)
 
     _g_logAdd = previous_api(_g_log_add)
 
     def _g_del_and_log(self, name):
-        nodeFile = self._v__nodeFile
-        nodePathname = self._v__nodePath
+        nodeFile = self._v__nodefile
+        nodePathname = self._v__nodepath
         # Log *before* moving to use the right shadow name.
         nodeFile._log('DELATTR', nodePathname, name)
         attr_to_shadow(nodeFile, nodePathname, name)
@@ -497,13 +497,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         specified, an ``AttributeError`` is raised.
         """
 
-        nodeFile = self._v__nodeFile
+        nodeFile = self._v__nodefile
 
         # Check if attribute exists
         if name not in self._v_attrnames:
             raise AttributeError(
                 "Attribute ('%s') does not exist in node '%s'"
-                % (name, self._v__nodePath))
+                % (name, self._v__nodepath))
 
         nodeFile._check_writable()
 
@@ -522,7 +522,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             # Capture the AttributeError an re-raise a KeyError one
             raise KeyError(
                 "Attribute ('%s') does not exist in node '%s'"
-                % (name, self._v__nodePath))
+                % (name, self._v__nodepath))
 
     def __setitem__(self, name, value):
         """The dictionary like interface for __setattr__()."""
@@ -538,7 +538,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             # Capture the AttributeError an re-raise a KeyError one
             raise KeyError(
                 "Attribute ('%s') does not exist in node '%s'"
-                % (name, self._v__nodePath))
+                % (name, self._v__nodepath))
 
     def __contains__(self, name):
         """Is there an attribute with that name?
@@ -579,7 +579,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         default setting method does not log anything.
         """
 
-        copysysattrs = newSet._v__nodeFile.params['PYTABLES_SYS_ATTRS']
+        copysysattrs = newSet._v__nodefile.params['PYTABLES_SYS_ATTRS']
         if set_attr is None:
             set_attr = newSet._g__setattr
 
@@ -626,7 +626,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """The string representation for this object."""
 
         # The pathname
-        pathname = self._v__nodePath
+        pathname = self._v__nodepath
         # Get this class name
         classname = self.__class__.__name__
         # The attribute names

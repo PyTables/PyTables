@@ -660,7 +660,7 @@ class Table(tableextension.Table, Leaf):
     This value is persistent.
     """
 
-    autoIndex = _table__autoIndex
+    autoindex = _table__autoindex
 
     indexedcolpathnames = property(
         lambda self: [_colpname for _colpname in self.colpathnames
@@ -1067,7 +1067,7 @@ class Table(tableextension.Table, Leaf):
                 for descr in self.description._f_walk(type="Description"):
                     names = descr._v_names
                     for i in range(len(names)):
-                        objcol = descr._v_colObjects[names[i]]
+                        objcol = descr._v_colobjects[names[i]]
                         if isinstance(objcol, Col):
                             descr._v_dflts[objcol._v_name] = objcol.dflt
 
@@ -2183,7 +2183,7 @@ class Table(tableextension.Table, Leaf):
             raise ValueError("Object cannot be converted into a recarray "
                              "object compliant with table format '%s'. "
                              "The error was: <%s>" %
-                            (self.description._v_nestedDescr, exc))
+                            (self.description._v_nested_descr, exc))
 
         return recarr
 
@@ -2310,7 +2310,7 @@ class Table(tableextension.Table, Leaf):
                 "'step' must have a value greater or equal than 1.")
         # Get the column format to be modified:
         objcol = self._get_column_instance(colname)
-        descr = [objcol._v_parent._v_nestedDescr[objcol._v_pos]]
+        descr = [objcol._v_parent._v_nested_descr[objcol._v_pos]]
         # Try to convert the column object into a NumPy ndarray
         try:
             # If the column is a recarray (or kind of), convert into ndarray
@@ -2391,7 +2391,7 @@ class Table(tableextension.Table, Leaf):
         descr = []
         for colname in names:
             objcol = self._get_column_instance(colname)
-            descr.append(objcol._v_parent._v_nestedDescr[objcol._v_pos])
+            descr.append(objcol._v_parent._v_nested_descr[objcol._v_pos])
             # descr.append(objcol._v_parent._v_dtype[objcol._v_pos])
         # Try to convert the columns object into a recarray
         try:
@@ -2957,7 +2957,7 @@ class Cols(object):
             if name in desc._v_types:
                 myDict[name] = Column(table, name, desc)
             else:
-                myDict[name] = Cols(table, desc._v_colObjects[name])
+                myDict[name] = Cols(table, desc._v_colobjects[name])
 
     def _g_update_table_location(self, table):
         """Updates the location information about the associated `table`."""
@@ -3265,7 +3265,7 @@ class Column(object):
         self._table_path = table._v_pathname
         self.name = name
         """The name of the associated column."""
-        self.pathname = descr._v_colObjects[name]._v_pathname
+        self.pathname = descr._v_colobjects[name]._v_pathname
         """The complete pathname of the associated column (the same as
         Column.name if the column is not inside a nested column)."""
         self.descr = descr

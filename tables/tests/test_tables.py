@@ -305,10 +305,10 @@ class BasicTestCase(common.PyTablesTestCase):
             columns = self.record
         elif isinstance(self.record, np.ndarray):
             descr, _ = descr_from_dtype(self.record.dtype)
-            columns = descr._v_colObjects
+            columns = descr._v_colobjects
         elif isinstance(self.record, np.dtype):
             descr, _ = descr_from_dtype(self.record)
-            columns = descr._v_colObjects
+            columns = descr._v_colobjects
         else:
             # This is an ordinary description.
             columns = self.record.columns
@@ -363,7 +363,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Column objects.
         for colName in expectedNames:
             expectedCol = columns[colName]
-            col = desc._v_colObjects[colName]
+            col = desc._v_colobjects[colName]
 
             self.assertEqual(expectedCol.dtype, col.dtype)
             self.assertEqual(expectedCol.type, col.type)
@@ -739,7 +739,7 @@ class BasicTestCase(common.PyTablesTestCase):
         row = table.row
         if common.verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
-            print "Record Format ==>", table.description._v_nestedFormats
+            print "Record Format ==>", table.description._v_nested_formats
             print "Record Size ==>", table.rowsize
         # Append some rows
         for i in xrange(self.appendrows):
@@ -838,7 +838,7 @@ class BasicTestCase(common.PyTablesTestCase):
             row = table.row
             if common.verbose:
                 print "Nrows in old", table._v_pathname, ":", table.nrows
-                print "Record Format ==>", table.description._v_nestedFormats
+                print "Record Format ==>", table.description._v_nested_formats
                 print "Record Size ==>", table.rowsize
             # Append some rows
             for i in xrange(self.appendrows):
@@ -932,7 +932,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.get_node("/group0/table1")
         if common.verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
-            print "Record Format ==>", table.description._v_nestedFormats
+            print "Record Format ==>", table.description._v_nested_formats
             print "Record Size ==>", table.rowsize
         # Set a small number of buffer to make this test faster
         table.nrowsinbuf = 3
@@ -1047,7 +1047,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.get_node("/group0/table1")
         if common.verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
-            print "Record Format ==>", table.description._v_nestedFormats
+            print "Record Format ==>", table.description._v_nested_formats
             print "Record Size ==>", table.rowsize
         # Set a small number of buffer to make this test faster
         table.nrowsinbuf = 3
@@ -1104,7 +1104,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.get_node("/group0/table1")
         if common.verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
-            print "Record Format ==>", table.description._v_nestedFormats
+            print "Record Format ==>", table.description._v_nested_formats
             print "Record Size ==>", table.rowsize
         # Set a small number of buffer to make this test faster
         table.nrowsinbuf = 3

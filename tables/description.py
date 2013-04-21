@@ -288,7 +288,7 @@ class Description(object):
 
     .. rubric:: Description attributes
 
-    .. attribute:: _v_colObjects
+    .. attribute:: _v_colobjects
 
         A dictionary mapping the names of the columns hanging
         directly from the associated table or nested column to their
@@ -334,13 +334,13 @@ class Description(object):
         names matches the order of their respective columns in the
         containing table.
 
-    .. attribute:: _v_nestedDescr
+    .. attribute:: _v_nested_descr
 
         A nested list of pairs of (name, format) tuples for all the columns
         under this table or nested column. You can use this as the dtype and
         descr arguments of NumPy array factories.
 
-    .. attribute:: _v_nestedFormats
+    .. attribute:: _v_nested_formats
 
         A nested list of the NumPy string formats (and shapes) of all the
         columns under this table or nested column. You can use this as the
@@ -351,7 +351,7 @@ class Description(object):
         The level of the associated table or nested column in the nested
         datatype.
 
-    .. attribute:: _v_nestedNames
+    .. attribute:: _v_nested_names
 
         A nested list of the names of all the columns under this table or
         nested column. You can use this as the names argument of NumPy array
@@ -385,7 +385,7 @@ class Description(object):
         newdict["_v_dtypes"] = {}
         newdict["_v_types"] = {}
         newdict["_v_dflts"] = {}
-        newdict["_v_colObjects"] = {}
+        newdict["_v_colobjects"] = {}
         newdict["_v_is_nested"] = False
         nestedFormats = []
         nestedDType = []
@@ -465,7 +465,7 @@ class Description(object):
             object._v_pos = pos  # Set the position of this object
             object._v_parent = self  # The parent description
             pos += 1
-            newdict['_v_colObjects'][k] = object
+            newdict['_v_colobjects'][k] = object
             newdict['_v_names'].append(k)
             object.__dict__['_v_name'] = k
 
@@ -489,16 +489,16 @@ class Description(object):
                 baserecarrtype = dtype.base.str[1:]
                 nestedDType.append((kk, baserecarrtype, dtype.shape))
             else:  # A description
-                nestedFormats.append(object._v_nestedFormats)
+                nestedFormats.append(object._v_nested_formats)
                 nestedDType.append((kk, object._v_dtype))
 
-        # Assign the format list to _v_nestedFormats
-        newdict['_v_nestedFormats'] = nestedFormats
+        # Assign the format list to _v_nested_formats
+        newdict['_v_nested_formats'] = nestedFormats
         newdict['_v_dtype'] = numpy.dtype(nestedDType)
         # _v_itemsize is derived from the _v_dtype that already computes this
         newdict['_v_itemsize'] = newdict['_v_dtype'].itemsize
         if self._v_nestedlvl == 0:
-            # Get recursively nested _v_nestedNames and _v_nestedDescr attrs
+            # Get recursively nested _v_nested_names and _v_nested_descr attrs
             self._g_set_nested_names_descr()
             # Get pathnames for nested groups
             self._g_set_path_names()
@@ -512,17 +512,17 @@ class Description(object):
         """Computes the nested names and descriptions for nested datatypes."""
 
         names = self._v_names
-        fmts = self._v_nestedFormats
-        self._v_nestedNames = names[:]  # Important to do a copy!
-        self._v_nestedDescr = [(names[i], fmts[i]) for i in range(len(names))]
+        fmts = self._v_nested_formats
+        self._v_nested_names = names[:]  # Important to do a copy!
+        self._v_nested_descr = [(names[i], fmts[i]) for i in range(len(names))]
         for i in range(len(names)):
             name = names[i]
-            new_object = self._v_colObjects[name]
+            new_object = self._v_colobjects[name]
             if isinstance(new_object, Description):
                 new_object._g_set_nested_names_descr()
                 # replace the column nested name by a correct tuple
-                self._v_nestedNames[i] = (name, new_object._v_nestedNames)
-                self._v_nestedDescr[i] = (name, new_object._v_nestedDescr)
+                self._v_nested_names[i] = (name, new_object._v_nested_names)
+                self._v_nested_descr[i] = (name, new_object._v_nested_descr)
                 # set the _v_is_nested flag
                 self._v_is_nested = True
 
@@ -537,7 +537,7 @@ class Description(object):
         """
 
         def get_cols_in_order(description):
-            return [description._v_colObjects[colname]
+            return [description._v_colobjects[colname]
                     for colname in description._v_names]
 
         def join_paths(path1, path2):
@@ -626,7 +626,7 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
                 yield object  # yield description
             names = object._v_names
             for i in range(len(names)):
-                new_object = object._v_colObjects[names[i]]
+                new_object = object._v_colobjects[names[i]]
                 if isinstance(new_object, Description):
                     stack.append(new_object)
                 else:
@@ -637,14 +637,14 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
         """Gives a detailed Description column representation."""
 
         rep = ['%s\"%s\": %r' %
-               ("  "*self._v_nestedlvl, k, self._v_colObjects[k])
+               ("  "*self._v_nestedlvl, k, self._v_colobjects[k])
                for k in self._v_names]
         return '{\n  %s}' % (',\n  '.join(rep))
 
     def __str__(self):
         """Gives a brief Description representation."""
 
-        return 'Description(%s)' % self._v_nestedDescr
+        return 'Description(%s)' % self._v_nested_descr
 
 
 class MetaIsDescription(type):
@@ -851,11 +851,11 @@ if __name__ == "__main__":
     print "Column x ==>", desc.x
     print "Column Info ==>", desc.Info
     print "Column Info.value ==>", desc.Info.Value
-    print "Nested column names  ==>", desc._v_nestedNames
+    print "Nested column names  ==>", desc._v_nested_names
     print "Defaults ==>", desc._v_dflts
-    print "Nested Formats ==>", desc._v_nestedFormats
-    print "Nested Descriptions ==>", desc._v_nestedDescr
-    print "Nested Descriptions (info) ==>", desc.info._v_nestedDescr
+    print "Nested Formats ==>", desc._v_nested_formats
+    print "Nested Descriptions ==>", desc._v_nested_descr
+    print "Nested Descriptions (info) ==>", desc.info._v_nested_descr
     print "Total size ==>", desc._v_dtype.itemsize
 
     # check _f_walk
@@ -865,7 +865,7 @@ if __name__ == "__main__":
             print "name -->", object._v_name
             # print "name -->", object._v_dtype.name
             # print "object childs-->", object._v_names
-            # print "object nested childs-->", object._v_nestedNames
+            # print "object nested childs-->", object._v_nested_names
             print "totalsize-->", object._v_dtype.itemsize
         else:
             # pass

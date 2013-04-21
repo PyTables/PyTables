@@ -193,10 +193,10 @@ class BasicTestCase(common.PyTablesTestCase):
             columns = self.record
         elif isinstance(self.record, np.ndarray):
             descr, _ = descr_from_dtype(self.record.dtype)
-            columns = descr._v_colObjects
+            columns = descr._v_colobjects
         elif isinstance(self.record, np.dtype):
             descr, _ = descr_from_dtype(self.record)
-            columns = descr._v_colObjects
+            columns = descr._v_colobjects
         else:
             # This is an ordinary description.
             columns = self.record.columns
@@ -243,7 +243,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Column objects.
         for colName in expectedNames:
             expectedCol = columns[colName]
-            col = desc._v_colObjects[colName]
+            col = desc._v_colobjects[colName]
             self.assertEqual(expectedCol.dtype, col.dtype)
             self.assertEqual(expectedCol.type, col.type)
 
@@ -377,7 +377,7 @@ class BasicTestCase(common.PyTablesTestCase):
         row = table.row
         if common.verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
-            print "Record Format ==>", table.description._v_nestedFormats
+            print "Record Format ==>", table.description._v_nested_formats
             print "Record Size ==>", table.rowsize
         # Append some rows
         for i in xrange(self.appendrows):
@@ -1385,7 +1385,7 @@ class setItem(common.PyTablesTestCase):
         "Checking modifying one table row with __setitem__"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1417,7 +1417,7 @@ class setItem(common.PyTablesTestCase):
         "Checking modifying one table row with __setitem__ (long index)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1449,7 +1449,7 @@ class setItem(common.PyTablesTestCase):
         "Modifying one row, with a step (__setitem__)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1483,7 +1483,7 @@ class setItem(common.PyTablesTestCase):
         "Checking modifying several rows at once (__setitem__)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1518,7 +1518,7 @@ class setItem(common.PyTablesTestCase):
         "Modifying several rows at once, with a step (__setitem__)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1553,7 +1553,7 @@ class setItem(common.PyTablesTestCase):
         "Checking modifying one column (single element, __setitem__)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1585,7 +1585,7 @@ class setItem(common.PyTablesTestCase):
         "Checking modifying one column (several elements, __setitem__)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1617,7 +1617,7 @@ class setItem(common.PyTablesTestCase):
         "Checking modifying one column (iterator, __setitem__)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1643,7 +1643,7 @@ class setItem(common.PyTablesTestCase):
         "Modifying one column (several elements, __setitem__, step)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1674,7 +1674,7 @@ class setItem(common.PyTablesTestCase):
         "Modifying one column (one element, __setitem__, step)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1706,7 +1706,7 @@ class setItem(common.PyTablesTestCase):
         "Modifying beyond the table extend (__setitem__, step)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1776,7 +1776,7 @@ class updateRow(common.PyTablesTestCase):
         "Checking modifying one table row with Row.update"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1810,7 +1810,7 @@ class updateRow(common.PyTablesTestCase):
         "Modifying one row, with a step (Row.update)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1847,7 +1847,7 @@ class updateRow(common.PyTablesTestCase):
         "Checking modifying several rows at once (Row.update)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1884,7 +1884,7 @@ class updateRow(common.PyTablesTestCase):
         "Modifying several rows at once, with a step (Row.update)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1921,7 +1921,7 @@ class updateRow(common.PyTablesTestCase):
         "Checking modifying one column (single element, Row.update)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1955,7 +1955,7 @@ class updateRow(common.PyTablesTestCase):
         "Checking modifying one column (several elements, Row.update)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -1989,7 +1989,7 @@ class updateRow(common.PyTablesTestCase):
         "Modifying values from a selection"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         # append new rows
         r = records.array([[456, 'dbe', 1.2], [
@@ -2024,7 +2024,7 @@ class updateRow(common.PyTablesTestCase):
         "Modifying a large table (Row.update)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         nrows = 100
         # append new rows
@@ -2068,7 +2068,7 @@ class updateRow(common.PyTablesTestCase):
         "Setting values on a large table without calling Row.update"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         nrows = 100
         # append new rows
@@ -2112,7 +2112,7 @@ class updateRow(common.PyTablesTestCase):
         "Modifying selected values on a large table"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         nrows = 100
         # append new rows
@@ -2162,7 +2162,7 @@ class updateRow(common.PyTablesTestCase):
         "Modifying selected values on a large table (alternate values)"
 
         table = self.table
-        formats = table.description._v_nestedFormats
+        formats = table.description._v_nested_formats
 
         nrows = 100
         # append new rows

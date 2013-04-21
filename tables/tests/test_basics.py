@@ -2598,13 +2598,13 @@ class TestDescription(common.PyTablesTestCase):
         t = numpy.dtype([('col1', 'int16'), ('col2', float)])
         descr, byteorder = descr_from_dtype(t)
 
-        self.assertTrue('col1' in descr._v_colObjects)
-        self.assertTrue('col2' in descr._v_colObjects)
-        self.assertEqual(len(descr._v_colObjects), 2)
-        self.assertTrue(isinstance(descr._v_colObjects['col1'], Col))
-        self.assertTrue(isinstance(descr._v_colObjects['col2'], Col))
-        self.assertEqual(descr._v_colObjects['col1'].dtype, numpy.int16)
-        self.assertEqual(descr._v_colObjects['col2'].dtype, float)
+        self.assertTrue('col1' in descr._v_colobjects)
+        self.assertTrue('col2' in descr._v_colobjects)
+        self.assertEqual(len(descr._v_colobjects), 2)
+        self.assertTrue(isinstance(descr._v_colobjects['col1'], Col))
+        self.assertTrue(isinstance(descr._v_colobjects['col2'], Col))
+        self.assertEqual(descr._v_colobjects['col1'].dtype, numpy.int16)
+        self.assertEqual(descr._v_colobjects['col2'].dtype, float)
 
     def test_descr_from_dtype_rich_dtype(self):
         header = [(('timestamp', 't'), 'u4'),

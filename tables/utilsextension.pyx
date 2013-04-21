@@ -1255,7 +1255,7 @@ def create_nested_type(object desc, str byteorder):
 
   offset = 0
   for k in desc._v_names:
-    obj = desc._v_colObjects[k]
+    obj = desc._v_colobjects[k]
     if isinstance(obj, Description):
       tid2 = create_nested_type(obj, byteorder)
     else:

@@ -144,15 +144,15 @@ def areDescriptionsEqual(desc1, desc2):
                 # and desc1.dflt == desc2.dflt)
                 and common.areArraysEqual(desc1.dflt, desc2.dflt))
 
-    if hasattr(desc1, '_v_colObjects'):  # quacks like a Description
-        cols1 = desc1._v_colObjects
+    if hasattr(desc1, '_v_colobjects'):  # quacks like a Description
+        cols1 = desc1._v_colobjects
     elif hasattr(desc1, 'columns'):  # quacks like an IsDescription
         cols1 = desc1.columns
     else:  # hope it quacks like a dictionary
         cols1 = desc1
 
-    if hasattr(desc2, '_v_colObjects'):  # quacks like a Description
-        cols2 = desc2._v_colObjects
+    if hasattr(desc2, '_v_colobjects'):  # quacks like a Description
+        cols2 = desc2._v_colobjects
     elif hasattr(desc2, 'columns'):  # quacks like an IsDescription
         cols2 = desc2.columns
     else:  # hope it quacks like a dictionary
@@ -192,10 +192,10 @@ class DescriptionTestCase(common.PyTablesTestCase):
 
         descr = Description(self._TestTDescr().columns)
         if common.verbose:
-            print "Generated description:", descr._v_nestedDescr
+            print "Generated description:", descr._v_nested_descr
             print "Should look like:", self._testADescr2
-        self.assertEqual(self._testADescr2, descr._v_nestedDescr,
-                         "Description._v_nestedDescr does not match.")
+        self.assertEqual(self._testADescr2, descr._v_nested_descr,
+                         "Description._v_nested_descr does not match.")
 
 
 # Test creating a nested table and opening it
@@ -215,7 +215,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             return isinstance(cols, t.Column)
 
         # ``_desc`` is a description object and ``cols`` a ``Cols``.
-        descColumns = desc._v_colObjects
+        descColumns = desc._v_colobjects
         for colName in descColumns:
             if colName not in cols._v_colnames:
                 return False
@@ -269,7 +269,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         self.assertTrue(common.areArraysEqual(nrarr, self._testAData),
                         "Can not create a compatible structured array.")
 
@@ -511,10 +511,10 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         raCols = numpy.rec.fromarrays([self._testAData['x'].copy(),
                                        self._testAData['color'].copy()],
                                       dtype=[('x', '(2,)i4'), ('color', '1a2')])
-                               # descr=tbl.description._v_nestedDescr[0:2])
+                               # descr=tbl.description._v_nested_descr[0:2])
                                # or...
-                               # names=tbl.description._v_nestedNames[0:2],
-                               # formats=tbl.description._v_nestedFormats[0:2])
+                               # names=tbl.description._v_nested_names[0:2],
+                               # formats=tbl.description._v_nested_formats[0:2])
         (raCols[0], raCols[-1]) = (raCols[-1].copy(), raCols[0].copy())
 
         # Write the resulting columns
@@ -759,7 +759,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+                                dtype=tbl.description._v_nested_descr)
         tblcols = tbl.read(start=0, step=2, field='Info')
         nrarrcols = nrarr['Info'][0::2]
         if common.verbose:
@@ -778,7 +778,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+                                dtype=tbl.description._v_nested_descr)
         # When reading an entire nested column, the output array must contain
         # all fields in the table.  The output buffer will contain the contents
         # of all fields.  The selected column alone will be returned from the
@@ -807,7 +807,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tblcols = tbl.read(start=0, step=2, field='Info/value')
         nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+                                dtype=tbl.description._v_nested_descr)
         nrarrcols = nrarr['Info']['value'][0::2]
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
@@ -826,7 +826,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = numpy.empty(1, dtype='c16')
         tbl.read(start=0, step=2, field='Info/value', out=tblcols)
         nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+                                dtype=tbl.description._v_nested_descr)
         nrarrcols = nrarr['Info']['value'][0::2]
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
@@ -998,7 +998,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         tblcols = tbl.cols[1]
         nrarrcols = nrarr[1]
         if common.verbose:
@@ -1018,7 +1018,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         tblcols = tbl.cols[0:2]
         nrarrcols = nrarr[0:2]
         if common.verbose:
@@ -1038,7 +1038,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         tblcols = tbl.cols[0::2]
         nrarrcols = nrarr[0::2]
         if common.verbose:
@@ -1058,7 +1058,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         tblcols = tbl.cols._f_col('Info')[1]
         nrarrcols = nrarr['Info'][1]
         if common.verbose:
@@ -1078,7 +1078,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         tblcols = tbl.cols._f_col('Info')[0:2]
         nrarrcols = nrarr['Info'][0:2]
         if common.verbose:
@@ -1098,7 +1098,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         tblcols = tbl.cols._f_col('Info')[0::2]
         nrarrcols = nrarr['Info'][0::2]
         if common.verbose:
@@ -1118,7 +1118,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         tblcols = tbl.cols._f_col('Info/value')[1]
         nrarrcols = nrarr['Info']['value'][1]
         if common.verbose:
@@ -1138,7 +1138,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         tblcols = tbl.cols._f_col('Info/value')[0:2]
         nrarrcols = nrarr['Info']['value'][0:2]
         if common.verbose:
@@ -1158,7 +1158,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         tblcols = tbl.cols._f_col('Info/value')[0::2]
         nrarrcols = nrarr['Info']['value'][0::2]
         if common.verbose:
@@ -1176,7 +1176,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nested_descr)
         row_num = 0
         for item in tbl.cols.Info.value:
             self.assertEqual(item, nrarr['Info']['value'][row_num])
