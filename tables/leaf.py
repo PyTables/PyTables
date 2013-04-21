@@ -61,6 +61,7 @@ def calc_chunksize(expectedsizeinMB):
     The tuning of the chunksize parameter affects the performance and
     the memory consumed. This is based on my own experiments and, as
     always, your mileage may vary.
+
     """
 
     expectedsizeinMB = limit_es(expectedsizeinMB)
@@ -261,7 +262,9 @@ class Leaf(Node):
         Please note that this may raise an OverflowError on 32-bit platforms
         for datasets having more than 2**31-1 rows.  This is a limitation of
         Python that you can work around by using the nrows or shape attributes.
+
         """
+
         return self.nrows
 
     def __str__(self):
@@ -447,7 +450,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             title, filters, chunkshape, _log, **kwargs)
 
         # Copy user attributes if requested (or the flavor at least).
-        if copyuserattrs == True:
+        if copyuserattrs:
             self._v_attrs._g_copy(new_node._v_attrs, copyClass=True)
         elif 'FLAVOR' in self._v_attrs:
             if self._v_file.params['PYTABLES_SYS_ATTRS']:
@@ -507,6 +510,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         This is useful for whatever `Leaf` instance implementing a
         point-wise selection.
+
         """
 
         if type(key) in (list, tuple):
@@ -564,6 +568,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         This method has the behavior described
         in :meth:`Node._f_remove`. Please note that there is no recursive flag
         since leaves do not have child nodes.
+
         """
 
         self._f_remove(False)
@@ -572,7 +577,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Rename this node in place.
 
         This method has the behavior described in :meth:`Node._f_rename()`.
+
         """
+
         self._f_rename(newname)
 
     def move(self, newparent=None, newname=None,
@@ -580,6 +587,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Move or rename this node.
 
         This method has the behavior described in :meth:`Node._f_move`
+
         """
 
         self._f_move(newparent, newname, overwrite, createparents)
@@ -629,6 +637,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             best performance when accessing the dataset through the main
             dimension.  Any other value should be an integer or a tuple
             matching the dimensions of the leaf.
+
         """
 
         return self._f_copy(
@@ -655,6 +664,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Is this node visible?
 
         This method has the behavior described in :meth:`Node._f_isvisible()`.
+
         """
 
         return self._f_isvisible()
@@ -667,7 +677,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Get a PyTables attribute from this node.
 
         This method has the behavior described in :meth:`Node._f_getattr`.
+
         """
+
         return self._f_getattr(name)
 
     getAttr = previous_api(get_attr)
@@ -676,6 +688,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Set a PyTables attribute for this node.
 
         This method has the behavior described in :meth:`Node._f_setattr()`.
+
         """
 
         self._f_setattr(name, value)
@@ -686,6 +699,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Delete a PyTables attribute from this node.
 
         This method has the behavior described in :meth:`Node_f_delAttr`.
+
         """
 
         self._f_delattr(name)
@@ -701,6 +715,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         buffers, so if you are filling many datasets in the same PyTables
         session, please call flush() extensively so as to help PyTables to keep
         memory requirements low.
+
         """
 
         self._g_flush()
@@ -711,6 +726,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         This method has the behavior described in :meth:`Node._f_close`.
         Besides that, the optional argument flush tells whether to flush
         pending data to disk or not before closing.
+
         """
 
         if not self._v_isopen:
@@ -733,9 +749,10 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Close this node in the tree.
 
         This method is completely equivalent to :meth:`Leaf._f_close`.
-        """
-        self._f_close(flush)
 
+        """
+
+        self._f_close(flush)
 
 
 ## Local Variables:

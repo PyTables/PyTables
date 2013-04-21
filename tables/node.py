@@ -208,7 +208,8 @@ class Node(object):
         self._v_name = None
         """The name of this node in its parent group (a string)."""
         self._v_depth = None
-        """The depth of this node in the tree (an non-negative integer value)."""
+        """The depth of this node in the tree (an non-negative integer value).
+        """
         self._v_maxTreeDepth = parentNode._v_file.params['MAX_TREE_DEPTH']
         """Maximum tree depth before warning the user."""
         self._v__deleting = False
@@ -335,12 +336,13 @@ class Node(object):
         """Set location-dependent attributes.
 
         Sets the location-dependent attributes of this node to reflect
-        that it is placed under the specified `parentNode`, with the
+        that it is placed under the specified `parentnode`, with the
         specified `name`.
 
         This also triggers the insertion of file references to this
         node.  If the maximum recommended tree depth is exceeded, a
         `PerformanceWarning` is issued.
+
         """
 
         file_ = parentNode._v_file
@@ -381,13 +383,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """Update location-dependent attributes.
 
         Updates location data when an ancestor node has changed its
-        location in the hierarchy to `newParentPath`.  In fact, this
+        location in the hierarchy to `newparentpath`.  In fact, this
         method is expected to be called by an ancestor of this node.
 
         This also triggers the update of file references to this node.
         If the maximum recommended node depth is exceeded, a
         `PerformanceWarning` is issued.  This warning is assured to be
         unique.
+
         """
 
         oldPath = self._v_pathname
@@ -544,10 +547,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_move(self, newParent, newName):
         """Move this node in the hierarchy.
 
-        Moves the node into the given `newParent`, with the given
-        `newName`.
+        Moves the node into the given `newparent`, with the given
+        `newname`.
 
         It does not log the change.
+
         """
 
         oldParent = self._v_parent
@@ -607,6 +611,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Usually, only the first argument will be used, effectively moving the
         node to a new location without changing its name.  Using only the
         second argument is equivalent to renaming the node in place.
+
         """
 
         self._g_check_open()
@@ -680,8 +685,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         """Copy this node and return the new one.
 
-        Creates and returns a copy of the node in the given `newParent`,
-        with the given `newName`.  If `recursive` copy is stated, all
+        Creates and returns a copy of the node in the given `newparent`,
+        with the given `newname`.  If `recursive` copy is stated, all
         descendents are copied as well.  Additional keyword argumens may
         affect the way that the copy is made.  Unknown arguments must be
         ignored.  On recursive copies, all keyword arguments must be
@@ -690,6 +695,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         If `_log` is false, the change is not logged.  This is *only*
         intended to be used by ``_g_copy_as_child()`` as a means of
         optimising sub-tree copies.
+
         """
 
         raise NotImplementedError
@@ -697,9 +703,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_copy_as_child(self, newParent, **kwargs):
         """Copy this node as a child of another group.
 
-        Copies just this node into `newParent`, not recursing children
+        Copies just this node into `newparent`, not recursing children
         nor overwriting nodes nor logging the copy.  This is intended to
         be used when copying whole sub-trees.
+
         """
 
         return self._g_copy(newParent, self._v_name,
@@ -738,6 +745,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Using only the first argument is equivalent to copying the node to a
         new location without changing its name. Using only the second argument
         is equivalent to making a copy of the node in the same group.
+
         """
 
         self._g_check_open()
@@ -829,9 +837,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if (mypathname == '/'  # all nodes fall below the root group
            or pathname == mypathname
            or pathname.startswith(mypathname + '/')):
-            raise NodeError(
-                "can not move or recursively copy node ``%s`` into itself"
-                % mypathname)
+            raise NodeError("can not move or recursively copy node ``%s`` "
+                            "into itself" % mypathname)
 
     _g_checkNotContains = previous_api(_g_check_not_contains)
 

@@ -119,7 +119,7 @@ pttype_to_hdf5 = {
   'float32': H5T_IEEE_F32, 'float64': H5T_IEEE_F64,
   'float96': H5T_NATIVE_LDOUBLE, 'float128': H5T_NATIVE_LDOUBLE,
   'time32' : H5T_UNIX_D32, 'time64' : H5T_UNIX_D64,
-  }
+}
 
 # Special cases whose byteorder cannot be directly changed
 pt_special_kinds = ['complex', 'string', 'enum', 'bool']
@@ -134,7 +134,7 @@ npext_prefixes_to_ptkinds = {
   "c": "complex",
   "t": "time",
   "e": "enum",
-  }
+}
 
 # Names of HDF5 classes
 hdf5_class_to_string = {
@@ -150,7 +150,7 @@ hdf5_class_to_string = {
   H5T_ENUM      : 'H5T_ENUM',
   H5T_VLEN      : 'H5T_VLEN',
   H5T_ARRAY     : 'H5T_ARRAY',
-  }
+}
 
 from numpy import typeDict
 cdef int have_float16 = ("float16" in typeDict)
@@ -182,7 +182,6 @@ cdef extern from "utils.h":
 # Functions from Blosc
 cdef extern from "blosc.h" nogil:
   int blosc_set_nthreads(int nthreads)
-
 
 
 #----------------------------------------------------------------------
@@ -238,10 +237,14 @@ def set_blosc_max_threads(nthreads):
   :data:`tables.parameters.MAX_BLOSC_THREADS` value is specified.
 
   Returns the previous setting for maximum threads.
+
   """
+
   return blosc_set_nthreads(nthreads)
 
+
 setBloscMaxThreads = previous_api(set_blosc_max_threads)
+
 
 if sys.platform == "win32":
   # We need a different approach in Windows, because it complains when
@@ -317,6 +320,7 @@ cdef herr_t e_walk_cb(unsigned n, H5E_error_t *err, void *data) with gil:
 
     return 0
 
+
 def _dump_h5_backtrace():
     cdef object bt = []
 
@@ -325,10 +329,12 @@ def _dump_h5_backtrace():
 
     return bt
 
+
 # Initialization of the _dump_h5_backtrace method of HDF5ExtError.
 # The unusual machinery is needed in order to avoid cirdular dependencies
 # between modules.
 HDF5ExtError._dump_h5_backtrace = _dump_h5_backtrace
+
 
 def silence_hdf5_messages(silence=True):
     """silence_hdf5_messages(silence=True)
@@ -349,14 +355,15 @@ def silence_hdf5_messages(silence=True):
     if err < 0:
         raise HDF5ExtError("unable to configure HDF5 internal error handling")
 
+
 silenceHDF5Messages = previous_api(silence_hdf5_messages)
+
 
 # Disable automatic HDF5 error logging
 silence_hdf5_messages()
 
 
 # Helper functions
-
 cdef hsize_t *malloc_dims(object pdims):
   """Return a malloced hsize_t dims from a python pdims."""
 
@@ -371,10 +378,14 @@ cdef hsize_t *malloc_dims(object pdims):
       dims[i] = pdims[i]
   return dims
 
+
 cdef hid_t get_native_float_type(hid_t type_id) nogil:
   """Get a native type of an HDF5 float type.
 
-  This functionn also handles half precision (float16) data type."""
+  This functionn also handles half precision (float16) data type.
+
+  """
+
   cdef hid_t  native_type_id
   cdef size_t precision
 
@@ -387,14 +398,16 @@ cdef hid_t get_native_float_type(hid_t type_id) nogil:
 
   return native_type_id
 
+
 # This is a re-implementation of a working H5Tget_native_type for nested
 # compound types.  I should report the flaw to THG as soon as possible.
 # F. Alted 2009-08-19
 cdef hid_t get_nested_native_type(hid_t type_id) nogil:
   """Get a native nested type of an HDF5 type.
 
-  In addition, it also recursively remove possible padding on type_id, i.e. it
-  acts as a combination of H5Tget_native_type and H5Tpack.
+  In addition, it also recursively remove possible padding on type_id,
+  i.e. it acts as a combination of H5Tget_native_type and H5Tpack.
+
   """
 
   cdef hid_t   tid, tid2
@@ -526,7 +539,6 @@ def encode_filename(object filename):
 
 
 # Main functions
-
 def is_hdf5_file(object filename):
   """is_hdf5_file(filename)
 
@@ -535,6 +547,7 @@ def is_hdf5_file(object filename):
   When successful, it returns a true value if the file is an HDF5
   file, false otherwise.  If there were problems identifying the file,
   an HDF5ExtError is raised.
+
   """
 
   # Encode the filename in case it is unicode
@@ -548,6 +561,7 @@ def is_hdf5_file(object filename):
     raise HDF5ExtError("problems identifying file ``%s``" % (filename,))
   return ret > 0
 
+
 isHDF5File = previous_api(is_hdf5_file)
 
 
@@ -559,6 +573,7 @@ def is_pytables_file(object filename):
   When successful, it returns the format version string if the file is a
   PyTables file, None otherwise.  If there were problems identifying the
   file, an HDF5ExtError is raised.
+
   """
 
   cdef hid_t file_id
@@ -582,6 +597,7 @@ def is_pytables_file(object filename):
 
   return isptf
 
+
 isPyTablesFile = previous_api(is_pytables_file)
 
 
@@ -590,7 +606,9 @@ def get_hdf5_version():
 
   return getHDF5VersionInfo()[1]
 
+
 getHDF5Version = previous_api(get_hdf5_version)
+
 
 def get_pytables_version():
   """Return this extension version."""
@@ -612,6 +630,7 @@ def which_lib_version(str name):
 
   The currently supported library names are hdf5, zlib, lzo and bzip2. If
   another name is given, a ValueError is raised.
+
   """
 
   cdef char *cname = NULL
@@ -647,6 +666,7 @@ def which_lib_version(str name):
 
   # A supported library was specified, but no version is available.
   return None
+
 
 whichLibVersion = previous_api(which_lib_version)
 
@@ -746,6 +766,7 @@ def which_class(hid_t loc_id, object name):
   # Fallback
   return classId
 
+
 whichClass = previous_api(which_class)
 
 
@@ -754,7 +775,9 @@ def get_nested_field(recarray, fieldname):
 
   The `fieldname` may be a simple field name or a nested field name
   with slah-separated components.
+
   """
+
   cdef bytes name = fieldname.encode('utf-8')
   try:
     if strchr(<char *>name, 47) != NULL:   # ord('/') == 47
@@ -770,6 +793,7 @@ def get_nested_field(recarray, fieldname):
   except KeyError:
     raise KeyError("no such column: %s" % (fieldname,))
   return field
+
 
 getNestedField = previous_api(get_nested_field)
 
@@ -788,14 +812,16 @@ def get_indices(object start, object stop, object step, hsize_t length):
     raise ValueError("Problems getting the indices on slice '%s'" % s)
   return (o_start, o_stop, o_step)
 
+
 getIndices = previous_api(get_indices)
 
 
 def read_f_attr(hid_t file_id, str attr_name):
   """Read PyTables file attributes (i.e. in root group).
 
-  Returns the value of the `attr_name` attribute in root group, or `None` if
-  it does not exist.  This call cannot fail.
+  Returns the value of the `attr_name` attribute in root group, or `None`
+  if it does not exist.  This call cannot fail.
+
   """
 
   cdef size_t size
@@ -838,6 +864,7 @@ def get_filters(parent_id, name):
 
   return get_filter_names(parent_id, encoded_name)
 
+
 getFilters = previous_api(get_filters)
 
 
@@ -851,6 +878,7 @@ def get_type_enum(hid_t h5type):
   variable-length type with an enumerated base type, this is returned.  If it
   is a multi-dimensional type with an enumerated base type, this is returned.
   Else, a ``TypeError`` is raised.
+
   """
 
   cdef H5T_class_t typeClass
@@ -883,6 +911,7 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
 
   This function takes an HDF5 enumerated type and returns an `Enum`
   instance built from that, and the NumPy type used to encode it.
+
   """
 
   cdef hid_t  baseId
@@ -936,6 +965,7 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
   # Build an enumerated type from `enumDict` and return it.
   return Enum(enumDict), dtype
 
+
 enumFromHDF5 = previous_api(enum_from_hdf5)
 
 
@@ -948,6 +978,7 @@ def enum_to_hdf5(object enumAtom, str byteorder):
   contained in `enumAtom` (an ``Atom`` object), with the specified
   `byteorder` (a string).  The resulting HDF5 enumerated type is
   returned.
+
   """
 
   cdef bytes  name
@@ -986,7 +1017,9 @@ def enum_to_hdf5(object enumAtom, str byteorder):
   # Return the new, open HDF5 enumerated type.
   return enumId
 
+
 enumToHDF5 = previous_api(enum_to_hdf5)
+
 
 def atom_to_hdf5_type(atom, str byteorder):
   cdef hid_t   tid = -1
@@ -1035,6 +1068,7 @@ def atom_to_hdf5_type(atom, str byteorder):
 
   return tid
 
+
 AtomToHDF5Type = previous_api(atom_to_hdf5_type)
 
 
@@ -1045,6 +1079,7 @@ def load_enum(hid_t type_id):
 
   It returns an `Enum` instance built from that, and the
   NumPy type used to encode it.
+
   """
 
   cdef hid_t enumId
@@ -1067,7 +1102,9 @@ def load_enum(hid_t type_id):
     if H5Tclose(enumId) < 0:
       raise HDF5ExtError("failed to close HDF5 enumerated type")
 
+
 loadEnum = previous_api(load_enum)
+
 
 def hdf5_to_np_nested_type(hid_t type_id):
   """Given a HDF5 `type_id`, return a dtype string representation of it."""
@@ -1108,6 +1145,7 @@ def hdf5_to_np_nested_type(hid_t type_id):
 
   return desc
 
+
 HDF5ToNPNestedType = previous_api(hdf5_to_np_nested_type)
 
 
@@ -1123,6 +1161,7 @@ def hdf5_to_np_ext_type(hid_t type_id, pure_numpy_types=True, atom=False):
 
   Returns the string repr of type and its shape.  The exception is for
   compounds types, that returns a NumPy dtype and shape instead.
+
   """
 
   cdef H5T_sign_t  sign
@@ -1211,6 +1250,7 @@ def hdf5_to_np_ext_type(hid_t type_id, pure_numpy_types=True, atom=False):
 
   return stype, shape
 
+
 HDF5ToNPExtType = previous_api(hdf5_to_np_ext_type)
 
 
@@ -1219,6 +1259,7 @@ def atom_from_hdf5_type(hid_t type_id, pure_numpy_types=False):
 
   See `hdf5_to_np_ext_type` for an explanation of the `pure_numpy_types`
   parameter.
+
   """
 
   cdef object stype, shape, atom_, sctype, tsize, kind
@@ -1238,6 +1279,7 @@ def atom_from_hdf5_type(hid_t type_id, pure_numpy_types=False):
     atom_ = Atom.from_kind(kind, tsize, shape=shape)
 
   return atom_
+
 
 AtomFromHDF5Type = previous_api(atom_from_hdf5_type)
 
@@ -1268,6 +1310,7 @@ def create_nested_type(object desc, str byteorder):
 
   return tid
 
+
 createNestedType = previous_api(create_nested_type)
 
 
@@ -1277,9 +1320,3 @@ createNestedType = previous_api(create_nested_type)
 ## tab-width: 2
 ## fill-column: 78
 ## End:
-
-
-
-
-
-

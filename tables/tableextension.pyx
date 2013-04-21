@@ -20,6 +20,7 @@ Classes (type extensions):
 Functions:
 
 Misc variables:
+
 """
 
 import sys
@@ -119,7 +120,9 @@ cdef get_nested_field_cache(recarray, fieldname, fieldcache):
   The `fieldname` may be a simple field name or a nested field name with
   slah-separated components. It can also be an integer specifying the position
   of the field.
+
   """
+
   try:
     field = fieldcache[fieldname]
   except KeyError:
@@ -424,6 +427,7 @@ cdef class Table(Leaf):
     NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
     to NumPy conversion is performed.  The conversion is done in place,
     i.e. 'nparr' is modified.
+
     """
 
     cdef void *t64buf
@@ -444,6 +448,7 @@ cdef class Table(Leaf):
     NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
     to NumPy conversion is performed.  The conversion is done in place,
     i.e. 'recarr' is modified.
+
     """
 
     # For reading, first swap the byteorder by hand
@@ -720,6 +725,7 @@ cdef class Row:
 
     This property is useful for knowing which row is being dealt with in the
     middle of a loop or iterator.
+
     """
 
     def __get__(self):
@@ -1180,6 +1186,7 @@ cdef class Row:
             row['col3'] = -1.0
             row.append()
         table.flush()
+
     """
     cdef ndarray iobuf, wrec, wreccpy
 
@@ -1264,6 +1271,7 @@ cdef class Row:
 
     which just updates the rows with values bigger than 3 in the first
     column.
+
     """
 
     cdef ndarray iobufcpy, iobuf
@@ -1313,7 +1321,9 @@ cdef class Row:
 
     A true value is returned if item is found in current row, false
     otherwise.
+
     """
+
     return item in self.fetch_all_fields()
 
   # This method is twice as faster than __getattr__ because there is
@@ -1352,6 +1362,7 @@ cdef class Row:
 
     which selects all the fields in even positions (in the form of a
     *tuple*) for all the rows in the slice [2:3000:3].
+
     """
 
     cdef long offset
@@ -1418,6 +1429,7 @@ cdef class Row:
         table.flush()
 
     which modifies every tenth row in the table.
+
     """
 
     cdef int ret
@@ -1476,6 +1488,7 @@ cdef class Row:
 
     will select all the rows that fulfill the given condition
     as a list of NumPy records.
+
     """
 
     # We need to do a cast for recognizing negative row numbers!
@@ -1506,6 +1519,7 @@ cdef class Row:
 
   def __repr__(self):
     """Represent the record as an string"""
+
     return str(self)
 
 ## Local Variables:

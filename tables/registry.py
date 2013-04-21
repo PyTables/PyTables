@@ -24,6 +24,7 @@ Misc variables:
 
 `__docformat__`
     The format of documentation strings in this module.
+
 """
 
 from tables._past import previous_api
@@ -56,7 +57,7 @@ module that defines them is reloaded.
 
 
 def get_class_by_name(className):
-    """Get the node class matching the `className`.
+    """Get the node class matching the `classname`.
 
     If the name is not registered, a ``TypeError`` is raised.  The empty
     string and ``None`` are also accepted, and mean the ``Node`` class.
@@ -75,6 +76,7 @@ def get_class_by_name(className):
     return class_name_dict[className]
 
 getClassByName = previous_api(get_class_by_name)
+
 
 ## Local Variables:
 ## mode: python

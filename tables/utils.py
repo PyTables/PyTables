@@ -23,10 +23,12 @@ from tables.flavor import array_of_flavor
 from tables._past import previous_api
 
 # The map between byteorders in NumPy and PyTables
-byteorders = {'>': 'big',
-              '<': 'little',
-              '=': sys.byteorder,
-              '|': 'irrelevant'}
+byteorders = {
+    '>': 'big',
+    '<': 'little',
+    '=': sys.byteorder,
+    '|': 'irrelevant',
+}
 
 # The type used for size values: indexes, coordinates, dimension
 # lengths, row numbers, shapes, chunk shapes, byte counts...
@@ -80,7 +82,7 @@ def idx2long(index):
 # is assured that it will return a copy of the object and never the same
 # object or a new one sharing the same memory.
 def convert_to_np_atom(arr, atom, copy=False):
-    "Convert a generic object into a NumPy object compliant with atom."
+    """Convert a generic object into a NumPy object compliant with atom."""
 
     # First, convert the object into a NumPy array
     nparr = array_of_flavor(arr, 'numpy')
@@ -140,6 +142,7 @@ def check_file_access(filename, mode='r'):
     All this paraphernalia is used to avoid the lengthy and scaring HDF5
     messages produced when there are problems opening a file.  No
     changes are ever made to the file system.
+
     """
 
     if mode == 'r':
@@ -167,8 +170,8 @@ def check_file_access(filename, mode='r'):
             if not os.path.isdir(parentname):
                 raise IOError("``%s`` is not a directory" % (parentname,))
             if not os.access(parentname, os.W_OK):
-                raise IOError("directory ``%s`` exists but it can not be written"
-                              % (parentname,))
+                raise IOError("directory ``%s`` exists but it can not be "
+                              "written" % (parentname,))
     elif mode == 'a':
         if os.access(filename, os.F_OK):
             check_file_access(filename, 'r+')
@@ -223,6 +226,7 @@ def lazyattr(fget):
 
         Please note that this decorator *changes the type of the
         decorated object* from an instance method into a property.
+
     """
 
     name = fget.__name__
@@ -233,6 +237,7 @@ def lazyattr(fget):
             return mydict[name]
         mydict[name] = value = fget(self)
         return value
+
     return property(newfget, None, None, fget.__doc__)
 
 

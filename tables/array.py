@@ -433,7 +433,7 @@ class Array(hdf5extension.Array, Leaf):
                 num = long(num)
             except TypeError:
                 raise TypeError("Illegal index: %r" % num)
-            if num > length-1:
+            if num > length - 1:
                 raise IndexError("Index out of bounds: %d" % num)
 
         def expand_ellipsis(args, rank):
@@ -449,7 +449,7 @@ class Array(hdf5extension.Array, Leaf):
             n_args = len(args)
             for idx, arg in enumerate(args):
                 if arg is Ellipsis:
-                    final_args.extend((slice(None),)*(rank-n_args + 1))
+                    final_args.extend((slice(None),) * (rank - n_args + 1))
                 else:
                     final_args.append(arg)
 
@@ -489,15 +489,15 @@ class Array(hdf5extension.Array, Leaf):
             if stop < 0:
                 stop = length + stop
 
-            if not 0 <= start <= (length-1):
+            if not 0 <= start <= (length - 1):
                 raise IndexError(
-                    "Start index %s out of range (0-%d)" % (start, length-1))
+                    "Start index %s out of range (0-%d)" % (start, length - 1))
             if not 1 <= stop <= length:
                 raise IndexError(
                     "Stop index %s out of range (1-%d)" % (stop, length))
 
-            count = (stop-start)//step
-            if (stop-start) % step != 0:
+            count = (stop - start) // step
+            if (stop - start) % step != 0:
                 count += 1
 
             if start + count > length:
@@ -556,7 +556,7 @@ class Array(hdf5extension.Array, Leaf):
                     corrected_idx = sum(1 for x in mshape if x != 0) - 1
                     reorder = (corrected_idx, neworder)
                     nexp = nexp[neworder]
-                for select_idx in xrange(len(nexp)+1):
+                for select_idx in xrange(len(nexp) + 1):
                     # This crazy piece of code performs a list selection
                     # using HDF5 hyperslabs.
                     # For each index, perform a "NOTB" selection on every
@@ -569,10 +569,10 @@ class Array(hdf5extension.Array, Leaf):
                         start = 0
                         count = nexp[0]
                     elif select_idx == len(nexp):
-                        start = nexp[-1]+1
-                        count = length-start
+                        start = nexp[-1] + 1
+                        count = length - start
                     else:
-                        start = nexp[select_idx-1]+1
+                        start = nexp[select_idx - 1] + 1
                         count = nexp[select_idx] - start
                     if count > 0:
                         selection.append((start, count, 1, idx, "NOTB"))
@@ -701,7 +701,7 @@ class Array(hdf5extension.Array, Leaf):
                 raise ValueError("value parameter '%s' cannot be converted "
                                  "into an array object compliant with %s: "
                                  "'%r' The error was: <%s>" % (nparr,
-                                                               self.__class__.__name__, self, exc))
+                                        self.__class__.__name__, self, exc))
             return narr
         return nparr
 
@@ -748,7 +748,7 @@ class Array(hdf5extension.Array, Leaf):
         elif reorder is not None:
             # We need to reorder the array
             idx, neworder = reorder
-            k = [slice(None)]*len(shape)
+            k = [slice(None)] * len(shape)
             k[idx] = neworder.argsort()
             # Apparently, a copy is not needed here, but doing it
             # for symmetry with the `_write_selection()` method.
@@ -782,7 +782,7 @@ class Array(hdf5extension.Array, Leaf):
         # Check whether we should reorder the array
         if reorder is not None:
             idx, neworder = reorder
-            k = [slice(None)]*len(shape)
+            k = [slice(None)] * len(shape)
             k[idx] = neworder
             # For a reason a don't understand well, we need a copy of
             # the reordered array
@@ -816,32 +816,35 @@ class Array(hdf5extension.Array, Leaf):
             self._read_array(start, stop, step, arr)
         # data is always read in the system byteorder
         # if the out array's byteorder is different, do a byteswap
-        if out is not None and byteorders[arr.dtype.byteorder] != sys.byteorder:
+        if (out is not None and
+            byteorders[arr.dtype.byteorder] != sys.byteorder):
             arr.byteswap(True)
         return arr
 
     def read(self, start=None, stop=None, step=None, out=None):
         """Get data in the array as an object of the current flavor.
 
-        The start, stop and step parameters can be used to select only a *range
-        of rows* in the array.  Their meanings are the same as in the built-in
-        range() Python function, except that negative values of step are not
-        allowed yet. Moreover, if only start is specified, then stop will be
-        set to start + 1. If you do not specify neither start nor stop, then *all
-        the rows* in the array are selected.
+        The start, stop and step parameters can be used to select only a
+        *range of rows* in the array.  Their meanings are the same as in
+        the built-in range() Python function, except that negative values
+        of step are not allowed yet. Moreover, if only start is specified,
+        then stop will be set to start + 1. If you do not specify neither
+        start nor stop, then *all the rows* in the array are selected.
 
-        The out parameter may be used to specify a NumPy array to receive the
-        output data.  Note that the array must have the same size as the data
-        selected with the other parameters.  Note that the array's datatype is
-        not checked and no type casting is performed, so if it does not match
-        the datatype on disk, the output will not be correct.  Also, this
-        parameter is only valid when the array's flavor is set to 'numpy'.
-        Otherwise, a TypeError will be raised.
+        The out parameter may be used to specify a NumPy array to receive
+        the output data.  Note that the array must have the same size as
+        the data selected with the other parameters.  Note that the array's
+        datatype is not checked and no type casting is performed, so if it
+        does not match the datatype on disk, the output will not be correct.
+        Also, this parameter is only valid when the array's flavor is set
+        to 'numpy'.  Otherwise, a TypeError will be raised.
 
-        When data is read from disk in NumPy format, the output will be in the
-        current system's byteorder, regardless of how it is stored on disk.
-        The exception is when an output buffer is supplied, in which case the
-        output will be in the byteorder of that output buffer.
+        When data is read from disk in NumPy format, the output will be
+        in the current system's byteorder, regardless of how it is stored
+        on disk.
+        The exception is when an output buffer is supplied, in which case
+        the output will be in the byteorder of that output buffer.
+
         """
 
         self._g_check_open()
@@ -871,7 +874,7 @@ class Array(hdf5extension.Array, Leaf):
         # For details, see #275.
         object_ = Array(group, name, arr, title=title, _log=_log,
                         _atom=self.atom)
-        nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.size
+        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object_, nbytes)
 

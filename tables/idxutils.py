@@ -144,11 +144,11 @@ def ccs_ultralight(optlevel, chunksize, slicesize):
         slicesize //= 2
         slicesize += optlevel * slicesize
     elif optlevel in (3, 4, 5):
-        slicesize *= optlevel-1
+        slicesize *= optlevel - 1
     elif optlevel in (6, 7, 8):
-        slicesize *= optlevel-1
+        slicesize *= optlevel - 1
     elif optlevel == 9:
-        slicesize *= optlevel-1
+        slicesize *= optlevel - 1
     return chunksize, slicesize
 
 
@@ -221,7 +221,7 @@ def calcoptlevels(nblocks, optlevel, indsize):
 def col_light(nblocks, optlevel):
     """Compute the optimizations to be done for light indexes."""
 
-    optmedian, optstarts, optstops, optfull = (False,)*4
+    optmedian, optstarts, optstops, optfull = (False,) * 4
 
     if 0 < optlevel <= 3:
         optmedian = True
@@ -236,7 +236,7 @@ def col_light(nblocks, optlevel):
 def col_medium(nblocks, optlevel):
     """Compute the optimizations to be done for medium indexes."""
 
-    optmedian, optstarts, optstops, optfull = (False,)*4
+    optmedian, optstarts, optstops, optfull = (False,) * 4
 
     # Medium case
     if nblocks <= 1:
@@ -260,7 +260,7 @@ def col_medium(nblocks, optlevel):
 def col_full(nblocks, optlevel):
     """Compute the optimizations to be done for full indexes."""
 
-    optmedian, optstarts, optstops, optfull = (False,)*4
+    optmedian, optstarts, optstops, optfull = (False,) * 4
 
     # Full case
     if nblocks <= 1:
@@ -341,27 +341,27 @@ infinityf = math.ldexp(1.0, 128)
 # "infinity" for several types
 infinitymap = {
     'bool': [0, 1],
-    'int8': [-2**7, 2**7-1],
-    'uint8': [0, 2**8-1],
-    'int16': [-2**15, 2**15-1],
-    'uint16': [0, 2**16-1],
-    'int32': [-2**31, 2**31-1],
-    'uint32': [0, 2**32-1],
-    'int64': [-2**63, 2**63-1],
-    'uint64': [0, 2**64-1],
+    'int8': [-2**7, 2**7 - 1],
+    'uint8': [0, 2**8 - 1],
+    'int16': [-2**15, 2**15 - 1],
+    'uint16': [0, 2**16 - 1],
+    'int32': [-2**31, 2**31 - 1],
+    'uint32': [0, 2**32 - 1],
+    'int64': [-2**63, 2**63 - 1],
+    'uint64': [0, 2**64 - 1],
     'float32': [-infinityf, infinityf],
     'float64': [-infinity, infinity],
 }
 
 if hasattr(numpy, 'float16'):
-    infinitymap['float16'] = [-numpy.float16(
-        numpy.inf), numpy.float16(numpy.inf)]
+    infinitymap['float16'] = [-numpy.float16(numpy.inf),
+                              numpy.float16(numpy.inf)]
 if hasattr(numpy, 'float96'):
-    infinitymap['float96'] = [-numpy.float96(
-        numpy.inf), numpy.float96(numpy.inf)]
+    infinitymap['float96'] = [-numpy.float96(numpy.inf),
+                              numpy.float96(numpy.inf)]
 if hasattr(numpy, 'float128'):
-    infinitymap['float128'] = [-numpy.float128(
-        numpy.inf), numpy.float128(numpy.inf)]
+    infinitymap['float128'] = [-numpy.float128(numpy.inf),
+                               numpy.float128(numpy.inf)]
 
 # Utility functions
 
@@ -373,107 +373,15 @@ def inftype(dtype, itemsize, sign=+1):
 
     if dtype.kind == "S":
         if sign < 0:
-            return b"\x00"*itemsize
+            return b"\x00" * itemsize
         else:
-            return b"\xff"*itemsize
+            return b"\xff" * itemsize
     try:
         return infinitymap[dtype.name][sign >= 0]
     except KeyError:
         raise TypeError("Type %s is not supported" % dtype.name)
 
 infType = previous_api(inftype)
-
-
-## This check does not work for Python 2.2.x or 2.3.x (!)
-# def IsNaN(x):
-#    """a simple check for x is NaN, assumes x is float"""
-#    return x != x
-
-
-# def PyNextAfter(x, y):
-#    """returns the next float after x in the direction of y if possible, else returns x"""
-#    # if x or y is Nan, we don't do much
-#    if IsNaN(x) or IsNaN(y):
-#        return x
-#
-#    # we can't progress if x == y
-#    if x == y:
-#        return x
-#
-#    # similarly if x is infinity
-#    if x >= infinity or x <= -infinity:
-#        return x
-#
-#    # return small numbers for x very close to 0.0
-#    if -minFloat < x < minFloat:
-#        if y > x:
-#            return x + smallEpsilon
-#        else:
-#            return x - smallEpsilon  # we know x != y
-#
-#    # it looks like we have a normalized number
-#    # break x down into a mantissa and exponent
-#    m, e = math.frexp(x)
-#
-#    # all the special cases have been handled
-#    if y > x:
-#        m += epsilon
-#    else:
-#        m -= epsilon
-#
-#    return math.ldexp(m, e)
-
-
-# def PyNextAfterF(x, y):
-#    """returns the next IEEE single after x in the direction of y if possible, else returns x"""
-#
-#    # if x or y is Nan, we don't do much
-#    if IsNaN(x) or IsNaN(y):
-#        return x
-#
-#    # we can't progress if x == y
-#    if x == y:
-#        return x
-#
-#    # similarly if x is infinity
-#    if x >= infinityf:
-#        return infinityf
-#    elif x <= -infinityf:
-#        return -infinityf
-#
-#    # return small numbers for x very close to 0.0
-#    if -minFloatF < x < minFloatF:
-#        # since Python uses double internally, we
-#        # may have some extra precision to toss
-#        if x > 0.0:
-#            extra = x % smallEpsilonF
-#        elif x < 0.0:
-#            extra = x % -smallEpsilonF
-#        else:
-#            extra = 0.0
-#        if y > x:
-#            return x - extra + smallEpsilonF
-#        else:
-#            return x - extra - smallEpsilonF  # we know x != y
-#
-#    # it looks like we have a normalized number
-#    # break x down into a mantissa and exponent
-#    m, e = math.frexp(x)
-#
-#    # since Python uses double internally, we
-#    # may have some extra precision to toss
-#    if m > 0.0:
-#        extra = m % epsilonF
-#    else:  # we have already handled m == 0.0 case
-#        extra = m % -epsilonF
-#
-#    # all the special cases have been handled
-#    if y > x:
-#        m += epsilonF - extra
-#    else:
-#        m -= epsilonF - extra
-#
-#    return math.ldexp(m, e)
 
 
 def string_next_after(x, direction, itemsize):
@@ -485,7 +393,7 @@ def string_next_after(x, direction, itemsize):
     # Pad the string with \x00 chars until itemsize completion
     padsize = itemsize - len(x)
     if padsize > 0:
-        x += b"\x00"*padsize
+        x += b"\x00" * padsize
     if sys.version_info[0] < 3:
         xlist = list(x)
     else:
@@ -495,7 +403,7 @@ def string_next_after(x, direction, itemsize):
     xlist.reverse()
     i = 0
     if direction > 0:
-        if xlist == b"\xff"*itemsize:
+        if xlist == b"\xff" * itemsize:
             # Maximum value, return this
             return b"".join(xlist)
         for xchar in xlist:
@@ -506,7 +414,7 @@ def string_next_after(x, direction, itemsize):
                 xlist[i] = b"\x00"
             i += 1
     else:
-        if xlist == b"\x00"*itemsize:
+        if xlist == b"\x00" * itemsize:
             # Minimum value, return this
             return b"".join(xlist)
         for xchar in xlist:
@@ -531,16 +439,16 @@ def int_type_next_after(x, direction, itemsize):
     # x is guaranteed to be either an int or a float
     if direction < 0:
         if isinstance(x, int):
-            return x-1
+            return x - 1
         else:
-            # return int(PyNextAfter(x,x-1))
-            return int(numpy.nextafter(x, x-1))
+            # return int(PyNextAfter(x, x - 1))
+            return int(numpy.nextafter(x, x - 1))
     else:
         if isinstance(x, int):
             return x + 1
         else:
-            # return int(PyNextAfter(x,x + 1))+1
-            return int(numpy.nextafter(x, x + 1))+1
+            # return int(PyNextAfter(x,x + 1)) + 1
+            return int(numpy.nextafter(x, x + 1)) + 1
 
 IntTypeNextAfter = previous_api(int_type_next_after)
 
@@ -595,7 +503,6 @@ def nextafter(x, direction, dtype, itemsize):
     #        return PyNextAfter(x,x + 1)
 
     raise TypeError("data type ``%s`` is not supported" % dtype)
-
 
 
 ## Local Variables:

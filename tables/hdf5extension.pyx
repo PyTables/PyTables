@@ -26,6 +26,7 @@ Classes (type extensions):
 Functions:
 
 Misc variables:
+
 """
 
 import os
@@ -52,7 +53,6 @@ from tables.utilsextension import (encode_filename, set_blosc_max_threads,
   atom_to_hdf5_type, atom_from_hdf5_type, hdf5_to_np_ext_type, create_nested_type,
   pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
   platform_byteorder)
-
 
 from utilsextension cimport malloc_dims, get_native_type
 
@@ -205,6 +205,7 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
 
   It returns ``None`` in case it don't exists (or there have been problems
   reading it).
+
   """
 
   cdef char *attr_value
@@ -295,7 +296,6 @@ cdef class File:
   cdef hid_t   file_id
   cdef hid_t   access_plist
   cdef object  name
-
 
   def _g_new(self, name, pymode, **params):
     cdef herr_t err = 0
@@ -470,7 +470,6 @@ cdef class File:
     # Set the maximum number of threads for Blosc
     set_blosc_max_threads(params["MAX_BLOSC_THREADS"])
 
-
   # XXX: add the possibility to pass a pre-allocated buffer
   def get_file_image(self):
     """Retrieves an in-memory image of an existing, open HDF5 file.
@@ -510,7 +509,6 @@ cdef class File:
 
     return image
 
-
   def get_filesize(self):
     """Returns the size of an HDF5 file.
 
@@ -531,7 +529,6 @@ cdef class File:
       raise HDF5ExtError("Unable to retrieve the HDF5 file size")
 
     return size
-
 
   def get_userblock_size(self):
     """Retrieves the size of a user block.
@@ -557,17 +554,16 @@ cdef class File:
 
     return size
 
-
   # Accessor definitions
   def _get_file_id(self):
     return self.file_id
-
 
   def fileno(self):
     """Return the underlying OS integer file descriptor.
 
     This is needed for lower-level file interfaces, such as the ``fcntl``
     module.
+
     """
 
     cdef void *file_handle
@@ -589,14 +585,12 @@ cdef class File:
 
   _flushFile = previous_api(_flush_file)
 
-
   def _close_file(self):
     # Close the file
     H5Fclose( self.file_id )
     self.file_id = 0    # Means file closed
 
   _closeFile = previous_api(_close_file)
-
 
   # This method is moved out of scope, until we provide code to delete
   # the memory booked by this extension types
@@ -609,14 +603,11 @@ cdef class File:
         raise HDF5ExtError("Problems closing the file '%s'" % self.name)
 
 
-
 cdef class AttributeSet:
   cdef object name
 
-
   def _g_new(self, node):
     self.name = node._v_name
-
 
   def _g_list_attr(self, node):
     "Return a tuple with the attribute list"
@@ -631,6 +622,7 @@ cdef class AttributeSet:
     Scalar Python objects, scalar NumPy & 0-dim NumPy objects will all be
     saved as H5T_SCALAR type.  N-dim NumPy objects will be saved as H5T_ARRAY
     type.
+
     """
 
     cdef int ret
@@ -705,6 +697,7 @@ cdef class AttributeSet:
 
     H5T_SCALAR types will be retrieved as scalar NumPy.
     H5T_ARRAY types will be retrieved as ndarray NumPy objects.
+
     """
 
     cdef hsize_t *dims
@@ -875,18 +868,14 @@ cdef class AttributeSet:
                          "deleted." % (attrname, self.name))
 
 
-
-
 cdef class Node:
   # Instance variables declared in .pxd
-
 
   def _g_new(self, where, name, init):
     self.name = name
     # """The name of this node in its parent group."""
     self.parent_id = where._v_objectid
     # """The identifier of the parent group."""
-
 
   def _g_delete(self, parent):
     cdef int ret
@@ -900,15 +889,12 @@ cdef class Node:
       raise HDF5ExtError("problems deleting the node ``%s``" % self.name)
     return ret
 
-
   def __dealloc__(self):
     self.parent_id = 0
 
 
-
 cdef class Group(Node):
   cdef hid_t   group_id
-
 
   def _g_create(self):
     cdef hid_t ret
@@ -926,7 +912,6 @@ cdef class Group(Node):
     self.group_id = ret
     return self.group_id
 
-
   def _g_open(self):
     cdef hid_t ret
     cdef bytes encoded_name
@@ -938,7 +923,6 @@ cdef class Group(Node):
       raise HDF5ExtError("Can't open the group: '%s'." % self.name)
     self.group_id = ret
     return self.group_id
-
 
   def _g_get_objinfo(self, object h5name):
     """Check whether 'name' is a children of 'self' and return its type."""
@@ -975,7 +959,6 @@ cdef class Group(Node):
           node_type = "Unknown"
     return node_type
 
-
   def _g_list_group(self, parent):
     """Return a tuple with the groups and the leaves hanging from self."""
 
@@ -987,11 +970,11 @@ cdef class Group(Node):
 
   _g_listGroup = previous_api(_g_list_group)
 
-
   def _g_get_gchild_attr(self, group_name, attr_name):
     """Return an attribute of a child `Group`.
 
     If the attribute does not exist, ``None`` is returned.
+
     """
 
     cdef hid_t gchild_id
@@ -1016,11 +999,11 @@ cdef class Group(Node):
 
   _g_getGChildAttr = previous_api(_g_get_gchild_attr)
 
-
   def _g_get_lchild_attr(self, leaf_name, attr_name):
     """Return an attribute of a child `Leaf`.
 
     If the attribute does not exist, ``None`` is returned.
+
     """
 
     cdef hid_t leaf_id
@@ -1042,7 +1025,6 @@ cdef class Group(Node):
     return retvalue
 
   _g_getLChildAttr = previous_api(_g_get_lchild_attr)
-
 
   def _g_flush_group(self):
     # Close the group
@@ -1077,12 +1059,12 @@ cdef class Group(Node):
 
   _g_moveNode = previous_api(_g_move_node)
 
+
 cdef class Leaf(Node):
   # Instance variables declared in .pxd
 
   def _get_storage_size(self):
       return H5Dget_storage_size(self.dataset_id)
-
 
   def _g_new(self, where, name, init):
     if init:
@@ -1093,19 +1075,19 @@ cdef class Leaf(Node):
       self.disk_type_id = -1
     super(Leaf, self)._g_new(where, name, init)
 
-
   cdef _get_type_ids(self):
     """Get the disk and native HDF5 types associated with this leaf.
 
     It is guaranteed that both disk and native types are not the same
     descriptor (so that it is safe to close them separately).
+
     """
+
     cdef hid_t disk_type_id, native_type_id
 
     disk_type_id = H5Dget_type(self.dataset_id)
     native_type_id = get_native_type(disk_type_id)
     return (disk_type_id, native_type_id)
-
 
   cdef _convert_time64(self, ndarray nparr, int sense):
     """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
@@ -1113,6 +1095,7 @@ cdef class Leaf(Node):
     NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
     to NumPy conversion is performed.  The conversion is done in place,
     i.e. 'nparr' is modified.
+
     """
 
     cdef void *t64buf
@@ -1136,7 +1119,6 @@ cdef class Leaf(Node):
   # can't do since cdef'd
   #_convertTime64 = previous_api(_convert_time64)
 
-
   def _g_truncate(self, hsize_t size):
     """Truncate a Leaf to `size` nrows."""
 
@@ -1159,12 +1141,10 @@ cdef class Leaf(Node):
     else:
       raise ValueError("Unexpected classname: %s" % classname)
 
-
   def _g_flush(self):
     # Flush the dataset (in fact, the entire buffers in file!)
     if self.dataset_id >= 0:
         H5Fflush(self.dataset_id, H5F_SCOPE_GLOBAL)
-
 
   def _g_close(self):
     # Close dataset in HDF5 space
@@ -1179,10 +1159,8 @@ cdef class Leaf(Node):
       H5Dclose(self.dataset_id)
 
 
-
 cdef class Array(Leaf):
   # Instance variables declared in .pxd
-
 
   def _create_array(self, ndarray nparr, object title, object _atom):
     cdef int i
@@ -1245,7 +1223,6 @@ cdef class Array(Leaf):
     return (self.dataset_id, shape, atom)
 
   _createArray = previous_api(_create_array)
-
 
   def _create_carray(self, object title):
     cdef int i
@@ -1433,7 +1410,6 @@ cdef class Array(Leaf):
     shape[self.extdim] = SizeType(self.dims[self.extdim])
     self.shape = tuple(shape)
 
-
   def _read_array(self, hsize_t start, hsize_t stop, hsize_t step,
                  ndarray nparr):
     cdef herr_t ret
@@ -1471,7 +1447,6 @@ cdef class Array(Leaf):
     return
 
   _readArray = previous_api(_read_array)
-
 
   def _g_read_slice(self, ndarray startl, ndarray stopl, ndarray stepl,
                    ndarray nparr):
@@ -1556,7 +1531,6 @@ cdef class Array(Leaf):
 
   _g_readCoords = previous_api(_g_read_coords)
 
-
   def perform_selection(self, space_id, start, count, step, idx, mode):
     """Performs a selection using start/count/step in the given axis.
 
@@ -1564,6 +1538,7 @@ cdef class Array(Leaf):
     added to the current `space_id` selection using the given mode.
 
     Note: This is a backport from the h5py project.
+
     """
 
     cdef int select_mode
@@ -1596,7 +1571,6 @@ cdef class Array(Leaf):
     select_mode = select_modes[mode]
     H5Sselect_hyperslab(space_id, <H5S_seloper_t>select_mode,
                         startp, stepp, countp, NULL)
-
 
   def _g_read_selection(self, object selection, ndarray nparr):
     """Read a selection in an already created NumPy array."""
@@ -1650,7 +1624,6 @@ cdef class Array(Leaf):
 
   _g_readSelection = previous_api(_g_read_selection)
 
-
   def _g_write_slice(self, ndarray startl, ndarray stepl, ndarray countl,
                     ndarray nparr):
     """Write a slice in an already created NumPy array."""
@@ -1682,7 +1655,6 @@ cdef class Array(Leaf):
     return
 
   _g_writeSlice = previous_api(_g_write_slice)
-
 
   def _g_write_coords(self, ndarray coords, ndarray nparr):
     """Write a selection in an already created NumPy array."""
@@ -1727,7 +1699,6 @@ cdef class Array(Leaf):
     return
 
   _g_writeCoords = previous_api(_g_write_coords)
-
 
   def _g_write_selection(self, object selection, ndarray nparr):
     """Write a selection in an already created NumPy array."""
@@ -1783,7 +1754,6 @@ cdef class Array(Leaf):
       free(<void *>self.maxdims)
     if self.dims_chunk:
       free(self.dims_chunk)
-
 
 
 cdef class VLArray(Leaf):
@@ -1902,7 +1872,6 @@ cdef class VLArray(Leaf):
 
   _openArray = previous_api(_open_array)
 
-
   def _append(self, ndarray nparr, int nobjects):
     cdef int ret
     cdef void *rbuf
@@ -1926,7 +1895,6 @@ cdef class VLArray(Leaf):
 
     self.nrecords = self.nrecords + 1
 
-
   def _modify(self, hsize_t nrow, ndarray nparr, int nobjects):
     cdef int ret
     cdef void *rbuf
@@ -1947,7 +1915,6 @@ cdef class VLArray(Leaf):
       raise HDF5ExtError("Problems modifying the record.")
 
     return nobjects
-
 
   # Because the size of each "row" is unknown, there is no easy way to
   # calculate this value
@@ -1971,7 +1938,6 @@ cdef class VLArray(Leaf):
       H5Sclose(space_id)
 
     return size
-
 
   def _read_array(self, hsize_t start, hsize_t stop, hsize_t step):
     cdef int i
@@ -2059,7 +2025,6 @@ cdef class VLArray(Leaf):
 
 cdef class UnImplemented(Leaf):
 
-
   def _open_unimplemented(self):
     cdef object shape
     cdef char cbyteorder[11]  # "irrelevant" fits easily here
@@ -2079,10 +2044,8 @@ cdef class UnImplemented(Leaf):
 
     return (shape, byteorder, self.dataset_id)
 
-
   def _g_close(self):
     H5Dclose(self.dataset_id)
-
 
 
 ## Local Variables:
@@ -2091,9 +2054,3 @@ cdef class UnImplemented(Leaf):
 ## tab-width: 2
 ## fill-column: 78
 ## End:
-
-
-
-
-
-

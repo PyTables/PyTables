@@ -637,7 +637,7 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
         """Gives a detailed Description column representation."""
 
         rep = ['%s\"%s\": %r' %
-               ("  "*self._v_nestedlvl, k, self._v_colobjects[k])
+               ("  " * self._v_nestedlvl, k, self._v_colobjects[k])
                for k in self._v_names]
         return '{\n  %s}' % (',\n  '.join(rep))
 

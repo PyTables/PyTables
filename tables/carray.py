@@ -31,13 +31,13 @@ class CArray(Array):
     """This class represents homogeneous datasets in an HDF5 file.
 
     The difference between a CArray and a normal Array (see
-    :ref:`ArrayClassDescr`), from which it inherits, is that a CArray has a
-    chunked layout and, as a consequence, it supports compression.  You can use
-    datasets of this class to easily save or load arrays to or from disk, with
-    compression support included.
+    :ref:`ArrayClassDescr`), from which it inherits, is that a CArray
+    has a chunked layout and, as a consequence, it supports compression.
+    You can use datasets of this class to easily save or load arrays to
+    or from disk, with compression support included.
 
-    CArray includes all the instance variables and methods of Array.  Only those
-    with different behavior are mentioned here.
+    CArray includes all the instance variables and methods of Array.
+    Only those with different behavior are mentioned here.
 
     Parameters
     ----------
@@ -72,8 +72,8 @@ class CArray(Array):
     Examples
     --------
 
-    See below a small example of the use of the `CArray` class.  The code is
-    available in ``examples/carray1.py``::
+    See below a small example of the use of the `CArray` class.
+    The code is available in ``examples/carray1.py``::
 
         import numpy
         import tables
@@ -84,7 +84,8 @@ class CArray(Array):
         filters = tables.Filters(complevel=5, complib='zlib')
 
         h5f = tables.open_file(fileName, 'w')
-        ca = h5f.create_carray(h5f.root, 'carray', atom, shape, filters=filters)
+        ca = h5f.create_carray(h5f.root, 'carray', atom, shape,
+                               filters=filters)
 
         # Fill a hyperslab in ``ca``.
         ca[10:60, 20:70] = numpy.ones((50, 50))
@@ -260,7 +261,7 @@ class CArray(Array):
                 stop2 = stop
             # Set the proper slice in the main dimension
             slices[maindim] = slice(start2, stop2, step)
-            start3 = (start2-start)/step
+            start3 = (start2 - start) // step
             stop3 = start3 + nrowsinbuf
             if stop3 > shape[maindim]:
                 stop3 = shape[maindim]
@@ -270,7 +271,7 @@ class CArray(Array):
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.size
+        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object, nbytes)
 

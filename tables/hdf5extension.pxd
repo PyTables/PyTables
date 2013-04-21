@@ -34,16 +34,9 @@ cdef class Array(Leaf):
   cdef hsize_t *dims_chunk
 
 
-
 ## Local Variables:
 ## mode: python
 ## py-indent-offset: 2
 ## tab-width: 2
 ## fill-column: 78
 ## End:
-
-
-
-
-
-

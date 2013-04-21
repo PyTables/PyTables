@@ -21,6 +21,7 @@ Classes (type extensions):
 Functions:
 
 Misc variables:
+
 """
 
 import numpy
@@ -67,7 +68,6 @@ cdef extern from "H5ARRAY-opt.h" nogil:
     hsize_t irow, hsize_t start, hsize_t stop, void *data)
   herr_t H5ARRAYOreadSliceLR(
     hid_t dataset_id, hid_t type_id, hsize_t start, hsize_t stop, void *data)
-
 
 
 # Functions for optimized operations for dealing with indexes
@@ -198,7 +198,6 @@ cdef class CacheArray(Array):
 
   cdef hid_t mem_space_id
 
-
   cdef initread(self, int nbounds):
     # "Actions to accelerate the reads afterwards."
 
@@ -207,7 +206,6 @@ cdef class CacheArray(Array):
                                nbounds) < 0):
       raise HDF5ExtError("Problems initializing the bounds array data.")
     return
-
 
   cdef read_slice(self, hsize_t nrow, hsize_t start, hsize_t stop, void *rbuf):
     # "Read an slice of bounds."
@@ -218,13 +216,11 @@ cdef class CacheArray(Array):
       raise HDF5ExtError("Problems reading the bounds array data.")
     return
 
-
   def _g_close(self):
     super(Array, self)._g_close()
     # Release specific resources of this class
     if self.mem_space_id > 0:
       H5Sclose(self.mem_space_id)
-
 
 
 cdef class IndexArray(Array):
@@ -236,7 +232,6 @@ cdef class IndexArray(Array):
   cdef CacheArray bounds_ext
   cdef NumCache boundscache, sortedcache
   cdef ndarray bufferbc, bufferlb
-
 
   def _read_index_slice(self, hsize_t irow, hsize_t start, hsize_t stop,
                       ndarray idx):
@@ -251,7 +246,6 @@ cdef class IndexArray(Array):
       raise HDF5ExtError("Problems reading the index indices.")
 
   _readIndexSlice = previous_api(_read_index_slice)
-
 
   def _init_sorted_slice(self, index):
     """Initialize the structures for doing a binary search."""
@@ -309,8 +303,8 @@ cdef class IndexArray(Array):
       self.sortedcache = <NumCache>NumCache(
         (maxslots, self.chunksize), dtype, 'sorted')
 
-  _initSortedSlice = previous_api(_init_sorted_slice)
 
+  _initSortedSlice = previous_api(_init_sorted_slice)
 
   cdef void *_g_read_sorted_slice(self, hsize_t irow, hsize_t start,
                                 hsize_t stop):
@@ -329,7 +323,6 @@ cdef class IndexArray(Array):
   # can't time machine since this function is cdef'd
   #_g_read_sorted_slice = prveious_api(_g_read_sorted_slice)
 
-
   # This is callable from python
   def _read_sorted_slice(self, hsize_t irow, hsize_t start, hsize_t stop):
     """Read the sorted part of an index."""
@@ -338,7 +331,6 @@ cdef class IndexArray(Array):
     return self.bufferlb
 
   _readSortedSlice = previous_api(_read_sorted_slice)
-
 
 # This has been copied from the standard module bisect.
 # Checks for the values out of limits has been added at the beginning
@@ -364,7 +356,6 @@ cdef class IndexArray(Array):
         else: hi = mid
     return lo
 
-
   def _bisect_right(self, a, x, int hi):
     """Return the index where to insert item x in list a, assuming a is sorted.
 
@@ -384,7 +375,6 @@ cdef class IndexArray(Array):
       if x < a[mid]: hi = mid
       else: lo = mid+1
     return lo
-
 
   cdef void *get_lru_bounds(self, int nrow, int nbounds):
     """Get the bounds from the cache, or read them."""
@@ -475,7 +465,6 @@ cdef class IndexArray(Array):
 
   _searchBinNA_b = previous_api(_search_bin_na_b)
 
-
   # Optimized version for uint8
   def _search_bin_na_ub(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
@@ -524,7 +513,6 @@ cdef class IndexArray(Array):
     return tlength
 
   _searchBinNA_ub = previous_api(_search_bin_na_ub)
-
 
   # Optimized version for int16
   def _search_bin_na_s(self, long item1, long item2):
@@ -575,7 +563,6 @@ cdef class IndexArray(Array):
 
   _searchBinNA_s = previous_api(_search_bin_na_s)
 
-
   # Optimized version for uint16
   def _search_bin_na_us(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
@@ -624,7 +611,6 @@ cdef class IndexArray(Array):
     return tlength
 
   _searchBinNA_us = previous_api(_search_bin_na_us)
-
 
   # Optimized version for int32
   def _search_bin_na_i(self, long item1, long item2):
@@ -675,7 +661,6 @@ cdef class IndexArray(Array):
 
   _searchBinNA_i = previous_api(_search_bin_na_i)
 
-
   # Optimized version for uint32
   def _search_bin_na_ui(self, npy_uint32 item1, npy_uint32 item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
@@ -724,7 +709,6 @@ cdef class IndexArray(Array):
     return tlength
 
   _searchBinNA_ui = previous_api(_search_bin_na_ui)
-
 
   # Optimized version for int64
   def _search_bin_na_ll(self, npy_int64 item1, npy_int64 item2):
@@ -775,7 +759,6 @@ cdef class IndexArray(Array):
 
   _searchBinNA_ll = previous_api(_search_bin_na_ll)
 
-
   # Optimized version for uint64
   def _search_bin_na_ull(self, npy_uint64 item1, npy_uint64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
@@ -824,7 +807,6 @@ cdef class IndexArray(Array):
     return tlength
 
   _searchBinNA_ull = previous_api(_search_bin_na_ull)
-
 
   # Optimized version for float16
   def _search_bin_na_e(self, npy_float64 item1, npy_float64 item2):
@@ -876,7 +858,6 @@ cdef class IndexArray(Array):
 
   _searchBinNA_e = previous_api(_search_bin_na_e)
 
-
   # Optimized version for float32
   def _search_bin_na_f(self, npy_float64 item1, npy_float64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
@@ -926,7 +907,6 @@ cdef class IndexArray(Array):
     return tlength
 
   _searchBinNA_f = previous_api(_search_bin_na_f)
-
 
   # Optimized version for float64
   def _search_bin_na_d(self, npy_float64 item1, npy_float64 item2):
@@ -978,7 +958,6 @@ cdef class IndexArray(Array):
 
   _searchBinNA_d = previous_api(_search_bin_na_d)
 
-
   # Optimized version for npy_longdouble/float96/float128
   def _search_bin_na_g(self, npy_longdouble item1, npy_longdouble item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
@@ -1029,13 +1008,11 @@ cdef class IndexArray(Array):
 
   _searchBinNA_g = previous_api(_search_bin_na_g)
 
-
   def _g_close(self):
     super(Array, self)._g_close()
     # Release specific resources of this class
     if self.mem_space_id > 0:
       H5Sclose(self.mem_space_id)
-
 
 
 cdef class LastRowArray(Array):
@@ -1054,7 +1031,6 @@ cdef class LastRowArray(Array):
       raise HDF5ExtError("Problems reading the index data in Last Row.")
 
   _readIndexSlice = previous_api(_read_index_slice)
-
 
   def _read_sorted_slice(self, IndexArray sorted, hsize_t start, hsize_t stop):
     """Read the sorted part of an LR index."""
@@ -1079,9 +1055,3 @@ cdef class LastRowArray(Array):
 ## tab-width: 2
 ## fill-column: 78
 ## End:
-
-
-
-
-
-

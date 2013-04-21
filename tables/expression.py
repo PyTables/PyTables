@@ -30,20 +30,20 @@ class Expr(object):
     """A class for evaluating expressions with arbitrary array-like objects.
 
     Expr is a class for evaluating expressions containing array-like objects.
-    With it, you can evaluate expressions (like "3 * a + 4 * b") that operate on
-    arbitrary large arrays while optimizing the resources required to perform
-    them (basically main memory and CPU cache memory).  It is similar to the
-    Numexpr package (see :ref:`[NUMEXPR] <NUMEXPR>`), but in addition to NumPy
-    objects, it also accepts disk-based homogeneous arrays, like the Array,
-    CArray, EArray and Column PyTables objects.
+    With it, you can evaluate expressions (like "3 * a + 4 * b") that
+    operate on arbitrary large arrays while optimizing the resources
+    required to perform them (basically main memory and CPU cache memory).
+    It is similar to the Numexpr package (see :ref:`[NUMEXPR] <NUMEXPR>`),
+    but in addition to NumPy objects, it also accepts disk-based homogeneous
+    arrays, like the Array, CArray, EArray and Column PyTables objects.
 
-    All the internal computations are performed via the Numexpr package, so all
-    the broadcast and upcasting rules of Numexpr applies here too.  These rules
-    are very similar to the NumPy ones, but with some exceptions due to the
-    particularities of having to deal with potentially very large disk-based
-    arrays.  Be sure to read the documentation of the Expr constructor and
-    methods as well as that of Numexpr, if you want to fully grasp these
-    particularities.
+    All the internal computations are performed via the Numexpr package,
+    so all the broadcast and upcasting rules of Numexpr applies here too.
+    These rules are very similar to the NumPy ones, but with some exceptions
+    due to the particularities of having to deal with potentially very large
+    disk-based arrays.  Be sure to read the documentation of the Expr
+    constructor and methods as well as that of Numexpr, if you want to fully
+    grasp these particularities.
 
     Parameters
     ----------
@@ -153,7 +153,7 @@ class Expr(object):
         """The step range selection for the user-provided output."""
         self.shape = None
         """Common shape for the arrays in expression."""
-        self.start, self.stop, self.step = (None,)*3
+        self.start, self.stop, self.step = (None,) * 3
         self.start = None
         """The start range selection for the input."""
         self.stop = None
@@ -326,20 +326,21 @@ class Expr(object):
     def set_output(self, out, append_mode=False):
         """Set out as container for output as well as the append_mode.
 
-        The out must be a container that is meant to keep the outcome of the
-        expression.  It should be an homogeneous type container and can
-        typically be an Array, CArray, EArray, Column or a NumPy ndarray.
+        The out must be a container that is meant to keep the outcome of
+        the expression.  It should be an homogeneous type container and
+        can typically be an Array, CArray, EArray, Column or a NumPy ndarray.
 
-        The append_mode specifies the way of which the output is filled.  If
-        true, the rows of the outcome are *appended* to the out container.  Of
-        course, for doing this it is necessary that out would have an append()
-        method (like an EArray, for example).
+        The append_mode specifies the way of which the output is filled.
+        If true, the rows of the outcome are *appended* to the out container.
+        Of course, for doing this it is necessary that out would have an
+        append() method (like an EArray, for example).
 
-        If append_mode is false, the output is set via the __setitem__() method
-        (see the Expr.set_output_range() for info on how to select the rows to be
-        updated).  If out is smaller than what is required by the expression,
-        only the computations that are needed to fill up the container are
-        carried out.  If it is larger, the excess elements are unaffected.
+        If append_mode is false, the output is set via the __setitem__()
+        method (see the Expr.set_output_range() for info on how to select
+        the rows to be updated).  If out is smaller than what is required
+        by the expression, only the computations that are needed to fill
+        up the container are carried out.  If it is larger, the excess
+        elements are unaffected.
         """
 
         if not (hasattr(out, "shape") and hasattr(out, "__setitem__")):
@@ -424,7 +425,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         if maxndim == 0:
             self._single_row_out = out = self._compiled_expr(*self.values)
             return (), None
-        if maindims and [maindims[0]]*len(maindims) == maindims:
+        if maindims and [maindims[0]] * len(maindims) == maindims:
             # If all maindims detected are the same, use this as maindim
             maindim = maindims[0]
         else:
@@ -432,7 +433,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             maindim = 0
 
         # The slices parameter for inputs
-        slices = (slice(None),)*maindim + (0,)
+        slices = (slice(None),) * maindim + (0,)
 
         # Now, collect the values in first row of arrays with maximum dims
         vals = []
@@ -579,8 +580,8 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         # Create a key that selects every element in inputs and output
         # (including the main dimension)
-        i_slices = [slice(None)]*(maindim + 1)
-        o_slices = [slice(None)]*(o_maindim + 1)
+        i_slices = [slice(None)] * (maindim + 1)
+        o_slices = [slice(None)] * (o_maindim + 1)
 
         # This is a hack to prevent doing unnecessary flavor conversions
         # while reading buffers
@@ -611,7 +612,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 out.append(rout)
             else:
                 # Compute the slice to be filled in output
-                start3 = o_start + (start2-start)/step
+                start3 = o_start + (start2 - start) / step
                 stop3 = start3 + nrowsinbuf * o_step
                 if stop3 > o_stop:
                     stop3 = o_stop
@@ -645,7 +646,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         # Create a key that selects every element in inputs
         # (including the main dimension)
-        i_slices = [slice(None)]*(maindim + 1)
+        i_slices = [slice(None)] * (maindim + 1)
 
         # This is a hack to prevent doing unnecessary flavor conversions
         # while reading buffers

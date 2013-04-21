@@ -79,8 +79,8 @@ if os.name == 'nt':
 
 
 # Necessary imports to get versions stored on the cython extension
-from tables.utilsextension import get_pytables_version, get_hdf5_version, \
-    getPyTablesVersion, getHDF5Version  # Pending Deprecation!
+from tables.utilsextension import (get_pytables_version, get_hdf5_version,
+    getPyTablesVersion, getHDF5Version)  # Pending Deprecation!
 
 
 __version__ = get_pytables_version()
@@ -90,10 +90,10 @@ hdf5_version = hdf5Version = get_hdf5_version()
 """The underlying HDF5 library version number."""
 
 from tables.utilsextension import (is_hdf5_file, is_pytables_file,
-                                   which_lib_version, set_blosc_max_threads, silence_hdf5_messages,
-                                   # Pending Deprecation!
-                                   isHDF5File, isPyTablesFile, whichLibVersion, setBloscMaxThreads,
-                                   silenceHDF5Messages)
+    which_lib_version, set_blosc_max_threads, silence_hdf5_messages,
+    # Pending Deprecation!
+    isHDF5File, isPyTablesFile, whichLibVersion, setBloscMaxThreads,
+    silenceHDF5Messages)
 
 from tables.misc.enum import Enum
 from tables.atom import *

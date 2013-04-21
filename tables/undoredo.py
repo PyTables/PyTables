@@ -26,6 +26,7 @@ Misc variables:
 
 `__docformat__`
     The format of documentation strings in this module.
+
 """
 
 from tables.path import split_path
@@ -48,9 +49,9 @@ def undo(file_, operation, *args):
     elif operation == 'DELATTR':
         undo_del_attr(file_, args[0], args[1])
     else:
-        raise NotImplementedError("""\
-the requested unknown operation %r can not be undone; \
-please report this to the authors""" % operation)
+        raise NotImplementedError("the requested unknown operation %r can "
+                                  "not be undone; please report this to the "
+                                  "authors" % operation)
 
 
 def redo(file_, operation, *args):
@@ -65,9 +66,9 @@ def redo(file_, operation, *args):
     elif operation == 'DELATTR':
         redo_del_attr(file_, args[0], args[1])
     else:
-        raise NotImplementedError("""\
-the requested unknown operation %r can not be redone; \
-please report this to the authors""" % operation)
+        raise NotImplementedError("the requested unknown operation %r can "
+                                  "not be redone; please report this to the "
+                                  "authors" % operation)
 
 
 def move_to_shadow(file_, path):

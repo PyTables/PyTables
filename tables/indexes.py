@@ -33,7 +33,8 @@ class CacheArray(NotLoggedMixin, EArray, indexesextension.CacheArray):
 
 
 class LastRowArray(NotLoggedMixin, CArray, indexesextension.LastRowArray):
-    """Container for keeping sorted and indices values of last row of an index."""
+    """Container for keeping sorted and indices values of last row of
+    an index."""
 
     # Class identifier.
     _c_classid = 'LASTROWARRAY'
@@ -46,7 +47,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
 
     Parameters
     ----------
-    parentNode
+    parentnode
         The Index class from which this object will hang off.
     name : str
         The name of this node in its parent group.
@@ -60,6 +61,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
         desired I/O filters to be applied during the life of this object.
     byteorder
         The byteroder of the data on-disk.
+
     """
 
     # Class identifier.
@@ -87,8 +89,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             # The shape and chunkshape needs to be fixed here
             if name == "sorted":
                 reduction = parentNode.reduction
-                shape = (0, parentNode.slicesize//reduction)
-                chunkshape = (1, parentNode.chunksize//reduction)
+                shape = (0, parentNode.slicesize // reduction)
+                chunkshape = (1, parentNode.chunksize // reduction)
             else:
                 shape = (0, parentNode.slicesize)
                 chunkshape = (1, parentNode.chunksize)
@@ -149,7 +151,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             # Search the appropriate chunk in bounds cache
             nchunk = bisect_left(bounds, item1)
             chunk = self._read_sorted_slice(nrow, chunksize * nchunk,
-                                            chunksize*(nchunk + 1))
+                                            chunksize * (nchunk + 1))
             result1 = self._bisect_left(chunk, item1, chunksize)
             result1 += chunksize * nchunk
         # Lookup in the middle of slice for item2
@@ -158,7 +160,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             nchunk2 = bisect_right(bounds, item2)
             if nchunk2 != nchunk:
                 chunk = self._read_sorted_slice(nrow, chunksize * nchunk2,
-                                                chunksize*(nchunk2 + 1))
+                                                chunksize * (nchunk2 + 1))
             result2 = self._bisect_right(chunk, item2, chunksize)
             result2 += chunksize * nchunk2
         return (result1, result2)
@@ -180,7 +182,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
   slicesize = %s
   byteorder = %r""" % (self, self.atom, self.shape, self.nrows,
                        self.chunksize, self.slicesize, self.byteorder)
-
 
 
 ## Local Variables:

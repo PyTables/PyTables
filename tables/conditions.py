@@ -153,13 +153,17 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     """
 
     not_indexable = ([], [''])
-    op_conv = {'and': '&',
-               'or': '|',
-               'not': '~', }
-    negcmp = {'lt': 'ge',
-              'le': 'gt',
-              'ge': 'lt',
-              'gt': 'le', }
+    op_conv = {
+        'and': '&',
+        'or': '|',
+        'not': '~',
+    }
+    negcmp = {
+        'lt': 'ge',
+        'le': 'gt',
+        'ge': 'lt',
+        'gt': 'le',
+    }
 
     def fix_invert(idxcmp, exprnode, indexedcols):
         invert = False
@@ -233,7 +237,7 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
                 strexpr[:] = ["e0"]
             else:
                 strexpr[:] = [
-                    "(%s %s e%d)" % (strexpr[0], op_conv[op], lenexprs-1)]
+                    "(%s %s e%d)" % (strexpr[0], op_conv[op], lenexprs - 1)]
 
     # Add expressions to the indexable list when they are and'ed, or
     # they are both indexable.

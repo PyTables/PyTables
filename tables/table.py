@@ -246,7 +246,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
         # Correct the ranges in cached sequence
         if (start, stop, step) != (0, self.nrows, 1):
             seq = seq[(seq >= start) & (
-                seq < stop) & ((seq-start) % step == 0)]
+                seq < stop) & ((seq - start) % step == 0)]
         return self.itersequence(seq)
     else:
         # No luck.  Set row sequence to empty.  It will be populated
@@ -273,7 +273,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
         if index.reduction == 1 and ncoords == 0:
             # No values from index condition, thus the chunkmap should be empty
             nrowsinchunk = self.chunkshape[0]
-            nchunks = long(math.ceil(float(self.nrows)/nrowsinchunk))
+            nchunks = long(math.ceil(float(self.nrows) / nrowsinchunk))
             chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
         else:
             # Get the chunkmap from the index
@@ -302,7 +302,7 @@ _table__whereIndexed = previous_api(_table__where_indexed)
 def create_indexes_table(table):
     itgroup = IndexesTableG(
         table._v_parent, _index_name_of(table),
-        "Indexes container for table "+table._v_pathname, new=True)
+        "Indexes container for table " + table._v_pathname, new=True)
     return itgroup
 
 createIndexesTable = previous_api(create_indexes_table)
@@ -311,7 +311,7 @@ createIndexesTable = previous_api(create_indexes_table)
 def create_indexes_descr(igroup, dname, iname, filters):
     idgroup = IndexesDescG(
         igroup, iname,
-        "Indexes container for sub-description "+dname,
+        "Indexes container for sub-description " + dname,
         filters=filters, new=True)
     return idgroup
 
@@ -359,7 +359,7 @@ def _column__create_index(self, optlevel, kind, filters, tmp_dir,
             if dname == '':
                 dname = iname
             else:
-                dname += '/'+iname
+                dname += '/' + iname
             try:
                 idgroup = get_node('%s/%s' % (itgroup._v_pathname, dname))
             except NoSuchNodeError:
@@ -658,6 +658,7 @@ class Table(tableextension.Table, Leaf):
     indexes, use :meth:`Table.reindex_dirty`.
 
     This value is persistent.
+
     """
 
     autoindex = _table__autoindex
@@ -1092,6 +1093,7 @@ class Table(tableextension.Table, Leaf):
         * `self._time64colnames`
         * `self._strcolnames`
         * `self._colenums`
+
         """
 
         self.colnames = list(self.description._v_names)
@@ -1178,7 +1180,9 @@ class Table(tableextension.Table, Leaf):
 
         `depth` specifies the depth of the frame in order to reach local
         or global variables.
+
         """
+
         # Get the names of variables used in the expression.
         exprvarsCache = self._exprvars_cache
         if not expression in exprvarsCache:
@@ -1236,7 +1240,8 @@ class Table(tableextension.Table, Leaf):
                         "variable ``%s`` refers to "
                         "a multidimensional column, "
                         "not yet supported in conditions, sorry" % var)
-                if val._table_file is not tblfile or val._table_path != tblpath:
+                if (val._table_file is not tblfile or
+                    val._table_path != tblpath):
                     raise ValueError("variable ``%s`` refers to a column "
                                      "which is not part of table ``%s``"
                                      % (var, tblpath))
@@ -1267,6 +1272,7 @@ class Table(tableextension.Table, Leaf):
         Currently, the key is a tuple of `condition`, column variables
         names, normal variables names, column paths and variable paths
         (all are tuples).
+
         """
 
         # Variable names for column and normal variables.
@@ -1301,6 +1307,7 @@ class Table(tableextension.Table, Leaf):
         module for more information about the compilation process.
 
         This method makes use of the condition cache when possible.
+
         """
 
         # Look up the condition in the condition cache.
@@ -1362,7 +1369,9 @@ class Table(tableextension.Table, Leaf):
         This method is mainly intended for testing. Keep in mind that changing
         the set of indexed columns or their dirtiness may make this method
         return different values for the same arguments at different times.
+
         """
+
         # Compile the condition and extract usable index conditions.
         condvars = self._required_expr_vars(condition, condvars, depth=2)
         compiled = self._compile_condition(condition, condvars)
@@ -1445,8 +1454,7 @@ class Table(tableextension.Table, Leaf):
 
         return self._where(condition, condvars, start, stop, step)
 
-    def _where(self, condition, condvars,
-               start=None, stop=None, step=None):
+    def _where(self, condition, condvars, start=None, stop=None, step=None):
         """Low-level counterpart of `self.where()`."""
 
         if profile:
@@ -1495,6 +1503,7 @@ class Table(tableextension.Table, Leaf):
 
         The meaning of the other arguments is the same as in the
         :meth:`Table.where` method.
+
         """
 
         self._g_check_open()
@@ -1502,7 +1511,7 @@ class Table(tableextension.Table, Leaf):
                   self._where(condition, condvars, start, stop, step)]
         self._where_condition = None  # reset the conditions
         if len(coords) > 1:
-            cstart, cstop = coords[0], coords[-1]+1
+            cstart, cstop = coords[0], coords[-1] + 1
             if cstop - cstart == len(coords):
                 # Chances for monotonically increasing row values. Refine.
                 inc_seq = numpy.alltrue(
@@ -1523,6 +1532,7 @@ class Table(tableextension.Table, Leaf):
         :meth:`Table.where` method.
 
         The number of rows appended to dstTable is returned as a result.
+
         """
 
         self._g_check_open()
@@ -1556,6 +1566,7 @@ class Table(tableextension.Table, Leaf):
 
         The meaning of the other arguments is the same as in the
         :meth:`Table.where` method.
+
         """
 
         self._g_check_open()
@@ -1577,6 +1588,7 @@ class Table(tableextension.Table, Leaf):
         Notes
         -----
         This iterator can be nested (see :meth:`Table.where` for an example).
+
         """
 
         if not hasattr(sequence, '__getitem__'):
@@ -1636,6 +1648,7 @@ class Table(tableextension.Table, Leaf):
         :meth:`Table.read`.  However, in this case a negative value of step is
         supported, meaning that the results will be returned in reverse sorted
         order.
+
         """
 
         index = self._check_sortby_csi(sortby, checkCSI)
@@ -1665,6 +1678,7 @@ class Table(tableextension.Table, Leaf):
         :meth:`Table.read`.  However, in this case a negative value of step is
         supported, meaning that the results will be returned in reverse sorted
         order.
+
         """
 
         self._g_check_open()
@@ -1740,7 +1754,9 @@ class Table(tableextension.Table, Leaf):
         Notes
         -----
         This iterator can be nested (see :meth:`Table.where` for an example).
+
         """
+
         return self.iterrows()
 
     def _read(self, start, stop, step, field=None, out=None):
@@ -1778,8 +1794,8 @@ class Table(tableextension.Table, Leaf):
                 # Recarray case
                 result = self._get_container(nrows)
         else:
-            # there is no fast way to byteswap, since different columns may have
-            # different byteorders
+            # there is no fast way to byteswap, since different columns may
+            # have different byteorders
             if not out.dtype.isnative:
                 raise ValueError(("output array must be in system's byteorder "
                                   "or results will be incorrect"))
@@ -1799,7 +1815,7 @@ class Table(tableextension.Table, Leaf):
         if step == 1 and not field:
             # This optimization works three times faster than
             # the row._fill_col method (up to 170 MB/s on a pentium IV @ 2GHz)
-            self._read_records(start, stop-start, result)
+            self._read_records(start, stop - start, result)
         # Warning!: _read_field_name should not be used until
         # H5TBread_fields_name in tableextension will be finished
         # F. Alted 2005/05/26
@@ -1818,38 +1834,43 @@ class Table(tableextension.Table, Leaf):
     def read(self, start=None, stop=None, step=None, field=None, out=None):
         """Get data in the table as a (record) array.
 
-        The start, stop and step parameters can be used to select only a *range
-        of rows* in the table. Their meanings are the same as in the built-in
-        range() Python function, except that negative values of step are not
-        allowed yet. Moreover, if only start is specified, then stop will be
-        set to start + 1. If you do not specify neither start nor stop, then *all
-        the rows* in the table are selected.
+        The start, stop and step parameters can be used to select only
+        a *range of rows* in the table. Their meanings are the same as
+        in the built-in range() Python function, except that negative
+        values of step are not allowed yet. Moreover, if only start is
+        specified, then stop will be set to start + 1. If you do not
+        specify neither start nor stop, then *all the rows* in the
+        table are selected.
 
-        If field is supplied only the named column will be selected.  If the
-        column is not nested, an *array* of the current flavor will be
-        returned; if it is, a *structured array* will be used instead.  If no
-        field is specified, all the columns will be returned in a structured
-        array of the current flavor.
+        If field is supplied only the named column will be selected.
+        If the column is not nested, an *array* of the current flavor
+        will be returned; if it is, a *structured array* will be used
+        instead.  If no field is specified, all the columns will be
+        returned in a structured array of the current flavor.
 
-        Columns under a nested column can be specified in the field parameter by
-        using a slash character (/) as a separator (e.g. 'position/x').
+        Columns under a nested column can be specified in the field
+        parameter by using a slash character (/) as a separator (e.g.
+        'position/x').
 
-        The out parameter may be used to specify a NumPy array to receive the
-        output data.  Note that the array must have the same size as the data
-        selected with the other parameters.  Note that the array's datatype is
-        not checked and no type casting is performed, so if it does not match
-        the datatype on disk, the output will not be correct.
+        The out parameter may be used to specify a NumPy array to
+        receive the output data.  Note that the array must have the
+        same size as the data selected with the other parameters.
+        Note that the array's datatype is not checked and no type
+        casting is performed, so if it does not match the datatype on
+        disk, the output will not be correct.
 
-        When specifying a single nested column with the field parameter, and
-        supplying an output buffer with the out parameter, the output buffer
-        must contain all columns in the table.  The data in all columns will be
-        read into the output buffer.  However, only the specified nested column
-        will be returned from the method call.
+        When specifying a single nested column with the field parameter,
+        and supplying an output buffer with the out parameter, the
+        output buffer must contain all columns in the table.
+        The data in all columns will be read into the output buffer.
+        However, only the specified nested column will be returned from
+        the method call.
 
-        When data is read from disk in NumPy format, the output will be in the
-        current system's byteorder, regardless of how it is stored on disk.
-        If the out parameter is specified, the output array also must be in the
-        current system's byteorder.
+        When data is read from disk in NumPy format, the output will be
+        in the current system's byteorder, regardless of how it is
+        stored on disk. If the out parameter is specified, the output
+        array also must be in the current system's byteorder.
+
         """
 
         self._g_check_open()
@@ -1910,6 +1931,7 @@ class Table(tableextension.Table, Leaf):
 
         The selected rows are returned in an array or structured array of the
         current flavor.
+
         """
 
         self._g_check_open()
@@ -1925,6 +1947,7 @@ class Table(tableextension.Table, Leaf):
         type, the corresponding Enum instance (see :ref:`EnumClassDescr`) is
         returned. If it is not of an enumerated type, a TypeError is raised. If
         the column does not exist, a KeyError is raised.
+
         """
 
         self._check_column(colname)
@@ -1957,6 +1980,7 @@ class Table(tableextension.Table, Leaf):
 
         Here you can see how this method can be used as a shorthand for the
         :meth:`Table.read` method.
+
         """
 
         return self.read(field=name)
@@ -1995,6 +2019,7 @@ class Table(tableextension.Table, Leaf):
 
         Here, you can see how indexing can be used as a shorthand for the
         :meth:`Table.read` and :meth:`Table.read_coordinates` methods.
+
         """
 
         self._g_check_open()
@@ -2061,7 +2086,9 @@ class Table(tableextension.Table, Leaf):
             table.modify_coordinates([True, False, True], rows)
 
         Here, you can see how indexing can be used as a shorthand for the
-        :meth:`Table.modify_rows` and :meth:`Table.modify_coordinates` methods.
+        :meth:`Table.modify_rows` and :meth:`Table.modify_coordinates`
+        methods.
+
         """
 
         self._g_check_open()
@@ -2128,13 +2155,15 @@ class Table(tableextension.Table, Leaf):
                 temperature = FloatCol(pos=5)      # double (double-precision)
 
             fileh = open_file('test4.h5', mode='w')
-            table = fileh.create_table(fileh.root, 'table', Particle, "A table")
+            table = fileh.create_table(fileh.root, 'table', Particle,
+                                       "A table")
 
             # Append several rows in only one call
             table.append([("Particle:     10", 10, 0, 10 * 10, 10**2),
                           ("Particle:     11", 11, -1, 11 * 11, 11**2),
                           ("Particle:     12", 12, -2, 12 * 12, 12**2)])
             fileh.close()
+
         """
 
         self._g_check_open()
@@ -2195,6 +2224,7 @@ class Table(tableextension.Table, Leaf):
 
         The possible values for the rows argument are the same as in
         :meth:`Table.append`.
+
         """
 
         if rows is None:      # Nothing to be done
@@ -2232,6 +2262,7 @@ class Table(tableextension.Table, Leaf):
 
         The possible values for the rows argument are the same as in
         :meth:`Table.append`.
+
         """
 
         if rows is None:      # Nothing to be done
@@ -2246,7 +2277,7 @@ class Table(tableextension.Table, Leaf):
                 "'step' must have a value greater or equal than 1.")
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
-            stop = start + (len(rows)-1)*step + 1
+            stop = start + (len(rows) - 1) * step + 1
 
         (start, stop, step) = self._process_range(start, stop, step)
         if stop > self.nrows:
@@ -2334,7 +2365,7 @@ class Table(tableextension.Table, Leaf):
 
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
-            stop = start + (len(column)-1)*step + 1
+            stop = start + (len(column) - 1) * step + 1
         (start, stop, step) = self._process_range(start, stop, step)
         if stop > self.nrows:
             raise IndexError("This modification will exceed the length of "
@@ -2387,7 +2418,7 @@ class Table(tableextension.Table, Leaf):
             raise ValueError("'start' must have a positive value.")
         if step < 1:
             raise ValueError(("'step' must have a value greater or "
-                              "equal than 1."))  # Get the column formats to be modified:
+                              "equal than 1."))
         descr = []
         for colname in names:
             objcol = self._get_column_instance(colname)
@@ -2410,7 +2441,7 @@ class Table(tableextension.Table, Leaf):
 
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
-            stop = start + (len(recarray)-1)*step + 1
+            stop = start + (len(recarray) - 1) * step + 1
         (start, stop, step) = self._process_range(start, stop, step)
         if stop > self.nrows:
             raise IndexError("This modification will exceed the length of "
@@ -2474,7 +2505,7 @@ class Table(tableextension.Table, Leaf):
         # F. Alted 2005-05-09
         startLR = index.sorted.nrows * slicesize
         indexedrows = startLR - start
-        stop = start + nrows-slicesize + 1
+        stop = start + nrows - slicesize + 1
         while startLR < stop:
             index.append(
                 [self._read(startLR, startLR + slicesize, 1, colname)],
@@ -2510,14 +2541,16 @@ class Table(tableextension.Table, Leaf):
             omitted (in the Python range() tradition). Negative values are also
             accepted. A special value of None (the default) means removing just
             the row supplied in start.
+
         """
 
         (start, stop, step) = self._process_range_read(start, stop, 1)
         nrows = stop - start
         if nrows >= self.nrows:
             raise NotImplementedError('You are trying to delete all the rows '
-                                      'in table "%s". This is not supported right now due to '
-                                      'limitations on the underlying HDF5 library. Sorry!' %
+                                      'in table "%s". This is not supported '
+                                      'right now due to limitations on the '
+                                      'underlying HDF5 library. Sorry!' %
                                       self._v_pathname)
         nrows = self._remove_row(start, nrows)
         # remove_rows is a invalidating index operation
@@ -2543,6 +2576,7 @@ class Table(tableextension.Table, Leaf):
         """Move this node in the hierarchy.
 
         This overloads the Node._g_move() method.
+
         """
 
         itgpathname = _index_pathname_of(self)
@@ -2659,6 +2693,7 @@ class Table(tableextension.Table, Leaf):
         (see :class:`Table`) to false for the table and you want to
         update the indexes after a invalidating index operation
         (:meth:`Table.remove_rows`, for example).
+
         """
 
         self._do_reindex(dirty=True)
@@ -2783,7 +2818,9 @@ class Table(tableextension.Table, Leaf):
             If true, the existing indexes in the source table are propagated
             (created) to the new one.  If false (the default), the indexes are
             not propagated.
+
         """
+
         return super(Table, self).copy(
             newparent, newname, overwrite, createparents, **kwargs)
 
@@ -2834,9 +2871,9 @@ class Table(tableextension.Table, Leaf):
                            "without its buffers being flushed or with some "
                            "index being dirty.  This may lead to very "
                            "ineficient use of resources and even to fatal "
-                           "errors in certain situations.  Please do a call to "
-                           "the .flush() or .reindex_dirty() methods on this "
-                           "table before start using other nodes.")
+                           "errors in certain situations.  Please do a call "
+                           "to the .flush() or .reindex_dirty() methods on "
+                           "this table before start using other nodes.")
                           % (self._v_pathname), PerformanceWarning)
         # Get rid of the IO buffers (if they have been created at all)
         mydict = self.__dict__
@@ -2942,7 +2979,7 @@ class Cols(object):
         return self._v__tableFile._get_node(self._v__tablePath)
 
     _v_table = property(_g_gettable, None, None,
-                        """The parent Table instance (see :ref:`TableClassDescr`).""")
+                    "The parent Table instance (see :ref:`TableClassDescr`).")
 
     def __init__(self, table, desc):
 
@@ -2989,6 +3026,7 @@ class Cols(object):
         However, the first syntax is more intended for programmatic use.  It is
         also better if you want to access columns with names that are not valid
         Python identifiers.
+
         """
 
         if not isinstance(colname, str):
@@ -3037,6 +3075,7 @@ class Cols(object):
 
         Here you can see how a mix of natural naming, indexing and slicing can
         be used as shorthands for the :meth:`Table.read` method.
+
         """
 
         table = self._v_table
@@ -3090,9 +3129,10 @@ class Cols(object):
             table.modify_rows(4, rows=record)
             table.modify_column(4, 1000, 2, colname='Info', column=recarray)
 
-        Here you can see how a mix of natural naming, indexing and slicing can
-        be used as shorthands for the :meth:`Table.modify_rows` and
+        Here you can see how a mix of natural naming, indexing and slicing
+        can be used as shorthands for the :meth:`Table.modify_rows` and
         :meth:`Table.modify_column` methods.
+
         """
 
         table = self._v_table
@@ -3139,7 +3179,7 @@ class Cols(object):
         tablepathname = self._v__tablePath
         descpathname = self._v_desc._v_pathname
         if descpathname:
-            descpathname = "."+descpathname
+            descpathname = "." + descpathname
         # Get this class name
         classname = self.__class__.__name__
         # The number of columns
@@ -3241,7 +3281,7 @@ class Column(object):
                      indexed).""")
 
     def _getshape(self):
-        return (self.table.nrows,)+self.descr._v_dtypes[self.name].shape
+        return (self.table.nrows,) + self.descr._v_dtypes[self.name].shape
 
     shape = property(_getshape, None, None, "The shape of this column.")
 
@@ -3252,7 +3292,7 @@ class Column(object):
             return True
 
     is_indexed = property(_isindexed, None, None,
-                          """True if the column is indexed, false otherwise.""")
+                          "True if the column is indexed, false otherwise.")
 
     maindim = property(
         lambda self: 0, None, None,
@@ -3307,7 +3347,8 @@ class Column(object):
                 print "Select table.cols.name[1]-->", table.cols.name[1]
                 print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
                 print "Select table.cols.name[:]-->", table.cols.name[:]
-                print "Select table.cols._f_col('name')[:]-->", table.cols._f_col('name')[:]
+                print "Select table.cols._f_col('name')[:]-->",
+                                                table.cols._f_col('name')[:]
 
         The output of this for a certain arbitrary table is::
 
@@ -3327,6 +3368,7 @@ class Column(object):
              'Particle:     13' 'Particle:     14']
 
         See the :file:`examples/table2.py` file for a more complete example.
+
         """
 
         table = self.table
@@ -3355,8 +3397,8 @@ class Column(object):
                 "'%s' key type is not valid in this context" % key)
 
     def __iter__(self):
-        """Iterate through all items in the column.
-        """
+        """Iterate through all items in the column."""
+
         table = self.table
         itemsize = self.dtype.itemsize
         nrowsinbuf = table._v_file.params['IO_BUFFER_SIZE'] // itemsize
@@ -3395,7 +3437,9 @@ class Column(object):
 
             # Modify rows 1 and 3
             columns = numpy.rec.fromarrays([[2,3]], formats='i4')
-            table.modify_columns(start=1, step=2, columns=columns, names=['col1'])
+            table.modify_columns(start=1, step=2, columns=columns,
+                                 names=['col1'])
+
         """
 
         table = self.table
@@ -3468,6 +3512,7 @@ class Column(object):
             to specify the directory for this temporary file.  The default is
             to create it in the same directory as the file containing the
             original table.
+
         """
 
         kinds = ['ultralight', 'light', 'medium', 'full']
@@ -3513,6 +3558,7 @@ class Column(object):
         -----
         This method is equivalent to
         Column.create_index(optlevel=9, kind='full', ...).
+
         """
 
         return self.create_index(
@@ -3554,6 +3600,7 @@ class Column(object):
         the index information is no longer valid and you want to rebuild it.
 
         This method does nothing if the column is not indexed.
+
         """
 
         self._do_reindex(dirty=False)
@@ -3568,6 +3615,7 @@ class Column(object):
         invalidating index operation (like :meth:`Table.remove_rows`).
 
         This method does nothing if the column is not indexed.
+
         """
 
         self._do_reindex(dirty=True)
@@ -3580,6 +3628,7 @@ class Column(object):
         This method does nothing if the column is not indexed. The removed
         index can be created again by calling the :meth:`Column.create_index`
         method.
+
         """
 
         self._table_file._check_writable()
@@ -3616,7 +3665,6 @@ class Column(object):
         """A detailed string representation for this object."""
 
         return str(self)
-
 
 
 ## Local Variables:

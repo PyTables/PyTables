@@ -428,6 +428,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         If this array is of an enumerated type, the corresponding Enum instance
         (see :ref:`EnumClassDescr`) is returned. If it is not of an enumerated
         type, a TypeError is raised.
+
         """
 
         if self.atom.kind != 'enum':
@@ -446,6 +447,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         with the atoms in the array. In the case of serialized objects and
         variable length strings, the object or string to append is itself the
         sequence.
+
         """
 
         self._g_check_open()
@@ -494,6 +496,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
             for row in vlarray.iterrows(step=4):
                 print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, row)
+
         """
 
         (self._start, self._stop, self._step) = \
@@ -517,6 +520,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         Which is equivalent to::
 
             result = [row for row in vlarray.iterrows()]
+
         """
 
         if not self._init:
@@ -526,10 +530,11 @@ class VLArray(hdf5extension.VLArray, Leaf):
             self._step = 1
             # and initialize the loop
             self._init_loop()
+
         return self
 
     def _init_loop(self):
-        "Initialization for the __iter__ iterator"
+        """Initialization for the __iter__ iterator"""
 
         self._nrowsread = self._start
         self._startb = self._start
@@ -543,7 +548,9 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """Get the next element of the array during an iteration.
 
         The element is returned as a list of objects of the current flavor.
+
         """
+
         if self._nrowsread >= self._stop:
             self._init = False
             raise StopIteration        # end of iteration
@@ -584,6 +591,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             a_list2 = vlarray[[0,2]]   # get list of coords
             a_list3 = vlarray[[0,-2]]  # negative values accepted
             a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools
+
         """
 
         self._g_check_open()
@@ -640,9 +648,10 @@ class VLArray(hdf5extension.VLArray, Leaf):
                 nparr[:] = value
             except Exception, exc:  # XXX
                 raise ValueError("Value parameter:\n'%r'\n"
-                                 "cannot be converted into an array object compliant "
-                                 "vlarray[%s] row: \n'%r'\nThe error was: <%s>" %
-                                (value, nrow, nparr[:], exc))
+                                 "cannot be converted into an array object "
+                                 "compliant vlarray[%s] row: \n'%r'\n"
+                                 "The error was: <%s>" % (value, nrow,
+                                                          nparr[:], exc))
 
             if nparr.size > 0:
                 self._modify(nrow, nparr, nobjects)
@@ -688,6 +697,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             vlarray[-99] = vlarray[5] * 2 + 3
             vlarray[1:30:2] = list_of_rows
             vlarray[[1,3]] = new_1_and_3_rows
+
         """
 
         self._g_check_open()
@@ -719,12 +729,13 @@ class VLArray(hdf5extension.VLArray, Leaf):
         flavor), with as many entries as specified rows in the range
         parameters.
 
-        The start, stop and step parameters can be used to select only a *range
-        of rows* in the array.  Their meanings are the same as in the built-in
-        range() Python function, except that negative values of step are not
-        allowed yet. Moreover, if only start is specified, then stop will be
-        set to start + 1. If you do not specify neither start nor stop, then *all
-        the rows* in the array are selected.
+        The start, stop and step parameters can be used to select only a
+        *range of rows* in the array.  Their meanings are the same as in
+        the built-in range() Python function, except that negative values
+        of step are not allowed yet. Moreover, if only start is specified,
+        then stop will be set to start + 1. If you do not specify neither
+        start nor stop, then *all the rows* in the array are selected.
+
         """
 
         self._g_check_open()
@@ -752,7 +763,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
                            title, filters, chunkshape, _log, **kwargs):
-        "Private part of Leaf.copy() for each kind of leaf"
+        """Private part of Leaf.copy() for each kind of leaf"""
 
         # Build the new VLArray object
         object = VLArray(

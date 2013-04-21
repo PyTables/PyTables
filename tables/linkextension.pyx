@@ -81,7 +81,6 @@ cdef extern from "H5Lpublic.h" nogil:
     hid_t lcpl_id, hid_t lapl_id)
 
 
-
 #----------------------------------------------------------------------
 
 # Helper functions
@@ -105,6 +104,7 @@ def _get_link_class(parent_id, name):
     else:
       return "UnImplemented"
 
+
 _getLinkClass = previous_api(_get_link_class)
 
 
@@ -120,6 +120,7 @@ def _g_create_hard_link(parentNode, str name, targetNode):
                        H5P_DEFAULT, H5P_DEFAULT)
   if ret < 0:
     raise HDF5ExtError("failed to create HDF5 hard link")
+
 
 _g_createHardLink = previous_api(_g_create_hard_link)
 
@@ -155,7 +156,6 @@ cdef class Link(Node):
     return newParent._v_file.get_node(newParent, newName)
 
 
-
 cdef class SoftLink(Link):
   """Extension class representing a soft link."""
 
@@ -172,7 +172,6 @@ cdef class SoftLink(Link):
       raise HDF5ExtError("failed to create HDF5 soft link")
 
     return 0  # Object ID is zero'ed, as HDF5 does not assign one for links
-
 
   def _g_open(self):
     """Open the link in file."""
@@ -207,7 +206,6 @@ cdef class SoftLink(Link):
     return 0  # Object ID is zero'ed, as HDF5 does not assign one for links
 
 
-
 cdef class ExternalLink(Link):
   """Extension class representing an external link."""
 
@@ -230,7 +228,6 @@ cdef class ExternalLink(Link):
       raise HDF5ExtError("failed to create HDF5 external link")
 
     return 0  # Object ID is zero'ed, as HDF5 does not assign one for links
-
 
   def _g_open(self):
     """Open the link in file."""
@@ -277,17 +274,9 @@ cdef class ExternalLink(Link):
     return 0  # Object ID is zero'ed, as HDF5 does not assign one for links
 
 
-
-
 ## Local Variables:
 ## mode: python
 ## py-indent-offset: 2
 ## tab-width: 2
 ## fill-column: 78
 ## End:
-
-
-
-
-
-

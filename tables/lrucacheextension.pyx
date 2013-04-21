@@ -21,6 +21,7 @@ Classes (type extensions):
 Functions:
 
 Misc variables:
+
 """
 
 cdef extern from "Python.h":
@@ -44,7 +45,6 @@ from tables.parameters import (DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES,
 # using any numpy facilities in an extension module.
 import_array()
 #----------------------------------------------------------------------------
-
 
 
 # ------- Minimalist NodeCache for nodes in PyTables ---------
@@ -75,6 +75,7 @@ cdef class NodeCache:
 
     If more than 'nslots' elements are added to the cache,
     the least-recently-used ones will be discarded.
+
     """
 
     if nslots < 0:
@@ -84,14 +85,11 @@ cdef class NodeCache:
     self.nodes = []
     self.paths = []
 
-
   def __len__(self):
     return len(self.nodes)
 
-
   def __setitem__(self, path, node):
     self.setitem(path, node)
-
 
   cdef setitem(self, object path, object node):
     """Puts a new node in the node list."""
@@ -117,13 +115,11 @@ cdef class NodeCache:
       self.paths.append(path)
       self.nextslot = self.nextslot + 1
 
-
   def __contains__(self, path):
     if self.getslot(path) == -1:
       return 0
     else:
       return 1
-
 
   cdef long getslot(self, object path):
     """Checks whether path is in this cache or not."""
@@ -147,10 +143,8 @@ cdef class NodeCache:
 
     return nslot
 
-
   def pop(self, path):
     return self.cpop(path)
-
 
   cdef object cpop(self, object path):
     cdef long nslot
@@ -161,13 +155,11 @@ cdef class NodeCache:
     self.nextslot = self.nextslot - 1
     return node
 
-
   def __iter__(self):
     # Do a copy of the paths list because it can be modified in the middle of
     # the iterator!
     copy = self.paths[:]
     return iter(copy)
-
 
   def __repr__(self):
     return "<%s (%d elements)>" % (str(self.__class__), len(self.paths))
@@ -199,10 +191,8 @@ cdef class BaseCache:
     self.atimes = <ndarray>numpy.zeros(shape=nslots, dtype=numpy.int_)
     self.ratimes = <long *>self.atimes.data
 
-
   def __len__(self):
     return self.nslots
-
 
   # Machinery for determining whether the hit ratio is being effective
   # or not.  If not, the cache will be disabled. The efficency will be
@@ -241,10 +231,8 @@ cdef class BaseCache:
         self.enablecyclecount = 0
     return not self.iscachedisabled
 
-
   def couldenablecache(self):
     return self.couldenablecache_()
-
 
   # Check whether the cache is enabled or *could* be enabled in the next
   # setitem operation. This method can be used in order to probe whether
@@ -266,7 +254,6 @@ cdef class BaseCache:
     else:
       return True
 
-
   # Increase the access time (implemented as a C long sequence)
   cdef long incseqn(self):
 
@@ -278,11 +265,9 @@ cdef class BaseCache:
       self.seqn_ = 1
     return self.seqn_
 
-
   def __repr__(self):
     return "<%s(%s) (%d elements)>" % (self.name, str(self.__class__),
                                        self.nslots)
-
 
 
 ########################################################################
@@ -297,7 +282,6 @@ cdef class ObjectNode:
     self.key = key
     self.obj = obj
     self.nslot = nslot
-
 
   def __repr__(self):
     return "<%s %s (slot #%s) => %s>" % (self.__class__, self.key, self.nslot,
@@ -321,6 +305,7 @@ cdef class ObjectCache(BaseCache):
     Parameters:
     nslots - The number of slots in cache
     name - A descriptive name for this cache
+
     """
 
     super(ObjectCache, self).__init__(nslots, name)
@@ -335,7 +320,6 @@ cdef class ObjectCache(BaseCache):
     self.sizes = <ndarray>numpy.zeros(shape=nslots, dtype=numpy.int_)
     self.rsizes = <long *>self.sizes.data
 
-
   # Clear cache
   cdef clearcache_(self):
     self.__list = [None]*self.nslots
@@ -344,7 +328,6 @@ cdef class ObjectCache(BaseCache):
     self.cachesize = 0
     self.nextslot = 0
     self.seqn_ = 0
-
 
   # Remove a slot (if it exists in cache)
   cdef removeslot_(self, long nslot):
@@ -361,7 +344,6 @@ cdef class ObjectCache(BaseCache):
         self.mrunode = <ObjectNode>None
     # The next slot to be updated will be this one
     self.nextslot = nslot
-
 
   # Update a slot
   cdef updateslot_(self, long nslot, long size, object key, object value):
@@ -390,11 +372,9 @@ cdef class ObjectCache(BaseCache):
     # The next slot to update will be the LRU
     self.nextslot = self.atimes.argmin()
 
-
   # Put the object to the data in cache (for Python calls)
   def setitem(self, object key, object value, object size):
     return self.setitem_(key, value, size)
-
 
   # Put the object in cache (for cython calls)
   # size can be the exact size of the value object or an estimation.
@@ -419,16 +399,13 @@ cdef class ObjectCache(BaseCache):
       self.clearcache_()
     return nslot
 
-
   # Tells whether the key is in cache or not
   def __contains__(self, object key):
     return self.__dict.has_key(key)
 
-
   # Tells in which slot the key is. If not found, -1 is returned.
   def getslot(self, object key):
     return self.getslot_(key)
-
 
   # Tells in which slot the key is. If not found, -1 is returned.
   cdef long getslot_(self, object key):
@@ -451,7 +428,6 @@ cdef class ObjectCache(BaseCache):
   def getitem(self, object nslot):
     return self.getitem_(nslot)
 
-
   # Return the object to the data in cache (for cython calls)
   cdef object getitem_(self, long nslot):
     cdef ObjectNode node
@@ -461,7 +437,6 @@ cdef class ObjectCache(BaseCache):
     self.ratimes[nslot] = self.incseqn()
     self.mrunode = node
     return node.obj
-
 
   def __repr__(self):
     if self.nprobes > 0:
@@ -501,7 +476,9 @@ cdef class NumCache(BaseCache):
     shape - The rectangular shape of the cache (nslots, nelemsperslot)
     itemsize - The size of the element base in cache
     name - A descriptive name for this cache
+
     """
+
     cdef long nslots
 
     nslots = shape[0];  self.slotsize = shape[1]
@@ -521,7 +498,6 @@ cdef class NumCache(BaseCache):
     self.keys = <ndarray>(-numpy.ones(shape=nslots, dtype=numpy.int64))
     self.rkeys = <long long *>self.keys.data
 
-
   # Returns the address of nslot
   cdef void *getaddrslot_(self, long nslot):
     if nslot >= 0:
@@ -529,10 +505,8 @@ cdef class NumCache(BaseCache):
     else:
       return <char *>self.rcache + self.nslots * self.slotsize * self.itemsize
 
-
   def setitem(self, long long key, ndarray nparr, long start):
     return self.setitem_(key, nparr.data, start)
-
 
   # Copy the new data into a cache slot
   cdef long setitem_(self, long long key, void *data, long start):
@@ -545,7 +519,6 @@ cdef class NumCache(BaseCache):
              <char *>data + start * self.itemsize,
              self.slotsize * self.itemsize)
     return nslot
-
 
   # Return a cache data pointer appropriate to save data.
   # Even if the cache is disabled, this will return a -1, which is
@@ -590,10 +563,8 @@ cdef class NumCache(BaseCache):
       self.nextslot = 0
     return nslot
 
-
   def getslot(self, long long key):
     return self.getslot_(key)
-
 
   # Tells in which slot key is. If not found, -1 is returned.
   cdef long getslot_(self, long long key):
@@ -608,10 +579,8 @@ cdef class NumCache(BaseCache):
       return -1
     return nslot
 
-
   def getitem(self, long nslot, ndarray nparr, long start):
     self.getitem_(nslot, nparr.data, start)
-
 
   # This version copies data in cache to data+start.
   # The user should be responsible to provide a large enough data buffer
@@ -624,7 +593,6 @@ cdef class NumCache(BaseCache):
     memcpy(<char *>data + start * self.itemsize, cachedata,
            self.slotsize * self.itemsize)
 
-
   # Return the pointer to the data in cache
   # This version avoids a memcpy of data, but the user should be
   # aware that data in nslot cannot be overwritten!
@@ -633,7 +601,6 @@ cdef class NumCache(BaseCache):
     self.getcount = self.getcount + 1
     self.ratimes[nslot] = self.incseqn()
     return <char *>self.rcache + nslot * self.slotsize * self.itemsize
-
 
   def __repr__(self):
     cachesize = (self.nslots * self.slotsize * self.itemsize) / 1024.
@@ -648,16 +615,9 @@ cdef class NumCache(BaseCache):
          cachesize, hitratio, self.iscachedisabled)
 
 
-
 ## Local Variables:
 ## mode: python
 ## py-indent-offset: 2
 ## tab-width: 2
 ## fill-column: 78
 ## End:
-
-
-
-
-
-

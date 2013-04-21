@@ -17,6 +17,7 @@ Variables
 
 `__docformat`__
     The format of documentation strings in this module.
+
 """
 
 # Imports
@@ -118,7 +119,7 @@ checkNameValidity = previous_api(check_name_validity)
 
 
 def join_path(parentPath, name):
-    """Join a *canonical* `parentPath` with a *non-empty* `name`.
+    """Join a *canonical* `parentpath` with a *non-empty* `name`.
 
     >>> join_path('/', 'foo')
     '/foo'
@@ -155,6 +156,7 @@ def split_path(path):
     ('/', '')
     >>> split_path('/foo/bar')
     ('/foo', 'bar')
+
     """
 
     lastSlash = path.rfind('/')

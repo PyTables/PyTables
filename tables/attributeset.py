@@ -194,7 +194,8 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         return self._v__nodefile._get_node(self._v__nodepath)
 
     _v_node = property(_g_getnode, None, None,
-                       "The :class:`Node` instance this attribute set is associated with.")
+                       "The :class:`Node` instance this attribute set is "
+                       "associated with.")
 
     def __init__(self, node):
         """Create the basic structures to keep the attribute information.
@@ -340,8 +341,8 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 retval = numpy.array(retval)[()]
         elif name == 'FILTERS' and format_version >= (2, 0):
             retval = Filters._unpack(value)
-        elif issysattrname(name) and isinstance(value, (bytes, unicode)) and \
-                not isinstance(value, str) and not _field_fill_re.match(name):
+        elif (issysattrname(name) and isinstance(value, (bytes, unicode)) and
+              not isinstance(value, str) and not _field_fill_re.match(name)):
             # system attributes should always be str
             if sys.version_info[0] < 3:
                 retval = value.encode()
@@ -578,6 +579,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         Changes are logged depending on the chosen setting method.  The
         default setting method does not log anything.
+
         """
 
         copysysattrs = newSet._v__nodefile.params['PYTABLES_SYS_ATTRS']
@@ -645,8 +647,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                    for attr in attrnames]
             attrlist = '[%s]' % (',\n    '.join(rep))
 
-            return "%s:\n   %s" % \
-                   (str(self), attrlist)
+            return "%s:\n   %s" % (str(self), attrlist)
         else:
             return str(self)
 

@@ -17,11 +17,6 @@ be shared with other extensions.
 
 from definitions cimport hsize_t, hid_t
 
+
 cdef hsize_t *malloc_dims(object)
 cdef hid_t get_native_type(hid_t) nogil
-
-
-
-
-
-

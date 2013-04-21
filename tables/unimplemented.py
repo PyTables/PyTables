@@ -42,6 +42,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
 
     This class does not have any public instance variables or methods, except
     those inherited from the Leaf class (see :ref:`LeafClassDescr`).
+
     """
 
     # Class identifier.
@@ -59,13 +60,13 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         self.shape = (SizeType(0),)
         """The shape of the stored data."""
         self.byteorder = None
-        """The endianness of data in memory ('big', 'little' or 'irrelevant').
-        """
+        """The endianness of data in memory ('big', 'little' or
+        'irrelevant')."""
 
         super(UnImplemented, self).__init__(parentNode, name)
 
     def _g_open(self):
-        (self.shape, self.byteorder, object_id) =  self._open_unimplemented()
+        (self.shape, self.byteorder, object_id) = self._open_unimplemented()
         try:
             self.nrows = SizeType(self.shape[0])
         except IndexError:
@@ -78,6 +79,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         This method does nothing, but a ``UserWarning`` is issued.
         Please note that this method *does not return a new node*, but
         ``None``.
+
         """
 
         warnings.warn(
@@ -93,6 +95,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         This method does nothing, since `UnImplemented` nodes can not
         be copied.  However, a ``UserWarning`` is issued.  Please note
         that this method *does not return a new node*, but ``None``.
+
         """
 
         # This also does nothing but warn.
@@ -115,6 +118,7 @@ class Unknown(Node):
 
     This class does not have any public instance variables or methods, except
     those inherited from the Node class.
+
     """
 
     # Class identifier
@@ -122,6 +126,7 @@ class Unknown(Node):
 
     def __init__(self, parentNode, name):
         """Create the `Unknown` instance."""
+
         self._v_new = False
         super(Unknown, self).__init__(parentNode, name)
 

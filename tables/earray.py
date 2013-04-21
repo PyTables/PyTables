@@ -96,7 +96,8 @@ class EArray(CArray):
         a = tables.StringAtom(itemsize=8)
 
         # Use ``a`` as the object type for the enlargeable array.
-        array_c = fileh.create_earray(fileh.root, 'array_c', a, (0,), \"Chars\")
+        array_c = fileh.create_earray(fileh.root, 'array_c', a, (0,),
+                                      \"Chars\")
         array_c.append(numpy.array(['a'*2, 'b'*4], dtype='S8'))
         array_c.append(numpy.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
 
@@ -232,7 +233,7 @@ class EArray(CArray):
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.itemsize
+        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.itemsize
 
         return (object, nbytes)
 

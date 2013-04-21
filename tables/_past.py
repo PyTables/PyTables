@@ -389,7 +389,7 @@ old2newnames = dict([
     ('tableExtension', 'tableextension'),
     ('getNestedFieldCache', 'get_nested_field_cache'),
     ('getNestedType', 'get_nested_type'),
-    ('_createTable', '_create_table'), 
+    ('_createTable', '_create_table'),
     ('_getInfo', '_get_info'),
     ('indexChunk', 'indexchunk'),
     ('indexValid', 'indexvalid'),

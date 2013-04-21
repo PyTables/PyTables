@@ -103,7 +103,8 @@ class Link(Node):
         """
 
         newnode = self._f_copy(newparent=newparent, newname=newname,
-                               overwrite=overwrite, createparents=createparents)
+                               overwrite=overwrite,
+                               createparents=createparents)
         # Insert references to a `newnode` via `newname`
         newnode._v_parent._g_refnode(newnode, newname, True)
         return newnode
@@ -224,7 +225,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         # This is needed for avoiding the 'C:\\file.h5' filepath notation
         filename, target = self.target.split(':/')
-        return filename, '/'+target
+        return filename, '/' + target
 
     def __call__(self, **kwargs):
         """Dereference self.target and return the object.
@@ -294,7 +295,6 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         classname = self.__class__.__name__
         return "%s (%s) -> %s" % (self._v_pathname, classname, self.target)
-
 
 
 ## Local Variables:

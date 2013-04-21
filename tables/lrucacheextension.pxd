@@ -75,16 +75,9 @@ cdef class NumCache(BaseCache):
   cdef void *getitem1_(self, long nslot)
 
 
-
 ## Local Variables:
 ## mode: python
 ## py-indent-offset: 2
 ## tab-width: 2
 ## fill-column: 78
 ## End:
-
-
-
-
-
-

@@ -331,7 +331,8 @@ def _disable_flavor(flavor):
 _python_aliases = [
     'List', 'Tuple',
     'Int', 'Float', 'String',
-    'VLString', 'Object']
+    'VLString', 'Object',
+]
 _python_desc = ("homogeneous list or tuple, "
                 "integer, float, complex or bytes")
 
