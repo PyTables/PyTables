@@ -31,7 +31,7 @@ from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
 from tables.utilsextension import (get_nested_field, atom_from_hdf5_type,
   create_nested_type, hdf5_to_np_ext_type, create_nested_type, platform_byteorder,
-  pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string, 
+  pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
   H5T_STD_I64)
 from tables.utils import SizeType
 
@@ -365,7 +365,6 @@ cdef class Table(Leaf):
 
     return desc, offset
 
-
   def _get_info(self):
     """Get info from a table on disk."""
 
@@ -419,7 +418,6 @@ cdef class Table(Leaf):
     # Return the object ID and the description
     return (self.dataset_id, desc, SizeType(chunksize[0]))
 
-
   cdef _convert_time64_(self, ndarray nparr, hsize_t nrecords, int sense):
     """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
 
@@ -440,8 +438,7 @@ cdef class Table(Leaf):
     conv_float64_timeval32(
       t64buf, byteoffset, bytestride, nrecords, nelements, sense)
 
-
-  cdef _convert_types(self, ndarray recarr, hsize_t nrecords, int sense):
+  cpdef _convert_types(self, ndarray recarr, hsize_t nrecords, int sense):
     """Converts columns in 'recarr' between NumPy and HDF5 formats.
 
     NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
@@ -466,12 +463,10 @@ cdef class Table(Leaf):
       column = get_nested_field(recarr, t64cname)
       self._convert_time64_(column, nrecords, sense)
 
-
   def _open_append(self, ndarray recarr):
     self._v_recarray = <object>recarr
     # Get the pointer to the buffer data area
     self.wbuf = recarr.data
-
 
   def _append_records(self, int nrecords):
     cdef int ret
@@ -492,7 +487,6 @@ cdef class Table(Leaf):
 
     self.nrows = self.nrows + nrecords
 
-
   def _close_append(self):
     cdef hsize_t nrows
 
@@ -508,7 +502,6 @@ cdef class Table(Leaf):
     self._dirtycache = True
     # Delete the reference to recarray as we doesn't need it anymore
     self._v_recarray = None
-
 
   def _update_records(self, hsize_t start, hsize_t stop,
                       hsize_t step, ndarray recarr):
@@ -538,7 +531,6 @@ cdef class Table(Leaf):
     # Set the caches to dirty
     self._dirtycache = True
 
-
   def _update_elements(self, hsize_t nrecords, ndarray coords,
                        ndarray recarr):
     cdef herr_t ret
@@ -564,7 +556,6 @@ cdef class Table(Leaf):
     # Set the caches to dirty
     self._dirtycache = True
 
-
   def _read_records(self, hsize_t start, hsize_t nrecords, ndarray recarr):
     cdef void *rbuf
     cdef int ret
@@ -588,7 +579,6 @@ cdef class Table(Leaf):
     self._convert_types(recarr, nrecords, 1)
 
     return nrecords
-
 
   cdef hsize_t _read_chunk(self, hsize_t nchunk, ndarray iobuf, long cstart):
     cdef long nslot
@@ -620,7 +610,6 @@ cdef class Table(Leaf):
       nslot = chunkcache.setitem_(nchunk, rbuf, 0)
     return nrecords
 
-
   def _read_elements(self, ndarray coords, ndarray recarr):
     cdef long nrecords
     cdef void *rbuf, *rbuf2
@@ -644,7 +633,6 @@ cdef class Table(Leaf):
     self._convert_types(recarr, nrecords, 1)
 
     return nrecords
-
 
   def _remove_row(self, hsize_t nrow, hsize_t nrecords):
     cdef size_t rowsize
@@ -671,7 +659,6 @@ cdef class Table(Leaf):
     self._dirtycache = True
     # Return the number of records removed
     return nrecords
-
 
 
 cdef class Row:
@@ -738,11 +725,9 @@ cdef class Row:
     def __get__(self):
       return SizeType(self._nrow)
 
-
   property table:
     def __get__(self):
         return self._table_file._get_node(self._table_path)
-
 
   def __cinit__(self, table):
     cdef int nfields, i
@@ -773,19 +758,16 @@ cdef class Row:
     self.wfieldscache = {}
     self.modified_fields = set()
 
-
   def _iter(self, start=0, stop=0, step=1, coords=None, chunkmap=None):
     """Return an iterator for traversiong the data in table."""
 
     self._init_loop(start, stop, step, coords, chunkmap)
     return iter(self)
 
-
   def __iter__(self):
     """Iterator that traverses all the data in the Table"""
 
     return self
-
 
   cdef _new_buffer(self, table):
     """Create the recarrays for I/O buffering"""
@@ -817,7 +799,6 @@ cdef class Row:
     # The rowsize
     self._rowsize = self.dtype.itemsize
     self.nrows = table.nrows  # This value may change
-
 
   cdef _init_loop(self, hsize_t start, hsize_t stop, hsize_t step,
                  object coords, object chunkmap):
@@ -883,7 +864,6 @@ cdef class Row:
     else:
       return self.__next__general()
 
-
   cdef __next__indexed(self):
     """The version of next() for indexed columns and a chunkmap."""
 
@@ -935,6 +915,8 @@ cdef class Row:
 
         # Evaluate the condition on this table fragment.
         iobuf = iobuf[:recout]
+
+        self.table._convert_types(iobuf, len(iobuf), 1)
         self.indexvalid = call_on_recarr(
           self.condfunc, self.condargs, iobuf)
         self.index_valid_data = <char *>self.indexvalid.data
@@ -988,7 +970,6 @@ cdef class Row:
       # All the elements have been read for this mode
       self._finish_riterator()
 
-
   cdef __next__coords(self):
     """The version of next() for user-required coordinates"""
 
@@ -1023,7 +1004,6 @@ cdef class Row:
     else:
       # All the elements have been read for this mode
       self._finish_riterator()
-
 
   cdef __next__inkernel(self):
     """The version of next() in case of in-kernel conditions"""
@@ -1080,7 +1060,6 @@ cdef class Row:
     else:
       self._finish_riterator()
 
-
   # This is the most general __next__ version, simple, but effective
   cdef __next__general(self):
     """The version of next() for the general cases"""
@@ -1115,7 +1094,6 @@ cdef class Row:
     else:
       self._finish_riterator()
 
-
   cdef _finish_riterator(self):
     """Clean-up things after iterator has been done"""
 
@@ -1130,7 +1108,6 @@ cdef class Row:
       self._flush_mod_rows()     # Flush any possible modified row
     self.modified_fields = set()  # Empty the set of modified fields
     raise StopIteration        # end of iteration
-
 
   def _fill_col(self, result, start, stop, step, field):
     """Read a field from a table on disk and put the result in result"""
@@ -1174,7 +1151,6 @@ cdef class Row:
     return
 
   _fillCol = previous_api(_fill_col)
-
 
   def append(self):
     """Add a new row of data to the end of the dataset.
@@ -1233,7 +1209,6 @@ cdef class Row:
     if self._unsaved_nrows == self.nrowsinbuf:
       self._flush_buffered_rows()
 
-
   def _flush_buffered_rows(self):
     if self._unsaved_nrows > 0:
       self.table._save_buffered_rows(self.iobuf, self._unsaved_nrows)
@@ -1241,7 +1216,6 @@ cdef class Row:
       self._unsaved_nrows = 0
 
   _flushBufferedRows = previous_api(_flush_buffered_rows)
-
 
   def _get_unsaved_nrows(self):
     return self._unsaved_nrows
@@ -1321,7 +1295,6 @@ cdef class Row:
     if self._mod_nrows == self.nrowsinbuf:
       self._flush_mod_rows()
 
-
   def _flush_mod_rows(self):
     """Flush any possible modified row using Row.update()"""
 
@@ -1335,7 +1308,6 @@ cdef class Row:
 
   _flushModRows = previous_api(_flush_mod_rows)
 
-
   def __contains__(self, item):
     """__contains__(item)
 
@@ -1343,7 +1315,6 @@ cdef class Row:
     otherwise.
     """
     return item in self.fetch_all_fields()
-
 
   # This method is twice as faster than __getattr__ because there is
   # not a lookup in the local dictionary
@@ -1423,7 +1394,6 @@ cdef class Row:
       # without damaging the internal self.rfields buffer
       return field[offset].copy()
 
-
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, object key, object value):
     """__setitem__(key, value)
@@ -1496,7 +1466,6 @@ cdef class Row:
       raise TypeError("invalid type (%s) for column ``%s``" % (type(value),
                                                                key))
 
-
   def fetch_all_fields(self):
     """Retrieve all the fields in the current row.
 
@@ -1520,7 +1489,6 @@ cdef class Row:
     # in self.iobuf doesn't overwrite the original returned data.
     return self.iobuf[self._row].copy()
 
-
   def __str__(self):
     """Represent the record as an string"""
 
@@ -1536,12 +1504,9 @@ cdef class Row:
     return "%s.row (%s), pointing to row #%d" %  (tablepathname, classname,
                                                   self._nrow)
 
-
   def __repr__(self):
     """Represent the record as an string"""
     return str(self)
-
-
 
 ## Local Variables:
 ## mode: python
@@ -1549,9 +1514,3 @@ cdef class Row:
 ## tab-width: 2
 ## fill-column: 78
 ## End:
-
-
-
-
-
-

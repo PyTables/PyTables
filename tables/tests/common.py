@@ -12,13 +12,14 @@
 
 """Utilities for PyTables' test suites"""
 
-import unittest
-import tempfile
 import os
-import os.path
-import warnings
 import sys
 import time
+import unittest
+import tempfile
+import warnings
+
+import os.path
 
 try:
     # collections.Callable is new in python 2.6
@@ -217,7 +218,7 @@ class PyTablesTestCase(unittest.TestCase):
             methodName = self._getMethodName()
 
             title = "Running %s.%s" % (name, methodName)
-            print '%s\n%s' % (title, '-'*len(title))
+            print '%s\n%s' % (title, '-' * len(title))
 
     @classmethod
     def _testFilename(class_, filename):
@@ -322,9 +323,9 @@ class PyTablesTestCase(unittest.TestCase):
                             "node1 and node2 have the same pathnames.")
         else:
             self.assertTrue(node1._v_pathname == node2._v_pathname,
-                            "node1 and node2 does not have the same pathnames.")
+                "node1 and node2 does not have the same pathnames.")
         self.assertTrue(node1._v_children == node2._v_children,
-                        "node1 and node2 does not have the same children.")
+                "node1 and node2 does not have the same children.")
 
     def _checkEqualityLeaf(self, node1, node2, hardlink=False):
         if verbose:
@@ -332,12 +333,12 @@ class PyTablesTestCase(unittest.TestCase):
             print "Leaf 2:", node2
         if hardlink:
             self.assertTrue(node1._v_pathname != node2._v_pathname,
-                            "node1 and node2 have the same pathnames.")
+                "node1 and node2 have the same pathnames.")
         else:
             self.assertTrue(node1._v_pathname == node2._v_pathname,
-                            "node1 and node2 does not have the same pathnames.")
+                "node1 and node2 does not have the same pathnames.")
         self.assertTrue(areArraysEqual(node1[:], node2[:]),
-                        "node1 and node2 does not have the same values.")
+            "node1 and node2 does not have the same values.")
 
 
 class TempFileMixin:
@@ -398,7 +399,6 @@ class ShowMemTime(PyTablesTestCase):
         print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
         print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
         print "VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib)
-
 
 
 ## Local Variables:

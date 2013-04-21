@@ -4,16 +4,17 @@
 
 VERSION = $(shell cat VERSION)
 SRCDIRS = src doc
-PYTHON = python
-PYVER = $(shell $(PYTHON) -V 2>&1 | cut -c 8-10)
 GENERATED = ANNOUNCE.txt
-OPT = PYTHONPATH=$(CURDIR)
+PYTHON = python
+PYPLATFORM = $(shell $(PYTHON) -c "from distutils.util import get_platform; print(get_platform())")
+PYVER = $(shell $(PYTHON) -V 2>&1 | cut -c 8-10)
+PYBUILDDIR = $(PWD)/build/lib.$(PYPLATFORM)-$(PYVER)
+OPT = PYTHONPATH=$(PYBUILDDIR)
 
 
-.PHONY:		all dist check check clean distclean html
+.PHONY:		all dist build check check clean distclean html
 
-all:		$(GENERATED)
-	$(PYTHON) setup.py build_ext --inplace
+all:		$(GENERATED) build
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
 
 dist:		all
@@ -33,8 +34,7 @@ distclean:	clean
 	rm -f tables/_comp_*.c tables/*extension.c
 	#git clean -fdx
 
-html:
-	$(PYTHON) setup.py build_ext --inplace
+html: build
 	$(MAKE) -C doc $(OPT) html
 
 %:		%.in VERSION

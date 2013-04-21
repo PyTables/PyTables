@@ -748,11 +748,11 @@ cdef class AttributeSet:
       else:
         retvalue = PyBytes_FromStringAndSize(str_value, type_size)
         # AV: oct 2012
-        # since now we use the string size got form HDF5 we have to stip
+        # since now we use the string size got form HDF5 we have to strip
         # trailing zeros used for padding.
         # The entire process is quite odd but due to a bug (??) in the way
-        # numpy arrays are pickled in python 3 we can't assume that we can't
-        # assume that strlen(attr_value) is the actual length of the attibute
+        # numpy arrays are pickled in python 3 we can't assume that
+        # strlen(attr_value) is the actual length of the attibute
         # and numpy.bytes_(attr_value) can give a truncated pickle sting
         retvalue = retvalue.rstrip(b'\x00')
         retvalue = numpy.bytes_(retvalue)     # bytes

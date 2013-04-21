@@ -111,8 +111,8 @@ testADescr2 = [
 
 # A nested array for testing:
 testABuffer = [
-    # x     Info                                                color info        y                  z
-    #       value y2 Info2                            name z2         Name Value
+    # x     Info    color info      y       z
+    #       value y2 Info2      name z2         Name Value
     #                name   value    y3       z3
     ((3, 2), (6j, 6., ('nn', (6j, 4j), (6., 4.), (1, 2)),
      'NN', 8), 'cc', ('NN', 6j), ((6., 4.), (6., 4.)), 8),
@@ -509,9 +509,9 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Get the nested column data and swap the first and last rows.
         colnames = ['x', 'color']  # Get the first two columns
         raCols = numpy.rec.fromarrays([self._testAData['x'].copy(),
-                                       self._testAData['color'].copy()],
-                                      dtype=[('x', '(2,)i4'), ('color', '1a2')])
-                               # descr=tbl.description._v_nested_descr[0:2])
+                                self._testAData['color'].copy()],
+                                dtype=[('x', '(2,)i4'), ('color', '1a2')])
+                               # descr=tbl.description._v_nestedDescr[0:2])
                                # or...
                                # names=tbl.description._v_nested_names[0:2],
                                # formats=tbl.description._v_nested_formats[0:2])
@@ -660,7 +660,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(str(tbl), "/test (Table(2,)) 'test00'")
         tblrepr = repr(tbl)
         # Remove the platform-dependent information (i.e. byteorder)
-        tblrepr = "\n".join(tblrepr.split("\n")[:-2])+"\n"
+        tblrepr = "\n".join(tblrepr.split("\n")[:-2]) + "\n"
         if sys.version_info[0] < 3:
             template = """/test (Table(2,)) 'test00'
   description := {
@@ -672,7 +672,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
       "name": StringCol(itemsize=2, shape=(), dflt='', pos=0),
       "value": ComplexCol(itemsize=16, shape=(2,), dflt=0j, pos=1),
       "y3": Time64Col(shape=(2,), dflt=1.0, pos=2),
-      "z3": EnumCol(enum=Enum({%s}), dflt='r', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
+      "z3": EnumCol(enum=Enum({%(value)s}), dflt='r', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
     "name": StringCol(itemsize=2, shape=(), dflt='', pos=3),
     "z2": UInt8Col(shape=(), dflt=1, pos=4)},
   "color": StringCol(itemsize=2, shape=(), dflt=' ', pos=2),
@@ -693,7 +693,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
       "name": StringCol(itemsize=2, shape=(), dflt=b'', pos=0),
       "value": ComplexCol(itemsize=16, shape=(2,), dflt=0j, pos=1),
       "y3": Time64Col(shape=(2,), dflt=1.0, pos=2),
-      "z3": EnumCol(enum=Enum({%s}), dflt='r', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
+      "z3": EnumCol(enum=Enum({%(value)s}), dflt='%(default)s', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
     "name": StringCol(itemsize=2, shape=(), dflt=b'', pos=3),
     "z2": UInt8Col(shape=(), dflt=1, pos=4)},
   "color": StringCol(itemsize=2, shape=(), dflt=b' ', pos=2),
@@ -703,8 +703,27 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
   "y": Float64Col(shape=(2, 2), dflt=1.0, pos=4),
   "z": UInt8Col(shape=(), dflt=1, pos=5)}
 """
-        values = [template % ', '.join(items)
-                  for items in itertools.permutations(("'r': 4", "'b': 1", "'g': 2"))]
+
+        # The problem here is that the order in which items are stored in a
+        # dict can't be assumed to be stable.
+        # From python 3.3 on it is actually no more stable since the
+        # "Hash randomization" feature is enable by default.
+        #
+        # For this reason we generate a representation string for each of the
+        # prmutations of the Enum items.
+        #
+        # Also the default value of enum types is not preserved in HDF5.
+        # It is assumed that the default value is the first one in the array
+        # of Enum names and hence it is also affected by the issue related to
+        # the "Hash randomization" feature.
+        #
+        # Also in this case it is genereted a representation string for each
+        # of the possible default values.
+        enums = [', '.join(items) for items in
+                        itertools.permutations(("'r': 4", "'b': 1", "'g': 2"))]
+        defaults = ('r', 'b', 'g')
+        values = [template % {'value': v, 'default': d}
+                                for v, d in itertools.product(enums, defaults)]
         self.assertTrue(tblrepr in values)
 
     def test00b_repr(self):
@@ -937,7 +956,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        tblcol = tbl.cols._f_col(self._testNestedCol+"/name")
+        tblcol = tbl.cols._f_col(self._testNestedCol + "/name")
         if common.verbose:
             print "Column name:", tblcol.name
         self.assertEqual(tblcol.name, "name", "Column name doesn't match.")
@@ -948,11 +967,11 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        tblcol = tbl.cols._f_col(self._testNestedCol+"/Info2")
+        tblcol = tbl.cols._f_col(self._testNestedCol + "/Info2")
         if common.verbose:
             print "Column group name:", tblcol._v_desc._v_pathname
         self.assertEqual(tblcol._v_desc._v_pathname,
-                         self._testNestedCol+"/Info2",
+                         self._testNestedCol + "/Info2",
                          "Column group name doesn't match.")
 
     def test02a__len__(self):
@@ -1088,7 +1107,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Original array are retrieved doesn't match.")
 
     def test04c__getitem__(self):
-        """Checking cols.__getitem__() with subgroups with a range index with step."""
+        """Checking cols.__getitem__() with subgroups with a range
+        index with step."""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
@@ -1148,7 +1168,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Original array are retrieved doesn't match.")
 
     def test05c__getitem__(self):
-        """Checking cols.__getitem__() with a column with a range index with step."""
+        """Checking cols.__getitem__() with a column with a range index
+        with step."""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
@@ -1506,7 +1527,6 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')
-
 
 
 ## Local Variables:

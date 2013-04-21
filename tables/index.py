@@ -215,7 +215,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
     def _g_nsuperblocks(self):
         # Last row should not be considered as a superblock
         nelements = self.nelements - self.nelementsILR
-        nblocks = nelements / self.superblocksize
+        nblocks = nelements // self.superblocksize
         if nelements % self.blocksize > 0:
             nblocks += 1
         return nblocks
@@ -1407,7 +1407,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         tmp_sorted = tmp.sorted2
         tmp_indices = tmp.indices2
         ncs = self.nchunkslice
-        nss = self.superblocksize / self.slicesize
+        nss = self.superblocksize // self.slicesize
         nss2 = nss
         for sblock in xrange(self.nsuperblocks):
             # Protection for last superblock having less slices than nss

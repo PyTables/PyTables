@@ -2,9 +2,10 @@
 
 """Run all test cases."""
 
-import sys
 import os
 import re
+import sys
+import locale
 import unittest
 
 import numpy
@@ -115,6 +116,7 @@ def print_versions():
         print 'Platform:          %s-%s' % (sys.platform, machine)
     print 'Byte-ordering:     %s' % sys.byteorder
     print 'Detected cores:    %s' % detect_number_of_cores()
+    print 'Default encoding:  %s' % sys.getdefaultencoding()
     print '-=' * 38
 
 
