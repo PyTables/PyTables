@@ -453,7 +453,7 @@ cdef hid_t get_native_type(hid_t type_id) nogil:
   """Get the native type of a HDF5 type."""
 
   cdef H5T_class_t class_id, super_class_id
-  cdef hid_t native_type_id, super_type_id, native_super_type_id
+  cdef hid_t native_type_id = 0, super_type_id, native_super_type_id
   cdef int rank
   cdef hsize_t *dims
 
@@ -469,7 +469,7 @@ cdef hid_t get_native_type(hid_t type_id) nogil:
     # F. Alted  2009-08-19
     return get_nested_native_type(type_id)
 
-  if class_id in (H5T_ARRAY, H5T_VLEN):
+  elif class_id in (H5T_ARRAY, H5T_VLEN):
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
     # Get the class
@@ -702,7 +702,7 @@ def which_class(hid_t loc_id, object name):
     else:
       classId = "ARRAY"
 
-  if class_id == H5T_COMPOUND:
+  elif class_id == H5T_COMPOUND:
     # check whether the type is complex or not
     iscomplex = False
     nfields = H5Tget_nmembers(type_id)
@@ -733,7 +733,7 @@ def which_class(hid_t loc_id, object name):
         # Added to support non-chunked tables
         classId = "TABLE"  # A test for supporting non-growable tables
 
-  if class_id == H5T_VLEN:
+  elif class_id == H5T_VLEN:
     if layout == H5D_CHUNKED:
       classId = "VLARRAY"
 

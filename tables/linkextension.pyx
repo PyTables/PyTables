@@ -102,7 +102,8 @@ def _get_link_class(parent_id, name):
       return "SoftLink"
     elif link_type == H5L_TYPE_EXTERNAL:
       return "ExternalLink"
-    return "UnImplemented"
+    else:
+      return "UnImplemented"
 
 _getLinkClass = previous_api(_get_link_class)
 
