@@ -13,12 +13,12 @@
 
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
-#define BLOSC_VERSION_MINOR    1    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  5    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_MINOR    2    /* for minor interface/format changes  */
+#define BLOSC_VERSION_RELEASE  0    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.1.5"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.2.0"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2012-09-21 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2013-04-21 #$"    /* date version */
 
 /* The *_VERS_FORMAT should be just 1-byte long */
 #define BLOSC_VERSION_FORMAT    2   /* Blosc format version, starting at 1 */
@@ -128,11 +128,12 @@ int blosc_set_nthreads(int nthreads);
 
 
 /**
-  Free possible memory temporaries and thread resources.  Use this
-  when you are not going to use Blosc for a long while.
+  Free possible memory temporaries and thread resources.  Use this when you
+  are not going to use Blosc for a long while.  In case of problems releasing
+  the resources, it returns a negative number, else it returns 0.
 */
 
-void blosc_free_resources(void);
+int blosc_free_resources(void);
 
 
 /**
