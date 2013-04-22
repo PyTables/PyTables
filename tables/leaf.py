@@ -144,7 +144,7 @@ class Leaf(Node):
         (This is an easier-to-write alias of :attr:`Node._v_name`).""")
 
     chunkshape = property(
-        lambda self: self._v_chunkshape, None, None,
+        lambda self: getattr(self, '_v_chunkshape', None), None, None,
         """The HDF5 chunk size for chunked leaves (a tuple).
 
         This is read-only because you cannot change the chunk size of a
@@ -361,6 +361,14 @@ class Leaf(Node):
         rowsize = self.rowsize
         buffersize = params['IO_BUFFER_SIZE']
         nrowsinbuf = buffersize // rowsize
+
+        # tableExtension.pyx performs an assertion
+        # to make sure nrowsinbuf is greater than or
+        # equal to the chunksize.
+        chunksize = numpy.asarray(self.chunkshape).prod()
+        if nrowsinbuf < chunksize:
+            nrowsinbuf = chunksize
+
         # Safeguard against row sizes being extremely large
         if nrowsinbuf == 0:
             nrowsinbuf = 1
