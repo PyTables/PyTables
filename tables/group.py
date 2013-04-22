@@ -1101,7 +1101,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 # Special definition for group root
 class RootGroup(Group):
-    def __init__(self, ptFile, name, title, new, filters):
+    def __init__(self, ptfile, name, title, new, filters):
         mydict = self.__dict__
 
         # Set group attributes.
@@ -1115,23 +1115,23 @@ class RootGroup(Group):
             self._v_new_filters = None
 
         # Set node attributes.
-        self._v_file = ptFile
+        self._v_file = ptfile
         self._v_isopen = True  # root is always open
         self._v_pathname = '/'
         self._v_name = '/'
         self._v_depth = 0
-        self._v_max_group_width = ptFile.params['MAX_GROUP_WIDTH']
+        self._v_max_group_width = ptfile.params['MAX_GROUP_WIDTH']
         self._v__deleting = False
         self._v_objectid = None  # later
 
         # Only the root node has the file as a parent.
         # Bypass __setattr__ to avoid the ``Node._v_parent`` property.
-        mydict['_v_parent'] = ptFile
-        ptFile._refnode(self, '/')
+        mydict['_v_parent'] = ptfile
+        ptfile._refnode(self, '/')
 
         # hdf5extension operations (do before setting an AttributeSet):
         #   Update node attributes.
-        self._g_new(ptFile, name, init=True)
+        self._g_new(ptfile, name, init=True)
         #   Open the node and get its object ID.
         self._v_objectid = self._g_open()
 

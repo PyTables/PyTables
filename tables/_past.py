@@ -155,6 +155,7 @@ old2newnames = dict([
     ('_updateNodeLocations', '_update_node_locations'),
     # from group.py
     #('parentNode', 'parentnode'),                       # kwarg
+    #('ptFile', 'ptfile'),                               # kwarg
     ('_getValueFromContainer', '_get_value_from_container'),
     ('_g_postInitHook', '_g_post_init_hook'),
     ('_g_getChildGroupClass', '_g_get_child_group_class'),
