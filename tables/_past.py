@@ -325,6 +325,7 @@ old2newnames = dict([
     ('isVisibleName', 'isvisiblename'),
     ('isVisiblePath', 'isvisiblepath'),
     # from registry.py
+    ('className', 'classname'),                         # kwarg
     ('classNameDict', 'class_name_dict'),
     ('classIdDict', 'class_id_dict'),
     ('getClassByName', 'get_class_by_name'),

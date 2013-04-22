@@ -53,27 +53,29 @@ class objects (e.g. `Group`).  Classes defining a new ``_c_classid``
 attribute are registered here when they are defined, and they are not
 expected to be unregistered (by now), but they can be replaced when the
 module that defines them is reloaded.
+
 """
 
 
-def get_class_by_name(className):
+def get_class_by_name(classname):
     """Get the node class matching the `classname`.
 
     If the name is not registered, a ``TypeError`` is raised.  The empty
     string and ``None`` are also accepted, and mean the ``Node`` class.
+
     """
 
     # The empty string is accepted for compatibility
     # with old default arguments.
-    if className is None or className == '':
-        className = 'Node'
+    if classname is None or classname == '':
+        classname = 'Node'
 
     # Get the class object corresponding to `classname`.
-    if className not in class_name_dict:
+    if classname not in class_name_dict:
         raise TypeError("there is no registered node class named ``%s``"
-                        % (className,))
+                        % (classname,))
 
-    return class_name_dict[className]
+    return class_name_dict[classname]
 
 getClassByName = previous_api(get_class_by_name)
 
