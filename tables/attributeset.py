@@ -567,7 +567,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Finally, remove the old attribute
         delattr(self, oldattrname)
 
-    def _g_copy(self, newset, set_attr=None, copyClass=False):
+    def _g_copy(self, newset, set_attr=None, copyclass=False):
         """Copy set attributes.
 
         Copies all user and allowed system PyTables attributes to the
@@ -579,6 +579,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         Changes are logged depending on the chosen setting method.  The
         default setting method does not log anything.
+
+        .. versionchanged:: 3.0
+
+            The *copyClass* parameter has been renamed into *copyclass*.
 
         """
 
@@ -600,7 +604,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                         not attrname.startswith("FIELD_")):
                     set_attr(attrname, getattr(self, attrname))
             # Copy CLASS and VERSION attributes if requested
-            if copyClass:
+            if copyclass:
                 for attrname in FORCE_COPY_CLASS:
                     if attrname in self._v_attrnamessys:
                         set_attr(attrname, getattr(self, attrname))

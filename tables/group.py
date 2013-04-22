@@ -611,7 +611,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # Copy user attributes if needed.
         if kwargs.get('copyuserattrs', True):
-            self._v_attrs._g_copy(new_node._v_attrs, copyClass=True)
+            self._v_attrs._g_copy(new_node._v_attrs, copyclass=True)
 
         # Update statistics if needed.
         if stats is not None:
