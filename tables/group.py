@@ -492,7 +492,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     _g_widthWarning = previous_api(_g_width_warning)
 
-    def _g_refnode(self, childNode, childname, validate=True):
+    def _g_refnode(self, childnode, childname, validate=True):
         """Insert references to a `childnode` via a `childname`.
 
         Checks that the `childname` is valid and does not exist, then
@@ -506,14 +506,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # Check for name validity.
         if validate:
             check_name_validity(childname)
-            childNode._g_check_name(childname)
+            childnode._g_check_name(childname)
 
         # Check if there is already a child with the same name.
         # This can be triggered because of the user
         # (via node construction or renaming/movement).
         # Links are not checked here because they are copied and referenced
         # using ``File.get_node`` so they already exist in `self`.
-        if (not isinstance(childNode, Link)) and childname in self:
+        if (not isinstance(childnode, Link)) and childname in self:
             raise NodeError(
                 "group ``%s`` already has a child node named ``%s``"
                 % (self._v_pathname, childname))
@@ -538,13 +538,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             # Visible node.
             self.__members__.insert(0, childname)  # enable completion
             self._v_children[childname] = None  # insert node
-            if isinstance(childNode, Unknown):
+            if isinstance(childnode, Unknown):
                 self._v_unknown[childname] = None
-            elif isinstance(childNode, Link):
+            elif isinstance(childnode, Link):
                 self._v_links[childname] = None
-            elif isinstance(childNode, Leaf):
+            elif isinstance(childnode, Leaf):
                 self._v_leaves[childname] = None
-            elif isinstance(childNode, Group):
+            elif isinstance(childnode, Group):
                 self._v_groups[childname] = None
         else:
             # Hidden node.
