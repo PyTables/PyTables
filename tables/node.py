@@ -379,7 +379,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
     _g_setLocation = previous_api(_g_set_location)
 
-    def _g_update_location(self, newParentPath):
+    def _g_update_location(self, newparentpath):
         """Update location-dependent attributes.
 
         Updates location data when an ancestor node has changed its
@@ -394,7 +394,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         oldpath = self._v_pathname
-        newpath = join_path(newParentPath, self._v_name)
+        newpath = join_path(newparentpath, self._v_name)
         newdepth = newpath.count('/')
 
         self._v_pathname = newpath
