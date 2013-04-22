@@ -41,6 +41,15 @@ class EArray(CArray):
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+
+            Renamed from *parentNode* to *parentnode*
+
+    name : str
+        The name of this node in its parent group.
     atom
         An `Atom` instance representing the *type* and *shape*
         of the atomic objects to be saved.
@@ -114,6 +123,7 @@ class EArray(CArray):
         array_c[2] => 'aaaaaa'
         array_c[3] => 'bbbbbbbb'
         array_c[4] => 'cccccccc'
+
     """
 
     # Class identifier.
@@ -121,7 +131,7 @@ class EArray(CArray):
 
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  atom=None, shape=None, title="",
                  filters=None, expectedrows=None,
                  chunkshape=None, byteorder=None,
@@ -129,12 +139,12 @@ class EArray(CArray):
 
         # Specific of EArray
         if expectedrows is None:
-            expectedrows = parentNode._v_file.params['EXPECTED_ROWS_EARRAY']
+            expectedrows = parentnode._v_file.params['EXPECTED_ROWS_EARRAY']
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the array."""
 
         # Call the parent (CArray) init code
-        super(EArray, self).__init__(parentNode, name, atom, shape, title,
+        super(EArray, self).__init__(parentnode, name, atom, shape, title,
                                      filters, chunkshape, byteorder, _log)
 
     # Public and private methods

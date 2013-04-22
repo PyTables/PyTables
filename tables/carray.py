@@ -41,6 +41,15 @@ class CArray(Array):
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+
+            Renamed from *parentNode* to *parentnode*
+
+    name : str
+        The name of this node in its parent group.
     atom
        An `Atom` instance representing the *type* and *shape* of
        the atomic objects to be saved.
@@ -118,7 +127,7 @@ class CArray(Array):
     # ~~~~~~~~~~
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  atom=None, shape=None,
                  title="", filters=None,
                  chunkshape=None, byteorder=None,
@@ -197,7 +206,7 @@ class CArray(Array):
                 self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         # The `Array` class is not abstract enough! :(
-        super(Array, self).__init__(parentNode, name, new, filters,
+        super(Array, self).__init__(parentnode, name, new, filters,
                                     byteorder, _log)
 
     def _g_create(self):

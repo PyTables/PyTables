@@ -55,6 +55,15 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+
+            Renamed from *parentNode* to *parentnode*
+
+    name : str
+        The name of this node in its parent group.
     atom
         An `Atom` instance representing the *type* and *shape* of the atomic
         objects to be saved.
@@ -217,7 +226,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     # Other methods
     # ~~~~~~~~~~~~~
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  atom=None, title="",
                  filters=None, expectedsizeinMB=1.0,
                  chunkshape=None, byteorder=None,
@@ -286,7 +295,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
                                  % (chunkshape,))
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
-        super(VLArray, self).__init__(parentNode, name, new, filters,
+        super(VLArray, self).__init__(parentnode, name, new, filters,
                                       byteorder, _log)
 
     def _g_post_init_hook(self):

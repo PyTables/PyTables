@@ -111,6 +111,15 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+
+            Renamed from *parentNode* to *parentnode*
+
+    name : str
+        The name of this node in its parent group.
     atom : Atom
         An Atom object representing the shape and type of the atomic objects to
         be saved. Only scalar atoms are supported.
@@ -311,7 +320,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         return lbucket
 
     # </properties>
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  atom=None, title="",
                  kind=None,
                  optlevel=None,
@@ -381,7 +390,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self._openFile = open_file
         """The `open_file()` function, to avoid a circular import."""
 
-        super(Index, self).__init__(parentNode, name, title, new, filters)
+        super(Index, self).__init__(parentnode, name, title, new, filters)
 
     def _g_post_init_hook(self):
         if self._v_new:

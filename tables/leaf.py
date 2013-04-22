@@ -223,7 +223,7 @@ class Leaf(Node):
 
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  new=False, filters=None,
                  byteorder=None, _log=True):
         self._v_new = new
@@ -241,7 +241,7 @@ class Leaf(Node):
         if new:
             # Get filter properties from parent group if not given.
             if filters is None:
-                filters = parentNode._v_filters
+                filters = parentnode._v_filters
             self.__dict__['filters'] = filters  # bypass the property
 
             if byteorder not in (None, 'little', 'big'):
@@ -254,7 +254,7 @@ class Leaf(Node):
         # Existing filters need not be read since `filters`
         # is a lazy property that automatically handles their loading.
 
-        super(Leaf, self).__init__(parentNode, name, _log)
+        super(Leaf, self).__init__(parentnode, name, _log)
 
     def __len__(self):
         """Return the length of the main dimension of the leaf data.

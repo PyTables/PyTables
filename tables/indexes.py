@@ -49,6 +49,11 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
     ----------
     parentnode
         The Index class from which this object will hang off.
+
+        .. versionchanged:: 3.0
+
+            Renamed from *parentNode* to *parentnode*
+
     name : str
         The name of this node in its parent group.
     atom
@@ -79,28 +84,28 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
 
     # Other methods
     # ~~~~~~~~~~~~~
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  atom=None, title="",
                  filters=None, byteorder=None):
         """Create an IndexArray instance."""
 
-        self._v_pathname = parentNode._g_join(name)
+        self._v_pathname = parentnode._g_join(name)
         if atom is not None:
             # The shape and chunkshape needs to be fixed here
             if name == "sorted":
-                reduction = parentNode.reduction
-                shape = (0, parentNode.slicesize // reduction)
-                chunkshape = (1, parentNode.chunksize // reduction)
+                reduction = parentnode.reduction
+                shape = (0, parentnode.slicesize // reduction)
+                chunkshape = (1, parentnode.chunksize // reduction)
             else:
-                shape = (0, parentNode.slicesize)
-                chunkshape = (1, parentNode.chunksize)
+                shape = (0, parentnode.slicesize)
+                chunkshape = (1, parentnode.chunksize)
         else:
             # The shape and chunkshape will be read from disk later on
             shape = None
             chunkshape = None
 
         super(IndexArray, self).__init__(
-            parentNode, name, atom, shape, title, filters,
+            parentnode, name, atom, shape, title, filters,
             chunkshape=chunkshape, byteorder=byteorder)
 
     # This version of searchBin uses both ranges (1st level) and

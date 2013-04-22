@@ -195,7 +195,7 @@ class Node(object):
 
     # The ``_log`` argument is only meant to be used by ``_g_copy_as_child()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
-    def __init__(self, parentNode, name, _log=True):
+    def __init__(self, parentnode, name, _log=True):
         # Remember to assign these values in the root group constructor
         # as it does not use this method implementation!
 
@@ -210,7 +210,7 @@ class Node(object):
         self._v_depth = None
         """The depth of this node in the tree (an non-negative integer value).
         """
-        self._v_maxTreeDepth = parentNode._v_file.params['MAX_TREE_DEPTH']
+        self._v_maxTreeDepth = parentnode._v_file.params['MAX_TREE_DEPTH']
         """Maximum tree depth before warning the user."""
         self._v__deleting = False
         """Is the node being deleted?"""
@@ -221,9 +221,9 @@ class Node(object):
         validate = new = self._v_new  # set by subclass constructor
 
         # Is the parent node a group?  Is it open?
-        self._g_check_group(parentNode)
-        parentNode._g_check_open()
-        file_ = parentNode._v_file
+        self._g_check_group(parentnode)
+        parentnode._g_check_open()
+        file_ = parentnode._v_file
 
         # Will the file be able to host a new node?
         if new:
@@ -233,13 +233,13 @@ class Node(object):
         if new:
             # Only new nodes need to be referenced.
             # Opened nodes are already known by their parent group.
-            parentNode._g_refnode(self, name, validate)
-        self._g_set_location(parentNode, name)
+            parentnode._g_refnode(self, name, validate)
+        self._g_set_location(parentnode, name)
 
         try:
             # hdf5extension operations:
             #   Update node attributes.
-            self._g_new(parentNode, name, init=True)
+            self._g_new(parentnode, name, init=True)
             #   Create or open the node and get its object ID.
             if new:
                 self._v_objectid = self._g_create()
@@ -332,7 +332,7 @@ class Node(object):
 
     _g_checkOpen = previous_api(_g_check_open)
 
-    def _g_set_location(self, parentNode, name):
+    def _g_set_location(self, parentnode, name):
         """Set location-dependent attributes.
 
         Sets the location-dependent attributes of this node to reflect
@@ -345,8 +345,8 @@ class Node(object):
 
         """
 
-        file_ = parentNode._v_file
-        parentDepth = parentNode._v_depth
+        file_ = parentnode._v_file
+        parentDepth = parentnode._v_depth
 
         self._v_file = file_
         self._v_isopen = True
@@ -364,7 +364,7 @@ class Node(object):
         else:
             # If we enter here is because this has been called elsewhere
             self._v_name = name
-            self._v_pathname = join_path(parentNode._v_pathname, name)
+            self._v_pathname = join_path(parentnode._v_pathname, name)
             self._v_depth = parentDepth + 1
 
         # Check if the node is too deep in the tree.

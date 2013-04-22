@@ -85,12 +85,12 @@ class Link(Node):
                 pass
         return NoAttrs(self)
 
-    def __init__(self, parentNode, name, target=None, _log=False):
+    def __init__(self, parentnode, name, target=None, _log=False):
         self._v_new = target is not None
         self.target = target
         """The path string to the pointed node."""
 
-        super(Link, self).__init__(parentNode, name, _log)
+        super(Link, self).__init__(parentnode, name, _log)
 
     # Public and tailored versions for copy, move, rename and remove methods
     def copy(self, newparent=None, newname=None,
@@ -213,12 +213,12 @@ class ExternalLink(linkextension.ExternalLink, Link):
     # Class identifier.
     _c_classid = 'EXTERNALLINK'
 
-    def __init__(self, parentNode, name, target=None, _log=False):
+    def __init__(self, parentnode, name, target=None, _log=False):
         self.extfile = None
         """The external file handler, if the link has been dereferenced.
         In case the link has not been dereferenced yet, its value is
         None."""
-        super(ExternalLink, self).__init__(parentNode, name, target, _log)
+        super(ExternalLink, self).__init__(parentnode, name, target, _log)
 
     def _get_filename_node(self):
         """Return the external filename and nodepath from `self.target`."""

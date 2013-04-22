@@ -469,6 +469,15 @@ class Table(tableextension.Table, Leaf):
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+
+            Renamed from *parentNode* to *parentnode*
+
+    name : str
+        The name of this node in its parent group.
     description
         An IsDescription subclass or a dictionary where the keys are the field
         names, and the values the type definitions. In addition, a pure NumPy
@@ -684,7 +693,7 @@ class Table(tableextension.Table, Leaf):
 
     # Other methods
     # ~~~~~~~~~~~~~
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  description=None, title="", filters=None,
                  expectedrows=None, chunkshape=None,
                  byteorder=None, _log=True):
@@ -702,7 +711,7 @@ class Table(tableextension.Table, Leaf):
         self._rabyteorder = None
         """The computed byteorder of the self._v_recarray."""
         if expectedrows is None:
-            expectedrows = parentNode._v_file.params['EXPECTED_ROWS_TABLE']
+            expectedrows = parentnode._v_file.params['EXPECTED_ROWS_TABLE']
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the table."""
         self.nrows = SizeType(0)
@@ -761,7 +770,7 @@ class Table(tableextension.Table, Leaf):
         """Whether an index can be used or not in a search.  Boolean."""
         self._where_condition = None
         """Condition function and argument list for selection of values."""
-        max_slots = parentNode._v_file.params['COND_CACHE_SLOTS']
+        max_slots = parentnode._v_file.params['COND_CACHE_SLOTS']
         self._condition_cache = CacheDict(max_slots)
         """Cache of already compiled conditions."""
         self._exprvars_cache = {}
@@ -848,7 +857,7 @@ class Table(tableextension.Table, Leaf):
                                  % (chunkshape,))
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
-        super(Table, self).__init__(parentNode, name, new, filters,
+        super(Table, self).__init__(parentnode, name, new, filters,
                                     byteorder, _log)
 
     def _g_post_init_hook(self):

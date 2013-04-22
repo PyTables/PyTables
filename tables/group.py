@@ -80,6 +80,15 @@ class Group(hdf5extension.Group, Node):
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+
+            Renamed from *parentNode* to *parentnode*
+
+    name : str
+        The name of this node in its parent group.
     title
         The title for this group
     new
@@ -195,7 +204,7 @@ class Group(hdf5extension.Group, Node):
 
     # </properties>
 
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  title="", new=False, filters=None,
                  _log=True):
 
@@ -213,11 +222,11 @@ class Group(hdf5extension.Group, Node):
         """New title for this node."""
         self._v_new_filters = filters
         """New default filter properties for child nodes."""
-        self._v_max_group_width = parentNode._v_file.params['MAX_GROUP_WIDTH']
+        self._v_max_group_width = parentnode._v_file.params['MAX_GROUP_WIDTH']
         """Maximum number of children on each group before warning the user."""
 
         # Finally, set up this object as a node.
-        super(Group, self).__init__(parentNode, name, _log)
+        super(Group, self).__init__(parentnode, name, _log)
 
     def _g_post_init_hook(self):
         if self._v_new:

@@ -669,9 +669,9 @@ class File(hdf5extension.File, object):
 
         """
 
-        parentNode = self._get_or_create_path(where, createparents)
+        parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        return Group(parentNode, name,
+        return Group(parentnode, name,
                      title=title, new=True, filters=filters)
 
     createGroup = previous_api(create_group)
@@ -744,11 +744,11 @@ class File(hdf5extension.File, object):
 
         """
 
-        parentNode = self._get_or_create_path(where, createparents)
+        parentnode = self._get_or_create_path(where, createparents)
         if description is None:
             raise ValueError("invalid table description: None")
         _checkfilters(filters)
-        return Table(parentNode, name,
+        return Table(parentnode, name,
                      description=description, title=title,
                      filters=filters, expectedrows=expectedrows,
                      chunkshape=chunkshape, byteorder=byteorder)
@@ -796,8 +796,8 @@ class File(hdf5extension.File, object):
 
         """
 
-        parentNode = self._get_or_create_path(where, createparents)
-        return Array(parentNode, name,
+        parentnode = self._get_or_create_path(where, createparents)
+        return Array(parentnode, name,
                      object=object, title=title, byteorder=byteorder)
 
     createArray = previous_api(create_array)
@@ -847,9 +847,9 @@ class File(hdf5extension.File, object):
 
         """
 
-        parentNode = self._get_or_create_path(where, createparents)
+        parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        return CArray(parentNode, name,
+        return CArray(parentnode, name,
                       atom=atom, shape=shape, title=title, filters=filters,
                       chunkshape=chunkshape, byteorder=byteorder)
 
@@ -908,9 +908,9 @@ class File(hdf5extension.File, object):
 
         """
 
-        parentNode = self._get_or_create_path(where, createparents)
+        parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        return EArray(parentNode, name,
+        return EArray(parentnode, name,
                       atom=atom, shape=shape, title=title,
                       filters=filters, expectedrows=expectedrows,
                       chunkshape=chunkshape, byteorder=byteorder)
@@ -968,9 +968,9 @@ class File(hdf5extension.File, object):
 
         """
 
-        parentNode = self._get_or_create_path(where, createparents)
+        parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        return VLArray(parentNode, name,
+        return VLArray(parentnode, name,
                        atom=atom, title=title, filters=filters,
                        expectedsizeinMB=expectedsizeinMB,
                        chunkshape=chunkshape, byteorder=byteorder)
@@ -991,12 +991,12 @@ class File(hdf5extension.File, object):
         """
 
         targetNode = self.get_node(target)
-        parentNode = self._get_or_create_path(where, createparents)
-        linkextension._g_create_hard_link(parentNode, name, targetNode)
+        parentnode = self._get_or_create_path(where, createparents)
+        linkextension._g_create_hard_link(parentnode, name, targetNode)
         # Refresh children names in link's parent node
-        parentNode._g_add_children_names()
+        parentnode._g_add_children_names()
         # Return the target node
-        return self.get_node(parentNode, name)
+        return self.get_node(parentnode, name)
 
     createHardLink = previous_api(create_hard_link)
 
@@ -1019,10 +1019,10 @@ class File(hdf5extension.File, object):
             else:
                 raise ValueError(
                     "`target` has to be a string or a node object")
-        parentNode = self._get_or_create_path(where, createparents)
-        slink = SoftLink(parentNode, name, target)
+        parentnode = self._get_or_create_path(where, createparents)
+        slink = SoftLink(parentnode, name, target)
         # Refresh children names in link's parent node
-        parentNode._g_add_children_names()
+        parentnode._g_add_children_names()
         return slink
 
     createSoftLink = previous_api(create_soft_link)
@@ -1049,10 +1049,10 @@ class File(hdf5extension.File, object):
         elif target.find(':/') == -1:
             raise ValueError(
                 "`target` must expressed as 'file:/path/to/node'")
-        parentNode = self._get_or_create_path(where, createparents)
-        elink = ExternalLink(parentNode, name, target)
+        parentnode = self._get_or_create_path(where, createparents)
+        elink = ExternalLink(parentnode, name, target)
         # Refresh children names in link's parent node
-        parentNode._g_add_children_names()
+        parentnode._g_add_children_names()
         return elink
 
     createExternalLink = previous_api(create_external_link)

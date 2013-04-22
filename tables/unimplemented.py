@@ -48,7 +48,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
     # Class identifier.
     _c_classid = 'UNIMPLEMENTED'
 
-    def __init__(self, parentNode, name):
+    def __init__(self, parentnode, name):
         """Create the `UnImplemented` instance."""
 
         # UnImplemented objects always come from opening an existing node
@@ -63,7 +63,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         """The endianness of data in memory ('big', 'little' or
         'irrelevant')."""
 
-        super(UnImplemented, self).__init__(parentNode, name)
+        super(UnImplemented, self).__init__(parentnode, name)
 
     def _g_open(self):
         (self.shape, self.byteorder, object_id) = self._open_unimplemented()
@@ -124,13 +124,13 @@ class Unknown(Node):
     # Class identifier
     _c_classid = 'UNKNOWN'
 
-    def __init__(self, parentNode, name):
+    def __init__(self, parentnode, name):
         """Create the `Unknown` instance."""
 
         self._v_new = False
-        super(Unknown, self).__init__(parentNode, name)
+        super(Unknown, self).__init__(parentnode, name)
 
-    def _g_new(self, parentNode, name, init=False):
+    def _g_new(self, parentnode, name, init=False):
         pass
 
     def _g_open(self):

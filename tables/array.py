@@ -57,6 +57,15 @@ class Array(hdf5extension.Array, Leaf):
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+
+            Renamed from *parentNode* to *parentnode*
+
+    name : str
+        The name of this node in its parent group.
     object
         The array or scalar to be saved.  Accepted types are NumPy
         arrays and scalars as well as native Python sequences and
@@ -69,6 +78,7 @@ class Array(hdf5extension.Array, Leaf):
     byteorder
         The byteorder of the data *on disk*, specified as 'little' or 'big'.
         If this is not specified, the byteorder is that of the given `object`.
+
     """
 
     # Class identifier.
@@ -111,7 +121,7 @@ class Array(hdf5extension.Array, Leaf):
 
     # Other methods
     # ~~~~~~~~~~~~~
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  object=None, title="",
                  byteorder=None, _log=True, _atom=None):
 
@@ -164,7 +174,7 @@ class Array(hdf5extension.Array, Leaf):
         """The index of the enlargeable dimension."""
 
         # Ordinary arrays have no filters: leaf is created with default ones.
-        super(Array, self).__init__(parentNode, name, new, Filters(),
+        super(Array, self).__init__(parentnode, name, new, Filters(),
                                     byteorder, _log)
 
     def _g_create(self):

@@ -42,6 +42,7 @@ old2newnames = dict([
     # from __init__.py
     ('hdf5Version', 'hdf5_version'),
     # from array.py
+    ('parentNode', 'parentnode'),                       # kwarg
     ('getEnum', 'get_enum'),
     ('_initLoop', '_init_loop'),
     ('_fancySelection', '_fancy_selection'),
@@ -62,6 +63,8 @@ old2newnames = dict([
     ('_g_delAndLog', '_g_del_and_log'),
     ('_v__nodeFile', '_v__nodefile'),
     ('_v__nodePath', '_v__nodepath'),
+    # from carray.py
+    #('parentNode', 'parentnode'),                       # kwarg
     # from description.py
     ('_g_setNestedNamesDescr', '_g_set_nested_names_descr'),
     ('_g_setPathNames', '_g_set_path_names'),
@@ -73,6 +76,7 @@ old2newnames = dict([
     ('joinPaths', 'join_paths'),
     ('metaIsDescription', 'MetaIsDescription'),
     # from earray.py
+    #('parentNode', 'parentnode'),                       # kwarg
     ('_checkShapeAppend', '_check_shape_append'),
     # from expression.py
     ('_exprvarsCache', '_exprvars_cache'),
@@ -148,6 +152,7 @@ old2newnames = dict([
     ('_reviveNode', '_revivenode'),
     ('_updateNodeLocations', '_update_node_locations'),
     # from group.py
+    #('parentNode', 'parentnode'),                       # kwarg
     ('_getValueFromContainer', '_get_value_from_container'),
     ('_g_postInitHook', '_g_post_init_hook'),
     ('_g_getChildGroupClass', '_g_get_child_group_class'),
@@ -204,6 +209,7 @@ old2newnames = dict([
     ('IntTypeNextAfter', 'int_type_next_after'),
     ('BoolTypeNextAfter', 'bool_type_next_after'),
     # from index.py
+    #('parentNode', 'parentnode'),                       # kwarg
     ('defaultAutoIndex', 'default_auto_index'),
     ('defaultIndexFilters', 'default_index_filters'),
     ('_tableColumnPathnameOfIndex', '_table_column_pathname_of_index'),
@@ -218,6 +224,7 @@ old2newnames = dict([
     ('getLookupRange', 'get_lookup_range'),
     ('_g_checkName', '_g_check_name'),
     # from indexes.py
+    #('parentNode', 'parentnode'),                       # kwarg
     ('_searchBin', '_search_bin'),
     # from indexesextension
     ('indexesExtension', 'indexesextension'),
@@ -242,6 +249,7 @@ old2newnames = dict([
     ('_searchBinNA_d', '_search_bin_na_d'),
     ('_searchBinNA_g', '_search_bin_na_g'),
     # from leaf.py
+    #('parentNode', 'parentnode'),                       # kwarg
     ('objectID', 'object_id'),
     ('_processRangeRead', '_process_range_read'),
     ('_pointSelection', '_point_selection'),
@@ -250,6 +258,7 @@ old2newnames = dict([
     ('setAttr', 'set_attr'),
     ('delAttr', 'del_attr'),
     # from link.py
+    #('parentNode', 'parentnode'),                       # kwarg
     ('_g_getLinkClass', '_g_get_link_class'),
     # from linkextension
     ('linkExtension', 'linkextension'),
@@ -263,6 +272,7 @@ old2newnames = dict([
     # from misc/proxydict.py
     ('containerRef', 'containerref'),
     # from node.py
+    #('parentNode', 'parentnode'),                       # kwarg
     ('_g_logCreate', '_g_log_create'),
     ('_g_preKillHook', '_g_pre_kill_hook'),
     ('_g_postReviveHook', '_g_post_revive_hook'),
@@ -322,6 +332,7 @@ old2newnames = dict([
     ('recreateIndexes', 'recreate_indexes'),
     ('copyLeaf', 'copy_leaf'),
     # from table.py
+    #('parentNode', 'parentnode'),                       # kwarg
     ('_nxTypeFromNPType', '_nxtype_from_nptype'),
     ('_npSizeType', '_npsizetype'),
     ('_indexNameOf', '_index_name_of'),
@@ -463,6 +474,8 @@ old2newnames = dict([
     ('createNestedType', 'create_nested_type'),
     # from unimlemented.py
     ('_openUnImplemented', '_open_unimplemented'),
+    # from vlarray.py
+    #('parentNode', 'parentnode'),                       # kwarg
 ])
 
 new2oldnames = dict([(v, k) for k, v in old2newnames.iteritems()])
