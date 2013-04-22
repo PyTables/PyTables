@@ -58,6 +58,7 @@ old2newnames = dict([
     # from atom.py
     ('_checkBase', '_checkbase'),
     # from attributeset.py
+    ('newSet', 'newset'),
     ('_g_updateNodeLocation', '_g_update_node_location'),
     ('_g_logAdd', '_g_log_add'),
     ('_g_delAndLog', '_g_del_and_log'),

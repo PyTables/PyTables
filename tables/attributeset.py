@@ -567,7 +567,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Finally, remove the old attribute
         delattr(self, oldattrname)
 
-    def _g_copy(self, newSet, set_attr=None, copyClass=False):
+    def _g_copy(self, newset, set_attr=None, copyClass=False):
         """Copy set attributes.
 
         Copies all user and allowed system PyTables attributes to the
@@ -582,9 +582,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         """
 
-        copysysattrs = newSet._v__nodefile.params['PYTABLES_SYS_ATTRS']
+        copysysattrs = newset._v__nodefile.params['PYTABLES_SYS_ATTRS']
         if set_attr is None:
-            set_attr = newSet._g__setattr
+            set_attr = newset._g__setattr
 
         for attrname in self._v_attrnamesuser:
             # Do not copy the unimplemented attributes.
