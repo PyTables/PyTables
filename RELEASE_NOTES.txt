@@ -159,8 +159,8 @@ Other possibly incompatible changes
   Python 3.  I any case system attributes are represented as Python string.
 
 
-Bugs fixed
-----------
+Bug fixed
+---------
 
 - Better check access on closed files (closes :issue:`62`)
 
@@ -171,12 +171,16 @@ Bugs fixed
 - Fixed ptdump failure on data with nested columns (closes :issue:`213`).
   Thanks to Alexander Ford.
 
-- Fixed an error in :func:`open_file` when filename is a :class:`numpy.str_`
+- Fixed an error in :func:`open_file` when *filename* is a :class:`numpy.str_`
   (closes :issue:`204`)
 
 - Fixed :issue:`119` and  :issue:`232`, where an index on Time64Col (only,
   Time32Col was ok) hides the data on selection from a Tables.
   Thanks to Jeff Reback.
+
+- Fixed ``tables.tests.test_nestedtypes.ColsTestCase.test_00a_repr`` test
+  method.  Now the ``repr`` of of cols on big-endian platforms is correctly
+  handled  (closes :issue:`237`).
 
 .. _Python: http://www.python.org
 .. _PEP8: http://www.python.org/dev/peps/pep-0008
