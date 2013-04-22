@@ -366,7 +366,7 @@ class Leaf(Node):
         # to make sure nrowsinbuf is greater than or
         # equal to the chunksize.
         chunksize = numpy.asarray(self.chunkshape).prod()
-        if nrowsinbuf < chunksize:
+        if chunksize is not None and nrowsinbuf < chunksize:
             nrowsinbuf = chunksize
 
         # Safeguard against row sizes being extremely large
