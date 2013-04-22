@@ -118,7 +118,7 @@ def check_name_validity(name):
 checkNameValidity = previous_api(check_name_validity)
 
 
-def join_path(parentPath, name):
+def join_path(parentpath, name):
     """Join a *canonical* `parentpath` with a *non-empty* `name`.
 
     >>> join_path('/', 'foo')
@@ -129,16 +129,17 @@ def join_path(parentPath, name):
     '/foo/foo2/bar'
     >>> join_path('/foo', '/')
     '/foo'
+
     """
 
     if name.startswith('./'):  # Support relative paths (mainly for links)
         name = name[2:]
-    if parentPath == '/' and name.startswith('/'):
+    if parentpath == '/' and name.startswith('/'):
         pstr = '%s' % name
-    elif parentPath == '/' or name.startswith('/'):
-        pstr = '%s%s' % (parentPath, name)
+    elif parentpath == '/' or name.startswith('/'):
+        pstr = '%s%s' % (parentpath, name)
     else:
-        pstr = '%s/%s' % (parentPath, name)
+        pstr = '%s/%s' % (parentpath, name)
     if pstr.endswith('/'):
         pstr = pstr[:-1]
     return pstr

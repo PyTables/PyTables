@@ -151,8 +151,8 @@ class Node(object):
     # <properties>
     # `_v_parent` is accessed via its file to avoid upwards references.
     def _g_getparent(self):
-        (parentPath, nodeName) = split_path(self._v_pathname)
-        return self._v_file._get_node(parentPath)
+        (parentpath, nodename) = split_path(self._v_pathname)
+        return self._v_file._get_node(parentpath)
 
     _v_parent = property(
         _g_getparent, None, None, ("The parent :class:`Group` instance"))

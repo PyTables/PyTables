@@ -314,6 +314,7 @@ old2newnames = dict([
     ('_checkNotClosed', '_check_not_closed'),
     ('__allowedInitKwArgs', '__allowed_init_kwargs'),
     # from path.py
+    ('parentPath', 'parentpath'),                       # kwarg
     ('_pythonIdRE', '_python_id_re'),
     ('_reservedIdRE', '_reserved_id_re'),
     ('_hiddenNameRE', '_hidden_name_re'),
