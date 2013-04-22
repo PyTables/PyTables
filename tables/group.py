@@ -556,6 +556,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         """Remove references to a node.
 
         Removes all references to the named node.
+
         """
 
         # This can *not* be triggered because of the user.
@@ -582,17 +583,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     _g_unrefNode = previous_api(_g_unrefnode)
 
-    def _g_move(self, newParent, newName):
+    def _g_move(self, newparent, newname):
         # Move the node to the new location.
-        oldPath = self._v_pathname
-        super(Group, self)._g_move(newParent, newName)
-        newPath = self._v_pathname
+        oldpath = self._v_pathname
+        super(Group, self)._g_move(newparent, newname)
+        newpath = self._v_pathname
 
         # Update location information in children.  This node shouldn't
         # be affected since it has already been relocated.
-        self._v_file._update_node_locations(oldPath, newPath)
+        self._v_file._update_node_locations(oldpath, newpath)
 
-    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
+    def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         # Compute default arguments.
         title = kwargs.get('title', self._v_title)
         filters = kwargs.get('filters', None)
@@ -607,7 +608,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             filters = getattr(self._v_attrs, 'FILTERS', None)
 
         # Create a copy of the object.
-        new_node = Group(newParent, newName,
+        new_node = Group(newparent, newname,
                          title, new=True, filters=filters, _log=_log)
 
         # Copy user attributes if needed.
@@ -627,7 +628,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         return new_node
 
-    def _g_copy_children(self, newParent, **kwargs):
+    def _g_copy_children(self, newparent, **kwargs):
         """Copy child nodes.
 
         Copies all nodes descending from this one into the specified
@@ -643,7 +644,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         ##    srcchild._g_copy_as_child(newparent, **kwargs)
 
         # Non-recursive version of children copy.
-        parentstack = [(self, newParent)]  # [(source, destination), ...]
+        parentstack = [(self, newparent)]  # [(source, destination), ...]
         while parentstack:
             (srcparent, dstparent) = parentstack.pop()
             for srcchild in srcparent._v_children.itervalues():

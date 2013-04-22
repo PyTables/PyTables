@@ -423,7 +423,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     _processRangeRead = previous_api(_process_range_read)
 
-    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
+    def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         # Compute default arguments.
         start = kwargs.pop('start', None)
         stop = kwargs.pop('stop', None)
@@ -446,7 +446,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         # Create a copy of the object.
         (new_node, bytes) = self._g_copy_with_stats(
-            newParent, newName, start, stop, step,
+            newparent, newname, start, stop, step,
             title, filters, chunkshape, _log, **kwargs)
 
         # Copy user attributes if requested (or the flavor at least).

@@ -2581,7 +2581,7 @@ class Table(tableextension.Table, Leaf):
 
     _g_updateDependent = previous_api(_g_update_dependent)
 
-    def _g_move(self, newParent, newName):
+    def _g_move(self, newparent, newname):
         """Move this node in the hierarchy.
 
         This overloads the Node._g_move() method.
@@ -2591,7 +2591,7 @@ class Table(tableextension.Table, Leaf):
         itgpathname = _index_pathname_of(self)
 
         # First, move the table to the new location.
-        super(Table, self)._g_move(newParent, newName)
+        super(Table, self)._g_move(newparent, newname)
 
         # Then move the associated index group (if any).
         try:

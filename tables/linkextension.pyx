@@ -132,7 +132,7 @@ _g_createHardLink = previous_api(_g_create_hard_link)
 cdef class Link(Node):
   """Extension class from which all link extensions inherits."""
 
-  def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
+  def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
     """Private part for the _f_copy() method."""
 
     cdef herr_t ret
@@ -140,10 +140,10 @@ cdef class Link(Node):
     cdef bytes encoded_name, encoded_newname
 
     encoded_name = self.name.encode('utf-8')
-    encoded_newname = newName.encode('utf-8')
+    encoded_newname = newname.encode('utf-8')
 
     # @TODO: set property list --> utf-8
-    ret = H5Lcopy(self.parent_id, encoded_name, newParent._v_objectid,
+    ret = H5Lcopy(self.parent_id, encoded_name, newparent._v_objectid,
                   encoded_newname, H5P_DEFAULT, H5P_DEFAULT)
     if ret < 0:
       raise HDF5ExtError("failed to copy HDF5 link")
@@ -153,7 +153,7 @@ cdef class Link(Node):
     if stats is not None:
       stats['links'] += 1
 
-    return newParent._v_file.get_node(newParent, newName)
+    return newparent._v_file.get_node(newparent, newname)
 
 
 cdef class SoftLink(Link):

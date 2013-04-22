@@ -544,7 +544,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
     _g_removeAndLog = previous_api(_g_remove_and_log)
 
-    def _g_move(self, newParent, newName):
+    def _g_move(self, newparent, newname):
         """Move this node in the hierarchy.
 
         Moves the node into the given `newparent`, with the given
@@ -559,22 +559,22 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         oldpathname = self._v_pathname  # to move the HDF5 node
 
         # Try to insert the node into the new parent.
-        newParent._g_refnode(self, newName)
+        newparent._g_refnode(self, newname)
         # Remove the node from the new parent.
         oldparent._g_unrefnode(oldname)
 
         # Remove location information for this node.
         self._g_del_location()
         # Set new location information for this node.
-        self._g_set_location(newParent, newName)
+        self._g_set_location(newparent, newname)
 
         # hdf5extension operations:
         #   Update node attributes.
-        self._g_new(newParent, self._v_name, init=False)
+        self._g_new(newparent, self._v_name, init=False)
         #   Move the node.
         # self._v_parent._g_move_node(oldpathname, self._v_pathname)
         self._v_parent._g_move_node(oldparent._v_objectid, oldname,
-                                    newParent._v_objectid, newName,
+                                    newparent._v_objectid, newname,
                                     oldpathname, self._v_pathname)
 
         # Tell dependent objects about the new location of this node.
@@ -682,7 +682,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
     _g_logMove = previous_api(_g_log_move)
 
-    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
+    def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         """Copy this node and return the new one.
 
         Creates and returns a copy of the node in the given `newparent`,
@@ -700,7 +700,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         raise NotImplementedError
 
-    def _g_copy_as_child(self, newParent, **kwargs):
+    def _g_copy_as_child(self, newparent, **kwargs):
         """Copy this node as a child of another group.
 
         Copies just this node into `newparent`, not recursing children
@@ -709,7 +709,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         """
 
-        return self._g_copy(newParent, self._v_name,
+        return self._g_copy(newparent, self._v_name,
                             recursive=False, _log=False, **kwargs)
 
     _g_copyAsChild = previous_api(_g_copy_as_child)

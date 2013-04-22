@@ -73,7 +73,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
             self.nrows = SizeType(0)
         return object_id
 
-    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
+    def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         """Do nothing.
 
         This method does nothing, but a ``UserWarning`` is issued.
@@ -136,7 +136,7 @@ class Unknown(Node):
     def _g_open(self):
         return 0
 
-    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
+    def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         # Silently avoid doing copies of unknown nodes
         return None
 
