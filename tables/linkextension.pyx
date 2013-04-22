@@ -108,14 +108,14 @@ def _get_link_class(parent_id, name):
 _getLinkClass = previous_api(_get_link_class)
 
 
-def _g_create_hard_link(parentnode, str name, targetNode):
+def _g_create_hard_link(parentnode, str name, targetnode):
   """Create a hard link in the file."""
 
   cdef herr_t ret
   cdef bytes encoded_name = name.encode('utf-8')
-  cdef bytes encoded_v_name = targetNode._v_name.encode('utf-8')
+  cdef bytes encoded_v_name = targetnode._v_name.encode('utf-8')
 
-  ret = H5Lcreate_hard(targetNode._v_parent._v_objectid, encoded_v_name,
+  ret = H5Lcreate_hard(targetnode._v_parent._v_objectid, encoded_v_name,
                        parentnode._v_objectid, <char*>encoded_name,
                        H5P_DEFAULT, H5P_DEFAULT)
   if ret < 0:
