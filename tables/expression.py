@@ -249,6 +249,7 @@ class Expr(object):
 
         `depth` specifies the depth of the frame in order to reach local
         or global variables.
+
         """
 
         # Get the names of variables used in the expression.
@@ -316,7 +317,9 @@ class Expr(object):
         leading one, if the object lacks the concept of main dimension, like a
         NumPy container).  If not a common main dimension exists for all
         inputs, the leading dimension will be used instead.
+
         """
+
         self.start = start
         self.stop = stop
         self.step = step
@@ -341,6 +344,7 @@ class Expr(object):
         by the expression, only the computations that are needed to fill
         up the container are carried out.  If it is larger, the excess
         elements are unaffected.
+
         """
 
         if not (hasattr(out, "shape") and hasattr(out, "__setitem__")):
@@ -363,6 +367,7 @@ class Expr(object):
         start, stop and step parameters in the main dimension of output (or the
         leading one, if the object does not have the concept of main dimension,
         like a NumPy container).
+
         """
 
         if self.out is None:
@@ -565,6 +570,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
             When dealing with large on-disk inputs, failing to specify an
             on-disk container may consume all your available memory.
+
         """
 
         values, shape, maindim = self.values, self.shape, self.maindim
@@ -632,6 +638,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         This iterator always returns rows as NumPy objects, so a possible out
         container specified in :meth:`Expr.set_output` method is ignored here.
+
         """
 
         values, shape, maindim = self.values, self.shape, self.maindim
