@@ -990,9 +990,9 @@ class File(hdf5extension.File, object):
 
         """
 
-        targetNode = self.get_node(target)
+        targetnode = self.get_node(target)
         parentnode = self._get_or_create_path(where, createparents)
-        linkextension._g_create_hard_link(parentnode, name, targetNode)
+        linkextension._g_create_hard_link(parentnode, name, targetnode)
         # Refresh children names in link's parent node
         parentnode._g_add_children_names()
         # Return the target node
@@ -1392,9 +1392,9 @@ class File(hdf5extension.File, object):
 
         """
 
-        srcObject = self.get_node(where, name=name)
-        dstObject = self.get_node(dstnode)
-        srcObject._v_attrs._f_copy(dstObject)
+        srcobject = self.get_node(where, name=name)
+        dstobject = self.get_node(dstnode)
+        srcobject._v_attrs._f_copy(dstobject)
 
     copyNodeAttrs = previous_api(copy_node_attrs)
 
@@ -1425,10 +1425,10 @@ class File(hdf5extension.File, object):
 
         """
 
-        srcGroup = self.get_node(srcgroup)  # Does the source node exist?
-        self._check_group(srcGroup)  # Is it a group?
+        srcgroup = self.get_node(srcgroup)  # Does the source node exist?
+        self._check_group(srcgroup)  # Is it a group?
 
-        srcGroup._f_copy_children(
+        srcgroup._f_copy_children(
             dstgroup, overwrite, recursive, createparents, **kwargs)
 
     copyChildren = previous_api(copy_children)
@@ -1756,15 +1756,15 @@ class File(hdf5extension.File, object):
 
         """
 
-        maxUndo = self.params['MAX_UNDO_PATH_LENGTH']
+        maxundo = self.params['MAX_UNDO_PATH_LENGTH']
 
         class ActionLog(NotLoggedMixin, Table):
             pass
 
         class ActionLogDesc(IsDescription):
             opcode = UInt8Col(pos=0)
-            arg1 = StringCol(maxUndo, pos=1, dflt=b"")
-            arg2 = StringCol(maxUndo, pos=2, dflt=b"")
+            arg1 = StringCol(maxundo, pos=1, dflt=b"")
+            arg2 = StringCol(maxundo, pos=2, dflt=b"")
 
         self._check_open()
 
@@ -1928,7 +1928,7 @@ class File(hdf5extension.File, object):
 
         assert self.is_undo_enabled()
 
-        maxUndo = self.params['MAX_UNDO_PATH_LENGTH']
+        maxundo = self.params['MAX_UNDO_PATH_LENGTH']
         # Check whether we are at the end of the action log or not
         if self._curaction != self._actionlog.nrows - 1:
             # We are not, so delete the trailing actions
@@ -1960,8 +1960,8 @@ class File(hdf5extension.File, object):
         else:  # INTERNAL
             raise UndoRedoError("Too many parameters for action log: "
                                 "%r").with_traceback(args)
-        if (len(arg1) > maxUndo
-                or len(arg2) > maxUndo):  # INTERNAL
+        if (len(arg1) > maxundo
+                or len(arg2) > maxundo):  # INTERNAL
             raise UndoRedoError("Parameter arg1 or arg2 is too long: "
                                 "(%r, %r)" % (arg1, arg2))
         # print "Logging-->", (action, arg1, arg2)

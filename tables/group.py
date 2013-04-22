@@ -239,15 +239,15 @@ class Group(hdf5extension.Group, Node):
                 set_attr('VERSION', self._v_version)
 
                 # Set the default filter properties.
-                newFilters = self._v_new_filters
-                if newFilters is None:
+                newfilters = self._v_new_filters
+                if newfilters is None:
                     # If no filters have been passed in the constructor,
                     # inherit them from the parent group, but only if they
                     # have been inherited or explicitly set.
-                    newFilters = getattr(
+                    newfilters = getattr(
                         self._v_parent._v_attrs, 'FILTERS', None)
-                if newFilters is not None:
-                    set_attr('FILTERS', newFilters)
+                if newfilters is not None:
+                    set_attr('FILTERS', newfilters)
         else:
             # If the file has PyTables format, get the VERSION attr
             if 'VERSION' in self._v_attrs._v_attrnamessys:
@@ -266,13 +266,13 @@ class Group(hdf5extension.Group, Node):
             # The group is going to be killed.  Rebuild weak references
             # (that Python cancelled just before calling this method) so
             # that they are still usable if the object is revived later.
-            selfRef = weakref.ref(self)
-            self._v_children.containerref = selfRef
-            self._v_groups.containerref = selfRef
-            self._v_leaves.containerref = selfRef
-            self._v_links.containerref = selfRef
-            self._v_unknown.containerref = selfRef
-            self._v_hidden.containerref = selfRef
+            selfref = weakref.ref(self)
+            self._v_children.containerref = selfref
+            self._v_groups.containerref = selfref
+            self._v_leaves.containerref = selfref
+            self._v_links.containerref = selfref
+            self._v_unknown.containerref = selfref
+            self._v_hidden.containerref = selfref
 
         super(Group, self).__del__()
 
@@ -340,43 +340,44 @@ class Group(hdf5extension.Group, Node):
 
         """
 
-        myDict = self.__dict__
+        mydict = self.__dict__
 
         # The names of the lazy attributes
-        myDict['__members__'] = members = []
-        """The names of visible children nodes for readline-style completion."""
-        myDict['_v_children'] = children = _ChildrenDict(self)
+        mydict['__members__'] = members = []
+        """The names of visible children nodes for readline-style completion.
+        """
+        mydict['_v_children'] = children = _ChildrenDict(self)
         """The number of children hanging from this group."""
-        myDict['_v_groups'] = groups = _ChildrenDict(self)
+        mydict['_v_groups'] = groups = _ChildrenDict(self)
         """Dictionary with all groups hanging from this group."""
-        myDict['_v_leaves'] = leaves = _ChildrenDict(self)
+        mydict['_v_leaves'] = leaves = _ChildrenDict(self)
         """Dictionary with all leaves hanging from this group."""
-        myDict['_v_links'] = links = _ChildrenDict(self)
+        mydict['_v_links'] = links = _ChildrenDict(self)
         """Dictionary with all links hanging from this group."""
-        myDict['_v_unknown'] = unknown = _ChildrenDict(self)
+        mydict['_v_unknown'] = unknown = _ChildrenDict(self)
         """Dictionary with all unknown nodes hanging from this group."""
-        myDict['_v_hidden'] = hidden = _ChildrenDict(self)
+        mydict['_v_hidden'] = hidden = _ChildrenDict(self)
         """Dictionary with all hidden nodes hanging from this group."""
 
         # Get the names of *all* child groups and leaves.
-        (groupNames, leafNames, linkNames, unknownNames) = \
+        (group_names, leaf_names, link_names, unknown_names) = \
             self._g_list_group(self._v_parent)
 
         # Separate groups into visible groups and hidden nodes,
         # and leaves into visible leaves and hidden nodes.
-        for (childNames, childDict) in ((groupNames, groups),
-                                        (leafNames, leaves),
-                                        (linkNames, links),
-                                        (unknownNames, unknown)):
+        for (childnames, childdict) in ((group_names, groups),
+                                        (leaf_names, leaves),
+                                        (link_names, links),
+                                        (unknown_names, unknown)):
 
-            for childname in childNames:
+            for childname in childnames:
                 # See whether the name implies that the node is hidden.
                 # (Assigned values are entirely irrelevant.)
                 if isvisiblename(childname):
                     # Visible node.
                     members.insert(0, childname)
                     children[childname] = None
-                    childDict[childname] = None
+                    childdict[childname] = None
                 else:
                     # Hidden node.
                     hidden[childname] = None
@@ -638,17 +639,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         """
 
         # Recursive version of children copy.
-        # for srcChild in self._v_children.itervalues():
-        ##    srcChild._g_copy_as_child(newparent, **kwargs)
+        # for srcchild in self._v_children.itervalues():
+        ##    srcchild._g_copy_as_child(newparent, **kwargs)
 
         # Non-recursive version of children copy.
-        parentStack = [(self, newParent)]  # [(source, destination), ...]
-        while parentStack:
-            (srcParent, dstParent) = parentStack.pop()
-            for srcChild in srcParent._v_children.itervalues():
-                dstChild = srcChild._g_copy_as_child(dstParent, **kwargs)
-                if isinstance(srcChild, Group):
-                    parentStack.append((srcChild, dstChild))
+        parentstack = [(self, newParent)]  # [(source, destination), ...]
+        while parentstack:
+            (srcparent, dstparent) = parentstack.pop()
+            for srcchild in srcparent._v_children.itervalues():
+                dstchild = srcchild._g_copy_as_child(dstparent, **kwargs)
+                if isinstance(srcchild, Group):
+                    parentstack.append((srcchild, dstchild))
 
     _g_copyChildren = previous_api(_g_copy_children)
 
@@ -725,12 +726,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             class_ = get_class_by_name(classname)
 
             children = self._v_children
-            childNames = sorted(children.iterkeys())
+            childnames = sorted(children.iterkeys())
 
-            for childname in childNames:
-                childNode = children[childname]
-                if isinstance(childNode, class_):
-                    yield childNode
+            for childname in childnames:
+                childnode = children[childname]
+                if isinstance(childnode, class_):
+                    yield childnode
 
     _f_iterNodes = previous_api(_f_iter_nodes)
 
@@ -790,12 +791,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         """
 
         # That is true since a `NoSuchNodeError` is an `AttributeError`.
-        myDict = self.__dict__
-        if name in myDict:
-            return myDict[name]
+        mydict = self.__dict__
+        if name in mydict:
+            return mydict[name]
         elif name in self._c_lazy_children_attrs:
             self._g_add_children_names()
-            return myDict[name]
+            return mydict[name]
         return self._f_get_child(name)
 
     def __setattr__(self, name, value):
@@ -837,8 +838,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         #   check above is disabled, that results in Python entering an
         #   endless loop on exit!
 
-        myDict = self.__dict__
-        if '__members__' in myDict and name in self.__members__:
+        mydict = self.__dict__
+        if '__members__' in mydict and name in self.__members__:
             warnings.warn(
                 "group ``%s`` already has a child node named ``%s``; "
                 "you will not be able to use natural naming "
@@ -856,11 +857,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
     def _g_close_descendents(self):
         """Close all the *loaded* descendent nodes of this group."""
 
-        def closeNodes(prefix, nodePaths, get_node):
-            for nodePath in nodePaths:
-                if nodePath.startswith(prefix):
+        def closenodes(prefix, nodepaths, get_node):
+            for nodepath in nodepaths:
+                if nodepath.startswith(prefix):
                     try:
-                        node = get_node(nodePath)
+                        node = get_node(nodepath)
                         # Avoid descendent nodes to also iterate over
                         # their descendents, which are already to be
                         # closed by this loop.
@@ -877,32 +878,32 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             prefix = '/'
 
         # Close all loaded nodes.
-        aliveNodes = self._v_file._aliveNodes
-        deadNodes = self._v_file._deadNodes
-        reviveNode = self._v_file._revivenode
+        alivenodes = self._v_file._aliveNodes
+        deadnodes = self._v_file._deadNodes
+        revivenode = self._v_file._revivenode
         # First, close the alive nodes and delete them
         # so they are not placed in the limbo again.
         # These two steps ensure tables are closed *before* their indices.
-        closeNodes(prefix,
-                   [path for path in aliveNodes
+        closenodes(prefix,
+                   [path for path in alivenodes
                         if '/_i_' not in path],  # not indices
-                   lambda path: aliveNodes[path])
+                   lambda path: alivenodes[path])
         # Close everything else (i.e. indices)
-        closeNodes(prefix,
-                   [path for path in aliveNodes],
-                   lambda path: aliveNodes[path])
+        closenodes(prefix,
+                   [path for path in alivenodes],
+                   lambda path: alivenodes[path])
 
         # Next, revive the dead nodes, close and delete them
         # so they are not placed in the limbo again.
         # These two steps ensure tables are closed *before* their indices.
-        closeNodes(prefix,
-                   [path for path in deadNodes
+        closenodes(prefix,
+                   [path for path in deadnodes
                         if '/_i_' not in path],  # not indices
-                   lambda path: reviveNode(path))
+                   lambda path: revivenode(path))
         # Close everything else (i.e. indices)
-        closeNodes(prefix,
-                   [path for path in deadNodes],
-                   lambda path: reviveNode(path))
+        closenodes(prefix,
+                   [path for path in deadnodes],
+                   lambda path: revivenode(path))
 
     _g_closeDescendents = previous_api(_g_close_descendents)
 
@@ -1100,7 +1101,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 # Special definition for group root
 class RootGroup(Group):
     def __init__(self, ptFile, name, title, new, filters):
-        myDict = self.__dict__
+        mydict = self.__dict__
 
         # Set group attributes.
         self._v_version = obversion
@@ -1124,7 +1125,7 @@ class RootGroup(Group):
 
         # Only the root node has the file as a parent.
         # Bypass __setattr__ to avoid the ``Node._v_parent`` property.
-        myDict['_v_parent'] = ptFile
+        mydict['_v_parent'] = ptFile
         ptFile._refnode(self, '/')
 
         # hdf5extension operations (do before setting an AttributeSet):

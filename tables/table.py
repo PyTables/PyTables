@@ -886,8 +886,8 @@ class Table(tableextension.Table, Leaf):
         # The following code is only for opened tables.
 
         # Do the indexes group exist?
-        indexesGroupPath = _index_pathname_of(self)
-        igroup = indexesGroupPath in self._v_file
+        indexesgrouppath = _index_pathname_of(self)
+        igroup = indexesgrouppath in self._v_file
         oldindexes = False
         for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
@@ -1193,20 +1193,20 @@ class Table(tableextension.Table, Leaf):
         """
 
         # Get the names of variables used in the expression.
-        exprvarsCache = self._exprvars_cache
-        if not expression in exprvarsCache:
+        exprvarscache = self._exprvars_cache
+        if not expression in exprvarscache:
             # Protection against growing the cache too much
-            if len(exprvarsCache) > 256:
+            if len(exprvarscache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
-                for k in exprvarsCache.keys()[:10]:
-                    del exprvarsCache[k]
+                for k in exprvarscache.keys()[:10]:
+                    del exprvarscache[k]
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [var for var in cexpr.co_names
                         if var not in ['None', 'False', 'True']
                         and var not in numexpr_functions]
-            exprvarsCache[expression] = exprvars
+            exprvarscache[expression] = exprvars
         else:
-            exprvars = exprvarsCache[expression]
+            exprvars = exprvarscache[expression]
 
         # Get the local and global variable mappings of the user frame
         # if no mapping has been explicitly given for user variables.

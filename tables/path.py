@@ -159,9 +159,9 @@ def split_path(path):
 
     """
 
-    lastSlash = path.rfind('/')
-    ppath = path[:lastSlash]
-    name = path[lastSlash + 1:]
+    lastslash = path.rfind('/')
+    ppath = path[:lastslash]
+    name = path[lastslash + 1:]
 
     if ppath == '':
         ppath = '/'

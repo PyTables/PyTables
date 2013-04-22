@@ -253,20 +253,20 @@ class Expr(object):
         """
 
         # Get the names of variables used in the expression.
-        exprvarsCache = self._exprvars_cache
-        if not expression in exprvarsCache:
+        exprvars_cache = self._exprvars_cache
+        if not expression in exprvars_cache:
             # Protection against growing the cache too much
-            if len(exprvarsCache) > 256:
+            if len(exprvars_cache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
-                for k in exprvarsCache.keys()[:10]:
-                    del exprvarsCache[k]
+                for k in exprvars_cache.keys()[:10]:
+                    del exprvars_cache[k]
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [var for var in cexpr.co_names
                         if var not in ['None', 'False', 'True']
                         and var not in numexpr_functions]
-            exprvarsCache[expression] = exprvars
+            exprvars_cache[expression] = exprvars
         else:
-            exprvars = exprvarsCache[expression]
+            exprvars = exprvars_cache[expression]
 
         # Get the local and global variable mappings of the user frame
         # if no mapping has been explicitly given for user variables.

@@ -346,7 +346,7 @@ class Node(object):
         """
 
         file_ = parentnode._v_file
-        parentDepth = parentnode._v_depth
+        parentdepth = parentnode._v_depth
 
         self._v_file = file_
         self._v_isopen = True
@@ -354,7 +354,7 @@ class Node(object):
         root_uep = file_.root_uep
         if name.startswith(root_uep):
             # This has been called from File._get_node()
-            assert parentDepth == 0
+            assert parentdepth == 0
             if root_uep == "/":
                 self._v_pathname = name
             else:
@@ -365,10 +365,10 @@ class Node(object):
             # If we enter here is because this has been called elsewhere
             self._v_name = name
             self._v_pathname = join_path(parentnode._v_pathname, name)
-            self._v_depth = parentDepth + 1
+            self._v_depth = parentdepth + 1
 
         # Check if the node is too deep in the tree.
-        if parentDepth >= self._v_maxTreeDepth:
+        if parentdepth >= self._v_maxTreeDepth:
             warnings.warn("""\
 node ``%s`` is exceeding the recommended maximum depth (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
@@ -393,23 +393,23 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         """
 
-        oldPath = self._v_pathname
-        newPath = join_path(newParentPath, self._v_name)
-        newDepth = newPath.count('/')
+        oldpath = self._v_pathname
+        newpath = join_path(newParentPath, self._v_name)
+        newdepth = newpath.count('/')
 
-        self._v_pathname = newPath
-        self._v_depth = newDepth
+        self._v_pathname = newpath
+        self._v_depth = newdepth
 
         # Check if the node is too deep in the tree.
-        if newDepth > self._v_maxTreeDepth:
+        if newdepth > self._v_maxTreeDepth:
             warnings.warn("""\
 moved descendent node is exceeding the recommended maximum depth (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                           % (self._v_maxTreeDepth,), PerformanceWarning)
 
         file_ = self._v_file
-        file_._unrefnode(oldPath)
-        file_._refnode(self, newPath)
+        file_._unrefnode(oldpath)
+        file_._refnode(self, newpath)
 
         # Tell dependent objects about the new location of this node.
         self._g_update_dependent()
@@ -554,14 +554,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         """
 
-        oldParent = self._v_parent
-        oldName = self._v_name
+        oldparent = self._v_parent
+        oldname = self._v_name
         oldpathname = self._v_pathname  # to move the HDF5 node
 
         # Try to insert the node into the new parent.
         newParent._g_refnode(self, newName)
         # Remove the node from the new parent.
-        oldParent._g_unrefnode(oldName)
+        oldparent._g_unrefnode(oldname)
 
         # Remove location information for this node.
         self._g_del_location()
@@ -573,7 +573,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_new(newParent, self._v_name, init=False)
         #   Move the node.
         # self._v_parent._g_move_node(oldpathname, self._v_pathname)
-        self._v_parent._g_move_node(oldParent._v_objectid, oldName,
+        self._v_parent._g_move_node(oldparent._v_objectid, oldname,
                                     newParent._v_objectid, newName,
                                     oldpathname, self._v_pathname)
 
@@ -616,17 +616,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         self._g_check_open()
         file_ = self._v_file
-        oldParent = self._v_parent
-        oldName = self._v_name
+        oldparent = self._v_parent
+        oldname = self._v_name
 
         # Set default arguments.
         if newparent is None and newname is None:
             raise NodeError("you should specify at least "
                             "a ``newparent`` or a ``newname`` parameter")
         if newparent is None:
-            newparent = oldParent
+            newparent = oldparent
         if newname is None:
-            newname = oldName
+            newname = oldname
 
         # Get destination location.
         if hasattr(newparent, '_v_file'):  # from node
@@ -649,8 +649,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         file_._check_writable()
 
         # Moving over itself?
-        oldPath = oldParent._v_pathname
-        if newpath == oldPath and newname == oldName:
+        oldpath = oldparent._v_pathname
+        if newpath == oldpath and newname == oldname:
             # This is equivalent to renaming the node to its current name,
             # and it does not change the referenced object,
             # so it is an allowed no-op.
@@ -749,66 +749,66 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         self._g_check_open()
-        srcFile = self._v_file
-        srcParent = self._v_parent
-        srcName = self._v_name
+        srcfile = self._v_file
+        srcparent = self._v_parent
+        srcname = self._v_name
 
-        dstParent = newparent
-        dstName = newname
+        dstparent = newparent
+        dstname = newname
 
         # Set default arguments.
-        if dstParent is None and dstName is None:
+        if dstparent is None and dstname is None:
             raise NodeError("you should specify at least "
                             "a ``newparent`` or a ``newname`` parameter")
-        if dstParent is None:
-            dstParent = srcParent
-        if dstName is None:
-            dstName = srcName
+        if dstparent is None:
+            dstparent = srcparent
+        if dstname is None:
+            dstname = srcname
 
         # Get destination location.
-        if hasattr(dstParent, '_v_file'):  # from node
-            dstFile = dstParent._v_file
-            dstPath = dstParent._v_pathname
-        elif hasattr(dstParent, 'startswith'):  # from path
-            dstFile = srcFile
-            dstPath = dstParent
+        if hasattr(dstparent, '_v_file'):  # from node
+            dstfile = dstparent._v_file
+            dstpath = dstparent._v_pathname
+        elif hasattr(dstparent, 'startswith'):  # from path
+            dstfile = srcfile
+            dstpath = dstparent
         else:
             raise TypeError("new parent is not a node nor a path: %r"
-                            % (dstParent,))
+                            % (dstparent,))
 
         # Validity checks on arguments.
-        if dstFile is srcFile:
+        if dstfile is srcfile:
             # Copying over itself?
-            srcPath = srcParent._v_pathname
-            if dstPath == srcPath and dstName == srcName:
+            srcpath = srcparent._v_pathname
+            if dstpath == srcpath and dstname == srcname:
                 raise NodeError(
                     "source and destination nodes are the same node: ``%s``"
                     % self._v_pathname)
 
             # Recursively copying into itself?
             if recursive:
-                self._g_check_not_contains(dstPath)
+                self._g_check_not_contains(dstpath)
 
         # Note that the previous checks allow us to go ahead and create
         # the parent groups if `createparents` is true.  `dstParent` is
         # used instead of `dstPath` because it may be in other file, and
         # to avoid accepting `Node` objects when `createparents` is
         # true.
-        dstParent = srcFile._get_or_create_path(dstParent, createparents)
-        self._g_check_group(dstParent)  # Is it a group?
+        dstparent = srcfile._get_or_create_path(dstparent, createparents)
+        self._g_check_group(dstparent)  # Is it a group?
 
         # Copying to another file with undo enabled?
-        if dstFile is not srcFile and srcFile.is_undo_enabled():
+        if dstfile is not srcfile and srcfile.is_undo_enabled():
             warnings.warn("copying across databases can not be undone "
                           "nor redone from this database",
                           UndoRedoWarning)
 
         # Copying over an existing node?
-        self._g_maybe_remove(dstParent, dstName, overwrite)
+        self._g_maybe_remove(dstparent, dstname, overwrite)
 
         # Copy the node.
         # The constructor of the new node takes care of logging.
-        return self._g_copy(dstParent, dstName, recursive, **kwargs)
+        return self._g_copy(dstparent, dstname, recursive, **kwargs)
 
     def _f_isvisible(self):
         """Is this node visible?"""
