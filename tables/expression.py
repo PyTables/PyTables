@@ -133,7 +133,11 @@ class Expr(object):
     """
 
     _exprvars_cache = {}
-    """Cache of variables participating in expressions."""
+    """Cache of variables participating in expressions.
+
+    .. versionadded:: 3.0
+
+    """
 
     def __init__(self, expr, uservars=None, **kwargs):
 

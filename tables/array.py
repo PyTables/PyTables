@@ -235,6 +235,7 @@ class Array(hdf5extension.Array, Leaf):
         If this array is of an enumerated type, the corresponding Enum instance
         (see :ref:`EnumClassDescr`) is returned. If it is not of an enumerated
         type, a TypeError is raised.
+
         """
 
         if self.atom.kind != 'enum':
@@ -264,6 +265,7 @@ class Array(hdf5extension.Array, Leaf):
         ::
 
             result = [row for row in arrayInstance.iterrows(step=4)]
+
         """
 
         try:
@@ -291,6 +293,7 @@ class Array(hdf5extension.Array, Leaf):
         Which is equivalent to::
 
             result = [row[2] for row in array.iterrows()]
+
         """
 
         if not self._init:
@@ -303,7 +306,7 @@ class Array(hdf5extension.Array, Leaf):
         return self
 
     def _init_loop(self):
-        "Initialization for the __iter__ iterator"
+        """Initialization for the __iter__ iterator"""
 
         self._nrowsread = self._start
         self._startb = self._start
@@ -317,7 +320,9 @@ class Array(hdf5extension.Array, Leaf):
         """Get the next element of the array during an iteration.
 
         The element is returned as an object of the current flavor.
+
         """
+
         # this could probably be sped up for long iterations by reusing the
         # listarr buffer
         if self._nrowsread >= self._stop:
@@ -432,6 +437,7 @@ class Array(hdf5extension.Array, Leaf):
         Indexing arguments may be ints, slices or lists of indices.
 
         Note: This is a backport from the h5py project.
+
         """
 
         # Internal functions
@@ -469,9 +475,10 @@ class Array(hdf5extension.Array, Leaf):
             return final_args
 
         def translate_slice(exp, length):
-            """
-            Given a slice object, return a 3-tuple (start, count, step)
-            for use with the hyperslab selection routines
+            """Given a slice object, return a 3-tuple (start, count, step)
+
+            This is for for use with the hyperslab selection routines.
+
             """
 
             start, stop, step = exp.start, exp.stop, exp.step
@@ -616,6 +623,7 @@ class Array(hdf5extension.Array, Leaf):
             array4 = array[1, [1,5,10], ..., -1]    # fancy selection
             array5 = array[np.where(array[:] > 4)]  # point selection
             array6 = array[array[:] > 4]            # boolean selection
+
         """
 
         self._g_check_open()
@@ -673,6 +681,7 @@ class Array(hdf5extension.Array, Leaf):
             a6[1, [1,5,10], ..., -1] = arr    # fancy selection
             a7[np.where(a6[:] > 4)] = 4       # point selection + broadcast
             a8[arr > 4] = arr2                # boolean selection
+
         """
 
         self._g_check_open()
@@ -699,6 +708,7 @@ class Array(hdf5extension.Array, Leaf):
 
         If not, try creating a new nparr object, using broadcasting if
         necessary.
+
         """
 
         if nparr.shape != slice_shape:
@@ -909,6 +919,7 @@ class ImageArray(Array):
     This class has no additional behaviour or functionality compared
     to that of an ordinary array.  It simply enables the user to open
     an ``IMAGE`` HDF5 node as a normal `Array` node in PyTables.
+
     """
 
     # Class identifier.

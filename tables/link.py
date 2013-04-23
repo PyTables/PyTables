@@ -24,6 +24,7 @@ Classes:
 Functions:
 
 Misc variables:
+
 """
 
 import os
@@ -100,6 +101,7 @@ class Link(Node):
         See :meth:`Node._f_copy` for a complete explanation of the arguments.
         Please note that there is no recursive flag since links do not have
         child nodes.
+
         """
 
         newnode = self._f_copy(newparent=newparent, newname=newname,
@@ -113,6 +115,7 @@ class Link(Node):
         """Move or rename this link.
 
         See :meth:`Node._f_move` for a complete explanation of the arguments.
+
         """
 
         return self._f_move(newparent=newparent, newname=newname,
@@ -127,7 +130,9 @@ class Link(Node):
         """Rename this link in place.
 
         See :meth:`Node._f_rename` for a complete explanation of the arguments.
+
         """
+
         return self._f_rename(newname=newname, overwrite=overwrite)
 
     def __repr__(self):
@@ -140,6 +145,7 @@ class SoftLink(linkextension.SoftLink, Link):
     A soft link is a reference to another node in the *same* file hierarchy.
     Getting access to the pointed node (this action is called *dereferrencing*)
     is done via the __call__ special method (see below).
+
     """
 
     # Class identifier.
@@ -158,6 +164,7 @@ class SoftLink(linkextension.SoftLink, Link):
             /link0 (SoftLink) -> /another/path
             >>> print f.root.link0()
             /another/path (Group) ''
+
         """
 
         target = self.target
@@ -177,6 +184,7 @@ class SoftLink(linkextension.SoftLink, Link):
             >>> f=tables.open_file('data/test.h5')
             >>> print f.root.link0
             /link0 (SoftLink) -> /path/to/node
+
         """
 
         classname = self.__class__.__name__
@@ -247,7 +255,9 @@ class ExternalLink(linkextension.ExternalLink, Link):
             /path/to/node (Group) ''
             >>> print plink2._v_filename
             'data2/test2.h5'        # belongs to referenced file
+
         """
+
         filename, target = self._get_filename_node()
 
         if not os.path.isabs(filename):
@@ -291,6 +301,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
             >>> f=tables.open_file('data1/test1.h5')
             >>> print f.root.link2
             /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
+
         """
 
         classname = self.__class__.__name__

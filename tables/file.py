@@ -428,6 +428,8 @@ class File(hdf5extension.File, object):
         The UEP (user entry point) group name in the file (see
         the :func:`open_file` function).
 
+        .. versionadded:: 3.0
+
     """
 
     ## <class variables>

@@ -109,6 +109,7 @@ class Col(atom.Atom):
         """Create a Col definition from a PyTables atom.
 
         An optional position may be specified as the pos argument.
+
         """
 
         prefix = atom.prefix()
@@ -124,6 +125,7 @@ class Col(atom.Atom):
         the `shape`, `dflt` and `pos` arguments, respectively.
         Information in the `sctype` not represented in a `Col` is
         ignored.
+
         """
 
         newatom = atom.Atom.from_sctype(sctype, shape, dflt)
@@ -138,6 +140,7 @@ class Col(atom.Atom):
         a byte order which is irrelevant or compatible with that of the
         system.  Information in the `dtype` not represented in a `Col`
         is ignored.
+
         """
 
         newatom = atom.Atom.from_dtype(dtype, dflt)
@@ -149,6 +152,7 @@ class Col(atom.Atom):
 
         Optional shape, default value and position may be specified as
         the `shape`, `dflt` and `pos` arguments, respectively.
+
         """
 
         newatom = atom.Atom.from_type(type, shape, dflt)
@@ -162,6 +166,7 @@ class Col(atom.Atom):
         specified as the `itemsize`, `shape`, `dflt` and `pos`
         arguments, respectively.  Bear in mind that not all columns
         support a default item size.
+
         """
 
         newatom = atom.Atom.from_kind(kind, itemsize, shape, dflt)
@@ -184,6 +189,7 @@ class Col(atom.Atom):
             `Atom` class, plus an additional ``pos`` argument for
             position information, which is assigned to the `_v_pos`
             attribute.
+
             """
 
             def __init__(self, *args, **kwargs):
@@ -295,6 +301,8 @@ class Description(object):
         respective descriptions (Col - see :ref:`ColClassDescr` or
         Description - see :ref:`DescriptionClassDescr` instances).
 
+        .. versionadded:: 3.0
+
     .. attribute:: _v_dflts
 
         A dictionary mapping the names of non-nested columns
@@ -340,11 +348,15 @@ class Description(object):
         under this table or nested column. You can use this as the dtype and
         descr arguments of NumPy array factories.
 
+        .. versionadded:: 3.0
+
     .. attribute:: _v_nested_formats
 
         A nested list of the NumPy string formats (and shapes) of all the
         columns under this table or nested column. You can use this as the
         formats argument of NumPy array factories.
+
+        .. versionadded:: 3.0
 
     .. attribute:: _v_nestedlvl
 
@@ -356,6 +368,8 @@ class Description(object):
         A nested list of the names of all the columns under this table or
         nested column. You can use this as the names argument of NumPy array
         factories.
+
+        .. versionadded:: 3.0
 
     .. attribute:: _v_pathname
 
@@ -534,6 +548,7 @@ class Description(object):
         This method sets the ``_v_pathname`` and ``_v_pathnames``
         attributes of all the elements (both descriptions and columns)
         in this nested description.
+
         """
 
         def get_cols_in_order(description):
@@ -613,6 +628,7 @@ class Description(object):
 
         If type is 'Col' or 'Description', only column descriptions of that
         type are yielded.
+
         """
 
         if type not in ["All", "Col", "Description"]:
@@ -750,11 +766,11 @@ def descr_from_dtype(dtype_):
 
 
 def dtype_from_descr(descr, byteorder=None):
-    """
-    Get a (nested) NumPy dtype from a description instance and byteorder.
+    """Get a (nested) NumPy dtype from a description instance and byteorder.
 
     The descr parameter can be a Description or IsDescription
     instance, sub-class of IsDescription or a dictionary.
+
     """
 
     if isinstance(descr, dict):

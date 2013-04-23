@@ -173,11 +173,11 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self._v_attrs.DIRTY = dirty
         # If an *actual* change in dirtiness happens,
         # notify the condition cache by setting or removing a nail.
-        conditionCache = self.table._condition_cache
+        conditioncache = self.table._condition_cache
         if not wasdirty and isdirty:
-            conditionCache.nail()
+            conditioncache.nail()
         if wasdirty and not isdirty:
-            conditionCache.unnail()
+            conditioncache.unnail()
 
     dirty = property(
         _getdirty, _setdirty, None,
@@ -952,7 +952,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             print "time: %s. clock: %s" % (t, c)
 
     def swap(self, what, mode=None):
-        "Swap chunks or slices using a certain bounds reference."
+        """Swap chunks or slices using a certain bounds reference."""
 
         # Thresholds for avoiding continuing the optimization
         # thnover = 4 * self.slicesize  # minimum number of overlapping
@@ -999,7 +999,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         return False
 
     def create_temp(self):
-        "Create some temporary objects for slice sorting purposes."
+        """Create some temporary objects for slice sorting purposes."""
 
         # The index will be dirty during the index optimization process
         self.dirty = True
@@ -1326,6 +1326,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         reorders on a slice-by-slice basis.  However, as this is more
         efficient than the old version, one can configure the slicesize
         to be smaller, so the memory consumption is barely similar.
+
         """
 
         tmp = self.tmp
@@ -1533,6 +1534,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             An ovelap index: the sum of the values in segment slices that
             overlaps divided by the entire range of values.  This index is only
             computed for numerical types.
+
         """
 
         ss = self.slicesize
@@ -1625,6 +1627,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             An ovelap index: the sum of the values in segment slices that
             overlaps divided by the entire range of values.  This index is only
             computed for numerical types.
+
         """
 
         ranges = where.ranges[:]
@@ -1721,6 +1724,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         The meaning of the start, stop and step arguments is the same as in
         :meth:`Table.read_sorted`.
+
         """
 
         return self.read_sorted_indices('sorted', start, stop, step)
@@ -1732,6 +1736,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         The meaning of the start, stop and step arguments is the same as in
         :meth:`Table.read_sorted`.
+
         """
 
         return self.read_sorted_indices('indices', start, stop, step)
@@ -1769,6 +1774,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         will be returned in reverse order.
 
         This method is equivalent to :meth:`Index.read_indices`.
+
         """
 
         if is_idx(key):

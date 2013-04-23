@@ -1136,7 +1136,9 @@ class Table(tableextension.Table, Leaf):
 
         If the column does not exist in the table, a `KeyError` is
         raised.
+
         """
+
         try:
             return _reduce(getattr, colpathname.split('/'), self.description)
         except AttributeError:
@@ -2481,6 +2483,7 @@ class Table(tableextension.Table, Leaf):
         This can be useful when you have chosen non-automatic indexing
         for the table (see the :attr:`Table.autoindex` property in
         :class:`Table`) and you want to update the indexes on it.
+
         """
 
         rowsadded = 0
@@ -2689,6 +2692,7 @@ class Table(tableextension.Table, Leaf):
         This can be useful when you suspect that, for any reason, the index
         information for columns is no longer valid and want to rebuild the
         indexes on it.
+
         """
 
         self._do_reindex(dirty=False)

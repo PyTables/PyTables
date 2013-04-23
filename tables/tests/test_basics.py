@@ -1658,7 +1658,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
 
         ############### Note for developers ###############################
         # This test fails if you have the line:                           #
-        # ##return childClass(self, childname)  # uncomment for debugging #
+        # ##return ChildClass(self, childname)  # uncomment for debugging #
         # uncommented in Group.py!                                        #
         ###################################################################
 

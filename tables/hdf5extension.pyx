@@ -1043,7 +1043,7 @@ cdef class Group(Node):
   _g_closeGroup = previous_api(_g_close_group)
 
   def _g_move_node(self, hid_t oldparent, oldname, hid_t newparent, newname,
-                  oldpathname, newpathname):
+                   oldpathname, newpathname):
     cdef int ret
     cdef bytes encoded_oldname, encoded_newname
 

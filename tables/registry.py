@@ -43,6 +43,9 @@ This dictionary maps class names (e.g. ``'Group'``) to actual class
 objects (e.g. `Group`).  Classes are registered here when they are
 defined, and they are not expected to be unregistered (by now), but they
 can be replaced when the module that defines them is reloaded.
+
+.. versionadded:: 3.0
+
 """
 
 class_id_dict = {}
@@ -53,6 +56,8 @@ class objects (e.g. `Group`).  Classes defining a new ``_c_classid``
 attribute are registered here when they are defined, and they are not
 expected to be unregistered (by now), but they can be replaced when the
 module that defines them is reloaded.
+
+.. versionadded:: 3.0
 
 """
 

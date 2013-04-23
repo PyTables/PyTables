@@ -36,6 +36,7 @@ def _closedrepr(oldmethod):
       <closed MODULE.CLASS at ADDRESS>
 
     instead of calling `oldmethod` and returning its result.
+
     """
 
     def newmethod(self):
@@ -62,6 +63,7 @@ class MetaNode(type):
 
       * Check that the node is open when calling string representation
         and provide a default string if so.
+
     """
 
     def __new__(class_, name, bases, dict_):
@@ -136,9 +138,11 @@ class Node(object):
 
         The path of this node in the tree (a string).
 
-    .. attribute:: _v_object_ID
+    .. attribute:: _v_objectid
 
         A node identifier (may change from run to run).
+
+        .. versionadded:: 3.0
 
     """
 
@@ -324,6 +328,7 @@ class Node(object):
         """Check that the node is open.
 
         If the node is closed, a `ClosedNodeError` is raised.
+
         """
 
         if not self._v_isopen:
@@ -420,6 +425,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """Clear location-dependent attributes.
 
         This also triggers the removal of file references to this node.
+
         """
 
         file_ = self._v_file
@@ -449,6 +455,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         All dependent objects (but not nodes!) referencing this node
         must be updated here.
+
         """
 
         if '_v_attrs' in self.__dict__:
@@ -465,6 +472,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         You should not need to close nodes manually because they are
         automatically opened/closed when they are loaded/evicted from
         the integrated LRU cache.
+
         """
 
         # After calling ``_f_close()``, two conditions are met:
@@ -505,6 +513,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         has children or not (useful for deleting hard links).
 
         It does not log the change.
+
         """
 
         # Remove the node from the PyTables hierarchy.
@@ -524,6 +533,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         If the node is a link to a Group object, and you are sure that you want
         to delete it, you can do this by setting the force flag to true.
+
         """
 
         self._g_check_open()
@@ -586,7 +596,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Changes the name of a node to *newname* (a string).  If a node with the
         same newname already exists and overwrite is true, recursively remove
         it before renaming.
+
         """
+
         self._f_move(newname=newname, overwrite=overwrite)
 
     def _f_move(self, newparent=None, newname=None,
@@ -857,6 +869,7 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
 
         This is invoked once the standard HDF5 and natural naming checks
         have successfully passed.
+
         """
 
         if name.startswith('_i_'):
@@ -871,6 +884,7 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         """Get a PyTables attribute from this node.
 
         If the named attribute does not exist, an AttributeError is raised.
+
         """
 
         return getattr(self._v_attrs, name)
@@ -882,6 +896,7 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
 
         If the node already has a large number of attributes, a
         PerformanceWarning is issued.
+
         """
 
         setattr(self._v_attrs, name, value)
@@ -892,6 +907,7 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         """Delete a PyTables attribute from this node.
 
         If the named attribute does not exist, an AttributeError is raised.
+
         """
 
         delattr(self._v_attrs, name)

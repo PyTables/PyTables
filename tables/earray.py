@@ -196,6 +196,7 @@ class EArray(CArray):
         dimensions must match, with the exception of the enlargeable
         dimension, which can be of any length (even 0!).  If the shape
         of the sequence is invalid, a ValueError is raised.
+
         """
 
         self._g_check_open()

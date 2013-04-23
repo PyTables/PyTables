@@ -223,7 +223,11 @@ class Group(hdf5extension.Group, Node):
         self._v_new_filters = filters
         """New default filter properties for child nodes."""
         self._v_max_group_width = parentnode._v_file.params['MAX_GROUP_WIDTH']
-        """Maximum number of children on each group before warning the user."""
+        """Maximum number of children on each group before warning the user.
+
+        .. versionadded:: 3.0
+
+        """
 
         # Finally, set up this object as a node.
         super(Group, self).__init__(parentnode, name, _log)
@@ -1165,18 +1169,18 @@ class RootGroup(Group):
         # build a PyTables node and return it.
         if node_type == "Group":
             if self._v_file.params['PYTABLES_SYS_ATTRS']:
-                childClass = self._g_get_child_group_class(childname)
+                ChildClass = self._g_get_child_group_class(childname)
             else:
                 # Default is a Group class
-                childClass = Group
-            return childClass(self, childname, new=False)
+                ChildClass = Group
+            return ChildClass(self, childname, new=False)
         elif node_type == "Leaf":
-            childClass = self._g_get_child_leaf_class(childname, warn=True)
+            ChildClass = self._g_get_child_leaf_class(childname, warn=True)
             # Building a leaf may still fail because of unsupported types
             # and other causes.
-            # return childClass(self, childname)  # uncomment for debugging
+            # return ChildClass(self, childname)  # uncomment for debugging
             try:
-                return childClass(self, childname)
+                return ChildClass(self, childname)
             except Exception, exc:  # XXX
                 warnings.warn(
                     "problems loading leaf ``%s``::\n\n"

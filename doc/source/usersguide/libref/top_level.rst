@@ -10,6 +10,8 @@ Global variables
 
 .. autodata:: hdf5_version
 
+.. autodata:: hdf5Version
+
 
 Global functions
 ----------------
