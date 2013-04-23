@@ -24,9 +24,8 @@
 /* The non-SSE2 versions of shuffle and unshuffle */
 
 /* Shuffle a block.  This can never fail. */
-static void _shuffle(size_t bytesoftype, size_t blocksize,
-	                 uint8_t* _src, uint8_t* _dest)
-{
+void _shuffle(size_t bytesoftype, size_t blocksize,
+      uint8_t* _src, uint8_t* _dest) {
   size_t i, j, neblock, leftover;
 
   /* Non-optimized shuffle */
@@ -41,9 +40,8 @@ static void _shuffle(size_t bytesoftype, size_t blocksize,
 }
 
 /* Unshuffle a block.  This can never fail. */
-static void _unshuffle(size_t bytesoftype, size_t blocksize,
-                       uint8_t* _src, uint8_t* _dest)
-{
+void _unshuffle(size_t bytesoftype, size_t blocksize,
+      uint8_t* _src, uint8_t* _dest) {
   size_t i, j, neblock, leftover;
 
   /* Non-optimized unshuffle */
@@ -65,9 +63,7 @@ static void _unshuffle(size_t bytesoftype, size_t blocksize,
 #include <emmintrin.h>
 
 /* The next is useful for debugging purposes */
-#if 0
-static void printxmm(__m128i xmm0)
-{
+void printxmm(__m128i xmm0) {
   uint8_t buf[16];
 
   ((__m128i *)buf)[0] = xmm0;
@@ -77,7 +73,6 @@ static void printxmm(__m128i xmm0)
           buf[8], buf[9], buf[10], buf[11],
           buf[12], buf[13], buf[14], buf[15]);
 }
-#endif
 
 
 /* Routine optimized for shuffling a buffer for a type size of 2 bytes. */
