@@ -365,9 +365,11 @@ class Leaf(Node):
         # tableExtension.pyx performs an assertion
         # to make sure nrowsinbuf is greater than or
         # equal to the chunksize.
-        chunksize = numpy.asarray(self.chunkshape).prod()
-        if chunksize is not None and nrowsinbuf < chunksize:
-            nrowsinbuf = chunksize
+        # See gh-206 and gh-238
+        if self.chunkshape is not None:
+            chunksize = numpy.asarray(self.chunkshape).prod()
+            if nrowsinbuf < chunksize:
+                nrowsinbuf = chunksize
 
         # Safeguard against row sizes being extremely large
         if nrowsinbuf == 0:

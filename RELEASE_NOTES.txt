@@ -159,8 +159,8 @@ Other possibly incompatible changes
   Python 3.  I any case system attributes are represented as Python string.
 
 
-Bug fixed
----------
+Bugs fixed
+----------
 
 - Better check access on closed files (closes :issue:`62`)
 
@@ -181,6 +181,10 @@ Bug fixed
 - Fixed ``tables.tests.test_nestedtypes.ColsTestCase.test_00a_repr`` test
   method.  Now the ``repr`` of of cols on big-endian platforms is correctly
   handled  (closes :issue:`237`).
+
+- Fixes bug with completely sorted indexes where *nrowsinbuf* must be equal
+  to or greater than the *chunksize* (thanks to Thadeus Burgess).
+  Closes :issue:`206` and :issue:`238`.
 
 .. _Python: http://www.python.org
 .. _PEP8: http://www.python.org/dev/peps/pep-0008
