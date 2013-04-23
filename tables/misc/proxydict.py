@@ -14,11 +14,13 @@
 
 import weakref
 
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 
 class ProxyDict(dict):
     """A dictionary which uses a container object to store its values."""
+
+    containerRef = previous_api_property('containerref')
 
     def __init__(self, container):
         self.containerref = weakref.ref(container)

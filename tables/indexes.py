@@ -20,7 +20,7 @@ from tables.carray import CArray
 from tables.earray import EArray
 from tables import indexesextension
 
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 # Declarations for inheriting
 
@@ -31,6 +31,8 @@ class CacheArray(NotLoggedMixin, EArray, indexesextension.CacheArray):
     # Class identifier.
     _c_classid = 'CACHEARRAY'
 
+    _c_classId = previous_api_property('_c_classid')
+
 
 class LastRowArray(NotLoggedMixin, CArray, indexesextension.LastRowArray):
     """Container for keeping sorted and indices values of last row of
@@ -38,6 +40,8 @@ class LastRowArray(NotLoggedMixin, CArray, indexesextension.LastRowArray):
 
     # Class identifier.
     _c_classid = 'LASTROWARRAY'
+
+    _c_classId = previous_api_property('_c_classid')
 
 
 class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
@@ -71,6 +75,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
 
     # Class identifier.
     _c_classid = 'INDEXARRAY'
+
+    _c_classId = previous_api_property('_c_classid')
 
     # Properties
     # ~~~~~~~~~~

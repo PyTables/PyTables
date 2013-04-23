@@ -61,6 +61,10 @@ module that defines them is reloaded.
 
 """
 
+# Deprecated API
+classNameDict = class_name_dict
+classIdDict = class_id_dict
+
 
 def get_class_by_name(classname):
     """Get the node class matching the `classname`.

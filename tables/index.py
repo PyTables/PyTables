@@ -39,7 +39,7 @@ from tables.exceptions import PerformanceWarning
 from tables.utils import is_idx, idx2long, lazyattr
 from tables.lrucacheextension import ObjectCache
 
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 
 # default version for INDEX objects
@@ -72,6 +72,10 @@ default_auto_index = True
 # Remember to keep these defaults in sync with the docstrings and UG.
 default_index_filters = Filters(complevel=1, complib='zlib',
                                 shuffle=True, fletcher32=False)
+
+# Deprecated API
+defaultAutoIndex = default_auto_index
+defaultIndexFilters = default_index_filters
 
 # The list of types for which an optimised search in cython and C has
 # been implemented. Always add here the name of a new optimised type.
@@ -149,6 +153,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
     """
 
     _c_classid = 'INDEX'
+
+    _c_classId = previous_api_property('_c_classid')
 
     # <properties>
     kind = property(
@@ -2171,6 +2177,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 class IndexesDescG(NotLoggedMixin, Group):
     _c_classid = 'DINDEX'
 
+    _c_classId = previous_api_property('_c_classid')
+
     def _g_width_warning(self):
         warnings.warn(
             "the number of indexed columns on a single description group "
@@ -2184,6 +2192,8 @@ class IndexesDescG(NotLoggedMixin, Group):
 
 class IndexesTableG(NotLoggedMixin, Group):
     _c_classid = 'TINDEX'
+
+    _c_classId = previous_api_property('_c_classid')
 
     def _getauto(self):
         if 'AUTO_INDEX' not in self._v_attrs:
@@ -2232,6 +2242,7 @@ class OldIndex(NotLoggedMixin, Group):
 
     _c_classid = 'CINDEX'
 
+    _c_classId = previous_api_property('_c_classid')
 
 
 ## Local Variables:

@@ -24,7 +24,7 @@ from tables.utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
                           byteorders)
 from tables.leaf import Leaf
 
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 # default version for ARRAY objects
 # obversion = "1.0"    # initial version
@@ -83,6 +83,9 @@ class Array(hdf5extension.Array, Leaf):
 
     # Class identifier.
     _c_classid = 'ARRAY'
+
+    _c_classId = previous_api_property('_c_classid')
+    _v_objectId = previous_api_property('_v_objectid')
 
     # Lazy read-only attributes
     # `````````````````````````
@@ -924,3 +927,5 @@ class ImageArray(Array):
 
     # Class identifier.
     _c_classid = 'IMAGE'
+
+    _c_classId = previous_api_property('_c_classid')

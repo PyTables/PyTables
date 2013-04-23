@@ -30,7 +30,7 @@ from tables.unimplemented import UnImplemented, Unknown
 
 from tables.link import Link, SoftLink, ExternalLink
 
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 obversion = "1.0"
 
@@ -159,6 +159,8 @@ class Group(hdf5extension.Group, Node):
     # Class identifier.
     _c_classid = 'GROUP'
 
+    _c_classId = previous_api_property('_c_classid')
+
     # Children containers that should be loaded only in a lazy way.
     # These are documented in the ``Group._g_add_children_names`` method.
     _c_lazy_children_attrs = (
@@ -203,6 +205,8 @@ class Group(hdf5extension.Group, Node):
         """)
 
     # </properties>
+
+    _v_maxGroupWidth = previous_api_property('_v_max_group_width')
 
     def __init__(self, parentnode, name,
                  title="", new=False, filters=None,
@@ -1105,6 +1109,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 # Special definition for group root
 class RootGroup(Group):
+
+    _v_objectId = previous_api_property('_v_objectid')
+
     def __init__(self, ptfile, name, title, new, filters):
         mydict = self.__dict__
 
@@ -1211,6 +1218,8 @@ class RootGroup(Group):
 class TransactionGroupG(NotLoggedMixin, Group):
     _c_classid = 'TRANSGROUP'
 
+    _c_classId = previous_api_property('_c_classid')
+
     def _g_width_warning(self):
         warnings.warn("""\
 the number of transactions is exceeding the recommended maximum (%d);\
@@ -1222,6 +1231,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 class TransactionG(NotLoggedMixin, Group):
     _c_classid = 'TRANSG'
+
+    _c_classId = previous_api_property('_c_classid')
 
     def _g_width_warning(self):
         warnings.warn("""\
@@ -1236,6 +1247,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 class MarkG(NotLoggedMixin, Group):
     # Class identifier.
     _c_classid = 'MARKG'
+
+    _c_classId = previous_api_property('_c_classid')
 
     import re
     _c_shadow_name_re = re.compile(r'^a[0-9]+$')

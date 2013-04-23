@@ -24,7 +24,7 @@ from tables.utils import (convert_to_np_atom, convert_to_np_atom2, idx2long,
 from tables.atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
 from tables.flavor import internal_to_flavor
 from tables.leaf import Leaf, calc_chunksize
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 # default version for VLARRAY objects
 # obversion = "1.0"    # initial version
@@ -182,6 +182,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     # Class identifier.
     _c_classid = 'VLARRAY'
+
+    _c_classId = previous_api_property('_c_classid')
 
     # Lazy read-only attributes
     # `````````````````````````

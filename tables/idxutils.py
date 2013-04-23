@@ -363,6 +363,10 @@ if hasattr(numpy, 'float128'):
     infinitymap['float128'] = [-numpy.float128(numpy.inf),
                                numpy.float128(numpy.inf)]
 
+# deprecated API
+infinityMap = infinitymap
+infinityF = infinityf
+
 # Utility functions
 
 

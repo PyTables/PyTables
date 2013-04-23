@@ -23,7 +23,7 @@ import numpy
 from tables import atom
 from tables.path import check_name_validity
 
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 # Public variables
 # ================
@@ -388,6 +388,11 @@ class Description(object):
         types.
 
     """
+
+    _v_colObjects = previous_api_property('_v_colobjects')
+    _v_nestedFormats = previous_api_property('_v_nested_formats')
+    _v_nestedNames = previous_api_property('_v_nested_names')
+    _v_nestedDesct = previous_api_property('_v_nested_descr')
 
     def __init__(self, classdict, nestedlvl=-1, validate=True):
 

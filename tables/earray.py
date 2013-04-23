@@ -17,7 +17,7 @@ import numpy
 from tables.utils import convert_to_np_atom2, SizeType
 from tables.carray import CArray
 
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 # default version for EARRAY objects
 # obversion = "1.0"    # initial version
@@ -128,6 +128,8 @@ class EArray(CArray):
 
     # Class identifier.
     _c_classid = 'EARRAY'
+
+    _c_classId = previous_api_property('_c_classid')
 
     # Special methods
     # ~~~~~~~~~~~~~~~

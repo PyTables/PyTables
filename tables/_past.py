@@ -12,7 +12,7 @@
 
 """A module with no PyTables dependencies that helps with deprecation warnings.
 """
-from inspect import getmembers, isclass, ismethod, isfunction
+from inspect import getmembers, ismethod, isfunction
 from warnings import warn
 
 
@@ -37,10 +37,32 @@ def previous_api(obj):
         obj.__doc__ or '') + "\n\n.. warning::\n\n    " + warnmsg + "\n"
     return oldfunc
 
+
+def previous_api_property(newname):
+    oldname = new2oldnames[newname]
+
+    warnmsg = ("{0} is pending deprecation, use {1} instead. "
+               "You may use the pt2to3 tool to update your source code.")
+    warnmsg = warnmsg.format(oldname, newname)
+
+    def _getter(self):
+        warn(warnmsg, PendingDeprecationWarning, stacklevel=1)
+        return getattr(self, newname)
+
+    def _setter(self, value):
+        warn(warnmsg, PendingDeprecationWarning, stacklevel=1)
+        return setattr(self, newname, value)
+
+    _getter.__name__ = _setter.__name__ = oldname
+
+    doc = '.. deprecated:: 3.0\n\n' + warnmsg
+    return property(_getter, _setter, None, doc=doc)
+
+
 # old name, new name
 old2newnames = dict([
     # from __init__.py
-    ('hdf5Version', 'hdf5_version'),
+    ('hdf5Version', 'hdf5_version'),                    # data
     # from array.py
     ('parentNode', 'parentnode'),                       # kwarg
     ('getEnum', 'get_enum'),
@@ -54,7 +76,7 @@ old2newnames = dict([
     ('_writeCoords', '_write_coords'),
     ('_writeSelection', '_write_selection'),
     ('_g_copyWithStats', '_g_copy_with_stats'),
-    ('_c_classId', '_c_classid'),
+    ('_c_classId', '_c_classid'),                       # attr
     # from atom.py
     ('_checkBase', '_checkbase'),
     # from attributeset.py
@@ -63,17 +85,17 @@ old2newnames = dict([
     ('_g_updateNodeLocation', '_g_update_node_location'),
     ('_g_logAdd', '_g_log_add'),
     ('_g_delAndLog', '_g_del_and_log'),
-    ('_v__nodeFile', '_v__nodefile'),
-    ('_v__nodePath', '_v__nodepath'),
+    ('_v__nodeFile', '_v__nodefile'),                   # attr (private)
+    ('_v__nodePath', '_v__nodepath'),                   # attr (private)
     # from carray.py
     #('parentNode', 'parentnode'),                       # kwarg
     # from description.py
     ('_g_setNestedNamesDescr', '_g_set_nested_names_descr'),
     ('_g_setPathNames', '_g_set_path_names'),
-    ('_v_colObjects', '_v_colobjects'),
-    ('_v_nestedFormats', '_v_nested_formats'),
-    ('_v_nestedNames', '_v_nested_names'),
-    ('_v_nestedDescr', '_v_nested_descr'),
+    ('_v_colObjects', '_v_colobjects'),                 # attr
+    ('_v_nestedFormats', '_v_nested_formats'),          # attr
+    ('_v_nestedNames', '_v_nested_names'),              # attr
+    ('_v_nestedDescr', '_v_nested_descr'),              # attr
     ('getColsInOrder', 'get_cols_in_order'),
     ('joinPaths', 'join_paths'),
     ('metaIsDescription', 'MetaIsDescription'),
@@ -81,32 +103,32 @@ old2newnames = dict([
     #('parentNode', 'parentnode'),                       # kwarg
     ('_checkShapeAppend', '_check_shape_append'),
     # from expression.py
-    ('_exprvarsCache', '_exprvars_cache'),
+    ('_exprvarsCache', '_exprvars_cache'),              # attr (private)
     ('_requiredExprVars', '_required_expr_vars'),
     ('setInputsRange', 'set_inputs_range'),
     ('setOutput', 'set_output'),
     ('setOutputRange', 'set_output_range'),
     # from file.py
-    ('_opToCode', '_op_to_code'),
-    ('_codeToOp', '_code_to_op'),
-    ('_transVersion', '_trans_version'),
-    ('_transGroupParent', '_trans_group_parent'),
-    ('_transGroupName', '_trans_group_name'),
-    ('_transGroupPath', '_trans_group_path'),
-    ('_actionLogParent', '_action_log_parent'),
-    ('_actionLogName', '_action_log_name'),
-    ('_actionLogPath', '_action_log_path'),
-    ('_transParent', '_trans_parent'),
-    ('_transName', '_trans_name'),
-    ('_transPath', '_trans_path'),
-    ('_shadowParent', '_shadow_parent'),
-    ('_shadowName', '_shadow_name'),
-    ('_shadowPath', '_shadow_path'),
+    ('_opToCode', '_op_to_code'),                       # data (private)
+    ('_codeToOp', '_code_to_op'),                       # data (private)
+    ('_transVersion', '_trans_version'),                # data (private)
+    ('_transGroupParent', '_trans_group_parent'),       # data (private)
+    ('_transGroupName', '_trans_group_name'),           # data (private)
+    ('_transGroupPath', '_trans_group_path'),           # data (private)
+    ('_actionLogParent', '_action_log_parent'),         # data (private)
+    ('_actionLogName', '_action_log_name'),             # data (private)
+    ('_actionLogPath', '_action_log_path'),             # data (private)
+    ('_transParent', '_trans_parent'),                  # data (private)
+    ('_transName', '_trans_name'),                      # data (private)
+    ('_transPath', '_trans_path'),                      # data (private)
+    ('_shadowParent', '_shadow_parent'),                # data (private)
+    ('_shadowName', '_shadow_name'),                    # data (private)
+    ('_shadowPath', '_shadow_path'),                    # data (private)
     ('copyFile', 'copy_file'),
     ('openFile', 'open_file'),
     ('_getValueFromContainer', '_get_value_from_container'),
     ('__getRootGroup', '__get_root_group'),
-    ('rootUEP', 'root_uep'),
+    ('rootUEP', 'root_uep'),                            # attr
     ('_getOrCreatePath', '_get_or_create_path'),
     ('_createPath', '_create_path'),
     ('createGroup', 'create_group'),
@@ -173,11 +195,11 @@ old2newnames = dict([
     ('_f_walkGroups', '_f_walk_groups'),
     ('_g_closeDescendents', '_g_close_descendents'),
     ('_f_copyChildren', '_f_copy_children'),
-    ('_v_maxGroupWidth', '_v_max_group_width'),
-    ('_v_objectID', '_v_objectid'),
+    ('_v_maxGroupWidth', '_v_max_group_width'),         # attr
+    ('_v_objectID', '_v_objectid'),                     # attr
     ('_g_loadChild', '_g_load_child'),
-    ('childName', 'childname'),
-    ('_c_shadowNameRE', '_c_shadow_name_re'),
+    ('childName', 'childname'),                         # ???
+    ('_c_shadowNameRE', '_c_shadow_name_re'),           # attr (private)
     # from hdf5extension.p{yx,xd}
     ('hdf5Extension', 'hdf5extension'),
     ('_getFileId', '_get_file_id'),
@@ -205,19 +227,19 @@ old2newnames = dict([
     ('_g_writeSelection', '_g_write_selection'),
     # from idxutils.py
     ('calcChunksize', 'calc_chunksize'),
-    ('infinityF', 'infinityf'),
-    ('infinityMap', 'infinitymap'),
+    ('infinityF', 'infinityf'),                         # data
+    ('infinityMap', 'infinitymap'),                     # data
     ('infType', 'inftype'),
     ('StringNextAfter', 'string_next_after'),
     ('IntTypeNextAfter', 'int_type_next_after'),
     ('BoolTypeNextAfter', 'bool_type_next_after'),
     # from index.py
     #('parentNode', 'parentnode'),                       # kwarg
-    ('defaultAutoIndex', 'default_auto_index'),
-    ('defaultIndexFilters', 'default_index_filters'),
+    ('defaultAutoIndex', 'default_auto_index'),         # data
+    ('defaultIndexFilters', 'default_index_filters'),   # data
     ('_tableColumnPathnameOfIndex', '_table_column_pathname_of_index'),
     ('_is_CSI', '_is_csi'),
-    ('is_CSI', 'is_csi'),
+    ('is_CSI', 'is_csi'),                               # property
     ('appendLastRow', 'append_last_row'),
     ('read_sliceLR', 'read_slice_lr'),
     ('readSorted', 'read_sorted'),
@@ -253,7 +275,7 @@ old2newnames = dict([
     ('_searchBinNA_g', '_search_bin_na_g'),
     # from leaf.py
     #('parentNode', 'parentnode'),                       # kwarg
-    ('objectID', 'object_id'),
+    ('objectID', 'object_id'),                          # property
     ('_processRangeRead', '_process_range_read'),
     ('_pointSelection', '_point_selection'),
     ('isVisible', 'isvisible'),
@@ -273,7 +295,7 @@ old2newnames = dict([
     ('_checkAndSetPair', '_check_and_set_pair'),
     ('_getContainer', '_get_container'),
     # from misc/proxydict.py
-    ('containerRef', 'containerref'),
+    ('containerRef', 'containerref'),                   # attr
     # from node.py
     #('parentNode', 'parentnode'),                       # kwarg
     ('_g_logCreate', '_g_log_create'),
@@ -286,7 +308,7 @@ old2newnames = dict([
     ('_g_updateDependent', '_g_update_dependent'),
     ('_g_removeAndLog', '_g_remove_and_log'),
     ('_g_logMove', '_g_log_move'),
-    ('oldPathname', 'oldpathname'),
+    ('oldPathname', 'oldpathname'),                     # ??
     ('_g_copyAsChild', '_g_copy_as_child'),
     ('_f_isVisible', '_f_isvisible'),
     ('_g_checkGroup', '_g_check_group'),
@@ -298,12 +320,12 @@ old2newnames = dict([
     # from nodes/filenode.py
     ('newNode', 'new_node'),
     ('openNode', 'open_node'),
-    ('_lineChunkSize', '_line_chunksize'),
-    ('_lineSeparator', '_line_separator'),
+    ('_lineChunkSize', '_line_chunksize'),              # attr (private)
+    ('_lineSeparator', '_line_separator'),              # attr (private)
     ('getLineSeparator', 'get_line_separator'),
     ('setLineSeparator', 'set_line_separator'),
     ('delLineSeparator', 'del_line_separator'),
-    ('lineSeparator', 'line_separator'),
+    ('lineSeparator', 'line_separator'),                # property
     ('_notReadableError', '_not_readable_error'),
     ('_appendZeros', '_append_zeros'),
     ('getAttrs', 'get_attrs'),
@@ -312,13 +334,13 @@ old2newnames = dict([
     ('_setAttributes', '_set_attributes'),
     ('_checkAttributes', '_check_attributes'),
     ('_checkNotClosed', '_check_not_closed'),
-    ('__allowedInitKwArgs', '__allowed_init_kwargs'),
+    ('__allowedInitKwArgs', '__allowed_init_kwargs'),   # attr (private)
     # from path.py
     ('parentPath', 'parentpath'),                       # kwarg
-    ('_pythonIdRE', '_python_id_re'),
-    ('_reservedIdRE', '_reserved_id_re'),
-    ('_hiddenNameRE', '_hidden_name_re'),
-    ('_hiddenPathRE', '_hidden_path_re'),
+    ('_pythonIdRE', '_python_id_re'),                   # attr (private)
+    ('_reservedIdRE', '_reserved_id_re'),               # attr (private)
+    ('_hiddenNameRE', '_hidden_name_re'),               # attr (private)
+    ('_hiddenPathRE', '_hidden_path_re'),               # attr (private)
     ('checkNameValidity', 'check_name_validity'),
     ('joinPath', 'join_path'),
     ('splitPath', 'split_path'),
@@ -326,8 +348,8 @@ old2newnames = dict([
     ('isVisiblePath', 'isvisiblepath'),
     # from registry.py
     ('className', 'classname'),                         # kwarg
-    ('classNameDict', 'class_name_dict'),
-    ('classIdDict', 'class_id_dict'),
+    ('classNameDict', 'class_name_dict'),               # data
+    ('classIdDict', 'class_id_dict'),                   # data
     ('getClassByName', 'get_class_by_name'),
     # from scripts/ptdump.py
     ('dumpLeaf', 'dump_leaf'),
@@ -338,8 +360,8 @@ old2newnames = dict([
     ('copyLeaf', 'copy_leaf'),
     # from table.py
     #('parentNode', 'parentnode'),                       # kwarg
-    ('_nxTypeFromNPType', '_nxtype_from_nptype'),
-    ('_npSizeType', '_npsizetype'),
+    ('_nxTypeFromNPType', '_nxtype_from_nptype'),       # data (private)
+    ('_npSizeType', '_npsizetype'),                     # data (private)
     ('_indexNameOf', '_index_name_of'),
     ('_indexPathnameOf', '_index_pathname_of'),
     ('_indexPathnameOfColumn', '_index_pathname_of_column'),
@@ -348,19 +370,19 @@ old2newnames = dict([
     ('_indexPathnameOfColumn_', '_index_pathname_of_column_'),
     ('_table__setautoIndex', '_table__setautoindex'),
     ('_table__getautoIndex', '_table__getautoindex'),
-    ('_table__autoIndex', '_table__autoindex'),
+    ('_table__autoIndex', '_table__autoindex'),         # data (private)
     ('_table__whereIndexed', '_table__where_indexed'),
     ('createIndexesTable', 'create_indexes_table'),
     ('createIndexesDescr', 'create_indexes_descr'),
     ('_column__createIndex', '_column__create_index'),
-    ('_autoIndex', '_autoindex'),
-    ('autoIndex', 'autoindex'),
+    ('_autoIndex', '_autoindex'),                       # attr
+    ('autoIndex', 'autoindex'),                         # attr
     ('_useIndex', '_use_index'),
-    ('_whereCondition', '_where_condition'),
-    ('_conditionCache', '_condition_cache'),
-    ('_exprvarsCache', '_exprvars_cache'),
-    ('_enabledIndexingInQueries', '_enabled_indexing_in_queries'),
-    ('_emptyArrayCache', '_empty_array_cache'),
+    ('_whereCondition', '_where_condition'),            # attr (private)
+    ('_conditionCache', '_condition_cache'),            # attr (private)
+    #('_exprvarsCache', '_exprvars_cache'),
+    ('_enabledIndexingInQueries', '_enabled_indexing_in_queries'),  # attr (private)
+    ('_emptyArrayCache', '_empty_array_cache'),         # attr (private)
     ('_getTypeColNames', '_get_type_col_names'),
     ('_getEnumMap', '_get_enum_map'),
     ('_cacheDescriptionData', '_cache_description_data'),
@@ -368,7 +390,7 @@ old2newnames = dict([
     ('_checkColumn', '_check_column'),
     ('_disableIndexingInQueries', '_disable_indexing_in_queries'),
     ('_enableIndexingInQueries', '_enable_indexing_in_queries'),
-    ('_requiredExprVars', '_required_expr_vars'),
+    #('_requiredExprVars', '_required_expr_vars'),
     ('_getConditionKey', '_get_condition_key'),
     ('_compileCondition', '_compile_condition'),
     ('willQueryUseIndexing', 'will_query_use_indexing'),
@@ -396,8 +418,8 @@ old2newnames = dict([
     ('_g_copyRows_optim', '_g_copy_rows_optim'),
     ('_g_propIndexes', '_g_prop_indexes'),
     ('_g_updateTableLocation', '_g_update_table_location'),
-    ('_tableFile', '_table_file'),
-    ('_tablePath', '_table_path'),
+    ('_tableFile', '_table_file'),                      # attr (private)
+    ('_tablePath', '_table_path'),                      # attr (private)
     ('createIndex', 'create_index'),
     ('createCSIndex', 'create_csindex'),
     ('removeIndex', 'remove_index'),
@@ -407,17 +429,17 @@ old2newnames = dict([
     ('getNestedType', 'get_nested_type'),
     ('_createTable', '_create_table'),
     ('_getInfo', '_get_info'),
-    ('indexChunk', 'indexchunk'),
-    ('indexValid', 'indexvalid'),
-    ('indexValues', 'indexvalues'),
-    ('bufcoordsData', 'bufcoords_data'),
-    ('indexValuesData', 'index_values_data'),
-    ('chunkmapData', 'chunkmap_data'),
-    ('indexValidData', 'index_valid_data'),
-    ('whereCond', 'wherecond'),
-    ('iterseqMaxElements', 'iterseq_max_elements'),
-    ('IObuf', 'iobuf'),
-    ('IObufcpy', 'iobufcpy'),
+    ('indexChunk', 'indexchunk'),                       # attr
+    ('indexValid', 'indexvalid'),                       # attr
+    ('indexValues', 'indexvalues'),                     # attr
+    ('bufcoordsData', 'bufcoords_data'),                # attr
+    ('indexValuesData', 'index_values_data'),           # attr
+    ('chunkmapData', 'chunkmap_data'),                  # attr
+    ('indexValidData', 'index_valid_data'),             # attr
+    ('whereCond', 'wherecond'),                         # attr
+    ('iterseqMaxElements', 'iterseq_max_elements'),     # attr
+    ('IObuf', 'iobuf'),                                 # attr
+    ('IObufcpy', 'iobufcpy'),                           # attr
     ('_convertTime64_', '_convert_time64_'),
     ('_convertTypes', '_convert_types'),
     ('_newBuffer', '_new_buffer'),
@@ -453,10 +475,10 @@ old2newnames = dict([
     ('detectNumberOfCores', 'detect_number_of_cores'),
     # from utilsextension
     ('utilsExtension', 'utilsextension'),
-    ('PTTypeToHDF5', 'pttype_to_hdf5'),
-    ('PTSpecialKinds', 'pt_special_kinds'),
-    ('NPExtPrefixesToPTKinds', 'npext_prefixes_to_ptkinds'),
-    ('HDF5ClassToString', 'hdf5_class_to_string'),
+    ('PTTypeToHDF5', 'pttype_to_hdf5'),                 # data
+    ('PTSpecialKinds', 'pt_special_kinds'),             # data
+    ('NPExtPrefixesToPTKinds', 'npext_prefixes_to_ptkinds'),    # data
+    ('HDF5ClassToString', 'hdf5_class_to_string'),      # data
     ('setBloscMaxThreads', 'set_blosc_max_threads'),
     ('silenceHDF5Messages', 'silence_hdf5_messages'),
     ('isHDF5File', 'is_hdf5_file'),

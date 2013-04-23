@@ -48,7 +48,7 @@ profile = False
 if profile:
     from tables.utils import show_stats
 
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 # 2.2: Added support for complex types. Introduced in version 0.9.
 # 2.2.1: Added suport for time types.
@@ -585,6 +585,9 @@ class Table(tableextension.Table, Leaf):
     # Class identifier.
     _c_classid = 'TABLE'
 
+    _c_classId = previous_api_property('_c_classid')
+    _v_objectId = previous_api_property('_v_objectid')
+
     # Properties
     # ~~~~~~~~~~
     @lazyattr
@@ -670,7 +673,7 @@ class Table(tableextension.Table, Leaf):
 
     """
 
-    autoindex = _table__autoindex
+    autoIndex = previous_api_property('autoindex')
 
     indexedcolpathnames = property(
         lambda self: [_colpname for _colpname in self.colpathnames

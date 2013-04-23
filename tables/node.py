@@ -21,7 +21,7 @@ from tables.path import join_path, split_path, isvisiblepath
 from tables.utils import lazyattr
 from tables.undoredo import move_to_shadow
 from tables.attributeset import AttributeSet, NotLoggedAttributeSet
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 
 __docformat__ = 'reStructuredText'
@@ -196,6 +196,8 @@ class Node(object):
     # to be called.  See ticket #144 for more info.
     _v_isopen = False
     """Whehter this node is open or not."""
+
+    _v_objectId = previous_api_property('_v_objectid')
 
     # The ``_log`` argument is only meant to be used by ``_g_copy_as_child()``
     # to avoid logging the creation of children nodes of a copied sub-tree.

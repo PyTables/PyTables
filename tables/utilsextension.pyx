@@ -152,6 +152,14 @@ hdf5_class_to_string = {
   H5T_ARRAY     : 'H5T_ARRAY',
 }
 
+
+# Depprecated API
+PTTypeToHDF5 = pttype_to_hdf5
+PTSpecialKinds = pt_special_kinds
+NPExtPrefixesToPTKinds = npext_prefixes_to_ptkinds
+HDF5ClassToString = hdf5_class_to_string
+
+
 from numpy import typeDict
 cdef int have_float16 = ("float16" in typeDict)
 

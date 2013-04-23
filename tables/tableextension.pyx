@@ -64,7 +64,7 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
 
 from lrucacheextension cimport ObjectCache, NumCache
 
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 
 #-----------------------------------------------------------------
@@ -718,6 +718,19 @@ cdef class Row:
   cdef object  _table_file, _table_path
   cdef object  modified_fields
   cdef object  seq_available
+
+  # Deprecated API
+  indexChunk = previous_api_property('indexchunk')
+  indexValid = previous_api_property('indexvalid')
+  indexValues = previous_api_property('indexvalues')
+  bufcoordsData = previous_api_property('bufcoords_data')
+  indexValuesData = previous_api_property('index_values_data')
+  chunkmapData = previous_api_property('chunkmap_data')
+  indexValidData = previous_api_property('index_valid_data')
+  whereCond = previous_api_property('wherecond')
+  iterseqMaxElements = previous_api_property('iterseq_max_elements')
+  IObuf = previous_api_property('iobuf')
+  IObufcpy = previous_api_property('iobufcpy')
 
   # The nrow() method has been converted into a property, which is handier
   property nrow:

@@ -54,7 +54,7 @@ from tables import lrucacheextension
 
 from tables.link import SoftLink, ExternalLink
 
-from tables._past import previous_api
+from tables._past import previous_api, previous_api_property
 
 
 # format_version = "1.0"  # Initial format
@@ -435,6 +435,8 @@ class File(hdf5extension.File, object):
     ## <class variables>
     # The top level kinds. Group must go first!
     _node_kinds = ('Group', 'Leaf', 'Link', 'Unknown')
+    rootUEP = previous_api_property('root_uep')
+    _v_objectId = previous_api_property('_v_objectid')
 
     ## </class variables>
 
