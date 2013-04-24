@@ -8,8 +8,8 @@
 .. py:currentmodule:: tables
 
 
-Changes from 2.4 to 3.0 (in development)
-========================================
+Changes from 2.4 to 3.0.0b1
+===========================
 
 New features
 ------------
@@ -23,7 +23,8 @@ New features
 
 - Basic support for HDF5 drivers.  Now it is possible to open/create an
   HDF5 file using one of the SEC2, DIRECT, LOG, WINDOWS, STDIO or CORE
-  drivers and also set the main parameters (closes :issue:`166`).
+  drivers.  Users can also set the main driver parameters (closes
+  :issue:`166`).
   Thanks to Michal Slonina.
 
 - Basic support for in-memory image files.  An HDF5 file can be set from or
@@ -41,12 +42,15 @@ New features
   Thanks to Stuart Mentzer and Christoph Gohlke.
 
 - All read methods now have an optional *out* argument that allows to pass a
-  pre-allocated array to store data (:issue:`192`)
+  pre-allocated array to store data (closes :issue:`192`)
 
 - Added support for the floating point data types with extended precision
-  (Float96, Float128, Complex192 and Complex256).  It is only available if
-  numpy_ provides it as well.
+  (Float96, Float128, Complex192 and Complex256).  This feature is only
+  available if numpy_ provides it as well.
   Closes :issue:`51` and :issue:`214`.  Many thanks to Andrea Bedini.
+
+- New :program:`pt2to3` tool is provided to help users to port their
+  applications to the new API (see `API changes`_ section).
 
 
 Improvements
@@ -74,7 +78,8 @@ Improvements
 - Improved compatibility with Cython_ 0.19 (see :issue:`220` and
   :issue:`221`)
 
-- Improved compatibility with numexpr_ 2.1 (see also :issue:`199`)
+- Improved compatibility with numexpr_ 2.1 (see also :issue:`199` and
+  :issue:`241`)
 
 - Improved compatibility with development versions of numpy_
   (see :issue:`193`)
@@ -96,22 +101,26 @@ Other changes
 - PyTables now requires Python 2.6 or newer.
 
 
-Deprecations
-------------
-
-- The use of upper-case keyword arguments in the :func:`open_file` function
-  and the :class:`File` class initializer is now deprecated.  All parameters
-  defined in the :file:`tables/parameters.py` module can still be passed as
-  keyword argument to the :func:`open_file` function just using a lower-case
-  version of the parameter name.
-
-
 API changes
 -----------
 
 The entire PyTables API as been made more PEP8_ compliant (see :issue:`224`).
 
-The old API is till usable XXX
+This means that many methods, attributes, module global variables and also
+keyword parameters have been renamed to be compliant with PEP8_ style
+guidelines (e.g. the ``tables.hdf5Version`` constant has been renamed into
+``tables.hdf5_version``).
+
+We made all the best for maintaining compatibility with existing application
+so the old API is still usable even if it is now deprecated (see the
+Deprecations_ section).
+
+The only important exception is represented by names function/methods
+arguments.  Al uses of keyword arguments should be checked and fixed to use
+the new naming convention.
+
+The new :program:`pt2to3` tool can be used to port PyTables based applications
+to the new API.
 
 Many deprecated features and support for obsolete modules has been dropped:
 
@@ -162,6 +171,18 @@ Other possibly incompatible changes
 - System attributes are now stored in the HDF5 file using the character set
   that reflects the native string behaviour: ASCII for Python 2 and UTF8 for
   Python 3.  I any case system attributes are represented as Python string.
+
+
+Deprecations
+------------
+
+- XXX old API deprecation
+
+- The use of upper-case keyword arguments in the :func:`open_file` function
+  and the :class:`File` class initializer is now deprecated.  All parameters
+  defined in the :file:`tables/parameters.py` module can still be passed as
+  keyword argument to the :func:`open_file` function just using a lower-case
+  version of the parameter name.
 
 
 Bugs fixed
