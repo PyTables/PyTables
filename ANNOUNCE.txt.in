@@ -16,14 +16,14 @@ As always, a large amount of bugs have been addressed and squashed as well.
 
 In case you want to know more in detail what has changed in this
 version, please refer to:
-http://pytables.github.com/release_notes.html
+http://pytables.github.io/release_notes.html
 
 You can download a source package with generated PDF and HTML docs, as
 well as binaries for Windows, from:
 http://sourceforge.net/projects/pytables/files/pytables/@VERSION@
 
 For an online version of the manual, visit:
-http://pytables.github.com/usersguide/index.html
+http://pytables.github.io/usersguide/index.html
 
 
 What it is?

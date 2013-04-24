@@ -279,5 +279,5 @@ epub_copyright = u'2011-2013, The PyTables Governance Team'
 # -- External link oOptions ----------------------------------------------------
 extlinks = {
     'issue': ('https://github.com/PyTables/PyTables/issues/%s', 'gh-'),
-    'irc': ('http://pytables.github.com/irc/%s.html', ''),
+    'irc': ('http://pytables.github.io/irc/%s.html', ''),
 }
