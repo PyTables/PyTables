@@ -83,7 +83,7 @@ Bibliography
     Francesc Alted. Blosc. A blocking, shuffling and loss-less compression
     library.  A compressor designed to transmit data from memory to CPU
     (and back) faster than a plain memcpy().
-    `<http://blosc.pytables.org/>`_.
+    `<http://www.blosc.org/>`_.
 
 .. _GNUWIN32:
 
