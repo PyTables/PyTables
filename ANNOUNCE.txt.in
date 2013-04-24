@@ -1,16 +1,42 @@
-===========================
+=============================
  Announcing PyTables @VERSION@
-===========================
+=============================
 
 We are happy to announce PyTables @VERSION@.
 
-#XXX some general blurb XXX#
+PyTables @VERSION@ comes after about 5 years from the last major release
+(2.0) and 7 months since the last stable release (2.4.0).
+
+This is new major release and an important milestone for the PyTables project
+since it provides the long waited support for Python 3.x that is being around
+for already 4 years now.
+
+Almost all the main numeric/scientific packages for python already support
+Python 3 so we are very happy that now also PyTables can provide this
+important feature.
 
 
 What's new
 ==========
 
-#XXX version-specific blurb XXX#
+A short summary of main new features:
+
+- Since this release PyTables provides full support to Python 3
+- The entire code base is now more compliant with coding style guidelines
+  describe in the PEP8.
+- Basic support for HDF5 drivers.  Now it is possible to open/create an
+  HDF5 file using one of the SEC2, DIRECT, LOG, WINDOWS, STDIO or CORE
+  drivers.
+- Basic support for in-memory image files.  An HDF5 file can be set from or
+  copied into a memory buffer.
+- Implemented methods to get/set the user block size in a HDF5 file.
+- All read methods now have an optional *out* argument that allows to pass a
+  pre-allocated array to store data.
+- Added support for the floating point data types with extended precision
+  (Float96, Float128, Complex192 and Complex256).
+
+Please refer to the RELEASE_NOTES document for a more detailed list of
+changes in this release.
 
 As always, a large amount of bugs have been addressed and squashed as well.
 
