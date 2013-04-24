@@ -31,7 +31,8 @@ from tables._past import previous_api, previous_api_property
 # obversion = "1.0"    # add support for complex datatypes
 # obversion = "1.1"    # This adds support for time datatypes.
 # obversion = "1.2"    # This adds support for enumerated datatypes.
-obversion = "1.3"     # Introduced 'PSEUDOATOM' attribute.
+# obversion = "1.3"     # Introduced 'PSEUDOATOM' attribute.
+obversion = "1.4"    # Numeric and numarray flavors are gone.
 
 
 class VLArray(hdf5extension.VLArray, Leaf):

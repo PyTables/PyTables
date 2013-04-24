@@ -56,7 +56,8 @@ from tables._past import previous_api, previous_api_property
 # 2.4: Changed indexes naming schema (again).
 # 2.5: Added the FIELD_%d_FILL attributes.
 # 2.6: Added the FLAVOR attribute (optional).
-obversion = "2.6"  # The Table VERSION number
+# 2.7: Numeric and numarray flavors are gone.
+obversion = "2.7"  # The Table VERSION number
 
 
 try:

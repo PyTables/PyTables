@@ -31,7 +31,8 @@ from tables._past import previous_api, previous_api_property
 # obversion = "2.0"    # Added an optional EXTDIM attribute
 # obversion = "2.1"    # Added support for complex datatypes
 # obversion = "2.2"    # This adds support for time datatypes.
-obversion = "2.3"    # This adds support for enumerated datatypes.
+# obversion = "2.3"    # This adds support for enumerated datatypes.
+obversion = "2.4"    # Numeric and numarray flavors are gone.
 
 
 class Array(hdf5extension.Array, Leaf):

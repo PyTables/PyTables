@@ -24,7 +24,8 @@ from tables.utils import correct_byteorder, SizeType
 from tables._past import previous_api, previous_api_property
 
 # default version for CARRAY objects
-obversion = "1.0"    # Support for time & enumerated datatypes.
+# obversion = "1.0"    # Support for time & enumerated datatypes.
+obversion = "1.1"    # Numeric and numarray flavors are gone.
 
 
 class CArray(Array):
