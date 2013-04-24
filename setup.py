@@ -632,6 +632,7 @@ if has_setuptools:
         'console_scripts': [
             'ptdump = tables.scripts.ptdump:main',
             'ptrepack = tables.scripts.ptrepack:main',
+            'pt2to3 = tables.scripts.pt2to3:main',
             ],
         }
     # Test suites.
