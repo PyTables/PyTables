@@ -21,4 +21,7 @@ Project pointers
   (needs update)
 * `Project page on Launchpad <https://launchpad.net/pytables>`_
   (going to be closed)
+* Development version of the
+  `HTML documentation <http://pytables.github.io/latest/index.html>`_
 * `Old trac site <http://www.pytables.org/trac-bck>`_
+
