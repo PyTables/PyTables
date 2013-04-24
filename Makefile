@@ -12,7 +12,7 @@ PYBUILDDIR = $(PWD)/build/lib.$(PYPLATFORM)-$(PYVER)
 OPT = PYTHONPATH=$(PYBUILDDIR)
 
 
-.PHONY:		all dist build check check clean distclean html
+.PHONY:		all dist build check clean distclean html
 
 all:		$(GENERATED) build
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
