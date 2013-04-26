@@ -31,7 +31,8 @@ def make_subs(ns):
     s = '(?<=\W)({0})(?=\W)'.format('|'.join(names.keys()))
     if ns.ignore_previous:
         s += '(?!\s*?=\s*?previous_api(_property)?\()'
-        s += '(?!Renamed from \*)'
+        s += '(?!\* to \*\w+\*)'
+        s += '(?! is pending deprecation, import \w+ instead.)'
     subs = re.compile(s, flags=re.MULTILINE)
 
     def repl(m):
