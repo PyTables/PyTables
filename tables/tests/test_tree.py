@@ -815,12 +815,12 @@ class HiddenTreeTestCase(unittest.TestCase):
     def _test00b_objects(self):
         """Object dictionaries conformance with ``walk_nodes()``."""
 
-        def dictCheck(dictName, className):
+        def dictCheck(dictName, classname):
             file_ = self.h5file
 
             objects = getattr(file_, dictName)
             walkPaths = [node._v_pathname
-                         for node in file_.walk_nodes('/', className)]
+                         for node in file_.walk_nodes('/', classname)]
             dictPaths = [path for path in objects]
             walkPaths.sort()
             dictPaths.sort()

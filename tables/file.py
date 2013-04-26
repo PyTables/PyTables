@@ -922,7 +922,7 @@ class File(hdf5extension.File, object):
     createEArray = previous_api(create_earray)
 
     def create_vlarray(self, where, name, atom, title="",
-                       filters=None, expectedsizeinMB=1.0,
+                       filters=None, expected_mb=1.0,
                        chunkshape=None, byteorder=None,
                        createparents=False):
         """Create a new variable-length array.
@@ -945,7 +945,7 @@ class File(hdf5extension.File, object):
             An instance of the Filters class (see :ref:`FiltersClassDescr`)
             that provides information about the desired I/O filters to
             be applied during the life of this object.
-        expectedsizeinMB : int, optional
+        expected_mb : int, optional
             An user estimate about the size (in MB) in the final VLArray
             node. If not provided, the default value is 1 MB. If you
             plan to create either a much smaller or a much bigger array
@@ -976,7 +976,7 @@ class File(hdf5extension.File, object):
         _checkfilters(filters)
         return VLArray(parentnode, name,
                        atom=atom, title=title, filters=filters,
-                       expectedsizeinMB=expectedsizeinMB,
+                       expected_mb=expected_mb,
                        chunkshape=chunkshape, byteorder=byteorder)
 
     createVLArray = previous_api(create_vlarray)

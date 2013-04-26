@@ -32,7 +32,8 @@ def make_subs(ns):
     if ns.ignore_previous:
         s += '(?!\s*?=\s*?previous_api(_property)?\()'
         s += '(?!\* to \*\w+\*)'
-        s += '(?! is pending deprecation, import \w+ instead.)'
+        s += '(?!\* parameter has been renamed into \*\w+\*\.)'
+        s += '(?! is pending deprecation, import \w+ instead\.)'
     subs = re.compile(s, flags=re.MULTILINE)
 
     def repl(m):

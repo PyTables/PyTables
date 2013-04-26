@@ -511,7 +511,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         raCols = numpy.rec.fromarrays([self._testAData['x'].copy(),
                                 self._testAData['color'].copy()],
                                 dtype=[('x', '(2,)i4'), ('color', '1a2')])
-                               # descr=tbl.description._v_nestedDescr[0:2])
+                               # descr=tbl.description._v_nested_descr[0:2])
                                # or...
                                # names=tbl.description._v_nested_names[0:2],
                                # formats=tbl.description._v_nested_formats[0:2])

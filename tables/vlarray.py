@@ -74,7 +74,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
     filters
         An instance of the `Filters` class that provides information about the
         desired I/O filters to be applied during the life of this object.
-    expectedsizeinMB
+    expected_mb
         An user estimate about the size (in MB) in the final `VLArray` object.
         If not provided, the default value is 1 MB.  If you plan to create
         either a much smaller or a much bigger `VLArray` try providing a guess;
@@ -231,7 +231,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
     # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  atom=None, title="",
-                 filters=None, expectedsizeinMB=1.0,
+                 filters=None, expected_mb=1.0,
                  chunkshape=None, byteorder=None,
                  _log=True):
 
@@ -243,7 +243,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """New title for this node."""
         self._v_new_filters = filters
         """New filter properties for this array."""
-        self._v_expectedsizeinMB = expectedsizeinMB
+        self._v_expected_mb = expected_mb
         """The expected size of the array in MiB."""
         self._v_chunkshape = None
         """Private storage for the `chunkshape` property of Leaf."""
@@ -306,10 +306,10 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self.nrowsinbuf = 100  # maybe enough for most applications
 
     # This is too specific for moving it into Leaf
-    def _calc_chunkshape(self, expectedsizeinMB):
+    def _calc_chunkshape(self, expected_mb):
         """Calculate the size for the HDF5 chunk."""
 
-        chunksize = calc_chunksize(expectedsizeinMB)
+        chunksize = calc_chunksize(expected_mb)
 
         # For computing the chunkshape for HDF5 VL types, we have to
         # choose the itemsize of the *each* element of the atom and
@@ -351,7 +351,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # Compute the optimal chunkshape, if needed
         if self._v_chunkshape is None:
             self._v_chunkshape = self._calc_chunkshape(
-                self._v_expectedsizeinMB)
+                self._v_expected_mb)
         self.nrows = SizeType(0)     # No rows at creation time
 
         # Correct the byteorder if needed
@@ -780,7 +780,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # Build the new VLArray object
         object = VLArray(
             group, name, self.atom, title=title, filters=filters,
-            expectedsizeinMB=self._v_expectedsizeinMB, chunkshape=chunkshape,
+            expected_mb=self._v_expected_mb, chunkshape=chunkshape,
             _log=_log)
         # Now, fill the new vlarray with values from the old one
         # This is not buffered because we cannot forsee the length

@@ -27,27 +27,27 @@ from tables import utilsextension
 from tables._past import previous_api
 
 
-def csformula(expectedsizeinMB):
-    """Return the fitted chunksize for expectedsizeinMB."""
+def csformula(expected_mb):
+    """Return the fitted chunksize for expected_mb."""
 
     # For a basesize of 8 KB, this will return:
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
     basesize = 8 * 1024   # 8 KB is a good minimum
-    return basesize * int(2**math.log10(expectedsizeinMB))
+    return basesize * int(2**math.log10(expected_mb))
 
 
-def limit_es(expectedsizeinMB):
+def limit_es(expected_mb):
     """Protection against creating too small or too large chunks."""
 
-    if expectedsizeinMB < 1:        # < 1 MB
-        expectedsizeinMB = 1
-    elif expectedsizeinMB > 10**7:  # > 10 TB
-        expectedsizeinMB = 10**7
-    return expectedsizeinMB
+    if expected_mb < 1:        # < 1 MB
+        expected_mb = 1
+    elif expected_mb > 10**7:  # > 10 TB
+        expected_mb = 10**7
+    return expected_mb
 
 
-def calc_chunksize(expectedsizeinMB):
+def calc_chunksize(expected_mb):
     """Compute the optimum HDF5 chunksize for I/O purposes.
 
     Rational: HDF5 takes the data in bunches of chunksize length to
@@ -64,10 +64,10 @@ def calc_chunksize(expectedsizeinMB):
 
     """
 
-    expectedsizeinMB = limit_es(expectedsizeinMB)
-    zone = int(math.log10(expectedsizeinMB))
-    expectedsizeinMB = 10**zone
-    chunksize = csformula(expectedsizeinMB)
+    expected_mb = limit_es(expected_mb)
+    zone = int(math.log10(expected_mb))
+    expected_mb = 10**zone
+    chunksize = csformula(expected_mb)
     return chunksize * 8     # XXX: Multiply by 8 seems optimal for
                            # sequential access
 
@@ -322,8 +322,8 @@ class Leaf(Node):
 
         # Compute the chunksize
         MB = 1024 * 1024
-        expectedsizeinMB = (expectedrows * rowsize) // MB
-        chunksize = calc_chunksize(expectedsizeinMB)
+        expected_mb = (expectedrows * rowsize) // MB
+        chunksize = calc_chunksize(expected_mb)
 
         maindim = self.maindim
         # Compute the chunknitems
@@ -362,7 +362,7 @@ class Leaf(Node):
         buffersize = params['IO_BUFFER_SIZE']
         nrowsinbuf = buffersize // rowsize
 
-        # tableExtension.pyx performs an assertion
+        # tableextension.pyx performs an assertion
         # to make sure nrowsinbuf is greater than or
         # equal to the chunksize.
         # See gh-206 and gh-238

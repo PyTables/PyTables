@@ -48,7 +48,7 @@ class BasicTestCase(unittest.TestCase):
                                             Int32Atom(),
                                             "ragged array if ints",
                                             filters=filters,
-                                            expectedsizeinMB=1)
+                                            expected_mb=1)
         vlarray.flavor = self.flavor
 
         # Fill it with 5 rows
@@ -2391,7 +2391,7 @@ class ReadRangeTestCase(unittest.TestCase):
         vlarray = self.fileh.create_vlarray(group, 'vlarray', Int32Atom(),
                                             "ragged array if ints",
                                             filters=filters,
-                                            expectedsizeinMB=1)
+                                            expected_mb=1)
 
         # Fill it with 100 rows with variable length
         for i in range(self.nrows):
@@ -2801,7 +2801,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         vlarray = self.fileh.create_vlarray(group, 'vlarray', Int32Atom(),
                                             "ragged array if ints",
                                             filters=filters,
-                                            expectedsizeinMB=1)
+                                            expected_mb=1)
 
         # Fill it with 100 rows with variable length
         for i in range(self.nrows):
@@ -3145,7 +3145,7 @@ class SetRangeTestCase(unittest.TestCase):
         vlarray = self.fileh.create_vlarray(group, 'vlarray', Int32Atom(),
                                             "ragged array if ints",
                                             filters=filters,
-                                            expectedsizeinMB=1)
+                                            expected_mb=1)
 
         # Fill it with 100 rows with variable length
         for i in range(self.nrows):
