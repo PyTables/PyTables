@@ -1,4 +1,4 @@
-# Copy this file into the clipboad and paste into 'script -c python'.
+# Copy this file into the clipboard and paste into 'script -c python'.
 
 from tables.nodes import FileNode
 
