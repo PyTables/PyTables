@@ -402,7 +402,7 @@ def compile_condition(condition, typemap, indexedcols, copycols):
         # See the comments in `numexpr.evaluate()` for the
         # reasons of inserting copy operators for unaligned,
         # *unidimensional* arrays.
-        func = NumExpr(expr, signature, copy_args=copycols)
+        func = NumExpr(expr, signature)
     except NotImplementedError, nie:
         # Try to make this Numexpr error less cryptic.
         raise _unsupported_operation_error(nie)
