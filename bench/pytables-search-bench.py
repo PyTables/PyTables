@@ -13,7 +13,7 @@ random_array.seed(19, 20)
 def open_db(filename, remove=0):
     if remove and os.path.exists(filename):
         os.remove(filename)
-    con = tables.openFile(filename, 'a')
+    con = tables.open_file(filename, 'a')
     return con
 
 def create_db(filename, nrows):
@@ -25,7 +25,7 @@ def create_db(filename, nrows):
         col4 = tables.Float64Col()
 
     con = open_db(filename, remove=1)
-    table = con.createTable(con.root, 'table', Record,
+    table = con.create_table(con.root, 'table', Record,
                             filters=filters, expectedrows=nrows)
     table.indexFilters = filters
     step = 1000*100
@@ -54,13 +54,13 @@ def create_db(filename, nrows):
 
 def index_db(table):
     t1=time()
-    table.cols.col2.createIndex()
+    table.cols.col2.create_index()
     itime = time()-t1
     if verbose:
         print "index time (int):", round(itime, 5)
         print "Krows/s:", round((nrows/1000.)/itime, 5)
     t1=time()
-    table.cols.col4.createIndex()
+    table.cols.col4.create_index()
     itime = time()-t1
     if verbose:
         print "index time (float):", round(itime, 5)

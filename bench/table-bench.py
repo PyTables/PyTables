@@ -39,7 +39,7 @@ class Big(IsDescription):
 def createFile(filename, totalrows, filters, recsize):
 
     # Open a file in "w"rite mode
-    fileh = openFile(filename, mode = "w", title="Table Benchmark",
+    fileh = open_file(filename, mode = "w", title="Table Benchmark",
                      filters=filters)
 
     # Table title
@@ -51,15 +51,15 @@ def createFile(filename, totalrows, filters, recsize):
     for j in range(3):
         # Create a table
         if recsize == "big":
-            table = fileh.createTable(group, 'tuple'+str(j), Big, title,
+            table = fileh.create_table(group, 'tuple'+str(j), Big, title,
                                       None,
                                       totalrows)
         elif recsize == "medium":
-            table = fileh.createTable(group, 'tuple'+str(j), Medium, title,
+            table = fileh.create_table(group, 'tuple'+str(j), Medium, title,
                                       None,
                                       totalrows)
         elif recsize == "small":
-            table = fileh.createTable(group, 'tuple'+str(j), Small, title,
+            table = fileh.create_table(group, 'tuple'+str(j), Small, title,
                                       None,
                                       totalrows)
         else:
@@ -120,7 +120,7 @@ def createFile(filename, totalrows, filters, recsize):
         #table.flush()
         group._v_attrs.test2 = "just a test"
         # Create a new group
-        group2 = fileh.createGroup(group, 'group'+str(j))
+        group2 = fileh.create_group(group, 'group'+str(j))
         # Iterate over this new group (group2)
         group = group2
         table.flush()
@@ -132,12 +132,12 @@ def createFile(filename, totalrows, filters, recsize):
 def readFile(filename, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
-    fileh = openFile(filename, mode = "r")
+    fileh = open_file(filename, mode = "r")
     rowsread = 0
-    for groupobj in fileh.walkGroups(fileh.root):
+    for groupobj in fileh.walk_groups(fileh.root):
         #print "Group pathname:", groupobj._v_pathname
         row = 0
-        for table in fileh.listNodes(groupobj, 'Table'):
+        for table in fileh.list_nodes(groupobj, 'Table'):
             rowsize = table.rowsize
             print "reading", table
             if verbose:
@@ -228,14 +228,14 @@ def readFile(filename, recsize, verbose):
     return (rowsread, rowsize)
 
 def readField(filename, field, rng, verbose):
-    fileh = openFile(filename, mode = "r")
+    fileh = open_file(filename, mode = "r")
     rowsread = 0
     if rng is None:
         rng = [0, -1, 1]
     if field == "all":
         field = None
-    for groupobj in fileh.walkGroups(fileh.root):
-        for table in fileh.listNodes(groupobj, 'Table'):
+    for groupobj in fileh.walk_groups(fileh.root):
+        for table in fileh.list_nodes(groupobj, 'Table'):
             rowsize = table.rowsize
             #table.nrowsinbuf = 3 # For testing purposes
             if verbose:

@@ -53,37 +53,37 @@ def createNewBenchFile(bfile, verbose):
     if verbose:
         print "Creating a new benchfile:", bfile
     # Open the benchmarking file
-    bf = openFile(bfile, "w")
+    bf = open_file(bfile, "w")
     # Create groups
     for recsize in ["small"]:
-        group = bf.createGroup("/", recsize, recsize+" Group")
+        group = bf.create_group("/", recsize, recsize+" Group")
         # Attach the row size of table as attribute
         if recsize == "small":
             group._v_attrs.rowsize = 16
         # Create a Table for writing bench
-        bf.createTable(group, "create_best", Create, "best case")
-        bf.createTable(group, "create_worst", Create, "worst case")
+        bf.create_table(group, "create_best", Create, "best case")
+        bf.create_table(group, "create_worst", Create, "worst case")
         for case in ["best", "worst"]:
             # create a group for searching bench (best case)
-            groupS = bf.createGroup(group, "search_"+case, "Search Group")
+            groupS = bf.create_group(group, "search_"+case, "Search Group")
             # Create Tables for searching
             for mode in ["indexed", "inkernel", "standard"]:
-                groupM = bf.createGroup(groupS, mode, mode+" Group")
+                groupM = bf.create_group(groupS, mode, mode+" Group")
                 # for searching bench
                 #for atom in ["string", "int", "float", "bool"]:
                 for atom in ["string", "int", "float"]:
-                    bf.createTable(groupM, atom, Search, atom+" bench")
+                    bf.create_table(groupM, atom, Search, atom+" bench")
     bf.close()
 
 def createFile(filename, nrows, filters, index, heavy, noise, verbose):
 
     # Open a file in "w"rite mode
-    fileh = openFile(filename, mode = "w", title="Searchsorted Benchmark",
+    fileh = open_file(filename, mode = "w", title="Searchsorted Benchmark",
                      filters=filters)
     rowswritten = 0
 
     # Create the test table
-    table = fileh.createTable(fileh.root, 'table', Small, "test table",
+    table = fileh.create_table(fileh.root, 'table', Small, "test table",
                               None, nrows)
 
     t1 = time.time()
@@ -116,7 +116,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     fileh.close()
     size1 = os.stat(filename)[6]
     print ", File size:", round(size1/(1024.*1024.), 3), "MB"
-    fileh = openFile(filename, mode = "a", title="Searchsorted Benchmark",
+    fileh = open_file(filename, mode = "a", title="Searchsorted Benchmark",
                      filters=filters)
     table = fileh.root.table
     rowsize = table.rowsize
@@ -125,9 +125,9 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
         cpu1 = time.clock()
         # Index all entries
         if not heavy:
-            indexrows = table.cols.var1.createIndex(filters=filters)
+            indexrows = table.cols.var1.create_index(filters=filters)
         for colname in ['var2', 'var3']:
-            table.colinstances[colname].createIndex(filters=filters)
+            table.colinstances[colname].create_index(filters=filters)
         time2 = time.time()-t1
         tcpu2 = time.clock()-cpu1
         print "Time for indexing:", round(time2, 3), \
@@ -156,12 +156,12 @@ def benchCreate(file, nrows, filters, index, bfile, heavy,
                 psyco, noise, verbose):
 
     # Open the benchfile in append mode
-    bf = openFile(bfile, "a")
+    bf = open_file(bfile, "a")
     recsize = "small"
     if worst:
-        table = bf.getNode("/"+recsize+"/create_worst")
+        table = bf.get_node("/"+recsize+"/create_worst")
     else:
-        table = bf.getNode("/"+recsize+"/create_best")
+        table = bf.get_node("/"+recsize+"/create_best")
 
     (rowsw, irows, rowsz, time1, time2, tcpu1, tcpu2, size1, size2) = \
           createFile(file, nrows, filters, index, heavy, noise, verbose)
@@ -201,7 +201,7 @@ def benchCreate(file, nrows, filters, index, bfile, heavy,
 def readFile(filename, atom, riter, indexmode, dselect, verbose):
     # Open the HDF5 file in read-only mode
 
-    fileh = openFile(filename, mode = "r")
+    fileh = open_file(filename, mode = "r")
     table = fileh.root.table
     var1 = table.cols.var1
     var2 = table.cols.var2
@@ -309,7 +309,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
 def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
 
     # Open the benchfile in append mode
-    bf = openFile(bfile, "a")
+    bf = open_file(bfile, "a")
     recsize = "small"
     if worst:
         tableparent = "/"+recsize+"/search_worst/"+indexmode+"/"
@@ -325,7 +325,7 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
         atomlist = ["int", "float"]
     for atom in atomlist:
         tablepath = tableparent + atom
-        table = bf.getNode(tablepath)
+        table = bf.get_node(tablepath)
         (rowsr, rowsel, rowssz, time1, time2, tcpu1, tcpu2) = \
                 readFile(file, atom, riter, indexmode, dselect, verbose)
         row = table.row

@@ -13,23 +13,23 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = openFile(filename, mode="w", title="PyTables Stress Test")
+    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
-        group = fileh.createGroup("/", 'group%04d'% k, "Group %d" % k)
+        group = fileh.create_group("/", 'group%04d'% k, "Group %d" % k)
 
     fileh.close()
 
     # Now, create the tables
     rowswritten = 0
     for k in range(ngroups):
-        fileh = openFile(filename, mode="a", rootUEP='group%04d'% k)
+        fileh = open_file(filename, mode="a", root_uep='group%04d'% k)
         # Get the group
         group = fileh.root
         for j in range(ntables):
             # Create a table
-            table = fileh.createTable(group, 'table%04d'% j, Test,
+            table = fileh.create_table(group, 'table%04d'% j, Test,
                                       'Table%04d'%j,
                                       complevel, complib, nrows)
             # Get the row object associated with the new table
@@ -56,13 +56,13 @@ def readFile(filename, ngroups, recsize, verbose):
 
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = openFile(filename, mode="r", rootUEP='group%04d'% ngroup)
+        fileh = open_file(filename, mode="r", root_uep='group%04d'% ngroup)
         # Get the group
         group = fileh.root
         ntable = 0
         if verbose:
             print "Group ==>", group
-        for table in fileh.listNodes(group, 'Table'):
+        for table in fileh.list_nodes(group, 'Table'):
             rowsize = table.rowsize
             buffersize=table.rowsize * table.nrowsinbuf
             if verbose > 1:

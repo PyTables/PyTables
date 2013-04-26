@@ -6,7 +6,7 @@ import tables as tb
 import tables.numexpr as ne
 from tables.numexpr.necompiler import (
     getContext, getExprNames, getType, NumExpr)
-from tables.utilsExtension import lrange
+from tables.utilsextension import lrange
 
 
 shape = (1000, 160000)
@@ -26,7 +26,7 @@ def _compute(result, function, arguments,
     arg0 = arguments[0]
     if hasattr(arg0, 'maindim'):
         maindim = arg0.maindim
-        (start, stop, step) = arg0._processRangeRead(start, stop, step)
+        (start, stop, step) = arg0._process_range_read(start, stop, step)
         nrowsinbuf = arg0.nrowsinbuf
         print "nrowsinbuf-->", nrowsinbuf
     else:
@@ -119,7 +119,7 @@ if __name__=="__main__":
     doprofile = 1
     dokprofile = 0
 
-    f = tb.openFile("/scratch2/faltet/evaluate.h5", "w")
+    f = tb.open_file("/scratch2/faltet/evaluate.h5", "w")
 
     # Create some arrays
     if iarrays:
@@ -127,19 +127,19 @@ if __name__=="__main__":
         b = np.ones(shape, dtype='float32')*2
         c = np.ones(shape, dtype='float32')*3
     else:
-        a = f.createCArray(f.root, 'a', tb.Float32Atom(dflt=1.),
+        a = f.create_carray(f.root, 'a', tb.Float32Atom(dflt=1.),
                            shape=shape, filters=filters)
         a[:] = 1.
-        b = f.createCArray(f.root, 'b', tb.Float32Atom(dflt=2.),
+        b = f.create_carray(f.root, 'b', tb.Float32Atom(dflt=2.),
                            shape=shape, filters=filters)
         b[:] = 2.
-        c = f.createCArray(f.root, 'c', tb.Float32Atom(dflt=3.),
+        c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3.),
                            shape=shape, filters=filters)
         c[:] = 3.
     if oarrays:
         out = np.empty(shape, dtype='float32')
     else:
-        out = f.createCArray(f.root, 'out', tb.Float32Atom(),
+        out = f.create_carray(f.root, 'out', tb.Float32Atom(),
                              shape=shape, filters=ofilters)
 
     t0 = time()

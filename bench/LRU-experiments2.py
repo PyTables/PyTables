@@ -9,17 +9,17 @@ filename = "/tmp/junk-array.h5"
 NOBJS = 1000
 
 def create_junk():
-    fileh = tables.openFile(filename, mode = "w")
+    fileh = tables.open_file(filename, mode = "w")
     for i in xrange(NOBJS):
-        table = fileh.createArray(fileh.root, 'array'+str(i), [1])
+        table = fileh.create_array(fileh.root, 'array'+str(i), [1])
     fileh.close()
 
 def modify_junk_LRU():
-    fileh = tables.openFile(filename, 'a')
+    fileh = tables.open_file(filename, 'a')
     group = fileh.root
     for j in range(5):
         print "iter -->", j
-        for tt in fileh.walkNodes(group):
+        for tt in fileh.walk_nodes(group):
             if isinstance(tt, tables.Array):
 #                 d = tt.read()
                 pass
@@ -27,7 +27,7 @@ def modify_junk_LRU():
     fileh.close()
 
 def modify_junk_LRU2():
-    fileh = tables.openFile(filename, 'a')
+    fileh = tables.open_file(filename, 'a')
     group = fileh.root
     for j in range(5):
         t1 = time()
@@ -40,7 +40,7 @@ def modify_junk_LRU2():
 
 if 1:
     #create_junk()
-    #modify_junk_LRU()    # uses the iterador version (walkNodes)
+    #modify_junk_LRU()    # uses the iterador version (walk_nodes)
     modify_junk_LRU2()   # uses a regular loop (getattr)
 else:
     import profile, pstats

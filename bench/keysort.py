@@ -1,4 +1,4 @@
-from tables.indexesExtension import keysort
+from tables.indexesextension import keysort
 import numpy
 from time import time
 

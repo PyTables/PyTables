@@ -20,13 +20,13 @@ class Particle(IsDescription):
 
 def create_junk():
     # Open a file in "w"rite mode
-    fileh = openFile(filename, mode = "w")
+    fileh = open_file(filename, mode = "w")
     # Create a new group
-    group = fileh.createGroup(fileh.root, "newgroup")
+    group = fileh.create_group(fileh.root, "newgroup")
 
     for i in xrange(NLEAVES):
         # Create a new table in newgroup group
-        table = fileh.createTable(group, 'table'+str(i), Particle,
+        table = fileh.create_table(group, 'table'+str(i), Particle,
                                   "A table", Filters(1))
         particle = table.row
         print "Creating table-->", table._v_name
@@ -41,11 +41,11 @@ def create_junk():
     fileh.close()
 
 def modify_junk_LRU():
-    fileh = openFile(filename, 'a')
+    fileh = open_file(filename, 'a')
     group = fileh.root.newgroup
     for j in range(5):
         print "iter -->", j
-        for tt in fileh.walkNodes(group):
+        for tt in fileh.walk_nodes(group):
             if isinstance(tt, Table):
                 pass
 #                 for row in tt:
@@ -53,7 +53,7 @@ def modify_junk_LRU():
     fileh.close()
 
 def modify_junk_LRU2():
-    fileh = openFile(filename, 'a')
+    fileh = open_file(filename, 'a')
     group = fileh.root.newgroup
     for j in range(20):
         t1 = time()
@@ -66,11 +66,11 @@ def modify_junk_LRU2():
     fileh.close()
 
 def modify_junk_LRU3():
-    fileh = openFile(filename, 'a')
+    fileh = open_file(filename, 'a')
     group = fileh.root.newgroup
     for j in range(3):
         t1 = time()
-        for tt in fileh.walkNodes(group, "Table"):
+        for tt in fileh.walk_nodes(group, "Table"):
             title = tt.attrs.TITLE
             for row in tt:
                 pass
@@ -79,7 +79,7 @@ def modify_junk_LRU3():
 
 if 1:
     #create_junk()
-    #modify_junk_LRU()    # uses the iterator version (walkNodes)
+    #modify_junk_LRU()    # uses the iterator version (walk_nodes)
     #modify_junk_LRU2()   # uses a regular loop (getattr)
     modify_junk_LRU3()   # uses a regular loop (getattr)
 else:
