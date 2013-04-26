@@ -30,7 +30,8 @@ def make_subs(ns):
     names = new2oldnames if ns.reverse else old2newnames
     s = '(?<=\W)({0})(?=\W)'.format('|'.join(names.keys()))
     if ns.ignore_previous:
-        s += '(?!\s*?=\s*?previous_api\()'
+        s += '(?!\s*?=\s*?previous_api(_property)?\()'
+        s += '(?!Renamed from \*)'
     subs = re.compile(s, flags=re.MULTILINE)
 
     def repl(m):
