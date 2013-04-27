@@ -224,7 +224,6 @@ class Expr(object):
                      for (name, type_) in zip(self.names, types_)]
 
         # Compile the expression
-        #self._compiled_expr = NumExpr(expr, signature, copy_args, **kwargs)
         self._compiled_expr = NumExpr(expr, signature, **kwargs)
 
         # Guess the shape for the outcome and the maindim of inputs
