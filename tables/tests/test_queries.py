@@ -916,9 +916,8 @@ class IndexedTableUsage13(IndexedTableUsage):
     conditions = [
         '~(c_bool == True)',
         '~((c_bool == True))',
-#        '~(c_bool == True) & (c_extra > 0)',
-#        '~(c_bool == True) & (c_extra > 0)',
-        '~(c_bool == True) & True',
+        '~(c_bool == True) & (c_extra > 0)',
+        '~(c_bool == True) & (c_extra > 0)',
     ]
     idx_expr = [('c_bool', ('eq',), (False,))]
     str_expr = 'e0'
