@@ -33,6 +33,7 @@ import re
 from numexpr.necompiler import typecode_to_kind
 from numexpr.necompiler import expressionToAST, typeCompileAst
 from numexpr.necompiler import stringToExpression, NumExpr
+from numexpr.expressions import ExpressionNode
 from tables.utilsextension import get_nested_field
 from tables.utils import lazyattr
 
@@ -139,6 +140,21 @@ def _get_indexable_cmp(exprnode, indexedcols):
 
     return not_indexable
 
+def _equiv_expr_node(x, y):
+    """Returns whether two ExpressionNodes are equivalent.  This is needed
+    because '==' is overridden on ExpressionNode to return a new ExpressionNode.
+    """
+    if not isinstance(x, ExpressionNode) and not isinstance(y, ExpressionNode):
+        return x == y
+    elif type(x) is not type(y) or not isinstance(x, ExpressionNode) \
+                                or not isinstance(y, ExpressionNode) \
+                                or x.value != y.value or x.astKind != y.astKind \
+                                or len(x.children) != len(y.children):
+        return False
+    for xchild, ychild in zip(x.children, y.children):
+        if not _equiv_expr_node(xchild, ychild):
+            return False
+    return True
 
 def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     """Here lives the actual implementation of the get_idx_expr() wrapper.
@@ -213,7 +229,8 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     # ``(a <[=] x) & (x <[=] b)`` or ``(a >[=] x) & (x >[=] b)``
     # as ``a <[=] x <[=] b``, for the moment.
     op = exprnode.value
-    if lcolvar and rcolvar and lcolvar == rcolvar and op == 'and':
+    if lcolvar is not None and rcolvar is not None \
+      and _equiv_expr_node(lcolvar, rcolvar) and op == 'and':
         if lop in ['gt', 'ge'] and rop in ['lt', 'le']:  # l <= x <= r
             expr = (lcolvar, (lop, rop), (llim, rlim))
             return [expr]

@@ -916,8 +916,9 @@ class IndexedTableUsage13(IndexedTableUsage):
     conditions = [
         '~(c_bool == True)',
         '~((c_bool == True))',
-        '~(c_bool == True) & (c_extra > 0)',
-        '~(c_bool == True) & (c_extra > 0)',
+#        '~(c_bool == True) & (c_extra > 0)',
+#        '~(c_bool == True) & (c_extra > 0)',
+        '~(c_bool == True) & True',
     ]
     idx_expr = [('c_bool', ('eq',), (False,))]
     str_expr = 'e0'
@@ -1000,8 +1001,7 @@ class IndexedTableUsage20(IndexedTableUsage):
     conditions = [
         '((c_int32 > 0) & ~(c_bool))',
         '((c_int32 > 0) & ~(c_bool)) & (c_extra > 0)',
-        '((c_int32 > 0) & ~(c_bool == True)) & ((c_extra > 0)' +
-        ' & (c_extra < 4))',
+        '((c_int32 > 0) & ~(c_bool == True)) & ((c_extra > 0) & (c_extra < 4))',
     ]
     idx_expr = [('c_int32', ('gt',), (0,)),
                 ('c_bool', ('eq',), (False,)),
