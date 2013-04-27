@@ -193,15 +193,12 @@ class Expr(object):
         # NumPy arrays to be copied? (we don't need to worry about
         # PyTables objects, as the reads always return contiguous and
         # aligned objects, or at least I think so).
-        copy_args = []
         for name, var in vars_.iteritems():
             if isinstance(var, np.ndarray):
                 # See numexpr.necompiler.evaluate for a rational
                 # of the code below
                 if not var.flags.aligned:
-                    if var.ndim == 1:
-                        copy_args.append(name)
-                    else:
+                    if var.ndim != 1:
                         # Do a copy of this variable
                         var = var.copy()
                         # Update the vars_ dictionary
@@ -227,7 +224,7 @@ class Expr(object):
                      for (name, type_) in zip(self.names, types_)]
 
         # Compile the expression
-        self._compiled_expr = NumExpr(expr, signature, copy_args, **kwargs)
+        self._compiled_expr = NumExpr(expr, signature, **kwargs)
 
         # Guess the shape for the outcome and the maindim of inputs
         self.shape, self.maindim = self._guess_shape()
