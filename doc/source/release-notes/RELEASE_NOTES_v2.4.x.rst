@@ -7,6 +7,7 @@
 
 .. py:currentmodule:: tables
 
+
 Changes from 2.3.1 to 2.4
 =========================
 
@@ -137,6 +138,10 @@ Deprecations
   :exc:`exceptions.Incompat16Warning` exception class are now deprecated.
 
 .. _pyflakes: https://launchpad.net/pyflakes
+.. _numpy: http://www.numpy.org
+.. _Blosc: https://github.com/FrancescAlted/blosc
+.. _Numexpr: http://code.google.com/p/numexpr
+.. _Cython: http://www.cython.org
 
 
   **Enjoy data!**
