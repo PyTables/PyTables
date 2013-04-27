@@ -1338,7 +1338,7 @@ class Table(tableextension.Table, Leaf):
 
         # Extract more information from referenced columns.
         typemap = dict(zip(varnames, vartypes))  # start with normal variables
-        indexedcols, copycols = [], []
+        indexedcols = []
         for colname in colnames:
             col = condvars[colname]
 
@@ -1351,16 +1351,9 @@ class Table(tableextension.Table, Leaf):
                and self.colindexed[col.pathname] and not col.index.dirty):
                 indexedcols.append(colname)
 
-            # Get the list of unaligned, unidimensional columns.  See
-            # the comments in `numexpr.evaluate()` for the
-            # reasons of inserting copy operators for these columns.
-            # Since the inclusion of Numexpr 1.3.1, the copy of unaligned
-            # columns on Intel architectures is not needed anymore.
-            if not is_cpu_amd_intel and col.pathname in self._colunaligned:
-                copycols.append(colname)
         indexedcols = frozenset(indexedcols)
         # Now let ``compile_condition()`` do the Numexpr-related job.
-        compiled = compile_condition(condition, typemap, indexedcols, copycols)
+        compiled = compile_condition(condition, typemap, indexedcols)
 
         # Check that there actually are columns in the condition.
         if not set(compiled.parameters).intersection(set(colnames)):

@@ -140,6 +140,7 @@ def _get_indexable_cmp(exprnode, indexedcols):
 
     return not_indexable
 
+
 def _equiv_expr_node(x, y):
     """Returns whether two ExpressionNodes are equivalent.  This is needed
     because '==' is overridden on ExpressionNode to return a new ExpressionNode.
@@ -155,6 +156,7 @@ def _equiv_expr_node(x, y):
         if not _equiv_expr_node(xchild, ychild):
             return False
     return True
+
 
 def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     """Here lives the actual implementation of the get_idx_expr() wrapper.
@@ -374,7 +376,7 @@ def _get_variable_names(expression):
     return list(set(names))  # remove repeated names
 
 
-def compile_condition(condition, typemap, indexedcols, copycols):
+def compile_condition(condition, typemap, indexedcols):
     """Compile a condition and extract usable index conditions.
 
     Looks for variable-constant comparisons in the `condition` string
@@ -388,11 +390,6 @@ def compile_condition(condition, typemap, indexedcols, copycols):
     instance is a Numexpr function object, and the ``parameters`` list
     indicates the order of its parameters.
 
-    For columns whose variable names appear in `copycols`, an
-    additional copy operation is inserted whenever the column is
-    referenced.  This seems to accelerate access to unaligned,
-    *unidimensional* arrays up to 2x (multidimensional arrays still
-    need to be copied by `call_on_recarr()`.).
     """
 
     # Get the expression tree and extract index conditions.
