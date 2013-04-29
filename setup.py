@@ -57,7 +57,7 @@ if sys.version_info >= (3,):
 # The minimum required versions
 # (keep these in sync with tables.req_versions and user's guide and README)
 min_numpy_version = '1.4.1'
-min_numexpr_version = '1.4.1'
+min_numexpr_version = '2.0.0'
 min_cython_version = '0.13'
 
 

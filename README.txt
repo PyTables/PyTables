@@ -85,7 +85,7 @@ versions of them. LZO and bzip2 compression libraries are, however,
 optional.
 
 We've tested this PyTables version with HDF5 1.8.4/1.8.9, NumPy 1.4.1
-and Numexpr 1.4.1, and you *need* to use these versions, or higher, to
+and Numexpr 2.0, and you *need* to use these versions, or higher, to
 make use of PyTables.
 
 Installation
@@ -100,7 +100,7 @@ http://www.pytables.org/moin/HowToUse).
 
 1. First, make sure that you have HDF5, NumPy and Numexpr installed
    (you will need at least HDF5 1.8.4, NumPy 1.4.1 and Numexpr
-   1.4.1). If don't, get them from http://www.hdfgroup.org/HDF5/,
+   2.0). If don't, get them from http://www.hdfgroup.org/HDF5/,
    http://www.numpy.org and http://code.google.com/p/numexpr.
    Compile/install them.
 
