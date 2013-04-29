@@ -16,7 +16,7 @@
 
 # Minimum recommended versions for mandatory packages
 min_numpy_version = '1.4.1'
-min_numexpr_version = '1.4.1'
+min_numexpr_version = '2.0.0'
 min_cython_version = '0.13'
 
 # The THG team has decided to fix an API inconsistency in the definition
