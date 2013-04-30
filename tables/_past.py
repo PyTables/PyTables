@@ -335,6 +335,10 @@ old2newnames = dict([
     ('_checkAttributes', '_check_attributes'),
     ('_checkNotClosed', '_check_not_closed'),
     ('__allowedInitKwArgs', '__allowed_init_kwargs'),   # attr (private)
+    ('_byteShape', '_byte_shape'),                      # attr (private)
+    ('_sizeToShape', '_size_to_shape'),                 # attr (private)
+    ('_vType', '_vtype'),                               # attr (private)
+    ('_vShape', '_vshape'),                             # attr (private)
     # from path.py
     ('parentPath', 'parentpath'),                       # kwarg
     ('_pythonIdRE', '_python_id_re'),                   # attr (private)
