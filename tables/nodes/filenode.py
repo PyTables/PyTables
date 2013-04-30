@@ -454,7 +454,7 @@ class AppendableMixin:
 
     This class requires support for:
 
-    * 'offset', 'node', '_vType' and '_vShape' attributes
+    * 'offset', 'node', '_vtype' and '_vshape' attributes
     * _check_not_closed() method
 
     """
@@ -473,7 +473,7 @@ class AppendableMixin:
 
         # XXX This may be redone to avoid a potentially large in-memory array.
         self.node.append(
-            numpy.zeros(dtype=self._vType, shape=self._vShape(size)))
+            numpy.zeros(dtype=self._vtype, shape=self._vshape(size)))
 
     _appendZeros = previous_api(_append_zeros)
 
@@ -520,8 +520,8 @@ class AppendableMixin:
         self.offset = self.node.nrows
 
         # Append data.
-        self.node.append(numpy.ndarray(buffer=string, dtype=self._vType,
-                                       shape=self._vShape(len(string))))
+        self.node.append(numpy.ndarray(buffer=string, dtype=self._vtype,
+                                       shape=self._vshape(len(string))))
 
         # Move the pointer to the end of the written data.
         self.offset = self.node.nrows
@@ -569,14 +569,14 @@ class FileNode(object):
     """
 
     # The atom representing a byte in the array, for each version.
-    _byteShape = [
+    _byte_shape = [
         None,
         (0, 1),
         (0,),
     ]
 
     # A lambda to turn a size into a shape, for each version.
-    _sizeToShape = [
+    _size_to_shape = [
         None,
         lambda l: (l, 1),
         lambda l: (l, ),
@@ -836,7 +836,7 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 
             # Create a new array in the specified PyTables file.
             self._version = NodeTypeVersions[-1]
-            shape = self._byteShape[self._version]
+            shape = self._byte_shape[self._version]
             node = h5file.create_earray(
                 atom=tables.UInt8Atom(), shape=shape, **kwargs)
 
@@ -857,8 +857,8 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
         # this cannot be used as an index.
         # Will force a conversion to an integer.
         version = int(self._version)
-        self._vType = tables.UInt8Atom().dtype.base.type
-        self._vShape = self._sizeToShape[version]
+        self._vtype = tables.UInt8Atom().dtype.base.type
+        self._vshape = self._size_to_shape[version]
 
     def __del__(self):
         super(RAFileNode, self).__del__()
