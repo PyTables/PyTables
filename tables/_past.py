@@ -328,9 +328,9 @@ old2newnames = dict([
     ('lineSeparator', 'line_separator'),                # property
     ('_notReadableError', '_not_readable_error'),
     ('_appendZeros', '_append_zeros'),
-    ('getAttrs', 'get_attrs'),
-    ('setAttrs', 'set_attrs'),
-    ('delAttrs', 'del_attrs'),
+    ('getAttrs', '_get_attrs'),
+    ('setAttrs', '_set_attrs'),
+    ('delAttrs', '_del_attrs'),
     ('_setAttributes', '_set_attributes'),
     ('_checkAttributes', '_check_attributes'),
     ('_checkNotClosed', '_check_not_closed'),

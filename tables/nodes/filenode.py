@@ -20,14 +20,21 @@ with new_node()) node for read-only or read-write access.  Read acces
 is always available.  Write access (enabled on new files and files
 opened with mode 'a+') only allows appending data to a file node.
 
+Currently only binary I/O is supported.
+
 See :ref:`filenode_usersguide` for instructions on use.
+
+.. versionchanged:: 3.0
+
+    In version 3.0 the module as been copletely rwritten do be fully
+    comliant with the :mod:`io` module interfeces.
 
 """
 
-import os
+import io
 import warnings
 
-import numpy
+import numpy as np
 
 import tables
 from tables._past import previous_api
@@ -40,140 +47,262 @@ NodeTypeVersions = [1, 2]
 """Supported values for NODE_TYPE_VERSION node system attribute."""
 
 
-class ReadableMixin:
-    """Mix-in class which provides reading methods for readable file nodes.
+class RawPyTablesIO(io.RawIOBase):
+    """Base class for raw binary I/O on HDF5 files using PyTables."""
 
-    It also defines the 'line_separator' property, which contains the string
-    used as a line separator, and defaults to os.linesep.
-    It can be set to any reasonably-sized string you want.
+    # A lambda to turn a size into a shape, for each version.
+    _size_to_shape = [
+        None,
+        lambda l: (l, 1),
+        lambda l: (l, ),
+    ]
 
-    This class requires support for:
+    def __init__(self, node, mode=None):
+        super(RawPyTablesIO, self).__init__()
 
-    * 'offset' and 'node' attributes
-    * _check_not_closed() and seek() methods
+        self._check_node(node)
+        self._check_attributes(node)
 
-    """
-
-    # The number of bytes readline() reads at a time.
-    _line_chunksize = 128
-
-    # The line separator string.
-    _line_separator = os.linesep.encode('ascii')
-
-    # The line separator string property methods.
-    def get_line_separator(self):
-        """Returns the line separator string."""
-
-        return self._line_separator
-
-    getLineSeparator = previous_api(get_line_separator)
-
-    def set_line_separator(self, value):
-        """Sets the line separator string.
-
-        Raises ValueError if the string is empty or too long.
-
-        """
-
-        if not isinstance(value, bytes):
-            raise TypeError('the line separator must be a string of bytes')
-
-        if value == b'':
-            raise ValueError("line separator string is empty")
-        elif len(value) > self._line_chunksize:
-            raise ValueError("sorry, line separator string is too long")
+        if mode is None:
+            mode = node._v_file.mode
         else:
-            self._line_separator = value
+            self._check_mode(mode)
+            self._cross_check_mode(mode, node._v_file.mode)
 
-    setLineSeparator = previous_api(set_line_separator)
+        self._node = node
+        self._mode = mode
+        self._pos = 0
+        self._version = int(node.attrs.NODE_TYPE_VERSION)
+        self._vshape = self._size_to_shape[self._version]
+        # @TODO: check
+        #_vtype = tables.UInt8Atom().dtype.base.type
+        self._vtype = node.atom.dtype.base.type
 
-    def del_line_separator(self):
-        "Deletes the 'line_separator' property."
+        # @TODO: remove
+        assert(self._vtype == np.uint8)
 
-        del self._line_separator
+    # read only attribute
+    @property
+    def mode(self):
+        return self._mode
 
-    delLineSeparator = previous_api(del_line_separator)
+    #def tell(self) -> int:
+    def tell(self):
+        """Return current stream position."""
 
-    # The line separator string property.
-    line_separator = property(
-        get_line_separator, set_line_separator, del_line_separator,
-        """A property containing the line separator string.""")
+        self._checkClosed()
+        return self._pos
 
-    lineSeparator = previous_api(line_separator)
+    #def seek(self, pos: int, whence: int = 0) -> int:
+    def seek(self, pos, whence=0):
+        """Change stream position.
 
-    def __iter__(self):
-        return self
+        Change the stream position to byte offset offset. offset is
+        interpreted relative to the position indicated by whence.  Values
+        for whence are:
 
-    def next(self):
-        """Gets the next line of text.
+        * 0 -- start of stream (the default); offset should be zero or positive
+        * 1 -- current stream position; offset may be negative
+        * 2 -- end of stream; offset is usually negative
 
-        Raises StopIteration when finished.
-        See file.next.__doc__ for more information.
+        Return the new absolute position.
 
         """
 
-        # The use of this method is compatible with the use of readline().
-        line = self.readline()
-        if len(line) == 0:
-            raise StopIteration
-        return line
-
-    def read(self, size=None):
-        """Reads at most 'size' bytes.
-
-        See file.read.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-
-        # 2004-08-03: Reading from beyond the last row raises an IndexError.
-        #   Moreover, the pointer should not be incremented.
-        if self.offset >= self.node.nrows:
-            return ''
-
-        start = self.offset
-        if size is None or size < 0:
-            # Read the entire file.
-            # 2004-08-03: A None value would only read one row.
-            stop = self.node.nrows
+        self._checkClosed()
+        try:
+            pos = pos.__index__()
+        #except AttributeError as err:
+            #raise TypeError("an integer is required") from err
+        except AttributeError:
+            raise TypeError("an integer is required")
+        if whence == 0:
+            if pos < 0:
+                raise ValueError("negative seek position %r" % (pos,))
+            self._pos = pos
+        elif whence == 1:
+            self._pos = max(0, self._pos + pos)
+        elif whence == 2:
+            self._pos = max(0, self._node.nrows + pos)
         else:
-            # Read the specified number of rows, if available.
-            # 2004-08-04: Reading beyond the last row is allowed.
-            stop = self.offset + size
+            raise ValueError("invalid whence value")
+        return self._pos
 
-        data = self.node.read(start, stop).tostring()
-        self.offset += len(data)
-        return data
+    #def seekable(self) -> bool:
+    def seekable(self):
+        """Return whether object supports random access.
 
-    def readline(self, size=-1):
-        """Reads the next text line.
-
-        See file.readline.__doc__ for more information.
+        If False, seek(), tell() and truncate() will raise IOError.
+        This method may need to do a test seek().
 
         """
 
-        self._check_not_closed()
+        return True
+
+    #def fileno(self) -> int:
+    def fileno(self):
+        """Returns underlying file descriptor if one exists.
+
+        An IOError is raised if the IO object does not use a file descriptor.
+
+        """
+
+        self._checkClosed()
+        self._node._v_file.fileno()
+
+    #def close(self) -> None:
+    def close(self):
+        """Flush and close the IO object.
+
+        This method has no effect if the file is already closed.
+
+        """
+
+        if not self.closed:
+            if getattr(self._node, '_v_file', None) is None:
+                warnings.warn("host PyTables file is already closed!")
+
+        try:
+            super(RawPyTablesIO, self).close()
+        finally:
+            # Release node object to allow closing the file.
+            self._node = None
+
+    def flush(self):
+        """Flushes the file node.
+
+        See file.flush.__doc__ for more information.
+
+        """
+
+        self._checkClosed()
+        self._node.flush()
+
+    #def truncate(self, pos: int = None) -> int:
+    def truncate(self, pos=None):
+        """Truncate file to size bytes.
+
+        Size defaults to the current IO position as reported by tell().
+        Return the new size.
+
+        Currently, this method only makes sense to grow the file node,
+        since data can not be rewritten nor deleted.
+
+        """
+
+        self._checkClosed()
+        self._checkWritable()
+
+        if pos is None:
+            pos = self._pos
+        elif pos < 0:
+            raise ValueError("negative truncate position %r" % (pos,))
+
+        if pos < self._node.nrows:
+            raise IOError("truncating is only allowed for growing a file")
+        self._append_zeros(pos - self._node.nrows)
+
+        return self.seek(pos)
+
+    #def readable(self) -> bool:
+    def readable(self):
+        """Return whether object was opened for reading.
+
+        If False, read() will raise IOError.
+
+        """
+
+        mode = self._mode
+        return 'r' in mode or '+' in mode
+
+    #def writable(self) -> bool:
+    def writable(self):
+        """Return whether object was opened for writing.
+
+        If False, write() and truncate() will raise IOError.
+
+        """
+
+        mode = self._mode
+        return 'w' in mode or 'a' in mode or '+' in mode
+
+    #def readinto(self, b: bytearray) -> int:
+    def readinto(self, b):
+        """Read up to len(b) bytes into b.
+
+        Returns number of bytes read (0 for EOF), or None if the object
+        is set not to block as has no data to read.
+
+        """
+
+        self._checkClosed()
+        self._checkReadable()
+
+        if self._pos >= self._node.nrows:
+            return 0
+
+        n = len(b)
+        start = self._pos
+        stop = self._pos + n
+
+        # XXX optimized path
+        #if stop <= self._node.nrows and isinstance(b, np.ndarray):
+        #    self._node.read(start, stop, out=b)
+        #    self._pos += n
+        #    return n
+
+        if stop > self._node.nrows:
+            stop = self._node.nrows
+            n = stop - start
+
+        # XXX This ought to work with anything that supports the buffer API
+        b[:n] = self._node.read(start, stop).tostring()
+
+        self._pos += n
+
+        return n
+
+    #def readline(self, limit: int = -1) -> bytes:
+    def readline(self, limit=-1):
+        """Read and return a line from the stream.
+
+        If limit is specified, at most limit bytes will be read.
+
+        The line terminator is always b'\n' for binary files; for text
+        files, the newlines argument to open can be used to select the line
+        terminator(s) recognized.
+
+        """
+
+        self._checkClosed()
+        self._checkReadable()
+
+        # @TODO: check
+        #chunksize = self._line_chunksize
+        chunksize = self._node.chunkshape[0]
+
+        # @TODO: check
+        lsep = b'\n'
+        lseplen = len(lsep)
 
         # Set the remaining bytes to read to the specified size.
-        remsize = size
+        remsize = limit
 
-        lseplen = len(self._line_separator)
         partial = []
         finished = False
 
         while not finished:
             # Read a string limited by the remaining number of bytes.
-            if size <= 0:
-                ibuff = self.read(self._line_chunksize)
+            if limit <= 0:
+                ibuff = self.read(chunksize)
             else:
-                ibuff = self.read(min(remsize, self._line_chunksize))
+                ibuff = self.read(min(remsize, chunksize))
             ibufflen = len(ibuff)
             remsize -= ibufflen
 
             if ibufflen >= lseplen:
                 # Separator fits, look for EOL string.
-                eolindex = ibuff.find(self._line_separator)
+                eolindex = ibuff.find(lsep)
             elif ibufflen == 0:
                 # EOF was immediately reached.
                 finished = True
@@ -196,415 +325,125 @@ class ReadableMixin:
                 else:
                     obuff = ibuff
                 finished = True
-            elif lseplen > 1 and (size <= 0 or remsize > 0):
+            elif lseplen > 1 and (limit <= 0 or remsize > 0):
                 # Seek back a little since the end of the read string
                 # may have fallen in the middle of the line separator.
                 obuff = ibuff[:-lseplen + 1]
                 self.seek(-lseplen + 1, 1)
                 remsize += lseplen - 1
-            else:  # eolindex<0 and (lseplen<=1 or (size>0 and remsize<=0))
+            else:  # eolindex<0 and (lseplen<=1 or (limit>0 and remsize<=0))
                 # Did not find an EOL, add the whole input buffer.
                 obuff = ibuff
 
             # Append (maybe cut) buffer.
             partial.append(obuff)
 
-            # If a size has been specified and the remaining count
+            # If a limit has been specified and the remaining count
             # reaches zero, the reading is finished.
-            if size > 0 and remsize <= 0:
+            if limit > 0 and remsize <= 0:
                 finished = True
 
         return b''.join(partial)
 
-    def readlines(self, sizehint=-1):
-        """Reads the text lines into a list.
+    #def write(self, b: bytes) -> int:
+    def write(self, b):
+        """Write the given buffer to the IO stream.
 
-        See file.readlines.__doc__ for more information.
-
-        """
-
-        # Set the remaining bytes to read to the size hint.
-        remsize = sizehint
-
-        lines = []
-        finished = False
-
-        while not finished:
-            # Read a line limited by the remaining number of bytes.
-            if sizehint <= 0:
-                line = self.readline()
-            else:
-                line = self.readline(remsize)
-            remsize -= len(line)
-
-            # An empty line finishes the reading.
-            if len(line) > 0:
-                lines.append(line)
-            else:
-                finished = True
-                continue
-
-            # If a size hint has been specified and the remaining count
-            # reaches zero, the reading is finished.
-            if sizehint > 0 and remsize <= 0:
-                finished = True
-
-        return lines
-
-    def xreadlines(self):
-        """For backward compatibility.
-
-        See file.xreadlines.__doc__ for more information.
+        Returns the number of bytes written, which may be less than len(b).
 
         """
 
-        return self
+        self._checkClosed()
+        self._checkWritable()
 
+        if isinstance(b, unicode):
+            raise TypeError("can't write str to binary stream")
 
-class NotReadableMixin:
-    """Mix-in class which provides reading methods for non-readable file nodes.
+        n = len(b)
+        if n == 0:
+            return 0
 
-    This class requires support for:
-
-    * _check_not_closed() method
-
-    """
-
-    def _not_readable_error(self):
-        """_not_readable_error() -> None
-
-        Raises a common IOError exception for non-readable file nodes.
-
-        """
-
-        raise IOError("the file is not readable")
-
-    _notReadableError = previous_api(_not_readable_error)
-
-    # The definition of those methods may seem odd
-    # but it is the way Python (2.3) files work.
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        """Gets the next line of text.
-
-        :returns:
-            a string of bytes
-
-        Raises IOError.
-        See file.next.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-        self._not_readable_error()
-
-    def read(self, size=None):
-        """Reads at most 'size' bytes.
-
-        :returns:
-            a string of bytes
-
-        Raises IOError.
-        See file.read.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-        self._not_readable_error()
-
-    def readline(self, size=-1):
-        """Reads the next text line.
-
-        :returns:
-            a string of bytes
-
-        Raises IOError.
-        See file.readline.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-        self._not_readable_error()
-
-    def readlines(self, sizehint=-1):
-        """Reads the text lines.
-
-        :returns:
-            a list of strings of bytes
-
-        Raises IOError.
-        See file.readlines.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-        self._not_readable_error()
-
-    def xreadlines(self):
-        """xreadlines() -> self.  For backward compatibility.
-
-        See file.xreadlines.__doc__ for more information.
-
-        """
-
-        return self
-
-
-class NotWritableMixin:
-    """Mix-in class which provides writing methods for non-writable file nodes.
-
-    This class requires support for:
-
-        * _check_not_closed() method
-
-    """
-
-    # The definition of those methods may seem odd
-    # but it is the way Python (2.3) files work.
-
-    def _notWritableError(self):
-        """_notWritableError() -> None
-
-        Raises a common IOError exception for non-writable file nodes.
-
-        """
-
-        raise IOError("the file is not writable")
-
-    def truncate(self, size=None):
-        """Truncates the file node to at most 'size' bytes.
-
-        This raises an IOError when called on read-only nodes.
-
-        See file.truncate.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-        self._notWritableError()
-
-    def write(self, string):
-        """Writes the string to the file.
-
-        This raises an IOError when called on read-only nodes.
-
-        See file.write.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-        self._notWritableError()
-
-    def writelines(self, sequence):
-        """Writes the strings to the file.
-
-        This raises an IOError when called on read-only nodes.
-
-        See file.writelines.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-        self._notWritableError()
-
-
-class AppendableMixin:
-    """Mix-in class which provides writing methods for appendable file nodes.
-
-    This class requires support for:
-
-    * 'offset', 'node', '_vtype' and '_vshape' attributes
-    * _check_not_closed() method
-
-    """
-
-    def _append_zeros(self, size):
-        """_append_zeros(size) -> None.  Appends a string of zeros.
-
-        Appends a string of 'size' zeros to the array,
-        without moving the file pointer.
-
-        """
-
-        # Appending an empty array would raise an error.
-        if size == 0:
-            return
-
-        # XXX This may be redone to avoid a potentially large in-memory array.
-        self.node.append(
-            numpy.zeros(dtype=self._vtype, shape=self._vshape(size)))
-
-    _appendZeros = previous_api(_append_zeros)
-
-    def truncate(self, size=None):
-        """Truncates the file node to at most 'size' bytes.
-
-        Currently, this method only makes sense to grow the file node,
-        since data can not be rewritten nor deleted.
-        See file.truncate.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-
-        if size is None:
-            size = self.offset
-        if size < self.node.nrows:
-            raise IOError("truncating is only allowed for growing a file")
-        self._append_zeros(size - self.node.nrows)
-
-    def write(self, string):
-        """Writes the string to the file.
-
-        Writing an empty string does nothing, but requires the file to be open.
-        See file.write.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-
-        # This mimics the behaviour of normal Python (2.3) files,
-        # where writing an empty string does absolutely nothing
-        # (not even moving the pointer of append-only files).
-        if len(string) == 0:
-            return
+        pos = self._pos
 
         # Is the pointer beyond the real end of data?
-        end2off = self.offset - self.node.nrows
+        end2off = pos - self._node.nrows
         if end2off > 0:
             # Zero-fill the gap between the end of data and the pointer.
             self._append_zeros(end2off)
 
-        # Move the pointer to the end of the (newly written) data.
-        self.offset = self.node.nrows
-
         # Append data.
-        self.node.append(numpy.ndarray(buffer=string, dtype=self._vtype,
-                                       shape=self._vshape(len(string))))
+        self._node.append(
+            np.ndarray(buffer=b, dtype=self._vtype, shape=self._vshape(n)))
 
-        # Move the pointer to the end of the written data.
-        self.offset = self.node.nrows
+        self._pos += n
 
-    def writelines(self, sequence):
-        """Writes the sequence of strings to the file.
+        return n
 
-        See file.writelines.__doc__ for more information.
+    def _checkClosed(self):
+        """Checks if file node is open.
 
-        """
-
-        for line in sequence:
-            self.write(line)
-
-
-class FileNode(object):
-    """This is the ancestor of ROFileNode and RAFileNode (see below).
-
-    Instances of these classes are returned when new_node() or
-    open_node() are called. It represents a new file node associated
-    with a PyTables node, providing a standard Python file interface
-    to it.
-
-    This abstract class provides only an implementation of the reading methods
-    needed to implement a file-like object over a PyTables node. The attribute
-    set of the node becomes available via the attrs property. You can add
-    attributes there, but try to avoid attribute names in all caps or starting
-    with '_', since they may clash with internal attributes.
-
-    The node used as storage is also made available via the read-only attribute
-    node. Please do not tamper with this object if it's avoidable, since you
-    may break the operation of the file node object.
-
-    The line_separator property contains the string used as a line separator,
-    and defaults to os.linesep. It can be set to any reasonably-sized string
-    you want.
-
-    The constructor sets the closed, softspace and _line_separator attributes
-    to their initial values, as well as the node attribute to None.
-    Sub-classes should set the node, mode and offset attributes.
-
-    Version 1 implements the file storage as a UInt8 uni-dimensional EArray.
-    Version 2 uses an UInt8 N vector EArray.
-
-    """
-
-    # The atom representing a byte in the array, for each version.
-    _byte_shape = [
-        None,
-        (0, 1),
-        (0,),
-    ]
-
-    # A lambda to turn a size into a shape, for each version.
-    _size_to_shape = [
-        None,
-        lambda l: (l, 1),
-        lambda l: (l, ),
-    ]
-
-    # The attribute set property methods.
-    def get_attrs(self):
-        """Returns the attribute set of the file node."""
-
-        return self.node.attrs
-
-    getAttrs = previous_api(get_attrs)
-
-    def set_attrs(self, value):
-        """set_attrs(string) -> None.  Raises ValueError."""
-
-        raise ValueError("changing the whole attribute set is not allowed")
-
-    setAttrs = previous_api(set_attrs)
-
-    def del_attrs(self):
-        """del_attrs() -> None.  Raises ValueError."""
-
-        raise ValueError("deleting the whole attribute set is not allowed")
-
-    delAttrs = previous_api(del_attrs)
-
-    # The attribute set property.
-    attrs = property(
-        get_attrs, set_attrs, del_attrs,
-        "A property pointing to the attribute set of the file node.")
-
-    def __init__(self):
-        super(FileNode, self).__init__()
-
-        # The constructor of the subclass must set the value of
-        # the instance attributes 'node', 'mode', 'offset' and '_version'.
-        # It also has to set or check the node attributes.
-        self.closed = False
-        self.sofstpace = 0
-
-        self.node = None
-        self.mode = None
-        self.offset = None
-        self._version = None
-
-    def __del__(self):
-        if self.node is not None:
-            self.close()
-
-    def _set_attributes(self, node):
-        """_set_attributes(node) -> None.  Adds file node-specific attributes.
-
-        Sets the system attributes 'NODE_TYPE' and 'NODE_TYPE_VERSION'
-        in the specified PyTables node (leaf).
+        Checks whether the file node is open or has been closed.
+        In the second case, a ValueError is raised.
+        If the host PyTables has been closed, ValueError is also raised.
 
         """
 
-        attrs = node.attrs
-        # System attributes are now writable.  ivb(2004-12-30)
-        # attrs._g_setattr('NODE_TYPE', NodeType)
-        # attrs._g_setattr('NODE_TYPE_VERSION', NodeTypeVersions[-1])
-        attrs.NODE_TYPE = NodeType
-        attrs.NODE_TYPE_VERSION = NodeTypeVersions[-1]
+        super(RawPyTablesIO, self)._checkClosed()
+        if getattr(self._node, '_v_file', None) is None:
+            raise ValueError("host PyTables file is already closed!")
 
-    _setAttributes = previous_api(_set_attributes)
+    def _check_node(self, node):
+        if not isinstance(node, tables.EArray):
+            raise TypeError('the "node" parameter should be a tables.EArray')
+        if not isinstance(node.atom, tables.UInt8Atom):
+            raise TypeError('only nodes with atom "UInt8Atom" are allowed')
+
+    def _check_mode(self, mode):
+        if not isinstance(mode, str):
+            raise TypeError("invalid mode: %r" % mode)
+
+        modes = set(mode)
+        if modes - set("arwb+tU") or len(mode) > len(modes):
+            raise ValueError("invalid mode: %r" % mode)
+
+        reading = "r" in modes
+        writing = "w" in modes
+        appending = "a" in modes
+        #updating = "+" in modes
+        text = "t" in modes
+        binary = "b" in modes
+
+        if "U" in modes:
+            if writing or appending:
+                raise ValueError("can't use U and writing mode at once")
+            reading = True
+
+        if text and binary:
+            raise ValueError("can't have text and binary mode at once")
+
+        if reading + writing + appending > 1:
+            raise ValueError("can't have read/write/append mode at once")
+
+        if not (reading or writing or appending):
+            raise ValueError("must have exactly one of read/write/append mode")
+
+    def _cross_check_mode(self, mode, h5filemode):
+
+        readable = bool('r' in mode or '+' in mode)
+        writable = bool('w' in mode or 'a' in mode or '+' in mode)
+
+        h5readable = bool('r' in h5filemode or '+' in h5filemode)
+        h5writable = bool('w' in h5filemode or 'a' in h5filemode or
+                          '+' in h5filemode)
+
+        # @TPDP: check
+        #~ if readable and not h5readable:
+            #~ raise ValueError("RawPyTablesIO can't be open in read mode if "
+                             #~ "the underlying hdf5 file is not readable")
+
+        if writable and not h5writable:
+            raise ValueError("RawPyTablesIO can't be open in write mode if "
+                             "the underlying hdf5 file is not writable")
 
     def _check_attributes(self, node):
         """Checks file node-specific attributes.
@@ -628,93 +467,122 @@ class FileNode(object):
 
     _checkAttributes = previous_api(_check_attributes)
 
-    def _check_not_closed(self):
-        """Checks if file node is open.
+    def _append_zeros(self, size):
+        """_append_zeros(size) -> None.  Appends a string of zeros.
 
-        Checks whether the file node is open or has been closed.
-        In the second case, a ValueError is raised.
-        If the host PyTables has been closed, ValueError is also raised.
-
-        """
-
-        if self.closed:
-            raise ValueError("I/O operation on closed file")
-        if getattr(self.node, '_v_file', None) is None:
-            raise ValueError("host PyTables file is already closed!")
-
-    _checkNotClosed = previous_api(_check_not_closed)
-
-    def close(self):
-        """Flushes the file and closes it.
-
-        After calling this method the node attribute becomes None and
-        the attrs property is no longer available.
+        Appends a string of 'size' zeros to the array,
+        without moving the file pointer.
 
         """
 
-        # Only flush the first time the file is closed,
-        # taking care of not doing it if the host PyTables file
-        # has already been closed.
-        if not self.closed:
-            if getattr(self.node, '_v_file', None) is None:
-                warnings.warn("host PyTables file is already closed!")
-            else:
-                self.flush()
+        # Appending an empty array would raise an error.
+        if size == 0:
+            return
 
-        # Set the flag every time the method is called.
-        self.closed = True
-        # Release node object to allow closing the file.
-        self.node = None
+        # XXX This may be redone to avoid a potentially large in-memory array.
+        self._node.append(
+            np.zeros(dtype=self._vtype, shape=self._vshape(size)))
 
-    def flush(self):
-        """Flushes the file node.
 
-        See file.flush.__doc__ for more information.
+class FileNode(RawPyTablesIO):
+    """This is the ancestor of ROFileNode and RAFileNode (see below).
+
+    Instances of these classes are returned when new_node() or
+    open_node() are called. It represents a new file node associated
+    with a PyTables node, providing a standard Python file interface
+    to it.
+
+    The implementation of the reading/writing methods needed to implement a
+    file-like object over a PyTables node is provided by the RawPyTablesIO
+    base class.
+
+    The attribute set of the node becomes available via the attrs property.
+    You can add attributes there, but try to avoid attribute names in all
+    caps or starting with '_', since they may clash with internal attributes.
+
+    The node used as storage is also made available via the read-only
+    attribute node.
+    Please do not tamper with this object if it's avoidable, since you
+    may break the operation of the file node object.
+
+    Version 1 implements the file storage as a UInt8 uni-dimensional EArray.
+    Version 2 uses an UInt8 N vector EArray.
+
+    .. versionchanged:: 3.0
+
+        The line_separator property is no more available.
+        The only line separator used for binary I/O is '\n'.
+
+    """
+
+    # The attribute set property methods.
+    def _get_attrs(self):
+        """Returns the attribute set of the file node."""
+
+        #sefl._checkClosed()
+        return self._node.attrs
+
+    getAttrs = previous_api(_get_attrs)
+
+    def _set_attrs(self, value):
+        """set_attrs(string) -> None.  Raises ValueError."""
+
+        raise ValueError("changing the whole attribute set is not allowed")
+
+    setAttrs = previous_api(_set_attrs)
+
+    def _del_attrs(self):
+        """del_attrs() -> None.  Raises ValueError."""
+
+        raise ValueError("deleting the whole attribute set is not allowed")
+
+    delAttrs = previous_api(_del_attrs)
+
+    # The attribute set property.
+    attrs = property(
+        _get_attrs, _set_attrs, _del_attrs,
+        "A property pointing to the attribute set of the file node.")
+
+    @property
+    def node(self):
+        return self._node
+
+    # @TODO: check
+    #def __del__(self):
+    #    if self.node is not None:
+    #        self.close()
+
+    def _set_attributes(self, node):
+        """_set_attributes(node) -> None.  Adds file node-specific attributes.
+
+        Sets the system attributes 'NODE_TYPE' and 'NODE_TYPE_VERSION'
+        in the specified PyTables node (leaf).
 
         """
 
-        raise NotImplementedError
+        attrs = node.attrs
+        # System attributes are now writable.  ivb(2004-12-30)
+        # attrs._g_setattr('NODE_TYPE', NodeType)
+        # attrs._g_setattr('NODE_TYPE_VERSION', NodeTypeVersions[-1])
+        attrs.NODE_TYPE = NodeType
+        attrs.NODE_TYPE_VERSION = NodeTypeVersions[-1]
 
-    def seek(self, offset, whence=0):
-        """Moves to a new file position.
+    _setAttributes = previous_api(_set_attributes)
 
-        See file.seek.__doc__ for more information.
+    # --- compatibility ------------------------------------------------------
+    @property
+    def offset(self):
+        warnings.warn('deprecated API:please use "tell" instead', stacklevel=1)
+        return self._pas
 
-        """
-
-        self._check_not_closed()
-
-        if whence == 0:
-            # Absolute positioning.
-            newoffset = offset
-        elif whence == 1:
-            # Offset from pointer positioning.
-            newoffset = self.offset + offset
-        elif whence == 2:
-            # Offset from (real) end positioning.
-            newoffset = self.node.nrows + offset
-        else:
-            raise ValueError("invalid positioning mode")
-
-        if newoffset < 0:
-            # Positioning before the beginning is not allowed.
-            raise IOError("can not seek before beginning of file")
-        else:
-            # Positioning beyond the end is allowed.
-            self.offset = newoffset
-
-    def tell(self):
-        """Gets the current file position.
-
-        See file.tell.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-        return self.offset
+    @offset.setter
+    def offset(self, value):
+        warnings.warn('deprecated API: please use "seek" instaed', stacklevel=1)
+        self._pos = value
 
 
-class ROFileNode(ReadableMixin, NotWritableMixin, FileNode):
+
+class ROFileNode(FileNode):
     """Creates a new read-only file node.
 
     Creates a new read-only file node associated with the specified
@@ -730,29 +598,14 @@ class ROFileNode(ReadableMixin, NotWritableMixin, FileNode):
     # Since FileNode provides all methods for read-only access,
     # only the constructor method and failing writing methods are needed.
     def __init__(self, node):
-        super(ROFileNode, self).__init__()
-        self._check_attributes(node)
+        super(ROFileNode, self).__init__(node, 'r')
 
-        self.node = node
-        self.mode = 'r'
-        self.offset = 0L
-        self._version = node.attrs.NODE_TYPE_VERSION
-
-    def __del__(self):
-        super(ROFileNode, self).__del__()
-
-    def flush(self):
-        """Flushes the file node.
-
-        See file.flush.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-        # Do nothing.
+    # @TODO: check
+    #def __del__(self):
+    #    super(ROFileNode, self).__del__()
 
 
-class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
+class RAFileNode(FileNode):
     """Creates a new read-write file node.
 
     The first syntax opens the specified PyTables node, while the
@@ -770,12 +623,17 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 
     """
 
+    # The atom representing a byte in the array, for each version.
+    _byte_shape = [
+        None,
+        (0, 1),
+        (0,),
+    ]
+
     __allowed_init_kwargs = [
         'where', 'name', 'title', 'filters', 'expectedsize']
 
     def __init__(self, node, h5file, **kwargs):
-        super(RAFileNode, self).__init__()
-
         if node is not None:
             # Open an existing node and get its version.
             self._check_attributes(node)
@@ -809,31 +667,12 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
                 h5file.remove_node(kwargs['where'], kwargs['name'])
                 raise
 
-        # Set required attributes (besides of '_version').
-        self.node = node
-        self.mode = 'a+'
-        self.offset = 0L
+        super(RAFileNode, self).__init__(node, 'a+')
 
-        # Cache some dictionary lookups regarding file version.
-        # self._version is a NumPy scalar and when Python < 2.5
-        # this cannot be used as an index.
-        # Will force a conversion to an integer.
-        version = int(self._version)
-        self._vtype = tables.UInt8Atom().dtype.base.type
-        self._vshape = self._size_to_shape[version]
+    # @TODO:check
+    #def __del__(self):
+    #    super(RAFileNode, self).__del__()
 
-    def __del__(self):
-        super(RAFileNode, self).__del__()
-
-    def flush(self):
-        """Flushes the file node.
-
-        See file.flush.__doc__ for more information.
-
-        """
-
-        self._check_not_closed()
-        self.node.flush()
 
 def new_node(h5file, **kwargs):
     """Creates a new file node object in the specified PyTables file object.
@@ -848,6 +687,7 @@ def new_node(h5file, **kwargs):
     """
 
     return RAFileNode(None, h5file, **kwargs)
+
 
 newNode = previous_api(new_node)
 
@@ -869,6 +709,7 @@ def open_node(node, mode='r'):
         return RAFileNode(node, None)
     else:
         raise IOError("invalid mode: %s" % (mode,))
+
 
 openNode = previous_api(open_node)
 
