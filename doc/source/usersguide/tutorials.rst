@@ -113,11 +113,11 @@ our table will be saved.
 Creating a PyTables file from scratch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the top-level :func:`openFile` function to create a PyTables file::
+Use the top-level :func:`open_file` function to create a PyTables file::
 
-    >>> h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")
+    >>> h5file = open_file("tutorial1.h5", mode = "w", title = "Test file")
 
-:func:`openFile` is one of the objects imported by the
+:func:`open_file` is one of the objects imported by the
 ```from tables import *``` statement. Here, we are saying that we want to
 create a new file in the current working directory called "tutorial1.h5" in
 "w"rite mode and with an descriptive title string ("Test file").
@@ -132,10 +132,10 @@ Now, to better organize our data, we will create a group called *detector*
 that branches from the root node. We will save our particle data table in
 this group::
 
-    >>> group = h5file.createGroup("/", 'detector', 'Detector information')
+    >>> group = h5file.create_group("/", 'detector', 'Detector information')
 
 Here, we have taken the File instance h5file and invoked its
-:meth:`File.createGroup` method to create a  new group called *detector*
+:meth:`File.create_group` method to create a  new group called *detector*
 branching from "*/*" (another way to refer to the h5file.root object we
 mentioned above). This will create a new Group (see :ref:`GroupClassDescr`)
 object instance that will be assigned to the variable group.
@@ -144,10 +144,10 @@ object instance that will be assigned to the variable group.
 Creating a new table
 ~~~~~~~~~~~~~~~~~~~~
 Let's now create a Table (see :ref:`TableClassDescr`) object as a branch off
-the newly-created group. We do that by calling the :meth:`File.createTable`
+the newly-created group. We do that by calling the :meth:`File.create_table`
 method of the h5file object::
 
-    >>> table = h5file.createTable(group, 'readout', Particle, "Readout example")
+    >>> table = h5file.create_table(group, 'readout', Particle, "Readout example")
 
 We create the Table instance under group. We assign this table the node name
 "*readout*". The Particle class declared before is the *description*
@@ -171,7 +171,7 @@ Group and Table objects we have just created. If you want more information,
 just type the variable containing the File instance::
 
     >>> h5file
-    File(filename='tutorial1.h5', title='Test file', mode='w', rootUEP='/', filters=Filters(complevel=0, shuffle=False, fletcher32=False))
+    File(filename='tutorial1.h5', title='Test file', mode='w', root_uep='/', filters=Filters(complevel=0, shuffle=False, fletcher32=False))
     / (RootGroup) 'Test file'
     /detector (Group) 'Detector information'
     /detector/readout (Table(0,)) 'Readout example'
@@ -251,7 +251,7 @@ specific columns the values we are interested in. See the example below::
 
 The first line creates a "shortcut" to the *readout* table deeper on the
 object tree. As you can see, we use the *natural naming* schema to access it.
-We also could have used the h5file.getNode() method, as we will do later on.
+We also could have used the h5file.get_node() method, as we will do later on.
 
 You will recognize the last two lines as a Python list comprehension.
 It loops over the rows in *table* as they are provided by the
@@ -295,14 +295,14 @@ will create a new group columns branching off the root group. Afterwards,
 under this group, we will create two arrays that will contain the selected
 data. First, we create the group::
 
-    >>> gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
+    >>> gcolumns = h5file.create_group(h5file.root, "columns", "Pressure and Name")
 
 Note that this time we have specified the first parameter using *natural
 naming* (h5file.root) instead of with an absolute path string ("/").
 
 Now, create the first of the two Array objects we've just mentioned::
 
-    >>> h5file.createArray(gcolumns, 'pressure', array(pressure),
+    >>> h5file.create_array(gcolumns, 'pressure', array(pressure),
     "Pressure column selection")
     /columns/pressure (Array(3,)) 'Pressure column selection'
       atom := Float64Atom(shape=(), dflt=0.0)
@@ -311,8 +311,8 @@ Now, create the first of the two Array objects we've just mentioned::
       byteorder := 'little'
       chunkshape := None
 
-We already know the first two parameters of the :meth:`File.createArray`
-methods (these are the same as the first two in createTable): they are the
+We already know the first two parameters of the :meth:`File.create_array`
+methods (these are the same as the first two in create_table): they are the
 parent group *where* Array will be created and the Array instance *name*.
 The third parameter is the *object* we want to save to disk. In this case, it
 is a NumPy array that is built from the selection list we created before.
@@ -321,7 +321,7 @@ The fourth parameter is the *title*.
 Now, we will save the second array. It contains the list of strings we
 selected before: we save this object as-is, with no further conversion::
 
-    >>> h5file.createArray(gcolumns, 'name', names, "Name column selection")
+    >>> h5file.create_array(gcolumns, 'name', names, "Name column selection")
     /columns/name (Array(3,)) 'Name column selection'
       atom := StringAtom(itemsize=16, shape=(), dflt='')
       maindim := 0
@@ -329,14 +329,14 @@ selected before: we save this object as-is, with no further conversion::
       byteorder := 'irrelevant'
       chunkshape := None
 
-As you can see, :meth:`File.createArray` accepts *names* (which is a regular
+As you can see, :meth:`File.create_array` accepts *names* (which is a regular
 Python list) as an *object* parameter. Actually, it accepts a variety of
-different regular objects (see :func:`createArray`) as parameters. The flavor
+different regular objects (see :func:`create_array`) as parameters. The flavor
 attribute (see the output above) saves the original kind of object that was
 saved. Based on this *flavor*, PyTables will be able to retrieve exactly the
 same object from disk later on.
 
-Note that in these examples, the createArray method returns an Array instance
+Note that in these examples, the create_array method returns an Array instance
 that is not assigned to any variable. Don't worry, this is intentional to
 show the kind of object we have created by displaying its representation. The
 Array objects have been attached to the object tree and saved to disk, as you
@@ -434,7 +434,7 @@ Traversing the object tree
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 Let's start by opening the file we created in last tutorial section::
 
-    >>> h5file = openFile("tutorial1.h5", "a")
+    >>> h5file = open_file("tutorial1.h5", "a")
 
 This time, we have opened the file in "a"ppend mode. We use this mode to add
 more information to the file.
@@ -469,36 +469,36 @@ iterator to see how to list all the nodes in the object tree::
     /columns/pressure (Array(3,)) 'Pressure column selection'
     /detector/readout (Table(10,)) 'Readout example'
 
-We can use the :meth:`File.walkGroups` method of the File class to list only
+We can use the :meth:`File.walk_groups` method of the File class to list only
 the *groups* on tree::
 
-    >>> for group in h5file.walkGroups():
+    >>> for group in h5file.walk_groups():
     ...     print group
     / (RootGroup) 'Test file'
     /columns (Group) 'Pressure and Name'
     /detector (Group) 'Detector information'
 
-Note that :meth:`File.walkGroups` actually returns an *iterator*, not a list
-of objects. Using this iterator with the listNodes() method is a powerful
+Note that :meth:`File.walk_groups` actually returns an *iterator*, not a list
+of objects. Using this iterator with the list_nodes() method is a powerful
 combination. Let's see an example listing of all the arrays in the tree::
 
-    >>> for group in h5file.walkGroups("/"):
-    ...     for array in h5file.listNodes(group, classname='Array'):
+    >>> for group in h5file.walk_groups("/"):
+    ...     for array in h5file.list_nodes(group, classname='Array'):
     ...         print array
     /columns/name (Array(3,)) 'Name column selection'
     /columns/pressure (Array(3,)) 'Pressure column selection'
 
-:meth:`File.listNodes` returns a list containing all the nodes hanging off a
+:meth:`File.list_nodes` returns a list containing all the nodes hanging off a
 specific Group. If the *classname* keyword is specified, the method will
 filter out all instances which are not descendants of the class. We have
 asked for only Array instances. There exist also an iterator counterpart
-called :meth:`File.iterNodes` that might be handy is some situations, like
+called :meth:`File.iter_nodes` that might be handy is some situations, like
 for example when dealing with groups with a large number of nodes behind it.
 
-We can combine both calls by using the :meth:`File.walkNodes` special method
+We can combine both calls by using the :meth:`File.walk_nodes` special method
 of the File object. For example::
 
-    >>> for array in h5file.walkNodes("/", "Array"):
+    >>> for array in h5file.walk_nodes("/", "Array"):
     ...     print array
     /columns/name (Array(3,)) 'Name column selection'
     /columns/pressure (Array(3,)) 'Pressure column selection'
@@ -510,11 +510,11 @@ Finally, we will list all the Leaf, i.e. Table and Array instances (see
 /detector group. Note that only one instance of the Table class (i.e.
 readout) will be selected in this group (as should be the case)::
 
-    >>> for leaf in h5file.root.detector._f_walkNodes('Leaf'):
+    >>> for leaf in h5file.root.detector._f_walknodes('Leaf'):
     ...     print leaf
     /detector/readout (Table(10,)) 'Readout example'
 
-We have used a call to the :meth:`Group._f_walkNodes` method, using the
+We have used a call to the :meth:`Group._f_walknodes` method, using the
 *natural naming* path specification.
 
 Of course you can do more sophisticated node selections using these powerful
@@ -626,7 +626,7 @@ system attributes::
     Traceback (most recent call last):
         File "<stdin>", line 1, in <module>
         File "tables/attributeset.py", line 222, in __getattr__
-            (name, self._v__nodePath)
+            (name, self._v__nodepath)
     AttributeError: Attribute 'VERSION' does not exist in node: '/detector/readout'
     >>> table.attrs.version
     '2.6'
@@ -752,7 +752,7 @@ in PyTables by asking for help::
 
     >>> help(table)
     Help on Table in module tables.table:
-    class Table(tableExtension.Table, tables.leaf.Leaf)
+    class Table(tableextension.Table, tables.leaf.Leaf)
     |  This class represents heterogeneous datasets in an HDF5 file.
     |
     |  Tables are leaves (see the `Leaf` class) whose data consists of a
@@ -771,7 +771,7 @@ in PyTables by asking for help::
     |  name, avoiding the need to walk through `Table.description` or
     |  `Table.cols`.
     |
-    |  autoIndex
+    |  autoindex
     |      Automatically keep column indexes up to date?
     |
     |      Setting this value states whether existing indexes should be
@@ -790,8 +790,8 @@ in PyTables by asking for help::
     |  * itersequence(sequence)
     * itersorted(sortby[, checkCSI][, start][, stop][, step])
     |  * read([start][, stop][, step][, field][, coords])
-    |  * readCoordinates(coords[, field])
-    * readSorted(sortby[, checkCSI][, field,][, start][, stop][, step])
+    |  * read_coordinates(coords[, field])
+    * read_sorted(sortby[, checkCSI][, field,][, start][, stop][, step])
     |  * __getitem__(key)
     |  * __iter__()
     |
@@ -799,17 +799,17 @@ in PyTables by asking for help::
     |  -------------------------
     |
     |  * append(rows)
-    |  * modifyColumn([start][, stop][, step][, column][, colname])
+    |  * modify_column([start][, stop][, step][, column][, colname])
     [snip]
 
 Try getting help with other object docs by yourself::
 
     >>> help(h5file)
-    >>> help(table.removeRows)
+    >>> help(table.remove_rows)
 
 To examine metadata in the */columns/pressure* Array object::
 
-    >>> pressureObject = h5file.getNode("/columns", "pressure")
+    >>> pressureObject = h5file.get_node("/columns", "pressure")
     >>> print "Info on the object:", repr(pressureObject)
     Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
       atom := Float64Atom(shape=(), dflt=0.0)
@@ -824,10 +824,10 @@ To examine metadata in the */columns/pressure* Array object::
     >>> print "  atom: ==>", pressureObject.atom
       atom: ==> Float64Atom(shape=(), dflt=0.0)
 
-Observe that we have used the :meth:`File.getNode` method of the File class
+Observe that we have used the :meth:`File.get_node` method of the File class
 to access a node in the tree, instead of the natural naming method. Both are
 useful, and depending on the context you will prefer one or the other.
-:meth:`File.getNode` has the advantage that it can get a node from the
+:meth:`File.get_node` has the advantage that it can get a node from the
 pathname string (as in this example) and can also act as a filter to show
 only nodes in a particular location that are instances of class *classname*.
 In general, however, I consider natural naming to be more elegant and easier
@@ -875,7 +875,7 @@ meta-information (accessible through in the Array.attrs.FLAVOR variable),
 enabling the read array to be converted into the original object. This
 provides a means to save a large variety of objects as arrays with the
 guarantee that you will be able to later recover them in their original form.
-See :meth:`File.createArray` for a complete list of supported objects for the
+See :meth:`File.create_array` for a complete list of supported objects for the
 Array object class.
 
 
@@ -997,7 +997,7 @@ Check that the values have been correctly modified!
 PyTables also lets you modify complete sets of rows at the same time. As a
 demonstration of these capability, see the next example::
 
-    >>> table.modifyRows(start=1, step=3,
+    >>> table.modify_rows(start=1, step=3,
     ...                 rows=[(1, 2, 3.0, 4, 5, 6L, 'Particle:   None', 8.0),
     ...                       (2, 4, 6.0, 8, 10, 12L, 'Particle: None*2', 16.0)])
     2
@@ -1009,11 +1009,11 @@ demonstration of these capability, see the next example::
      (768, 3, 6561.0, 3, 7, 51539607552L, 'Particle:      3', 9.0)
      (2, 4, 6.0, 8, 10, 12L, 'Particle: None*2', 16.0)]
 
-As you can see, the modifyRows() call has modified the rows second and fifth,
+As you can see, the modify_rows() call has modified the rows second and fifth,
 and it returned the number of modified rows.
 
-Apart of :meth:`Table.modifyRows`, there exists another method, called
-:meth:`Table.modifyColumn` to modify specific columns as well.
+Apart of :meth:`Table.modify_rows`, there exists another method, called
+:meth:`Table.modify_column` to modify specific columns as well.
 
 Finally, it exists another way of modifying tables that is generally more
 handy than the described above. This new way uses the method
@@ -1085,10 +1085,10 @@ And finally... how to delete rows from a table
 We'll finish this tutorial by deleting some rows from the table we have.
 Suppose that we want to delete the the 5th to 9th rows (inclusive)::
 
-    >>> table.removeRows(5,10)
+    >>> table.remove_rows(5,10)
     5
 
-:meth:`Table.removeRows` deletes the rows in the range (start, stop). It
+:meth:`Table.remove_rows` deletes the rows in the range (start, stop). It
 returns the number of rows effectively removed.
 
 We have reached the end of this first tutorial. Don't forget to close the
@@ -1141,7 +1141,7 @@ columns called pressure and temperature).
 
 We also introduce a new manner to describe a Table as a structured NumPy
 dtype (or even as a dictionary), as you can see in the Event description. See
-:meth:`File.createTable` about the different kinds of descriptor objects that
+:meth:`File.create_table` about the different kinds of descriptor objects that
 can be passed to this method::
 
     from tables import *
@@ -1174,14 +1174,14 @@ can be passed to this method::
     #     }
 
     # Open a file in "w"rite mode
-    fileh = openFile("tutorial2.h5", mode = "w")
+    fileh = open_file("tutorial2.h5", mode = "w")
 
     # Get the HDF5 root group
     root = fileh.root
 
     # Create the groups:
     for groupname in ("Particles", "Events"):
-        group = fileh.createGroup(root, groupname)
+        group = fileh.create_group(root, groupname)
 
     # Now, create and fill the tables in Particles group
     gparticles = root.Particles
@@ -1189,7 +1189,7 @@ can be passed to this method::
     # Create 3 new tables
     for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         # Create a table
-        table = fileh.createTable("/Particles", tablename, Particle, "Particles: "+tablename)
+        table = fileh.create_table("/Particles", tablename, Particle, "Particles: "+tablename)
 
         # Get the record object associated with the table:
         particle = table.row
@@ -1217,7 +1217,7 @@ can be passed to this method::
     # Now, go for Events:
     for tablename in ("TEvent1", "TEvent2", "TEvent3"):
         # Create a table in Events group
-        table = fileh.createTable(root.Events, tablename, Event, "Events: "+tablename)
+        table = fileh.create_table(root.Events, tablename, Event, "Events: "+tablename)
 
         # Get the record object associated with the table:
         event = table.row
@@ -1296,9 +1296,9 @@ another error.
     Traceback (most recent call last):
       File "tutorial2.py", line 73, in ?
         event['xcoor'] = float(i**2)     # Wrong spelling
-      File "tableExtension.pyx", line 1094, in tableExtension.Row.__setitem__
-      File "tableExtension.pyx", line 127, in tableExtension.getNestedFieldCache
-      File "utilsExtension.pyx", line 331, in utilsExtension.getNestedField
+      File "tableextension.pyx", line 1094, in tableextension.Row.__setitem__
+      File "tableextension.pyx", line 127, in tableextension.get_nested_field_cache
+      File "utilsextension.pyx", line 331, in utilsextension.get_nested_field
     KeyError: 'no such column: xcoor'
 
 This error indicates that we are attempting to assign a value to a
@@ -1321,7 +1321,7 @@ Finally, the last issue which we will find here is a TypeError exception.
     Traceback (most recent call last):
       File "tutorial2.py", line 75, in ?
         event['ADCcount'] = "sss"          # Wrong type
-      File "tableExtension.pyx", line 1111, in tableExtension.Row.__setitem__
+      File "tableextension.pyx", line 1111, in tableextension.Row.__setitem__
     TypeError: invalid type (<type 'str'>) for column ``ADCcount``
 
 And, if we change the affected line to read::
@@ -1379,20 +1379,20 @@ in this section in :file:`examples/links.py`.
 First, let's create a file with some group structure::
 
     >>> import tables as tb
-    >>> f1 = tb.openFile('links1.h5', 'w')
-    >>> g1 = f1.createGroup('/', 'g1')
-    >>> g2 = f1.createGroup(g1, 'g2')
+    >>> f1 = tb.open_file('links1.h5', 'w')
+    >>> g1 = f1.create_group('/', 'g1')
+    >>> g2 = f1.create_group(g1, 'g2')
 
 Now, we will put some datasets on the /g1 and /g1/g2 groups::
 
-    >>> a1 = f1.createCArray(g1, 'a1', tb.Int64Atom(), shape=(10000,))
-    >>> t1 = f1.createTable(g2, 't1', {'f1': tb.IntCol(), 'f2': tb.FloatCol()})
+    >>> a1 = f1.create_carray(g1, 'a1', tb.Int64Atom(), shape=(10000,))
+    >>> t1 = f1.create_table(g2, 't1', {'f1': tb.IntCol(), 'f2': tb.FloatCol()})
 
 We can start the party now.  We are going to create a new group, say /gl,
 where we will put our links and will start creating one hard link too::
 
-    >>> gl = f1.createGroup('/', 'gl')
-    >>> ht = f1.createHardLink(gl, 'ht', '/g1/g2/t1')  # ht points to t1
+    >>> gl = f1.create_group('/', 'gl')
+    >>> ht = f1.create_hard_link(gl, 'ht', '/g1/g2/t1')  # ht points to t1
     >>> print "``%s`` is a hard link to: ``%s``" % (ht, t1)
     ``/gl/ht (Table(0,)) `` is a hard link to: ``/g1/g2/t1 (Table(0,)) ``
 
@@ -1404,15 +1404,15 @@ different paths to access that table, the original /g1/g2/t1 and the new one
 the new path::
 
     >>> t1.remove()
-    >>> print "table continues to be accessible in: ``%s``" % f1.getNode('/gl/ht')
+    >>> print "table continues to be accessible in: ``%s``" % f1.get_node('/gl/ht')
     table continues to be accessible in: ``/gl/ht (Table(0,)) ``
 
 So far so good. Now, let's create a couple of soft links::
 
-    >>> la1 = f1.createSoftLink(gl, 'la1', '/g1/a1')  # la1 points to a1
+    >>> la1 = f1.create_soft_link(gl, 'la1', '/g1/a1')  # la1 points to a1
     >>> print "``%s`` is a soft link to: ``%s``" % (la1, la1.target)
     ``/gl/la1 (SoftLink) -> /g1/a1`` is a soft link to: ``/g1/a1``
-    >>> lt = f1.createSoftLink(gl, 'lt', '/g1/g2/t1')  # lt points to t1
+    >>> lt = f1.create_soft_link(gl, 'lt', '/g1/g2/t1')  # lt points to t1
     >>> print "``%s`` is a soft link to: ``%s``" % (lt, lt.target)
     ``/gl/lt (SoftLink) -> /g1/g2/t1 (dangling)`` is a soft link to: ``/g1/g2/t1``
 
@@ -1429,7 +1429,7 @@ node or not.
 
 So, let's re-create the removed path to t1 table::
 
-    >>> t1 = f1.createHardLink('/g1/g2', 't1', '/gl/ht')
+    >>> t1 = f1.create_hard_link('/g1/g2', 't1', '/gl/ht')
     >>> print "``%s`` is not dangling anymore" % (lt,)
     ``/gl/lt (SoftLink) -> /g1/g2/t1`` is not dangling anymore
 
@@ -1462,7 +1462,7 @@ External links to the rescue!  As we've already said, external links are like
 soft links, but they are designed to link objects in external files.  Back to
 our problem, let's copy the a1 array into a different file::
 
-    >>> f2 = tb.openFile('links2.h5', 'w')
+    >>> f2 = tb.open_file('links2.h5', 'w')
     >>> new_a1 = a1.copy(f2.root, 'a1')
     >>> f2.close()  # close the other file
 
@@ -1470,7 +1470,7 @@ And now, we can remove the existing soft link and create the external link in
 its place::
 
     >>> la1.remove()
-    >>> la1 = f1.createExternalLink(gl, 'la1', 'links2.h5:/a1')
+    >>> la1 = f1.create_external_link(gl, 'la1', 'links2.h5:/a1')
     >>> print "``%s`` is an external link to: ``%s``" % (la1, la1.target)
     ``/gl/la1 (ExternalLink) -> links2.h5:/a1`` is an external link to: ``links2.h5:/a1``
 
@@ -1526,7 +1526,7 @@ management, like creating, deleting, moving or renaming nodes (or complete
 sub-hierarchies) inside a given object tree. You can also undo/redo
 operations (i.e. creation, deletion or modification) of persistent node
 attributes. However, when actions include *internal* modifications of
-datasets (that includes Table.append, Table.modifyRows or Table.removeRows
+datasets (that includes Table.append, Table.modify_rows or Table.remove_rows
 among others), they cannot be undone/redone currently.
 
 This capability can be useful in many situations, like for example when doing
@@ -1550,17 +1550,17 @@ explained in the next section.
 First, let's create a file::
 
     >>> import tables
-    >>> fileh = tables.openFile("tutorial3-1.h5", "w", title="Undo/Redo demo 1")
+    >>> fileh = tables.open_file("tutorial3-1.h5", "w", title="Undo/Redo demo 1")
 
 And now, activate the Undo/Redo feature with the method
-:meth:`File.enableUndo` of File::
+:meth:`File.enable_undo` of File::
 
-    >>> fileh.enableUndo()
+    >>> fileh.enable_undo()
 
 From now on, all our actions will be logged internally by PyTables. Now, we
 are going to create a node (in this case an Array object)::
 
-    >>> one = fileh.createArray('/', 'anarray', [3,4], "An array")
+    >>> one = fileh.create_array('/', 'anarray', [3,4], "An array")
 
 Now, mark this point::
 
@@ -1575,7 +1575,7 @@ also assign a *name* to a mark (see :meth:`File.mark` for more info on
 mark()).
 Now, we are going to create another array::
 
-    >>> another = fileh.createArray('/', 'anotherarray', [4,5], "Another array")
+    >>> another = fileh.create_array('/', 'anotherarray', [4,5], "Another array")
 
 Right. Now, we can start doing funny things. Let's say that we want to pop
 back to the previous mark (that whose value was 1, do you remember?). Let's
@@ -1610,14 +1610,14 @@ Now, unwind once more, and look at the object tree::
 
 Oops, /anarray has disappeared as well!.
 Don't worry, it will revisit us very shortly. So, you might be somewhat lost
-right now; in which mark are we?. Let's ask the :meth:`File.getCurrentMark`
+right now; in which mark are we?. Let's ask the :meth:`File.get_current_mark`
 method in the file handler::
 
-    >>> print fileh.getCurrentMark()
+    >>> print fileh.get_current_mark()
     0
 
 So we are at mark #0, remember? Mark #0 is an implicit mark that is created
-when you start the log of actions when calling File.enableUndo(). Fine, but
+when you start the log of actions when calling File.enable_undo(). Fine, but
 you are missing your too-young-to-die arrays. What can we do about that?
 :meth:`File.redo` to the rescue::
 
@@ -1666,7 +1666,7 @@ Nice, you managed to turn your data back into life.
 Congratulations! But wait, do not forget to close your action log when you
 don't need this feature anymore::
 
-    >>> fileh.disableUndo()
+    >>> fileh.disable_undo()
 
 That will allow you to continue working with your data without actually
 requiring PyTables to keep track of all your actions, and more importantly,
@@ -1687,28 +1687,28 @@ Let's introduce the first part of the code::
     import tables
 
     # Create an HDF5 file
-    fileh = tables.openFile('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
+    fileh = tables.open_file('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
 
             #'-**-**-**-**-**-**- enable undo/redo log  -**-**-**-**-**-**-**-'
-    fileh.enableUndo()
+    fileh.enable_undo()
 
     # Start undoable operations
-    fileh.createArray('/', 'otherarray1', [3,4], 'Another array 1')
-    fileh.createGroup('/', 'agroup', 'Group 1')
+    fileh.create_array('/', 'otherarray1', [3,4], 'Another array 1')
+    fileh.create_group('/', 'agroup', 'Group 1')
 
     # Create a 'first' mark
     fileh.mark('first')
-    fileh.createArray('/agroup', 'otherarray2', [4,5], 'Another array 2')
-    fileh.createGroup('/agroup', 'agroup2', 'Group 2')
+    fileh.create_array('/agroup', 'otherarray2', [4,5], 'Another array 2')
+    fileh.create_group('/agroup', 'agroup2', 'Group 2')
 
     # Create a 'second' mark
     fileh.mark('second')
-    fileh.createArray('/agroup/agroup2', 'otherarray3', [5,6], 'Another array 3')
+    fileh.create_array('/agroup/agroup2', 'otherarray3', [5,6], 'Another array 3')
 
     # Create a 'third' mark
     fileh.mark('third')
-    fileh.createArray('/', 'otherarray4', [6,7], 'Another array 4')
-    fileh.createArray('/agroup', 'otherarray5', [7,8], 'Another array 5')
+    fileh.create_array('/', 'otherarray4', [6,7], 'Another array 4')
+    fileh.create_array('/agroup', 'otherarray5', [7,8], 'Another array 5')
 
 You can see how we have set several marks interspersed in the code flow,
 representing different states of the database. Also, note that we have
@@ -1751,7 +1751,7 @@ database by using the :meth:`File.goto` method.
 
 There are also a couple of implicit marks for going to the beginning or the
 end of the saved states: 0 and -1. Going to mark #0 means go to the beginning
-of the saved actions, that is, when method fileh.enableUndo() was called.
+of the saved actions, that is, when method fileh.enable_undo() was called.
 Going to mark #-1 means go to the last recorded action, that is the last
 action in the code flow.
 
@@ -1781,7 +1781,7 @@ We have nearly finished this demonstration. As always, do not forget to close
 the action log as well as the database::
 
     #'-**-**-**-**-**-**- disable undo/redo log  -**-**-**-**-**-**-**-'
-    fileh.disableUndo()
+    fileh.disable_undo()
     # Close the file
     fileh.close()
 
@@ -1875,11 +1875,11 @@ PyTables file and create a table to collect the simulated results of a
 probabilistic experiment. In it, we have a bag full of colored balls; we take
 a ball out and annotate the time of extraction and the color of the ball::
 
-    >>> h5f = tables.openFile('enum.h5', 'w')
+    >>> h5f = tables.open_file('enum.h5', 'w')
     >>> class BallExt(tables.IsDescription):
     ...     ballTime = tables.Time32Col()
     ...     ballColor = tables.EnumCol(colors, 'black', base='uint8')
-    >>> tbl = h5f.createTable('/', 'extractions', BallExt, title="Random ball extractions")
+    >>> tbl = h5f.create_table('/', 'extractions', BallExt, title="Random ball extractions")
     >>>
 
 We declared the ballColor column to be of the enumerated type colors, with a
@@ -1907,13 +1907,13 @@ For instance::
     >>> row['ballColor'] = 1234
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
-      File "tableExtension.pyx", line 1086, in tableExtension.Row.__setitem__
+      File "tableextension.pyx", line 1086, in tableextension.Row.__setitem__
       File ".../tables/misc/enum.py", line 320, in __call__
         "no enumerated value with that concrete value: %r" % (value,))
     ValueError: no enumerated value with that concrete value: 1234
 
 But take care that this check is *only* performed here and not in other
-methods such as tbl.append() or tbl.modifyRows(). Now, after flushing the
+methods such as tbl.append() or tbl.modify_rows(). Now, after flushing the
 table we can see the results of the insertions::
 
     >>> tbl.flush()
@@ -1934,7 +1934,7 @@ table we can see the results of the insertions::
 
 As a last note, you may be wondering how to have access to the enumeration
 associated with ballColor once the file is closed and reopened. You can call
-tbl.getEnum('ballColor') (see :meth:`Table.getEnum`) to get the enumeration
+tbl.get_enum('ballColor') (see :meth:`Table.get_enum`) to get the enumeration
 back.
 
 
@@ -1950,7 +1950,7 @@ bidimensional values::
 
     >>> workingDays = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5}
     >>> dayRange = tables.EnumAtom(workingDays, 'Mon', base='uint16')
-    >>> earr = h5f.createEArray('/', 'days', dayRange, (0, 2), title="Working day ranges")
+    >>> earr = h5f.create_earray('/', 'days', dayRange, (0, 2), title="Working day ranges")
     >>> earr.flavor = 'python'
 
 Nothing surprising, except for a pair of details. In the first place, we use
@@ -1962,12 +1962,12 @@ enumeration, it automatically builds the enumeration from it.
 
 Now let us feed some data to the array::
 
-    >>> wdays = earr.getEnum()
+    >>> wdays = earr.get_enum()
     >>> earr.append([(wdays.Mon, wdays.Fri), (wdays.Wed, wdays.Fri)])
     >>> earr.append([(wdays.Mon, 1234)])
 
 Please note that, since we had no explicit Enum instance, we were forced to
-use getEnum() (see :ref:`EArrayMethodsDescr`) to get it from the array (we
+use get_enum() (see :ref:`EArrayMethodsDescr`) to get it from the array (we
 could also have used dayRange.enum).  Also note that we were able to append
 an invalid value (1234). Array methods do not check the validity of
 enumerated values.
@@ -2047,8 +2047,8 @@ Nested table creation
 Now that we have defined our nested structure, let's create a *nested* table,
 that is a table with columns that contain other subcolumns::
 
-    >>> fileh = openFile("nested-tut.h5", "w")
-    >>> table = fileh.createTable(fileh.root, 'table', NestedDescr)
+    >>> fileh = open_file("nested-tut.h5", "w")
+    >>> table = fileh.create_table(fileh.root, 'table', NestedDescr)
 
 Done! Now, we have to feed the table with some values. The problem is how we
 are going to reference to the nested fields. That's easy, just use a '/'
@@ -2098,7 +2098,7 @@ For example, you can use it to append new data to the existing table object::
 
 Or, to create new tables::
 
-    >>> table2 = fileh.createTable(fileh.root, 'table2', nra)
+    >>> table2 = fileh.create_table(fileh.root, 'table2', nra)
     >>> table2[:]
     array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
            (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L),
@@ -2196,35 +2196,35 @@ metadata::
 
 There are other variables that can be interesting for you::
 
-    >>> table.description._v_nestedNames
+    >>> table.description._v_nested_names
     [('info2', [('info3', ['x', 'y']), 'name', 'value']),
      ('info1', ['name', 'value']), 'color']
-    >>> table.description.info1._v_nestedNames
+    >>> table.description.info1._v_nested_names
     ['name', 'value']
 
-_v_nestedNames provides the names of the columns as well as its structure.
+_v_nested_names provides the names of the columns as well as its structure.
 You can see that there are the same attributes for the different levels of
 the Description object, because the levels are *also* Description objects
 themselves.
 
-There is a special attribute, called _v_nestedDescr, that can be useful to
+There is a special attribute, called _v_nested_descr, that can be useful to
 create nested structured arrays that imitate the structure of the table (or a
 subtable thereof)::
 
     >>> import numpy
-    >>> table.description._v_nestedDescr
+    >>> table.description._v_nested_descr
     [('info2', [('info3', [('x', '()f8'), ('y', '()u1')]), ('name', '()S10'),
      ('value', '()f8')]), ('info1', [('name', '()S10'), ('value', '()f8')]),
      ('color', '()u4')]
     >>> numpy.rec.array(None, shape=0,
-                        dtype=table.description._v_nestedDescr)
+                        dtype=table.description._v_nested_descr)
     recarray([],
           dtype=[('info2', [('info3', [('x', '>f8'), ('y', '|u1')]),
                  ('name', '|S10'), ('value', '>f8')]),
                  ('info1', [('name', '|S10'), ('value', '>f8')]),
                  ('color', '>u4')])
     >>> numpy.rec.array(None, shape=0,
-                        dtype=table.description.info2._v_nestedDescr)
+                        dtype=table.description.info2._v_nested_descr)
     recarray([],
           dtype=[('info3', [('x', '>f8'), ('y', '|u1')]), ('name', '|S10'),
                  ('value', '>f8')])

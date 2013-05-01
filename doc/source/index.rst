@@ -42,7 +42,7 @@ Contents
     Release Notes <release_notes>
     project_pointers
     Development <development>
-    Governance Team <dev_team>
+    Development Team <dev_team>
 
 
 =============

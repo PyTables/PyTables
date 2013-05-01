@@ -61,7 +61,7 @@ Table methods - reading
 
 .. automethod:: Table.read_coordinates
 
-.. automethod:: Table.readSorted
+.. automethod:: Table.read_sorted
 
 .. automethod:: Table.__getitem__
 
@@ -148,32 +148,32 @@ Description methods
 
 The Row class
 ~~~~~~~~~~~~~
-.. autoclass:: tables.tableExtension.Row
+.. autoclass:: tables.tableextension.Row
 
 ..  These are defined in the class docstring
     Row instance variables
     ^^^^^^^^^^^^^^^^^^^^^^
-    .. autoattribute:: tables.tableExtension.Row.nrow
+    .. autoattribute:: tables.tableextension.Row.nrow
 
 
 Row methods
 ^^^^^^^^^^^
-.. automethod:: tables.tableExtension.Row.append
+.. automethod:: tables.tableextension.Row.append
 
-.. automethod:: tables.tableExtension.Row.fetch_all_fields
+.. automethod:: tables.tableextension.Row.fetch_all_fields
 
-.. automethod:: tables.tableExtension.Row.update
+.. automethod:: tables.tableextension.Row.update
 
 
 .. _RowSpecialMethods:
 
 Row special methods
 ^^^^^^^^^^^^^^^^^^^
-.. automethod:: tables.tableExtension.Row.__contains__
+.. automethod:: tables.tableextension.Row.__contains__
 
-.. automethod:: tables.tableExtension.Row.__getitem__
+.. automethod:: tables.tableextension.Row.__getitem__
 
-.. automethod:: tables.tableExtension.Row.__setitem__
+.. automethod:: tables.tableextension.Row.__setitem__
 
 
 .. _ColsClassDescr:

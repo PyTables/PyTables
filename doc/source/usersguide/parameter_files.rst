@@ -24,7 +24,7 @@ values of these parameters.  All the *tunable* parameters live in the
 :file:`tables/parameters.py`.  The user can choose to change them in the
 parameter files themselves for a global and persistent change.  Moreover, if
 he wants a finer control, he can pass any of these parameters directly to the
-:func:`tables.openFile` function, and the new parameters will only take
+:func:`tables.open_file` function, and the new parameters will only take
 effect in the corresponding file (the defaults will continue to be in the
 parameter files).
 
@@ -100,7 +100,7 @@ Parameters for general cache behaviour
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. warning::
 
-    The next parameters will not take any effect if passed to the openFile()
+    The next parameters will not take any effect if passed to the open_file()
     function, so they can only be changed in a *global* way.  You can change
     them in the file, but this is strongly discouraged unless you know well
     what you are doing.

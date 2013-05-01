@@ -335,7 +335,7 @@ We can change the filter properties as well:
         main()
       File ".../tables/scripts/ptrepack.py", line 349, in main
         stats = stats, start = start, stop = stop, step = step)
-      File ".../tables/scripts/ptrepack.py", line 107, in copyLeaf
+      File ".../tables/scripts/ptrepack.py", line 107, in copy_leaf
         raise RuntimeError, "Please check that the node names are not
         duplicated in destination, and if so, add the --overwrite-nodes flag
         if desired."

@@ -12,11 +12,11 @@ PyTables, but they can be regarded as helpers whose goal is mainly to declare
 the *data type properties* of the different first class objects and will be
 described at the end of this chapter as well.
 
-An important function, called openFile is responsible to create, open or append
+An important function, called open_file is responsible to create, open or append
 to files. In addition, a few utility functions are defined to guess if the user
-supplied file is a *PyTables* or *HDF5* file. These are called isPyTablesFile()
-and isHDF5File(), respectively. There exists also a function called
-whichLibVersion() that informs about the versions of the underlying C libraries
+supplied file is a *PyTables* or *HDF5* file. These are called is_pytables_file()
+and is_hdf5_file(), respectively. There exists also a function called
+which_lib_version() that informs about the versions of the underlying C libraries
 (for example, HDF5 or Zlib) and another called print_versions() that prints all
 the versions of the software that PyTables relies on. Finally, test() lets you
 run the complete test suite from a Python console interactively.

@@ -49,7 +49,7 @@ Finding a filenode node
 -----------------------
 filenode nodes can be recognized because they have a NODE_TYPE system
 attribute with a 'file' value. It is recommended that you use the
-:meth:`File.getNodeAttr` method of tables.File class to get the NODE_TYPE
+:meth:`File.get_node_attr` method of tables.File class to get the NODE_TYPE
 attribute independently of the nature (group or leaf) of the node, so you do
 not need to care about.
 
@@ -63,14 +63,14 @@ recommended way to import the module is::
 
 However, filenode exports very few symbols, so you can import * for
 interactive usage. In fact, you will most probably only use the NodeType
-constant and the newNode() and openNode() calls.
+constant and the new_node() and open_node() calls.
 
 The NodeType constant contains the value that the NODE_TYPE system attribute
 of a node file is expected to contain ('file', as we have seen).
 Although this is not expected to change, you should use filenode.NodeType
 instead of the literal 'file' when possible.
 
-newNode() and openNode() are the equivalent to the Python file() call (alias
+new_node() and open_node() are the equivalent to the Python file() call (alias
 open()) for ordinary files. Their arguments differ from that of file(), but
 this is the only point where you will note the difference between working
 with a node file and working with an ordinary file.
@@ -83,15 +83,15 @@ file.
 You can create a brand new file with these sentences::
 
     >>> import tables
-    >>> h5file = tables.openFile('fnode.h5', 'w')
+    >>> h5file = tables.open_file('fnode.h5', 'w')
 
 
 Creating a new file node
 ~~~~~~~~~~~~~~~~~~~~~~~~
-Creation of a new file node is achieved with the newNode() call. You must
+Creation of a new file node is achieved with the new_node() call. You must
 tell it in which PyTables file you want to create it, where in the PyTables
 hierarchy you want to create the node and which will be its name. The
-PyTables file is the first argument to newNode(); it will be also called the
+PyTables file is the first argument to new_node(); it will be also called the
 'host PyTables file'. The other two arguments must be given as keyword
 arguments where and name, respectively.
 As a result of the call, a brand new appendable and readable file node object
@@ -101,22 +101,22 @@ So let us create a new node file in the previously opened h5file PyTables
 file, named 'fnode_test' and placed right under the root of the database
 hierarchy. This is that command::
 
-    >>> fnode = filenode.newNode(h5file, where='/', name='fnode_test')
+    >>> fnode = filenode.new_node(h5file, where='/', name='fnode_test')
 
 That is basically all you need to create a file node. Simple, isn't it? From
 that point on, you can use fnode as any opened Python file (i.e. you can
 write data, read data, lines of text and so on).
 
-newNode() accepts some more keyword arguments. You can give a title to your
+new_node() accepts some more keyword arguments. You can give a title to your
 file with the title argument. You can use PyTables' compression features with
 the filters argument. If you know beforehand the size that your file will
 have, you can give its final file size in bytes to the expectedsize argument
 so that the PyTables library would be able to optimize the data access.
 
-newNode() creates a PyTables node where it is told to. To prove it, we will
+new_node() creates a PyTables node where it is told to. To prove it, we will
 try to get the NODE_TYPE attribute from the newly created node::
 
-    >>> print h5file.getNodeAttr('/fnode_test', 'NODE_TYPE')
+    >>> print h5file.get_node_attr('/fnode_test', 'NODE_TYPE')
     file
 
 
@@ -140,7 +140,7 @@ us try to write some text in and read it::
     'Of course, file methods can also be used.'
 
 This was run on a Unix system, so newlines are expressed as '\n'. In fact,
-you can override the line separator for a file by setting its lineSeparator
+you can override the line separator for a file by setting its line_separator
 property to any string you want.
 
 While using a file node, you should take care of closing it *before* you
@@ -157,12 +157,12 @@ method::
 
 Opening an existing file node
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If you have a file node that you created using newNode(), you can open it
-later by calling openNode(). Its arguments are similar to that of file() or
+If you have a file node that you created using new_node(), you can open it
+later by calling open_node(). Its arguments are similar to that of file() or
 open(): the first argument is the PyTables node that you want to open (i.e. a
 node with a NODE_TYPE attribute having a 'file' value), and the second
 argument is a mode string indicating how to open the file. Contrary to
-file(), openNode() can not be used to create a new file node.
+file(), open_node() can not be used to create a new file node.
 
 File nodes can be opened in read-only mode ('r') or in read-and-append mode
 ('a+'). Reading from a file node is allowed in both modes, but appending is
@@ -172,7 +172,7 @@ end of the file, or otherwise after the existing data. Let us see an
 example::
 
     >>> node = h5file.root.fnode_test
-    >>> fnode = filenode.openNode(node, 'a+')
+    >>> fnode = filenode.open_node(node, 'a+')
     >>> print repr(fnode.readline())
     'This is a test text line.\\n'
     >>> print fnode.tell()
@@ -202,7 +202,7 @@ Adding metadata to a file node
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can associate arbitrary metadata to any open node file, regardless of its
 mode, as long as the host PyTables file is writable. Of course, you could use
-the setNodeAttr() method of tables.File to do it directly on the proper node,
+the set_node_attr() method of tables.File to do it directly on the proper node,
 but filenode offers a much more comfortable way to do it. filenode objects
 have an attrs property which gives you direct access to their corresponding
 AttributeSet object.

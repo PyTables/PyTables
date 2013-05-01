@@ -56,10 +56,10 @@ PyTables can determine a sensible chunk size to your dataset size if you
 helps it by providing an estimation of the final number of rows for an
 extensible leaf [1]_.  You should provide this information at leaf creation
 time by passing this value to the expectedrows argument of the
-:meth:`File.createTable` method or :meth:`File.createEArray` method (see
+:meth:`File.create_table` method or :meth:`File.create_earray` method (see
 :ref:`EArrayClassDescr`). For VLArray leaves, you must pass the expected size
 in MBytes by using the argument expectedsizein MB of
-:meth:`File.createVLArray` (see :ref:`VLArrayClassDescr`) instead.
+:meth:`File.create_vlarray` (see :ref:`VLArrayClassDescr`) instead.
 
 When your leaf size is bigger than 10 MB (take this figure only as a
 reference, not strictly), by providing this guess you will be optimizing the
@@ -334,12 +334,12 @@ along such a column (or columns) will look at this sorted information by
 using a *binary search* which is much faster than the *sequential search*
 described in the previous section.
 
-You can index the columns you want by calling the :meth:`Column.createIndex`
+You can index the columns you want by calling the :meth:`Column.create_index`
 method on an already created table.  For example::
 
-    indexrows = table.cols.var1.createIndex()
-    indexrows = table.cols.var2.createIndex()
-    indexrows = table.cols.var3.createIndex()
+    indexrows = table.cols.var1.create_index()
+    indexrows = table.cols.var2.create_index()
+    indexrows = table.cols.var3.create_index()
 
 will create indexes for all var1, var2 and var3 columns.
 
@@ -381,7 +381,7 @@ Example conditions where an index can *not* be used:
 
     If you want to know for sure whether a particular query will use indexing
     or not (without actually running it), you are advised to use the
-    :meth:`Table.willQueryUseIndexing` method.
+    :meth:`Table.will_query_use_indexing` method.
 
 One important aspect of the new indexing in PyTables (>= 2.3) is that it has
 been designed from the ground up with the goal of being capable to
@@ -421,7 +421,7 @@ much more space on disk, as you can see in :ref:`Figure 8 <indexSizes>`.
 
 
 The user can select the index quality by passing the desired optlevel and
-kind arguments to the :meth:`Column.createIndex` method.  We can see in
+kind arguments to the :meth:`Column.create_index` method.  We can see in
 figures :ref:`Figure 7 <createIndexTimes>` and :ref:`Figure 8 <indexSizes>`
 how the different optimization levels affects index time creation and index
 sizes.
@@ -904,7 +904,7 @@ data over a series of datasets, like this::
 
     def readFile(filename):
         "Select data from all the tables in filename"
-        fileh = openFile(filename, mode = "r")
+        fileh = open_file(filename, mode = "r")
         result = []
         for table in fileh("/", 'Table'):
             result = [p['var3'] for p in table if p['var2'] <= 20]
@@ -991,10 +991,10 @@ needs.
 As an example, look at the next code::
 
     def browse_tables(filename):
-        fileh = openFile(filename,'a')
+        fileh = open_file(filename,'a')
         group = fileh.root.newgroup
         for j in range(10):
-            for tt in fileh.walkNodes(group, "Table"):
+            for tt in fileh.walk_nodes(group, "Table"):
                 title = tt.attrs.TITLE
                 for row in tt:
                     pass

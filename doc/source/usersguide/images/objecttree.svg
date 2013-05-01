@@ -105,19 +105,19 @@
      x="10.1625"
      y="4.0125"
      id="text1616"
-     sodipodi:linespacing="125%">+createGroup(where:Group,name:string): Group</text>
+     sodipodi:linespacing="125%">+create_group(where:Group,name:string): Group</text>
   <text
      style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
      x="10.1625"
      y="4.8125"
      id="text1618"
-     sodipodi:linespacing="125%">+createTable(where:Group,name:string,description:IsDescription): Table</text>
+     sodipodi:linespacing="125%">+create_table(where:Group,name:string,description:IsDescription): Table</text>
   <text
      style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
      x="10.1625"
      y="5.6125"
      id="text1620"
-     sodipodi:linespacing="125%">+createArray(where:Group,name:string,object:array): Array</text>
+     sodipodi:linespacing="125%">+create_array(where:Group,name:string,object:array): Array</text>
   <text
      style="fill:#000000;text-anchor:start;font-size:0.56444445;font-family:Monospace;font-style:normal;font-weight:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;line-height:125%"
      x="10.1625"
