@@ -40,44 +40,6 @@ NodeTypeVersions = [1, 2]
 """Supported values for NODE_TYPE_VERSION node system attribute."""
 
 
-def new_node(h5file, **kwargs):
-    """Creates a new file node object in the specified PyTables file object.
-
-    Additional named arguments where and name must be passed to specify where
-    the file node is to be created. Other named arguments such as title and
-    filters may also be passed.
-
-    The special named argument expectedsize, indicating an estimate of the file
-    size in bytes, may also be passed. It returns the file node object.
-
-    """
-
-    return RAFileNode(None, h5file, **kwargs)
-
-newNode = previous_api(new_node)
-
-
-def open_node(node, mode='r'):
-    """Opens an existing file node.
-
-    Returns a file node object from the existing specified PyTables node.
-    If mode is not specified or it is 'r', the file can only be read,
-    and the pointer is positioned at the beginning of the file.
-    If mode is 'a+', the file can be read and appended, and the pointer
-    is positioned at the end of the file.
-
-    """
-
-    if mode == 'r':
-        return ROFileNode(node)
-    elif mode == 'a+':
-        return RAFileNode(node, None)
-    else:
-        raise IOError("invalid mode: %s" % (mode,))
-
-openNode = previous_api(open_node)
-
-
 class ReadableMixin:
     """Mix-in class which provides reading methods for readable file nodes.
 
@@ -872,6 +834,43 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 
         self._check_not_closed()
         self.node.flush()
+
+def new_node(h5file, **kwargs):
+    """Creates a new file node object in the specified PyTables file object.
+
+    Additional named arguments where and name must be passed to specify where
+    the file node is to be created. Other named arguments such as title and
+    filters may also be passed.
+
+    The special named argument expectedsize, indicating an estimate of the file
+    size in bytes, may also be passed. It returns the file node object.
+
+    """
+
+    return RAFileNode(None, h5file, **kwargs)
+
+newNode = previous_api(new_node)
+
+
+def open_node(node, mode='r'):
+    """Opens an existing file node.
+
+    Returns a file node object from the existing specified PyTables node.
+    If mode is not specified or it is 'r', the file can only be read,
+    and the pointer is positioned at the beginning of the file.
+    If mode is 'a+', the file can be read and appended, and the pointer
+    is positioned at the end of the file.
+
+    """
+
+    if mode == 'r':
+        return ROFileNode(node)
+    elif mode == 'a+':
+        return RAFileNode(node, None)
+    else:
+        raise IOError("invalid mode: %s" % (mode,))
+
+openNode = previous_api(open_node)
 
 
 ## Local Variables:
