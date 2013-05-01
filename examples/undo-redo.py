@@ -4,18 +4,18 @@ import tables
 
 def setUp(filename):
     # Create an HDF5 file
-    fileh = tables.openFile(filename, mode = "w", title="Undo/Redo demo")
+    fileh = tables.open_file(filename, mode = "w", title="Undo/Redo demo")
     # Create some nodes in there
-    fileh.createGroup("/", "agroup", "Group 1")
-    fileh.createGroup("/agroup", "agroup2", "Group 2")
-    fileh.createArray("/", "anarray", [1, 2], "Array 1")
+    fileh.create_group("/", "agroup", "Group 1")
+    fileh.create_group("/agroup", "agroup2", "Group 2")
+    fileh.create_array("/", "anarray", [1, 2], "Array 1")
     # Enable undo/redo.
-    fileh.enableUndo()
+    fileh.enable_undo()
     return fileh
 
 def tearDown(fileh):
     # Disable undo/redo.
-    fileh.disableUndo()
+    fileh.disable_undo()
     # Close the file
     fileh.close()
 
@@ -26,16 +26,16 @@ def demo_6times3marks():
     fileh = setUp("undo-redo-6times3marks.h5")
 
     # Create a new array
-    fileh.createArray('/', 'otherarray1', [3, 4], "Another array 1")
-    fileh.createArray('/', 'otherarray2', [4, 5], "Another array 2")
+    fileh.create_array('/', 'otherarray1', [3, 4], "Another array 1")
+    fileh.create_array('/', 'otherarray2', [4, 5], "Another array 2")
     # Put a mark
     fileh.mark()
-    fileh.createArray('/', 'otherarray3', [5, 6], "Another array 3")
-    fileh.createArray('/', 'otherarray4', [6, 7], "Another array 4")
+    fileh.create_array('/', 'otherarray3', [5, 6], "Another array 3")
+    fileh.create_array('/', 'otherarray4', [6, 7], "Another array 4")
     # Put a mark
     fileh.mark()
-    fileh.createArray('/', 'otherarray5', [7, 8], "Another array 5")
-    fileh.createArray('/', 'otherarray6', [8, 9], "Another array 6")
+    fileh.create_array('/', 'otherarray5', [7, 8], "Another array 5")
+    fileh.create_array('/', 'otherarray6', [8, 9], "Another array 6")
     # Unwind just one mark
     fileh.undo()
     assert "/otherarray1" in fileh
@@ -95,18 +95,18 @@ def demo_manyops():
     fileh = setUp("undo-redo-manyops.h5")
 
     # Create an array
-    fileh.createArray(fileh.root, 'anarray3', [3], "Array title 3")
+    fileh.create_array(fileh.root, 'anarray3', [3], "Array title 3")
     # Create a group
-    fileh.createGroup(fileh.root, 'agroup3', "Group title 3")
+    fileh.create_group(fileh.root, 'agroup3', "Group title 3")
     # /anarray => /agroup/agroup3/
-    newNode = fileh.copyNode('/anarray3', '/agroup/agroup2')
-    newNode = fileh.copyChildren('/agroup', '/agroup3', recursive=1)
+    new_node = fileh.copy_node('/anarray3', '/agroup/agroup2')
+    new_node = fileh.copy_children('/agroup', '/agroup3', recursive=1)
     # rename anarray
-    fileh.renameNode('/anarray', 'anarray4')
+    fileh.rename_node('/anarray', 'anarray4')
     # Move anarray
-    newNode = fileh.copyNode('/anarray3', '/agroup')
+    new_node = fileh.copy_node('/anarray3', '/agroup')
     # Remove anarray4
-    fileh.removeNode('/anarray4')
+    fileh.remove_node('/anarray4')
     # Undo the actions
     fileh.undo()
     assert '/anarray4' not in fileh
@@ -123,7 +123,7 @@ def demo_manyops():
     assert '/agroup/anarray3' in fileh
     assert '/agroup3/agroup2/anarray3' in fileh
     assert '/agroup3/anarray3' not in fileh
-    assert fileh.root.agroup.anarray3 is newNode
+    assert fileh.root.agroup.anarray3 is new_node
     assert '/anarray' not in fileh
     assert '/anarray4' not in fileh
 

@@ -15,8 +15,8 @@ import tables
 # this creates an HDF5 file with one array containing n rows
 def make_file(file_path, n):
 
-    with tables.openFile(file_path, 'w') as fobj:
-        array = fobj.createCArray('/', 'array', tables.Int64Atom(), (n, n))
+    with tables.open_file(file_path, 'w') as fobj:
+        array = fobj.create_carray('/', 'array', tables.Int64Atom(), (n, n))
         for i in xrange(n):
             array[i, :] = i
 
@@ -41,8 +41,8 @@ class FileAccess(multiprocessing.Process):
         super(FileAccess, self).__init__()
 
     def run(self):
-        self.h5_file = tables.openFile(self.h5_path, 'r+')
-        self.array = self.h5_file.getNode('/array')
+        self.h5_file = tables.open_file(self.h5_path, 'r+')
+        self.array = self.h5_file.get_node('/array')
         another_loop = True
         while another_loop:
 

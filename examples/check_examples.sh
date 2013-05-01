@@ -1,5 +1,5 @@
 #!/bin/sh
-PYTHON=python2.6
+PYTHON=python
 # Small script to check the example repository quickly
 $PYTHON array1.py
 $PYTHON array2.py

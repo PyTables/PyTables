@@ -34,7 +34,7 @@ print "Name of value 1234:", colors(1234)
 COMMENT("**** Enumerated columns. ****")
 
 COMMENT("Create a new PyTables file.")
-h5f = tables.openFile('enum.h5', 'w')
+h5f = tables.open_file('enum.h5', 'w')
 
 COMMENT("This describes a ball extraction.")
 class BallExt(tables.IsDescription):
@@ -42,7 +42,7 @@ class BallExt(tables.IsDescription):
     ballColor = tables.EnumCol(colors, 'black', base='uint8')
 
 COMMENT("Create a table of ball extractions.")
-tbl = h5f.createTable(
+tbl = h5f.create_table(
     '/', 'extractions', BallExt, title="Random ball extractions")
 
 COMMENT("Simulate some ball extractions.")
@@ -75,11 +75,11 @@ workingDays = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5}
 dayRange = tables.EnumAtom(workingDays, 'Mon', base='uint16', shape=(0, 2))
 
 COMMENT("Create an EArray of day ranges within a week.")
-earr = h5f.createEArray('/', 'days', dayRange, title="Working day ranges")
+earr = h5f.create_earray('/', 'days', dayRange, title="Working day ranges")
 earr.flavor = 'python'
 
 COMMENT("Throw some day ranges in.")
-wdays = earr.getEnum()
+wdays = earr.get_enum()
 earr.append([(wdays.Mon, wdays.Fri), (wdays.Wed, wdays.Fri)])
 
 COMMENT("The append method does not check values!")

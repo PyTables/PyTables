@@ -6,21 +6,21 @@ class Particle(IsDescription):
     speed    = Float32Col(dflt=1, pos = 1)  # single-precision
 
 # Open a file in "w"rite mode
-fileh = openFile("objecttree.h5", mode = "w")
+fileh = open_file("objecttree.h5", mode = "w")
 # Get the HDF5 root group
 root = fileh.root
 
 # Create the groups:
-group1 = fileh.createGroup(root, "group1")
-group2 = fileh.createGroup(root, "group2")
+group1 = fileh.create_group(root, "group1")
+group2 = fileh.create_group(root, "group2")
 
 # Now, create an array in root group
-array1 = fileh.createArray(root, "array1", ["string", "array"], "String array")
+array1 = fileh.create_array(root, "array1", ["string", "array"], "String array")
 # Create 2 new tables in group1
-table1 = fileh.createTable(group1, "table1", Particle)
-table2 = fileh.createTable("/group2", "table2", Particle)
+table1 = fileh.create_table(group1, "table1", Particle)
+table2 = fileh.create_table("/group2", "table2", Particle)
 # Create the last table in group2
-array2 = fileh.createArray("/group1", "array2", [1, 2, 3, 4])
+array2 = fileh.create_array("/group1", "array2", [1, 2, 3, 4])
 
 # Now, fill the tables:
 for table in (table1, table2):

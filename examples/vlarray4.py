@@ -10,8 +10,8 @@ N = 100
 shape = (3, 3)
 
 numpy.random.seed(10)  # For reproductible results
-f = tables.openFile("vlarray4.h5", mode = "w")
-vlarray = f.createVLArray(f.root, 'vlarray1',
+f = tables.open_file("vlarray4.h5", mode = "w")
+vlarray = f.create_vlarray(f.root, 'vlarray1',
                           tables.Float64Atom(shape=shape),
                           "ragged array of arrays")
 

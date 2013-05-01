@@ -2,8 +2,8 @@ import tables
 from numpy import *
 
 # Create a VLArray:
-fileh = tables.openFile('vlarray1.h5', mode='w')
-vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
+fileh = tables.open_file('vlarray1.h5', mode='w')
+vlarray = fileh.create_vlarray(fileh.root, 'vlarray1',
                               tables.Int32Atom(shape=()),
                               "ragged array of ints",
                               filters=tables.Filters(1))
@@ -18,7 +18,7 @@ for x in vlarray:
     print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, x)
 
 # Now, do the same with native Python strings.
-vlarray2 = fileh.createVLArray(fileh.root, 'vlarray2',
+vlarray2 = fileh.create_vlarray(fileh.root, 'vlarray2',
                               tables.StringAtom(itemsize=2),
                               "ragged array of strings",
                               filters=tables.Filters(1))

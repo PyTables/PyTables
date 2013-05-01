@@ -2,14 +2,14 @@ from numpy import *
 from tables import *
 
 # Open a new empty HDF5 file
-fileh = openFile("attributes1.h5", mode = "w", title="Testing attributes")
+fileh = open_file("attributes1.h5", mode = "w", title="Testing attributes")
 # Get the root group
 root = fileh.root
 
 # Create an array
 a = array([1, 2, 4], int32)
 # Save it on the HDF5 file
-hdfarray = fileh.createArray(root, 'array', a, "Integer array")
+hdfarray = fileh.create_array(root, 'array', a, "Integer array")
 
 # Assign user attributes
 

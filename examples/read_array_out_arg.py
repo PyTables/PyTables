@@ -17,15 +17,15 @@ import tables
 
 def create_file(array_size):
     array = np.ones(array_size, dtype='i8')
-    with tables.openFile('test.h5', 'w') as fobj:
-        array = fobj.createArray('/', 'test', array)
+    with tables.open_file('test.h5', 'w') as fobj:
+        array = fobj.create_array('/', 'test', array)
         print('file created, size: {0} MB'.format(array.size_on_disk / 1e6))
 
 
 def standard_read(array_size):
     N = 10
-    with tables.openFile('test.h5', 'r') as fobj:
-        array = fobj.getNode('/', 'test')
+    with tables.open_file('test.h5', 'r') as fobj:
+        array = fobj.get_node('/', 'test')
         start = time.time()
         for i in xrange(N):
             output = array.read(0, array_size, 1)
@@ -36,8 +36,8 @@ def standard_read(array_size):
 
 def pre_allocated_read(array_size):
     N = 10
-    with tables.openFile('test.h5', 'r') as fobj:
-        array = fobj.getNode('/', 'test')
+    with tables.open_file('test.h5', 'r') as fobj:
+        array = fobj.get_node('/', 'test')
         start = time.time()
         output = np.empty(array_size, 'i8')
         for i in xrange(N):

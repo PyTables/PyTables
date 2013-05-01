@@ -28,15 +28,15 @@ Particle2 = {
 filename = "table-tree.h5"
 
 # Open a file in "w"rite mode
-h5file = openFile(filename, mode = "w")
+h5file = open_file(filename, mode = "w")
 
 # Create a new group under "/" (root)
-group = h5file.createGroup("/", 'detector')
+group = h5file.create_group("/", 'detector')
 
 # Create one table on it
-#table = h5file.createTable(group, 'table', Particle, "Title example")
+#table = h5file.create_table(group, 'table', Particle, "Title example")
 # You can choose creating a Table from a description dictionary if you wish
-table = h5file.createTable(group, 'table', Particle2, "Title example")
+table = h5file.create_table(group, 'table', Particle2, "Title example")
 
 # Create a shortcut to the table record object
 particle = table.row
@@ -66,10 +66,10 @@ print "Total records in table ==> ", len(pressure)
 print
 
 # Create a new group to hold new arrays
-gcolumns = h5file.createGroup("/", "columns")
+gcolumns = h5file.create_group("/", "columns")
 print "columns ==>", gcolumns, pressure
 # Create an array with this info under '/columns' having a 'list' flavor
-h5file.createArray(gcolumns, 'pressure', pressure,
+h5file.create_array(gcolumns, 'pressure', pressure,
                    "Pressure column")
 print "gcolumns.pressure type ==> ", gcolumns.pressure.atom.dtype
 
@@ -77,12 +77,12 @@ print "gcolumns.pressure type ==> ", gcolumns.pressure.atom.dtype
 TDC = [ p['TDCcount'] for p in table.iterrows() ]
 print "TDC ==>", TDC
 print "TDC shape ==>", numpy.array(TDC).shape
-h5file.createArray('/columns', 'TDC', numpy.array(TDC), "TDCcount column")
+h5file.create_array('/columns', 'TDC', numpy.array(TDC), "TDCcount column")
 
 # Do the same with name column
 names = [ p['name'] for p in table.iterrows() ]
 print "names ==>", names
-h5file.createArray('/columns', 'name', names, "Name column")
+h5file.create_array('/columns', 'name', names, "Name column")
 # This works even with homogeneous tuples or lists (!)
 print "gcolumns.name shape ==>", gcolumns.name.shape
 print "gcolumns.name type ==> ", gcolumns.name.atom.dtype
@@ -93,10 +93,10 @@ for p in table.iterrows():
 
 # Save a recarray object under detector
 r = numpy.rec.array("a"*300, formats='f4,3i4,a5,i2', shape=3)
-recarrt = h5file.createTable("/detector", 'recarray', r, "RecArray example")
+recarrt = h5file.create_table("/detector", 'recarray', r, "RecArray example")
 r2 = r[0:3:2]
 # Change the byteorder property
-recarrt = h5file.createTable("/detector", 'recarray2', r2,
+recarrt = h5file.create_table("/detector", 'recarray2', r2,
                              "Non-contiguous recarray")
 print recarrt
 print
@@ -108,7 +108,7 @@ h5file.close()
 #sys.exit()
 
 # Reopen it in append mode
-h5file = openFile(filename, "a")
+h5file = open_file(filename, "a")
 
 # Ok. let's start browsing the tree from this filename
 print "Reading info from filename:", h5file.filename
@@ -116,7 +116,7 @@ print
 
 # Firstly, list all the groups on tree
 print "Groups in file:"
-for group in h5file.walkGroups("/"):
+for group in h5file.walk_groups("/"):
     print group
 print
 
@@ -126,29 +126,29 @@ print h5file
 
 # And finally, only the Arrays (Array objects)
 print "Arrays in file:"
-for array in h5file.walkNodes("/", classname="Array"):
+for array in h5file.walk_nodes("/", classname="Array"):
     print array
 print
 
 # Get group /detector and print some info on it
-detector = h5file.getNode("/detector")
+detector = h5file.get_node("/detector")
 print "detector object ==>", detector
 
 # List only leaves on detector
 print "Leaves in group", detector, ":"
-for leaf in h5file.listNodes("/detector", 'Leaf'):
+for leaf in h5file.list_nodes("/detector", 'Leaf'):
     print leaf
 print
 
 # List only tables on detector
 print "Tables in group", detector, ":"
-for leaf in h5file.listNodes("/detector", 'Table'):
+for leaf in h5file.list_nodes("/detector", 'Table'):
     print leaf
 print
 
 # List only arrays on detector (there should be none!)
 print "Arrays in group", detector, ":"
-for leaf in h5file.listNodes("/detector", 'Array'):
+for leaf in h5file.list_nodes("/detector", 'Array'):
     print leaf
 print
 
@@ -157,7 +157,7 @@ group = h5file.root.detector
 print "/detector ==>", group
 
 # Get the "/detector/table
-table = h5file.getNode("/detector/table")
+table = h5file.get_node("/detector/table")
 print "/detector/table ==>", table
 
 # Get metadata from table
@@ -174,7 +174,7 @@ print
 # Read arrays in /columns/names and /columns/pressure
 
 # Get the object in "/columns pressure"
-pressureObject = h5file.getNode("/columns", "pressure")
+pressureObject = h5file.get_node("/columns", "pressure")
 
 # Get some metadata on this object
 print "Info on the object:", pressureObject
@@ -279,17 +279,17 @@ print
 result = [ rec['f1'] for rec in table if rec.nrow < 2 ]
 print result
 
-# Test the File.renameNode() method
-#h5file.renameNode(h5file.root.detector.recarray2, "recarray3")
-h5file.renameNode(table, "recarray3")
+# Test the File.rename_node() method
+#h5file.rename_node(h5file.root.detector.recarray2, "recarray3")
+h5file.rename_node(table, "recarray3")
 # Delete a Leaf from the HDF5 tree
-h5file.removeNode(h5file.root.detector.recarray3)
+h5file.remove_node(h5file.root.detector.recarray3)
 # Delete the detector group and its leaves recursively
-#h5file.removeNode(h5file.root.detector, recursive=1)
+#h5file.remove_node(h5file.root.detector, recursive=1)
 # Create a Group and then remove it
-h5file.createGroup(h5file.root, "newgroup")
-h5file.removeNode(h5file.root, "newgroup")
-h5file.renameNode(h5file.root.columns, "newcolumns")
+h5file.create_group(h5file.root, "newgroup")
+h5file.remove_node(h5file.root, "newgroup")
+h5file.rename_node(h5file.root.columns, "newcolumns")
 
 print h5file
 

@@ -12,7 +12,7 @@ print
 print   '-**-**-**-**- open the previous tutorial file -**-**-**-**-**-'
 
 # Reopen the file in append mode
-h5file = openFile("tutorial1.h5", "a")
+h5file = open_file("tutorial1.h5", "a")
 
 # Print the object tree created from this filename
 print "Object tree from filename:", h5file.filename
@@ -32,29 +32,29 @@ print
 
 # Now, only list all the groups on tree
 print "Groups in file:"
-for group in h5file.walkGroups():
+for group in h5file.walk_groups():
     print group
 print
 
 # List only the arrays hanging from /
 print "Arrays in file (I):"
-for group in h5file.walkGroups("/"):
-    for array in h5file.listNodes(group, classname='Array'):
+for group in h5file.walk_groups("/"):
+    for array in h5file.list_nodes(group, classname='Array'):
         print array
 
 # This do the same result
 print "Arrays in file (II):"
-for array in h5file.walkNodes("/", "Array"):
+for array in h5file.walk_nodes("/", "Array"):
     print array
 print
 # And finally, list only leafs on /detector group (there should be one!)
 print "Leafs in group '/detector' (I):"
-for leaf in h5file.listNodes("/detector", 'Leaf'):
+for leaf in h5file.list_nodes("/detector", 'Leaf'):
     print leaf
 
 # Other way using iterators and natural naming
 print "Leafs in group '/detector' (II):"
-for leaf in h5file.root.detector._f_walkNodes('Leaf'):
+for leaf in h5file.root.detector._f_walknodes('Leaf'):
     print leaf
 
 
@@ -124,7 +124,7 @@ for name in table.colnames:
 print
 
 # Get the object in "/columns pressure"
-pressureObject = h5file.getNode("/columns", "pressure")
+pressureObject = h5file.get_node("/columns", "pressure")
 
 # Get some metadata on this object
 print "Info on the object:", repr(pressureObject)
@@ -216,7 +216,7 @@ table.cols.energy[1:9:3] = [2, 3, 4]
 print "After modifying slice [1:9:3] of energy-->", table[0:9]
 
 # Modifying complete Rows
-table.modifyRows(start=1, step=3,
+table.modify_rows(start=1, step=3,
                  rows=[(1, 2, 3.0, 4, 5, 6L, 'Particle:   None', 8.0),
                        (2, 4, 6.0, 8, 10, 12L, 'Particle: None*2', 16.0)])
 print "After modifying the complete third row-->", table[0:5]
@@ -254,7 +254,7 @@ print
 print   '-**-**-**-**- remove records from a table -**-**-**-**-**-'
 
 # Delete some rows on the Table (yes, rows can be removed!)
-table.removeRows(5, 10)
+table.remove_rows(5, 10)
 
 # Print some table columns, for comparison with array data
 print "Some columns in final table:"

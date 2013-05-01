@@ -24,11 +24,11 @@ class Particle(IsDescription):
 t1 = time()
 print "Creating a table with %s entries aprox.. Wait please..." % \
       (int(NEVENTS*(MAX_PARTICLES_PER_EVENT/2.)))
-fileh = openFile("particles-pro.h5", mode = "w")
-group = fileh.createGroup(fileh.root, "events")
-table = fileh.createTable(group, 'table', Particle, "A table", Filters(0))
+fileh = open_file("particles-pro.h5", mode = "w")
+group = fileh.create_group(fileh.root, "events")
+table = fileh.create_table(group, 'table', Particle, "A table", Filters(0))
 # Choose this line if you want data compression
-#table = fileh.createTable(group, 'table', Particle, "A table", Filters(1))
+#table = fileh.create_table(group, 'table', Particle, "A table", Filters(1))
 
 # Fill the table with events
 numpy.random.seed(1)  # In order to have reproducible results
@@ -47,7 +47,7 @@ print "Added %s entries --- Time: %s sec" % (table.nrows, round((time()-t1), 3))
 
 t1 = time()
 print "Creating index..."
-table.cols.event_id.createIndex(optlevel=0, verbose=True)
+table.cols.event_id.create_index(optlevel=0, verbose=True)
 print "Index created --- Time: %s sec" % (round((time()-t1), 3))
 # Add the number of events as an attribute
 table.attrs.nevents = NEVENTS
@@ -56,7 +56,7 @@ fileh.close()
 
 # Open the file en read only mode and start selections
 print "Selecting events..."
-fileh = openFile("particles-pro.h5", mode = "r")
+fileh = open_file("particles-pro.h5", mode = "r")
 table = fileh.root.events.table
 
 print "Particles in event 34:",

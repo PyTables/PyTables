@@ -31,8 +31,8 @@ import tables
 # elements
 def create_file(array_size):
     array = np.ones(array_size, dtype='i8')
-    with tables.openFile('test.h5', 'w') as fobj:
-        array = fobj.createArray('/', 'test', array)
+    with tables.open_file('test.h5', 'w') as fobj:
+        array = fobj.create_array('/', 'test', array)
         print('file created, size: {0} MB'.format(array.size_on_disk / 1e6))
 
 
@@ -65,8 +65,8 @@ def read_and_send_pipe(send_type, array_size):
     recv_process = PipeReceive(array_recv, result_send)
     recv_process.start()
     time.sleep(0.15)
-    with tables.openFile('test.h5', 'r') as fobj:
-        array = fobj.getNode('/', 'test')
+    with tables.open_file('test.h5', 'r') as fobj:
+        array = fobj.get_node('/', 'test')
         start_timestamp = time.time()
         # read an array from the PyTables file and send it to the other process
         output = array.read(0, array_size, 1)
@@ -111,8 +111,8 @@ def read_and_send_memmap(send_type, array_size):
     recv_process = MemmapReceive(path_recv, result_send)
     recv_process.start()
     time.sleep(0.15)
-    with tables.openFile('test.h5', 'r') as fobj:
-        array = fobj.getNode('/', 'test')
+    with tables.open_file('test.h5', 'r') as fobj:
+        array = fobj.get_node('/', 'test')
         start_timestamp = time.time()
         # memmap a file as a NumPy array in 'overwrite' mode
         output = np.memmap('/tmp/array1', 'i8', 'w+', shape=(array_size, ))
@@ -189,8 +189,8 @@ def read_and_send_socket(send_type, array_size, array_bytes, address_func,
                                  array_bytes)
     recv_process.start()
     time.sleep(0.15)
-    with tables.openFile('test.h5', 'r') as fobj:
-        array = fobj.getNode('/', 'test')
+    with tables.open_file('test.h5', 'r') as fobj:
+        array = fobj.get_node('/', 'test')
         start_timestamp = time.time()
         # connect to the receiving process' socket
         sock = socket.socket(socket_family, socket.SOCK_STREAM)
