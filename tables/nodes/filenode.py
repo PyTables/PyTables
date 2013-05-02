@@ -26,7 +26,7 @@ See :ref:`filenode_usersguide` for instructions on use.
 
 .. versionchanged:: 3.0
 
-    In version 3.0 the module as been copletely rwritten do be fully
+    In version 3.0 the module as been copletely rewritten do be fully
     comliant with the :mod:`io` module interfeces.
 
 """
@@ -74,12 +74,7 @@ class RawPyTablesIO(io.RawIOBase):
         self._pos = 0
         self._version = int(node.attrs.NODE_TYPE_VERSION)
         self._vshape = self._size_to_shape[self._version]
-        # @TODO: check
-        #_vtype = tables.UInt8Atom().dtype.base.type
         self._vtype = node.atom.dtype.base.type
-
-        # @TODO: remove
-        assert(self._vtype == np.uint8)
 
     # read only attribute
     @property
@@ -277,11 +272,9 @@ class RawPyTablesIO(io.RawIOBase):
         self._checkClosed()
         self._checkReadable()
 
-        # @TODO: check
-        #chunksize = self._line_chunksize
         chunksize = self._node.chunkshape[0]
 
-        # @TODO: check
+        # XXX: check
         lsep = b'\n'
         lseplen = len(lsep)
 
@@ -428,18 +421,17 @@ class RawPyTablesIO(io.RawIOBase):
             raise ValueError("must have exactly one of read/write/append mode")
 
     def _cross_check_mode(self, mode, h5filemode):
+        # XXX: check
+        #readable = bool('r' in mode or '+' in mode)
+        #h5readable = bool('r' in h5filemode or '+' in h5filemode)
+        #
+        #if readable and not h5readable:
+        #    raise ValueError("RawPyTablesIO can't be open in read mode if "
+        #                     "the underlying hdf5 file is not readable")
 
-        readable = bool('r' in mode or '+' in mode)
         writable = bool('w' in mode or 'a' in mode or '+' in mode)
-
-        h5readable = bool('r' in h5filemode or '+' in h5filemode)
         h5writable = bool('w' in h5filemode or 'a' in h5filemode or
                           '+' in h5filemode)
-
-        # @TPDP: check
-        #~ if readable and not h5readable:
-            #~ raise ValueError("RawPyTablesIO can't be open in read mode if "
-                             #~ "the underlying hdf5 file is not readable")
 
         if writable and not h5writable:
             raise ValueError("RawPyTablesIO can't be open in write mode if "
@@ -484,34 +476,13 @@ class RawPyTablesIO(io.RawIOBase):
             np.zeros(dtype=self._vtype, shape=self._vshape(size)))
 
 
-class FileNode(RawPyTablesIO):
-    """This is the ancestor of ROFileNode and RAFileNode (see below).
+class FileNodeMixin(object):
+    """Mixin class for FileNode objects
 
-    Instances of these classes are returned when new_node() or
-    open_node() are called. It represents a new file node associated
-    with a PyTables node, providing a standard Python file interface
-    to it.
-
-    The implementation of the reading/writing methods needed to implement a
-    file-like object over a PyTables node is provided by the RawPyTablesIO
-    base class.
-
-    The attribute set of the node becomes available via the attrs property.
+    It provides access to the attribute set of the node that becomes
+    available via the attrs property.
     You can add attributes there, but try to avoid attribute names in all
     caps or starting with '_', since they may clash with internal attributes.
-
-    The node used as storage is also made available via the read-only
-    attribute node.
-    Please do not tamper with this object if it's avoidable, since you
-    may break the operation of the file node object.
-
-    Version 1 implements the file storage as a UInt8 uni-dimensional EArray.
-    Version 2 uses an UInt8 N vector EArray.
-
-    .. versionchanged:: 3.0
-
-        The line_separator property is no more available.
-        The only line separator used for binary I/O is '\n'.
 
     """
 
@@ -543,46 +514,8 @@ class FileNode(RawPyTablesIO):
         _get_attrs, _set_attrs, _del_attrs,
         "A property pointing to the attribute set of the file node.")
 
-    @property
-    def node(self):
-        return self._node
 
-    # @TODO: check
-    #def __del__(self):
-    #    if self.node is not None:
-    #        self.close()
-
-    def _set_attributes(self, node):
-        """_set_attributes(node) -> None.  Adds file node-specific attributes.
-
-        Sets the system attributes 'NODE_TYPE' and 'NODE_TYPE_VERSION'
-        in the specified PyTables node (leaf).
-
-        """
-
-        attrs = node.attrs
-        # System attributes are now writable.  ivb(2004-12-30)
-        # attrs._g_setattr('NODE_TYPE', NodeType)
-        # attrs._g_setattr('NODE_TYPE_VERSION', NodeTypeVersions[-1])
-        attrs.NODE_TYPE = NodeType
-        attrs.NODE_TYPE_VERSION = NodeTypeVersions[-1]
-
-    _setAttributes = previous_api(_set_attributes)
-
-    # --- compatibility ------------------------------------------------------
-    @property
-    def offset(self):
-        warnings.warn('deprecated API:please use "tell" instead', stacklevel=1)
-        return self._pas
-
-    @offset.setter
-    def offset(self, value):
-        warnings.warn('deprecated API: please use "seek" instaed', stacklevel=1)
-        self._pos = value
-
-
-
-class ROFileNode(FileNode):
+class ROFileNode(FileNodeMixin, RawPyTablesIO):
     """Creates a new read-only file node.
 
     Creates a new read-only file node associated with the specified
@@ -590,22 +523,36 @@ class ROFileNode(FileNode):
     The node has to have been created on a previous occasion
     using the new_node() function.
 
-    This constructor is not intended to be used directly.
+    The node used as storage is also made available via the read-only
+    attribute node.  Please do not tamper with this object if it's
+    avoidable, since you may break the operation of the file node object.
+
+    The constructor is not intended to be used directly.
     Use the open_node() function in read-only mode ('r') instead.
+
+    Version 1 implements the file storage as a UInt8 uni-dimensional EArray.
+    Version 2 uses an UInt8 N vector EArray.
+
+    .. versionchanged:: 3.0
+
+        The offset attribute is no more available, please use seek/tell
+        methods instead.
+
+        Also the line_separator property is no more available.
+        The only line separator used for binary I/O is '\n'.
 
     """
 
-    # Since FileNode provides all methods for read-only access,
-    # only the constructor method and failing writing methods are needed.
     def __init__(self, node):
-        super(ROFileNode, self).__init__(node, 'r')
+        RawPyTablesIO.__init__(self, node, 'r')
+        self._checkReadable()
 
-    # @TODO: check
-    #def __del__(self):
-    #    super(ROFileNode, self).__del__()
+    @property
+    def node(self):
+        return self._node
 
 
-class RAFileNode(FileNode):
+class RAFileNode(FileNodeMixin, RawPyTablesIO):
     """Creates a new read-write file node.
 
     The first syntax opens the specified PyTables node, while the
@@ -618,8 +565,23 @@ class RAFileNode(FileNode):
 
     Write access means reading as well as appending data is allowed.
 
-    This constructor is not intended to be used directly.
+    The node used as storage is also made available via the read-only
+    attribute node.  Please do not tamper with this object if it's
+    avoidable, since you may break the operation of the file node object.
+
+    The constructor is not intended to be used directly.
     Use the new_node() or open_node() functions instead.
+
+    Version 1 implements the file storage as a UInt8 uni-dimensional EArray.
+    Version 2 uses an UInt8 N vector EArray.
+
+    .. versionchanged:: 3.0
+
+        The offset attribute is no more available, please use seek/tell
+        methods instead.
+
+        Also the line_separator property is no more available.
+        The only line separator used for binary I/O is '\n'.
 
     """
 
@@ -667,11 +629,27 @@ class RAFileNode(FileNode):
                 h5file.remove_node(kwargs['where'], kwargs['name'])
                 raise
 
-        super(RAFileNode, self).__init__(node, 'a+')
+        RawPyTablesIO.__init__(self, node, 'a+')
+        self._checkReadable()
+        self._checkWritable()
 
-    # @TODO:check
-    #def __del__(self):
-    #    super(RAFileNode, self).__del__()
+    @property
+    def node(self):
+        return self._node
+
+    def _set_attributes(self, node):
+        """_set_attributes(node) -> None.  Adds file node-specific attributes.
+
+        Sets the system attributes 'NODE_TYPE' and 'NODE_TYPE_VERSION'
+        in the specified PyTables node (leaf).
+
+        """
+
+        attrs = node.attrs
+        attrs.NODE_TYPE = NodeType
+        attrs.NODE_TYPE_VERSION = NodeTypeVersions[-1]
+
+    _setAttributes = previous_api(_set_attributes)
 
 
 def new_node(h5file, **kwargs):
@@ -681,8 +659,8 @@ def new_node(h5file, **kwargs):
     the file node is to be created. Other named arguments such as title and
     filters may also be passed.
 
-    The special named argument expectedsize, indicating an estimate of the file
-    size in bytes, may also be passed. It returns the file node object.
+    The special named argument expectedsize, indicating an estimate of the
+    file size in bytes, may also be passed. It returns the file node object.
 
     """
 
