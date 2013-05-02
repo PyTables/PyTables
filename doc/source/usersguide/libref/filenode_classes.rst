@@ -7,8 +7,10 @@ Filenode Module
 
 .. automodule:: tables.nodes.filenode
 
+
 Module constants
 ----------------
+
 .. autodata:: NodeType
 
 .. autodata:: NodeTypeVersions
@@ -16,29 +18,50 @@ Module constants
 
 Module functions
 ----------------
+
 .. autofunction:: new_node
 
 .. autofunction:: open_node
 
-The FileNode abstract class
----------------------------
 
-.. autoclass:: FileNode
+The RawPyTablesIO base class
+----------------------------
 
-FileNode attributes
-~~~~~~~~~~~~~~~~~~~
-
-.. autoattribute:: FileNode.attrs
+.. autoclass:: RawPyTablesIO
 
 
-FileNode methods
-~~~~~~~~~~~~~~~~
+RawPyTablesIO attributes
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automethod:: FileNode.close
+.. autoattribute:: RawPyTablesIO.mode
 
-.. automethod:: FileNode.seek
 
-.. automethod:: FileNode.tell
+RawPyTablesIO methods
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automethod:: RawPyTablesIO.tell
+
+.. automethod:: RawPyTablesIO.seek
+
+.. automethod:: RawPyTablesIO.seekable
+
+.. automethod:: RawPyTablesIO.fileno
+
+.. automethod:: RawPyTablesIO.close
+
+.. automethod:: RawPyTablesIO.flush
+
+.. automethod:: RawPyTablesIO.truncate
+
+.. automethod:: RawPyTablesIO.readable
+
+.. automethod:: RawPyTablesIO.writable
+
+.. automethod:: RawPyTablesIO.readinto
+
+.. automethod:: RawPyTablesIO.readline
+
+.. automethod:: RawPyTablesIO.write
 
 
 The ROFileNode class
@@ -47,12 +70,16 @@ The ROFileNode class
 .. autoclass:: ROFileNode
 
 
+ROFileNode attributes
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoattribute:: ROFileNode.attrs
+
+
 ROFileNode methods
 ~~~~~~~~~~~~~~~~~~
 
 .. automethod:: ROFileNode.flush
-
-.. automethod:: ROFileNode.next
 
 .. automethod:: ROFileNode.read
 
@@ -60,14 +87,19 @@ ROFileNode methods
 
 .. automethod:: ROFileNode.readlines
 
-.. automethod:: ROFileNode.xreadlines
+.. automethod:: ROFileNode.close
 
-.. automethod:: ROFileNode.truncate
+.. automethod:: ROFileNode.seek
 
-.. automethod:: ROFileNode.write
+.. automethod:: ROFileNode.tell
 
-.. automethod:: ROFileNode.writelines
+.. automethod:: ROFileNode.readable
 
+.. automethod:: ROFileNode.writable
+
+.. automethod:: ROFileNode.seekable
+
+.. automethod:: ROFileNode.fileno
 
 
 The RAFileNode class
@@ -75,12 +107,17 @@ The RAFileNode class
 
 .. autoclass:: RAFileNode
 
+
+RAFileNode attributes
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoattribute:: RAFileNode.attrs
+
+
 RAFileNode methods
 ~~~~~~~~~~~~~~~~~~
 
 .. automethod:: RAFileNode.flush
-
-.. automethod:: RAFileNode.next
 
 .. automethod:: RAFileNode.read
 
@@ -88,11 +125,23 @@ RAFileNode methods
 
 .. automethod:: RAFileNode.readlines
 
-.. automethod:: RAFileNode.xreadlines
-
 .. automethod:: RAFileNode.truncate
 
 .. automethod:: RAFileNode.write
 
 .. automethod:: RAFileNode.writelines
+
+.. automethod:: RAFileNode.close
+
+.. automethod:: RAFileNode.seek
+
+.. automethod:: RAFileNode.tell
+
+.. automethod:: RAFileNode.readable
+
+.. automethod:: RAFileNode.writable
+
+.. automethod:: RAFileNode.seekable
+
+.. automethod:: RAFileNode.fileno
 

@@ -25,9 +25,8 @@ Currently only binary I/O is supported.
 See :ref:`filenode_usersguide` for instructions on use.
 
 .. versionchanged:: 3.0
-
-    In version 3.0 the module as been copletely rewritten do be fully
-    comliant with the :mod:`io` module interfeces.
+   In version 3.0 the module as been completely rewritten to be fully
+   compliant with the interfaces defined in the :mod:`io` module.
 
 """
 
@@ -79,6 +78,8 @@ class RawPyTablesIO(io.RawIOBase):
     # read only attribute
     @property
     def mode(self):
+        '''File mode'''
+
         return self._mode
 
     #def tell(self) -> int:
@@ -164,9 +165,9 @@ class RawPyTablesIO(io.RawIOBase):
             self._node = None
 
     def flush(self):
-        """Flushes the file node.
+        """Flush write buffers, if applicable.
 
-        See file.flush.__doc__ for more information.
+        This is not implemented for read-only and non-blocking streams.
 
         """
 
@@ -263,7 +264,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         If limit is specified, at most limit bytes will be read.
 
-        The line terminator is always b'\n' for binary files; for text
+        The line terminator is always ``\\n`` for binary files; for text
         files, the newlines argument to open can be used to select the line
         terminator(s) recognized.
 
@@ -530,16 +531,18 @@ class ROFileNode(FileNodeMixin, RawPyTablesIO):
     The constructor is not intended to be used directly.
     Use the open_node() function in read-only mode ('r') instead.
 
-    Version 1 implements the file storage as a UInt8 uni-dimensional EArray.
-    Version 2 uses an UInt8 N vector EArray.
+    :Version 1:
+        implements the file storage as a UInt8 uni-dimensional EArray.
+    :Version 2:
+        uses an UInt8 N vector EArray.
 
     .. versionchanged:: 3.0
+       The offset attribute is no more available, please use seek/tell
+       methods instead.
 
-        The offset attribute is no more available, please use seek/tell
-        methods instead.
-
-        Also the line_separator property is no more available.
-        The only line separator used for binary I/O is '\n'.
+    .. versionchanged:: 3.0
+       The line_separator property is no more available.
+       The only line separator used for binary I/O is ``\\n``.
 
     """
 
@@ -572,16 +575,18 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
     The constructor is not intended to be used directly.
     Use the new_node() or open_node() functions instead.
 
-    Version 1 implements the file storage as a UInt8 uni-dimensional EArray.
-    Version 2 uses an UInt8 N vector EArray.
+    :Version 1:
+        implements the file storage as a UInt8 uni-dimensional EArray.
+    :Version 2:
+        uses an UInt8 N vector EArray.
 
     .. versionchanged:: 3.0
+       The offset attribute is no more available, please use seek/tell
+       methods instead.
 
-        The offset attribute is no more available, please use seek/tell
-        methods instead.
-
-        Also the line_separator property is no more available.
-        The only line separator used for binary I/O is '\n'.
+    .. versionchanged:: 3.0
+       The line_separator property is no more available.
+       The only line separator used for binary I/O is ``\\n``.
 
     """
 
