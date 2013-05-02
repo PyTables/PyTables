@@ -277,8 +277,10 @@ This is a list of known current limitations:
 #. Node files can only be opened for read-only or read and append mode. This
    should be enhanced in the future.
 #. Near future?
-#. There is no universal newline support yet. This is likely to be
-   implemented in a near future.
+#. Only binary I/O is supported currently (read/write strings of bytes)
+#. There is no universal newline support yet. The only new-line character
+   used at the moment is ``\n``. This is likely to be improved in a near
+   future.
 #. Sparse files (files with lots of zeros) are not treated specially; if you
    want them to take less space, you should be better off using compression.
 

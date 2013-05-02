@@ -49,6 +49,11 @@ New features
   available if numpy_ provides it as well.
   Closes :issue:`51` and :issue:`214`.  Many thanks to Andrea Bedini.
 
+- Complete rewrite of the :mod:`nodes.filenode` module. Now it is fully
+  compliant with the interfaces defined in the standard :mod:`io` module.
+  Only non-buffered binary I/O is supported currently.
+  See also the `API changes`_ section.  Closes :issue:`244`.
+
 - New :program:`pt2to3` tool is provided to help users to port their
   applications to the new API (see `API changes`_ section).
 
@@ -118,7 +123,7 @@ so the old API is still usable even if it is now deprecated (see the
 Deprecations_ section).
 
 The only important exception is represented by names function/methods
-arguments.  Al uses of keyword arguments should be checked and fixed to use
+arguments.  All uses of keyword arguments should be checked and fixed to use
 the new naming convention.
 
 The new :program:`pt2to3` tool can be used to port PyTables based applications
@@ -143,6 +148,20 @@ Many deprecated features and support for obsolete modules has been dropped:
   parameter named *warn16incompat*.  It was deprecated since PyTables 2.4.
 
 Moreover:
+
+- The :mod:`nodes.filenode` has been completely rewritten to be fully
+  compliant with the interfaces defined in the :mod:`io` module.
+
+  The FileNode classes currently implemented are intended for binary I/O.
+
+  Main changes:
+
+  * the FileNode base class is no more available,
+  * the new version of :class:`nodes.filenode.ROFileNode` and
+    :class:`nodes.filenode.RAFileNode` objects no more expose the *offset*
+    attribute (the *seek* and *tell* methods can be used instead),
+  * the *lineSeparator* property is no more available end the ``\n``
+    character is always used as line separator.
 
 - The `__version__` module constants has been removed from almost all the
   modules (it was no more used after the switch to Git).
