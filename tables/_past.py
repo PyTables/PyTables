@@ -323,10 +323,10 @@ old2newnames = dict([
     ('openNode', 'open_node'),
     ('_lineChunkSize', '_line_chunksize'),              # attr (private)
     ('_lineSeparator', '_line_separator'),              # attr (private)
-    ('getLineSeparator', 'get_line_separator'),
-    ('setLineSeparator', 'set_line_separator'),
-    ('delLineSeparator', 'del_line_separator'),
-    ('lineSeparator', 'line_separator'),                # property
+    #('getLineSeparator', 'get_line_separator'),        # dropped
+    #('setLineSeparator', 'set_line_separator'),        # dropped
+    #('delLineSeparator', 'del_line_separator'),        # dropped
+    #('lineSeparator', 'line_separator'),                # property -- dropped
     ('_notReadableError', '_not_readable_error'),
     ('_appendZeros', '_append_zeros'),
     ('getAttrs', '_get_attrs'),

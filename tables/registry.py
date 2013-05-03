@@ -44,7 +44,8 @@ objects (e.g. `Group`).  Classes are registered here when they are
 defined, and they are not expected to be unregistered (by now), but they
 can be replaced when the module that defines them is reloaded.
 
-.. versionadded:: 3.0
+.. versionchanged:: 3.0
+   The *classNameDict* dictionary has been renamed into *class_name_dict*.
 
 """
 
@@ -57,7 +58,8 @@ attribute are registered here when they are defined, and they are not
 expected to be unregistered (by now), but they can be replaced when the
 module that defines them is reloaded.
 
-.. versionadded:: 3.0
+.. versionchanged:: 3.0
+   The *classIdDict* dictionary has been renamed into *class_id_dict*.
 
 """
 
@@ -71,6 +73,8 @@ def get_class_by_name(classname):
 
     If the name is not registered, a ``TypeError`` is raised.  The empty
     string and ``None`` are also accepted, and mean the ``Node`` class.
+
+    .. versionadded:: 3.0
 
     """
 

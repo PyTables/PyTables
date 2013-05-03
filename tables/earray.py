@@ -45,11 +45,11 @@ class EArray(CArray):
         The parent :class:`Group` object.
 
         .. versionchanged:: 3.0
-
-            Renamed from *parentNode* to *parentnode*
+           Renamed from *parentNode* to *parentnode*.
 
     name : str
         The name of this node in its parent group.
+
     atom
         An `Atom` instance representing the *type* and *shape*
         of the atomic objects to be saved.

@@ -301,7 +301,9 @@ class Description(object):
         respective descriptions (Col - see :ref:`ColClassDescr` or
         Description - see :ref:`DescriptionClassDescr` instances).
 
-        .. versionadded:: 3.0
+        .. versionchanged:: 3.0
+           The *_v_colObjects* attobute has been renamed into
+           *_v_colobjects*.
 
     .. attribute:: _v_dflts
 
@@ -348,7 +350,9 @@ class Description(object):
         under this table or nested column. You can use this as the dtype and
         descr arguments of NumPy array factories.
 
-        .. versionadded:: 3.0
+        .. versionchanged:: 3.0
+           The *_v_nestedDescr* attribute has been renamed into
+           *_v_nested_descr*.
 
     .. attribute:: _v_nested_formats
 
@@ -356,7 +360,9 @@ class Description(object):
         columns under this table or nested column. You can use this as the
         formats argument of NumPy array factories.
 
-        .. versionadded:: 3.0
+        .. versionchanged:: 3.0
+           The *_v_nestedFormats* attribute has been renamed into
+           *_v_nested_formats*.
 
     .. attribute:: _v_nestedlvl
 
@@ -369,7 +375,9 @@ class Description(object):
         nested column. You can use this as the names argument of NumPy array
         factories.
 
-        .. versionadded:: 3.0
+        .. versionchanged:: 3.0
+           The *_v_nestedNames* attribute has been renamed into
+           *_v_nested_names*.
 
     .. attribute:: _v_pathname
 

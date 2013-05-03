@@ -581,8 +581,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         default setting method does not log anything.
 
         .. versionchanged:: 3.0
+           The *newSet* parameter has been renamed into *newset*.
 
-            The *copyClass* parameter has been renamed into *copyclass*.
+        .. versionchanged:: 3.0
+           The *copyClass* parameter has been renamed into *copyclass*.
 
         """
 

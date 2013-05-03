@@ -24,7 +24,13 @@ class ProxyDict(dict):
 
     def __init__(self, container):
         self.containerref = weakref.ref(container)
-        """A weak reference to the container object."""
+        """A weak reference to the container object.
+
+        .. versionchanged:: 3.0
+           The *containerRef* attribute has been renamed into
+           *containerref*.
+
+        """
 
     def __getitem__(self, key):
         if key not in self:

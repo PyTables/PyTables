@@ -142,7 +142,8 @@ class Node(object):
 
         A node identifier (may change from run to run).
 
-        .. versionadded:: 3.0
+        .. versionchanged:: 3.0
+           The *_v_objectID* attribute has been renamed into *_v_object_id*.
 
     """
 
@@ -234,7 +235,12 @@ class Node(object):
         """Is the node being deleted?"""
 
         self._v_objectid = None
-        """A node identifier (may change from run to run)."""
+        """A node identifier (may change from run to run).
+
+        .. versionchanged:: 3.0
+           The *_v_objectID* attribute has been renamed into *_v_objectid*.
+
+        """
 
         validate = new = self._v_new  # set by subclass constructor
 

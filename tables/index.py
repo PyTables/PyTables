@@ -119,8 +119,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         The parent :class:`Group` object.
 
         .. versionchanged:: 3.0
-
-            Renamed from *parentNode* to *parentnode*
+           Renamed from *parentNode* to *parentnode*.
 
     name : str
         The name of this node in its parent group.
@@ -291,7 +290,12 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
     _is_CSI = previous_api(_is_csi)
 
     is_csi = property(_is_csi, None, None,
-        "Whether the index is completely sorted or not.")
+        """Whether the index is completely sorted or not.
+
+        .. versionchanged:: 3.0
+           The *is_CSI* property has been renamed into *is_csi*.
+
+        """)
 
     is_CSI = previous_api(is_csi)
 

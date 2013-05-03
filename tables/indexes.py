@@ -55,8 +55,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
         The Index class from which this object will hang off.
 
         .. versionchanged:: 3.0
-
-            Renamed from *parentNode* to *parentnode*
+           Renamed from *parentNode* to *parentnode*.
 
     name : str
         The name of this node in its parent group.

@@ -84,8 +84,7 @@ class Group(hdf5extension.Group, Node):
         The parent :class:`Group` object.
 
         .. versionchanged:: 3.0
-
-            Renamed from *parentNode* to *parentnode*
+           Renamed from *parentNode* to *parentnode*
 
     name : str
         The name of this node in its parent group.
@@ -222,14 +221,19 @@ class Group(hdf5extension.Group, Node):
 
         self._v_new = new
         """Is this the first time the node has been created?"""
+
         self._v_new_title = title
         """New title for this node."""
+
         self._v_new_filters = filters
         """New default filter properties for child nodes."""
+
         self._v_max_group_width = parentnode._v_file.params['MAX_GROUP_WIDTH']
         """Maximum number of children on each group before warning the user.
 
-        .. versionadded:: 3.0
+        .. versionchanged:: 3.0
+           The *_v_maxGroupWidth* attribute has been renamed into
+           *_v_max_group_width*.
 
         """
 

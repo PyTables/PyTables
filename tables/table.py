@@ -474,8 +474,7 @@ class Table(tableextension.Table, Leaf):
         The parent :class:`Group` object.
 
         .. versionchanged:: 3.0
-
-            Renamed from *parentNode* to *parentnode*
+           Renamed from *parentNode* to *parentnode*.
 
     name : str
         The name of this node in its parent group.
@@ -671,6 +670,9 @@ class Table(tableextension.Table, Leaf):
     indexes, use :meth:`Table.reindex_dirty`.
 
     This value is persistent.
+
+    .. versionchanged:: 3.0
+       The *autoIndex* property has been renamed into *autoindex*.
 
     """
 

@@ -121,6 +121,9 @@ checkNameValidity = previous_api(check_name_validity)
 def join_path(parentpath, name):
     """Join a *canonical* `parentpath` with a *non-empty* `name`.
 
+    .. versionchanged:: 3.0
+       The *parentPath* parameter has been renamed into *parentpath*.
+
     >>> join_path('/', 'foo')
     '/foo'
     >>> join_path('/foo', 'bar')

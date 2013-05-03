@@ -186,6 +186,10 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
         its HDF5 path. If it does not exist, an HDF5ExtError is issued.
         Use this if you do not want to build the *entire* object tree,
         but rather only a *subtree* of it.
+
+        .. versionchanged:: 3.0
+           The *rootUEP* parameter has been renamed into *root_uep*.
+
     filters : Filters
         An instance of the Filters (see :ref:`FiltersClassDescr`) class
         that provides information about the desired I/O filters
@@ -361,6 +365,7 @@ class File(hdf5extension.File, object):
         The name of the file (supports environment variable expansion).
         It is suggested that file names have any of the .h5, .hdf or
         .hdf5 extensions, although this is not mandatory.
+
     mode : str
         The mode to open the file. It can be one of the
         following:
@@ -377,6 +382,7 @@ class File(hdf5extension.File, object):
         If the file is to be created, a TITLE string attribute will be
         set on the root group with the given value. Otherwise, the
         title will be read from disk, and this will not have any effect.
+
     root_uep : str
         The root User Entry Point. This is a group in the HDF5 hierarchy
         which will be taken as the starting point to create the object
@@ -384,6 +390,10 @@ class File(hdf5extension.File, object):
         its HDF5 path. If it does not exist, an HDF5ExtError is issued.
         Use this if you do not want to build the *entire* object tree,
         but rather only a *subtree* of it.
+
+        .. versionchanged:: 3.0
+           The *rootUEP* parameter has been renamed into *root_uep*.
+
     filters : Filters
         An instance of the Filters (see :ref:`FiltersClassDescr`) class that
         provides information about the desired I/O filters applicable to the
@@ -428,7 +438,8 @@ class File(hdf5extension.File, object):
         The UEP (user entry point) group name in the file (see
         the :func:`open_file` function).
 
-        .. versionadded:: 3.0
+        .. versionchanged:: 3.0
+           The *rootUEP* attribute has been renamed into *root_uep*.
 
     """
 
