@@ -1884,8 +1884,8 @@ class Table(tableextension.Table, Leaf):
         stored on disk. If the out parameter is specified, the output
         array also must be in the current system's byteorder.
 
-        .. versionchanges:: 3.0
-           Atted the *out* parameter.
+        .. versionchanged:: 3.0
+           Added the *out* parameter.
 
         """
 
