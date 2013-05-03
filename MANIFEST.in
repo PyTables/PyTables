@@ -2,7 +2,7 @@ include MANIFEST.in
 include *.txt THANKS
 include setup.py setup.cfg VERSION Makefile
 
-recursive-include tables *.py *.pyx *.pxd *.pxi *.c
+recursive-include tables *.py *.pyx *.pxd *.c
 recursive-include tables/tests *.h5 *.mat
 recursive-include tables/nodes/tests *.h5 *.dat *.xbm
 recursive-include src *.c *.h Makefile
