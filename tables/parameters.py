@@ -196,7 +196,11 @@ EXPECTED_ROWS_EARRAY = 1000
 """Default expected number of rows for :class:`EArray` objects."""
 
 EXPECTED_ROWS_VLARRAY = 1000
-"""Default expected number of rows for :class:`EArray` objects."""
+"""Default expected number of rows for :class:`VLArray` objects.
+
+.. versionadded:: 3.0
+
+"""
 
 EXPECTED_ROWS_TABLE = 10000
 """Default expected number of rows for :class:`Table` objects."""
