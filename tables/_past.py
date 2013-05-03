@@ -400,7 +400,7 @@ old2newnames = dict([
     ('_compileCondition', '_compile_condition'),
     ('willQueryUseIndexing', 'will_query_use_indexing'),
     ('readWhere', 'read_where'),
-    ('whereAppend', 'where_append'),
+    ('whereAppend', 'append_where'),
     ('getWhereList', 'get_where_list'),
     ('_check_sortby_CSI', '_check_sortby_csi'),
     ('_readCoordinates', '_read_coordinates'),

@@ -1532,7 +1532,7 @@ class Table(tableextension.Table, Leaf):
 
     readWhere = previous_api(read_where)
 
-    def where_append(self, dstTable, condition, condvars=None,
+    def append_where(self, dstTable, condition, condvars=None,
                      start=None, stop=None, step=None):
         """Append rows fulfilling the condition to the dstTable table.
 
@@ -1542,6 +1542,9 @@ class Table(tableextension.Table, Leaf):
         :meth:`Table.where` method.
 
         The number of rows appended to dstTable is returned as a result.
+
+        .. versionchanged:: 3.0
+           The *whereAppend* method has been renamed into *append_where*.
 
         """
 
@@ -1564,7 +1567,7 @@ class Table(tableextension.Table, Leaf):
         dstTable.flush()
         return nrows
 
-    whereAppend = previous_api(where_append)
+    whereAppend = previous_api(append_where)
 
     def get_where_list(self, condition, condvars=None, sort=False,
                        start=None, stop=None, step=None):

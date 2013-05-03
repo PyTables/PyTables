@@ -5492,7 +5492,7 @@ class Length2TestCase(LengthTestCase):
 
 
 class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
-    """Tests `Table.where_append()` method."""
+    """Tests `Table.append_where()` method."""
 
     class SrcTblDesc(IsDescription):
         id = IntCol()
@@ -5525,7 +5525,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.create_table('/', 'test2', DstTblDesc)
 
-        tbl1.where_append(tbl2, 'id > 1')
+        tbl1.append_where(tbl2, 'id > 1')
 
         # Rows resulting from the query are those in the new table.
         it2 = iter(tbl2)
@@ -5549,7 +5549,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.create_table('/', 'test2', DstTblDesc)
 
-        tbl1.where_append(tbl2, 'id > 1')
+        tbl1.append_where(tbl2, 'id > 1')
 
         # Rows resulting from the query are those in the new table.
         it2 = iter(tbl2)
@@ -5572,7 +5572,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.create_table('/', 'test2', DstTblDesc)
 
-        tbl1.where_append(tbl2, 'id > 1')
+        tbl1.append_where(tbl2, 'id > 1')
 
         # Rows resulting from the query are those in the new table.
         it2 = iter(tbl2)
@@ -5596,7 +5596,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl2 = self.h5file.create_table('/', 'test2', DstTblDesc)
 
         self.assertRaises(NotImplementedError,
-                          tbl1.where_append, tbl2, 'v1 == b"1"')
+                          tbl1.append_where, tbl2, 'v1 == b"1"')
 
     def test04_noColumn(self):
         """Query with storage lacking columns."""
@@ -5609,7 +5609,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.create_table('/', 'test2', DstTblDesc)
 
-        self.assertRaises(KeyError, tbl1.where_append, tbl2, 'id > 1')
+        self.assertRaises(KeyError, tbl1.append_where, tbl2, 'id > 1')
 
     def test05_otherFile(self):
         """Appending to a table in another file."""
@@ -5622,26 +5622,26 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl2 = h5file2.create_table('/', 'test', self.SrcTblDesc)
 
             # RW to RW.
-            tbl1.where_append(tbl2, 'id > 1')
+            tbl1.append_where(tbl2, 'id > 1')
 
             # RW to RO.
             h5file2.close()
             h5file2 = open_file(h5fname2, 'r')
             tbl2 = h5file2.root.test
             self.assertRaises(FileModeError,
-                              tbl1.where_append, tbl2, 'id > 1')
+                              tbl1.append_where, tbl2, 'id > 1')
 
             # RO to RO.
             self._reopen('r')
             tbl1 = self.h5file.root.test
             self.assertRaises(FileModeError,
-                              tbl1.where_append, tbl2, 'id > 1')
+                              tbl1.append_where, tbl2, 'id > 1')
 
             # RO to RW.
             h5file2.close()
             h5file2 = open_file(h5fname2, 'a')
             tbl2 = h5file2.root.test
-            tbl1.where_append(tbl2, 'id > 1')
+            tbl1.append_where(tbl2, 'id > 1')
         finally:
             h5file2.close()
             os.remove(h5fname2)
@@ -6222,7 +6222,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_whereAppend(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.table.where_append, self.table,
+        self.assertRaises(ClosedNodeError, self.table.append_where, self.table,
                           'var2 > 3')
 
     def test_getWhereList(self):

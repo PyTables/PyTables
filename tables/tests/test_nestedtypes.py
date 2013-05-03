@@ -400,7 +400,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tbl2 = self.h5file.create_table(
             '/', 'test2', self._TestTDescr, title=self._getMethodName())
-        tbl1.where_append(
+        tbl1.append_where(
             tbl2, self._testCondition, self._testCondVars(tbl1))
 
         if self.reopen:

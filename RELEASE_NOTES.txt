@@ -182,6 +182,9 @@ Moreover:
   the :meth:`VLArrsy.__init__` methods has been replaced by *expectedrows*.
   See also (:issue:`35`).
 
+- The :meth:`Table.whereAppend` method has been renamed into
+  :meth:`Table.append_where` (closes :issue:`248`).
+
 
 Other possibly incompatible changes
 -----------------------------------

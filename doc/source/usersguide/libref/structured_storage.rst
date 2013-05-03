@@ -17,7 +17,8 @@ The Table class
     The following instance variables are provided in addition to those in Leaf
     (see :ref:`LeafClassDescr`).  Please note that there are several col*
     dictionaries to ease retrieving information about a column directly by its
-    path name, avoiding the need to walk through Table.description or Table.cols.
+    path name, avoiding the need to walk through Table.description or
+    :attr:`Table.cols`.
 
     .. autoattribute:: Table.coldescrs
     .. autoattribute:: Table.coldflts
@@ -95,7 +96,7 @@ Table methods - querying
 
 .. automethod:: Table.where
 
-.. automethod:: Table.where_append
+.. automethod:: Table.append_where
 
 .. automethod:: Table.will_query_use_indexing
 
