@@ -16,6 +16,7 @@ unittest.TestCase.tearDown = common.cleanup
 
 class BasicTestCase(unittest.TestCase):
     # Default values
+    obj = None
     flavor = "numpy"
     type = 'int32'
     shape = (2, 2)
@@ -43,23 +44,28 @@ class BasicTestCase(unittest.TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        if self.type == "string":
-            atom = StringAtom(itemsize=self.length)
+        obj = self.obj
+        if obj is None:
+            if self.type == "string":
+                atom = StringAtom(itemsize=self.length)
+            else:
+                atom = Atom.from_type(self.type)
         else:
-            atom = Atom.from_type(self.type)
+            atom = None
         title = self.__class__.__name__
         filters = Filters(complevel=self.compress,
                           complib=self.complib,
                           shuffle=self.shuffle,
                           fletcher32=self.fletcher32)
-        carray = self.fileh.create_carray(group, 'carray1', atom, self.shape,
-                                          title, filters=filters,
+        carray = self.fileh.create_carray(group, 'carray1', obj=obj, 
+                                          atom=atom, shape=self.shape,
+                                          title=title, filters=filters,
                                           chunkshape=self.chunkshape)
         carray.flavor = self.flavor
 
         # Fill it with data
         self.rowshape = list(carray.shape)
-        self.objsize = self.length * numpy.prod(self.shape)
+        self.objsize = self.length * numpy.prod(carray.shape)
 
         if self.flavor == "numpy":
             if self.type == "string":
@@ -68,7 +74,7 @@ class BasicTestCase(unittest.TestCase):
                                        dtype="S%s" % carray.atom.itemsize)
             else:
                 object = numpy.arange(self.objsize, dtype=carray.atom.dtype)
-                object.shape = self.shape
+                object.shape = carray.shape
         if common.verbose:
             print "Object to append -->", repr(object)
 
@@ -87,11 +93,12 @@ class BasicTestCase(unittest.TestCase):
         obj = self.fileh.get_node("/carray1")
 
         self.assertEqual(obj.flavor, self.flavor)
-        self.assertEqual(obj.shape, self.shape)
-        self.assertEqual(obj.ndim, len(self.shape))
+        if self.shape is not None:
+            self.assertEqual(obj.shape, self.shape)
+            self.assertEqual(obj.ndim, len(self.shape))
+            self.assertEqual(obj.nrows, self.shape[0])
+            self.assertEqual(obj.atom.type, self.type)
         self.assertEqual(obj.chunkshape, self.chunkshape)
-        self.assertEqual(obj.nrows, self.shape[0])
-        self.assertEqual(obj.atom.type, self.type)
 
     def test01_readCArray(self):
         """Checking read() of chunked layout arrays"""
@@ -120,7 +127,7 @@ class BasicTestCase(unittest.TestCase):
                                         dtype="S%s" % carray.atom.itemsize)
             else:
                 object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
-                object_.shape = self.shape
+                object_.shape = carray.shape
 
         stop = self.stop
         # stop == None means read only the element designed by start
@@ -156,7 +163,7 @@ class BasicTestCase(unittest.TestCase):
             print "Should look like ==>", repr(object)
 
         if hasattr(data, "shape"):
-            self.assertEqual(len(data.shape), len(self.shape))
+            self.assertEqual(len(data.shape), len(carray.shape))
         else:
             # Scalar case
             self.assertEqual(len(self.shape), 1)
@@ -181,7 +188,7 @@ class BasicTestCase(unittest.TestCase):
                                         dtype="S%s" % carray.atom.itemsize)
             else:
                 object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
-                object_.shape = self.shape
+                object_.shape = carray.shape
 
         stop = self.stop
         # stop == None means read only the element designed by start
@@ -203,20 +210,20 @@ class BasicTestCase(unittest.TestCase):
 
         # Read all the array
         try:
-            data = numpy.empty(self.shape, dtype=carray.atom.dtype)
+            data = numpy.empty(carray.shape, dtype=carray.atom.dtype)
             data = data[self.start:stop:self.step].copy()
             carray.read(self.start, stop, self.step, out=data)
         except IndexError:
             if self.flavor == "numpy":
-                data = numpy.empty(shape=self.shape, dtype=self.type)
+                data = numpy.empty(shape=carray.shape, dtype=self.type)
             else:
-                data = numpy.empty(shape=self.shape, dtype=self.type)
+                data = numpy.empty(shape=carray.shape, dtype=self.type)
 
         if hasattr(data, "shape"):
-            self.assertEqual(len(data.shape), len(self.shape))
+            self.assertEqual(len(data.shape), len(carray.shape))
         else:
             # Scalar case
-            self.assertEqual(len(self.shape), 1)
+            self.assertEqual(len(carray.shape), 1)
         self.assertEqual(carray.chunkshape, self.chunkshape)
         self.assertTrue(allequal(data, object, self.flavor))
 
@@ -248,7 +255,7 @@ class BasicTestCase(unittest.TestCase):
                                     dtype="S%s" % carray.atom.itemsize)
         else:
             object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
-            object_.shape = self.shape
+            object_.shape = carray.shape
 
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
@@ -309,7 +316,7 @@ class BasicTestCase(unittest.TestCase):
                                     dtype="S%s" % carray.atom.itemsize)
         else:
             object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
-            object_.shape = self.shape
+            object_.shape = carray.shape
 
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
@@ -374,6 +381,20 @@ class BasicWrite2TestCase(BasicTestCase):
     wslice = slice(shape[0]-2, shape[0], 2)  # range of elements
     reopen = 0  # This case does not reopen files
 
+
+class BasicWrite3TestCase(BasicTestCase):
+    obj = [1, 2]
+    shape = None
+    chunkshape = (5,)
+    step = 1
+    reopen = 0  # This case does not reopen files
+
+class BasicWrite4TestCase(BasicTestCase):
+    obj = numpy.array([1, 2])
+    shape = None
+    chunkshape = (5,)
+    step = 1
+    reopen = 0  # This case does not reopen files
 
 class EmptyCArrayTestCase(BasicTestCase):
     type = 'int32'
@@ -863,8 +884,8 @@ class ReadOutArgumentTests(unittest.TestCase):
 
     def create_array(self):
         array = numpy.arange(self.size, dtype='i8')
-        disk_array = self.fileh.create_carray('/', 'array', Int64Atom(),
-                                             (self.size, ),
+        disk_array = self.fileh.create_carray('/', 'array', atom=Int64Atom(),
+                                              shape=(self.size, ),
                                               filters=self.filters)
         disk_array[:] = array
         return array, disk_array
@@ -919,8 +940,8 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def create_array(self, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.array = self.fileh.create_carray('/', 'somearray', Int16Atom(),
-                                              self.array_size,
+        self.array = self.fileh.create_carray('/', 'somearray', atom=Int16Atom(),
+                                              shape=self.array_size,
                                               filters=filters,
                                               chunkshape=self.chunkshape)
 
@@ -996,8 +1017,9 @@ class OffsetStrideTestCase(unittest.TestCase):
         shape = (3, 2, 2)
         # Create an string atom
         carray = self.fileh.create_carray(root, 'strings',
-                                          StringAtom(itemsize=3), shape,
-                                          "Array of strings",
+                                          atom=StringAtom(itemsize=3), 
+                                          shape=shape,
+                                          title="Array of strings",
                                           chunkshape=(1, 2, 2))
         a = numpy.array([[["a", "b"], [
                         "123", "45"], ["45", "123"]]], dtype="S3")
@@ -1030,8 +1052,8 @@ class OffsetStrideTestCase(unittest.TestCase):
         shape = (3, 2, 2)
         # Create an string atom
         carray = self.fileh.create_carray(root, 'strings',
-                                          StringAtom(itemsize=3), shape,
-                                          "Array of strings",
+                                          atom=StringAtom(itemsize=3), shape=shape,
+                                          title="Array of strings",
                                           chunkshape=(1, 2, 2))
         a = numpy.array([[["a", "b"], [
                         "123", "45"], ["45", "123"]]], dtype="S3")
@@ -1064,8 +1086,8 @@ class OffsetStrideTestCase(unittest.TestCase):
         shape = (3, 3)
         # Create an string atom
         carray = self.fileh.create_carray(root, 'CAtom',
-                                          Int32Atom(), shape,
-                                          "array of ints",
+                                          atom=Int32Atom(), shape=shape,
+                                          title="array of ints",
                                           chunkshape=(1, 3))
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (0, 0, 0)], dtype='int32')
@@ -1099,8 +1121,8 @@ class OffsetStrideTestCase(unittest.TestCase):
         shape = (3, 3)
         # Create an string atom
         carray = self.fileh.create_carray(root, 'CAtom',
-                                          Int32Atom(), shape,
-                                          "array of ints",
+                                          atom=Int32Atom(), shape=shape,
+                                          title="array of ints",
                                           chunkshape=(1, 3))
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='int32')
@@ -1139,9 +1161,9 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an CArray
         shape = (2, 2)
-        arr = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                     "title array1", chunkshape=(2, 2))
+        atom = Int16Atom()
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
@@ -1203,9 +1225,9 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an CArray
         shape = (2, 2)
-        arr = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                     "title array1", chunkshape=(5, 5))
+        atom = Int16Atom()
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(5, 5))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
@@ -1265,9 +1287,9 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an CArray
         shape = (5, 5)
-        arr = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                     "title array1", chunkshape=(2, 2))
+        atom = Int16Atom()
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
@@ -1329,9 +1351,9 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an CArray
         shape = (5, 5)
-        arr = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                     "title array1", chunkshape=(2, 2))
+        atom = Int16Atom()
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
@@ -1393,9 +1415,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         shape = (2, 2)
-        arr = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                     "title array1", chunkshape=(2, 2))
+        atom = Int16Atom()
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         array1.flavor = "python"
         array1[...] = [[456, 2], [3, 457]]
 
@@ -1453,9 +1475,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         shape = (2, 2)
-        arr = StringAtom(itemsize=4)
-        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                     "title array1", chunkshape=(2, 2))
+        atom = StringAtom(itemsize=4)
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         array1.flavor = "python"
         array1[...] = [["456", "2"], ["3", "457"]]
 
@@ -1516,9 +1538,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         shape = (2, 2)
-        arr = StringAtom(itemsize=4)
-        array1 = fileh.create_carray(fileh.root, 'array1', arr, shape,
-                                     "title array1", chunkshape=(2, 2))
+        atom = StringAtom(itemsize=4)
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([["456", "2"], ["3", "457"]], dtype="S4")
 
         if self.close:
@@ -1577,8 +1599,8 @@ class CopyTestCase(unittest.TestCase):
         # Create an CArray
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
-                                     "title array1", chunkshape=(2, 2))
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1625,8 +1647,8 @@ class CopyTestCase(unittest.TestCase):
         # Create an CArray
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
-                                     "title array1", chunkshape=(2, 2))
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1676,8 +1698,8 @@ class CopyTestCase(unittest.TestCase):
         # Create an Array
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
-                                     "title array1", chunkshape=(2, 2))
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1739,8 +1761,8 @@ class CopyIndexTestCase(unittest.TestCase):
         # Create an CArray
         shape = (100, 2)
         atom = Int32Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
-                                     "title array1", chunkshape=(2, 2))
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
         array1[...] = r
@@ -1792,8 +1814,8 @@ class CopyIndexTestCase(unittest.TestCase):
         # Create an CArray
         shape = (100, 2)
         atom = Int32Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1', atom, shape,
-                                     "title array1", chunkshape=(2, 2))
+        array1 = fileh.create_carray(fileh.root, 'array1', atom=atom, shape=shape,
+                                     title="title array1", chunkshape=(2, 2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
         array1[...] = r
@@ -1928,7 +1950,7 @@ class Rows64bitsTestCase(unittest.TestCase):
         # Create an CArray
         shape = (self.narows * self.nanumber,)
         array = fileh.create_carray(fileh.root, 'array',
-                                    Int8Atom(), shape,
+                                    atom=Int8Atom(), shape=shape,
                                     filters=Filters(complib='lzo',
                                                     complevel=1))
 
@@ -2014,7 +2036,7 @@ class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         super(BigArrayTestCase, self).setUp()
         # This should be fast since disk space isn't actually allocated,
         # so this case is OK for non-heavy test runs.
-        self.h5file.create_carray('/', 'array', Int8Atom(), self.shape)
+        self.h5file.create_carray('/', 'array', atom=Int8Atom(), shape=self.shape)
 
     def test00_shape(self):
         """Check that the shape doesn't overflow."""
@@ -2046,8 +2068,8 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Check that Atom.dflt is honored (string version)."
 
         # Create a CArray with default values
-        self.h5file.create_carray(
-            '/', 'bar', StringAtom(itemsize=5, dflt=b"abdef"), (10, 10))
+        self.h5file.create_carray('/', 'bar', atom=StringAtom(itemsize=5, dflt=b"abdef"), 
+                                  shape=(10, 10))
 
         if self.reopen:
             self._reopen()
@@ -2063,7 +2085,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Check that Atom.dflt is honored (int version)."
 
         # Create a CArray with default values
-        self.h5file.create_carray('/', 'bar', IntAtom(dflt=1), (10, 10))
+        self.h5file.create_carray('/', 'bar', atom=IntAtom(dflt=1), shape=(10, 10))
 
         if self.reopen:
             self._reopen()
@@ -2078,7 +2100,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Check that Atom.dflt is honored (float version)."
 
         # Create a CArray with default values
-        self.h5file.create_carray('/', 'bar', FloatAtom(dflt=1.134), (10, 10))
+        self.h5file.create_carray('/', 'bar', atom=FloatAtom(dflt=1.134), shape=(10, 10))
 
         if self.reopen:
             self._reopen()
@@ -2105,7 +2127,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing default values.  Zeros (scalar)."
         N = ()
         atom = StringAtom(itemsize=3, shape=N, dflt=b"")
-        ca = self.h5file.create_carray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2120,7 +2142,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing default values.  Zeros (array)."
         N = 2
         atom = StringAtom(itemsize=3, shape=N, dflt=b"")
-        ca = self.h5file.create_carray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2135,7 +2157,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing default values.  Ones."
         N = 2
         atom = Int32Atom(shape=N, dflt=1)
-        ca = self.h5file.create_carray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2151,7 +2173,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         N = 2
         generic = 112.32
         atom = Float32Atom(shape=N, dflt=generic)
-        ca = self.h5file.create_carray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2166,7 +2188,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing default values.  None (scalar)."
         N = ()
         atom = Int32Atom(shape=N, dflt=None)
-        ca = self.h5file.create_carray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2180,7 +2202,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing default values.  None (array)."
         N = 2
         atom = Int32Atom(shape=N, dflt=None)
-        ca = self.h5file.create_carray('/', 'test', atom, (1,))
+        ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2212,7 +2234,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01a_assign(self):
         "Assign a row to a (unidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.create_carray('/', 'test', Int32Atom((2, 2)), (1,))
+        ca = self.h5file.create_carray('/', 'test', atom=Int32Atom((2, 2)), shape=(1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2226,7 +2248,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01b_assign(self):
         "Assign several rows to a (unidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.create_carray('/', 'test', Int32Atom((2, 2)), (3,))
+        ca = self.h5file.create_carray('/', 'test', atom=Int32Atom((2, 2)), shape=(3,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2240,7 +2262,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02a_assign(self):
         "Assign a row to a (multidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.create_carray('/', 'test', Int32Atom((2,)), (1, 3))
+        ca = self.h5file.create_carray('/', 'test', atom=Int32Atom((2,)), shape=(1, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2255,7 +2277,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02b_assign(self):
         "Assign several rows to a (multidimensional) CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.create_carray('/', 'test', Int32Atom((2,)), (3, 3))
+        ca = self.h5file.create_carray('/', 'test', atom=Int32Atom((2,)), shape=(3, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2272,8 +2294,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03a_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom."
         # Create an CArray
-        ca = self.h5file.create_carray(
-            '/', 'test', Int32Atom((2, 4)), (3, 2, 3))
+        ca = self.h5file.create_carray('/', 'test', atom=Int32Atom((2, 4)), shape=(3, 2, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2290,7 +2311,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Complex assign of a MD array in a MD CArray with a MD atom (II)."
         # Create an CArray
         ca = self.h5file.create_carray(
-            '/', 'test', Int32Atom((2, 4)), (2, 3, 3))
+            '/', 'test', atom=Int32Atom((2, 4)), shape=(2, 3, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2306,8 +2327,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03c_MDMDMD(self):
         "Complex assign of a MD array in a MD CArray with a MD atom (III)."
         # Create an CArray
-        ca = self.h5file.create_carray(
-            '/', 'test', Int32Atom((2, 4)), (3, 1, 2))
+        ca = self.h5file.create_carray('/', 'test', atom=Int32Atom((2, 4)), shape=(3, 1, 2))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2335,7 +2355,7 @@ class MDLargeAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_create(self):
         "Create a CArray with a very large MD atom."
         N = 2**16      # 4x larger than maximum object header size (64 KB)
-        ca = self.h5file.create_carray('/', 'test', Int32Atom(shape=N), (1,))
+        ca = self.h5file.create_carray('/', 'test', atom=Int32Atom(shape=N), shape=(1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2358,7 +2378,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
         self.array = self.h5file.create_carray(self.h5file.root, 'array',
-                                               Int32Atom(), (10, 10))
+                                               atom=Int32Atom(), shape=(10, 10))
         self.array[...] = numpy.zeros((10, 10))
 
     def test_read(self):
@@ -2386,6 +2406,8 @@ def suite():
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(BasicWrite2TestCase))
+        theSuite.addTest(unittest.makeSuite(BasicWrite3TestCase))
+        theSuite.addTest(unittest.makeSuite(BasicWrite4TestCase))
         theSuite.addTest(unittest.makeSuite(EmptyCArrayTestCase))
         theSuite.addTest(unittest.makeSuite(EmptyCArray2TestCase))
         theSuite.addTest(unittest.makeSuite(SlicesCArrayTestCase))
