@@ -18,6 +18,7 @@ unittest.TestCase.tearDown = common.cleanup
 
 class BasicTestCase(unittest.TestCase):
     # Default values
+    obj = None
     flavor = "numpy"
     type = 'int32'
     dtype = 'int32'
@@ -47,16 +48,21 @@ class BasicTestCase(unittest.TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        if self.type == "string":
-            atom = StringAtom(itemsize=self.length)
+        obj = self.obj
+        if obj is None:
+            if self.type == "string":
+                atom = StringAtom(itemsize=self.length)
+            else:
+                atom = Atom.from_type(self.type)
         else:
-            atom = Atom.from_type(self.type)
+            atom = None
         title = self.__class__.__name__
         filters = Filters(complevel=self.compress,
                           complib=self.complib,
                           shuffle=self.shuffle,
                           fletcher32=self.fletcher32)
-        earray = self.fileh.create_earray(group, 'earray1', atom=atom, shape=self.shape,
+        earray = self.fileh.create_earray(group, 'earray1', obj=obj, 
+                                          atom=atom, shape=self.shape,
                                           title=title, filters=filters,
                                           expectedrows=1)
         earray.flavor = self.flavor
@@ -664,6 +670,20 @@ class Basic2WriteTestCase(BasicTestCase):
     wslice = slice(chunksize-2, nappends, 2)  # range of elements
     reopen = 0  # This case does not reopen files
 
+
+class Basic3WriteTestCase(BasicTestCase):
+    obj = [1, 2]
+    shape = (0,)
+    chunkshape = (5,)
+    step = 1
+    reopen = 0  # This case does not reopen files
+
+class Basic4WriteTestCase(BasicTestCase):
+    obj = numpy.array([1, 2])
+    shape = None
+    chunkshape = (5,)
+    step = 1
+    reopen = 0  # This case does not reopen files
 
 class EmptyEArrayTestCase(BasicTestCase):
     type = 'int32'
@@ -2500,6 +2520,8 @@ def suite():
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(Basic2WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic3WriteTestCase))
+        #theSuite.addTest(unittest.makeSuite(Basic4WriteTestCase))
         theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Empty2EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(SlicesEArrayTestCase))

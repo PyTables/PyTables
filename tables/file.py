@@ -875,7 +875,7 @@ class File(hdf5extension.File, object):
 
     createCArray = previous_api(create_carray)
 
-    def create_earray(self, where, name, atom=None, shape=None, title="",
+    def create_earray(self, where, name, obj=None, atom=None, shape=None, title="",
                       filters=None, expectedrows=1000,
                       chunkshape=None, byteorder=None,
                       createparents=False):
@@ -889,6 +889,17 @@ class File(hdf5extension.File, object):
             (see :ref:`GroupClassDescr`).
         name : str
             The name of the new array
+        obj : python object
+            The array or scalar to be saved.  Accepted types are NumPy
+            arrays and scalars, as well as native Python sequences and
+            scalars, provided that values are regular (i.e. they are
+            not like ``[[1,2],2]``) and homogeneous (i.e. all the
+            elements are of the same type).
+
+            Also, objects that have some of their dimensions equal to 0
+            are not supported (use an EArray node (see
+            :ref:`EArrayClassDescr`) if you want to store an array with
+            one of its dimensions equal to 0).
         atom : Atom
             An Atom (see :ref:`AtomClassDescr`) instance representing the
             *type* and *shape* of the atomic objects to be saved.
@@ -930,7 +941,7 @@ class File(hdf5extension.File, object):
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        return EArray(parentnode, name,
+        return EArray(parentnode, name, obj=obj,
                       atom=atom, shape=shape, title=title,
                       filters=filters, expectedrows=expectedrows,
                       chunkshape=chunkshape, byteorder=byteorder)

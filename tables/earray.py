@@ -50,6 +50,12 @@ class EArray(CArray):
 
     name : str
         The name of this node in its parent group.
+    obj
+        The array or scalar to be saved.  Accepted types are NumPy
+        arrays and scalars as well as native Python sequences and
+        scalars, provided that values are regular (i.e. they are not
+        like ``[[1,2],2]``) and homogeneous (i.e. all the elements are
+        of the same type).
     atom
         An `Atom` instance representing the *type* and *shape*
         of the atomic objects to be saved.
@@ -133,7 +139,7 @@ class EArray(CArray):
 
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__(self, parentnode, name,
+    def __init__(self, parentnode, name, obj=None,
                  atom=None, shape=None, title="",
                  filters=None, expectedrows=None,
                  chunkshape=None, byteorder=None,
@@ -146,8 +152,8 @@ class EArray(CArray):
         """The expected number of rows to be stored in the array."""
 
         # Call the parent (CArray) init code
-        super(EArray, self).__init__(parentnode, name, atom=atom, shape=shape, 
-                                     title=title, filters=filters, 
+        super(EArray, self).__init__(parentnode, name, obj=obj, atom=atom, 
+                                     shape=shape, title=title, filters=filters, 
                                      chunkshape=chunkshape, byteorder=byteorder, 
                                      _log=_log)
 
@@ -157,18 +163,19 @@ class EArray(CArray):
         """Create a new array in file (specific part)."""
 
         # Pre-conditions and extdim computation
-        zerodims = numpy.sum(numpy.array(self.shape) == 0)
-        if zerodims > 0:
-            if zerodims == 1:
-                self.extdim = list(self.shape).index(0)
+        if self.shape is not None:
+            zerodims = numpy.sum(numpy.array(self.shape) == 0)
+            if zerodims > 0:
+                if zerodims == 1:
+                    self.extdim = list(self.shape).index(0)
+                else:
+                    raise NotImplementedError(
+                        "Multiple enlargeable (0-)dimensions are not "
+                        "supported.")
             else:
-                raise NotImplementedError(
-                    "Multiple enlargeable (0-)dimensions are not "
-                    "supported.")
-        else:
-            raise ValueError(
-                "When creating EArrays, you need to set one of "
-                "the dimensions of the Atom instance to zero.")
+                raise ValueError(
+                    "When creating EArrays, you need to set one of "
+                    "the dimensions of the Atom instance to zero.")
 
         # Finish the common part of the creation process
         return self._g_create_common(self._v_expectedrows)
