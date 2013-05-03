@@ -1881,6 +1881,9 @@ class Table(tableextension.Table, Leaf):
         stored on disk. If the out parameter is specified, the output
         array also must be in the current system's byteorder.
 
+        .. versionchanges:: 3.0
+           Atted the *out* parameter.
+
         """
 
         self._g_check_open()

@@ -868,6 +868,9 @@ class Array(hdf5extension.Array, Leaf):
         The exception is when an output buffer is supplied, in which case
         the output will be in the byteorder of that output buffer.
 
+        .. versionchanges:: 3.0
+           Atted the *out* parameter.
+
         """
 
         self._g_check_open()
