@@ -84,6 +84,7 @@ if sys.version_info < (2, 6):
     exit_with_error("You need Python 2.6 or greater to install PyTables!")
 print("* Using Python %s" % sys.version.splitlines()[0])
 
+
 # Check for required Python packages
 def check_import(pkgname, pkgver):
     try:
@@ -165,7 +166,7 @@ if os.name == 'posix':
     add_from_flags("LDFLAGS", "-L", default_library_dirs)
     default_library_dirs.extend(
         os.path.join(_tree, _arch)
-        for _tree in ('/usr/local','/sw','/opt','/opt/local', '/usr', '/')
+        for _tree in ('/usr/local', '/sw', '/opt', '/opt/local', '/usr', '/')
             for _arch in ('lib64', 'lib'))
     default_runtime_dirs = default_library_dirs
 
@@ -253,7 +254,7 @@ class Package(object):
             # Remove leading and trailing '"' chars that can mislead
             # the finding routines on Windows machines
             locations = [os.path.join(location.strip('"'), compdir)
-                            for compdir in self._component_dirs]
+                                        for compdir in self._component_dirs]
 
         directories = [None, None, None]  # headers, libraries, runtime
         for idx, (name, find_path, default_dirs) in enumerate(dirdata):
@@ -287,7 +288,6 @@ class PosixPackage(Package):
     _library_suffixes = ['.so', '.dylib', '.a']
     _runtime_prefixes = _library_prefixes
     _runtime_suffixes = ['.so', '.dylib']
-
     _component_dirs = ['include', 'lib']
 
 
@@ -320,13 +320,11 @@ def get_hdf5_version(headername):
             minor_version = int(re.split("\s*", line)[2])
         if 'H5_VERS_RELEASE' in line:
             release_version = int(re.split("\s*", line)[2])
-        if (major_version != -1 and
-            minor_version != -1 and
-            release_version != -1):
+        if (major_version != -1 and minor_version != -1 and
+                                                    release_version != -1):
             break
-    if (major_version == -1 or
-        minor_version == -1 or
-        release_version == -1):
+    if (major_version == -1 or minor_version == -1 or
+                                                    release_version == -1):
         exit_with_error("Unable to detect HDF5 library version!")
     return (major_version, minor_version, release_version)
 
@@ -339,7 +337,7 @@ if os.name == 'posix':
         'LZO2': ['lzo2'],
         'LZO': ['lzo'],
         'BZ2': ['bz2'],
-        }
+    }
 elif os.name == 'nt':
     _Package = WindowsPackage
     _platdep = {  # package tag -> platform-dependent components
@@ -347,7 +345,8 @@ elif os.name == 'nt':
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'],
-        }
+    }
+
     # Copy the next DLL's to binaries by default.
     # Update these paths for your own system!
     dll_files = ['\\windows\\system\\zlib1.dll',
@@ -468,13 +467,11 @@ CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
 
 # Try to locate the compulsory and optional libraries.
 lzo2_enabled = False
-c = new_compiler()
-for (package, location) in [
-    (hdf5_package, HDF5_DIR),
-    (lzo2_package, LZO_DIR),
-    (lzo1_package, LZO_DIR),
-    (bzip2_package, BZIP2_DIR),
-    ]:
+compiler = new_compiler()
+for (package, location) in [(hdf5_package, HDF5_DIR),
+                            (lzo2_package, LZO_DIR),
+                            (lzo1_package, LZO_DIR),
+                            (bzip2_package, BZIP2_DIR)]:
 
     if package.tag == 'LZO' and lzo2_enabled:
         print("* Skipping detection of %s since %s has already been found."
@@ -485,8 +482,8 @@ for (package, location) in [
 
     # check if the library is in the standard compiler paths
     if not libdir and package.target_function:
-        libdir = c.has_function(package.target_function,
-                                libraries=(package.library_name,))
+        libdir = compiler.has_function(package.target_function,
+                                       libraries=(package.library_name,))
 
     if not (hdrdir and libdir):
         if package.tag in ['HDF5']:  # these are compulsory!
@@ -589,7 +586,7 @@ def get_cython_extfiles(extnames):
             # Cython files (!)  Do that manually...
             print("cythoning %s to %s" % (extpfile, extcfile))
             retcode = subprocess.call(
-                        [sys.executable, "-m", "cython", extpfile])
+                            [sys.executable, "-m", "cython", extpfile])
             if retcode > 0:
                 print("cython aborted compilation with retcode:", retcode)
                 sys.exit()
@@ -617,12 +614,14 @@ if has_setuptools:
     setuptools_kwargs['setup_requires'] = [
         'numpy>=%s' % min_numpy_version,
         'cython>=%s' % min_cython_version,
-        ]
+    ]
+
     # ``NumPy`` and ``Numexpr`` are absolutely required for running PyTables.
     setuptools_kwargs['install_requires'] = [
         'numpy>=%s' % min_numpy_version,
         'numexpr>=%s' % min_numexpr_version,
-        ]
+    ]
+
     setuptools_kwargs['extras_require'] = {}
 
     # Detect packages automatically.
@@ -633,8 +632,9 @@ if has_setuptools:
             'ptdump = tables.scripts.ptdump:main',
             'ptrepack = tables.scripts.ptrepack:main',
             'pt2to3 = tables.scripts.pt2to3:main',
-            ],
-        }
+        ],
+    }
+
     # Test suites.
     setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
     setuptools_kwargs['scripts'] = []
@@ -674,8 +674,9 @@ name = find_name()
 
 if os.name == "nt":
     # Add DLL's to the final package for windows
-    data_files.extend([('Lib/site-packages/%s' % name, dll_files),
-                       ])
+    data_files.extend([
+        ('Lib/site-packages/%s' % name, dll_files),
+    ])
 
 ADDLIBS = [hdf5_package.library_name, ]
 utilsExtension_libs = LIBS + ADDLIBS
@@ -688,9 +689,8 @@ lrucacheExtension_libs = []    # Doesn't need external libraries
 # Compressor modules only need other libraries if they are enabled.
 _comp_lzo_libs = LIBS[:]
 _comp_bzip2_libs = LIBS[:]
-for (package, complibs) in [
-    (lzo_package, _comp_lzo_libs),
-    (bzip2_package, _comp_bzip2_libs), ]:
+for (package, complibs) in [(lzo_package, _comp_lzo_libs),
+                            (bzip2_package, _comp_bzip2_libs)]:
 
     if package.tag in optional_libs:
         complibs.extend([hdf5_package.library_name, package.library_name])
@@ -802,6 +802,8 @@ Intended Audience :: Information Technology
 Intended Audience :: Science/Research
 License :: OSI Approved :: BSD License
 Programming Language :: Python
+Programming Language :: Python :: 2
+Programming Language :: Python :: 3
 Topic :: Database
 Topic :: Software Development :: Libraries :: Python Modules
 Operating System :: Microsoft :: Windows
@@ -824,15 +826,14 @@ interactively save and retrieve large amounts of data.
       classifiers=[c for c in classifiers.split("\n") if c],
       author='Francesc Alted, Ivan Vilata, et al.',
       author_email='pytables@pytables.org',
-      maintainer='Francesc Alted',
+      maintainer='PyTables maintainers',
       maintainer_email='pytables@pytables.org',
       url='http://www.pytables.org/',
       license='http://www.opensource.org/licenses/bsd-license.php',
-      download_url="http://sourceforge.net/projects/pytables/files/pytables/%s/tables-%s.tar.gz" % (VERSION, VERSION),
+      download_url="http://sourceforge.net/projects/pytables/files/pytables/",
       platforms=['any'],
       ext_modules=extensions,
       cmdclass=cmdclass,
       data_files=data_files,
-
       **setuptools_kwargs
 )
