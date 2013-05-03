@@ -759,8 +759,8 @@ class File(hdf5extension.File, object):
 
     createTable = previous_api(create_table)
 
-    def create_array(self, where, name, object, title="",
-                     byteorder=None, createparents=False):
+    def create_array(self, where, name, obj=None, title="", byteorder=None, 
+                     createparents=False, atom=None, shape=None):
         """Create a new array.
 
         Parameters
@@ -771,7 +771,7 @@ class File(hdf5extension.File, object):
             (see :ref:`GroupClassDescr`).
         name : str
             The name of the new array
-        object : python object
+        obj : python object
             The array or scalar to be saved.  Accepted types are NumPy
             arrays and scalars, as well as native Python sequences and
             scalars, provided that values are regular (i.e. they are
@@ -792,6 +792,11 @@ class File(hdf5extension.File, object):
         createparents : bool, optional
             Whether to create the needed groups for the parent path to exist
             (not done by default).
+        atom : Atom
+            An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
+            and *shape* of the atomic objects to be saved.
+        shape : tuple of ints
+            The shape of the stored array.
 
         See Also
         --------
@@ -801,8 +806,8 @@ class File(hdf5extension.File, object):
         """
 
         parentnode = self._get_or_create_path(where, createparents)
-        return Array(parentnode, name,
-                     object=object, title=title, byteorder=byteorder)
+        return Array(parentnode, name, obj=obj, title=title, byteorder=byteorder, 
+                     atom=atom, shape=shape)
 
     createArray = previous_api(create_array)
 
