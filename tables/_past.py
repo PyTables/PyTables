@@ -317,6 +317,7 @@ old2newnames = dict([
     ('_f_getAttr', '_f_getattr'),
     ('_f_setAttr', '_f_setattr'),
     ('_f_delAttr', '_f_delattr'),
+    ('_v_maxTreeDepth', '_v_maxtreedepth'),             # attr
     # from nodes/filenode.py
     ('newNode', 'new_node'),
     ('openNode', 'open_node'),
@@ -507,8 +508,8 @@ old2newnames = dict([
     ('_openUnImplemented', '_open_unimplemented'),
     # from vlarray.py
     #('parentNode', 'parentnode'),                       # kwarg
-    #('expectedsizeinMB', 'expected_mb'),                # dropped
-    #('_v_expectedsizeinMB', '_v_expected_mb'),          # dropped
+    #('expectedsizeinMB', 'expected_mb'),                # --> expectedrows
+    #('_v_expectedsizeinMB', '_v_expected_mb'),          # --> expectedrows
 ])
 
 new2oldnames = dict([(v, k) for k, v in old2newnames.iteritems()])

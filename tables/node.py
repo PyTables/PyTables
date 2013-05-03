@@ -198,6 +198,7 @@ class Node(object):
     """Whehter this node is open or not."""
 
     _v_objectId = previous_api_property('_v_objectid')
+    _v_maxTreeDepth = previous_api_property('_v_maxtreedepth')
 
     # The ``_log`` argument is only meant to be used by ``_g_copy_as_child()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
@@ -207,17 +208,28 @@ class Node(object):
 
         self._v_file = None
         """The hosting File instance (see :ref:`FileClassDescr`)."""
+
         self._v_isopen = False
         """Whether this node is open or not."""
+
         self._v_pathname = None
         """The path of this node in the tree (a string)."""
+
         self._v_name = None
         """The name of this node in its parent group (a string)."""
+
         self._v_depth = None
         """The depth of this node in the tree (an non-negative integer value).
         """
-        self._v_maxTreeDepth = parentnode._v_file.params['MAX_TREE_DEPTH']
-        """Maximum tree depth before warning the user."""
+
+        self._v_maxtreedepth = parentnode._v_file.params['MAX_TREE_DEPTH']
+        """Maximum tree depth before warning the user.
+
+        .. versionchanged:: 3.0
+           Renamed into *_v_maxtreedepth* from *_v_maxTreeDepth*.
+
+        """
+
         self._v__deleting = False
         """Is the node being deleted?"""
 
@@ -375,11 +387,11 @@ class Node(object):
             self._v_depth = parentdepth + 1
 
         # Check if the node is too deep in the tree.
-        if parentdepth >= self._v_maxTreeDepth:
+        if parentdepth >= self._v_maxtreedepth:
             warnings.warn("""\
 node ``%s`` is exceeding the recommended maximum depth (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (self._v_pathname, self._v_maxTreeDepth),
+                          % (self._v_pathname, self._v_maxtreedepth),
                           PerformanceWarning)
 
         file_._refnode(self, self._v_pathname)
@@ -408,11 +420,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._v_depth = newdepth
 
         # Check if the node is too deep in the tree.
-        if newdepth > self._v_maxTreeDepth:
+        if newdepth > self._v_maxtreedepth:
             warnings.warn("""\
 moved descendent node is exceeding the recommended maximum depth (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (self._v_maxTreeDepth,), PerformanceWarning)
+                          % (self._v_maxtreedepth,), PerformanceWarning)
 
         file_ = self._v_file
         file_._unrefnode(oldpath)
