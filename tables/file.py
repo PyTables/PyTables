@@ -875,7 +875,7 @@ class File(hdf5extension.File, object):
 
     createCArray = previous_api(create_carray)
 
-    def create_earray(self, where, name, atom, shape, title="",
+    def create_earray(self, where, name, atom=None, shape=None, title="",
                       filters=None, expectedrows=1000,
                       chunkshape=None, byteorder=None,
                       createparents=False):

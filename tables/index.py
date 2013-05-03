@@ -503,8 +503,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                    self.expectedrows // self.slicesize,
                    byteorder=self.byteorder)
         # median ranges
-        EArray(self, 'mranges', atom, (0,), "Median ranges", filters,
-               byteorder=self.byteorder, _log=False)
+        EArray(self, 'mranges', atom=atom, shape=(0,), title="Median ranges", 
+               filters=filters, byteorder=self.byteorder, _log=False)
 
         # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (rslicesize - 1) // rchunksize
@@ -522,17 +522,17 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         # Create the Array for last (sorted) row values + bounds
         shape = (rslicesize + 2 + nbounds_inslice,)
-        sortedLR = LastRowArray(self, 'sortedLR', atom, shape,
-                                "Last Row sorted values + bounds",
-                                filters, (rchunksize,),
+        sortedLR = LastRowArray(self, 'sortedLR', atom=atom, shape=shape,
+                                title="Last Row sorted values + bounds",
+                                filters=filters, chunkshape=(rchunksize,),
                                 byteorder=self.byteorder)
 
         # Create the Array for the number of chunk in last row
         shape = (self.slicesize,)     # enough for indexes and length
         indicesLR = LastRowArray(self, 'indicesLR',
-                                 UIntAtom(itemsize=self.indsize),
-                                 shape, "Last Row indices",
-                                 filters, (self.chunksize,),
+                                 atom=UIntAtom(itemsize=self.indsize),
+                                 shape=shape, title="Last Row indices",
+                                 filters=filters, chunkshape=(self.chunksize,),
                                  byteorder=self.byteorder)
 
         # The number of elements in LR will be initialized here
