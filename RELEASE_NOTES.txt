@@ -178,6 +178,10 @@ Moreover:
   argument, it was no more necessary since Numexpr_ 1.3.1.
   Closes :issue:`117`.
 
+- The *expectedsizeinMB* parameter of the :meth:`File.create_vlarray` and of
+  the :meth:`VLArrsy.__init__` methods has been replaced by *expectedrows*.
+  See also (:issue:`35`).
+
 
 Other possibly incompatible changes
 -----------------------------------

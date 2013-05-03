@@ -507,8 +507,8 @@ old2newnames = dict([
     ('_openUnImplemented', '_open_unimplemented'),
     # from vlarray.py
     #('parentNode', 'parentnode'),                       # kwarg
-    ('expectedsizeinMB', 'expected_mb'),
-    ('_v_expectedsizeinMB', '_v_expected_mb'),
+    #('expectedsizeinMB', 'expected_mb'),                # dropped
+    #('_v_expectedsizeinMB', '_v_expected_mb'),          # dropped
 ])
 
 new2oldnames = dict([(v, k) for k, v in old2newnames.iteritems()])

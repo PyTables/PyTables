@@ -195,6 +195,9 @@ BUFFER_TIMES = 100
 EXPECTED_ROWS_EARRAY = 1000
 """Default expected number of rows for :class:`EArray` objects."""
 
+EXPECTED_ROWS_VLARRAY = 1000
+"""Default expected number of rows for :class:`EArray` objects."""
+
 EXPECTED_ROWS_TABLE = 10000
 """Default expected number of rows for :class:`Table` objects."""
 

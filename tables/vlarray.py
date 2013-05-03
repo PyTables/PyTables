@@ -74,12 +74,17 @@ class VLArray(hdf5extension.VLArray, Leaf):
     filters
         An instance of the `Filters` class that provides information about the
         desired I/O filters to be applied during the life of this object.
-    expected_mb
-        An user estimate about the size (in MB) in the final `VLArray` object.
-        If not provided, the default value is 1 MB.  If you plan to create
-        either a much smaller or a much bigger `VLArray` try providing a guess;
-        this will optimize the HDF5 B-Tree creation and management process time
-        and the amount of memory used.
+    expectedrows
+        A user estimate about the number of row elements that will
+        be added to the growable dimension in the `VLArray` node.
+        If not provided, the default value is ``EXPECTED_ROWS_VLARRAY``
+        (see ``tables/parameters.py``).  If you plan to create either
+        a much smaller or a much bigger `VLArray` try providing a guess;
+        this will optimize the HDF5 B-Tree creation and management
+        process time and the amount of memory used.
+
+        .. versionadded:: 3.0
+
     chunkshape
         The shape of the data chunk to be read or written in a single HDF5 I/O
         operation.  Filters are applied to those chunks of data.  The
@@ -88,6 +93,9 @@ class VLArray(hdf5extension.VLArray, Leaf):
     byteorder
         The byteorder of the data *on disk*, specified as 'little' or 'big'.
         If this is not specified, the byteorder is that of the platform.
+
+    .. versionchanged:: 3.0
+       The *expectedsizeinMB* parameter has been replaced by *expectedrows*.
 
     Examples
     --------
@@ -229,42 +237,60 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     # Other methods
     # ~~~~~~~~~~~~~
-    def __init__(self, parentnode, name,
-                 atom=None, title="",
-                 filters=None, expected_mb=1.0,
+    def __init__(self, parentnode, name, atom=None, title="",
+                 filters=None, expectedrows=None,
                  chunkshape=None, byteorder=None,
                  _log=True):
 
         self._v_version = None
         """The object version of this array."""
+
         self._v_new = new = atom is not None
         """Is this the first time the node has been created?"""
+
         self._v_new_title = title
         """New title for this node."""
+
         self._v_new_filters = filters
         """New filter properties for this array."""
-        self._v_expected_mb = expected_mb
-        """The expected size of the array in MiB."""
+
+        if expectedrows is None:
+            expectedrows = parentnode._v_file.params['EXPECTED_ROWS_VLARRAY']
+        self._v_expectedrows = expectedrows
+        """The expected number of rows to be stored in the array.
+
+        .. versionadded:: 3.0
+
+        """
+
         self._v_chunkshape = None
         """Private storage for the `chunkshape` property of Leaf."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
         """Starting row for the current iteration."""
+
         self._stop = None
         """Stopping row for the current iteration."""
+
         self._step = None
         """Step size for the current iteration."""
+
         self._nrowsread = None
         """Number of rows read up to the current state of iteration."""
+
         self._startb = None
         """Starting row for current buffer."""
+
         self._stopb = None
         """Stopping row for current buffer. """
+
         self._row = None
         """Current row in iterators (sentinel)."""
+
         self._init = False
         """Whether we are in the middle of an iteration or not (sentinel)."""
+
         self.listarr = None
         """Current buffer in iterators."""
 
@@ -278,8 +304,10 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """
         self.nrow = None
         """On iterators, this is the index of the current row."""
+
         self.nrows = None
         """The current number of rows in the array."""
+
         self.extdim = 0   # VLArray only have one dimension currently
         """The index of the enlargeable dimension (always 0 for vlarrays)."""
 
@@ -306,10 +334,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self.nrowsinbuf = 100  # maybe enough for most applications
 
     # This is too specific for moving it into Leaf
-    def _calc_chunkshape(self, expected_mb):
+    def _calc_chunkshape(self, expectedrows):
         """Calculate the size for the HDF5 chunk."""
-
-        chunksize = calc_chunksize(expected_mb)
 
         # For computing the chunkshape for HDF5 VL types, we have to
         # choose the itemsize of the *each* element of the atom and
@@ -319,6 +345,16 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # F. Alted 2006-11-23
         # elemsize = self.atom.atomsize()
         elemsize = self._basesize
+
+        # AV 2013-05-03
+        # This is just a quick workaround tha allows to change the API for
+        # PyTables 3.0 release and remove the expected_mb parameter.
+        # The algorithm for computing the chunkshape should be rewritten as
+        # requested by gh-35.
+        expected_mb = expectedrows * elemsize
+
+        chunksize = calc_chunksize(expected_mb)
+
         # Set the chunkshape
         chunkshape = chunksize // elemsize
         # Safeguard against itemsizes being extremely large
@@ -350,8 +386,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         # Compute the optimal chunkshape, if needed
         if self._v_chunkshape is None:
-            self._v_chunkshape = self._calc_chunkshape(
-                self._v_expected_mb)
+            self._v_chunkshape = self._calc_chunkshape(self._v_expectedrows)
         self.nrows = SizeType(0)     # No rows at creation time
 
         # Correct the byteorder if needed
@@ -780,8 +815,9 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # Build the new VLArray object
         object = VLArray(
             group, name, self.atom, title=title, filters=filters,
-            expected_mb=self._v_expected_mb, chunkshape=chunkshape,
+            expectedrows=self._v_expectedrows, chunkshape=chunkshape,
             _log=_log)
+
         # Now, fill the new vlarray with values from the old one
         # This is not buffered because we cannot forsee the length
         # of each record. So, the safest would be a copy row by row.

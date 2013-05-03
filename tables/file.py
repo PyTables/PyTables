@@ -922,7 +922,7 @@ class File(hdf5extension.File, object):
     createEArray = previous_api(create_earray)
 
     def create_vlarray(self, where, name, atom, title="",
-                       filters=None, expected_mb=1.0,
+                       filters=None, expectedrows=None,
                        chunkshape=None, byteorder=None,
                        createparents=False):
         """Create a new variable-length array.
@@ -945,14 +945,17 @@ class File(hdf5extension.File, object):
             An instance of the Filters class (see :ref:`FiltersClassDescr`)
             that provides information about the desired I/O filters to
             be applied during the life of this object.
-        expected_mb : int, optional
-            An user estimate about the size (in MB) in the final VLArray
-            node. If not provided, the default value is 1 MB. If you
-            plan to create either a much smaller or a much bigger array
-            try providing a guess; this will optimize the HDF5 B-Tree
-            creation and management process time and the amount of memory
-            used. If you want to specify your own chunk size for I/O
-            purposes, see also the chunkshape parameter below.
+        expectedrows : int, optional
+            A user estimate about the number of row elements that will
+            be added to the growable dimension in the `VLArray` node.
+            If not provided, the default value is ``EXPECTED_ROWS_VLARRAY``
+            (see ``tables/parameters.py``).  If you plan to create either
+            a much smaller or a much bigger `VLArray` try providing a guess;
+            this will optimize the HDF5 B-Tree creation and management
+            process time and the amount of memory used.
+
+            .. versionadded:: 3.0
+
         chunkshape : int or tuple of int, optional
             The shape of the data chunk to be read or written in a
             single HDF5 I/O operation. Filters are applied to those
@@ -970,13 +973,17 @@ class File(hdf5extension.File, object):
         --------
         VLArray : for more informationon variable-length arrays
 
+        .. versionchanged:: 3.0
+           The *expectedsizeinMB* parameter has been replaced by
+           *expectedrows*.
+
         """
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
         return VLArray(parentnode, name,
                        atom=atom, title=title, filters=filters,
-                       expected_mb=expected_mb,
+                       expectedrows=expectedrows,
                        chunkshape=chunkshape, byteorder=byteorder)
 
     createVLArray = previous_api(create_vlarray)
