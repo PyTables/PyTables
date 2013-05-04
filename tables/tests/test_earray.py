@@ -126,7 +126,7 @@ class BasicTestCase(unittest.TestCase):
 
         self.assertEqual(obj.flavor, self.flavor)
         self.assertEqual(obj.shape, shape)
-        self.assertEqual(obj.ndim, len(self.shape))
+        self.assertEqual(obj.ndim, len(shape))
         self.assertEqual(obj.nrows, shape[self.extdim])
         self.assertEqual(obj.atom.type, self.type)
 
@@ -164,14 +164,23 @@ class BasicTestCase(unittest.TestCase):
         else:
             initialrows = 0
 
+        shape = self._get_shape()
+
         # Read all the array
-        for row in earray:
-            chunk = int(earray.nrow % self.chunksize)
+        for idx, row in enumerate(earray):
+            if idx < initialrows:
+                self.assertTrue(
+                    allequal(row, numpy.asarray(self.obj[idx]), self.flavor))
+                continue
+
+            chunk = int((earray.nrow - initialrows) % self.chunksize)
             if chunk == 0:
                 if self.type == "string":
                     object__ = object_
                 else:
-                    object__ = object_ * (int(earray.nrow) // self.chunksize)
+                    i = int(earray.nrow - initialrows)
+                    object__ = object_ * (i // self.chunksize)
+
             object = object__[chunk]
             # The next adds much more verbosity
             if common.verbose and 0:
@@ -185,10 +194,10 @@ class BasicTestCase(unittest.TestCase):
                              earray.nrows)
             self.assertTrue(allequal(row, object, self.flavor))
             if hasattr(row, "shape"):
-                self.assertEqual(len(row.shape), len(self.shape) - 1)
+                self.assertEqual(len(row.shape), len(shape) - 1)
             else:
                 # Scalar case
-                self.assertEqual(len(self.shape), 1)
+                self.assertEqual(len(shape), 1)
 
             # Check filters:
             if self.compress != earray.filters.complevel and common.verbose:
@@ -240,18 +249,29 @@ class BasicTestCase(unittest.TestCase):
         else:
             initialrows = 0
 
+        shape = self._get_shape()
+
         # Read all the array
-        for row in earray.iterrows(start=self.start, stop=self.stop,
-                                   step=self.step):
+        for idx, row in enumerate(earray.iterrows(start=self.start,
+                                                  stop=self.stop,
+                                                  step=self.step)):
+            if idx < initialrows:
+                self.assertTrue(
+                    allequal(row, numpy.asarray(self.obj[idx]), self.flavor))
+                continue
+
             if self.chunksize == 1:
                 index = 0
             else:
-                index = int(earray.nrow % self.chunksize)
+                index = int((earray.nrow - initialrows) % self.chunksize)
+
             if self.type == "string":
                 object__ = object_
             else:
-                object__ = object_ * (int(earray.nrow) // self.chunksize)
+                i = int(earray.nrow - initialrows)
+                object__ = object_ * (i // self.chunksize)
             object = object__[index]
+
             # The next adds much more verbosity
             if common.verbose and 0:
                 print "number of row ==>", earray.nrow
@@ -264,10 +284,10 @@ class BasicTestCase(unittest.TestCase):
                              earray.nrows)
             self.assertTrue(allequal(row, object, self.flavor))
             if hasattr(row, "shape"):
-                self.assertEqual(len(row.shape), len(self.shape) - 1)
+                self.assertEqual(len(row.shape), len(shape) - 1)
             else:
                 # Scalar case
-                self.assertEqual(len(self.shape), 1)
+                self.assertEqual(len(shape), 1)
 
     def test03_readEArray(self):
         """Checking read() of enlargeable arrays"""
@@ -306,8 +326,13 @@ class BasicTestCase(unittest.TestCase):
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
 
+        if self.obj is not None:
+            initialrows = len(self.obj)
+        else:
+            initialrows = 0
+
         rowshape = self.rowshape
-        rowshape[self.extdim] *= self.nappends
+        rowshape[self.extdim] *= (self.nappends + initialrows)
         if self.type == "string":
             object__ = numpy.empty(
                 shape=rowshape, dtype="S%s" % earray.atom.itemsize)
@@ -316,8 +341,11 @@ class BasicTestCase(unittest.TestCase):
 
         object__ = object__.swapaxes(0, self.extdim)
 
+        if initialrows:
+            object__[0:initialrows] = self.obj
+
         for i in range(self.nappends):
-            j = i * self.chunksize
+            j = initialrows + i * self.chunksize
             if self.type == "string":
                 object__[j:j + self.chunksize] = object_
             else:
@@ -328,7 +356,7 @@ class BasicTestCase(unittest.TestCase):
         if self.nappends:
             # stop == None means read only the element designed by start
             # (in read() contexts)
-            if self.stop == None:
+            if self.stop is None:
                 if self.start == -1:  # corner case
                     stop = earray.nrows
                 else:
@@ -360,21 +388,18 @@ class BasicTestCase(unittest.TestCase):
             print "Object read ==>", repr(row)
             print "Should look like ==>", repr(object)
 
-        if self.obj is not None:
-            initialrows = len(self.obj)
-        else:
-            initialrows = 0
-
         self.assertEqual(initialrows + self.nappends * self.chunksize,
                          earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
+
+        shape = self._get_shape()
         if hasattr(row, "shape"):
-            self.assertEqual(len(row.shape), len(self.shape))
+            self.assertEqual(len(row.shape), len(shape))
             if self.flavor == "numpy":
                 self.assertEqual(row.itemsize, earray.atom.itemsize)
         else:
             # Scalar case
-            self.assertEqual(len(self.shape), 1)
+            self.assertEqual(len(shape), 1)
 
     def test03_readEArray_out_argument(self):
         """Checking read() of enlargeable arrays"""
@@ -404,8 +429,13 @@ class BasicTestCase(unittest.TestCase):
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
 
+        if self.obj is not None:
+            initialrows = len(self.obj)
+        else:
+            initialrows = 0
+
         rowshape = self.rowshape
-        rowshape[self.extdim] *= self.nappends
+        rowshape[self.extdim] *= (self.nappends + initialrows)
         if self.type == "string":
             object__ = numpy.empty(
                 shape=rowshape, dtype="S%s" % earray.atom.itemsize)
@@ -414,8 +444,11 @@ class BasicTestCase(unittest.TestCase):
 
         object__ = object__.swapaxes(0, self.extdim)
 
+        if initialrows:
+            object__[0:initialrows] = self.obj
+
         for i in range(self.nappends):
-            j = i * self.chunksize
+            j = initialrows + i * self.chunksize
             if self.type == "string":
                 object__[j:j + self.chunksize] = object_
             else:
@@ -426,7 +459,7 @@ class BasicTestCase(unittest.TestCase):
         if self.nappends:
             # stop == None means read only the element designed by start
             # (in read() contexts)
-            if self.stop == None:
+            if self.stop is None:
                 if self.start == -1:  # corner case
                     stop = earray.nrows
                 else:
@@ -456,21 +489,24 @@ class BasicTestCase(unittest.TestCase):
         except IndexError:
             row = numpy.empty(shape=self.shape, dtype=self.dtype)
 
-        if self.obj is not None:
-            initialrows = len(self.obj)
-        else:
-            initialrows = 0
+        if common.verbose:
+            if hasattr(object, "shape"):
+                print "shape should look as:", object.shape
+            print "Object read ==>", repr(row)
+            print "Should look like ==>", repr(object)
 
         self.assertEqual(initialrows + self.nappends * self.chunksize,
                          earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
+
+        shape = self._get_shape()
         if hasattr(row, "shape"):
-            self.assertEqual(len(row.shape), len(self.shape))
+            self.assertEqual(len(row.shape), len(shape))
             if self.flavor == "numpy":
                 self.assertEqual(row.itemsize, earray.atom.itemsize)
         else:
             # Scalar case
-            self.assertEqual(len(self.shape), 1)
+            self.assertEqual(len(shape), 1)
 
     def test04_getitemEArray(self):
         """Checking enlargeable array __getitem__ special method"""
@@ -513,8 +549,13 @@ class BasicTestCase(unittest.TestCase):
 
         object_ = object_.swapaxes(earray.extdim, 0)
 
+        if self.obj is not None:
+            initialrows = len(self.obj)
+        else:
+            initialrows = 0
+
         rowshape = self.rowshape
-        rowshape[self.extdim] *= self.nappends
+        rowshape[self.extdim] *= (self.nappends + initialrows)
         if self.type == "string":
             object__ = numpy.empty(
                 shape=rowshape, dtype="S%s" % earray.atom.itemsize)
@@ -523,8 +564,11 @@ class BasicTestCase(unittest.TestCase):
             # Additional conversion for the numpy case
         object__ = object__.swapaxes(0, earray.extdim)
 
+        if initialrows:
+            object__[0:initialrows] = self.obj
+
         for i in range(self.nappends):
-            j = i * self.chunksize
+            j = initialrows + i * self.chunksize
             if self.type == "string":
                 object__[j:j + self.chunksize] = object_
             else:
@@ -556,11 +600,6 @@ class BasicTestCase(unittest.TestCase):
                 print "Shape read:", row.shape
                 print "shape should look as:", object.shape
 
-        if self.obj is not None:
-            initialrows = len(self.obj)
-        else:
-            initialrows = 0
-
         self.assertEqual(initialrows + self.nappends * self.chunksize,
                          earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
@@ -576,6 +615,7 @@ class BasicTestCase(unittest.TestCase):
             # it is not worth the effort to solve it
             # F.Alted 2004-10-27
             return
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_setitemEArray..." % self.__class__.__name__
@@ -614,8 +654,13 @@ class BasicTestCase(unittest.TestCase):
 
         object_ = object_.swapaxes(earray.extdim, 0)
 
+        if self.obj is not None:
+            initialrows = len(self.obj)
+        else:
+            initialrows = 0
+
         rowshape = self.rowshape
-        rowshape[self.extdim] *= self.nappends
+        rowshape[self.extdim] *= (self.nappends + initialrows)
         if self.type == "string":
             object__ = numpy.empty(
                 shape=rowshape, dtype="S%s" % earray.atom.itemsize)
@@ -625,7 +670,7 @@ class BasicTestCase(unittest.TestCase):
         object__ = object__.swapaxes(0, earray.extdim)
 
         for i in range(self.nappends):
-            j = i * self.chunksize
+            j = initialrows + i * self.chunksize
             if self.type == "string":
                 object__[j:j + self.chunksize] = object_
             else:
@@ -633,6 +678,9 @@ class BasicTestCase(unittest.TestCase):
                 # Modify the earray
                 # earray[j:j + self.chunksize] = object_ * i
                 # earray[self.slices] = 1
+
+        if initialrows:
+            object__[0:initialrows] = self.obj
 
         if self.nappends:
             # Swap the axes again to have normal ordering
@@ -685,11 +733,6 @@ class BasicTestCase(unittest.TestCase):
                 print "Shape read:", row.shape
                 print "shape should look as:", object.shape
 
-        if self.obj is not None:
-            initialrows = len(self.obj)
-        else:
-            initialrows = 0
-
         self.assertEqual(initialrows + self.nappends * self.chunksize,
                          earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
@@ -722,6 +765,7 @@ class Basic2WriteTestCase(BasicTestCase):
 class Basic3WriteTestCase(BasicTestCase):
     obj = [1, 2]
     type = numpy.asarray(obj).dtype.name
+    dtype = numpy.asarray(obj).dtype.str
     shape = (0,)
     chunkshape = (5,)
     step = 1
@@ -731,6 +775,7 @@ class Basic3WriteTestCase(BasicTestCase):
 class Basic4WriteTestCase(BasicTestCase):
     obj = numpy.array([1, 2])
     type = obj.dtype.name
+    dtype = obj.dtype.str
     shape = None
     chunkshape = (5,)
     step = 1
@@ -740,6 +785,7 @@ class Basic4WriteTestCase(BasicTestCase):
 class Basic5WriteTestCase(BasicTestCase):
     obj = [1, 2]
     type = numpy.asarray(obj).dtype.name
+    dtype = numpy.asarray(obj).dtype.str
     shape = (0,)
     chunkshape = (5,)
     step = 1
@@ -749,7 +795,28 @@ class Basic5WriteTestCase(BasicTestCase):
 class Basic6WriteTestCase(BasicTestCase):
     obj = numpy.array([1, 2])
     type = obj.dtype.name
+    dtype = obj.dtype.str
     shape = None
+    chunkshape = (5,)
+    step = 1
+    reopen = 1  # This case does reopen files
+
+
+class Basic7WriteTestCase(BasicTestCase):
+    obj = [[1, 2], [3, 4]]
+    type = numpy.asarray(obj).dtype.name
+    dtype = numpy.asarray(obj).dtype.str
+    shape = (0, 2)
+    chunkshape = (5,)
+    step = 1
+    reopen = 0  # This case does not reopen files
+
+
+class Basic8WriteTestCase(BasicTestCase):
+    obj = [[1, 2], [3, 4]]
+    type = numpy.asarray(obj).dtype.name
+    dtype = numpy.asarray(obj).dtype.str
+    shape = (0, 2)
     chunkshape = (5,)
     step = 1
     reopen = 1  # This case does reopen files
@@ -2195,7 +2262,7 @@ class TruncateTestCase(unittest.TestCase):
         # Create an EArray
         atom = Int16Atom(dflt=3)
         array1 = self.fileh.create_earray(self.fileh.root, 'array1',
-                                atom, (0, 2), "title array1")
+                                          atom, (0, 2), "title array1")
         # Add a couple of rows
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
@@ -2484,8 +2551,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[2]
-        self.assertTrue(allequal(ea[2],
-                                 numpy.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
+        self.assertTrue(allequal(
+            ea[2], numpy.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
 
     def test03a_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom."
@@ -2590,10 +2657,12 @@ def suite():
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(Basic2WriteTestCase))
-        #~ theSuite.addTest(unittest.makeSuite(Basic3WriteTestCase))
-        #~ theSuite.addTest(unittest.makeSuite(Basic4WriteTestCase))
-        #~ theSuite.addTest(unittest.makeSuite(Basic5WriteTestCase))
-        #~ theSuite.addTest(unittest.makeSuite(Basic6WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic3WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic4WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic5WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic6WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic7WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic8WriteTestCase))
         theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Empty2EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(SlicesEArrayTestCase))
