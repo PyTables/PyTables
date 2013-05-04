@@ -140,12 +140,12 @@ class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test02_carray(self):
         """Check dtype accessor for CArray objects"""
-        a = self.h5file.create_carray('/', 'array', atom=FloatAtom(), shape=[1, 2])
+        a = self.h5file.create_carray('/', 'array', FloatAtom(), [1, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test03_carray(self):
         """Check dtype accessor for EArray objects"""
-        a = self.h5file.create_earray('/', 'array', atom=FloatAtom(), shape=[0, 2])
+        a = self.h5file.create_earray('/', 'array', FloatAtom(), [0, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test04_vlarray(self):

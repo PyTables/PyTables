@@ -698,10 +698,10 @@ if __name__ == "__main__":
     f = tb.open_file("/tmp/expression.h5", "w")
 
     # Create some arrays
-    a = f.create_carray(f.root, 'a', atom=tb.Float32Atom(dflt=1.), shape=shape)
-    b = f.create_carray(f.root, 'b', atom=tb.Float32Atom(dflt=2.), shape=shape)
-    c = f.create_carray(f.root, 'c', atom=tb.Float32Atom(dflt=3.), shape=shape)
-    out = f.create_carray(f.root, 'out', atom=tb.Float32Atom(dflt=3.), shape=shape)
+    a = f.create_carray(f.root, 'a', tb.Float32Atom(dflt=1.), shape)
+    b = f.create_carray(f.root, 'b', tb.Float32Atom(dflt=2.), shape)
+    c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3.), shape)
+    out = f.create_carray(f.root, 'out', tb.Float32Atom(dflt=3.), shape)
 
     expr = Expr("a * b + c")
     expr.set_output(out)
