@@ -18,10 +18,8 @@ import sys
 import numpy
 
 from tables.atom import Atom
-from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.array import Array
 from tables.utils import correct_byteorder, SizeType
-from tables.utilsextension import atom_to_hdf5_type
 
 from tables._past import previous_api, previous_api_property
 
@@ -133,21 +131,17 @@ class CArray(Array):
     # ~~~~~~~~~~
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__(self, parentnode, name, obj=None,
+    def __init__(self, parentnode, name,
                  atom=None, shape=None,
                  title="", filters=None,
                  chunkshape=None, byteorder=None,
                  _log=True):
-        self._obj = obj
-        """The object to be stored in the array.  It can be any of numpy,
-        list, tuple, string, integer of floating point types, provided
-        that they are regular (i.e. they are not like ``[[1, 2], 2]``).
-        """
+
         self.atom = atom
         """An `Atom` instance representing the shape, type of the atomic
         objects to be saved.
         """
-        self.shape = shape
+        self.shape = None
         """The shape of the stored array."""
         self.extdim = -1  # `CArray` objects are not enlargeable by default
         """The index of the enlargeable dimension."""
@@ -155,7 +149,7 @@ class CArray(Array):
         # Other private attributes
         self._v_version = None
         """The object version of this array."""
-        self._v_new = new = (atom is not None) or (obj is not None)
+        self._v_new = new = atom is not None
         """Is this the first time the node has been created?"""
         self._v_new_title = title
         """New title for this node."""
@@ -184,10 +178,11 @@ class CArray(Array):
         self.listarr = None
         """Current buffer in iterators."""
 
-        if new and obj is None:
+        if new:
             if not isinstance(atom, Atom):
                 raise ValueError("atom parameter should be an instance of "
-                                 "tables.Atom and you passed a %s." % type(atom))
+                                 "tables.Atom and you passed a %s." %
+                                 type(atom))
             if shape is None:
                 raise ValueError("you must specify a non-empty shape")
             try:
@@ -197,19 +192,21 @@ class CArray(Array):
                                 "and you passed a %s" % type(shape))
             self.shape = tuple(SizeType(s) for s in shape)
 
-        if new and chunkshape is not None:
-            try:
-                chunkshape = tuple(chunkshape)
-            except TypeError:
-                raise TypeError("`chunkshape` parameter must be a sequence "
-                                "and you passed a %s" % type(chunkshape))
-            if shape is not None and len(shape) != len(chunkshape):
-                raise ValueError("the shape (%s) and chunkshape (%s) "
-                                 "ranks must be equal." % (shape, chunkshape))
-            elif min(chunkshape) < 1:
-                raise ValueError("chunkshape parameter cannot have "
-                                 "zero-dimensions.")
-            self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
+            if chunkshape is not None:
+                try:
+                    chunkshape = tuple(chunkshape)
+                except TypeError:
+                    raise TypeError(
+                        "`chunkshape` parameter must be a sequence "
+                        "and you passed a %s" % type(chunkshape))
+                if len(shape) != len(chunkshape):
+                    raise ValueError("the shape (%s) and chunkshape (%s) "
+                                     "ranks must be equal." %
+                                    (shape, chunkshape))
+                elif min(chunkshape) < 1:
+                    raise ValueError("chunkshape parameter cannot have "
+                                     "zero-dimensions.")
+                self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentnode, name, new, filters,
@@ -217,40 +214,17 @@ class CArray(Array):
 
     def _g_create(self):
         """Create a new array in file (specific part)."""
+
+        if min(self.shape) < 1:
+            raise ValueError(
+                "shape parameter cannot have zero-dimensions.")
         # Finish the common part of creation process
-        if self.shape is None:
-            return self._g_create_common(None)
-        else:
-            if min(self.shape) < 1:
-                raise ValueError("shape parameter cannot have zero-dimensions.")
-            return self._g_create_common(self.nrows)
+        return self._g_create_common(self.nrows)
 
     def _g_create_common(self, expectedrows):
         """Create a new array in file (common part)."""
+
         self._v_version = obversion
-        if self._obj is not None:
-            try:
-                # `Leaf._g_post_init_hook()` should be setting the flavor on disk.
-                self._flavor = flavor = flavor_of(self._obj)
-                #flavor = flavor_of(self._obj)
-                nparr = array_as_internal(self._obj, flavor)
-            except:  # XXX
-                # Problems converting data. Close the node and re-raise exception.
-                self.close(flush=0)
-                raise
-
-            # Get the HDF5 type associated with this numpy type
-            self.shape = nparr.shape
-            if min(self.shape) < 1:
-                raise ValueError("shape parameter cannot have zero-dimensions.")
-            if self.atom is None or self.atom.shape == ():
-                dtype_ = nparr.dtype.base
-                self.atom = Atom.from_dtype(dtype_)
-            else:
-                self.shape = self.shape[:-len(self.atom.shape)]
-
-        if expectedrows is None:
-            expectedrows = self.nrows
 
         if self._v_chunkshape is None:
             # Compute the optimal chunk size
@@ -262,8 +236,6 @@ class CArray(Array):
         if self.byteorder is None:
             self.byteorder = correct_byteorder(self.atom.type, sys.byteorder)
 
-        self.disk_type_id = atom_to_hdf5_type(self.atom, self.byteorder)
-
         try:
             # ``self._v_objectid`` needs to be set because would be
             # needed for setting attributes in some descendants later
@@ -273,10 +245,7 @@ class CArray(Array):
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
-        # copy values into array
-        if self._obj is not None:
-            self[...] = nparr
-        self._obj = None  # deref obj
+
         return self._v_objectid
 
     def _g_copy_with_stats(self, group, name, start, stop, step,

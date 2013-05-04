@@ -90,8 +90,8 @@ class Filters(object):
         fileh = open_file('test5.h5', mode='w')
         atom = Float32Atom()
         filters = Filters(complevel=1, complib='blosc', fletcher32=True)
-        arr = fileh.create_earray(fileh.root, 'earray', atom=atom, shape=(0,2),
-                                  title="A growable array", filters=filters)
+        arr = fileh.create_earray(fileh.root, 'earray', atom, (0,2),
+                                 "A growable array", filters=filters)
 
         # Append several rows in only one call
         arr.append(numpy.array([[1., 2.],

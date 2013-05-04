@@ -33,7 +33,8 @@ from tables import hdf5extension
 from tables import utilsextension
 from tables import parameters
 from tables.exceptions import (ClosedFileError, FileModeError, NodeError,
-    NoSuchNodeError, UndoRedoError, PerformanceWarning)
+                               NoSuchNodeError, UndoRedoError,
+                               PerformanceWarning)
 from tables.registry import get_class_by_name
 from tables.path import join_path, split_path
 from tables import undoredo
@@ -51,6 +52,8 @@ from tables.table import Table
 from tables import linkextension
 from tables.utils import detect_number_of_cores
 from tables import lrucacheextension
+from tables.flavor import flavor_of, array_as_internal
+from tables.atom import Atom
 
 from tables.link import SoftLink, ExternalLink
 
@@ -276,7 +279,7 @@ class _AliveNodes(dict):
                               "the recommended maximum number (%d); "
                               "be ready to see PyTables asking for *lots* "
                               "of memory and possibly slow I/O." % (
-                                    -self.nodeCacheSlots), PerformanceWarning)
+                              -self.nodeCacheSlots), PerformanceWarning)
         super(_AliveNodes, self).__setitem__(key, ref)
 
 
@@ -759,8 +762,9 @@ class File(hdf5extension.File, object):
 
     createTable = previous_api(create_table)
 
-    def create_array(self, where, name, obj=None, title="", byteorder=None, 
-                     createparents=False, atom=None, shape=None):
+    def create_array(self, where, name, obj=None, title="",
+                     byteorder=None, createparents=False,
+                     atom=None, shape=None):
         """Create a new array.
 
         Parameters
@@ -782,6 +786,10 @@ class File(hdf5extension.File, object):
             are not supported (use an EArray node (see
             :ref:`EArrayClassDescr`) if you want to store an array with
             one of its dimensions equal to 0).
+
+            .. versionchanged:: 3.0
+               The *Object parameter has been renamed into *obj*.*
+
         title : str
             A description for this node (it sets the TITLE HDF5 attribute on
             disk).
@@ -793,10 +801,15 @@ class File(hdf5extension.File, object):
             Whether to create the needed groups for the parent path to exist
             (not done by default).
         atom : Atom
-            An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
-            and *shape* of the atomic objects to be saved.
+            An Atom (see :ref:`AtomClassDescr`) instance representing
+            the *type* and *shape* of the atomic objects to be saved.
+
+            .. versionadded:: 3.0
+
         shape : tuple of ints
             The shape of the stored array.
+
+            .. versionadded:: 3.0
 
         See Also
         --------
@@ -805,15 +818,37 @@ class File(hdf5extension.File, object):
 
         """
 
+        if obj is None:
+            if atom is None or shape is None:
+                raise TypeError('if the obj parameter is not specified '
+                                '(or None) then both the atom and shape '
+                                'parametes should be provided.')
+            else:
+                obj = numpy.zeros(shape, atom.dtype)
+        else:
+            flavor = flavor_of(obj)
+            # use a temporary object because converting obj at this stage
+            # breaks some test. This is soultion performs a double,
+            # potentially expensive, conversion of the obj parameter.
+            _obj = array_as_internal(obj, flavor)
+
+            if shape is not None and shape != _obj.shape:
+                raise TypeError('the shape parameter do not match obj.shape')
+
+            if atom is not None and atom.dtype != _obj.dtype:
+                raise TypeError('the atom parameter is not consistent with '
+                                'the data type of the obj parameter')
+
+
         parentnode = self._get_or_create_path(where, createparents)
-        return Array(parentnode, name, obj=obj, title=title, byteorder=byteorder, 
-                     atom=atom, shape=shape)
+        return Array(parentnode, name,
+                     obj=obj, title=title, byteorder=byteorder)
 
     createArray = previous_api(create_array)
 
-    def create_carray(self, where, name, obj=None, atom=None, shape=None, title="",
+    def create_carray(self, where, name, atom=None, shape=None, title="",
                       filters=None, chunkshape=None,
-                      byteorder=None, createparents=False):
+                      byteorder=None, createparents=False, obj=None):
         """Create a new chunked array.
 
         Parameters
@@ -824,22 +859,21 @@ class File(hdf5extension.File, object):
             instance (see :ref:`GroupClassDescr`).
         name : str
             The name of the new array
-        obj : python object
-            The array or scalar to be saved.  Accepted types are NumPy
-            arrays and scalars, as well as native Python sequences and
-            scalars, provided that values are regular (i.e. they are
-            not like ``[[1,2],2]``) and homogeneous (i.e. all the
-            elements are of the same type).
-
-            Also, objects that have some of their dimensions equal to 0
-            are not supported (use an EArray node (see
-            :ref:`EArrayClassDescr`) if you want to store an array with
-            one of its dimensions equal to 0).
         atom : Atom
             An Atom (see :ref:`AtomClassDescr`) instance representing
             the *type* and *shape* of the atomic objects to be saved.
+
+            .. versionchanged:: 3.0
+               The *atom* parameter can be None (default) if *obj* is
+               provided.
+
         shape : tuple
             The shape of the new array.
+
+            .. versionchanged:: 3.0
+               The *shape* parameter can be None (default) if *obj* is
+               provided.
+
         title : str, optional
             A description for this node (it sets the TITLE HDF5 attribute
             on disk).
@@ -860,6 +894,25 @@ class File(hdf5extension.File, object):
         createparents : bool, optional
             Whether to create the needed groups for the parent path to
             exist (not done by default).
+        obj : python object
+            The array or scalar to be saved.  Accepted types are NumPy
+            arrays and scalars, as well as native Python sequences and
+            scalars, provided that values are regular (i.e. they are
+            not like ``[[1,2],2]``) and homogeneous (i.e. all the
+            elements are of the same type).
+
+            Also, objects that have some of their dimensions equal to 0
+            are not supported. Please use an EArray node (see
+            :ref:`EArrayClassDescr`) if you want to store an array with
+            one of its dimensions equal to 0.
+
+            The *obj* parameter is optional and it can be provided in
+            alternative to the *atom* and *shape* parameters.
+            If both *obj* and *atom* and/or *shape* are provided they must
+            be consistent with each other.
+
+            .. versionadded:: 3.0
+
 
         See Also
         --------
@@ -867,18 +920,35 @@ class File(hdf5extension.File, object):
 
         """
 
+        if obj is not None:
+            flavor = flavor_of(obj)
+            obj = array_as_internal(obj, flavor)
+
+            if shape is not None and shape != obj.shape:
+                raise TypeError('the shape parameter do not match obj.shape')
+            else:
+                shape = obj.shape
+
+            if atom is None:
+                atom = Atom.from_dtype(obj.dtype)
+
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        return CArray(parentnode, name, obj=obj,
-                      atom=atom, shape=shape, title=title, filters=filters,
-                      chunkshape=chunkshape, byteorder=byteorder)
+        carray = CArray(parentnode, name,
+                        atom=atom, shape=shape, title=title, filters=filters,
+                        chunkshape=chunkshape, byteorder=byteorder)
+
+        if obj is not None:
+            carray[...] = obj
+
+        return carray
 
     createCArray = previous_api(create_carray)
 
-    def create_earray(self, where, name, obj=None, atom=None, shape=None, title="",
+    def create_earray(self, where, name, atom=None, shape=None, title="",
                       filters=None, expectedrows=1000,
                       chunkshape=None, byteorder=None,
-                      createparents=False):
+                      createparents=False, obj=None):
         """Create a new enlargeable array.
 
         Parameters
@@ -889,25 +959,24 @@ class File(hdf5extension.File, object):
             (see :ref:`GroupClassDescr`).
         name : str
             The name of the new array
-        obj : python object
-            The array or scalar to be saved.  Accepted types are NumPy
-            arrays and scalars, as well as native Python sequences and
-            scalars, provided that values are regular (i.e. they are
-            not like ``[[1,2],2]``) and homogeneous (i.e. all the
-            elements are of the same type).
-
-            Also, objects that have some of their dimensions equal to 0
-            are not supported (use an EArray node (see
-            :ref:`EArrayClassDescr`) if you want to store an array with
-            one of its dimensions equal to 0).
         atom : Atom
             An Atom (see :ref:`AtomClassDescr`) instance representing the
             *type* and *shape* of the atomic objects to be saved.
+
+            .. versionchanged:: 3.0
+               The *atom* parameter can be None (default) if *obj* is
+               provided.
+
         shape : tuple
             The shape of the new array.  One (and only one) of the shape
             dimensions *must* be 0.  The dimension being 0 means that the
             resulting EArray object can be extended along it.  Multiple
             enlargeable dimensions are not supported right now.
+
+            .. versionchanged:: 3.0
+               The *shape* parameter can be None (default) if *obj* is
+               provided.
+
         title : str, optional
             A description for this node (it sets the TITLE HDF5 attribute on
             disk).
@@ -932,6 +1001,19 @@ class File(hdf5extension.File, object):
         createparents : bool, optional
             Whether to create the needed groups for the parent path to exist
             (not done by default).
+        obj : python object
+            The array or scalar to be saved.  Accepted types are NumPy
+            arrays and scalars, as well as native Python sequences and
+            scalars, provided that values are regular (i.e. they are
+            not like ``[[1,2],2]``) and homogeneous (i.e. all the
+            elements are of the same type).
+
+            The *obj* parameter is optional and it can be provided in
+            alternative to the *atom* and *shape* parameters.
+            If both *obj* and *atom* and/or *shape* are provided they must
+            be consistent with each other.
+
+            .. versionadded:: 3.0
 
         See Also
         --------
@@ -939,12 +1021,32 @@ class File(hdf5extension.File, object):
 
         """
 
+        if obj is not None:
+            flavor = flavor_of(obj)
+            obj = array_as_internal(obj, flavor)
+
+            earray_shape = (0,) + obj.shape[1:]
+
+            if shape is not None and shape != earray_shape:
+                raise TypeError('the shape parameter is not compatible '
+                                'with obj.shape.')
+            else:
+                shape = earray_shape
+
+            if atom is None:
+                atom = Atom.from_dtype(obj.dtype)
+
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        return EArray(parentnode, name, obj=obj,
-                      atom=atom, shape=shape, title=title,
-                      filters=filters, expectedrows=expectedrows,
-                      chunkshape=chunkshape, byteorder=byteorder)
+        earray = EArray(parentnode, name,
+                        atom=atom, shape=shape, title=title,
+                        filters=filters, expectedrows=expectedrows,
+                        chunkshape=chunkshape, byteorder=byteorder)
+
+        if obj is not None:
+            earray.append(obj)
+
+        return earray
 
     createEArray = previous_api(create_earray)
 

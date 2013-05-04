@@ -73,18 +73,15 @@ class Array(hdf5extension.Array, Leaf):
         scalars, provided that values are regular (i.e. they are not
         like ``[[1,2],2]``) and homogeneous (i.e. all the elements are
         of the same type).
+
+        .. versionchanged:: 3.0
+           Renamed form *object* into *obj*.
     title
         A description for this node (it sets the ``TITLE`` HDF5 attribute on
         disk).
     byteorder
         The byteorder of the data *on disk*, specified as 'little' or 'big'.
         If this is not specified, the byteorder is that of the given `object`.
-
-    atom : Atom
-        An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
-        and *shape* of the atomic objects to be saved.
-    shape : tuple of ints
-        The shape of the stored array.
 
     """
 
@@ -131,8 +128,9 @@ class Array(hdf5extension.Array, Leaf):
 
     # Other methods
     # ~~~~~~~~~~~~~
-    def __init__(self, parentnode, name, obj=None, title="",
-                 byteorder=None, _log=True, atom=None, shape=None,):
+    def __init__(self, parentnode, name,
+                 obj=None, title="",
+                 byteorder=None, _log=True, _atom=None):
 
         self._v_version = None
         """The object version of this array."""
@@ -144,7 +142,12 @@ class Array(hdf5extension.Array, Leaf):
         """The object to be stored in the array.  It can be any of numpy,
         list, tuple, string, integer of floating point types, provided
         that they are regular (i.e. they are not like ``[[1, 2], 2]``).
+
+        .. versionchanged:: 3.0
+           Renamed form *_object* into *_obj*.
+
         """
+
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
 
@@ -169,11 +172,11 @@ class Array(hdf5extension.Array, Leaf):
         """Current buffer in iterators."""
 
         # Documented (*public*) attributes.
-        self.atom = atom
+        self.atom = _atom
         """An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
         and *shape* of the atomic objects to be saved.
         """
-        self.shape = shape
+        self.shape = None
         """The shape of the stored array."""
         self.nrow = None
         """On iterators, this is the index of the current row."""
@@ -727,8 +730,8 @@ class Array(hdf5extension.Array, Leaf):
             except Exception, exc:  # XXX
                 raise ValueError("value parameter '%s' cannot be converted "
                                  "into an array object compliant with %s: "
-                                 "'%r' The error was: <%s>" % (nparr,
-                                        self.__class__.__name__, self, exc))
+                                 "'%r' The error was: <%s>" % (
+                                 nparr, self.__class__.__name__, self, exc))
             return narr
         return nparr
 
@@ -844,7 +847,7 @@ class Array(hdf5extension.Array, Leaf):
         # data is always read in the system byteorder
         # if the out array's byteorder is different, do a byteswap
         if (out is not None and
-            byteorders[arr.dtype.byteorder] != sys.byteorder):
+                byteorders[arr.dtype.byteorder] != sys.byteorder):
             arr.byteswap(True)
         return arr
 
@@ -900,7 +903,7 @@ class Array(hdf5extension.Array, Leaf):
         # with atomic types different from scalars.
         # For details, see #275 of trac.
         object_ = Array(group, name, arr, title=title, _log=_log,
-                        atom=self.atom,)
+                        _atom=self.atom)
         nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object_, nbytes)

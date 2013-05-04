@@ -291,7 +291,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
     _is_CSI = previous_api(_is_csi)
 
     is_csi = property(_is_csi, None, None,
-        "Whether the index is completely sorted or not.")
+                      "Whether the index is completely sorted or not.")
 
     is_CSI = previous_api(is_csi)
 
@@ -503,8 +503,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                    self.expectedrows // self.slicesize,
                    byteorder=self.byteorder)
         # median ranges
-        EArray(self, 'mranges', atom=atom, shape=(0,), title="Median ranges", 
-               filters=filters, byteorder=self.byteorder, _log=False)
+        EArray(self, 'mranges', atom, (0,), "Median ranges", filters,
+               byteorder=self.byteorder, _log=False)
 
         # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (rslicesize - 1) // rchunksize
@@ -522,17 +522,17 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         # Create the Array for last (sorted) row values + bounds
         shape = (rslicesize + 2 + nbounds_inslice,)
-        sortedLR = LastRowArray(self, 'sortedLR', atom=atom, shape=shape,
-                                title="Last Row sorted values + bounds",
-                                filters=filters, chunkshape=(rchunksize,),
+        sortedLR = LastRowArray(self, 'sortedLR', atom, shape,
+                                "Last Row sorted values + bounds",
+                                filters, (rchunksize,),
                                 byteorder=self.byteorder)
 
         # Create the Array for the number of chunk in last row
         shape = (self.slicesize,)     # enough for indexes and length
         indicesLR = LastRowArray(self, 'indicesLR',
-                                 atom=UIntAtom(itemsize=self.indsize),
-                                 shape=shape, title="Last Row indices",
-                                 filters=filters, chunkshape=(self.chunksize,),
+                                 UIntAtom(itemsize=self.indsize),
+                                 shape, "Last Row indices",
+                                 filters, (self.chunksize,),
                                  byteorder=self.byteorder)
 
         # The number of elements in LR will be initialized here
@@ -1046,15 +1046,15 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                "Median ranges", filters, chunkshape=(cs,))
         # temporary last row (sorted)
         shape = (ss + 2 + nbounds_inslice,)
-        CArray(tmp, 'sortedLR', atom=atom, shape=shape,
-               title="Temp Last Row sorted values + bounds",
-               filters=filters, chunkshape=(cs,))
+        CArray(tmp, 'sortedLR', atom, shape,
+               "Temp Last Row sorted values + bounds",
+               filters, chunkshape=(cs,))
         # temporary last row (indices)
         shape = (ss,)
         CArray(tmp, 'indicesLR',
-               atom=UIntAtom(itemsize=self.indsize),
-               shape=shape, title="Temp Last Row indices",
-               filters=filters, chunkshape=(cs,))
+               UIntAtom(itemsize=self.indsize),
+               shape, "Temp Last Row indices",
+               filters, chunkshape=(cs,))
 
     def create_temp2(self):
         """Create some temporary objects for slice sorting purposes."""
@@ -1070,27 +1070,27 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         shape = (self.nslices, ss)
         atom = Atom.from_dtype(self.dtype)
         tmp = self.tmp
-        CArray(tmp, 'sorted2', atom=atom, shape=shape,
-               title="Temporary sorted 2", filters=filters, chunkshape=(1, cs))
-        CArray(tmp, 'indices2', atom=UIntAtom(itemsize=self.indsize), shape=shape,
-               title="Temporary indices 2", filters=filters, chunkshape=(1, cs))
+        CArray(tmp, 'sorted2', atom, shape,
+               "Temporary sorted 2", filters, chunkshape=(1, cs))
+        CArray(tmp, 'indices2', UIntAtom(itemsize=self.indsize), shape,
+               "Temporary indices 2", filters, chunkshape=(1, cs))
         # temporary bounds
         nbounds_inslice = (ss - 1) // cs
         shape = (self.nslices, nbounds_inslice)
-        CArray(tmp, 'bounds2', atom=atom, shape=shape, title="Temp chunk bounds 2",
-               filters=filters, chunkshape=(cs, nbounds_inslice))
+        CArray(tmp, 'bounds2', atom, shape, "Temp chunk bounds 2",
+               filters, chunkshape=(cs, nbounds_inslice))
         shape = (self.nchunks,)
-        CArray(tmp, 'abounds2', atom=atom, shape=shape, title="Temp start bounds 2",
-               filters=filters, chunkshape=(cs,))
-        CArray(tmp, 'zbounds2', atom=atom, shape=shape, title="Temp end bounds 2",
-               filters=filters, chunkshape=(cs,))
-        CArray(tmp, 'mbounds2', atom=atom, shape=shape, title="Median bounds 2",
-               filters=filters, chunkshape=(cs,))
+        CArray(tmp, 'abounds2', atom, shape, "Temp start bounds 2",
+               filters, chunkshape=(cs,))
+        CArray(tmp, 'zbounds2', atom, shape, "Temp end bounds 2",
+               filters, chunkshape=(cs,))
+        CArray(tmp, 'mbounds2', atom, shape, "Median bounds 2",
+               filters, chunkshape=(cs,))
         # temporary ranges
-        CArray(tmp, 'ranges2', atom=atom, shape=(self.nslices, 2),
-               title="Temporary range values 2", filters=filters, chunkshape=(cs, 2))
-        CArray(tmp, 'mranges2', atom=atom, shape=(self.nslices,),
-               title="Median ranges 2", filters=filters, chunkshape=(cs,))
+        CArray(tmp, 'ranges2', atom, (self.nslices, 2),
+               "Temporary range values 2", filters, chunkshape=(cs, 2))
+        CArray(tmp, 'mranges2', atom, (self.nslices,),
+               "Median ranges 2", filters, chunkshape=(cs,))
 
     def cleanup_temp(self):
         """Copy the data and delete the temporaries for sorting purposes."""

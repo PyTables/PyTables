@@ -26,6 +26,7 @@ from tables._past import previous_api, previous_api_property
 # obversion = "1.3"    # This adds support for enumerated datatypes.
 obversion = "1.4"    # Numeric and numarray flavors are gone.
 
+
 class EArray(CArray):
     """This class represents extendable, homogeneous datasets in an HDF5 file.
 
@@ -50,12 +51,7 @@ class EArray(CArray):
 
     name : str
         The name of this node in its parent group.
-    obj
-        The array or scalar to be saved.  Accepted types are NumPy
-        arrays and scalars as well as native Python sequences and
-        scalars, provided that values are regular (i.e. they are not
-        like ``[[1,2],2]``) and homogeneous (i.e. all the elements are
-        of the same type).
+
     atom
         An `Atom` instance representing the *type* and *shape*
         of the atomic objects to be saved.
@@ -111,8 +107,8 @@ class EArray(CArray):
         a = tables.StringAtom(itemsize=8)
 
         # Use ``a`` as the object type for the enlargeable array.
-        array_c = fileh.create_earray(fileh.root, 'array_c', atom=a, shape=(0,),
-                                      title=\"Chars\")
+        array_c = fileh.create_earray(fileh.root, 'array_c', a, (0,),
+                                      \"Chars\")
         array_c.append(numpy.array(['a'*2, 'b'*4], dtype='S8'))
         array_c.append(numpy.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
 
@@ -139,7 +135,7 @@ class EArray(CArray):
 
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__(self, parentnode, name, obj=None,
+    def __init__(self, parentnode, name,
                  atom=None, shape=None, title="",
                  filters=None, expectedrows=None,
                  chunkshape=None, byteorder=None,
@@ -152,10 +148,8 @@ class EArray(CArray):
         """The expected number of rows to be stored in the array."""
 
         # Call the parent (CArray) init code
-        super(EArray, self).__init__(parentnode, name, obj=obj, atom=atom, 
-                                     shape=shape, title=title, filters=filters, 
-                                     chunkshape=chunkshape, byteorder=byteorder, 
-                                     _log=_log)
+        super(EArray, self).__init__(parentnode, name, atom, shape, title,
+                                     filters, chunkshape, byteorder, _log)
 
     # Public and private methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -163,19 +157,18 @@ class EArray(CArray):
         """Create a new array in file (specific part)."""
 
         # Pre-conditions and extdim computation
-        if self.shape is not None:
-            zerodims = numpy.sum(numpy.array(self.shape) == 0)
-            if zerodims > 0:
-                if zerodims == 1:
-                    self.extdim = list(self.shape).index(0)
-                else:
-                    raise NotImplementedError(
-                        "Multiple enlargeable (0-)dimensions are not "
-                        "supported.")
+        zerodims = numpy.sum(numpy.array(self.shape) == 0)
+        if zerodims > 0:
+            if zerodims == 1:
+                self.extdim = list(self.shape).index(0)
             else:
-                raise ValueError(
-                    "When creating EArrays, you need to set one of "
-                    "the dimensions of the Atom instance to zero.")
+                raise NotImplementedError(
+                    "Multiple enlargeable (0-)dimensions are not "
+                    "supported.")
+        else:
+            raise ValueError(
+                "When creating EArrays, you need to set one of "
+                "the dimensions of the Atom instance to zero.")
 
         # Finish the common part of the creation process
         return self._g_create_common(self._v_expectedrows)
