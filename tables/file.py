@@ -928,7 +928,10 @@ class File(hdf5extension.File, object):
             else:
                 shape = obj.shape
 
-            if atom is None:
+            if atom is not None and atom.dtype != obj.dtype:
+                raise TypeError('the atom parameter is not consistent with '
+                                'the data type of the obj parameter')
+            elif atom is None:
                 atom = Atom.from_dtype(obj.dtype)
 
         parentnode = self._get_or_create_path(where, createparents)
@@ -1032,7 +1035,10 @@ class File(hdf5extension.File, object):
             else:
                 shape = earray_shape
 
-            if atom is None:
+            if atom is not None and atom.dtype != obj.dtype:
+                raise TypeError('the atom parameter is not consistent with '
+                                'the data type of the obj parameter')
+            elif atom is None:
                 atom = Atom.from_dtype(obj.dtype)
 
         parentnode = self._get_or_create_path(where, createparents)

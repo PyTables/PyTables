@@ -2279,7 +2279,7 @@ class AtomDefaultReprReopen(AtomDefaultReprTestCase):
 class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test(self):
         """Test for unability to truncate Array objects."""
-        array1 = self.h5file.create_array('/', 'array1', [0, 2])
+        array1 = self.h5file.create_carray('/', 'array1', IntAtom(), [2, 2])
         self.assertRaises(TypeError, array1.truncate, 0)
 
 
@@ -2451,6 +2451,246 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
 
 
+class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
+    obj = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    where = '/'
+    name = 'carray'
+    atom = Atom.from_dtype(obj.dtype)
+    shape = obj.shape
+    title = 'title'
+    filters = None
+    chunkshape = (1, 2)
+    byteorder = None
+    createparents = False
+
+    def test_positional_args_01(self):
+        self.h5file.create_carray(self.where, self.name,
+                                  self.atom, self.shape,
+                                  self.title, self.filters, self.chunkshape)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(numpy.zeros_like(self.obj), nparr))
+
+    def test_positional_args_02(self):
+        ptarr = self.h5file.create_carray(self.where, self.name,
+                                          self.atom, self.shape,
+                                          self.title,
+                                          self.filters, self.chunkshape)
+        ptarr[...] = self.obj
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_positional_args_obj(self):
+        self.h5file.create_carray(self.where, self.name,
+                                  None, None,
+                                  self.title,
+                                  self.filters, self.chunkshape,
+                                  self.byteorder, self.createparents,
+                                  self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj(self):
+        self.h5file.create_carray(self.where, self.name, title=self.title,
+                                  chunkshape=self.chunkshape,
+                                  obj=self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_atom_shape_01(self):
+        ptarr = self.h5file.create_carray(self.where, self.name,
+                                          title=self.title,
+                                          chunkshape=self.chunkshape,
+                                          atom=self.atom, shape=self.shape)
+        ptarr[...] = self.obj
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_atom_shape_02(self):
+        ptarr = self.h5file.create_carray(self.where, self.name,
+                                          title=self.title,
+                                          chunkshape=self.chunkshape,
+                                          atom=self.atom, shape=self.shape)
+        #ptarr[...] = self.obj
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(numpy.zeros_like(self.obj), nparr))
+
+    def test_kwargs_obj_atom(self):
+        ptarr = self.h5file.create_carray(self.where, self.name,
+                                          title=self.title,
+                                          chunkshape=self.chunkshape,
+                                          obj=self.obj,
+                                          atom=self.atom)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_shape(self):
+        ptarr = self.h5file.create_carray(self.where, self.name,
+                                          title=self.title,
+                                          chunkshape=self.chunkshape,
+                                          obj=self.obj,
+                                          shape=self.shape)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_atom_shape(self):
+        ptarr = self.h5file.create_carray(self.where, self.name,
+                                          title=self.title,
+                                          chunkshape=self.chunkshape,
+                                          obj=self.obj,
+                                          atom=self.atom,
+                                          shape=self.shape)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_atom_error(self):
+        atom = Atom.from_dtype(numpy.dtype('complex'))
+        #shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_carray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=atom)
+
+    def test_kwargs_obj_shape_error(self):
+        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_carray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          shape=shape)
+
+    def test_kwargs_obj_atom_shape_error_01(self):
+        atom = Atom.from_dtype(numpy.dtype('complex'))
+        #shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_carray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=atom,
+                          shape=self.shape)
+
+    def test_kwargs_obj_atom_shape_error_02(self):
+        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_carray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=self.atom,
+                          shape=shape)
+
+    def test_kwargs_obj_atom_shape_error_03(self):
+        atom = Atom.from_dtype(numpy.dtype('complex'))
+        shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_carray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=atom,
+                          shape=shape)
+
+
 #----------------------------------------------------------------------
 
 
@@ -2531,6 +2771,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(MDLargeAtomNoReopen))
         theSuite.addTest(unittest.makeSuite(MDLargeAtomReopen))
         theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
+        theSuite.addTest(unittest.makeSuite(TestCreateCArrayArgs))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3CArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4CArrayTestCase))
