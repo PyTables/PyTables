@@ -839,7 +839,6 @@ class File(hdf5extension.File, object):
                 raise TypeError('the atom parameter is not consistent with '
                                 'the data type of the obj parameter')
 
-
         parentnode = self._get_or_create_path(where, createparents)
         return Array(parentnode, name,
                      obj=obj, title=title, byteorder=byteorder)
