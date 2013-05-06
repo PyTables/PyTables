@@ -4,7 +4,7 @@ import sys
 import unittest
 import os
 import tempfile
-import cPickle
+#import cPickle
 
 import numpy
 import numpy.testing as npt
@@ -30,7 +30,6 @@ class BasicTestCase(unittest.TestCase):
     flavor = "numpy"
 
     def setUp(self):
-
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, "w")
@@ -45,8 +44,8 @@ class BasicTestCase(unittest.TestCase):
                           shuffle=self.shuffle,
                           fletcher32=self.fletcher32)
         vlarray = self.fileh.create_vlarray(group, 'vlarray1',
-                                            Int32Atom(),
-                                            "ragged array if ints",
+                                            atom=Int32Atom(),
+                                            title="ragged array if ints",
                                             filters=filters,
                                             expectedrows=1000)
         vlarray.flavor = self.flavor
@@ -227,7 +226,8 @@ class BasicTestCase(unittest.TestCase):
         if self.flavor == "numpy":
             self.assertEqual(type(row1), type(numpy.array([1, 2])))
             self.assertTrue(
-                allequal(row1, numpy.array([1, 2], dtype='int32'), self.flavor))
+                allequal(row1, numpy.array([1, 2], dtype='int32'),
+                         self.flavor))
             self.assertTrue(
                 allequal(row2, numpy.array([], dtype='int32'), self.flavor))
             self.assertTrue(
@@ -296,7 +296,6 @@ class TypesTestCase(unittest.TestCase):
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, self.mode)
@@ -316,8 +315,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test01_StringAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom',
-                                            StringAtom(itemsize=3),
-                                            "Ragged array of strings")
+                                            atom=StringAtom(itemsize=3),
+                                            title="Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
         vlarray.append(numpy.array(["1", "12345"]))
@@ -343,15 +342,16 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test01a_StringAtom(self):
-        """Checking vlarray with NumPy string atoms ('numpy' flavor, strided)"""
+        """Checking vlarray with NumPy string atoms ('numpy' flavor,
+        strided)"""
 
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_StringAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom',
-                                            StringAtom(itemsize=3),
-                                            "Ragged array of strings")
+                                            atom=StringAtom(itemsize=3),
+                                            title="Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"][::2]))
         vlarray.append(numpy.array(["1", "12345", "2", "321"])[::3])
@@ -383,8 +383,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test01a_2_StringAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom',
-                                            StringAtom(itemsize=3),
-                                            "Ragged array of strings")
+                                            atom=StringAtom(itemsize=3),
+                                            title="Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "123"]))
         vlarray.append(numpy.array(["1", "2", "321"]))
@@ -417,8 +417,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test01b_StringAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom2',
-                                            StringAtom(itemsize=3),
-                                            "Ragged array of strings")
+                                            atom=StringAtom(itemsize=3),
+                                            title="Ragged array of strings")
         vlarray.flavor = "python"
         vlarray.append(["1", "12", "123", "1234", "12345"])
         vlarray.append(["1", "12345"])
@@ -444,15 +444,16 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test01c_StringAtom(self):
-        """Checking updating vlarray with NumPy string atoms ('numpy' flavor)"""
+        """Checking updating vlarray with NumPy string atoms
+        ('numpy' flavor)"""
 
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01c_StringAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom',
-                                            StringAtom(itemsize=3),
-                                            "Ragged array of strings")
+                                            atom=StringAtom(itemsize=3),
+                                            title="Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
         vlarray.append(numpy.array(["1", "12345"]))
@@ -489,8 +490,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test01d_StringAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom2',
-                                            StringAtom(itemsize=3),
-                                            "Ragged array of strings")
+                                            atom=StringAtom(itemsize=3),
+                                            title="Ragged array of strings")
         vlarray.flavor = "python"
         vlarray.append(["1", "12", "123", "1234", "12345"])
         vlarray.append(["1", "12345"])
@@ -527,8 +528,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test02_BoolAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray('/', 'BoolAtom',
-                                            BoolAtom(),
-                                            "Ragged array of Booleans")
+                                            atom=BoolAtom(),
+                                            title="Ragged array of Booleans")
         vlarray.append([1, 0, 3])
         vlarray.append([-1, 0])
 
@@ -559,8 +560,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test02b_BoolAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray('/', 'BoolAtom',
-                                            BoolAtom(),
-                                            "Ragged array of Booleans")
+                                            atom=BoolAtom(),
+                                            title="Ragged array of Booleans")
         vlarray.append([1, 0, 3])
         vlarray.append([-1, 0])
 
@@ -590,22 +591,23 @@ class TypesTestCase(unittest.TestCase):
     def test03_IntAtom(self):
         """Checking vlarray with integer atoms"""
 
-        ttypes = ["Int8",
-                  "UInt8",
-                  "Int16",
-                  "UInt16",
-                  "Int32",
-                  "UInt32",
-                  "Int64",
-                  #"UInt64",  # Unavailable in some platforms
-                  ]
+        ttypes = [
+            "Int8",
+            "UInt8",
+            "Int16",
+            "UInt16",
+            "Int32",
+            "UInt32",
+            "Int64",
+            #"UInt64",  # Unavailable in some platforms
+        ]
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(atype))
+                                                atom=Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
             vlarray.append([-1, 0])
 
@@ -634,22 +636,23 @@ class TypesTestCase(unittest.TestCase):
     def test03a_IntAtom(self):
         """Checking vlarray with integer atoms (byteorder swapped)"""
 
-        ttypes = {"Int8": numpy.int8,
-                  "UInt8": numpy.uint8,
-                  "Int16": numpy.int16,
-                  "UInt16": numpy.uint16,
-                  "Int32": numpy.int32,
-                  "UInt32": numpy.uint32,
-                  "Int64": numpy.int64,
-                  #"UInt64": numpy.int64,  # Unavailable in some platforms
-                  }
+        ttypes = {
+            "Int8": numpy.int8,
+            "UInt8": numpy.uint8,
+            "Int16": numpy.int16,
+            "UInt16": numpy.uint16,
+            "Int32": numpy.int32,
+            "UInt32": numpy.uint32,
+            "Int64": numpy.int64,
+            #"UInt64": numpy.int64,  # Unavailable in some platforms
+        }
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03a_IntAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(ttypes[atype]))
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1, 2, 3], dtype=atype)
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
@@ -684,22 +687,23 @@ class TypesTestCase(unittest.TestCase):
     def test03b_IntAtom(self):
         """Checking updating vlarray with integer atoms"""
 
-        ttypes = ["Int8",
-                  "UInt8",
-                  "Int16",
-                  "UInt16",
-                  "Int32",
-                  "UInt32",
-                  "Int64",
-                  #"UInt64",  # Unavailable in some platforms
-                  ]
+        ttypes = [
+            "Int8",
+            "UInt8",
+            "Int16",
+            "UInt16",
+            "Int32",
+            "UInt32",
+            "Int64",
+            #"UInt64",  # Unavailable in some platforms
+        ]
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(atype))
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
             vlarray.append([-1, 0])
 
@@ -732,22 +736,23 @@ class TypesTestCase(unittest.TestCase):
     def test03c_IntAtom(self):
         """Checking updating vlarray with integer atoms (byteorder swapped)"""
 
-        ttypes = {"Int8": numpy.int8,
-                  "UInt8": numpy.uint8,
-                  "Int16": numpy.int16,
-                  "UInt16": numpy.uint16,
-                  "Int32": numpy.int32,
-                  "UInt32": numpy.uint32,
-                  "Int64": numpy.int64,
-                  #"UInt64": numpy.int64,  # Unavailable in some platforms
-                  }
+        ttypes = {
+            "Int8": numpy.int8,
+            "UInt8": numpy.uint8,
+            "Int16": numpy.int16,
+            "UInt16": numpy.uint16,
+            "Int32": numpy.int32,
+            "UInt32": numpy.uint32,
+            "Int64": numpy.int64,
+            #"UInt64": numpy.int64,  # Unavailable in some platforms
+        }
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03c_IntAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(ttypes[atype]))
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1, 2, 3], dtype=atype)
             vlarray.append(a0)
             a1 = numpy.array([-1, 0], dtype=atype)
@@ -788,25 +793,25 @@ class TypesTestCase(unittest.TestCase):
     def test03d_IntAtom(self):
         """Checking updating vlarray with integer atoms (another byteorder)"""
 
-        ttypes = {"Int8": numpy.int8,
-                  "UInt8": numpy.uint8,
-                  "Int16": numpy.int16,
-                  "UInt16": numpy.uint16,
-                  "Int32": numpy.int32,
-                  "UInt32": numpy.uint32,
-                  "Int64": numpy.int64,
-                  #"UInt64": numpy.int64,  # Unavailable in some platforms
-                  }
+        ttypes = {
+            "Int8": numpy.int8,
+            "UInt8": numpy.uint8,
+            "Int16": numpy.int16,
+            "UInt16": numpy.uint16,
+            "Int32": numpy.int32,
+            "UInt32": numpy.uint32,
+            "Int64": numpy.int64,
+            #"UInt64": numpy.int64,  # Unavailable in some platforms
+        }
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03d_IntAtom..." % self.__class__.__name__
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(
-                                                    ttypes[atype]),
-                                                byteorder=byteorder)
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(ttypes[atype]),
+                byteorder=byteorder)
             a0 = numpy.array([1, 2, 3], dtype=atype)
             vlarray.append(a0)
             a1 = numpy.array([-1, 0], dtype=atype)
@@ -864,8 +869,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04_FloatAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(atype))
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(atype))
             vlarray.append([1.3, 2.2, 3.3])
             vlarray.append([-1.3e34, 1.e-32])
 
@@ -910,8 +915,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04a_FloatAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(ttypes[atype]))
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
@@ -959,8 +964,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04b_FloatAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(atype))
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(atype))
             vlarray.append([1.3, 2.2, 3.3])
             vlarray.append([-1.3e34, 1.e-32])
 
@@ -1009,8 +1014,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04c_FloatAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(ttypes[atype]))
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
             vlarray.append(a0)
             a1 = numpy.array([-1, 0], dtype=atype)
@@ -1068,10 +1073,9 @@ class TypesTestCase(unittest.TestCase):
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(
-                                                    ttypes[atype]),
-                                                byteorder=byteorder)
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(ttypes[atype]),
+                byteorder=byteorder)
             a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
             vlarray.append(a0)
             a1 = numpy.array([-1, 0], dtype=atype)
@@ -1129,8 +1133,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04_ComplexAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(atype))
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(atype))
             vlarray.append([(1.3 + 0j), (0+2.2j), (3.3+3.3j)])
             vlarray.append([(0-1.3e34j), (1.e-32 + 0j)])
 
@@ -1150,10 +1154,12 @@ class TypesTestCase(unittest.TestCase):
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(
-                allequal(row[0], numpy.array([(1.3 + 0j), (0+2.2j), (3.3+3.3j)],
-                                             atype)))
+                allequal(row[0],
+                         numpy.array([(1.3 + 0j), (0+2.2j), (3.3+3.3j)],
+                                     atype)))
             self.assertTrue(
-                allequal(row[1], numpy.array([(0-1.3e34j), (1.e-32 + 0j)], atype)))
+                allequal(row[1],
+                         numpy.array([(0-1.3e34j), (1.e-32 + 0j)], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1175,8 +1181,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                Atom.from_sctype(atype))
+            vlarray = self.fileh.create_vlarray(
+                '/', atype, atom=Atom.from_sctype(atype))
             vlarray.append([(1.3 + 0j), (0+2.2j), (3.3+3.3j)])
             vlarray.append([(0-1.3e34j), (1.e-32 + 0j)])
 
@@ -1200,10 +1206,12 @@ class TypesTestCase(unittest.TestCase):
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(
-                allequal(row[0], numpy.array([(1.4 + 0j), (0+4.2j), (3.3+4.3j)],
-                                             atype)))
+                allequal(row[0],
+                         numpy.array([(1.4 + 0j), (0+4.2j), (3.3+4.3j)],
+                                     atype)))
             self.assertTrue(
-                allequal(row[1], numpy.array([(4-1.3e34j), (1.e-32 + 4j)], atype)))
+                allequal(row[1],
+                         numpy.array([(4-1.3e34j), (1.e-32 + 4j)], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1219,7 +1227,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test05_VLStringAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray(
-            '/', "VLStringAtom", VLStringAtom())
+            '/', "VLStringAtom", atom=VLStringAtom())
         vlarray.append("asd")
         vlarray.append("asd\xe4")
         vlarray.append(u"aaana")
@@ -1260,7 +1268,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test05b_VLStringAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray(
-            '/', "VLStringAtom", VLStringAtom())
+            '/', "VLStringAtom", atom=VLStringAtom())
         vlarray.append("asd")
         vlarray.append(u"aaana")
 
@@ -1297,7 +1305,8 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06a_Object..." % self.__class__.__name__
 
-        vlarray = self.fileh.create_vlarray('/', "Object", ObjectAtom())
+        vlarray = self.fileh.create_vlarray(
+            '/', "Object", atom=ObjectAtom())
         vlarray.append([[1, 2, 3], "aaa", u"aaaççç"])
         vlarray.append([3, 4, C()])
         vlarray.append(42)
@@ -1333,7 +1342,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06b_Object..." % self.__class__.__name__
 
-        vlarray = self.fileh.create_vlarray('/', "Object", ObjectAtom())
+        vlarray = self.fileh.create_vlarray('/', "Object", atom=ObjectAtom())
         # When updating an object, this seems to change the number
         # of bytes that pickle.dumps generates
         # vlarray.append(([1,2,3], "aaa", u"aaaççç"))
@@ -1377,7 +1386,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06c_Object..." % self.__class__.__name__
 
-        vlarray = self.fileh.create_vlarray('/', "Object", ObjectAtom())
+        vlarray = self.fileh.create_vlarray('/', "Object", atom=ObjectAtom())
         vlarray.append(numpy.array([[1, 2], [0, 4]], 'i4'))
         vlarray.append(numpy.array([0, 1, 2, 3], 'i8'))
         vlarray.append(numpy.array(42, 'i1'))
@@ -1407,7 +1416,7 @@ class TypesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06d_Object..." % self.__class__.__name__
 
-        vlarray = self.fileh.create_vlarray('/', "Object", ObjectAtom())
+        vlarray = self.fileh.create_vlarray('/', "Object", atom=ObjectAtom())
         vlarray.append(numpy.array([[1, 2], [0, 4]], 'i4'))
         vlarray.append(numpy.array([0, 1, 2, 3], 'i8'))
         vlarray.append(numpy.array(42, 'i1'))
@@ -1449,7 +1458,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test07_VLUnicodeAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray(
-            '/', "VLUnicodeAtom", VLUnicodeAtom())
+            '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
         vlarray.append("asd")
         vlarray.append(u"asd\u0140")
         vlarray.append(u"aaana")
@@ -1490,7 +1499,7 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test07b_VLUnicodeAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.create_vlarray(
-            '/', "VLUnicodeAtom", VLUnicodeAtom())
+            '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
         vlarray.append("asd")
         vlarray.append(u"aaan\xe4")
 
@@ -1772,9 +1781,11 @@ class MDTypesTestCase(unittest.TestCase):
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertTrue(
-            allequal(row[0], numpy.array([[1, 0, 1], [0, 0, 0]], dtype='bool')))
+            allequal(row[0],
+                     numpy.array([[1, 0, 1], [0, 0, 0]], dtype='bool')))
         self.assertTrue(
-            allequal(row[1], numpy.array([[1, 1, 1], [0, 0, 0]], dtype='bool')))
+            allequal(row[1],
+                     numpy.array([[1, 1, 1], [0, 0, 0]], dtype='bool')))
         self.assertEqual(len(row[0]), 2)
         self.assertEqual(len(row[1]), 2)
 
@@ -1797,8 +1808,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(root, atype,
-                                                Atom.from_sctype(atype, (2, 3)))
+            vlarray = self.fileh.create_vlarray(
+                root, atype, atom=Atom.from_sctype(atype, (2, 3)))
             vlarray.append([numpy.ones((2, 3), atype),
                             numpy.zeros((2, 3), atype)])
             vlarray.append([numpy.ones((2, 3), atype)*100])
@@ -1841,8 +1852,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(root, atype,
-                                                Atom.from_sctype(atype, (5, 2, 6)))
+            vlarray = self.fileh.create_vlarray(
+                root, atype, atom=Atom.from_sctype(atype, (5, 2, 6)))
             vlarray.append([numpy.ones((5, 2, 6), atype)*1.3,
                             numpy.zeros((5, 2, 6), atype)])
             vlarray.append([numpy.ones((5, 2, 6), atype)*2.e4])
@@ -2721,7 +2732,9 @@ class ReadRangeTestCase(unittest.TestCase):
                 allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test04bnp_slices(self):
-        "Checking reads with start, stop & step values in slices (numpy indices)"
+        """Checking reads with start, stop & step values in slices
+        (numpy indices)"""
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04bnp_slices..." % self.__class__.__name__
@@ -3185,9 +3198,12 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[2], numpy.arange(99, dtype='int32')*2 + 3))
 
     def test01np_start(self):
         "Checking updates that modifies a complete row"
@@ -3216,9 +3232,12 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[2], numpy.arange(99, dtype='int32')*2 + 3))
 
     def test02_partial(self):
         "Checking updates with only a part of a row"
@@ -3247,8 +3266,10 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
         a = numpy.arange(3, 99, dtype='int32')
         a = a * 2 + 3
         self.assertTrue(allequal(row[2], a))
@@ -3311,9 +3332,12 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[2], numpy.arange(96, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[2], numpy.arange(96, dtype='int32')*2 + 3))
 
     def test03c_several_rows(self):
         "Checking updating several rows at once (NumPy's where style)"
@@ -3342,9 +3366,12 @@ class SetRangeTestCase(unittest.TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[2], numpy.arange(96, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
+        self.assertTrue(
+            allequal(row[2], numpy.arange(96, dtype='int32')*2 + 3))
 
     def test04_out_of_range(self):
         "Checking out of range updates (first index)"
@@ -3597,9 +3624,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         # Create an VLArray
-        arr = Int16Atom(shape=2)
-        array1 = fileh.create_vlarray(fileh.root, 'array1', arr,
-                                     "title array1")
+        atom = Int16Atom(shape=2)
+        array1 = fileh.create_vlarray(fileh.root, 'array1', atom,
+                                      title="title array1")
         array1.flavor = "python"
         array1.append(((2, 3),))
         array1.append(())  # an empty row
@@ -3652,8 +3679,8 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an VLArray
         atom = Int16Atom(shape=2)
-        array1 = fileh.create_vlarray(fileh.root, 'array1', atom,
-                                     "title array1")
+        array1 = fileh.create_vlarray(fileh.root, 'array1', atom=atom,
+                                      title="title array1")
         array1.append(((2, 3),))
         array1.append(())  # an empty row
         array1.append(((3, 457), (2, 4)))
@@ -3701,8 +3728,8 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an Array
         atom = Int16Atom(shape=2)
-        array1 = fileh.create_vlarray(fileh.root, 'array1', atom,
-                                     "title array1")
+        array1 = fileh.create_vlarray(fileh.root, 'array1', atom=atom,
+                                      title="title array1")
         array1.append(((2, 3),))
         array1.append(())  # an empty row
         array1.append(((3, 457), (2, 4)))
@@ -3753,8 +3780,8 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an VLArray
         atom = Int16Atom(shape=2)
-        array1 = fileh.create_vlarray(fileh.root, 'array1', atom,
-                                     "title array1")
+        array1 = fileh.create_vlarray(fileh.root, 'array1', atom=atom,
+                                      title="title array1")
         array1.append(((2, 3),))
         array1.append(())  # an empty row
         array1.append(((3, 457), (2, 4)))
@@ -3945,8 +3972,9 @@ class ChunkshapeTestCase(unittest.TestCase):
         self.file = tempfile.mktemp('.h5')
         self.fileh = open_file(self.file, 'w', title='Chunkshape test')
         atom = Int32Atom(shape=(2,))
-        self.fileh.create_vlarray('/', 'vlarray', atom, "t array1",
-                                 chunkshape=13)
+        self.fileh.create_vlarray('/', 'vlarray', atom=atom,
+                                  title="t array1",
+                                  chunkshape=13)
 
     def tearDown(self):
         self.fileh.close()
@@ -4118,13 +4146,13 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             numpy.array([], dtype="i4"),       # empty array
             numpy.array([1], dtype="i4"),      # single-entry array
             numpy.array([True, False, True]),   # array of bools
-            ]
+        ]
 
         # The next are invalid selections for VLArrays
         self.not_working_keyset = [
             [1, 2, 100],               # coordinate 100 > len(vlarray)
             ([True, False, True],),   # tuple of bools
-            ]
+        ]
 
         # Create an instance of an HDF5 Array
         self.file = tempfile.mktemp(".h5")
@@ -4158,7 +4186,8 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             # if common.verbose:
             #     print "NumPy selection:", a, type(a)
             #     print "PyTables selection:", b, type(b)
-            self.assertEqual(repr(a), repr(b),
+            self.assertEqual(
+                repr(a), repr(b),
                 "NumPy array and PyTables selections does not match.")
 
     def test01b_read(self):
@@ -4184,8 +4213,8 @@ class SizeInMemoryPropertyTestCase(unittest.TestCase):
 
     def create_array(self, atom, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.array = self.fileh.create_vlarray('/', 'vlarray', atom,
-                                              filters=filters)
+        self.array = self.fileh.create_vlarray('/', 'vlarray', atom=atom,
+                                               filters=filters)
 
     def test_zero_length(self):
         atom = Int32Atom()
@@ -4267,8 +4296,8 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
-        self.array = self.h5file.create_vlarray(self.h5file.root, 'array',
-                                               StringAtom(8))
+        self.array = self.h5file.create_vlarray(
+            self.h5file.root, 'array', atom=StringAtom(8))
         self.array.append([str(i) for i in range(5, 5005, 100)])
 
     def test_read(self):
