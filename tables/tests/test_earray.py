@@ -18,6 +18,7 @@ unittest.TestCase.tearDown = common.cleanup
 
 class BasicTestCase(unittest.TestCase):
     # Default values
+    obj = None
     flavor = "numpy"
     type = 'int32'
     dtype = 'int32'
@@ -47,22 +48,29 @@ class BasicTestCase(unittest.TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        if self.type == "string":
-            atom = StringAtom(itemsize=self.length)
+        obj = self.obj
+        if obj is None:
+            if self.type == "string":
+                atom = StringAtom(itemsize=self.length)
+            else:
+                atom = Atom.from_type(self.type)
         else:
-            atom = Atom.from_type(self.type)
+            atom = None
         title = self.__class__.__name__
         filters = Filters(complevel=self.compress,
                           complib=self.complib,
                           shuffle=self.shuffle,
                           fletcher32=self.fletcher32)
-        earray = self.fileh.create_earray(group, 'earray1', atom, self.shape,
-                                          title, filters=filters,
-                                          expectedrows=1)
+        earray = self.fileh.create_earray(group, 'earray1',
+                                          atom=atom, shape=self.shape,
+                                          title=title, filters=filters,
+                                          expectedrows=1, obj=obj)
         earray.flavor = self.flavor
 
         # Fill it with rows
         self.rowshape = list(earray.shape)
+        if obj is not None:
+            self.rowshape[0] = 0
         self.objsize = self.length
         for i in self.rowshape:
             if i != 0:
@@ -97,18 +105,29 @@ class BasicTestCase(unittest.TestCase):
 
     #----------------------------------------
 
+    def _get_shape(self):
+        if self.shape is not None:
+            shape = self.shape
+        else:
+            shape = numpy.asarray(self.obj).shape
+
+        return shape
+
     def test00_attributes(self):
         if self.reopen:
             self.fileh = open_file(self.file, "r")
         obj = self.fileh.get_node("/earray1")
 
-        shape = list(self.shape)
+        shape = self._get_shape()
+        shape = list(shape)
         shape[self.extdim] = self.chunksize * self.nappends
+        if self.obj is not None:
+            shape[self.extdim] += len(self.obj)
         shape = tuple(shape)
 
         self.assertEqual(obj.flavor, self.flavor)
         self.assertEqual(obj.shape, shape)
-        self.assertEqual(obj.ndim, len(self.shape))
+        self.assertEqual(obj.ndim, len(shape))
         self.assertEqual(obj.nrows, shape[self.extdim])
         self.assertEqual(obj.atom.type, self.type)
 
@@ -141,14 +160,28 @@ class BasicTestCase(unittest.TestCase):
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
 
+        if self.obj is not None:
+            initialrows = len(self.obj)
+        else:
+            initialrows = 0
+
+        shape = self._get_shape()
+
         # Read all the array
-        for row in earray:
-            chunk = int(earray.nrow % self.chunksize)
+        for idx, row in enumerate(earray):
+            if idx < initialrows:
+                self.assertTrue(
+                    allequal(row, numpy.asarray(self.obj[idx]), self.flavor))
+                continue
+
+            chunk = int((earray.nrow - initialrows) % self.chunksize)
             if chunk == 0:
                 if self.type == "string":
                     object__ = object_
                 else:
-                    object__ = object_ * (int(earray.nrow) // self.chunksize)
+                    i = int(earray.nrow - initialrows)
+                    object__ = object_ * (i // self.chunksize)
+
             object = object__[chunk]
             # The next adds much more verbosity
             if common.verbose and 0:
@@ -158,13 +191,14 @@ class BasicTestCase(unittest.TestCase):
                 print "row in earray ==>", repr(row)
                 print "Should look like ==>", repr(object)
 
-            self.assertEqual(self.nappends * self.chunksize, earray.nrows)
+            self.assertEqual(initialrows + self.nappends * self.chunksize,
+                             earray.nrows)
             self.assertTrue(allequal(row, object, self.flavor))
             if hasattr(row, "shape"):
-                self.assertEqual(len(row.shape), len(self.shape) - 1)
+                self.assertEqual(len(row.shape), len(shape) - 1)
             else:
                 # Scalar case
-                self.assertEqual(len(self.shape), 1)
+                self.assertEqual(len(shape), 1)
 
             # Check filters:
             if self.compress != earray.filters.complevel and common.verbose:
@@ -211,18 +245,34 @@ class BasicTestCase(unittest.TestCase):
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
 
+        if self.obj is not None:
+            initialrows = len(self.obj)
+        else:
+            initialrows = 0
+
+        shape = self._get_shape()
+
         # Read all the array
-        for row in earray.iterrows(start=self.start, stop=self.stop,
-                                   step=self.step):
+        for idx, row in enumerate(earray.iterrows(start=self.start,
+                                                  stop=self.stop,
+                                                  step=self.step)):
+            if idx < initialrows:
+                self.assertTrue(
+                    allequal(row, numpy.asarray(self.obj[idx]), self.flavor))
+                continue
+
             if self.chunksize == 1:
                 index = 0
             else:
-                index = int(earray.nrow % self.chunksize)
+                index = int((earray.nrow - initialrows) % self.chunksize)
+
             if self.type == "string":
                 object__ = object_
             else:
-                object__ = object_ * (int(earray.nrow) // self.chunksize)
+                i = int(earray.nrow - initialrows)
+                object__ = object_ * (i // self.chunksize)
             object = object__[index]
+
             # The next adds much more verbosity
             if common.verbose and 0:
                 print "number of row ==>", earray.nrow
@@ -231,13 +281,14 @@ class BasicTestCase(unittest.TestCase):
                 print "row in earray ==>", repr(row)
                 print "Should look like ==>", repr(object)
 
-            self.assertEqual(self.nappends * self.chunksize, earray.nrows)
+            self.assertEqual(initialrows + self.nappends * self.chunksize,
+                             earray.nrows)
             self.assertTrue(allequal(row, object, self.flavor))
             if hasattr(row, "shape"):
-                self.assertEqual(len(row.shape), len(self.shape) - 1)
+                self.assertEqual(len(row.shape), len(shape) - 1)
             else:
                 # Scalar case
-                self.assertEqual(len(self.shape), 1)
+                self.assertEqual(len(shape), 1)
 
     def test03_readEArray(self):
         """Checking read() of enlargeable arrays"""
@@ -276,8 +327,13 @@ class BasicTestCase(unittest.TestCase):
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
 
+        if self.obj is not None:
+            initialrows = len(self.obj)
+        else:
+            initialrows = 0
+
         rowshape = self.rowshape
-        rowshape[self.extdim] *= self.nappends
+        rowshape[self.extdim] *= (self.nappends + initialrows)
         if self.type == "string":
             object__ = numpy.empty(
                 shape=rowshape, dtype="S%s" % earray.atom.itemsize)
@@ -286,8 +342,11 @@ class BasicTestCase(unittest.TestCase):
 
         object__ = object__.swapaxes(0, self.extdim)
 
+        if initialrows:
+            object__[0:initialrows] = self.obj
+
         for i in range(self.nappends):
-            j = i * self.chunksize
+            j = initialrows + i * self.chunksize
             if self.type == "string":
                 object__[j:j + self.chunksize] = object_
             else:
@@ -298,7 +357,7 @@ class BasicTestCase(unittest.TestCase):
         if self.nappends:
             # stop == None means read only the element designed by start
             # (in read() contexts)
-            if self.stop == None:
+            if self.stop is None:
                 if self.start == -1:  # corner case
                     stop = earray.nrows
                 else:
@@ -330,15 +389,18 @@ class BasicTestCase(unittest.TestCase):
             print "Object read ==>", repr(row)
             print "Should look like ==>", repr(object)
 
-        self.assertEqual(self.nappends * self.chunksize, earray.nrows)
+        self.assertEqual(initialrows + self.nappends * self.chunksize,
+                         earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
+
+        shape = self._get_shape()
         if hasattr(row, "shape"):
-            self.assertEqual(len(row.shape), len(self.shape))
+            self.assertEqual(len(row.shape), len(shape))
             if self.flavor == "numpy":
                 self.assertEqual(row.itemsize, earray.atom.itemsize)
         else:
             # Scalar case
-            self.assertEqual(len(self.shape), 1)
+            self.assertEqual(len(shape), 1)
 
     def test03_readEArray_out_argument(self):
         """Checking read() of enlargeable arrays"""
@@ -368,8 +430,13 @@ class BasicTestCase(unittest.TestCase):
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
 
+        if self.obj is not None:
+            initialrows = len(self.obj)
+        else:
+            initialrows = 0
+
         rowshape = self.rowshape
-        rowshape[self.extdim] *= self.nappends
+        rowshape[self.extdim] *= (self.nappends + initialrows)
         if self.type == "string":
             object__ = numpy.empty(
                 shape=rowshape, dtype="S%s" % earray.atom.itemsize)
@@ -378,8 +445,11 @@ class BasicTestCase(unittest.TestCase):
 
         object__ = object__.swapaxes(0, self.extdim)
 
+        if initialrows:
+            object__[0:initialrows] = self.obj
+
         for i in range(self.nappends):
-            j = i * self.chunksize
+            j = initialrows + i * self.chunksize
             if self.type == "string":
                 object__[j:j + self.chunksize] = object_
             else:
@@ -390,7 +460,7 @@ class BasicTestCase(unittest.TestCase):
         if self.nappends:
             # stop == None means read only the element designed by start
             # (in read() contexts)
-            if self.stop == None:
+            if self.stop is None:
                 if self.start == -1:  # corner case
                     stop = earray.nrows
                 else:
@@ -420,15 +490,24 @@ class BasicTestCase(unittest.TestCase):
         except IndexError:
             row = numpy.empty(shape=self.shape, dtype=self.dtype)
 
-        self.assertEqual(self.nappends * self.chunksize, earray.nrows)
+        if common.verbose:
+            if hasattr(object, "shape"):
+                print "shape should look as:", object.shape
+            print "Object read ==>", repr(row)
+            print "Should look like ==>", repr(object)
+
+        self.assertEqual(initialrows + self.nappends * self.chunksize,
+                         earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
+
+        shape = self._get_shape()
         if hasattr(row, "shape"):
-            self.assertEqual(len(row.shape), len(self.shape))
+            self.assertEqual(len(row.shape), len(shape))
             if self.flavor == "numpy":
                 self.assertEqual(row.itemsize, earray.atom.itemsize)
         else:
             # Scalar case
-            self.assertEqual(len(self.shape), 1)
+            self.assertEqual(len(shape), 1)
 
     def test04_getitemEArray(self):
         """Checking enlargeable array __getitem__ special method"""
@@ -471,8 +550,13 @@ class BasicTestCase(unittest.TestCase):
 
         object_ = object_.swapaxes(earray.extdim, 0)
 
+        if self.obj is not None:
+            initialrows = len(self.obj)
+        else:
+            initialrows = 0
+
         rowshape = self.rowshape
-        rowshape[self.extdim] *= self.nappends
+        rowshape[self.extdim] *= (self.nappends + initialrows)
         if self.type == "string":
             object__ = numpy.empty(
                 shape=rowshape, dtype="S%s" % earray.atom.itemsize)
@@ -481,8 +565,11 @@ class BasicTestCase(unittest.TestCase):
             # Additional conversion for the numpy case
         object__ = object__.swapaxes(0, earray.extdim)
 
+        if initialrows:
+            object__[0:initialrows] = self.obj
+
         for i in range(self.nappends):
-            j = i * self.chunksize
+            j = initialrows + i * self.chunksize
             if self.type == "string":
                 object__[j:j + self.chunksize] = object_
             else:
@@ -514,7 +601,8 @@ class BasicTestCase(unittest.TestCase):
                 print "Shape read:", row.shape
                 print "shape should look as:", object.shape
 
-        self.assertEqual(self.nappends * self.chunksize, earray.nrows)
+        self.assertEqual(initialrows + self.nappends * self.chunksize,
+                         earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
         if not hasattr(row, "shape"):
             # Scalar case
@@ -528,6 +616,7 @@ class BasicTestCase(unittest.TestCase):
             # it is not worth the effort to solve it
             # F.Alted 2004-10-27
             return
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_setitemEArray..." % self.__class__.__name__
@@ -566,8 +655,13 @@ class BasicTestCase(unittest.TestCase):
 
         object_ = object_.swapaxes(earray.extdim, 0)
 
+        if self.obj is not None:
+            initialrows = len(self.obj)
+        else:
+            initialrows = 0
+
         rowshape = self.rowshape
-        rowshape[self.extdim] *= self.nappends
+        rowshape[self.extdim] *= (self.nappends + initialrows)
         if self.type == "string":
             object__ = numpy.empty(
                 shape=rowshape, dtype="S%s" % earray.atom.itemsize)
@@ -577,7 +671,7 @@ class BasicTestCase(unittest.TestCase):
         object__ = object__.swapaxes(0, earray.extdim)
 
         for i in range(self.nappends):
-            j = i * self.chunksize
+            j = initialrows + i * self.chunksize
             if self.type == "string":
                 object__[j:j + self.chunksize] = object_
             else:
@@ -585,6 +679,9 @@ class BasicTestCase(unittest.TestCase):
                 # Modify the earray
                 # earray[j:j + self.chunksize] = object_ * i
                 # earray[self.slices] = 1
+
+        if initialrows:
+            object__[0:initialrows] = self.obj
 
         if self.nappends:
             # Swap the axes again to have normal ordering
@@ -637,7 +734,8 @@ class BasicTestCase(unittest.TestCase):
                 print "Shape read:", row.shape
                 print "shape should look as:", object.shape
 
-        self.assertEqual(self.nappends * self.chunksize, earray.nrows)
+        self.assertEqual(initialrows + self.nappends * self.chunksize,
+                         earray.nrows)
         self.assertTrue(allequal(row, object, self.flavor))
         if not hasattr(row, "shape"):
             # Scalar case
@@ -663,6 +761,66 @@ class Basic2WriteTestCase(BasicTestCase):
     step = 1
     wslice = slice(chunksize-2, nappends, 2)  # range of elements
     reopen = 0  # This case does not reopen files
+
+
+class Basic3WriteTestCase(BasicTestCase):
+    obj = [1, 2]
+    type = numpy.asarray(obj).dtype.name
+    dtype = numpy.asarray(obj).dtype.str
+    shape = (0,)
+    chunkshape = (5,)
+    step = 1
+    reopen = 0  # This case does not reopen files
+
+
+class Basic4WriteTestCase(BasicTestCase):
+    obj = numpy.array([1, 2])
+    type = obj.dtype.name
+    dtype = obj.dtype.str
+    shape = None
+    chunkshape = (5,)
+    step = 1
+    reopen = 0  # This case does not reopen files
+
+
+class Basic5WriteTestCase(BasicTestCase):
+    obj = [1, 2]
+    type = numpy.asarray(obj).dtype.name
+    dtype = numpy.asarray(obj).dtype.str
+    shape = (0,)
+    chunkshape = (5,)
+    step = 1
+    reopen = 1  # This case does reopen files
+
+
+class Basic6WriteTestCase(BasicTestCase):
+    obj = numpy.array([1, 2])
+    type = obj.dtype.name
+    dtype = obj.dtype.str
+    shape = None
+    chunkshape = (5,)
+    step = 1
+    reopen = 1  # This case does reopen files
+
+
+class Basic7WriteTestCase(BasicTestCase):
+    obj = [[1, 2], [3, 4]]
+    type = numpy.asarray(obj).dtype.name
+    dtype = numpy.asarray(obj).dtype.str
+    shape = (0, 2)
+    chunkshape = (5,)
+    step = 1
+    reopen = 0  # This case does not reopen files
+
+
+class Basic8WriteTestCase(BasicTestCase):
+    obj = [[1, 2], [3, 4]]
+    type = numpy.asarray(obj).dtype.name
+    dtype = numpy.asarray(obj).dtype.str
+    shape = (0, 2)
+    chunkshape = (5,)
+    step = 1
+    reopen = 1  # This case does reopen files
 
 
 class EmptyEArrayTestCase(BasicTestCase):
@@ -1072,8 +1230,8 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
     def create_array(self, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.array = self.fileh.create_earray('/', 'earray', Int32Atom(),
-                                              self.array_size,
+        self.array = self.fileh.create_earray('/', 'earray', atom=Int32Atom(),
+                                              shape=self.array_size,
                                               filters=filters,
                                               chunkshape=self.chunkshape)
 
@@ -1139,8 +1297,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Running %s.test01a_StringAtom..." % self.__class__.__name__
 
         earray = self.fileh.create_earray(root, 'strings',
-                                          StringAtom(itemsize=3), (0, 2, 2),
-                                          "Array of strings")
+                                          atom=StringAtom(itemsize=3),
+                                          shape=(0, 2, 2),
+                                          title="Array of strings")
         a = numpy.array([[["a", "b"], [
                         "123", "45"], ["45", "123"]]], dtype="S3")
         earray.append(a[:, 1:])
@@ -1170,8 +1329,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Running %s.test01b_StringAtom..." % self.__class__.__name__
 
         earray = self.fileh.create_earray(root, 'strings',
-                                          StringAtom(itemsize=3), (0, 2, 2),
-                                          "Array of strings")
+                                          atom=StringAtom(itemsize=3),
+                                          shape=(0, 2, 2),
+                                          title="Array of strings")
         a = numpy.array([[["a", "b"], [
                         "123", "45"], ["45", "123"]]], dtype="S3")
         earray.append(a[:, ::2])
@@ -1202,8 +1362,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.create_earray(root, 'EAtom',
-                                          Int32Atom(), (0, 3),
-                                          "array of ints")
+                                          atom=Int32Atom(), shape=(0, 3),
+                                          title="array of ints")
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (0, 0, 0)], dtype='int32')
         earray.append(a[2:])  # Create an offset
@@ -1234,8 +1394,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Running %s.test02b_int..." % self.__class__.__name__
 
         earray = self.fileh.create_earray(root, 'EAtom',
-                                          Int32Atom(), (0, 3),
-                                          "array of ints")
+                                          atom=Int32Atom(), shape=(0, 3),
+                                          title="array of ints")
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='int32')
         earray.append(a[::3])  # Create an offset
@@ -1266,8 +1426,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Running %s.test03a_int..." % self.__class__.__name__
 
         earray = self.fileh.create_earray(root, 'EAtom',
-                                          Int32Atom(), (0, 3),
-                                          "array of ints")
+                                          atom=Int32Atom(), shape=(0, 3),
+                                          title="array of ints")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='Int32')
@@ -1298,8 +1458,8 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Running %s.test03b_float..." % self.__class__.__name__
 
         earray = self.fileh.create_earray(root, 'EAtom',
-                                          Float64Atom(), (0, 3),
-                                          "array of floats")
+                                          atom=Float64Atom(), shape=(0, 3),
+                                          title="array of floats")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='Float64')
@@ -1331,8 +1491,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         earray = self.fileh.create_earray(root, 'EAtom',
-                                          Int32Atom(), (0, 3),
-                                          "array of ints",
+                                          atom=Int32Atom(), shape=(0, 3),
+                                          title="array of ints",
                                           byteorder=byteorder)
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
@@ -1365,8 +1525,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         earray = self.fileh.create_earray(root, 'EAtom',
-                                          Int32Atom(), (0, 3),
-                                          "array of ints",
+                                          atom=Int32Atom(), shape=(0, 3),
+                                          title="array of ints",
                                           byteorder=byteorder)
         self.fileh.close()
         self.fileh = open_file(self.file, "a")
@@ -1402,8 +1562,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         earray = self.fileh.create_earray(root, 'EAtom',
-                                          Float64Atom(), (0, 3),
-                                          "array of floats",
+                                          atom=Float64Atom(), shape=(0, 3),
+                                          title="array of floats",
                                           byteorder=byteorder)
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
@@ -1436,8 +1596,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         earray = self.fileh.create_earray(root, 'EAtom',
-                                          Float64Atom(), (0, 3),
-                                          "array of floats",
+                                          atom=Float64Atom(), shape=(0, 3),
+                                          title="array of floats",
                                           byteorder=byteorder)
         self.fileh.close()
         self.fileh = open_file(self.file, "a")
@@ -1478,9 +1638,10 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         # Create an EArray
-        arr = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1', arr, (0, 2),
-                                     "title array1")
+        atom = Int16Atom()
+        array1 = fileh.create_earray(fileh.root, 'array1',
+                                     atom=atom, shape=(0, 2),
+                                     title="title array1")
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
         if self.close:
@@ -1538,9 +1699,10 @@ class CopyTestCase(unittest.TestCase):
         fileh = open_file(file, "w")
 
         # Create an EArray
-        arr = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1', arr, (0, 2),
-                                     "title array1")
+        atom = Int16Atom()
+        array1 = fileh.create_earray(fileh.root, 'array1',
+                                     atom=atom, shape=(0, 2),
+                                     title="title array1")
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
         if self.close:
@@ -1598,9 +1760,10 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
 
-        arr = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1', arr, (0, 2),
-                                     "title array1")
+        atom = Int16Atom()
+        array1 = fileh.create_earray(fileh.root, 'array1',
+                                     atom=atom, shape=(0, 2),
+                                     title="title array1")
         array1.flavor = "python"
         array1.append(((456, 2), (3, 457)))
 
@@ -1654,9 +1817,10 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
 
-        arr = StringAtom(itemsize=3)
-        array1 = fileh.create_earray(fileh.root, 'array1', arr, (0, 2),
-                                     "title array1")
+        atom = StringAtom(itemsize=3)
+        array1 = fileh.create_earray(fileh.root, 'array1',
+                                     atom=atom, shape=(0, 2),
+                                     title="title array1")
         array1.flavor = "python"
         array1.append([["456", "2"], ["3", "457"]])
 
@@ -1711,9 +1875,10 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
 
-        arr = StringAtom(itemsize=4)
-        array1 = fileh.create_earray(fileh.root, 'array1', arr, (0, 2),
-                                     "title array1")
+        atom = StringAtom(itemsize=4)
+        array1 = fileh.create_earray(fileh.root, 'array1',
+                                     atom=atom, shape=(0, 2),
+                                     title="title array1")
         array1.flavor = "numpy"
         array1.append(numpy.array([["456", "2"], ["3", "457"]], dtype="S4"))
 
@@ -1769,8 +1934,9 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an EArray
         atom = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1', atom, (0, 2),
-                                     "title array1")
+        array1 = fileh.create_earray(fileh.root, 'array1',
+                                     atom=atom, shape=(0, 2),
+                                     title="title array1")
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1816,8 +1982,9 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an EArray
         atom = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1', atom, (0, 2),
-                                     "title array1")
+        array1 = fileh.create_earray(fileh.root, 'array1',
+                                     atom=atom, shape=(0, 2),
+                                     title="title array1")
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1866,8 +2033,9 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an Array
         atom = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1', atom, (0, 2),
-                                     "title array1")
+        array1 = fileh.create_earray(fileh.root, 'array1',
+                                     atom=atom, shape=(0, 2),
+                                     title="title array1")
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1928,8 +2096,9 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Create an EArray
         atom = Int32Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1', atom, (0, 2),
-                                     "title array1")
+        array1 = fileh.create_earray(fileh.root, 'array1',
+                                     atom=atom, shape=(0, 2),
+                                     title="title array1")
         r = numpy.arange(200, dtype='int32')
         r.shape = (100, 2)
         array1.append(r)
@@ -1975,8 +2144,9 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Create an EArray
         atom = Int32Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1', atom, (0, 2),
-                                     "title array1")
+        array1 = fileh.create_earray(fileh.root, 'array1',
+                                     atom=atom, shape=(0, 2),
+                                     title="title array1")
         r = numpy.arange(200, dtype='int32')
         r.shape = (100, 2)
         array1.append(r)
@@ -2103,9 +2273,10 @@ class TruncateTestCase(unittest.TestCase):
         self.fileh = open_file(self.file, "w")
 
         # Create an EArray
-        arr = Int16Atom(dflt=3)
-        array1 = self.fileh.create_earray(
-            self.fileh.root, 'array1', arr, (0, 2), "title array1")
+        atom = Int16Atom(dflt=3)
+        array1 = self.fileh.create_earray(self.fileh.root, 'array1',
+                                          atom=atom, shape=(0, 2),
+                                          title="title array1")
         # Add a couple of rows
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
@@ -2223,7 +2394,7 @@ class Rows64bitsTestCase(unittest.TestCase):
         fileh = self.fileh = open_file(self.file, "a")
         # Create an EArray
         array = fileh.create_earray(fileh.root, 'array',
-                                    Int8Atom(), (0,),
+                                    atom=Int8Atom(), shape=(0,),
                                     filters=Filters(complib='lzo',
                                                     complevel=1),
                                     # Specifying expectedrows takes more
@@ -2307,7 +2478,8 @@ class ZeroSizedTestCase(unittest.TestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, "a")
         # Create an EArray
-        ea = self.fileh.create_earray('/', 'test', Int32Atom(), (3, 0))
+        ea = self.fileh.create_earray('/', 'test',
+                                      atom=Int32Atom(), shape=(3, 0))
         # Append a single row
         ea.append([[1], [2], [3]])
 
@@ -2340,7 +2512,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01a_append(self):
         "Append a row to a (unidimensional) EArray with a MD atom."
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test', Int32Atom((2, 2)), (0,))
+        ea = self.h5file.create_earray('/', 'test',
+                                       atom=Int32Atom((2, 2)), shape=(0,))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
@@ -2354,7 +2527,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01b_append(self):
         "Append several rows to a (unidimensional) EArray with a MD atom."
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test', Int32Atom((2, 2)), (0,))
+        ea = self.h5file.create_earray('/', 'test',
+                                       atom=Int32Atom((2, 2)), shape=(0,))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
@@ -2368,7 +2542,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02a_append(self):
         "Append a row to a (multidimensional) EArray with a MD atom."
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test', Int32Atom((2,)), (0, 3))
+        ea = self.h5file.create_earray('/', 'test',
+                                       atom=Int32Atom((2,)), shape=(0, 3))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
@@ -2383,7 +2558,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02b_append(self):
         "Append several rows to a (multidimensional) EArray with a MD atom."
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test', Int32Atom((2,)), (0, 3))
+        ea = self.h5file.create_earray('/', 'test',
+                                       atom=Int32Atom((2,)), shape=(0, 3))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
@@ -2394,14 +2570,14 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print "Third row-->", ea[2]
-        self.assertTrue(allequal(ea[2],
-                                 numpy.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
+        self.assertTrue(allequal(
+            ea[2], numpy.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
 
     def test03a_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom."
         # Create an EArray
-        ea = self.h5file.create_earray(
-            '/', 'test', Int32Atom((2, 4)), (0, 2, 3))
+        ea = self.h5file.create_earray('/', 'test', atom=Int32Atom((2, 4)),
+                                       shape=(0, 2, 3))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
@@ -2417,8 +2593,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03b_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom (II)."
         # Create an EArray
-        ea = self.h5file.create_earray(
-            '/', 'test', Int32Atom((2, 4)), (2, 0, 3))
+        ea = self.h5file.create_earray('/', 'test', atom=Int32Atom((2, 4)),
+                                       shape=(2, 0, 3))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
@@ -2436,8 +2612,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03c_MDMDMD(self):
         "Complex append of a MD array in a MD EArray with a MD atom (III)."
         # Create an EArray
-        ea = self.h5file.create_earray(
-            '/', 'test', Int32Atom((2, 4)), (2, 3, 0))
+        ea = self.h5file.create_earray('/', 'test', atom=Int32Atom((2, 4)),
+                                       shape=(2, 3, 0))
         if self.reopen:
             self._reopen('a')
             ea = self.h5file.root.test
@@ -2466,7 +2642,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
         self.array = self.h5file.create_earray(self.h5file.root, 'array',
-                                               Int32Atom(), (0, 10))
+                                               atom=Int32Atom(), shape=(0, 10))
         self.array.append(numpy.zeros((10, 10)))
 
     def test_read(self):
@@ -2487,6 +2663,258 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           numpy.zeros((10, 10)))
 
 
+class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
+    obj = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    where = '/'
+    name = 'earray'
+    atom = Atom.from_dtype(obj.dtype)
+    shape = (0,) + obj.shape[1:]
+    title = 'title'
+    filters = None
+    expectedrows = 1000
+    chunkshape = (1, 2)
+    byteorder = None
+    createparents = False
+
+    def test_positional_args_01(self):
+        self.h5file.create_earray(self.where, self.name,
+                                  self.atom, self.shape,
+                                  self.title, self.filters,
+                                  self.expectedrows, self.chunkshape)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.nrows, 0)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+
+    def test_positional_args_02(self):
+        ptarr = self.h5file.create_earray(self.where, self.name,
+                                          self.atom, self.shape,
+                                          self.title,
+                                          self.filters,
+                                          self.expectedrows,
+                                          self.chunkshape)
+        ptarr.append(self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, self.obj.shape[0])
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_positional_args_obj(self):
+        self.h5file.create_earray(self.where, self.name,
+                                  None, None,
+                                  self.title,
+                                  self.filters,
+                                  self.expectedrows,
+                                  self.chunkshape,
+                                  self.byteorder,
+                                  self.createparents,
+                                  self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, self.obj.shape[0])
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj(self):
+        self.h5file.create_earray(self.where, self.name, title=self.title,
+                                  chunkshape=self.chunkshape,
+                                  obj=self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, self.obj.shape[0])
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_atom_shape_01(self):
+        ptarr = self.h5file.create_earray(self.where, self.name,
+                                          title=self.title,
+                                          chunkshape=self.chunkshape,
+                                          atom=self.atom, shape=self.shape)
+        ptarr.append(self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, self.obj.shape[0])
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_atom_shape_02(self):
+        ptarr = self.h5file.create_earray(self.where, self.name,
+                                          title=self.title,
+                                          chunkshape=self.chunkshape,
+                                          atom=self.atom, shape=self.shape)
+        #ptarr.append(self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.nrows, 0)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+
+    def test_kwargs_obj_atom(self):
+        ptarr = self.h5file.create_earray(self.where, self.name,
+                                          title=self.title,
+                                          chunkshape=self.chunkshape,
+                                          obj=self.obj,
+                                          atom=self.atom)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, self.obj.shape[0])
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_shape(self):
+        ptarr = self.h5file.create_earray(self.where, self.name,
+                                          title=self.title,
+                                          chunkshape=self.chunkshape,
+                                          obj=self.obj,
+                                          shape=self.shape)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, self.obj.shape[0])
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_atom_shape(self):
+        ptarr = self.h5file.create_earray(self.where, self.name,
+                                          title=self.title,
+                                          chunkshape=self.chunkshape,
+                                          obj=self.obj,
+                                          atom=self.atom,
+                                          shape=self.shape)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, self.obj.shape[0])
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertEqual(ptarr.chunkshape, self.chunkshape)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_atom_error(self):
+        atom = Atom.from_dtype(numpy.dtype('complex'))
+        #shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_earray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=atom)
+
+    def test_kwargs_obj_shape_error(self):
+        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_earray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          shape=shape)
+
+    def test_kwargs_obj_atom_shape_error_01(self):
+        atom = Atom.from_dtype(numpy.dtype('complex'))
+        #shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_earray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=atom,
+                          shape=self.shape)
+
+    def test_kwargs_obj_atom_shape_error_02(self):
+        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_earray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=self.atom,
+                          shape=shape)
+
+    def test_kwargs_obj_atom_shape_error_03(self):
+        atom = Atom.from_dtype(numpy.dtype('complex'))
+        shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_earray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=atom,
+                          shape=shape)
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -2500,6 +2928,12 @@ def suite():
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(Basic2WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic3WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic4WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic5WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic6WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic7WriteTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic8WriteTestCase))
         theSuite.addTest(unittest.makeSuite(EmptyEArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Empty2EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(SlicesEArrayTestCase))
@@ -2538,6 +2972,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(MDAtomNoReopen))
         theSuite.addTest(unittest.makeSuite(MDAtomReopen))
         theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
+        theSuite.addTest(unittest.makeSuite(TestCreateEArrayArgs))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4EArrayTestCase))

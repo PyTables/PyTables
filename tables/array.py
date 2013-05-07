@@ -66,12 +66,15 @@ class Array(hdf5extension.Array, Leaf):
 
     name : str
         The name of this node in its parent group.
-    object
+    obj
         The array or scalar to be saved.  Accepted types are NumPy
         arrays and scalars as well as native Python sequences and
         scalars, provided that values are regular (i.e. they are not
         like ``[[1,2],2]``) and homogeneous (i.e. all the elements are
         of the same type).
+
+        .. versionchanged:: 3.0
+           Renamed form *object* into *obj*.
     title
         A description for this node (it sets the ``TITLE`` HDF5 attribute on
         disk).
@@ -125,21 +128,25 @@ class Array(hdf5extension.Array, Leaf):
     # Other methods
     # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
-                 object=None, title="",
+                 obj=None, title="",
                  byteorder=None, _log=True, _atom=None):
 
         self._v_version = None
         """The object version of this array."""
-        self._v_new = new = object is not None
+        self._v_new = new = obj is not None
         """Is this the first time the node has been created?"""
         self._v_new_title = title
         """New title for this node."""
-        self._object = object
-        """
-        The object to be stored in the array.  It can be any of numpy,
+        self._obj = obj
+        """The object to be stored in the array.  It can be any of numpy,
         list, tuple, string, integer of floating point types, provided
         that they are regular (i.e. they are not like ``[[1, 2], 2]``).
+
+        .. versionchanged:: 3.0
+           Renamed form *_object* into *_obj*.
+
         """
+
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
 
@@ -165,8 +172,7 @@ class Array(hdf5extension.Array, Leaf):
 
         # Documented (*public*) attributes.
         self.atom = _atom
-        """
-        An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
+        """An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
         and *shape* of the atomic objects to be saved.
         """
         self.shape = None
@@ -186,8 +192,8 @@ class Array(hdf5extension.Array, Leaf):
         self._v_version = obversion
         try:
             # `Leaf._g_post_init_hook()` should be setting the flavor on disk.
-            self._flavor = flavor = flavor_of(self._object)
-            nparr = array_as_internal(self._object, flavor)
+            self._flavor = flavor = flavor_of(self._obj)
+            nparr = array_as_internal(self._obj, flavor)
         except:  # XXX
             # Problems converting data. Close the node and re-raise exception.
             self.close(flush=0)
@@ -199,7 +205,7 @@ class Array(hdf5extension.Array, Leaf):
                             "unicode or object arrays")
 
         # Decrease the number of references to the object
-        self._object = None
+        self._obj = None
 
         # Fix the byteorder of data
         nparr = self._g_fix_byteorder_data(nparr, nparr.dtype.byteorder)
@@ -723,8 +729,8 @@ class Array(hdf5extension.Array, Leaf):
             except Exception, exc:  # XXX
                 raise ValueError("value parameter '%s' cannot be converted "
                                  "into an array object compliant with %s: "
-                                 "'%r' The error was: <%s>" % (nparr,
-                                        self.__class__.__name__, self, exc))
+                                 "'%r' The error was: <%s>" % (
+                                 nparr, self.__class__.__name__, self, exc))
             return narr
         return nparr
 
@@ -840,7 +846,7 @@ class Array(hdf5extension.Array, Leaf):
         # data is always read in the system byteorder
         # if the out array's byteorder is different, do a byteswap
         if (out is not None and
-            byteorders[arr.dtype.byteorder] != sys.byteorder):
+                byteorders[arr.dtype.byteorder] != sys.byteorder):
             arr.byteswap(True)
         return arr
 
@@ -897,7 +903,7 @@ class Array(hdf5extension.Array, Leaf):
         # Build the new Array object.  Use the _atom reserved keyword
         # just in case the array is being copied from a native HDF5
         # with atomic types different from scalars.
-        # For details, see #275.
+        # For details, see #275 of trac.
         object_ = Array(group, name, arr, title=title, _log=_log,
                         _atom=self.atom)
         nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.size

@@ -1163,12 +1163,12 @@ cdef class Leaf(Node):
 cdef class Array(Leaf):
   # Instance variables declared in .pxd
 
-  def _create_array(self, ndarray nparr, object title, object _atom):
+  def _create_array(self, ndarray nparr, object title, object atom):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
     cdef bytes complib, version, class_
-    cdef object dtype_, atom, shape
+    cdef object dtype_, atom_, shape
     cdef ndarray dims
     cdef bytes encoded_title, encoded_name
     cdef H5T_cset_t cset = H5T_CSET_ASCII
@@ -1178,13 +1178,13 @@ cdef class Array(Leaf):
 
     # Get the HDF5 type associated with this numpy type
     shape = (<object>nparr).shape
-    if _atom is None or _atom.shape == ():
+    if atom is None or atom.shape == ():
       dtype_ = nparr.dtype.base
-      atom = Atom.from_dtype(dtype_)
+      atom_ = Atom.from_dtype(dtype_)
     else:
-      atom = _atom
-      shape = shape[:-len(atom.shape)]
-    self.disk_type_id = atom_to_hdf5_type(atom, self.byteorder)
+      atom_ = atom
+      shape = shape[:-len(atom_.shape)]
+    self.disk_type_id = atom_to_hdf5_type(atom_, self.byteorder)
 
     # Allocate space for the dimension axis info and fill it
     dims = numpy.array(shape, dtype=numpy.intp)
@@ -1221,7 +1221,7 @@ cdef class Array(Leaf):
     # with non-native byteorders on-disk)
     self.type_id = get_native_type(self.disk_type_id)
 
-    return (self.dataset_id, shape, atom)
+    return (self.dataset_id, shape, atom_)
 
   _createArray = previous_api(_create_array)
 

@@ -187,9 +187,8 @@ class CArray(Array):
             try:
                 shape = tuple(shape)
             except TypeError:
-                raise TypeError(
-                    "`shape` parameter must be a sequence "
-                    "and you passed a %s" % type(shape))
+                raise TypeError("`shape` parameter must be a sequence "
+                                "and you passed a %s" % type(shape))
             self.shape = tuple(SizeType(s) for s in shape)
 
             if chunkshape is not None:
@@ -245,6 +244,7 @@ class CArray(Array):
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
+
         return self._v_objectid
 
     def _g_copy_with_stats(self, group, name, start, stop, step,

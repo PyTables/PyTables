@@ -26,6 +26,7 @@ from tables._past import previous_api, previous_api_property
 # obversion = "1.3"    # This adds support for enumerated datatypes.
 obversion = "1.4"    # Numeric and numarray flavors are gone.
 
+
 class EArray(CArray):
     """This class represents extendable, homogeneous datasets in an HDF5 file.
 

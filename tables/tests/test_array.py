@@ -26,206 +26,343 @@ class BasicTestCase(unittest.TestCase):
     """
     endiancheck = False
 
-    def WriteRead(self, testArray):
+    def write_read(self, testarray):
+        a = testarray
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running test for array with type '%s'" % \
-                  testArray.dtype.type,
+            print "Running test for array with type '%s'" % a.dtype.type,
             print "for class check:", self.title
 
         # Create an instance of HDF5 file
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode="w")
-        self.root = self.fileh.root
+        filename = tempfile.mktemp(".h5")
+        try:
+            with open_file(filename, mode="w") as fileh:
+                root = fileh.root
 
-        # Create the array under root and name 'somearray'
-        a = testArray
-        if self.endiancheck and a.dtype.kind != "S":
-            b = a.byteswap()
-            b.dtype = a.dtype.newbyteorder()
-            a = b
+                # Create the array under root and name 'somearray'
+                if self.endiancheck and a.dtype.kind != "S":
+                    b = a.byteswap()
+                    b.dtype = a.dtype.newbyteorder()
+                    a = b
 
-        self.fileh.create_array(self.root, 'somearray', a, "Some array")
+                fileh.create_array(root, 'somearray', a, "Some array")
 
-        # Close the file
-        self.fileh.close()
+            # Re-open the file in read-only mode
+            with open_file(filename, mode="r") as fileh:
+                root = fileh.root
 
-        # Re-open the file in read-only mode
-        self.fileh = open_file(self.file, mode="r")
-        self.root = self.fileh.root
+                # Read the saved array
+                b = root.somearray.read()
 
-        # Read the saved array
-        b = self.root.somearray.read()
+                # Compare them. They should be equal.
+                if common.verbose and not allequal(a, b):
+                    print "Write and read arrays differ!"
+                    # print "Array written:", a
+                    print "Array written shape:", a.shape
+                    print "Array written itemsize:", a.itemsize
+                    print "Array written type:", a.dtype.type
+                    # print "Array read:", b
+                    print "Array read shape:", b.shape
+                    print "Array read itemsize:", b.itemsize
+                    print "Array read type:", b.dtype.type
+                    if a.dtype.kind != "S":
+                        print "Array written byteorder:", a.dtype.byteorder
+                        print "Array read byteorder:", b.dtype.byteorder
 
-        # Compare them. They should be equal.
-        if common.verbose and not allequal(a, b):
-            print "Write and read arrays differ!"
-            # print "Array written:", a
-            print "Array written shape:", a.shape
-            print "Array written itemsize:", a.itemsize
-            print "Array written type:", a.dtype.type
-            # print "Array read:", b
-            print "Array read shape:", b.shape
-            print "Array read itemsize:", b.itemsize
-            print "Array read type:", b.dtype.type
-            if a.dtype.kind != "S":
-                print "Array written byteorder:", a.dtype.byteorder
-                print "Array read byteorder:", b.dtype.byteorder
+                # Check strictly the array equality
+                self.assertEqual(a.shape, b.shape)
+                self.assertEqual(a.shape, root.somearray.shape)
+                if a.dtype.kind == "S":
+                    self.assertEqual(root.somearray.atom.type, "string")
+                else:
+                    self.assertEqual(a.dtype.type, b.dtype.type)
+                    self.assertEqual(a.dtype.type,
+                                     root.somearray.atom.dtype.type)
+                    abo = byteorders[a.dtype.byteorder]
+                    bbo = byteorders[b.dtype.byteorder]
+                    if abo != "irrelevant":
+                        self.assertEqual(abo, root.somearray.byteorder)
+                        self.assertEqual(bbo, sys.byteorder)
+                        if self.endiancheck:
+                            self.assertNotEqual(bbo, abo)
 
-        # Check strictly the array equality
-        self.assertEqual(a.shape, b.shape)
-        self.assertEqual(a.shape, self.root.somearray.shape)
-        if a.dtype.kind == "S":
-            self.assertEqual(self.root.somearray.atom.type, "string")
-        else:
-            self.assertEqual(a.dtype.type, b.dtype.type)
-            self.assertEqual(a.dtype.type, self.root.somearray.atom.dtype.type)
-            abo = byteorders[a.dtype.byteorder]
-            bbo = byteorders[b.dtype.byteorder]
-            if abo != "irrelevant":
-                self.assertEqual(abo, self.root.somearray.byteorder)
-                self.assertEqual(bbo, sys.byteorder)
-                if self.endiancheck:
-                    self.assertNotEqual(bbo, abo)
+                obj = root.somearray
+                self.assertEqual(obj.flavor, 'numpy')
+                self.assertEqual(obj.shape, a.shape)
+                self.assertEqual(obj.ndim, a.ndim)
+                self.assertEqual(obj.chunkshape, None)
+                if a.shape:
+                    nrows = a.shape[0]
+                else:
+                    # scalar
+                    nrows = 1
 
-        obj = self.root.somearray
-        self.assertEqual(obj.flavor, 'numpy')
-        self.assertEqual(obj.shape, a.shape)
-        self.assertEqual(obj.ndim, a.ndim)
-        self.assertEqual(obj.chunkshape, None)
-        if a.shape:
-            nrows = a.shape[0]
-        else:
-            # scalar
-            nrows = 1
+                self.assertEqual(obj.nrows, nrows)
 
-        self.assertEqual(obj.nrows, nrows)
+                self.assertTrue(allequal(a, b))
+        finally:
+            # Then, delete the file
+            os.remove(filename)
 
-        self.assertTrue(allequal(a, b))
+    def write_read_out_arg(self, testarray):
+        a = testarray
 
-        self.fileh.close()
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running test for array with type '%s'" % a.dtype.type,
+            print "for class check:", self.title
 
-        # Then, delete the file
-        os.remove(self.file)
-
-    def WriteRead_OutArgument(self, testArray):
         # Create an instance of HDF5 file
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode="w")
-        self.root = self.fileh.root
+        filename = tempfile.mktemp(".h5")
+        try:
+            with open_file(filename, mode="w") as fileh:
+                root = fileh.root
 
-        # Create the array under root and name 'somearray'
-        a = testArray
-        if self.endiancheck and a.dtype.kind != "S":
-            b = a.byteswap()
-            b.dtype = a.dtype.newbyteorder()
-            a = b
+                # Create the array under root and name 'somearray'
+                if self.endiancheck and a.dtype.kind != "S":
+                    b = a.byteswap()
+                    b.dtype = a.dtype.newbyteorder()
+                    a = b
 
-        self.fileh.create_array(self.root, 'somearray', a, "Some array")
+                fileh.create_array(root, 'somearray', a, "Some array")
 
-        # Close the file
-        self.fileh.close()
+            # Re-open the file in read-only mode
+            with open_file(filename, mode="r") as fileh:
+                root = fileh.root
 
-        # Re-open the file in read-only mode
-        self.fileh = open_file(self.file, mode="r")
-        self.root = self.fileh.root
+                # Read the saved array
+                b = numpy.empty_like(a, dtype=a.dtype)
+                root.somearray.read(out=b)
 
-        # Read the saved array
-        b = numpy.empty_like(a, dtype=a.dtype)
-        self.root.somearray.read(out=b)
+                # Check strictly the array equality
+                self.assertEqual(a.shape, b.shape)
+                self.assertEqual(a.shape, root.somearray.shape)
+                if a.dtype.kind == "S":
+                    self.assertEqual(root.somearray.atom.type, "string")
+                else:
+                    self.assertEqual(a.dtype.type, b.dtype.type)
+                    self.assertEqual(a.dtype.type,
+                                     root.somearray.atom.dtype.type)
+                    abo = byteorders[a.dtype.byteorder]
+                    bbo = byteorders[b.dtype.byteorder]
+                    if abo != "irrelevant":
+                        self.assertEqual(abo, root.somearray.byteorder)
+                        self.assertEqual(abo, bbo)
+                        if self.endiancheck:
+                            self.assertNotEqual(bbo, sys.byteorder)
 
-        # Check strictly the array equality
-        self.assertEqual(a.shape, b.shape)
-        self.assertEqual(a.shape, self.root.somearray.shape)
-        if a.dtype.kind == "S":
-            self.assertEqual(self.root.somearray.atom.type, "string")
-        else:
-            self.assertEqual(a.dtype.type, b.dtype.type)
-            self.assertEqual(a.dtype.type, self.root.somearray.atom.dtype.type)
-            abo = byteorders[a.dtype.byteorder]
-            bbo = byteorders[b.dtype.byteorder]
-            if abo != "irrelevant":
-                self.assertEqual(abo, self.root.somearray.byteorder)
-                self.assertEqual(abo, bbo)
-                if self.endiancheck:
-                    self.assertNotEqual(bbo, sys.byteorder)
+                self.assertTrue(allequal(a, b))
+        finally:
+            # Then, delete the file
+            os.remove(filename)
 
-        self.assertTrue(allequal(a, b))
+    def write_read_atom_shape_args(self, testarray):
+        a = testarray
+        atom = Atom.from_dtype(a.dtype)
+        shape = a.shape
+        byteorder = None
 
-        self.fileh.close()
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running test for array with type '%s'" % a.dtype.type,
+            print "for class check:", self.title
 
-        # Then, delete the file
-        os.remove(self.file)
+        # Create an instance of HDF5 file
+        filename = tempfile.mktemp(".h5")
+        try:
+            with open_file(filename, mode="w") as fileh:
+                root = fileh.root
 
-    def setup_00_char(self):
-        "Data integrity during recovery (character objects)"
+                # Create the array under root and name 'somearray'
+                if self.endiancheck and a.dtype.kind != "S":
+                    b = a.byteswap()
+                    b.dtype = a.dtype.newbyteorder()
+                    if b.dtype.byteorder in ('>', '<'):
+                        byteorder = byteorders[b.dtype.byteorder]
+                    a = b
+
+                ptarr = fileh.create_array(root, 'somearray',
+                                           atom=atom, shape=shape,
+                                           title="Some array",
+                                           # specify the byteorder explicitly
+                                           # since there is no way to deduce
+                                           # it in this case
+                                           byteorder=byteorder)
+                self.assertEqual(shape, ptarr.shape)
+                self.assertEqual(atom, ptarr.atom)
+                ptarr[...] = a
+
+            # Re-open the file in read-only mode
+            with open_file(filename, mode="r") as fileh:
+                root = fileh.root
+
+                # Read the saved array
+                b = root.somearray.read()
+
+                # Compare them. They should be equal.
+                if common.verbose and not allequal(a, b):
+                    print "Write and read arrays differ!"
+                    # print "Array written:", a
+                    print "Array written shape:", a.shape
+                    print "Array written itemsize:", a.itemsize
+                    print "Array written type:", a.dtype.type
+                    # print "Array read:", b
+                    print "Array read shape:", b.shape
+                    print "Array read itemsize:", b.itemsize
+                    print "Array read type:", b.dtype.type
+                    if a.dtype.kind != "S":
+                        print "Array written byteorder:", a.dtype.byteorder
+                        print "Array read byteorder:", b.dtype.byteorder
+
+                # Check strictly the array equality
+                self.assertEqual(a.shape, b.shape)
+                self.assertEqual(a.shape, root.somearray.shape)
+                if a.dtype.kind == "S":
+                    self.assertEqual(root.somearray.atom.type, "string")
+                else:
+                    self.assertEqual(a.dtype.type, b.dtype.type)
+                    self.assertEqual(a.dtype.type,
+                                     root.somearray.atom.dtype.type)
+                    abo = byteorders[a.dtype.byteorder]
+                    bbo = byteorders[b.dtype.byteorder]
+                    if abo != "irrelevant":
+                        self.assertEqual(abo, root.somearray.byteorder)
+                        self.assertEqual(bbo, sys.byteorder)
+                        if self.endiancheck:
+                            self.assertNotEqual(bbo, abo)
+
+                obj = root.somearray
+                self.assertEqual(obj.flavor, 'numpy')
+                self.assertEqual(obj.shape, a.shape)
+                self.assertEqual(obj.ndim, a.ndim)
+                self.assertEqual(obj.chunkshape, None)
+                if a.shape:
+                    nrows = a.shape[0]
+                else:
+                    # scalar
+                    nrows = 1
+
+                self.assertEqual(obj.nrows, nrows)
+
+                self.assertTrue(allequal(a, b))
+        finally:
+            # Then, delete the file
+            os.remove(filename)
+
+    def setup00_char(self):
+        """Data integrity during recovery (character objects)"""
 
         if not isinstance(self.tupleChar, numpy.ndarray):
             a = numpy.array(self.tupleChar, dtype="S")
         else:
             a = self.tupleChar
+
         return a
 
-    def test_00_char(self):
-        a = self.setup_00_char()
-        self.WriteRead(a)
+    def test00_char(self):
+        a = self.setup00_char()
+        self.write_read(a)
 
-    def test_00_char_out_arg(self):
-        a = self.setup_00_char()
-        self.WriteRead_OutArgument(a)
+    def test00_char_out_arg(self):
+        a = self.setup00_char()
+        self.write_read_out_arg(a)
+
+    def test00_char_atom_shape_args(self):
+        a = self.setup00_char()
+        self.write_read_atom_shape_args(a)
 
     def test00b_char(self):
-        "Data integrity during recovery (string objects)"
+        """Data integrity during recovery (string objects)"""
 
         a = self.tupleChar
-        # Create an instance of HDF5 file
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
-        fileh.create_array(fileh.root, 'somearray', a, "Some array")
-        # Close the file
-        fileh.close()
-        # Re-open the file in read-only mode
-        fileh = open_file(file, mode="r")
-        # Read the saved array
-        b = fileh.root.somearray.read()
-        if isinstance(a, bytes):
-            self.assertEqual(type(b), bytes)
-            self.assertEqual(a, b)
-        else:
-            # If a is not a python string, then it should be a list or ndarray
-            self.assertTrue(type(b) in [list, numpy.ndarray])
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
+
+        filename = tempfile.mktemp(".h5")
+        try:
+            # Create an instance of HDF5 file
+            with open_file(filename, mode="w") as fileh:
+                fileh.create_array(fileh.root, 'somearray', a, "Some array")
+
+            # Re-open the file in read-only mode
+            with open_file(filename, mode="r") as fileh:
+                # Read the saved array
+                b = fileh.root.somearray.read()
+                if isinstance(a, bytes):
+                    self.assertEqual(type(b), bytes)
+                    self.assertEqual(a, b)
+                else:
+                    # If a is not a python string, then it should be a list
+                    # or ndarray
+                    self.assertTrue(type(b) in [list, numpy.ndarray])
+        finally:
+            # Then, delete the file
+            os.remove(filename)
 
     def test00b_char_out_arg(self):
-        "Data integrity during recovery (string objects)"
+        """Data integrity during recovery (string objects)"""
 
         a = self.tupleChar
-        # Create an instance of HDF5 file
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
-        fileh.create_array(fileh.root, 'somearray', a, "Some array")
-        # Close the file
-        fileh.close()
-        # Re-open the file in read-only mode
-        fileh = open_file(file, mode="r")
-        # Read the saved array
-        b = numpy.empty_like(a)
-        if fileh.root.somearray.flavor != 'numpy':
-            self.assertRaises(TypeError,
-                              lambda: fileh.root.somearray.read(out=b))
-        else:
-            fileh.root.somearray.read(out=b)
-        self.assertTrue(type(b), numpy.ndarray)
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
 
-    def setup_01_char_nc(self):
-        "Data integrity during recovery (non-contiguous character objects)"
+        filename = tempfile.mktemp(".h5")
+        try:
+            # Create an instance of HDF5 file
+            with open_file(filename, mode="w") as fileh:
+                fileh.create_array(fileh.root, 'somearray', a, "Some array")
+
+            # Re-open the file in read-only mode
+            with open_file(filename, mode="r") as fileh:
+                # Read the saved array
+                b = numpy.empty_like(a)
+                if fileh.root.somearray.flavor != 'numpy':
+                    self.assertRaises(TypeError,
+                                      lambda: fileh.root.somearray.read(out=b))
+                else:
+                    fileh.root.somearray.read(out=b)
+                self.assertTrue(type(b), numpy.ndarray)
+        finally:
+            # Then, delete the file
+            os.remove(filename)
+
+    def test00b_char_atom_shape_args(self):
+        """Data integrity during recovery (string objects)"""
+
+        a = self.tupleChar
+
+        filename = tempfile.mktemp(".h5")
+        try:
+            # Create an instance of HDF5 file
+            with open_file(filename, mode="w") as fileh:
+                nparr = numpy.asarray(a)
+                atom = Atom.from_dtype(nparr.dtype)
+                shape = nparr.shape
+                if nparr.dtype.byteorder in ('>', '<'):
+                    byteorder = byteorders[nparr.dtype.byteorder]
+                else:
+                    byteorder = None
+
+                ptarr = fileh.create_array(fileh.root, 'somearray',
+                                           atom=atom, shape=shape,
+                                           byteorder=byteorder,
+                                           title="Some array")
+                self.assertEqual(shape, ptarr.shape)
+                self.assertEqual(atom, ptarr.atom)
+                ptarr[...] = a
+
+            # Re-open the file in read-only mode
+            with open_file(filename, mode="r") as fileh:
+                # Read the saved array
+                b = numpy.empty_like(a)
+                if fileh.root.somearray.flavor != 'numpy':
+                    self.assertRaises(TypeError,
+                                      lambda: fileh.root.somearray.read(out=b))
+                else:
+                    fileh.root.somearray.read(out=b)
+                self.assertTrue(type(b), numpy.ndarray)
+        finally:
+            # Then, delete the file
+            os.remove(filename)
+
+    def setup01_char_nc(self):
+        """Data integrity during recovery (non-contiguous character objects)"""
 
         if not isinstance(self.tupleChar, numpy.ndarray):
             a = numpy.array(self.tupleChar, dtype="S")
@@ -240,16 +377,20 @@ class BasicTestCase(unittest.TestCase):
                 self.assertEqual(b.flags.contiguous, False)
         return b
 
-    def test_01_char_nc(self):
-        b = self.setup_01_char_nc()
-        self.WriteRead(b)
+    def test01_char_nc(self):
+        b = self.setup01_char_nc()
+        self.write_read(b)
 
-    def test_01_char_nc_out_arg(self):
-        b = self.setup_01_char_nc()
-        self.WriteRead_OutArgument(b)
+    def test01_char_nc_out_arg(self):
+        b = self.setup01_char_nc()
+        self.write_read_out_arg(b)
+
+    def test01_char_nc_atom_shape_args(self):
+        b = self.setup01_char_nc()
+        self.write_read_atom_shape_args(b)
 
     def test02_types(self):
-        "Data integrity during recovery (numerical types)"
+        """Data integrity during recovery (numerical types)"""
 
         typecodes = ['int8', 'int16', 'int32', 'int64',
                      'uint8', 'uint16', 'uint32', 'uint64',
@@ -263,12 +404,14 @@ class BasicTestCase(unittest.TestCase):
 
         for typecode in typecodes:
             a = numpy.array(self.tupleInt, typecode)
-            self.WriteRead(a)
+            self.write_read(a)
             b = numpy.array(self.tupleInt, typecode)
-            self.WriteRead_OutArgument(b)
+            self.write_read_out_arg(b)
+            c = numpy.array(self.tupleInt, typecode)
+            self.write_read_atom_shape_args(c)
 
     def test03_types_nc(self):
-        "Data integrity during recovery (non-contiguous numerical types)"
+        """Data integrity during recovery (non-contiguous numerical types)"""
 
         typecodes = ['int8', 'int16', 'int32', 'int64',
                      'uint8', 'uint16', 'uint32', 'uint64',
@@ -285,16 +428,21 @@ class BasicTestCase(unittest.TestCase):
             if a.ndim == 0:
                 b1 = a.copy()
                 b2 = a.copy()
+                b3 = a.copy()
             else:
                 b1 = a[::2]
                 b2 = a[::2]
+                b3 = a[::2]
                 # Ensure that this array is non-contiguous
                 if len(b1) > 1:
                     self.assertEqual(b1.flags.contiguous, False)
                 if len(b2) > 1:
                     self.assertEqual(b2.flags.contiguous, False)
-            self.WriteRead(b1)
-            self.WriteRead_OutArgument(b2)
+                if len(b3) > 1:
+                    self.assertEqual(b3.flags.contiguous, False)
+            self.write_read(b1)
+            self.write_read_out_arg(b2)
+            self.write_read_atom_shape_args(b3)
 
 
 class Basic0DOneTestCase(BasicTestCase):
@@ -475,8 +623,8 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.array_size = (10, 10)
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, mode="w")
-        self.array = self.fileh.create_array('/', 'somearray',
-                                             numpy.zeros(self.array_size, 'i4'))
+        self.array = self.fileh.create_array(
+            '/', 'somearray', numpy.zeros(self.array_size, 'i4'))
 
     def tearDown(self):
         self.fileh.close()
@@ -506,7 +654,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         os.remove(self.file)
         common.cleanup(self)
 
-    def WriteRead(self, testArray):
+    def write_read(self, testArray):
         if common.verbose:
             print '\n', '-=' * 30
             print "\nRunning test for array with type '%s'" % \
@@ -557,8 +705,6 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         self.assertTrue(allequal(c, b))
 
-        return
-
     def test01_signedShort_unaligned(self):
         "Checking an unaligned signed short integer array"
 
@@ -567,8 +713,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
         self.assertEqual(a.dtype.type, numpy.int16)
-        self.WriteRead(a)
-        return
+        self.write_read(a)
 
     def test02_float_unaligned(self):
         "Checking an unaligned single precision array"
@@ -578,8 +723,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, 0)
         self.assertEqual(a.dtype.type, numpy.float32)
-        self.WriteRead(a)
-        return
+        self.write_read(a)
 
     def test03_byte_offset(self):
         "Checking an offsetted byte array"
@@ -587,8 +731,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         r = numpy.arange(100, dtype=numpy.int8)
         r.shape = (10, 10)
         a = r[2]
-        self.WriteRead(a)
-        return
+        self.write_read(a)
 
     def test04_short_offset(self):
         "Checking an offsetted unsigned short int precision array"
@@ -596,8 +739,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         r = numpy.arange(100, dtype=numpy.uint32)
         r.shape = (10, 10)
         a = r[2]
-        self.WriteRead(a)
-        return
+        self.write_read(a)
 
     def test05_int_offset(self):
         "Checking an offsetted integer array"
@@ -605,8 +747,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         r = numpy.arange(100, dtype=numpy.int32)
         r.shape = (10, 10)
         a = r[2]
-        self.WriteRead(a)
-        return
+        self.write_read(a)
 
     def test06_longlongint_offset(self):
         "Checking an offsetted long long integer array"
@@ -614,8 +755,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         r = numpy.arange(100, dtype=numpy.int64)
         r.shape = (10, 10)
         a = r[2]
-        self.WriteRead(a)
-        return
+        self.write_read(a)
 
     def test07_float_offset(self):
         "Checking an offsetted single precision array"
@@ -623,8 +763,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         r = numpy.arange(100, dtype=numpy.float32)
         r.shape = (10, 10)
         a = r[2]
-        self.WriteRead(a)
-        return
+        self.write_read(a)
 
     def test08_double_offset(self):
         "Checking an offsetted double precision array"
@@ -632,8 +771,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         r = numpy.arange(100, dtype=numpy.float64)
         r.shape = (10, 10)
         a = r[2]
-        self.WriteRead(a)
-        return
+        self.write_read(a)
 
     def test09_float_offset_unaligned(self):
         "Checking an unaligned and offsetted single precision array"
@@ -643,8 +781,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
         self.assertEqual(a.dtype.type, numpy.float32)
-        self.WriteRead(a)
-        return
+        self.write_read(a)
 
     def test10_double_offset_unaligned(self):
         "Checking an unaligned and offsetted double precision array"
@@ -654,8 +791,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
         self.assertEqual(a.dtype.type, numpy.float64)
-        self.WriteRead(a)
-        return
+        self.write_read(a)
 
     def test11_int_byteorder(self):
         "Checking setting data with different byteorder in a range (integer)"
@@ -747,8 +883,7 @@ class ComplexReopenEndianTestCase(UnalignedAndComplexTestCase):
 
 
 class GroupsArrayTestCase(unittest.TestCase):
-    """This test class checks combinations of arrays with groups.
-    """
+    """This test class checks combinations of arrays with groups."""
 
     def test00_iterativeGroups(self):
         """Checking combinations of arrays with groups."""
@@ -2548,6 +2683,206 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
 
 
+class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
+    where = '/'
+    name = 'array'
+    obj = numpy.array([[1, 2], [3, 4]])
+    title = 'title'
+    byteorder = None
+    createparents = False
+    atom = Atom.from_dtype(obj.dtype)
+    shape = obj.shape
+
+    def test_positional_args(self):
+        self.h5file.create_array(self.where, self.name, self.obj, self.title)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_positional_args_atom_shape(self):
+        self.h5file.create_array(self.where, self.name, None, self.title,
+                                 self.byteorder, self.createparents,
+                                 self.atom, self.shape)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(numpy.zeros_like(self.obj), nparr))
+
+    def test_kwargs_obj(self):
+        self.h5file.create_array(self.where, self.name, title=self.title,
+                                 obj=self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_atom_shape_01(self):
+        ptarr = self.h5file.create_array(self.where, self.name,
+                                         title=self.title,
+                                         atom=self.atom, shape=self.shape)
+        ptarr[...] = self.obj
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_atom_shape_02(self):
+        ptarr = self.h5file.create_array(self.where, self.name,
+                                         title=self.title,
+                                         atom=self.atom, shape=self.shape)
+        #ptarr[...] = self.obj
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(numpy.zeros_like(self.obj), nparr))
+
+    def test_kwargs_obj_atom(self):
+        ptarr = self.h5file.create_array(self.where, self.name,
+                                         title=self.title,
+                                         obj=self.obj,
+                                         atom=self.atom)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_shape(self):
+        ptarr = self.h5file.create_array(self.where, self.name,
+                                         title=self.title,
+                                         obj=self.obj,
+                                         shape=self.shape)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_atom_shape(self):
+        ptarr = self.h5file.create_array(self.where, self.name,
+                                         title=self.title,
+                                         obj=self.obj,
+                                         atom=self.atom,
+                                         shape=self.shape)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, self.shape)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_atom_error(self):
+        atom = Atom.from_dtype(numpy.dtype('complex'))
+        #shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_array,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=atom)
+
+    def test_kwargs_obj_shape_error(self):
+        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_array,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          shape=shape)
+
+    def test_kwargs_obj_atom_shape_error_01(self):
+        atom = Atom.from_dtype(numpy.dtype('complex'))
+        #shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_array,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=atom,
+                          shape=self.shape)
+
+    def test_kwargs_obj_atom_shape_error_02(self):
+        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_array,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=self.atom,
+                          shape=shape)
+
+    def test_kwargs_obj_atom_shape_error_03(self):
+        atom = Atom.from_dtype(numpy.dtype('complex'))
+        shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_array,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=atom,
+                          shape=shape)
+
+
 #----------------------------------------------------------------------
 
 
@@ -2614,6 +2949,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PointSelection4))
         theSuite.addTest(unittest.makeSuite(CopyNativeHDF5MDAtom))
         theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
+        theSuite.addTest(unittest.makeSuite(TestCreateArrayArgs))
 
     return theSuite
 
