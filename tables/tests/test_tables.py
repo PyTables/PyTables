@@ -6445,7 +6445,9 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
                           obj=self.obj,
                           description=RecordDescriptionDict)
 
+
 #----------------------------------------------------------------------
+
 
 def suite():
     theSuite = unittest.TestSuite()

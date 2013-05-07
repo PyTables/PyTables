@@ -4320,7 +4320,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class TestCreateVLArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
     obj = numpy.array([1, 2, 3])
     where = '/'
-    name = 'carray'
+    name = 'vlarray'
     atom = Atom.from_dtype(obj.dtype)
     title = 'title'
     filters = None

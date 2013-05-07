@@ -2666,7 +2666,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
     obj = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     where = '/'
-    name = 'carray'
+    name = 'earray'
     atom = Atom.from_dtype(obj.dtype)
     shape = (0,) + obj.shape[1:]
     title = 'title'
