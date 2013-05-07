@@ -4317,6 +4317,162 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedNodeError, self.array.append, 'xxxxxxxxx')
 
 
+class TestCreateVLArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
+    obj = numpy.array([1, 2, 3])
+    where = '/'
+    name = 'carray'
+    atom = Atom.from_dtype(obj.dtype)
+    title = 'title'
+    filters = None
+    expectedrows = None
+    chunkshape = None
+    byteorder = None
+    createparents = False
+
+    def test_positional_args_01(self):
+        self.h5file.create_vlarray(self.where, self.name,
+                                   self.atom,
+                                   self.title, self.filters,
+                                   self.expectedrows)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (0,))
+        self.assertEqual(ptarr.nrows, 0)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+
+    def test_positional_args_02(self):
+        ptarr = self.h5file.create_vlarray(self.where, self.name,
+                                           self.atom,
+                                           self.title,
+                                           self.filters,
+                                           self.expectedrows)
+        ptarr.append(self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()[0]
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (1,))
+        self.assertEqual(ptarr[0].shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, 1)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_positional_args_obj(self):
+        self.h5file.create_vlarray(self.where, self.name,
+                                   None,
+                                   self.title,
+                                   self.filters,
+                                   self.expectedrows,
+                                   self.chunkshape,
+                                   self.byteorder,
+                                   self.createparents,
+                                   self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()[0]
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (1,))
+        self.assertEqual(ptarr[0].shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, 1)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj(self):
+        self.h5file.create_vlarray(self.where, self.name, title=self.title,
+                                   obj=self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()[0]
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (1,))
+        self.assertEqual(ptarr[0].shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, 1)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_atom_01(self):
+        ptarr = self.h5file.create_vlarray(self.where, self.name,
+                                           title=self.title,
+                                           atom=self.atom)
+        ptarr.append(self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()[0]
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (1,))
+        self.assertEqual(ptarr[0].shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, 1)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_atom_02(self):
+        ptarr = self.h5file.create_vlarray(self.where, self.name,
+                                           title=self.title,
+                                           atom=self.atom)
+        #ptarr.append(self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (0,))
+        self.assertEqual(ptarr.nrows, 0)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+
+    def test_kwargs_obj_atom(self):
+        ptarr = self.h5file.create_vlarray(self.where, self.name,
+                                           title=self.title,
+                                           obj=self.obj,
+                                           atom=self.atom)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()[0]
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (1,))
+        self.assertEqual(ptarr[0].shape, self.obj.shape)
+        self.assertEqual(ptarr.nrows, 1)
+        self.assertEqual(ptarr.atom, self.atom)
+        self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_atom_error(self):
+        atom = Atom.from_dtype(numpy.dtype('complex'))
+        #shape = self.shape + self.shape
+        self.assertRaises(TypeError,
+                          self.h5file.create_vlarray,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          atom=atom)
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -4366,6 +4522,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(SizeInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(SizeOnDiskPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
+        theSuite.addTest(unittest.makeSuite(TestCreateVLArrayArgs))
 
     return theSuite
 

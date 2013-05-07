@@ -1055,10 +1055,10 @@ class File(hdf5extension.File, object):
 
     createEArray = previous_api(create_earray)
 
-    def create_vlarray(self, where, name, atom, title="",
+    def create_vlarray(self, where, name, atom=None, title="",
                        filters=None, expectedrows=None,
                        chunkshape=None, byteorder=None,
-                       createparents=False):
+                       createparents=False, obj=None):
         """Create a new variable-length array.
 
         Parameters
@@ -1072,6 +1072,11 @@ class File(hdf5extension.File, object):
         atom : Atom
             An Atom (see :ref:`AtomClassDescr`) instance representing
             the *type* and *shape* of the atomic objects to be saved.
+
+            .. versionchanged:: 3.0
+               The *atom* parameter can be None (default) if *obj* is
+               provided.
+
         title : str, optional
             A description for this node (it sets the TITLE HDF5 attribute
             on disk).
@@ -1102,6 +1107,19 @@ class File(hdf5extension.File, object):
         createparents : bool, optional
             Whether to create the needed groups for the parent path to
             exist (not done by default).
+        obj : python object
+            The array or scalar to be saved.  Accepted types are NumPy
+            arrays and scalars, as well as native Python sequences and
+            scalars, provided that values are regular (i.e. they are
+            not like ``[[1,2],2]``) and homogeneous (i.e. all the
+            elements are of the same type).
+
+            The *obj* parameter is optional and it can be provided in
+            alternative to the *atom* parameter.
+            If both *obj* and *atom* and are provided they must
+            be consistent with each other.
+
+            .. versionadded:: 3.0
 
         See Also
         --------
@@ -1113,12 +1131,27 @@ class File(hdf5extension.File, object):
 
         """
 
+        if obj is not None:
+            flavor = flavor_of(obj)
+            obj = array_as_internal(obj, flavor)
+
+            if atom is not None and atom.dtype != obj.dtype:
+                raise TypeError('the atom parameter is not consistent with '
+                                'the data type of the obj parameter')
+            if atom is None:
+                atom = Atom.from_dtype(obj.dtype)
+
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        return VLArray(parentnode, name,
-                       atom=atom, title=title, filters=filters,
-                       expectedrows=expectedrows,
-                       chunkshape=chunkshape, byteorder=byteorder)
+        vlarray = VLArray(parentnode, name,
+                          atom=atom, title=title, filters=filters,
+                          expectedrows=expectedrows,
+                          chunkshape=chunkshape, byteorder=byteorder)
+
+        if obj is not None:
+            vlarray.append(obj)
+
+        return vlarray
 
     createVLArray = previous_api(create_vlarray)
 
