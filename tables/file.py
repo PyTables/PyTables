@@ -38,7 +38,8 @@ from tables.exceptions import (ClosedFileError, FileModeError, NodeError,
 from tables.registry import get_class_by_name
 from tables.path import join_path, split_path
 from tables import undoredo
-from tables.description import IsDescription, UInt8Col, StringCol
+from tables.description import (IsDescription, UInt8Col, StringCol,
+                                descr_from_dtype, dtype_from_descr)
 from tables.filters import Filters
 from tables.node import Node, NotLoggedMixin
 from tables.group import Group, RootGroup
@@ -683,10 +684,10 @@ class File(hdf5extension.File, object):
 
     createGroup = previous_api(create_group)
 
-    def create_table(self, where, name, description, title="",
+    def create_table(self, where, name, description=None, title="",
                      filters=None, expectedrows=10000,
                      chunkshape=None, byteorder=None,
-                     createparents=False):
+                     createparents=False, obj=None):
         """Create a new table with the given name in where location.
 
         Parameters
@@ -717,6 +718,11 @@ class File(hdf5extension.File, object):
                   Also, in case the array has actual data, it will be
                   injected into the newly created table.
 
+            .. versionchanged:: 3.0
+               The *description* parameter can be None (default) if *obj* is
+               provided.  In that case the structure of the table is deduced
+               by *obj*.
+
         title : str
             A description for this node (it sets the TITLE HDF5 attribute
             on disk).
@@ -744,6 +750,17 @@ class File(hdf5extension.File, object):
         createparents : bool
             Whether to create the needed groups for the parent path to exist
             (not done by default).
+        obj : python object
+            The recarray to be saved.  Accepted types are NumPy record
+            arrays, as well as native Python sequences convertible to numpy
+            record arrays.
+
+            The *obj* parameter is optional and it can be provided in
+            alternative to the *description* parameter.
+            If both *obj* and *description* are provided they must
+            be consistent with each other.
+
+            .. versionadded:: 3.0
 
         See Also
         --------
@@ -751,14 +768,32 @@ class File(hdf5extension.File, object):
 
         """
 
+        if obj is not None:
+            if not isinstance(obj, numpy.ndarray):
+                raise TypeError('invalid obj parameter %r' % obj)
+
+            descr, _ = descr_from_dtype(obj.dtype)
+            if (description is not None and
+                    dtype_from_descr(description) != obj.dtype):
+                raise TypeError('the desctiption parameter is not consistent '
+                                'with the data type of the obj parameter')
+            elif description is None:
+                description = descr
+
         parentnode = self._get_or_create_path(where, createparents)
         if description is None:
             raise ValueError("invalid table description: None")
         _checkfilters(filters)
-        return Table(parentnode, name,
-                     description=description, title=title,
-                     filters=filters, expectedrows=expectedrows,
-                     chunkshape=chunkshape, byteorder=byteorder)
+
+        ptobj = Table(parentnode, name,
+                      description=description, title=title,
+                      filters=filters, expectedrows=expectedrows,
+                      chunkshape=chunkshape, byteorder=byteorder)
+
+        if obj is not None:
+            ptobj.append(obj)
+
+        return ptobj
 
     createTable = previous_api(create_table)
 
@@ -912,7 +947,6 @@ class File(hdf5extension.File, object):
 
             .. versionadded:: 3.0
 
-
         See Also
         --------
         CArray : for more information on chunked arrays
@@ -936,14 +970,14 @@ class File(hdf5extension.File, object):
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        carray = CArray(parentnode, name,
-                        atom=atom, shape=shape, title=title, filters=filters,
-                        chunkshape=chunkshape, byteorder=byteorder)
+        ptobj = CArray(parentnode, name,
+                       atom=atom, shape=shape, title=title, filters=filters,
+                       chunkshape=chunkshape, byteorder=byteorder)
 
         if obj is not None:
-            carray[...] = obj
+            ptobj[...] = obj
 
-        return carray
+        return ptobj
 
     createCArray = previous_api(create_carray)
 
@@ -1043,15 +1077,15 @@ class File(hdf5extension.File, object):
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        earray = EArray(parentnode, name,
-                        atom=atom, shape=shape, title=title,
-                        filters=filters, expectedrows=expectedrows,
-                        chunkshape=chunkshape, byteorder=byteorder)
+        ptobj = EArray(parentnode, name,
+                       atom=atom, shape=shape, title=title,
+                       filters=filters, expectedrows=expectedrows,
+                       chunkshape=chunkshape, byteorder=byteorder)
 
         if obj is not None:
-            earray.append(obj)
+            ptobj.append(obj)
 
-        return earray
+        return ptobj
 
     createEArray = previous_api(create_earray)
 
@@ -1143,15 +1177,15 @@ class File(hdf5extension.File, object):
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        vlarray = VLArray(parentnode, name,
-                          atom=atom, title=title, filters=filters,
-                          expectedrows=expectedrows,
-                          chunkshape=chunkshape, byteorder=byteorder)
+        ptobj = VLArray(parentnode, name,
+                        atom=atom, title=title, filters=filters,
+                        expectedrows=expectedrows,
+                        chunkshape=chunkshape, byteorder=byteorder)
 
         if obj is not None:
-            vlarray.append(obj)
+            ptobj.append(obj)
 
-        return vlarray
+        return ptobj
 
     createVLArray = previous_api(create_vlarray)
 

@@ -1673,7 +1673,6 @@ class BigTablesTestCase(BasicTestCase):
 
 
 class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
-
     def setUp(self):
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
@@ -1731,7 +1730,6 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
 
 class NonNestedTableReadTestCase(unittest.TestCase):
-
     def setUp(self):
         self.dtype = np.format_parser(['i4'] * 10, [], []).dtype
         self.file = tempfile.mktemp(".h5")
@@ -1865,7 +1863,6 @@ class NonNestedTableReadTestCase(unittest.TestCase):
 
 
 class TableReadByteorderTestCase(unittest.TestCase):
-
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, mode="w")
@@ -2019,7 +2016,6 @@ class BasicRangeTestCase(unittest.TestCase):
     #----------------------------------------
 
     def check_range(self):
-
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
         table = self.fileh.get_node("/table0")
@@ -2681,7 +2677,6 @@ class Rec(IsDescription):
 
 
 class setItem(common.PyTablesTestCase):
-
     def tearDown(self):
         self.fileh.close()
         # del self.fileh, self.rootgroup
@@ -3127,7 +3122,6 @@ class setItem4(setItem):
 
 
 class updateRow(common.PyTablesTestCase):
-
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
@@ -3633,7 +3627,6 @@ class updateRow4(updateRow):
 
 
 class RecArrayIO(unittest.TestCase):
-
     def test00(self):
         "Checking saving a regular recarray"
 
@@ -4517,7 +4510,6 @@ class RecArrayIO2(RecArrayIO):
 
 
 class CopyTestCase(unittest.TestCase):
-
     def assertEqualColinstances(self, table1, table2):
         """Assert that column instance maps of both tables are equal."""
         cinst1, cinst2 = table1.colinstances, table2.colinstances
@@ -4989,7 +4981,6 @@ class OpenCopyTestCase(CopyTestCase):
 
 
 class CopyIndexTestCase(unittest.TestCase):
-
     def test01_index(self):
         """Checking Table.copy() method with indexes"""
 
@@ -5203,7 +5194,6 @@ class CopyIndex12TestCase(CopyIndexTestCase):
 
 
 class LargeRowSize(unittest.TestCase):
-
     def test00(self):
         "Checking saving a Table with a moderately large rowsize"
         file = tempfile.mktemp(".h5")
@@ -5663,7 +5653,6 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class DerivedTableTestCase(unittest.TestCase):
-
     def setUp(self):
         self.file = tempfile.mktemp('.h5')
         self.fileh = open_file(self.file, 'w', title='DeriveFromTable')
@@ -5684,7 +5673,6 @@ class DerivedTableTestCase(unittest.TestCase):
 
 
 class ChunkshapeTestCase(unittest.TestCase):
-
     def setUp(self):
         self.file = tempfile.mktemp('.h5')
         self.fileh = open_file(self.file, 'w', title='Chunkshape test')
@@ -5715,7 +5703,6 @@ class ChunkshapeTestCase(unittest.TestCase):
 
 # Test for appending zero-sized recarrays
 class ZeroSizedTestCase(unittest.TestCase):
-
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, "a")
@@ -5746,9 +5733,7 @@ class ZeroSizedTestCase(unittest.TestCase):
 # this should check most platforms where, while not unaligned,
 # len(datatype) > boundary_alignment is fullfilled.
 class IrregularStrideTestCase(unittest.TestCase):
-
     def setUp(self):
-
         class IRecord(IsDescription):
             c1 = Int32Col(pos=1)
             c2 = Float64Col(pos=2)
@@ -5780,9 +5765,7 @@ class IrregularStrideTestCase(unittest.TestCase):
 
 
 class TruncateTestCase(unittest.TestCase):
-
     def setUp(self):
-
         self.file = tempfile.mktemp('.h5')
         self.fileh = open_file(self.file, 'w', title='Chunkshape test')
         table = self.fileh.create_table('/', 'table', self.IRecord)
@@ -5920,7 +5903,6 @@ class TruncateClose2(TruncateTestCase):
 
 
 class PointSelectionTestCase(common.PyTablesTestCase):
-
     def setUp(self):
         N = 100
 
@@ -6079,7 +6061,6 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 
 # Test for building very large MD columns without defaults
 class MDLargeColTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test01_create(self):
         "Create a Table with a very large MD column.  Ticket #211."
         N = 2**18      # 4x larger than maximum object header size (64 KB)
@@ -6107,7 +6088,6 @@ class MDLargeColReopen(MDLargeColTestCase):
 # Test with itertools.groupby that iterates on exhausted Row iterator
 # See ticket #264.
 class ExhaustedIter(common.PyTablesTestCase):
-
     def setUp(self):
         """Create small database"""
         class Observations(IsDescription):
@@ -6171,7 +6151,6 @@ class ExhaustedIter(common.PyTablesTestCase):
 
 
 class SpecialColnamesTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test00_check_names(self):
         f = self.h5file
         a = np.array([(1, 2, 3)], dtype=[(
@@ -6185,7 +6164,6 @@ class SpecialColnamesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class RowContainsTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test00_row_contains(self):
         f = self.h5file
         a = np.array([(1, 2, 3)], dtype="i1,i2,i4")
@@ -6199,7 +6177,6 @@ class RowContainsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
         self.table = self.h5file.create_table(
@@ -6255,7 +6232,6 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class ColumnIterationTestCase(unittest.TestCase):
-
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, mode="w")
@@ -6306,6 +6282,168 @@ class ColumnIterationTestCase(unittest.TestCase):
         self.assertEqual(len(table), 0)
         self.iterate(array, table)
 
+
+class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
+    obj = np.array(
+        [('aaaa', 1, 2.1), ('bbbb', 2, 3.2)],
+        dtype=[('name', 'S4'), ('icol', np.int32), ('fcol', np.float32)])
+    where = '/'
+    name = 'table'
+    description, _ = descr_from_dtype(obj.dtype)
+    title = 'title'
+    filters = None
+    expectedrows = 10000
+    chunkshape = None
+    byteorder = None
+    createparents = False
+
+    def test_positional_args_01(self):
+        self.h5file.create_table(self.where, self.name,
+                                 self.description,
+                                 self.title, self.filters,
+                                 self.expectedrows)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (0,))
+        self.assertEqual(ptarr.nrows, 0)
+        self.assertEqual(tuple(ptarr.colnames), self.obj.dtype.names)
+
+    def test_positional_args_02(self):
+        ptarr = self.h5file.create_table(self.where, self.name,
+                                         self.description,
+                                         self.title,
+                                         self.filters,
+                                         self.expectedrows)
+        ptarr.append(self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (len(self.obj),))
+        self.assertEqual(ptarr.nrows, len(self.obj))
+        self.assertEqual(tuple(ptarr.colnames), self.obj.dtype.names)
+        self.assertEqual(nparr.dtype, self.obj.dtype)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_positional_args_obj(self):
+        self.h5file.create_table(self.where, self.name,
+                                 None,
+                                 self.title,
+                                 self.filters,
+                                 self.expectedrows,
+                                 self.chunkshape,
+                                 self.byteorder,
+                                 self.createparents,
+                                 self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (len(self.obj),))
+        self.assertEqual(ptarr.nrows, len(self.obj))
+        self.assertEqual(tuple(ptarr.colnames), self.obj.dtype.names)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj(self):
+        self.h5file.create_table(self.where, self.name, title=self.title,
+                                 obj=self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (len(self.obj),))
+        self.assertEqual(ptarr.nrows, len(self.obj))
+        self.assertEqual(tuple(ptarr.colnames), self.obj.dtype.names)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_description_01(self):
+        ptarr = self.h5file.create_table(self.where, self.name,
+                                         title=self.title,
+                                         description=self.description)
+        ptarr.append(self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (len(self.obj),))
+        self.assertEqual(ptarr.nrows, len(self.obj))
+        self.assertEqual(tuple(ptarr.colnames), self.obj.dtype.names)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_description_02(self):
+        ptarr = self.h5file.create_table(self.where, self.name,
+                                         title=self.title,
+                                         description=self.description)
+        #ptarr.append(self.obj)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (0,))
+        self.assertEqual(ptarr.nrows, 0)
+        self.assertEqual(tuple(ptarr.colnames), self.obj.dtype.names)
+
+    def test_kwargs_obj_description(self):
+        ptarr = self.h5file.create_table(self.where, self.name,
+                                         title=self.title,
+                                         obj=self.obj,
+                                         description=self.description)
+        self.h5file.close()
+
+        self.h5file = open_file(self.h5fname)
+        ptarr = self.h5file.get_node(self.where, self.name)
+        nparr = ptarr.read()
+
+        self.assertEqual(ptarr.title, self.title)
+        self.assertEqual(ptarr.shape, (len(self.obj),))
+        self.assertEqual(ptarr.nrows, len(self.obj))
+        self.assertEqual(tuple(ptarr.colnames), self.obj.dtype.names)
+        self.assertTrue(allequal(self.obj, nparr))
+
+    def test_kwargs_obj_description_error_01(self):
+        self.assertRaises(TypeError,
+                          self.h5file.create_table,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          description=Record)
+
+    def test_kwargs_obj_description_error_02(self):
+        self.assertRaises(TypeError,
+                          self.h5file.create_table,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          description=Record())
+
+    def test_kwargs_obj_description_error_03(self):
+        self.assertRaises(TypeError,
+                          self.h5file.create_table,
+                          self.where,
+                          self.name,
+                          title=self.title,
+                          obj=self.obj,
+                          description=RecordDescriptionDict)
 
 #----------------------------------------------------------------------
 
@@ -6384,6 +6522,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RowContainsTestCase))
         theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
         theSuite.addTest(unittest.makeSuite(ColumnIterationTestCase))
+        theSuite.addTest(unittest.makeSuite(TestCreateTableArgs))
 
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressBzip2TablesTestCase))
