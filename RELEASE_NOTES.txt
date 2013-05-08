@@ -108,9 +108,9 @@ Improvements
 Other changes
 -------------
 
-- PyTables now requires Python 2.7 or newer.
+- PyTables now requires Python 2.6 or newer.
 
-- Minimum supported version of Numexpr_ is now 2.1.
+- Minimum supported version of Numexpr_ is now 2.0.
 
 
 API changes
