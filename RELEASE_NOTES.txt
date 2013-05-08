@@ -49,6 +49,11 @@ New features
   available if numpy_ provides it as well.
   Closes :issue:`51` and :issue:`214`.  Many thanks to Andrea Bedini.
 
+- Consistent ``create_xxx()`` signatures.  Now it is possible to create all
+  data sets :class:`Array`, :class:`CArray`, :class:`EArray`,
+  :class:`VLArray`, and :class:`Table` from existing Python objects (closes
+  :issue:`61` and :issue:`249`).  See also the `API changes`_ section.
+
 - Complete rewrite of the :mod:`nodes.filenode` module. Now it is fully
   compliant with the interfaces defined in the standard :mod:`io` module.
   Only non-buffered binary I/O is supported currently.
@@ -149,6 +154,16 @@ Many deprecated features and support for obsolete modules has been dropped:
 
 Moreover:
 
+- The :meth:`File.create_array`, :meth:`File.create_carray`,
+  :meth:`File.create_earray`, :meth:`File.create_vlarray`, and
+  :meth:`File.create_table` methods of the :class:`File` objects gained a
+  new (optional) keyword argument named ``obj``.
+  It can be used to initialize the newly created dataset with an existing
+  numpy_ object.
+
+  The *atom*/*descriptor* and *shape* parameters are now optional if the
+  *obj* argument is provided.
+
 - The :mod:`nodes.filenode` has been completely rewritten to be fully
   compliant with the interfaces defined in the :mod:`io` module.
 
@@ -184,6 +199,10 @@ Moreover:
 
 - The :meth:`Table.whereAppend` method has been renamed into
   :meth:`Table.append_where` (closes :issue:`248`).
+
+Please refer to the :doc:`../MIGRATING_TO_3.x` document for more details about
+API changes and for some useful hint about the migration process from the 2.X
+API to the new one.
 
 
 Other possibly incompatible changes
