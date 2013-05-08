@@ -1332,7 +1332,7 @@ we will see that the script ends well.
 
 You can see the structure created with this (corrected) script in
 :ref:`Figure 4 <tutorial2-tableview>`.
-In particular, note the multidimensional column cells in table 
+In particular, note the multidimensional column cells in table
 /Particles/TParticle2.
 
 .. _tutorial2-tableview:
@@ -1423,7 +1423,7 @@ also has been created successfully, but by better inspecting the string
 representation of it, we see that is labeled as '(dangling)'.  Why is this?
 Well, you should remember that we recently removed the /g1/g2/t1 path to
 access table t1.  When printing it, the object knows that it points to
-*nowhere* and reports this. 
+*nowhere* and reports this.
 This is a nice way to quickly know whether a soft link points to an exiting
 node or not.
 

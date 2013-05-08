@@ -1054,7 +1054,7 @@ get better access times to them. Also, incrementing the node cache size
 effectively consumes more memory *only* if the total nodes exceeds the slots
 in cache; otherwise the memory consumption remains the same. It is also worth
 noting that incrementing the node cache size in the case you want to fit all
-your nodes in cache does not take much more memory than being too 
+your nodes in cache does not take much more memory than being too
 conservative. On the other hand, it might happen that the speed-up that you
 can achieve by allocating more slots in your cache is not worth the amount of
 memory used.

@@ -123,12 +123,12 @@ keyword parameters have been renamed to be compliant with PEP8_ style
 guidelines (e.g. the ``tables.hdf5Version`` constant has been renamed into
 ``tables.hdf5_version``).
 
-We made the best effort to maintain compatibility to the old API for existing 
-applications.  In most cases, the old 2.x API is still available and usable 
+We made the best effort to maintain compatibility to the old API for existing
+applications.  In most cases, the old 2.x API is still available and usable
 even if it is now deprecated (see the Deprecations_ section).
 
-The only important backwards incompatible API changes are for names of 
-function/methods arguments.  All uses of keyword arguments should be 
+The only important backwards incompatible API changes are for names of
+function/methods arguments.  All uses of keyword arguments should be
 checked and fixed to use the new naming convention.
 
 The new :program:`pt2to3` tool can be used to port PyTables based applications
@@ -157,8 +157,8 @@ Moreover:
 - The :meth:`File.create_array`, :meth:`File.create_carray`,
   :meth:`File.create_earray`, :meth:`File.create_vlarray`, and
   :meth:`File.create_table` methods of the :class:`File` objects gained a
-  new (optional) keyword argument named ``obj``.  It can be used to initialize 
-  the newly created dataset with an existing Python object, though normally 
+  new (optional) keyword argument named ``obj``.  It can be used to initialize
+  the newly created dataset with an existing Python object, though normally
   these are numpy_ arrays.
 
   The *atom*/*descriptor* and *shape* parameters are now optional if the
@@ -179,8 +179,8 @@ Moreover:
     character is always used as line separator.
 
 - The `__version__` module constants has been removed from almost all the
-  modules (it was not used after the switch to Git).  Of course the package 
-  level constant (:data:`tables.__version__`) still remains.  
+  modules (it was not used after the switch to Git).  Of course the package
+  level constant (:data:`tables.__version__`) still remains.
   Closes :issue:`112`.
 
 - The :func:`lrange` has been dropped in favor of xrange (:issue:`181`)

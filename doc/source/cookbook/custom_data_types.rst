@@ -42,7 +42,7 @@ http://sourceforge.net/mailarchive/message.php?msg_id=200805250042.50653.pgmdevl
                                        ma.getmaskarray(maskedarray).flat),
                                        dtype=[('_data',maskedarray.dtype),
                                               ('_mask',bool)])
-            Table.__init__(self, parentNode, name, 
+            Table.__init__(self, parentNode, name,
                            description=description, title=title,
                            filters=filters,
 
@@ -68,7 +68,7 @@ http://sourceforge.net/mailarchive/message.php?msg_id=200805250042.50653.pgmdevl
 
         _checkfilters(filters)
         return MaskedTable(parentNode, name, maskedarray,
-                           title=title, filters=filters, 
+                           title=title, filters=filters,
                            expectedrows=expectedrows,
                            chunkshape=chunkshape, byteorder=byteorder)
 
