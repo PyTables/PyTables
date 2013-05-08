@@ -62,7 +62,7 @@ To that end, special Python features like generators, slots and
 metaclasses in new-brand classes have been used. In addition,
 iterators has been implemented were context was appropriate so as to
 enable the interactive work to be as productive as possible. For these
-reasons, you will need to use Python 2.6 or higherto take advantage of
+reasons, you will need to use Python 2.6 or higher to take advantage of
 PyTables.
 
 Platforms
@@ -112,14 +112,14 @@ http://www.pytables.org/moin/HowToUse).
 2. From the main PyTables distribution directory run this command,
    (plus any extra flags needed as discussed above)::
 
-        python setup.py build_ext --inplace
+    $ python setup.py build_ext --inplace
 
 3. To run the test suite, set the PYTHONPATH environment variable to
    include the ``.`` directory, enter the Python interpreter and issue
    the commands::
 
-        >>> import tables
-        >>> tables.test()
+    >>> import tables
+    >>> tables.test()
 
    If there is some test that does not pass, please send the
    complete output for tests back to us.
@@ -127,7 +127,7 @@ http://www.pytables.org/moin/HowToUse).
 4. To install the entire PyTables Python package, run this command as
    the root user (remember to add any extra flags needed)::
 
-        python setup.py install
+    $ python setup.py install
 
 
 That's it!  Good luck, and let us know of any bugs, suggestions,
