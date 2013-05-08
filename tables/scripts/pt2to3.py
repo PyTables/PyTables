@@ -50,7 +50,7 @@ def main():
     parser.add_argument('-r', '--reverse', action='store_true', default=False,
                         dest='reverse', help="reverts changes, going from 3.x -> 2.x.")
     parser.add_argument('-p', '--no-ignore-previous', action='store_false',
-                        default=True, dest='ignore_previous', help="ingores previous_api() calls.")
+                        default=True, dest='ignore_previous', help="ignores previous_api() calls.")
     parser.add_argument('-o', default=None, dest='output',
                         help="output file to write to.")
     parser.add_argument('-i', '--inplace', action='store_true', default=False,

@@ -37,6 +37,7 @@ Contents
     FAQ
     other_material
     Migrating from 1.x to 2.x <MIGRATING_TO_2.x>
+    Migrating from 2.x to 3.x <MIGRATING_TO_3.x>
     downloads
     Release Notes <release_notes>
     project_pointers
