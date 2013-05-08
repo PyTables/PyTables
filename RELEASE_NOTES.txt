@@ -2,7 +2,7 @@
  Release notes for PyTables 3.0 series
 =======================================
 
-:Author: PyTables maintainers
+:Author: PyTables Developers
 :Contact: pytables@googlemail.com
 
 .. py:currentmodule:: tables
@@ -108,9 +108,9 @@ Improvements
 Other changes
 -------------
 
-- PyTables now requires Python 2.6 or newer.
+- PyTables now requires Python 2.7 or newer.
 
-- Minimum supported version of Numexpr_ is now 2.0.
+- Minimum supported version of Numexpr_ is now 2.1.
 
 
 API changes
@@ -123,13 +123,13 @@ keyword parameters have been renamed to be compliant with PEP8_ style
 guidelines (e.g. the ``tables.hdf5Version`` constant has been renamed into
 ``tables.hdf5_version``).
 
-We made all the best for maintaining compatibility with existing application
-so the old API is still usable even if it is now deprecated (see the
-Deprecations_ section).
+We made the best effort to maintain compatibility to the old API for existing 
+applications.  In most cases, the old 2.x API is still available and usable 
+even if it is now deprecated (see the Deprecations_ section).
 
-The only important exception is represented by names function/methods
-arguments.  All uses of keyword arguments should be checked and fixed to use
-the new naming convention.
+The only important backwards incompatible API changes are for names of 
+function/methods arguments.  All uses of keyword arguments should be 
+checked and fixed to use the new naming convention.
 
 The new :program:`pt2to3` tool can be used to port PyTables based applications
 to the new API.
@@ -142,24 +142,24 @@ Many deprecated features and support for obsolete modules has been dropped:
   The *numarray* flavor is no more supported as well (closes :issue:`107`).
 
 - Support for the obsolete Numeric module has been removed.
-  The *numeric* flavor is no more available (closes :issue:`108`).
+  The *numeric* flavor is no longer available (closes :issue:`108`).
 
 - The tables.netcdf3 module has been removed (closes :issue:`68`).
 
 - The deprecated :exc:`exceptions.Incompat16Warning` exception has been
   removed
 
-- The :meth:`File.create_external_link` method no more has a keyword
-  parameter named *warn16incompat*.  It was deprecated since PyTables 2.4.
+- The :meth:`File.create_external_link` method no longer has a keyword
+  parameter named *warn16incompat*.  It was deprecated in PyTables 2.4.
 
 Moreover:
 
 - The :meth:`File.create_array`, :meth:`File.create_carray`,
   :meth:`File.create_earray`, :meth:`File.create_vlarray`, and
   :meth:`File.create_table` methods of the :class:`File` objects gained a
-  new (optional) keyword argument named ``obj``.
-  It can be used to initialize the newly created dataset with an existing
-  numpy_ object.
+  new (optional) keyword argument named ``obj``.  It can be used to initialize 
+  the newly created dataset with an existing Python object, though normally 
+  these are numpy_ arrays.
 
   The *atom*/*descriptor* and *shape* parameters are now optional if the
   *obj* argument is provided.
@@ -179,14 +179,14 @@ Moreover:
     character is always used as line separator.
 
 - The `__version__` module constants has been removed from almost all the
-  modules (it was no more used after the switch to Git).
-  Of course the package level constant (:data:`tables.__version__`) still
-  remains.  Closes :issue:`112`.
+  modules (it was not used after the switch to Git).  Of course the package 
+  level constant (:data:`tables.__version__`) still remains.  
+  Closes :issue:`112`.
 
-- The :func:`lrange` has been dropped in favour of xrange (:issue:`181`)
+- The :func:`lrange` has been dropped in favor of xrange (:issue:`181`)
 
 - The :data:`parameters.MAX_THREADS` configuration parameter has been dropped
-  in favour of :data:`parameters.MAX_BLOSC_THREADS` and
+  in favor of :data:`parameters.MAX_BLOSC_THREADS` and
   :data:`parameters.MAX_NUMEXPR_THREADS` (closes :issue:`147`).
 
 - The :func:`conditions.compile_condition` function no more has a *copycols*
@@ -208,16 +208,15 @@ API to the new one.
 Other possibly incompatible changes
 -----------------------------------
 
-- Unicode attributes are no more stored in the HDF5 file as pickled string.
+- Unicode attributes are not stored in the HDF5 file as pickled string.
   They are now saved on the HDF5 file as UTF-8 encoded strings.
 
-  Although this do not introduces no API breakage, files produced are different
-  (for what concerns unicode attributes) from the ones produced by earlier
-  versions of PyTables.
+  Although this does not introduce any API breakage, files produced are different
+  (for unicode attributes) from the ones produced by earlier versions of PyTables.
 
 - System attributes are now stored in the HDF5 file using the character set
   that reflects the native string behaviour: ASCII for Python 2 and UTF8 for
-  Python 3.  I any case system attributes are represented as Python string.
+  Python 3.  In any case, system attributes are represented as Python string.
 
 
 Deprecations
@@ -273,7 +272,7 @@ Bugs fixed
 
   **Enjoy data!**
 
-  -- The PyTables Team
+  -- The PyTables Developers
 
 
 .. Local Variables:

@@ -8,10 +8,10 @@ PyTables @VERSION@ comes after about 5 years from the last major release
 (2.0) and 7 months since the last stable release (2.4.0).
 
 This is new major release and an important milestone for the PyTables project
-since it provides the long waited support for Python 3.x that is being around
-for already 4 years now.
+since it provides the long waited support for Python 3.x, which has been around
+for 4 years.
 
-Almost all the main numeric/scientific packages for python already support
+Almost all of the core numeric/scientific packages for Python already support
 Python 3 so we are very happy that now also PyTables can provide this
 important feature.
 
@@ -21,10 +21,10 @@ What's new
 
 A short summary of main new features:
 
-- Since this release PyTables provides full support to Python 3
+- Since this release, PyTables now provides full support to Python 3
 - The entire code base is now more compliant with coding style guidelines
-  describe in the PEP8.
-- Basic support for HDF5 drivers.  Now it is possible to open/create an
+  described in PEP8.
+- Basic support for HDF5 drivers.  It now is possible to open/create an
   HDF5 file using one of the SEC2, DIRECT, LOG, WINDOWS, STDIO or CORE
   drivers.
 - Basic support for in-memory image files.  An HDF5 file can be set from or
@@ -47,8 +47,7 @@ changes in this release.
 As always, a large amount of bugs have been addressed and squashed as well.
 
 In case you want to know more in detail what has changed in this
-version, please refer to:
-http://pytables.github.io/release_notes.html
+version, please refer to: http://pytables.github.io/release_notes.html
 
 You can download a source package with generated PDF and HTML docs, as
 well as binaries for Windows, from:
@@ -93,15 +92,14 @@ Without them, PyTables simply would not exist.
 Share your experience
 =====================
 
-Let us know of any bugs, suggestions, gripes, kudos, etc. you may
-have.
+Let us know of any bugs, suggestions, gripes, kudos, etc. you may have.
 
 
 ----
 
   **Enjoy data!**
 
-  -- The PyTables Team
+  -- The PyTables Developers
 
 .. Local Variables:
 .. mode: rst
