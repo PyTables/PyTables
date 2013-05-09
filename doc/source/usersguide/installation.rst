@@ -194,17 +194,19 @@ you can proceed with the PyTables package itself.
 #. Run this command from the main PyTables distribution directory, including
    any extra command line arguments as discussed above::
 
-      $ python setup.py build_ext --inplace
+      $ python setup.py build
 
 #. To run the test suite, execute any of these commands.
 
    **Unix**
       In the sh shell and its variants::
 
+        $ cd build/lib.linux-x86_64-2.7
         $ env PYTHONPATH=. python tables/tests/test_all.py
 
       or, if you prefer::
 
+        $ cd build/lib.linux-x86_64-2.7
         $ env PYTHONPATH=. python -c "import tables; tables.test()"
 
       .. note::
@@ -223,11 +225,13 @@ you can proceed with the PyTables package itself.
 
       Open the command prompt (cmd.exe or command.com) and type::
 
+        > cd build\\lib.linux-x86_64-2.7
         > set PYTHONPATH=.;%PYTHONPATH%
         > python tables\\tests\\test_all.py
 
       or::
 
+        > cd build\\lib.linux-x86_64-2.7
         > set PYTHONPATH=.;%PYTHONPATH%
         > python -c "import tables; tables.test()"
 
@@ -324,12 +328,6 @@ This section is intended for installing precompiled binaries on Windows
 platforms. You may also find it useful for instructions on how to install
 *binary prerequisites* even if you want to compile PyTables itself on Windows.
 
-.. warning::
-
-    Since PyTables 2.2b3, Windows binaries are distributed with SSE2
-    instructions enabled.  If your processor does not have support for SSE2,
-    then you will not be able to use these binaries.
-
 
 .. _prerequisitesBinInst:
 
@@ -365,6 +363,10 @@ PyTables package installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download the tables-<version>.win32-py<version>.exe file and execute it.
+
+Binary packahes can be found e.g. at the `Unofficial Windows Binaries for
+Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs/#pytables>`_
+page.
 
 You can (and *you should*) test your installation by running the next
 commands::
