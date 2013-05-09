@@ -46,6 +46,7 @@ First, make sure that you have
 * NumPy_ >= 1.4.1,
 * Numexpr_ >= 2.0 and
 * Cython_ >= 0.13
+* argparse_ (only Python 2.6, it it used by the :program:`pt2to3` utility)
 
 installed (for testing purposes, we are using HDF5_ 1.8.9, NumPy_ 1.7.1
 and Numexpr_ 2.1 currently). If you don't, fetch and install them before
@@ -56,11 +57,13 @@ proceeding.
 .. _NumPy: http://www.numpy.org
 .. _Numexpr: http://code.google.com/p/numexpr
 .. _Cython: http://www.cython.org
+.. _argparse: http://code.google.com/p/argparse
 
 .. note::
 
-    Currently PyTables does not use setuptools_ so do not expect that the
-    setup.py script automatically install all packages PyTables depends on.
+    Currently PyTables does not use setuptools_ by default so do not expect
+    that the setup.py script automatically install all packages PyTables
+    depends on.
 
 .. _setuptools: https://pypi.python.org/pypi/setuptools
 .. _ctypes: https://pypi.python.org/pypi/ctypes

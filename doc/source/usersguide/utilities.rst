@@ -434,6 +434,13 @@ and all sub-directories:
         mv temp.txt $f
     done
 
+.. note::
+
+    :program:`pt2to3` uses the :mod:`argparse` module that is part of the
+    Python standard library since Python 2.7.
+    Users of Python 2.6 should install :mod:`argparse` separately
+    (e.g. via :program:`pip`).
+
 The old APIs and variable names will continue to be supported for the short term,
 where possible.  (The major backwards incompatible changes come from the renaming
 of some function and method arguments and keyword arguments.)  Using the 2.x APIs
