@@ -267,7 +267,7 @@ latex_elements = {
 #]
 
 # If false, no module index is generated.
-#latex_domain_indices = True
+latex_domain_indices = False
 
 # -- Options for autodocumentation ---------------------------------------------
 autodoc_member_order = "groupwise"
