@@ -15,7 +15,7 @@ New features
 ------------
 
 - Since this release PyTables provides full support to Python_ 3
-  (closes :issue`188`).
+  (closes :issue:`188`).
 
 - The entire code base is now more compliant with coding style guidelines
   describe in the PEP8_ (closes :issue:`103` and :issue:`224`).
@@ -211,8 +211,9 @@ Other possibly incompatible changes
 - Unicode attributes are not stored in the HDF5 file as pickled string.
   They are now saved on the HDF5 file as UTF-8 encoded strings.
 
-  Although this does not introduce any API breakage, files produced are different
-  (for unicode attributes) from the ones produced by earlier versions of PyTables.
+  Although this does not introduce any API breakage, files produced are
+  different (for unicode attributes) from the ones produced by earlier
+  versions of PyTables.
 
 - System attributes are now stored in the HDF5 file using the character set
   that reflects the native string behaviour: ASCII for Python 2 and UTF8 for
@@ -222,7 +223,9 @@ Other possibly incompatible changes
 Deprecations
 ------------
 
-- XXX old API deprecation
+- As described in `API changes`_, all functions, methods and attribute names
+  that was not compliant with the PEP8_ guidelines have been changed.
+  Old names are still available but they are deprecated.
 
 - The use of upper-case keyword arguments in the :func:`open_file` function
   and the :class:`File` class initializer is now deprecated.  All parameters
