@@ -249,9 +249,9 @@ Bugs fixed
 - Fixed an error in :func:`open_file` when *filename* is a :class:`numpy.str_`
   (closes :issue:`204`)
 
-- Fixed :issue:`119` and  :issue:`232`, where an index on Time64Col (only,
-  Time32Col was ok) hides the data on selection from a Tables.
-  Thanks to Jeff Reback.
+- Fixed :issue:`119`, :issue:`230` and :issue:`232`, where an index on
+  :class:`Time64Col` (only, :class:`Time32Col` was ok) hides the data on
+  selection from a Tables. Thanks to Jeff Reback.
 
 - Fixed ``tables.tests.test_nestedtypes.ColsTestCase.test_00a_repr`` test
   method.  Now the ``repr`` of of cols on big-endian platforms is correctly
