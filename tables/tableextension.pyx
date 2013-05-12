@@ -868,9 +868,9 @@ cdef class Row:
       # The iterator is already exhausted!
       raise StopIteration
     if self.indexed:
-        return self.__next__indexed()
+      return self.__next__indexed()
     elif self.coords is not None:
-        return self.__next__coords()
+      return self.__next__coords()
     elif self.wherecond:
       return self.__next__inkernel()
     else:
