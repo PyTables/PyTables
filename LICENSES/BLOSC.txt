@@ -1,6 +1,7 @@
 Blosc - A blocking, shuffling and lossless compression library
 
-Copyright (C) 2009-2013 Francesc Alted <faltet@blosc.org>
+Copyright (C) 2009-2012 Francesc Alted <faltet@gmail.com>
+Copyright (C) 2013      Francesc Alted <francesc@continuum.io>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

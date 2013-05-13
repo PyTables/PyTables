@@ -78,7 +78,7 @@ Improvements
   :file:`convtypetables.pxi` have been moved in :file:`utilsextension.pyx`.
   Closes :issue:`217`.
 
-- The internal Blosc_ library has been upgraded to version 1.2.1.
+- The internal Blosc_ library has been upgraded to version 1.2.2.
 
 - Pre-load the bzip2_ library on windows (closes :issue:`205`)
 
