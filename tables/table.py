@@ -1617,7 +1617,8 @@ class Table(tableextension.Table, Leaf):
         # read_sorted() purposes!  The self._process_range_read will raise
         # an appropiate error.
         # F. Alted 2008-09-18
-        (start, stop, step) = self._process_range_read(None, None, None)
+        # A.V. 20130513: _process_range_read --> _process_range
+        (start, stop, step) = self._process_range(None, None, None)
         if (start > stop) or (len(sequence) == 0):
             return iter([])
         row = tableextension.Row(self)
@@ -1662,11 +1663,16 @@ class Table(tableextension.Table, Leaf):
         supported, meaning that the results will be returned in reverse sorted
         order.
 
+        .. versionchanged:: 3.0
+           If the *start* parameter is provided and *stop* is None then the
+           table is iterated from *start* to the last line.
+           In PyTables < 3.0 only one element was returned.
+
         """
 
         index = self._check_sortby_csi(sortby, checkCSI)
         # Adjust the slice to be used.
-        (start, stop, step) = index._process_range(start, stop, step)
+        (start, stop, step) = self._process_range(start, stop, step)
         if (start >= stop):
             return iter([])
         row = tableextension.Row(self)
@@ -1707,8 +1713,7 @@ class Table(tableextension.Table, Leaf):
         If a range is not supplied, *all the rows* in the table are iterated
         upon - you can also use the :meth:`Table.__iter__` special method for
         that purpose. If you want to iterate over a given *range of rows* in
-        the table, you may use the start, stop and step parameters, which have
-        the same meaning as in :meth:`Table.read`.
+        the table, you may use the start, stop and step parameters.
 
         .. warning::
 
@@ -1733,9 +1738,14 @@ class Table(tableextension.Table, Leaf):
         -----
         This iterator can be nested (see :meth:`Table.where` for an example).
 
+        .. versionchanged:: 3.0
+           If the *start* parameter is provided and *stop* is None then the
+           table is iterated from *start* to the last line.
+           In PyTables < 3.0 only one element was returned.
+
         """
 
-        (start, stop, step) = self._process_range_read(start, stop, step)
+        (start, stop, step) = self._process_range(start, stop, step)
         if start < stop:
             row = tableextension.Row(self)
             return row._iter(start, stop, step)

@@ -1906,7 +1906,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test04_itersorted2(self):
         """Testing the Table.itersorted() method with a start."""
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[15:16]
+        sortedtable = numpy.sort(table[:], order='icol')[15:]
         sortedtable2 = numpy.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', start=15)], dtype=table._v_dtype)

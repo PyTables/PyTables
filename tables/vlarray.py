@@ -532,8 +532,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         If a range is not supplied, *all the rows* in the array are iterated
         upon. You can also use the :meth:`VLArray.__iter__` special method for
         that purpose.  If you only want to iterate over a given *range of rows*
-        in the array, you may use the start, stop and step parameters, which
-        have the same meaning as in :meth:`VLArray.read`.
+        in the array, you may use the start, stop and step parameters.
 
         Examples
         --------
@@ -543,10 +542,15 @@ class VLArray(hdf5extension.VLArray, Leaf):
             for row in vlarray.iterrows(step=4):
                 print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, row)
 
+        .. versionchanged:: 3.0
+           If the *start* parameter is provided and *stop* is None then the
+           array is iterated from *start* to the last line.
+           In PyTables < 3.0 only one element was returned.
+
         """
 
-        (self._start, self._stop, self._step) = \
-            self._process_range_read(start, stop, step)
+        (self._start, self._stop, self._step) = self._process_range(
+            start, stop, step)
         self._init_loop()
         return self
 

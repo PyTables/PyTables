@@ -2047,7 +2047,12 @@ class BasicRangeTestCase(unittest.TestCase):
             startr = self.start
 
         if self.stop is None:
-            stopr = startr + 1
+            if self.checkrecarray or self.checkgetCol:
+                # data read using the read method
+                stopr = startr + 1
+            else:
+                # data read using the iterrows method
+                stopr = self.nrows
         elif self.stop < 0:
             stopr = self.expectedrows + self.stop
         else:
@@ -2881,8 +2886,8 @@ class setItem(common.PyTablesTestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3]],
+                          formats="i4,a3,f8")
         table.append(r)
         table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
 
@@ -3144,7 +3149,7 @@ class updateRow(common.PyTablesTestCase):
         table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
 
         # Modify just one existing row
-        for row in table.iterrows(2):
+        for row in table.iterrows(2, 3):
             (row['col1'], row['col2'], row['col3']) = [456, 'db2', 1.2]
             row.update()
         # Create the modified recarray
@@ -3299,13 +3304,13 @@ class updateRow(common.PyTablesTestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3]],
+                          formats="i4,a3,f8")
         table.append(r)
         table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
 
         # Modify just one existing column
-        for row in table.iterrows(1):
+        for row in table.iterrows(1, 2):
             row['col1'] = -1
             row.update()
         # Create the modified recarray
