@@ -219,6 +219,13 @@ Other possibly incompatible changes
   that reflects the native string behaviour: ASCII for Python 2 and UTF8 for
   Python 3.  In any case, system attributes are represented as Python string.
 
+- The :meth:`iterrows` method of :class:`*Array` and :class:`Table` as well
+  as the :meth:`Table.itersorted` now behave like functions in the standard
+  :mod:`itertools` module.
+  If the *start* parameter is provided and *stop* is None then the
+  array/table is iterated from *start* to the last line.
+  In PyTables < 3.0 only one element was returned.
+
 
 Deprecations
 ------------
