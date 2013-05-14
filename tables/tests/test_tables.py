@@ -1234,7 +1234,7 @@ class BasicTestCase(common.PyTablesTestCase):
         nrows = table.nrows
         table.nrowsinbuf = 3  # small value of the buffer
         # Delete the twenty-th row
-        table.remove_rows(19)
+        table.remove_rows(19, 20)
 
         # Re-read the records
         result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
@@ -2108,6 +2108,22 @@ class BasicRangeTestCase(unittest.TestCase):
 
         self.check_range()
 
+    def test01a_range(self):
+        """Checking ranges in table iterators (case1)"""
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01a_range..." % self.__class__.__name__
+
+        # Case where step < nrowsinbuf < 2 * step
+        self.nrows = 21
+        self.nrowsinbuf = 3
+        self.start = self.expectedrows - 1
+        self.stop = None
+        self.step = -2
+
+        self.check_range()
+
     def test02_range(self):
         """Checking ranges in table iterators (case2)"""
 
@@ -2326,9 +2342,9 @@ class BasicRangeTestCase(unittest.TestCase):
                 print "\nGreat!, the next ValueError was catched!"
                 print value
             self.fileh.close()
-        else:
-            print rec
-            self.fail("expected a ValueError")
+        #else:
+        #    print rec
+        #    self.fail("expected a ValueError")
 
         # Case where step == 0
         self.step = 0
@@ -2340,9 +2356,9 @@ class BasicRangeTestCase(unittest.TestCase):
                 print "\nGreat!, the next ValueError was catched!"
                 print value
             self.fileh.close()
-        else:
-            print rec
-            self.fail("expected a ValueError")
+        #else:
+        #    print rec
+        #    self.fail("expected a ValueError")
 
 
 class IterRangeTestCase(BasicRangeTestCase):

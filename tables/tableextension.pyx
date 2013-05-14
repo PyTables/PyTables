@@ -631,31 +631,42 @@ cdef class Table(Leaf):
 
     return nrecords
 
-  def _remove_row(self, hsize_t nrow, hsize_t nrecords):
+  def _remove_rows(self, hsize_t start, hsize_t stop, long step):
     cdef size_t rowsize
-    cdef hsize_t nrecords2
+    cdef hsize_t nrecords, nrecords2
+    cdef hsize_t i
 
-    # Protection against deleting too many rows
-    if (nrow + nrecords > self.nrows):
-      nrecords = self.nrows - nrow
+    if step == 1:
+      nrecords = stop - start
+      rowsize = self.rowsize
+      # Using self.disk_type_id should be faster (i.e. less conversions)
+      if (H5TBOdelete_records(self.dataset_id, self.disk_type_id,
+                              self.nrows, rowsize, start, nrecords,
+                              self.nrowsinbuf) < 0):
+        raise HDF5ExtError("Problems deleting records.")
 
-    rowsize = self.rowsize
-    # Using self.disk_type_id should be faster (i.e. less conversions)
-    if (H5TBOdelete_records(self.dataset_id, self.disk_type_id,
-                            self.nrows, rowsize, nrow, nrecords,
-                            self.nrowsinbuf) < 0):
-      raise HDF5ExtError("Problems deleting records.")
-
-    self.nrows = self.nrows - nrecords
-    if self._v_file.params['PYTABLES_SYS_ATTRS']:
-      # Attach the NROWS attribute
-      nrecords2 = self.nrows
-      H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
-                          0, NULL, <char *>&nrecords2)
-    # Set the caches to dirty
-    self._dirtycache = True
-    # Return the number of records removed
-    return nrecords
+      self.nrows = self.nrows - nrecords
+      if self._v_file.params['PYTABLES_SYS_ATTRS']:
+        # Attach the NROWS attribute
+        nrecords2 = self.nrows
+        H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
+                            0, NULL, <char *>&nrecords2)
+      # Set the caches to dirty
+      self._dirtycache = True
+      # Return the number of records removed
+      return nrecords
+    elif step == -1:
+      self._remove_rows(self, stop+1, start+1, 1)
+    elif step >= 1:
+      # always want to go through the space backwards
+      for i in range(stop - step, start - step, -step):
+        self._remove_rows(self, i, i+1, 1)
+    elif step <= -1:
+      # always want to go through the space backwards
+      for i in range(start, stop, step):
+        self._remove_rows(self, i, i+1, 1)
+    else:
+      raise ValueError("step size may not be 0.")
 
 
 cdef class Row:

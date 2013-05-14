@@ -20,6 +20,7 @@ from time import time
 from functools import reduce as _reduce
 
 import numpy
+np = numpy
 import numexpr
 
 from tables import tableextension
@@ -1745,7 +1746,8 @@ class Table(tableextension.Table, Leaf):
 
         """
 
-        (start, stop, step) = self._process_range(start, stop, step)
+        (start, stop, step) = self._process_range(start, stop, step, 
+                                                  warn_negstep=False)
         if start < stop:
             row = tableextension.Row(self)
             return row._iter(start, stop, step)
@@ -1800,7 +1802,7 @@ class Table(tableextension.Table, Leaf):
                 dtypeField = self.coldtypes[field]
 
         # Return a rank-0 array if start > stop
-        if start >= stop:
+        if (start >= stop and 0 < step) or (start <= stop and 0 > step):
             if field is None:
                 nra = self._get_container(0)
                 return nra
@@ -1909,7 +1911,9 @@ class Table(tableextension.Table, Leaf):
                    "flavor is 'numpy', currently is {0}").format(self.flavor)
             raise TypeError(msg)
 
-        (start, stop, step) = self._process_range_read(start, stop, step)
+        (start, stop, step) = self._process_range_read(start, stop, step, 
+        #(start, stop, step) = self._process_range(start, stop, step, 
+                                                  warn_negstep=False)
 
         arr = self._read(start, stop, step, field, out)
         return internal_to_flavor(arr, self.flavor)
@@ -2549,7 +2553,7 @@ class Table(tableextension.Table, Leaf):
 
     _addRowsToIndex = previous_api(_add_rows_to_index)
 
-    def remove_rows(self, start, stop=None):
+    def remove_rows(self, start=None, stop=None, step=None):
         """Remove a range of rows in the table.
 
         If only start is supplied, only this row is to be deleted.  If a range
@@ -2570,16 +2574,15 @@ class Table(tableextension.Table, Leaf):
             the row supplied in start.
 
         """
-
-        (start, stop, step) = self._process_range_read(start, stop, 1)
-        nrows = stop - start
+        (start, stop, step) = self._process_range(start, stop, step)
+        nrows = np.abs(stop - start)
         if nrows >= self.nrows:
             raise NotImplementedError('You are trying to delete all the rows '
                                       'in table "%s". This is not supported '
                                       'right now due to limitations on the '
                                       'underlying HDF5 library. Sorry!' %
                                       self._v_pathname)
-        nrows = self._remove_row(start, nrows)
+        nrows = self._remove_rows(start, stop, step)
         # remove_rows is a invalidating index operation
         self._reindex(self.colpathnames)
 
