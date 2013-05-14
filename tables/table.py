@@ -2556,11 +2556,6 @@ class Table(tableextension.Table, Leaf):
     def remove_rows(self, start=None, stop=None, step=None):
         """Remove a range of rows in the table.
 
-        If only start is supplied, only this row is to be deleted.  If a range
-        is supplied, i.e. both the start and stop parameters are passed, all
-        the rows in the range are removed. A step parameter is not supported,
-        and it is not foreseen to be implemented anytime soon.
-
         Parameters
         ----------
         start : int
@@ -2572,6 +2567,8 @@ class Table(tableextension.Table, Leaf):
             omitted (in the Python range() tradition). Negative values are also
             accepted. A special value of None (the default) means removing just
             the row supplied in start.
+        step : int
+            The step size between rows to remove.
 
         """
         (start, stop, step) = self._process_range(start, stop, step)
@@ -2589,6 +2586,22 @@ class Table(tableextension.Table, Leaf):
         return SizeType(nrows)
 
     removeRows = previous_api(remove_rows)
+
+    def remove_row(self, n):
+        """Removes a row from the table.
+
+        If only start is supplied, only this row is to be deleted.  If a range
+        is supplied, i.e. both the start and stop parameters are passed, all
+        the rows in the range are removed. A step parameter is not supported,
+        and it is not foreseen to be implemented anytime soon.
+
+        Parameters
+        ----------
+        n : int
+            The index of the row to remove.
+
+        """
+        self.remove_rows(start=n, stop=n + 1)
 
     def _g_update_dependent(self):
         super(Table, self)._g_update_dependent()
