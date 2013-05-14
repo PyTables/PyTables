@@ -684,7 +684,8 @@ cdef class Row:
   """
 
   cdef long _row, _unsaved_nrows, _mod_nrows
-  cdef hsize_t start, stop, step, absstep, nextelement, _nrow
+  cdef hsize_t start, stop, absstep, nextelement, _nrow
+  cdef long step  # has to be long, not hsize_t, for negative step sizes
   cdef hsize_t nrowsinbuf, nrows, nrowsread
   cdef hsize_t chunksize, nchunksinbuf, totalchunks
   cdef hsize_t startb, stopb, lenbuf
@@ -811,7 +812,7 @@ cdef class Row:
     self._rowsize = self.dtype.itemsize
     self.nrows = table.nrows  # This value may change
 
-  cdef _init_loop(self, hsize_t start, hsize_t stop, hsize_t step,
+  cdef _init_loop(self, hsize_t start, hsize_t stop, long step,
                  object coords, object chunkmap):
     """Initialization for the __iter__ iterator"""
 
@@ -867,9 +868,9 @@ cdef class Row:
       # The iterator is already exhausted!
       raise StopIteration
     if self.indexed:
-        return self.__next__indexed()
+      return self.__next__indexed()
     elif self.coords is not None:
-        return self.__next__coords()
+      return self.__next__coords()
     elif self.wherecond:
       return self.__next__inkernel()
     else:
