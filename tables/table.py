@@ -1707,7 +1707,6 @@ class Table(tableextension.Table, Leaf):
         order.
 
         """
-
         self._g_check_open()
         index = self._check_sortby_csi(sortby, checkCSI)
         coords = index[start:stop:step]
@@ -2295,7 +2294,7 @@ class Table(tableextension.Table, Leaf):
 
     modifyCoordinates = previous_api(modify_coordinates)
 
-    def modify_rows(self, start=None, stop=None, step=1, rows=None):
+    def modify_rows(self, start=None, stop=None, step=None, rows=None):
         """Modify a series of rows in the slice [start:stop:step].
 
         The values in the selected rows will be modified with the data given in
@@ -2307,7 +2306,8 @@ class Table(tableextension.Table, Leaf):
         :meth:`Table.append`.
 
         """
-
+        if step is None:
+            step = 1
         if rows is None:      # Nothing to be done
             return SizeType(0)
         if start is None:
@@ -2350,7 +2350,7 @@ class Table(tableextension.Table, Leaf):
 
     modifyRows = previous_api(modify_rows)
 
-    def modify_column(self, start=None, stop=None, step=1,
+    def modify_column(self, start=None, stop=None, step=None,
                       column=None, colname=None):
         """Modify one single column in the row slice [start:stop:step].
 
@@ -2367,7 +2367,8 @@ class Table(tableextension.Table, Leaf):
         array records, and a string or Python buffer.
 
         """
-
+        if step is None:
+            step = 1
         if not isinstance(colname, str):
             raise TypeError("The 'colname' parameter must be a string.")
         self._v_file._check_writable()
@@ -2432,7 +2433,7 @@ class Table(tableextension.Table, Leaf):
 
     modifyColumn = previous_api(modify_column)
 
-    def modify_columns(self, start=None, stop=None, step=1,
+    def modify_columns(self, start=None, stop=None, step=None,
                        columns=None, names=None):
         """Modify a series of columns in the row slice [start:stop:step].
 
@@ -2449,7 +2450,8 @@ class Table(tableextension.Table, Leaf):
         records, and a string or Python buffer.
 
         """
-
+        if step is None:
+            step = 1
         if type(names) not in (list, tuple):
             raise TypeError("The 'names' parameter must be a list of strings.")
 
