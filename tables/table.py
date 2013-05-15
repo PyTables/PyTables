@@ -1416,9 +1416,7 @@ class Table(tableextension.Table, Leaf):
         If a range is supplied (by setting some of the start, stop or step
         parameters), only the rows in that range and fulfilling the condition
         are used. The meaning of the start, stop and step parameters is the
-        same as in the range() Python function, except that negative values of
-        step are not allowed. Moreover, if only start is specified, then stop
-        will be set to start + 1.
+        same as for Python slices.
 
         When possible, indexed columns participating in the condition will be
         used to speed up the search. It is recommended that you place the
@@ -1660,9 +1658,7 @@ class Table(tableextension.Table, Leaf):
         existence of a CSI index.
 
         The meaning of the start, stop and step arguments is the same as in
-        :meth:`Table.read`.  However, in this case a negative value of step is
-        supported, meaning that the results will be returned in reverse sorted
-        order.
+        :meth:`Table.read`.  
 
         .. versionchanged:: 3.0
            If the *start* parameter is provided and *stop* is None then the
@@ -1675,11 +1671,6 @@ class Table(tableextension.Table, Leaf):
         # Adjust the slice to be used.
         (start, stop, step) = self._process_range(start, stop, step, 
                                                   warn_negstep=False)
-        #if (start >= stop):
-        #    return iter([])
-        #row = tableextension.Row(self)
-        #return row._iter(start, stop, step, coords=index)
-
         if (start > stop and 0 < step) or (start < stop and 0 > step):
             # Fall-back action is to return an empty iterator
             return iter([])
@@ -1702,9 +1693,7 @@ class Table(tableextension.Table, Leaf):
         array of the current flavor.
 
         The meaning of the start, stop and step arguments is the same as in
-        :meth:`Table.read`.  However, in this case a negative value of step is
-        supported, meaning that the results will be returned in reverse sorted
-        order.
+        :meth:`Table.read`.
 
         """
         self._g_check_open()
@@ -1753,18 +1742,11 @@ class Table(tableextension.Table, Leaf):
         """
         (start, stop, step) = self._process_range(start, stop, step, 
                                                   warn_negstep=False)
-        #if start < stop:
-        #    row = tableextension.Row(self)
-        #    return row._iter(start, stop, step)
-        ## Fall-back action is to return an empty iterator
-        #return iter([])
         if (start > stop and 0 < step) or (start < stop and 0 > step):
             # Fall-back action is to return an empty iterator
             return iter([])
         row = tableextension.Row(self)
         return row._iter(start, stop, step)
-        #row = tableextension.Row(self)
-        #return row._iter(start, stop, step)
 
     def __iter__(self):
         """Iterate over the table using a Row instance.
@@ -1874,11 +1856,7 @@ class Table(tableextension.Table, Leaf):
 
         The start, stop and step parameters can be used to select only
         a *range of rows* in the table. Their meanings are the same as
-        in the built-in range() Python function, except that negative
-        values of step are not allowed yet. Moreover, if only start is
-        specified, then stop will be set to start + 1. If you do not
-        specify neither start nor stop, then *all the rows* in the
-        table are selected.
+        in the built-in Python slices.
 
         If field is supplied only the named column will be selected.
         If the column is not nested, an *array* of the current flavor
@@ -2580,8 +2558,7 @@ class Table(tableextension.Table, Leaf):
         stop : int
             Sets the last row to be removed to stop-1, i.e. the end point is
             omitted (in the Python range() tradition). Negative values are also
-            accepted. A special value of None (the default) means removing just
-            the row supplied in start.
+            accepted. 
         step : int
             The step size between rows to remove.
 
