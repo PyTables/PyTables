@@ -370,7 +370,8 @@ class BasicTestCase(unittest.TestCase):
                 stop = rowshape[self.extdim]
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
-            object = object__[self.start:stop:self.step].copy()
+            #object = object__[self.start:stop:self.step].copy()
+            object = object__[self.start:self.stop:self.step].copy()
             # Swap the axes again to have normal ordering
             if self.flavor == "numpy":
                 object = object.swapaxes(0, self.extdim)
@@ -473,7 +474,8 @@ class BasicTestCase(unittest.TestCase):
                 stop = rowshape[self.extdim]
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
-            object = object__[self.start:stop:self.step].copy()
+            #object = object__[self.start:stop:self.step].copy()
+            object = object__[self.start:self.stop:self.step].copy()
             # Swap the axes again to have normal ordering
             if self.flavor == "numpy":
                 object = object.swapaxes(0, self.extdim)
@@ -484,7 +486,8 @@ class BasicTestCase(unittest.TestCase):
         try:
             row = numpy.empty(earray.shape, dtype=earray.atom.dtype)
             slice_obj = [slice(None)] * len(earray.shape)
-            slice_obj[earray.maindim] = slice(self.start, stop, self.step)
+            #slice_obj[earray.maindim] = slice(self.start, stop, self.step)
+            slice_obj[earray.maindim] = slice(self.start, self.stop, self.step)
             row = row[slice_obj].copy()
             earray.read(self.start, self.stop, self.step, out=row)
         except IndexError:
