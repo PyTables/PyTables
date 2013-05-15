@@ -1250,6 +1250,44 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(len(result), len(result2) + 1)
         self.assertEqual(result[:-1], result2)
 
+    def test04a_delete(self):
+        """Checking whether a single row can be deleted"""
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_delete..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = open_file(self.file, "a")
+        table = self.fileh.get_node("/table0")
+
+        # Read the records and select the ones with "var2" column less than 20
+        result = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
+
+        if common.verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last selected value ==>", result[-1]
+            print "Total selected records in table ==>", len(result)
+
+        nrows = table.nrows
+        table.nrowsinbuf = 3  # small value of the buffer
+        # Delete the twenty-th row
+        table.remove_row(19)
+
+        # Re-read the records
+        result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
+
+        if common.verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last selected value ==>", result2[-1]
+            print "Total selected records in table ==>", len(result2)
+
+        self.assertEqual(table.nrows, nrows - 1)
+        self.assertEqual(table.shape, (nrows - 1,))
+        # Check that the new list is smaller than the original one
+        self.assertEqual(len(result), len(result2) + 1)
+        self.assertEqual(result[:-1], result2)
+
     def test04b_delete(self):
         """Checking whether a range of rows can be deleted"""
 
@@ -2024,22 +2062,32 @@ class BasicRangeTestCase(unittest.TestCase):
         r = slice(self.start, self.stop, self.step)
         resrange = r.indices(table.nrows)
         reslength = len(range(*resrange))
+        print "self.checkrecarray = ", self.checkrecarray
+        print "self.checkgetCol = ", self.checkgetCol 
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
             for nrec in xrange(len(recarray)):
-                if recarray['var2'][nrec] < self.nrows:
+                if recarray['var2'][nrec] < self.nrows and 0 < self.step:
+                    result.append(recarray['var2'][nrec])
+                elif recarray['var2'][nrec] > self.nrows and 0 > self.step:
                     result.append(recarray['var2'][nrec])
         elif self.checkgetCol:
             column = table.read(self.start, self.stop, self.step, 'var2')
             result = []
             for nrec in xrange(len(column)):
-                if column[nrec] < self.nrows:
+                if column[nrec] < self.nrows and 0 < self.step:
+                    result.append(column[nrec])
+                elif column[nrec] > self.nrows and 0 > self.step:
                     result.append(column[nrec])
         else:
-            result = [rec['var2'] for rec in
-                      table.iterrows(self.start, self.stop, self.step)
-                      if rec['var2'] < self.nrows]
+            if 0 < self.step:
+                result = [rec['var2'] for rec in table.iterrows(self.start, 
+                            self.stop, self.step) if rec['var2'] < self.nrows]
+            elif 0 > self.step:
+                print "SSS = ", self.start, self.stop, self.step, self.nrows
+                result = [rec['var2'] for rec in table.iterrows(self.start, 
+                            self.stop, self.step) if rec['var2'] > self.nrows]
 
         if self.start < 0:
             startr = self.expectedrows + self.start
@@ -2078,16 +2126,25 @@ class BasicRangeTestCase(unittest.TestCase):
             print "startr, stopr, step ==>", startr, stopr, self.step
 
         self.assertEqual(result, range(startr, stopr, self.step))
-        if startr < stopr and not (self.checkrecarray or self.checkgetCol):
-            rec = [r for r in table.iterrows(self.start, self.stop, self.step)
-                   if r['var2'] < self.nrows][-1]
-
-            if self.nrows < self.expectedrows:
-                self.assertEqual(rec['var2'],
-                                 range(self.start, self.stop, self.step)[-1])
-            else:
-                self.assertEqual(rec['var2'],
-                                 range(startr, stopr, self.step)[-1])
+        if not (self.checkrecarray or self.checkgetCol):
+            if startr < stopr and 0 < self.step:
+                rec = [r for r in table.iterrows(self.start, self.stop, self.step)
+                       if r['var2'] < self.nrows][-1]
+                if self.nrows < self.expectedrows:
+                    self.assertEqual(rec['var2'],
+                                     range(self.start, self.stop, self.step)[-1])
+                else:
+                    self.assertEqual(rec['var2'],
+                                     range(startr, stopr, self.step)[-1])
+            elif startr > stopr and 0 > self.step:
+                rec = [r for r in table.iterrows(self.start, self.stop, self.step)
+                       if r['var2'] < self.nrows][0]
+                if self.nrows < self.expectedrows:
+                    self.assertEqual(rec['var2'],
+                                     range(self.start, self.stop, self.step)[0])
+                else:
+                    self.assertEqual(rec['var2'],
+                                     range(startr, stopr, self.step)[0])
 
         # Close the file
         self.fileh.close()
@@ -2247,7 +2304,7 @@ class BasicRangeTestCase(unittest.TestCase):
         self.nrows = 100
         self.nrowsinbuf = 3  # Choose a small value for the buffer size
         self.start = 1
-        self.stop = None
+        self.stop = 2
         self.step = 1
 
         self.check_range()
@@ -2264,8 +2321,7 @@ class BasicRangeTestCase(unittest.TestCase):
         self.nrowsinbuf = 5  # Choose a small value for the buffer size
         self.start = -6
         self.startr = self.expectedrows + self.start
-        self.stop = 0
-        self.stop = None
+        self.stop = -5
         self.stopr = self.expectedrows
         self.step = 2
 

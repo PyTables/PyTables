@@ -695,11 +695,11 @@ cdef class Row:
   """
 
   cdef long _row, _unsaved_nrows, _mod_nrows
-  cdef hsize_t start, stop, absstep, nextelement, _nrow
-  cdef long step  # has to be long, not hsize_t, for negative step sizes
+  cdef hsize_t start, absstep
+  cdef long long stop, step, nextelement, _nrow, stopb  # has to be long long, not hsize_t, for negative step sizes
   cdef hsize_t nrowsinbuf, nrows, nrowsread
   cdef hsize_t chunksize, nchunksinbuf, totalchunks
-  cdef hsize_t startb, stopb, lenbuf
+  cdef hsize_t startb, lenbuf
   cdef long long indexchunk
   cdef int     bufcounter, counter
   cdef int     exist_enum_cols
@@ -783,13 +783,11 @@ cdef class Row:
 
   def _iter(self, start=0, stop=0, step=1, coords=None, chunkmap=None):
     """Return an iterator for traversiong the data in table."""
-
     self._init_loop(start, stop, step, coords, chunkmap)
     return iter(self)
 
   def __iter__(self):
     """Iterator that traverses all the data in the Table"""
-
     return self
 
   cdef _new_buffer(self, table):
@@ -823,10 +821,9 @@ cdef class Row:
     self._rowsize = self.dtype.itemsize
     self.nrows = table.nrows  # This value may change
 
-  cdef _init_loop(self, hsize_t start, hsize_t stop, long step,
+  cdef _init_loop(self, hsize_t start, long long stop, long long step,
                  object coords, object chunkmap):
     """Initialization for the __iter__ iterator"""
-
     table = self.table
     self._riterator = 1   # We are inside a read iterator
     self.start = start
@@ -834,9 +831,14 @@ cdef class Row:
     self.step = step
     self.coords = coords
     self.startb = 0
-    self.nrowsread = start
+    if step > 0: 
+        self._row = -1  # a sentinel
+        self.nrowsread = start
+    elif step < 0:
+        self._row = 0
+        self.nrowsread = 0
+        self.nextelement = start
     self._nrow = start - self.step
-    self._row = -1  # a sentinel
     self.wherecond = 0
     self.indexed = 0
 
@@ -1084,38 +1086,112 @@ cdef class Row:
       self._finish_riterator()
 
   # This is the most general __next__ version, simple, but effective
+#  cdef __next__general(self):
+#    """The version of next() for the general cases"""
+#    cdef int recout
+#    self.nextelement = self._nrow + self.step
+#    while self.nextelement < self.stop:
+#      if self.nextelement >= self.nrowsread:
+#        # Skip until there is interesting information
+#        while self.nextelement >= self.nrowsread + self.nrowsinbuf:
+#          self.nrowsread = self.nrowsread + self.nrowsinbuf
+#        # Compute the end for this iteration
+#        self.stopb = self.stop - self.nrowsread
+#        if self.stopb > self.nrowsinbuf:
+#          self.stopb = self.nrowsinbuf
+#        self._row = self.startb - self.step
+#        # Read a chunk
+#        recout = self.table._read_records(self.nrowsread, self.nrowsinbuf,
+#                                          self.iobuf)
+#        self.nrowsread = self.nrowsread + recout
+#
+#      self._row = self._row + self.step
+#      self._nrow = self.nextelement
+#      if self._row + self.step >= self.stopb:
+#        # Compute the start row for the next buffer
+#        self.startb = (self._row + self.step) % self.nrowsinbuf
+#
+#      self.nextelement = self._nrow + self.step
+#      # Return this value
+#      return self
+#    else:
+#      self._finish_riterator()
+
   cdef __next__general(self):
     """The version of next() for the general cases"""
-
     cdef int recout
-
-    self.nextelement = self._nrow + self.step
-    while self.nextelement < self.stop:
-      if self.nextelement >= self.nrowsread:
-        # Skip until there is interesting information
-        while self.nextelement >= self.nrowsread + self.nrowsinbuf:
-          self.nrowsread = self.nrowsread + self.nrowsinbuf
-        # Compute the end for this iteration
-        self.stopb = self.stop - self.nrowsread
-        if self.stopb > self.nrowsinbuf:
-          self.stopb = self.nrowsinbuf
-        self._row = self.startb - self.step
-        # Read a chunk
-        recout = self.table._read_records(self.nrowsread, self.nrowsinbuf,
-                                          self.iobuf)
-        self.nrowsread = self.nrowsread + recout
-
-      self._row = self._row + self.step
-      self._nrow = self.nextelement
-      if self._row + self.step >= self.stopb:
-        # Compute the start row for the next buffer
-        self.startb = (self._row + self.step) % self.nrowsinbuf
-
+    if 0 < self.step:
       self.nextelement = self._nrow + self.step
-      # Return this value
-      return self
-    else:
-      self._finish_riterator()
+      while self.nextelement < self.stop:
+        if self.nextelement >= self.nrowsread:
+          # Skip until there is interesting information
+          while self.nextelement >= self.nrowsread + self.nrowsinbuf:
+            self.nrowsread = self.nrowsread + self.nrowsinbuf
+          # Compute the end for this iteration
+          self.stopb = self.stop - self.nrowsread
+          if self.stopb > self.nrowsinbuf:
+            self.stopb = self.nrowsinbuf
+          self._row = self.startb - self.step
+          # Read a chunk
+          recout = self.table._read_records(self.nrowsread, self.nrowsinbuf,
+                                            self.iobuf)
+          self.nrowsread = self.nrowsread + recout
+
+        self._row = self._row + self.step
+        self._nrow = self.nextelement
+        if self._row + self.step >= self.stopb:
+          # Compute the start row for the next buffer
+          self.startb = (self._row + self.step) % self.nrowsinbuf
+
+        self.nextelement = self._nrow + self.step
+        # Return this value
+        return self
+      else:
+        self._finish_riterator()
+    elif 0 > self.step:
+      #print self.nextelement, self.stop, self.nextelement > self.stop
+      self.stopb = -1
+      while self.nextelement - 1 > self.stop:
+        #print "NROWSREAD = ", self.nrowsread
+        #print self.nextelement, self.start, self.nrowsread, self.nextelement >= self.start - self.nrowsread
+        if self.nextelement < self.start - self.nrowsread + 1:
+          # Skip until there is interesting information
+          #while self.nextelement >= self.start - self.nrowsinbuf:
+          #  self.nrowsread = self.nrowsread + self.nrowsinbuf
+          #  self.nextelement = self.nextelement - self.nrowsinbuf
+          # Compute the end for this iteration
+          #self.stopb = self.stop - self.nrowsread
+          #self.stopb = self.stop - self.nrowsread
+          #if self.stopb > self.nrowsinbuf:
+          #  self.stopb = self.nrowsinbuf
+          #self._row = self.startb + self.step
+          #self._row = (self.startb - self.step) % self.nrowsinbuf
+#          self._row = (self.nextelement - self._row) % self.nrowsinbuf
+          # Read a chunk
+          recout = self.table._read_records(self.nextelement - self.nrowsinbuf + 1, 
+                                            self.nrowsinbuf, self.iobuf)
+          print "RECOUT = ", recout
+          #self.nrowsread = self.nrowsread + recout
+          self.nrowsread = self.nrowsread + self.nrowsinbuf
+
+        #self._row = self._row - self.step
+        #self._row = (self._row - self.step) % self.nrowsinbuf
+        #if self._row + self.step <= self.stopb:
+          # Compute the start row for the next buffer
+          #self.startb = (self._row + self.step) % self.nrowsinbuf
+          #self.startb = (self._row - self.startb) % self.nrowsinbuf
+        #self.startb = (self._row - self.startb) % self.nrowsinbuf
+
+        self._row = (self._row + self.step) % self.nrowsinbuf
+        #self._nrow = self.nextelement - 1
+        #self.nextelement = self._nrow + self.step 
+        self.nextelement = self.nextelement + self.step 
+        # Return this value
+        print self, self._row, self.nextelement, self.nrowsread, self.startb, self.stopb, self.step
+        print self.iobuf
+        return self
+      else:
+        self._finish_riterator()
 
   cdef _finish_riterator(self):
     """Clean-up things after iterator has been done"""
@@ -1132,11 +1208,54 @@ cdef class Row:
     self.modified_fields = set()  # Empty the set of modified fields
     raise StopIteration        # end of iteration
 
+#  def _fill_col(self, result, start, stop, step, field):
+#    """Read a field from a table on disk and put the result in result"""
+#
+#    cdef hsize_t startr, stopr, i, j, istartb, istopb
+#    cdef hsize_t istart, istop, istep, inrowsinbuf, inextelement, inrowsread
+#    cdef object fields
+#
+#    # We can't reuse existing buffers in this context
+#    self._init_loop(start, stop, step, None, None)
+#    istart, istop, istep = (self.start, self.stop, self.step)
+#    inrowsinbuf, inextelement, inrowsread = (self.nrowsinbuf, istart, istart)
+#    istartb, startr = (self.startb, 0)
+#    i = istart
+#    while i < istop:
+#      if (inextelement >= inrowsread + inrowsinbuf):
+#        inrowsread = inrowsread + inrowsinbuf
+#        i = i + inrowsinbuf
+#        continue
+#      # Compute the end for this iteration
+#      istopb = istop - inrowsread
+#      if istopb > inrowsinbuf:
+#        istopb = inrowsinbuf
+#      stopr = startr + ((istopb - istartb - 1) / istep) + 1
+#      # Read a chunk
+#      inrowsread = inrowsread + self.table._read_records(i, inrowsinbuf,
+#                                                         self.iobuf)
+#      # Assign the correct part to result
+#      fields = self.iobuf
+#      if field:
+#        fields = get_nested_field(fields, field)
+#      result[startr:stopr] = fields[istartb:istopb:istep]
+#
+#      # Compute some indexes for the next iteration
+#      startr = stopr
+#      j = istartb + ((istopb - istartb - 1) / istep) * istep
+#      istartb = (j+istep) % inrowsinbuf
+#      inextelement = inextelement + istep
+#      i = i + inrowsinbuf
+#    self._riterator = 0  # out of iterator
+#    return
+
   def _fill_col(self, result, start, stop, step, field):
     """Read a field from a table on disk and put the result in result"""
 
-    cdef hsize_t startr, stopr, i, j, istartb, istopb
-    cdef hsize_t istart, istop, istep, inrowsinbuf, inextelement, inrowsread
+    cdef hsize_t startr, istartb
+    cdef hsize_t istart, inrowsinbuf, inextelement
+    cdef long long stopr, istopb, i, j, inrowsread
+    cdef long long istop, istep
     cdef object fields
 
     # We can't reuse existing buffers in this context
@@ -1145,31 +1264,67 @@ cdef class Row:
     inrowsinbuf, inextelement, inrowsread = (self.nrowsinbuf, istart, istart)
     istartb, startr = (self.startb, 0)
     i = istart
-    while i < istop:
-      if (inextelement >= inrowsread + inrowsinbuf):
-        inrowsread = inrowsread + inrowsinbuf
-        i = i + inrowsinbuf
-        continue
-      # Compute the end for this iteration
-      istopb = istop - inrowsread
-      if istopb > inrowsinbuf:
-        istopb = inrowsinbuf
-      stopr = startr + ((istopb - istartb - 1) / istep) + 1
-      # Read a chunk
-      inrowsread = inrowsread + self.table._read_records(i, inrowsinbuf,
-                                                         self.iobuf)
-      # Assign the correct part to result
-      fields = self.iobuf
-      if field:
-        fields = get_nested_field(fields, field)
-      result[startr:stopr] = fields[istartb:istopb:istep]
+    if 0 < istep:
+      while i < istop:
+        if (inextelement >= inrowsread + inrowsinbuf):
+          inrowsread = inrowsread + inrowsinbuf
+          i = i + inrowsinbuf
+          continue
+        # Compute the end for this iteration
+        istopb = istop - inrowsread
+        if istopb > inrowsinbuf:
+          istopb = inrowsinbuf
+        stopr = startr + ((istopb - istartb - 1) / istep) + 1
+        # Read a chunk
+        inrowsread = inrowsread + self.table._read_records(i, inrowsinbuf,
+                                                           self.iobuf)
+        # Assign the correct part to result
+        fields = self.iobuf
+        if field:
+          fields = get_nested_field(fields, field)
+        result[startr:stopr] = fields[istartb:istopb:istep]
 
-      # Compute some indexes for the next iteration
-      startr = stopr
-      j = istartb + ((istopb - istartb - 1) / istep) * istep
-      istartb = (j+istep) % inrowsinbuf
-      inextelement = inextelement + istep
-      i = i + inrowsinbuf
+        # Compute some indexes for the next iteration
+        startr = stopr
+        j = istartb + ((istopb - istartb - 1) / istep) * istep
+        istartb = (j+istep) % inrowsinbuf
+        inextelement = inextelement + istep
+        i = i + inrowsinbuf
+    elif 0 > istep:
+      inrowsinbuf = self.nrowsinbuf
+      #istartb = self.startb 
+      istartb = self.nrowsinbuf - 1
+      #istopb = self.stopb - 1
+      istopb = -1
+      startr = 0
+      i = istart
+      inextelement = istart  
+      inrowsread = 0
+      while i-1 > istop:
+        #if (inextelement <= inrowsread + inrowsinbuf):
+        if (inextelement < i - inrowsinbuf):
+          inrowsread = inrowsread + inrowsinbuf
+          i = i - inrowsinbuf
+          continue
+        # Compute the end for this iteration
+        stopr = startr + ((istopb - istartb - 1) / istep)
+        # Read a chunk
+        inrowsread = inrowsread + self.table._read_records(i - inrowsinbuf + 1, 
+                                                           inrowsinbuf, self.iobuf)
+        # Assign the correct part to result
+        fields = self.iobuf
+        if field:
+          fields = get_nested_field(fields, field)
+        if istopb >= 0:
+            result[startr:stopr] = fields[istartb:istopb:istep]
+        else:
+            result[startr:stopr] = fields[istartb::istep]
+
+        # Compute some indexes for the next iteration
+        startr = stopr
+        istartb = (i - istartb)%inrowsinbuf 
+        inextelement = inextelement + istep
+        i = i - inrowsinbuf
     self._riterator = 0  # out of iterator
     return
 

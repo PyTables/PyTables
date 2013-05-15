@@ -1745,14 +1745,21 @@ class Table(tableextension.Table, Leaf):
            In PyTables < 3.0 only one element was returned.
 
         """
-
         (start, stop, step) = self._process_range(start, stop, step, 
                                                   warn_negstep=False)
-        if start < stop:
-            row = tableextension.Row(self)
-            return row._iter(start, stop, step)
-        # Fall-back action is to return an empty iterator
-        return iter([])
+        print "Iter SSS = ", start, stop, step
+        #if start < stop:
+        #    row = tableextension.Row(self)
+        #    return row._iter(start, stop, step)
+        ## Fall-back action is to return an empty iterator
+        #return iter([])
+        if (start > stop and 0 < step) or (start < stop and 0 > step):
+            # Fall-back action is to return an empty iterator
+            return iter([])
+        row = tableextension.Row(self)
+        return row._iter(start, stop, step)
+        #row = tableextension.Row(self)
+        #return row._iter(start, stop, step)
 
     def __iter__(self):
         """Iterate over the table using a Row instance.
@@ -1850,6 +1857,7 @@ class Table(tableextension.Table, Leaf):
             self._read_field_name(result, start, stop, step, field)
         else:
             self.row._fill_col(result, start, stop, step, field)
+            
 
         if select_field:
             return result[select_field]
@@ -1900,7 +1908,6 @@ class Table(tableextension.Table, Leaf):
            Added the *out* parameter.
 
         """
-
         self._g_check_open()
 
         if field:
@@ -1911,8 +1918,8 @@ class Table(tableextension.Table, Leaf):
                    "flavor is 'numpy', currently is {0}").format(self.flavor)
             raise TypeError(msg)
 
-        (start, stop, step) = self._process_range_read(start, stop, step, 
-        #(start, stop, step) = self._process_range(start, stop, step, 
+        #(start, stop, step) = self._process_range_read(start, stop, step, 
+        (start, stop, step) = self._process_range(start, stop, step, 
                                                   warn_negstep=False)
 
         arr = self._read(start, stop, step, field, out)
