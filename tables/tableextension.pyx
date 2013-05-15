@@ -844,10 +844,17 @@ cdef class Row:
 
     self.nrows = table.nrows   # Update the row counter
 
-    if coords is not None:
+    if coords is not None and 0 < step:
       self.nrowsread = start
       self.nextelement = start
       self.stop = min(stop, len(coords))
+      self.absstep = abs(step)
+      return
+    elif coords is not None and 0 > step:
+      #self.nrowsread = 0
+      #self.nextelement = start
+      #self.stop = min(stop, len(coords))
+      #self.stop = max(stop, start - len(coords))
       self.absstep = abs(step)
       return
 
@@ -995,39 +1002,96 @@ cdef class Row:
       # All the elements have been read for this mode
       self._finish_riterator()
 
+#  cdef __next__coords(self):
+#    """The version of next() for user-required coordinates"""
+#    cdef int recout
+#    cdef long long lenbuf, nextelement
+#    cdef object tmp
+#    while self.nextelement < self.stop:
+#      if self.nextelement >= self.nrowsread:
+#        # Correction for avoiding reading past self.stop
+#        if self.nrowsread+self.nrowsinbuf > self.stop:
+#          lenbuf = self.stop-self.nrowsread
+#        else:
+#          lenbuf = self.nrowsinbuf
+#        tmp = self.coords[self.nrowsread:self.nrowsread+lenbuf:self.step]
+#        # We have to get a contiguous buffer, so numpy.array is the way to go
+#        self.bufcoords = numpy.array(tmp, dtype="uint64")
+#        self._row = -1
+#        if self.bufcoords.size > 0:
+#          recout = self.table._read_elements(self.bufcoords, self.iobuf)
+#        else:
+#          recout = 0
+#        self.bufcoords_data = <hsize_t*>self.bufcoords.data
+#        self.nrowsread = self.nrowsread + lenbuf
+#        if recout == 0:
+#          # no items were read, skip out
+#          continue
+#      self._row = self._row + 1
+#      self._nrow = self.bufcoords_data[self._row]
+#      self.nextelement = self.nextelement + self.absstep
+#      return self
+#    else:
+#      # All the elements have been read for this mode
+#      self._finish_riterator()
+
   cdef __next__coords(self):
     """The version of next() for user-required coordinates"""
-
     cdef int recout
     cdef long long lenbuf, nextelement
     cdef object tmp
-
-    while self.nextelement < self.stop:
-      if self.nextelement >= self.nrowsread:
-        # Correction for avoiding reading past self.stop
-        if self.nrowsread+self.nrowsinbuf > self.stop:
-          lenbuf = self.stop-self.nrowsread
-        else:
-          lenbuf = self.nrowsinbuf
-        tmp = self.coords[self.nrowsread:self.nrowsread+lenbuf:self.step]
-        # We have to get a contiguous buffer, so numpy.array is the way to go
-        self.bufcoords = numpy.array(tmp, dtype="uint64")
-        self._row = -1
-        if self.bufcoords.size > 0:
+    if 0 < self.step:
+      while self.nextelement < self.stop:
+        if self.nextelement >= self.nrowsread:
+          # Correction for avoiding reading past self.stop
+          if self.nrowsread+self.nrowsinbuf > self.stop:
+            lenbuf = self.stop-self.nrowsread
+          else:
+            lenbuf = self.nrowsinbuf
+          tmp = self.coords[self.nrowsread:self.nrowsread+lenbuf:self.step]
+          # We have to get a contiguous buffer, so numpy.array is the way to go
+          self.bufcoords = numpy.array(tmp, dtype="uint64")
+          self._row = -1
+          if self.bufcoords.size > 0:
+            recout = self.table._read_elements(self.bufcoords, self.iobuf)
+          else:
+            recout = 0
+          self.bufcoords_data = <hsize_t*>self.bufcoords.data
+          self.nrowsread = self.nrowsread + lenbuf
+          if recout == 0:
+            # no items were read, skip out
+            continue
+        self._row = self._row + 1
+        self._nrow = self.bufcoords_data[self._row]
+        self.nextelement = self.nextelement + self.absstep
+        return self
+      else:
+        # All the elements have been read for this mode
+        self._finish_riterator()
+    elif 0 > self.step:
+      #print "self.nextelement = ", self.nextelement, self.start, self.nrowsread, self.nextelement <  self.start - self.nrowsread + 1
+      while self.nextelement - 1 > self.stop:
+        if self.nextelement < self.start - (<long long> self.nrowsread) + 1:
+          if 0 > self.nextelement - (<long long> self.nrowsinbuf) + 1:
+            tmp = self.coords[0:self.nextelement + 1]
+          else:
+            tmp = self.coords[self.nextelement - (<long long> self.nrowsinbuf) + 1:self.nextelement + 1]
+          self.bufcoords = numpy.array(tmp, dtype="uint64")
           recout = self.table._read_elements(self.bufcoords, self.iobuf)
+          self.bufcoords_data = <hsize_t*>self.bufcoords.data
+          self.nrowsread = self.nrowsread + self.nrowsinbuf
+          self._row = len(self.bufcoords) - 1
         else:
-          recout = 0
-        self.bufcoords_data = <hsize_t*>self.bufcoords.data
-        self.nrowsread = self.nrowsread + lenbuf
-        if recout == 0:
-          # no items were read, skip out
-          continue
-      self._row = self._row + 1
-      self._nrow = self.bufcoords_data[self._row]
-      self.nextelement = self.nextelement + self.absstep
-      return self
+          self._row = (self._row + self.step) % len(self.bufcoords)
+            
+        self._nrow = self.nextelement - self.step
+        self.nextelement = self.nextelement + self.step 
+        # Return this value
+        return self
+      else:
+        # All the elements have been read for this mode
+        self._finish_riterator()
     else:
-      # All the elements have been read for this mode
       self._finish_riterator()
 
   cdef __next__inkernel(self):

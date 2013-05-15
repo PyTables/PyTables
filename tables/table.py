@@ -1673,8 +1673,15 @@ class Table(tableextension.Table, Leaf):
 
         index = self._check_sortby_csi(sortby, checkCSI)
         # Adjust the slice to be used.
-        (start, stop, step) = self._process_range(start, stop, step)
-        if (start >= stop):
+        (start, stop, step) = self._process_range(start, stop, step, 
+                                                  warn_negstep=False)
+        #if (start >= stop):
+        #    return iter([])
+        #row = tableextension.Row(self)
+        #return row._iter(start, stop, step, coords=index)
+
+        if (start > stop and 0 < step) or (start < stop and 0 > step):
+            # Fall-back action is to return an empty iterator
             return iter([])
         row = tableextension.Row(self)
         return row._iter(start, stop, step, coords=index)

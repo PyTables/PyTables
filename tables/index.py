@@ -1685,7 +1685,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     def read_sorted_indices(self, what, start, stop, step):
         """Return the sorted or indices values in the specified range."""
-
         (start, stop, step) = self._process_range(start, stop, step)
         if start >= stop:
             return numpy.empty(0, self.dtype)

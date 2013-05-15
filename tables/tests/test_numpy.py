@@ -562,7 +562,7 @@ class TableReadTestCase(common.PyTablesTestCase):
 
         table[coords[0]] = tuple(["aasa", "x"]+[232]*n)     # XXX
         # record = list(table[coords[0]])
-        record = table.read(coords[0])
+        record = table.read(coords[0], coords[0] + 1)
         if common.verbose:
             print """Original row:
 ['aasa', 'x', True, -24, 232, 232, 232, 232, 232L, 232, 232.0, 232.0, (232 + 0j), (232+0j), 232.0, (232+0j)]
