@@ -1747,7 +1747,6 @@ class Table(tableextension.Table, Leaf):
         """
         (start, stop, step) = self._process_range(start, stop, step, 
                                                   warn_negstep=False)
-        print "Iter SSS = ", start, stop, step
         #if start < stop:
         #    row = tableextension.Row(self)
         #    return row._iter(start, stop, step)

@@ -2062,8 +2062,8 @@ class BasicRangeTestCase(unittest.TestCase):
         r = slice(self.start, self.stop, self.step)
         resrange = r.indices(table.nrows)
         reslength = len(range(*resrange))
-        print "self.checkrecarray = ", self.checkrecarray
-        print "self.checkgetCol = ", self.checkgetCol 
+        #print "self.checkrecarray = ", self.checkrecarray
+        #print "self.checkgetCol = ", self.checkgetCol 
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
@@ -2085,7 +2085,6 @@ class BasicRangeTestCase(unittest.TestCase):
                 result = [rec['var2'] for rec in table.iterrows(self.start, 
                             self.stop, self.step) if rec['var2'] < self.nrows]
             elif 0 > self.step:
-                print "SSS = ", self.start, self.stop, self.step, self.nrows
                 result = [rec['var2'] for rec in table.iterrows(self.start, 
                             self.stop, self.step) if rec['var2'] > self.nrows]
 
@@ -2137,14 +2136,14 @@ class BasicRangeTestCase(unittest.TestCase):
                     self.assertEqual(rec['var2'],
                                      range(startr, stopr, self.step)[-1])
             elif startr > stopr and 0 > self.step:
-                rec = [r for r in table.iterrows(self.start, self.stop, self.step)
-                       if r['var2'] < self.nrows][0]
+                rec = [r['var2'] for r in table.iterrows(self.start, self.stop, self.step)
+                       if r['var2'] > self.nrows][0]
                 if self.nrows < self.expectedrows:
-                    self.assertEqual(rec['var2'],
-                                     range(self.start, self.stop, self.step)[0])
+                    self.assertEqual(rec,
+                                     range(self.start, self.stop or -1, self.step)[0])
                 else:
-                    self.assertEqual(rec['var2'],
-                                     range(startr, stopr, self.step)[0])
+                    self.assertEqual(rec,
+                                     range(startr, stopr or -1, self.step)[0])
 
         # Close the file
         self.fileh.close()

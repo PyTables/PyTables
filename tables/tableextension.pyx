@@ -1159,36 +1159,17 @@ cdef class Row:
           #while self.nextelement >= self.start - self.nrowsinbuf:
           #  self.nrowsread = self.nrowsread + self.nrowsinbuf
           #  self.nextelement = self.nextelement - self.nrowsinbuf
-          # Compute the end for this iteration
-          #self.stopb = self.stop - self.nrowsread
-          #self.stopb = self.stop - self.nrowsread
-          #if self.stopb > self.nrowsinbuf:
-          #  self.stopb = self.nrowsinbuf
-          #self._row = self.startb + self.step
-          #self._row = (self.startb - self.step) % self.nrowsinbuf
-#          self._row = (self.nextelement - self._row) % self.nrowsinbuf
           # Read a chunk
           recout = self.table._read_records(self.nextelement - self.nrowsinbuf + 1, 
                                             self.nrowsinbuf, self.iobuf)
-          print "RECOUT = ", recout
-          #self.nrowsread = self.nrowsread + recout
           self.nrowsread = self.nrowsread + self.nrowsinbuf
-
-        #self._row = self._row - self.step
-        #self._row = (self._row - self.step) % self.nrowsinbuf
-        #if self._row + self.step <= self.stopb:
-          # Compute the start row for the next buffer
-          #self.startb = (self._row + self.step) % self.nrowsinbuf
-          #self.startb = (self._row - self.startb) % self.nrowsinbuf
-        #self.startb = (self._row - self.startb) % self.nrowsinbuf
-
-        self._row = (self._row + self.step) % self.nrowsinbuf
-        #self._nrow = self.nextelement - 1
-        #self.nextelement = self._nrow + self.step 
+          self._row = self.nrowsinbuf - 1
+        else:
+          self._row = (self._row + self.step) % self.nrowsinbuf
+            
+        self._nrow = self.nextelement - self.step
         self.nextelement = self.nextelement + self.step 
         # Return this value
-        print self, self._row, self.nextelement, self.nrowsread, self.startb, self.stopb, self.step
-        print self.iobuf
         return self
       else:
         self._finish_riterator()
