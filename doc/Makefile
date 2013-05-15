@@ -131,12 +131,13 @@ doctest:
 
 VERSION = $(shell cat ../VERSION)
 
-all: html latexpdf
-	rm -rf html usersguide-$(VERSION).pdf
+all: html
+	rm -rf html
 	mv  $(BUILDDIR)/html .
-	mv  $(BUILDDIR)/latex/usersguide-$(VERSION).pdf .
 
-dist: all
+dist: all latexpdf
+	rm -rf usersguide-$(VERSION).pdf
+	mv  $(BUILDDIR)/latex/usersguide-$(VERSION).pdf .
 	mkdir -p ../dist
 	cp usersguide-$(VERSION).pdf ../dist/pytablesmanual-$(VERSION).pdf
 	tar cvzf ../dist/pytablesmanual-$(VERSION)-html.tar.gz html
