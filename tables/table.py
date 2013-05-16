@@ -1415,9 +1415,7 @@ class Table(tableextension.Table, Leaf):
         If a range is supplied (by setting some of the start, stop or step
         parameters), only the rows in that range and fulfilling the condition
         are used. The meaning of the start, stop and step parameters is the
-        same as in the range() Python function, except that negative values of
-        step are not allowed. Moreover, if only start is specified, then stop
-        will be set to start + 1.
+        same as for Python slices.
 
         When possible, indexed columns participating in the condition will be
         used to speed up the search. It is recommended that you place the
@@ -1459,6 +1457,9 @@ class Table(tableextension.Table, Leaf):
         used, but you may as well use any of the other reading iterators that
         Table objects offer. See the file :file:`examples/nested-iter.py` for
         the full code.
+
+        .. versionchanged:: 3.0
+        The start, stop and step parameters now behave like in slice.
 
         """
 
@@ -1659,9 +1660,7 @@ class Table(tableextension.Table, Leaf):
         existence of a CSI index.
 
         The meaning of the start, stop and step arguments is the same as in
-        :meth:`Table.read`.  However, in this case a negative value of step is
-        supported, meaning that the results will be returned in reverse sorted
-        order.
+        :meth:`Table.read`.
 
         .. versionchanged:: 3.0
            If the *start* parameter is provided and *stop* is None then the
@@ -1672,8 +1671,10 @@ class Table(tableextension.Table, Leaf):
 
         index = self._check_sortby_csi(sortby, checkCSI)
         # Adjust the slice to be used.
-        (start, stop, step) = self._process_range(start, stop, step)
-        if (start >= stop):
+        (start, stop, step) = self._process_range(start, stop, step,
+                                                  warn_negstep=False)
+        if (start > stop and 0 < step) or (start < stop and 0 > step):
+            # Fall-back action is to return an empty iterator
             return iter([])
         row = tableextension.Row(self)
         return row._iter(start, stop, step, coords=index)
@@ -1694,9 +1695,10 @@ class Table(tableextension.Table, Leaf):
         array of the current flavor.
 
         The meaning of the start, stop and step arguments is the same as in
-        :meth:`Table.read`.  However, in this case a negative value of step is
-        supported, meaning that the results will be returned in reverse sorted
-        order.
+        :meth:`Table.read`.
+
+        .. versionchanged:: 3.0
+        The start, stop and step parameters now behave like in slice.
 
         """
 
@@ -1744,13 +1746,13 @@ class Table(tableextension.Table, Leaf):
            In PyTables < 3.0 only one element was returned.
 
         """
-
-        (start, stop, step) = self._process_range(start, stop, step)
-        if start < stop:
-            row = tableextension.Row(self)
-            return row._iter(start, stop, step)
-        # Fall-back action is to return an empty iterator
-        return iter([])
+        (start, stop, step) = self._process_range(start, stop, step,
+                                                  warn_negstep=False)
+        if (start > stop and 0 < step) or (start < stop and 0 > step):
+            # Fall-back action is to return an empty iterator
+            return iter([])
+        row = tableextension.Row(self)
+        return row._iter(start, stop, step)
 
     def __iter__(self):
         """Iterate over the table using a Row instance.
@@ -1797,14 +1799,14 @@ class Table(tableextension.Table, Leaf):
                                     "{1}").format(field, self))
             else:
                 # The column hangs directly from the top
-                dtypeField = self.coldtypes[field]
+                dtype_field = self.coldtypes[field]
 
         # Return a rank-0 array if start > stop
-        if start >= stop:
+        if (start >= stop and 0 < step) or (start <= stop and 0 > step):
             if field is None:
                 nra = self._get_container(0)
                 return nra
-            return numpy.empty(shape=0, dtype=dtypeField)
+            return numpy.empty(shape=0, dtype=dtype_field)
 
         nrows = len(xrange(start, stop, step))
 
@@ -1812,7 +1814,7 @@ class Table(tableextension.Table, Leaf):
             # Compute the shape of the resulting column object
             if field:
                 # Create a container for the results
-                result = numpy.empty(shape=nrows, dtype=dtypeField)
+                result = numpy.empty(shape=nrows, dtype=dtype_field)
             else:
                 # Recarray case
                 result = self._get_container(nrows)
@@ -1823,7 +1825,7 @@ class Table(tableextension.Table, Leaf):
                 raise ValueError(("output array must be in system's byteorder "
                                   "or results will be incorrect"))
             if field:
-                bytes_required = dtypeField.itemsize * nrows
+                bytes_required = dtype_field.itemsize * nrows
             else:
                 bytes_required = self.rowsize * nrows
             if bytes_required != out.nbytes:
@@ -1859,11 +1861,7 @@ class Table(tableextension.Table, Leaf):
 
         The start, stop and step parameters can be used to select only
         a *range of rows* in the table. Their meanings are the same as
-        in the built-in range() Python function, except that negative
-        values of step are not allowed yet. Moreover, if only start is
-        specified, then stop will be set to start + 1. If you do not
-        specify neither start nor stop, then *all the rows* in the
-        table are selected.
+        in the built-in Python slices.
 
         If field is supplied only the named column will be selected.
         If the column is not nested, an *array* of the current flavor
@@ -1895,7 +1893,23 @@ class Table(tableextension.Table, Leaf):
         array also must be in the current system's byteorder.
 
         .. versionchanged:: 3.0
-           Added the *out* parameter.
+           Added the *out* parameter.  Also the start, stop and step
+           parameters now behave like in slice.
+
+        Examples
+        --------
+
+        Reading the entire table::
+
+            t.read()
+
+        Reading record n. 6::
+
+            t.read(6, 7)
+
+        Reading from record n. 6 to the end of the table::
+
+            t.read(6)
 
         """
 
@@ -1909,7 +1923,9 @@ class Table(tableextension.Table, Leaf):
                    "flavor is 'numpy', currently is {0}").format(self.flavor)
             raise TypeError(msg)
 
-        (start, stop, step) = self._process_range_read(start, stop, step)
+        #(start, stop, step) = self._process_range_read(start, stop, step,
+        (start, stop, step) = self._process_range(start, stop, step,
+                                                  warn_negstep=False)
 
         arr = self._read(start, stop, step, field, out)
         return internal_to_flavor(arr, self.flavor)
@@ -2278,7 +2294,7 @@ class Table(tableextension.Table, Leaf):
 
     modifyCoordinates = previous_api(modify_coordinates)
 
-    def modify_rows(self, start=None, stop=None, step=1, rows=None):
+    def modify_rows(self, start=None, stop=None, step=None, rows=None):
         """Modify a series of rows in the slice [start:stop:step].
 
         The values in the selected rows will be modified with the data given in
@@ -2291,6 +2307,8 @@ class Table(tableextension.Table, Leaf):
 
         """
 
+        if step is None:
+            step = 1
         if rows is None:      # Nothing to be done
             return SizeType(0)
         if start is None:
@@ -2333,7 +2351,7 @@ class Table(tableextension.Table, Leaf):
 
     modifyRows = previous_api(modify_rows)
 
-    def modify_column(self, start=None, stop=None, step=1,
+    def modify_column(self, start=None, stop=None, step=None,
                       column=None, colname=None):
         """Modify one single column in the row slice [start:stop:step].
 
@@ -2350,7 +2368,8 @@ class Table(tableextension.Table, Leaf):
         array records, and a string or Python buffer.
 
         """
-
+        if step is None:
+            step = 1
         if not isinstance(colname, str):
             raise TypeError("The 'colname' parameter must be a string.")
         self._v_file._check_writable()
@@ -2415,7 +2434,7 @@ class Table(tableextension.Table, Leaf):
 
     modifyColumn = previous_api(modify_column)
 
-    def modify_columns(self, start=None, stop=None, step=1,
+    def modify_columns(self, start=None, stop=None, step=None,
                        columns=None, names=None):
         """Modify a series of columns in the row slice [start:stop:step].
 
@@ -2432,7 +2451,8 @@ class Table(tableextension.Table, Leaf):
         records, and a string or Python buffer.
 
         """
-
+        if step is None:
+            step = 1
         if type(names) not in (list, tuple):
             raise TypeError("The 'names' parameter must be a list of strings.")
 
@@ -2549,13 +2569,13 @@ class Table(tableextension.Table, Leaf):
 
     _addRowsToIndex = previous_api(_add_rows_to_index)
 
-    def remove_rows(self, start, stop=None):
+    def remove_rows(self, start=None, stop=None, step=None):
         """Remove a range of rows in the table.
 
-        If only start is supplied, only this row is to be deleted.  If a range
-        is supplied, i.e. both the start and stop parameters are passed, all
-        the rows in the range are removed. A step parameter is not supported,
-        and it is not foreseen to be implemented anytime soon.
+        .. versionchanged:: 3.0
+        The start, stop and step parameters now behave like in slice.
+
+        .. seealso:: remove_row()
 
         Parameters
         ----------
@@ -2566,26 +2586,68 @@ class Table(tableextension.Table, Leaf):
         stop : int
             Sets the last row to be removed to stop-1, i.e. the end point is
             omitted (in the Python range() tradition). Negative values are also
-            accepted. A special value of None (the default) means removing just
-            the row supplied in start.
+            accepted.
+        step : int
+            The step size between rows to remove.
+
+            .. versionadded:: 3.0
+
+        Examples
+        --------
+
+        Removing rows from 5 to 10 (excluded)::
+
+            t.remove_rows(5, 10)
+
+        Removing all rows starting drom the 10th::
+
+            t.remove_rows(10)
+
+        Removing the 6th row::
+
+            t.remove_rows(6, 7)
+
+        .. note::
+
+            removing a single row can be done using the specific
+            :meth:`remove_row` method.
 
         """
 
-        (start, stop, step) = self._process_range_read(start, stop, 1)
-        nrows = stop - start
+        (start, stop, step) = self._process_range(start, stop, step)
+        nrows = numpy.abs(stop - start)
         if nrows >= self.nrows:
             raise NotImplementedError('You are trying to delete all the rows '
                                       'in table "%s". This is not supported '
                                       'right now due to limitations on the '
                                       'underlying HDF5 library. Sorry!' %
                                       self._v_pathname)
-        nrows = self._remove_row(start, nrows)
+        nrows = self._remove_rows(start, stop, step)
         # remove_rows is a invalidating index operation
         self._reindex(self.colpathnames)
 
         return SizeType(nrows)
 
     removeRows = previous_api(remove_rows)
+
+    def remove_row(self, n):
+        """Removes a row from the table.
+
+        If only start is supplied, only this row is to be deleted.  If a range
+        is supplied, i.e. both the start and stop parameters are passed, all
+        the rows in the range are removed. A step parameter is not supported,
+        and it is not foreseen to be implemented anytime soon.
+
+        Parameters
+        ----------
+        n : int
+            The index of the row to remove.
+
+        .. versionadded:: 3.0
+
+        """
+
+        self.remove_rows(start=n, stop=n + 1)
 
     def _g_update_dependent(self):
         super(Table, self)._g_update_dependent()

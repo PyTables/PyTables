@@ -163,8 +163,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         "The kind of this index.")
 
     filters = property(
-        lambda self: self._v_filters, None, None, """
-        Filter properties for this index - see Filters in
+        lambda self: self._v_filters, None, None, 
+        """Filter properties for this index - see Filters in
         :ref:`FiltersClassDescr`.""")
 
     def _getdirty(self):
@@ -193,15 +193,13 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         """)
 
     def _getcolumn(self):
-        tablepath, columnpath = _table_column_pathname_of_index(
-            self._v_pathname)
+        tablepath, columnpath = _table_column_pathname_of_index(self._v_pathname)
         table = self._v_file._get_node(tablepath)
         column = table.cols._g_col(columnpath)
         return column
 
-    column = property(
-        _getcolumn, None, None, """
-        The Column (see :ref:`ColumnClassDescr`) instance for the indexed
+    column = property(_getcolumn, None, None, 
+        """The Column (see :ref:`ColumnClassDescr`) instance for the indexed
         column.""")
 
     def _gettable(self):
@@ -210,8 +208,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         table = self._v_file._get_node(tablepath)
         return table
 
-    table = property(
-        _gettable, None, None,
+    table = property(_gettable, None, None,
         "Accessor for the `Table` object of this index.")
 
     nblockssuperblock = property(
@@ -1688,7 +1685,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     def read_sorted_indices(self, what, start, stop, step):
         """Return the sorted or indices values in the specified range."""
-
         (start, stop, step) = self._process_range(start, stop, step)
         if start >= stop:
             return numpy.empty(0, self.dtype)
