@@ -20,7 +20,6 @@ from time import time
 from functools import reduce as _reduce
 
 import numpy
-np = numpy
 import numexpr
 
 from tables import tableextension
@@ -1459,6 +1458,9 @@ class Table(tableextension.Table, Leaf):
         Table objects offer. See the file :file:`examples/nested-iter.py` for
         the full code.
 
+        .. versionchanged:: 3.0
+        The start, stop and step parameters now behave like in slice.
+
         """
 
         return self._where(condition, condvars, start, stop, step)
@@ -1658,7 +1660,7 @@ class Table(tableextension.Table, Leaf):
         existence of a CSI index.
 
         The meaning of the start, stop and step arguments is the same as in
-        :meth:`Table.read`.  
+        :meth:`Table.read`.
 
         .. versionchanged:: 3.0
            If the *start* parameter is provided and *stop* is None then the
@@ -1669,7 +1671,7 @@ class Table(tableextension.Table, Leaf):
 
         index = self._check_sortby_csi(sortby, checkCSI)
         # Adjust the slice to be used.
-        (start, stop, step) = self._process_range(start, stop, step, 
+        (start, stop, step) = self._process_range(start, stop, step,
                                                   warn_negstep=False)
         if (start > stop and 0 < step) or (start < stop and 0 > step):
             # Fall-back action is to return an empty iterator
@@ -1695,7 +1697,11 @@ class Table(tableextension.Table, Leaf):
         The meaning of the start, stop and step arguments is the same as in
         :meth:`Table.read`.
 
+        .. versionchanged:: 3.0
+        The start, stop and step parameters now behave like in slice.
+
         """
+
         self._g_check_open()
         index = self._check_sortby_csi(sortby, checkCSI)
         coords = index[start:stop:step]
@@ -1740,7 +1746,7 @@ class Table(tableextension.Table, Leaf):
            In PyTables < 3.0 only one element was returned.
 
         """
-        (start, stop, step) = self._process_range(start, stop, step, 
+        (start, stop, step) = self._process_range(start, stop, step,
                                                   warn_negstep=False)
         if (start > stop and 0 < step) or (start < stop and 0 > step):
             # Fall-back action is to return an empty iterator
@@ -1793,14 +1799,14 @@ class Table(tableextension.Table, Leaf):
                                     "{1}").format(field, self))
             else:
                 # The column hangs directly from the top
-                dtypeField = self.coldtypes[field]
+                dtype_field = self.coldtypes[field]
 
         # Return a rank-0 array if start > stop
         if (start >= stop and 0 < step) or (start <= stop and 0 > step):
             if field is None:
                 nra = self._get_container(0)
                 return nra
-            return numpy.empty(shape=0, dtype=dtypeField)
+            return numpy.empty(shape=0, dtype=dtype_field)
 
         nrows = len(xrange(start, stop, step))
 
@@ -1808,7 +1814,7 @@ class Table(tableextension.Table, Leaf):
             # Compute the shape of the resulting column object
             if field:
                 # Create a container for the results
-                result = numpy.empty(shape=nrows, dtype=dtypeField)
+                result = numpy.empty(shape=nrows, dtype=dtype_field)
             else:
                 # Recarray case
                 result = self._get_container(nrows)
@@ -1819,7 +1825,7 @@ class Table(tableextension.Table, Leaf):
                 raise ValueError(("output array must be in system's byteorder "
                                   "or results will be incorrect"))
             if field:
-                bytes_required = dtypeField.itemsize * nrows
+                bytes_required = dtype_field.itemsize * nrows
             else:
                 bytes_required = self.rowsize * nrows
             if bytes_required != out.nbytes:
@@ -1844,7 +1850,6 @@ class Table(tableextension.Table, Leaf):
             self._read_field_name(result, start, stop, step, field)
         else:
             self.row._fill_col(result, start, stop, step, field)
-            
 
         if select_field:
             return result[select_field]
@@ -1888,9 +1893,26 @@ class Table(tableextension.Table, Leaf):
         array also must be in the current system's byteorder.
 
         .. versionchanged:: 3.0
-           Added the *out* parameter.
+           Added the *out* parameter.  Also the start, stop and step
+           parameters now behave like in slice.
+
+        Examples
+        --------
+
+        Reading the entire table::
+
+            t.read()
+
+        Reading record n. 6::
+
+            t.read(6, 7)
+
+        Reading from record n. 6 to the end of the table::
+
+            t.read(6)
 
         """
+
         self._g_check_open()
 
         if field:
@@ -1901,8 +1923,8 @@ class Table(tableextension.Table, Leaf):
                    "flavor is 'numpy', currently is {0}").format(self.flavor)
             raise TypeError(msg)
 
-        #(start, stop, step) = self._process_range_read(start, stop, step, 
-        (start, stop, step) = self._process_range(start, stop, step, 
+        #(start, stop, step) = self._process_range_read(start, stop, step,
+        (start, stop, step) = self._process_range(start, stop, step,
                                                   warn_negstep=False)
 
         arr = self._read(start, stop, step, field, out)
@@ -2284,6 +2306,7 @@ class Table(tableextension.Table, Leaf):
         :meth:`Table.append`.
 
         """
+
         if step is None:
             step = 1
         if rows is None:      # Nothing to be done
@@ -2549,6 +2572,11 @@ class Table(tableextension.Table, Leaf):
     def remove_rows(self, start=None, stop=None, step=None):
         """Remove a range of rows in the table.
 
+        .. versionchanged:: 3.0
+        The start, stop and step parameters now behave like in slice.
+
+        .. seealso:: remove_row()
+
         Parameters
         ----------
         start : int
@@ -2558,13 +2586,36 @@ class Table(tableextension.Table, Leaf):
         stop : int
             Sets the last row to be removed to stop-1, i.e. the end point is
             omitted (in the Python range() tradition). Negative values are also
-            accepted. 
+            accepted.
         step : int
             The step size between rows to remove.
 
+            .. versionadded:: 3.0
+
+        Examples
+        --------
+
+        Removing rows from 5 to 10 (excluded)::
+
+            t.remove_rows(5, 10)
+
+        Removing all rows starting drom the 10th::
+
+            t.remove_rows(10)
+
+        Removing the 6th row::
+
+            t.remove_rows(6, 7)
+
+        .. note::
+
+            removing a single row can be done using the specific
+            :meth:`remove_row` method.
+
         """
+
         (start, stop, step) = self._process_range(start, stop, step)
-        nrows = np.abs(stop - start)
+        nrows = numpy.abs(stop - start)
         if nrows >= self.nrows:
             raise NotImplementedError('You are trying to delete all the rows '
                                       'in table "%s". This is not supported '
@@ -2592,7 +2643,10 @@ class Table(tableextension.Table, Leaf):
         n : int
             The index of the row to remove.
 
+        .. versionadded:: 3.0
+
         """
+
         self.remove_rows(start=n, stop=n + 1)
 
     def _g_update_dependent(self):
