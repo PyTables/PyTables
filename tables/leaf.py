@@ -406,9 +406,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         # The next function is a substitute for slice().indices in order to
         # support full 64-bit integer for slices even in 32-bit machines.
         # F. Alted 2005-05-08
-        (start, stop, step) = utilsextension.get_indices(
-            start, stop, step, long(nrows))
-
+        start, stop, step = utilsextension.get_indices(start, stop, step, long(nrows))
         return (start, stop, step)
 
     _processRange = previous_api(_process_range)
@@ -417,9 +415,11 @@ very small/large chunksize, you may want to increase/decrease it."""
     def _process_range_read(self, start, stop, step, warn_negstep=True):
         nrows = self.nrows
         if start is None and stop is None:
+        #if start is None and stop is None and step is None:
             start = 0
             stop = nrows
-        if start is not None and stop is None:
+            #step = 1
+        if start is not None and stop is None and step is None:
             # Protection against start greater than available records
             # nrows == 0 is a special case for empty objects
             if nrows > 0 and start >= nrows:
@@ -431,9 +431,8 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:
                 stop = start + 1
         # Finally, get the correct values (over the main dimension)
-        start, stop, step = self._process_range(
-            start, stop, step, warn_negstep=warn_negstep)
-
+        start, stop, step = self._process_range(start, stop, step, 
+                                                warn_negstep=warn_negstep)
         return (start, stop, step)
 
     _processRangeRead = previous_api(_process_range_read)

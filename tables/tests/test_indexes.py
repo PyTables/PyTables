@@ -1906,7 +1906,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test04_itersorted2(self):
         """Testing the Table.itersorted() method with a start."""
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[15:16]
+        sortedtable = numpy.sort(table[:], order='icol')[15:]
         sortedtable2 = numpy.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', start=15)], dtype=table._v_dtype)
@@ -1970,6 +1970,33 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         sortedtable2 = numpy.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', checkCSI=True)], dtype=table._v_dtype)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from the iterator:", sortedtable2
+        self.assertTrue(allequal(sortedtable, sortedtable2))
+
+    def test04_itersorted8(self):
+        """Testing the Table.itersorted() method with a start, stop and
+        negative step."""
+        # see also gh-252
+        table = self.table
+        sortedtable = numpy.sort(table[:], order='icol')[55:33:-5]
+        sortedtable2 = numpy.array(
+            [row.fetch_all_fields() for row in table.itersorted(
+             'icol', start=55, stop=33, step=-5)], dtype=table._v_dtype)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from the iterator:", sortedtable2
+        self.assertTrue(allequal(sortedtable, sortedtable2))
+
+    def test04_itersorted9(self):
+        """Testing the Table.itersorted() method with a negative step."""
+        # see also gh-252
+        table = self.table
+        sortedtable = numpy.sort(table[:], order='icol')[::-5]
+        sortedtable2 = numpy.array(
+            [row.fetch_all_fields() for row in table.itersorted(
+             'icol', step=-5)], dtype=table._v_dtype)
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2

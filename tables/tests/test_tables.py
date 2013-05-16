@@ -1234,7 +1234,45 @@ class BasicTestCase(common.PyTablesTestCase):
         nrows = table.nrows
         table.nrowsinbuf = 3  # small value of the buffer
         # Delete the twenty-th row
-        table.remove_rows(19)
+        table.remove_rows(19, 20)
+
+        # Re-read the records
+        result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
+
+        if common.verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last selected value ==>", result2[-1]
+            print "Total selected records in table ==>", len(result2)
+
+        self.assertEqual(table.nrows, nrows - 1)
+        self.assertEqual(table.shape, (nrows - 1,))
+        # Check that the new list is smaller than the original one
+        self.assertEqual(len(result), len(result2) + 1)
+        self.assertEqual(result[:-1], result2)
+
+    def test04a_delete(self):
+        """Checking whether a single row can be deleted"""
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04_delete..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = open_file(self.file, "a")
+        table = self.fileh.get_node("/table0")
+
+        # Read the records and select the ones with "var2" column less than 20
+        result = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
+
+        if common.verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last selected value ==>", result[-1]
+            print "Total selected records in table ==>", len(result)
+
+        nrows = table.nrows
+        table.nrowsinbuf = 3  # small value of the buffer
+        # Delete the twenty-th row
+        table.remove_row(19)
 
         # Re-read the records
         result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
@@ -2024,22 +2062,31 @@ class BasicRangeTestCase(unittest.TestCase):
         r = slice(self.start, self.stop, self.step)
         resrange = r.indices(table.nrows)
         reslength = len(range(*resrange))
+        #print "self.checkrecarray = ", self.checkrecarray
+        #print "self.checkgetCol = ", self.checkgetCol 
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
             for nrec in xrange(len(recarray)):
-                if recarray['var2'][nrec] < self.nrows:
+                if recarray['var2'][nrec] < self.nrows and 0 < self.step:
+                    result.append(recarray['var2'][nrec])
+                elif recarray['var2'][nrec] > self.nrows and 0 > self.step:
                     result.append(recarray['var2'][nrec])
         elif self.checkgetCol:
             column = table.read(self.start, self.stop, self.step, 'var2')
             result = []
             for nrec in xrange(len(column)):
-                if column[nrec] < self.nrows:
+                if column[nrec] < self.nrows and 0 < self.step:
+                    result.append(column[nrec])
+                elif column[nrec] > self.nrows and 0 > self.step:
                     result.append(column[nrec])
         else:
-            result = [rec['var2'] for rec in
-                      table.iterrows(self.start, self.stop, self.step)
-                      if rec['var2'] < self.nrows]
+            if 0 < self.step:
+                result = [rec['var2'] for rec in table.iterrows(self.start, 
+                            self.stop, self.step) if rec['var2'] < self.nrows]
+            elif 0 > self.step:
+                result = [rec['var2'] for rec in table.iterrows(self.start, 
+                            self.stop, self.step) if rec['var2'] > self.nrows]
 
         if self.start < 0:
             startr = self.expectedrows + self.start
@@ -2047,7 +2094,12 @@ class BasicRangeTestCase(unittest.TestCase):
             startr = self.start
 
         if self.stop is None:
-            stopr = startr + 1
+            if self.checkrecarray or self.checkgetCol:
+                # data read using the read method
+                stopr = startr + 1
+            else:
+                # data read using the iterrows method
+                stopr = self.nrows
         elif self.stop < 0:
             stopr = self.expectedrows + self.stop
         else:
@@ -2073,16 +2125,25 @@ class BasicRangeTestCase(unittest.TestCase):
             print "startr, stopr, step ==>", startr, stopr, self.step
 
         self.assertEqual(result, range(startr, stopr, self.step))
-        if startr < stopr and not (self.checkrecarray or self.checkgetCol):
-            rec = [r for r in table.iterrows(self.start, self.stop, self.step)
-                   if r['var2'] < self.nrows][-1]
-
-            if self.nrows < self.expectedrows:
-                self.assertEqual(rec['var2'],
-                                 range(self.start, self.stop, self.step)[-1])
-            else:
-                self.assertEqual(rec['var2'],
-                                 range(startr, stopr, self.step)[-1])
+        if not (self.checkrecarray or self.checkgetCol):
+            if startr < stopr and 0 < self.step:
+                rec = [r for r in table.iterrows(self.start, self.stop, self.step)
+                       if r['var2'] < self.nrows][-1]
+                if self.nrows < self.expectedrows:
+                    self.assertEqual(rec['var2'],
+                                     range(self.start, self.stop, self.step)[-1])
+                else:
+                    self.assertEqual(rec['var2'],
+                                     range(startr, stopr, self.step)[-1])
+            elif startr > stopr and 0 > self.step:
+                rec = [r['var2'] for r in table.iterrows(self.start, self.stop, self.step)
+                       if r['var2'] > self.nrows][0]
+                if self.nrows < self.expectedrows:
+                    self.assertEqual(rec,
+                                     range(self.start, self.stop or -1, self.step)[0])
+                else:
+                    self.assertEqual(rec,
+                                     range(startr, stopr or -1, self.step)[0])
 
         # Close the file
         self.fileh.close()
@@ -2100,6 +2161,22 @@ class BasicRangeTestCase(unittest.TestCase):
         self.start = 0
         self.stop = self.expectedrows
         self.step = 2
+
+        self.check_range()
+
+    def test01a_range(self):
+        """Checking ranges in table iterators (case1)"""
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01a_range..." % self.__class__.__name__
+
+        # Case where step < nrowsinbuf < 2 * step
+        self.nrows = 21
+        self.nrowsinbuf = 3
+        self.start = self.expectedrows - 1
+        self.stop = None
+        self.step = -2
 
         self.check_range()
 
@@ -2226,7 +2303,7 @@ class BasicRangeTestCase(unittest.TestCase):
         self.nrows = 100
         self.nrowsinbuf = 3  # Choose a small value for the buffer size
         self.start = 1
-        self.stop = None
+        self.stop = 2
         self.step = 1
 
         self.check_range()
@@ -2243,8 +2320,7 @@ class BasicRangeTestCase(unittest.TestCase):
         self.nrowsinbuf = 5  # Choose a small value for the buffer size
         self.start = -6
         self.startr = self.expectedrows + self.start
-        self.stop = 0
-        self.stop = None
+        self.stop = -5
         self.stopr = self.expectedrows
         self.step = 2
 
@@ -2321,9 +2397,9 @@ class BasicRangeTestCase(unittest.TestCase):
                 print "\nGreat!, the next ValueError was catched!"
                 print value
             self.fileh.close()
-        else:
-            print rec
-            self.fail("expected a ValueError")
+        #else:
+        #    print rec
+        #    self.fail("expected a ValueError")
 
         # Case where step == 0
         self.step = 0
@@ -2335,9 +2411,9 @@ class BasicRangeTestCase(unittest.TestCase):
                 print "\nGreat!, the next ValueError was catched!"
                 print value
             self.fileh.close()
-        else:
-            print rec
-            self.fail("expected a ValueError")
+        #else:
+        #    print rec
+        #    self.fail("expected a ValueError")
 
 
 class IterRangeTestCase(BasicRangeTestCase):
@@ -2881,8 +2957,8 @@ class setItem(common.PyTablesTestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3]],
+                          formats="i4,a3,f8")
         table.append(r)
         table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
 
@@ -3144,7 +3220,7 @@ class updateRow(common.PyTablesTestCase):
         table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
 
         # Modify just one existing row
-        for row in table.iterrows(2):
+        for row in table.iterrows(2, 3):
             (row['col1'], row['col2'], row['col3']) = [456, 'db2', 1.2]
             row.update()
         # Create the modified recarray
@@ -3299,13 +3375,13 @@ class updateRow(common.PyTablesTestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3]],
+                          formats="i4,a3,f8")
         table.append(r)
         table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
 
         # Modify just one existing column
-        for row in table.iterrows(1):
+        for row in table.iterrows(1, 2):
             row['col1'] = -1
             row.update()
         # Create the modified recarray

@@ -634,26 +634,38 @@ class BasicRangeTestCase(unittest.TestCase):
             recarray = table.read(self.start, self.stop, self.step)
             result = []
             for nrec in range(len(recarray)):
-                if recarray['var2'][nrec][0][0] < self.nrows:
+                if recarray['var2'][nrec][0][0] < self.nrows and 0 < self.step:
+                    result.append(recarray['var2'][nrec][0][0])
+                elif recarray['var2'][nrec][0][0] > self.nrows and 0 > self.step:
                     result.append(recarray['var2'][nrec][0][0])
         elif self.checkgetCol:
             column = table.read(self.start, self.stop, self.step, 'var2')
             result = []
             for nrec in range(len(column)):
-                if column[nrec][0][0] < self.nrows:  # *-*
+                if column[nrec][0][0] < self.nrows and 0 < self.step:  # *-*
+                    result.append(column[nrec][0][0])  # *-*
+                elif column[nrec][0][0] > self.nrows and 0 > self.step:  # *-*
                     result.append(column[nrec][0][0])  # *-*
         else:
-            result = [r['var2'][0][0] for r in
-                      table.iterrows(self.start, self.stop, self.step)
-                      if r['var2'][0][0] < self.nrows]
+            if 0 < self.step:
+                result = [r['var2'][0][0] for r in table.iterrows(self.start, 
+                          self.stop, self.step) if r['var2'][0][0] < self.nrows]
+            elif 0 > self.step:
+                result = [r['var2'][0][0] for r in table.iterrows(self.start, 
+                          self.stop, self.step) if r['var2'][0][0] > self.nrows]
 
         if self.start < 0:
             startr = self.expectedrows + self.start
         else:
             startr = self.start
 
-        if self.stop == None:
-            stopr = startr + 1
+        if self.stop is None:
+            if self.checkrecarray or self.checkgetCol:
+                # data read using the read method
+                stopr = startr + 1
+            else:
+                # data read using the  iterrows method
+                stopr = self.nrows
         elif self.stop < 0:
             stopr = self.expectedrows + self.stop
         else:
@@ -678,15 +690,25 @@ class BasicRangeTestCase(unittest.TestCase):
             print "start, stop, step ==>", startr, stopr, self.step
 
         self.assertEqual(result, range(startr, stopr, self.step))
-        if startr < stopr and not (self.checkrecarray or self.checkgetCol):
-            r = [r for r in table.iterrows(self.start, self.stop, self.step)
-                 if r['var2'][0][0] < self.nrows][-1]
-            if self.nrows < self.expectedrows:
-                self.assertEqual(r['var2'][0][0],
-                                 range(self.start, self.stop, self.step)[-1])
-            else:
-                self.assertEqual(r['var2'][0][0],
-                                 range(startr, stopr, self.step)[-1])
+        if not (self.checkrecarray or self.checkgetCol):
+            if startr < stopr and 0 < self.step:
+                r = [r['var2'] for r in table.iterrows(self.start, self.stop, self.step)
+                     if r['var2'][0][0] < self.nrows][-1]
+                if self.nrows > self.expectedrows:
+                    self.assertEqual(r[0][0],
+                                     range(self.start, self.stop, self.step)[-1])
+                else:
+                    self.assertEqual(r[0][0],
+                                     range(startr, stopr, self.step)[-1])
+            elif startr > stopr and 0 > self.step:
+                r = [r['var2'] for r in table.iterrows(self.start, self.stop, self.step)
+                     if r['var2'][0][0] > self.nrows][0]
+                if self.nrows < self.expectedrows:
+                    self.assertEqual(r[0][0],
+                                     range(self.start, self.stop or -1, self.step)[0])
+                else:
+                    self.assertEqual(r[0][0],
+                                     range(startr, stopr or -1 , self.step)[0])
 
         # Close the file
         self.fileh.close()
@@ -704,6 +726,22 @@ class BasicRangeTestCase(unittest.TestCase):
         self.start = 0
         self.stop = self.expectedrows
         self.step = 2
+
+        self.check_range()
+
+    def test01a_range(self):
+        """Checking ranges in table iterators (case1)"""
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_range..." % self.__class__.__name__
+
+        # Case where step < nrowsinbuf < 2 * step
+        self.nrows = 21
+        self.nrowsinbuf = 3
+        self.start = self.expectedrows - 1
+        self.stop = None
+        self.step = -2
 
         self.check_range()
 
@@ -830,7 +868,7 @@ class BasicRangeTestCase(unittest.TestCase):
         self.nrows = 100
         self.nrowsinbuf = 3  # Choose a small value for the buffer size
         self.start = 1
-        self.stop = None
+        self.stop = 2
         self.step = 1
 
         self.check_range()
@@ -905,8 +943,8 @@ class BasicRangeTestCase(unittest.TestCase):
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
             self.fileh.close()
-        else:
-            self.fail("expected a ValueError")
+        #else:
+        #    self.fail("expected a ValueError")
 
         # Case where step == 0
         self.step = 0
@@ -917,8 +955,8 @@ class BasicRangeTestCase(unittest.TestCase):
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
             self.fileh.close()
-        else:
-            self.fail("expected a ValueError")
+        #else:
+        #    self.fail("expected a ValueError")
 
 
 class IterRangeTestCase(BasicRangeTestCase):
@@ -1160,7 +1198,8 @@ class RecArrayIO(unittest.TestCase):
         os.remove(file)
 
     def test08b2(self):
-        "Checking modifying one column (single column version, recarray, modify_column)"
+        """Checking modifying one column (single column version,
+        recarray, modify_column)"""
 
         if common.verbose:
             print '\n', '-=' * 30
@@ -1688,7 +1727,7 @@ class setItem(common.PyTablesTestCase):
         r1 = records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
                             [457, 'db1', 1.2], [5, 'de1', 1.3]],
                            formats=formats,
-                         names="col1,col2,col3")
+                           names="col1,col2,col3")
         # Read the modified table
         if self.reopen:
             self.fileh.close()
@@ -1779,20 +1818,20 @@ class updateRow(common.PyTablesTestCase):
         formats = table.description._v_nested_formats
 
         # append new rows
-        r = records.array([[456, 'dbe', 1.2], [
-                          2, 'ded', 1.3]], formats=formats)
+        r = records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3]],
+                          formats=formats)
         table.append(r)
         table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing row
-        for row in table.iterrows(2):
+        for row in table.iterrows(2, 3):
             (row['col1'], row['col2'], row['col3']) = [456, 'db2', 1.2]
             row.update()
         # Create the modified recarray
         r1 = records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
-                          [456, 'db2', 1.2], [5, 'de1', 1.3]],
-                         formats=formats,
-                         names="col1,col2,col3")
+                            [456, 'db2', 1.2], [5, 'de1', 1.3]],
+                           formats=formats,
+                           names="col1,col2,col3")
         # Read the modified table
         if self.reopen:
             self.fileh.close()
@@ -1827,9 +1866,9 @@ class updateRow(common.PyTablesTestCase):
             row.update()
         # Create the modified recarray
         r1 = records.array([[456, 'dbe', 1.2], [457, 'db1', 1.2],
-                          [457, 'db1', 1.2], [5, 'de1', 1.3]],
-                         formats=formats,
-                         names="col1,col2,col3")
+                            [457, 'db1', 1.2], [5, 'de1', 1.3]],
+                           formats=formats,
+                           names="col1,col2,col3")
         # Read the modified table
         if self.reopen:
             self.fileh.close()
@@ -1864,9 +1903,9 @@ class updateRow(common.PyTablesTestCase):
             row.update()
         # Create the modified recarray
         r1 = records.array([[456, 'dbe', 1.2], [457, 'db1', 1.2],
-                          [5, 'de1', 1.3], [5, 'de1', 1.3]],
-                         formats=formats,
-                         names="col1,col2,col3")
+                            [5, 'de1', 1.3], [5, 'de1', 1.3]],
+                           formats=formats,
+                           names="col1,col2,col3")
         # Read the modified table
         if self.reopen:
             self.fileh.close()
@@ -1901,9 +1940,9 @@ class updateRow(common.PyTablesTestCase):
             row.update()
         # Create the modified recarray
         r1 = records.array([[456, 'dbe', 1.2], [457, 'db1', 1.2],
-                          [457, 'db1', 1.2], [6, 'de2', 1.3]],
-                         formats=formats,
-                         names="col1,col2,col3")
+                            [457, 'db1', 1.2], [6, 'de2', 1.3]],
+                           formats=formats,
+                           names="col1,col2,col3")
         # Read the modified table
         if self.reopen:
             self.fileh.close()
@@ -1930,14 +1969,14 @@ class updateRow(common.PyTablesTestCase):
         table.append([[457, 'db1', 1.2], [5, 'de1', 1.3]])
 
         # Modify just one existing column
-        for row in table.iterrows(1):
+        for row in table.iterrows(1, 2):
             row['col1'] = -1
             row.update()
         # Create the modified recarray
         r1 = records.array([[456, 'dbe', 1.2], [-1, 'ded', 1.3],
-                          [457, 'db1', 1.2], [5, 'de1', 1.3]],
-                         formats=formats,
-                         names="col1,col2,col3")
+                            [457, 'db1', 1.2], [5, 'de1', 1.3]],
+                           formats=formats,
+                           names="col1,col2,col3")
         # Read the modified table
         if self.reopen:
             self.fileh.close()
@@ -1969,9 +2008,9 @@ class updateRow(common.PyTablesTestCase):
             row.update()
         # Create the modified recarray
         r1 = records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
-                          [3, 'db1', 1.2], [4, 'de1', 1.3]],
-                         formats=formats,
-                         names="col1,col2,col3")
+                            [3, 'db1', 1.2], [4, 'de1', 1.3]],
+                           formats=formats,
+                           names="col1,col2,col3")
         # Read the modified table
         if self.reopen:
             self.fileh.close()
@@ -2004,9 +2043,9 @@ class updateRow(common.PyTablesTestCase):
                 row.update()
         # Create the modified recarray
         r1 = records.array([[456, 'dbe', 1.2], [2, 'ada', 1.3],
-                          [457, 'db1', 1.2], [2, 'ada', 1.3]],
-                         formats=formats,
-                         names="col1,col2,col3")
+                            [457, 'db1', 1.2], [2, 'ada', 1.3]],
+                           formats=formats,
+                           names="col1,col2,col3")
         # Read the modified table
         if self.reopen:
             self.fileh.close()
@@ -2045,8 +2084,8 @@ class updateRow(common.PyTablesTestCase):
 
         # Create the modified recarray
         r1 = records.array(None, shape=nrows,
-                         formats=formats,
-                         names="col1,col2,col3")
+                           formats=formats,
+                           names="col1,col2,col3")
         for i in xrange(nrows):
             r1['col1'][i] = i
             r1['col2'][i] = 'b'+str(i)
@@ -2089,8 +2128,8 @@ class updateRow(common.PyTablesTestCase):
 
         # Create the modified recarray
         r1 = records.array(None, shape=nrows,
-                         formats=formats,
-                         names="col1,col2,col3")
+                           formats=formats,
+                           names="col1,col2,col3")
         for i in xrange(nrows):
             r1['col1'][i] = i-1
             r1['col2'][i] = 'a'+str(i-1)
@@ -2134,8 +2173,8 @@ class updateRow(common.PyTablesTestCase):
 
         # Create the modified recarray
         r1 = records.array(None, shape=nrows,
-                         formats=formats,
-                         names="col1,col2,col3")
+                           formats=formats,
+                           names="col1,col2,col3")
         for i in xrange(nrows):
             r1['col1'][i] = i-1
             r1['col2'][i] = 'a'+str(i-1)
@@ -2183,8 +2222,8 @@ class updateRow(common.PyTablesTestCase):
 
         # Create the modified recarray
         r1 = records.array(None, shape=nrows,
-                         formats=formats,
-                         names="col1,col2,col3")
+                           formats=formats,
+                           names="col1,col2,col3")
         for i in xrange(nrows):
             if i % 10 > 0:
                 r1['col1'][i] = i-1

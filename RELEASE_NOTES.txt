@@ -208,6 +208,13 @@ API to the new one.
 Other possibly incompatible changes
 -----------------------------------
 
+- All methods of the :class:`Table` class that take *start*, *stop* and
+  *step* parameters (including :meth:`Table.read`, :meth:`Table.where`,
+  :meth:`Table.iterrows`, etc) have been redesigned to have a consistent
+  behaviour.  The meaning of the *start*, *stop* and *step* and their default
+  values now always work exactly like in the standard :class:`slice` objects.
+  Closes :issue:`44` and :issue:`255`.
+
 - Unicode attributes are not stored in the HDF5 file as pickled string.
   They are now saved on the HDF5 file as UTF-8 encoded strings.
 
@@ -218,6 +225,13 @@ Other possibly incompatible changes
 - System attributes are now stored in the HDF5 file using the character set
   that reflects the native string behaviour: ASCII for Python 2 and UTF8 for
   Python 3.  In any case, system attributes are represented as Python string.
+
+- The :meth:`iterrows` method of :class:`*Array` and :class:`Table` as well
+  as the :meth:`Table.itersorted` now behave like functions in the standard
+  :mod:`itertools` module.
+  If the *start* parameter is provided and *stop* is None then the
+  array/table is iterated from *start* to the last line.
+  In PyTables < 3.0 only one element was returned.
 
 
 Deprecations
@@ -260,6 +274,10 @@ Bugs fixed
 - Fixes bug with completely sorted indexes where *nrowsinbuf* must be equal
   to or greater than the *chunksize* (thanks to Thadeus Burgess).
   Closes :issue:`206` and :issue:`238`.
+
+- Fixed an issue of the :meth:`Table.itersorted` with reverse iteration
+  (closes :issue:`252` and :issue:`253`).
+
 
 .. _Python: http://www.python.org
 .. _PEP8: http://www.python.org/dev/peps/pep-0008

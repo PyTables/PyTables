@@ -265,8 +265,7 @@ class Array(hdf5extension.Array, Leaf):
         If a range is not supplied, *all the rows* in the array are iterated
         upon - you can also use the :meth:`Array.__iter__` special method for
         that purpose.  If you only want to iterate over a given *range of rows*
-        in the array, you may use the start, stop and step parameters, which
-        have the same meaning as in :meth:`Array.read`.
+        in the array, you may use the start, stop and step parameters.
 
         Examples
         --------
@@ -275,11 +274,16 @@ class Array(hdf5extension.Array, Leaf):
 
             result = [row for row in arrayInstance.iterrows(step=4)]
 
+        .. versionchanged:: 3.0
+           If the *start* parameter is provided and *stop* is None then the
+           array is iterated from *start* to the last line.
+           In PyTables < 3.0 only one element was returned.
+
         """
 
         try:
-            (self._start, self._stop, self._step) = \
-                self._process_range_read(start, stop, step)
+            (self._start, self._stop, self._step) = self._process_range(
+                start, stop, step)
         except IndexError:
             # If problems with indexes, silently return the null tuple
             return ()
