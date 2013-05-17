@@ -1,7 +1,7 @@
 /*********************************************************************
   Blosc - Blocked Suffling and Compression Library
 
-  Author: Francesc Alted <francesc@continuum.io>
+  Author: Francesc Alted <faltet@gmail.com>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/
@@ -14,11 +14,11 @@
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
 #define BLOSC_VERSION_MINOR    2    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  2    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_RELEASE  3    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.2.2"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.2.3"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2013-05-09 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2013-05-17 #$"    /* date version */
 
 /* The *_VERS_FORMAT should be just 1-byte long */
 #define BLOSC_VERSION_FORMAT    2   /* Blosc format version, starting at 1 */
@@ -48,6 +48,27 @@
 #define BLOSC_DOSHUFFLE 0x1
 #define BLOSC_MEMCPYED  0x2
 
+
+
+/**
+  Initialize the Blosc library. You must call this previous to any other
+  Blosc call, and make sure that you call this in a non-threaded environment.
+  Other Blosc calls can be called in a threaded environment, if desired.
+
+ */
+
+void blosc_init(void);
+
+
+/**
+
+  Destroy the Blosc library environment. You must call this after to you are
+  done with all the Blosc calls, and make sure that you call this in a
+  non-threaded environment.
+
+ */
+
+void blosc_destroy(void);
 
 
 /**
