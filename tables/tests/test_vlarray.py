@@ -4020,7 +4020,7 @@ class TruncateTestCase(unittest.TestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, "w")
 
-        # Create an EArray
+        # Create an VLArray
         arr = Int16Atom(dflt=3)
         array1 = self.fileh.create_vlarray(
             self.fileh.root, 'array1', arr, "title array1")
@@ -4035,7 +4035,7 @@ class TruncateTestCase(unittest.TestCase):
         common.cleanup(self)
 
     def test00_truncate(self):
-        """Checking EArray.truncate() method (truncating to 0 rows)"""
+        """Checking VLArray.truncate() method (truncating to 0 rows)"""
 
         array1 = self.fileh.root.array1
         # Truncate to 0 elements
@@ -4055,7 +4055,7 @@ class TruncateTestCase(unittest.TestCase):
         self.assertEqual(array1[:], [])
 
     def test01_truncate(self):
-        """Checking EArray.truncate() method (truncating to 1 rows)"""
+        """Checking VLArray.truncate() method (truncating to 1 rows)"""
 
         array1 = self.fileh.root.array1
         # Truncate to 1 element
@@ -4076,7 +4076,7 @@ class TruncateTestCase(unittest.TestCase):
             allequal(array1[0], numpy.array([456, 2], dtype='Int16')))
 
     def test02_truncate(self):
-        """Checking EArray.truncate() method (truncating to == self.nrows)"""
+        """Checking VLArray.truncate() method (truncating to == self.nrows)"""
 
         array1 = self.fileh.root.array1
         # Truncate to 2 elements
@@ -4098,7 +4098,7 @@ class TruncateTestCase(unittest.TestCase):
         self.assertTrue(allequal(array1[1], numpy.array([3], dtype='Int16')))
 
     def test03_truncate(self):
-        """Checking EArray.truncate() method (truncating to > self.nrows)"""
+        """Checking VLArray.truncate() method (truncating to > self.nrows)"""
 
         array1 = self.fileh.root.array1
         # Truncate to 4 elements
