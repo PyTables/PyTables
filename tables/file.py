@@ -1187,6 +1187,8 @@ class File(hdf5extension.File, object):
                                 'the data type of the obj parameter')
             if atom is None:
                 atom = Atom.from_dtype(obj.dtype)
+        elif atom is None:
+            raise ValueError('atom parameter cannot be None')
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
