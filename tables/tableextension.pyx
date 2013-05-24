@@ -1066,7 +1066,6 @@ cdef class Row:
 
     cdef hsize_t recout, correct
     cdef object numexpr_locals, colvar, col
-
     self.nextelement = self._nrow + self.step
     while self.nextelement < self.stop:
       if self.nextelement >= self.nrowsread:
@@ -1098,7 +1097,7 @@ cdef class Row:
             # Correction for step size > 1
             if self.step > 1:
               correct = (self.nextelement - self.start) % self.step
-              self.nextelement = self.nextelement + self.step - correct
+              self.nextelement = self.nextelement - correct
           continue
         self.index_valid_data = <char *>self.indexvalid.data
 
