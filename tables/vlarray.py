@@ -350,7 +350,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # PyTables 3.0 release and remove the expected_mb parameter.
         # The algorithm for computing the chunkshape should be rewritten as
         # requested by gh-35.
-        expected_mb = expectedrows * elemsize // 1024.
+        expected_mb = expectedrows * elemsize / 1024. ** 2
 
         chunksize = calc_chunksize(expected_mb)
 
