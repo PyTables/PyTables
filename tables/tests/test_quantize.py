@@ -40,7 +40,8 @@ class QuantizeTestCase(unittest.TestCase):
         self.quantizeddata_0 = numpy.asarray([-5.] * 2 + [-4.] * 5 +
                 [-3.] * 3 + [-2.] * 5 + [-1.] * 3 + [0.] * 5 + [1.] * 3
                 + [2.] * 5 + [3.] * 3 + [4.] * 5 + [5.] * 2)
-        self.quantizeddata_m1 = numpy.asarray([-8.] * 4 + [0.] * 33 + [8.] * 4)
+        self.quantizeddata_m1 = numpy.asarray([-8.] * 4 + [0.] * 33 +
+                [8.] * 4)
 
     def populateFile(self):
         root = self.h5file.root
@@ -106,13 +107,19 @@ class QuantizeTestCase(unittest.TestCase):
     def test02_array(self):
         "Checking quantized data as written to disk"
         h5file = open_file(self.file, "r")
-        numpy.testing.assert_array_equal(h5file.root.data1[:], self.data)
-        numpy.testing.assert_array_equal(h5file.root.data2[:], self.data)
-        numpy.testing.assert_array_equal(h5file.root.data0[:], self.quantizeddata_0)
-        numpy.testing.assert_array_equal(h5file.root.datam1[:], self.quantizeddata_m1)
-        numpy.testing.assert_array_equal(h5file.root.integers[:], self.randomints)
+        numpy.testing.assert_array_equal(h5file.root.data1[:],
+                self.data)
+        numpy.testing.assert_array_equal(h5file.root.data2[:],
+                self.data)
+        numpy.testing.assert_array_equal(h5file.root.data0[:],
+                self.quantizeddata_0)
+        numpy.testing.assert_array_equal(h5file.root.datam1[:],
+                self.quantizeddata_m1)
+        numpy.testing.assert_array_equal(h5file.root.integers[:],
+                self.randomints)
         assert(h5file.root.integers[:].dtype == self.randomints.dtype)
-        assert(numpy.abs(h5file.root.floats[:] - self.randomdata).max() < 0.05)
+        assert(numpy.abs(h5file.root.floats[:] - self.randomdata).max()
+                < 0.05)
 
 
 #----------------------------------------------------------------------
