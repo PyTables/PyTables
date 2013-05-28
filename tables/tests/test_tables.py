@@ -2063,7 +2063,7 @@ class BasicRangeTestCase(unittest.TestCase):
         resrange = r.indices(table.nrows)
         reslength = len(range(*resrange))
         #print "self.checkrecarray = ", self.checkrecarray
-        #print "self.checkgetCol = ", self.checkgetCol 
+        #print "self.checkgetCol = ", self.checkgetCol
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
@@ -2082,10 +2082,10 @@ class BasicRangeTestCase(unittest.TestCase):
                     result.append(column[nrec])
         else:
             if 0 < self.step:
-                result = [rec['var2'] for rec in table.iterrows(self.start, 
+                result = [rec['var2'] for rec in table.iterrows(self.start,
                             self.stop, self.step) if rec['var2'] < self.nrows]
             elif 0 > self.step:
-                result = [rec['var2'] for rec in table.iterrows(self.start, 
+                result = [rec['var2'] for rec in table.iterrows(self.start,
                             self.stop, self.step) if rec['var2'] > self.nrows]
 
         if self.start < 0:
@@ -5840,6 +5840,97 @@ class IrregularStrideTestCase(unittest.TestCase):
         self.assertTrue(allequal(coords2, np.arange(5, dtype=SizeType)))
 
 
+class Issue262TestCase(unittest.TestCase):
+    def setUp(self):
+        class IRecord(IsDescription):
+            c1 = Int32Col(pos=1)
+            c2 = Float64Col(pos=2)
+
+        self.file = tempfile.mktemp('.h5')
+        self.fileh = open_file(self.file, 'w', title='Chunkshape test')
+        table = self.fileh.create_table('/', 'table', IRecord)
+        table.nrowsinbuf = 3
+
+        for i in range(20):
+            table.row['c1'] = i
+            table.row['c2'] = i
+            table.row.append()
+
+            table.row['c1'] = i % 29
+            table.row['c2'] = 300 - i
+            table.row.append()
+
+            table.row['c1'] = 300 - i
+            table.row['c2'] = 100 + i % 30
+            table.row.append()
+
+        table.flush()
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+
+    def test_gh260(self):
+        """Regression test for gh-260"""
+
+        table = self.fileh.root.table
+        coords1 = table.get_where_list('(c1>5)&(c2<30)', start=0, step=2)
+        coords2 = table.get_where_list('(c1>5)&(c2<30)', start=1, step=2)
+        data = table.read()
+        data = data[np.where((data['c1'] > 5) & (data['c2'] < 30))]
+
+        if common.verbose:
+            print
+            print "Selected coords1-->", coords1
+            print "Selected coords2-->", coords2
+            print "Selected data-->", data
+        self.assertEqual(len(coords1) + len(coords2), len(data))
+
+    def test_gh262_01(self):
+        """Regression test for gh-262 (start=0, step=1)"""
+
+        table = self.fileh.root.table
+        data = table.get_where_list('(c1>5)&(~(c1>5))', start=0, step=1)
+
+        if common.verbose:
+            print
+            print "data -->", data
+        self.assertEqual(len(data), 0)
+
+    def test_gh262_02(self):
+        """Regression test for gh-262 (start=1, step=1)"""
+
+        table = self.fileh.root.table
+        data = table.get_where_list('(c1>5)&(~(c1>5))', start=1, step=1)
+
+        if common.verbose:
+            print
+            print "data -->", data
+        self.assertEqual(len(data), 0)
+
+    def test_gh262_03(self):
+        """Regression test for gh-262 (start=0, step=2)"""
+
+        table = self.fileh.root.table
+        data = table.get_where_list('(c1>5)&(~(c1>5))', start=0, step=2)
+
+        if common.verbose:
+            print
+            print "data -->", data
+        self.assertEqual(len(data), 0)
+
+    def test_gh262_04(self):
+        """Regression test for gh-262 (start=1, step=2)"""
+
+        table = self.fileh.root.table
+        data = table.get_where_list('(c1>5)&(~(c1>5))', start=1, step=2)
+
+        if common.verbose:
+            print
+            print "data -->", data
+        self.assertEqual(len(data), 0)
+
+
 class TruncateTestCase(unittest.TestCase):
     def setUp(self):
         self.file = tempfile.mktemp('.h5')
@@ -6588,6 +6679,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
         theSuite.addTest(unittest.makeSuite(ZeroSizedTestCase))
         theSuite.addTest(unittest.makeSuite(IrregularStrideTestCase))
+        theSuite.addTest(unittest.makeSuite(Issue262TestCase))
         theSuite.addTest(unittest.makeSuite(TruncateOpen1))
         theSuite.addTest(unittest.makeSuite(TruncateOpen2))
         theSuite.addTest(unittest.makeSuite(TruncateClose1))
