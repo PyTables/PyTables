@@ -1086,6 +1086,7 @@ cdef class Row:
         # Evaluate the condition on this table fragment.
         self.indexvalid = call_on_recarr(
           self.condfunc, self.condargs, self.iobuf[:recout] )
+        self.index_valid_data = <char *>self.indexvalid.data
 
         # Is there any interesting information in this buffer?
         if not numpy.sometrue(self.indexvalid):
@@ -1099,8 +1100,7 @@ cdef class Row:
               correct = (self.nextelement - self.start) % self.step
               self.nextelement = self.nextelement - correct
           continue
-        self.index_valid_data = <char *>self.indexvalid.data
-
+      
       self._row = self._row + self.step
       self._nrow = self.nextelement
       if self._row + self.step >= self.stopb:
