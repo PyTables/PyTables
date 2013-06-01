@@ -232,7 +232,7 @@ htmlhelp_basename = 'pytablesdoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('usersguide/usersguide', 'usersguide-%s.tex' % version,
-   u'PyTables User Guide', u'The PyTables Governance Team', 'manual'),
+   u'PyTables User Guide', u'PyTables maintainers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -278,9 +278,9 @@ autosummary_generate = []
 
 # Bibliographic Dublin Core info.
 epub_title = u'PyTables'
-epub_author = u'The PyTables Governance Team'
-epub_publisher = u'The PyTables Governance Team'
-epub_copyright = u'2011-2013, The PyTables Governance Team'
+epub_author = u'PyTables maintainers'
+epub_publisher = u'PyTables maintainers'
+epub_copyright = u'2011-2013, PyTables maintainers'
 
 # -- External link oOptions ----------------------------------------------------
 extlinks = {
