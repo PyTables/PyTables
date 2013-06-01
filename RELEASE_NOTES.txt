@@ -8,6 +8,12 @@
 .. py:currentmodule:: tables
 
 
+Changes from 2.4 to 3.X.Y (in development)
+==========================================
+
+None
+
+
 Changes from 2.4 to 3.0
 =======================
 
