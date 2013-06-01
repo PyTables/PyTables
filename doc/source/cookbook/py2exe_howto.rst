@@ -12,17 +12,17 @@ How to integrate PyTables in your application by using py2exe
 This document shortly describes how to build an executable when using PyTables.
 Py2exe_ is a third party product that converts python scripts into standalone
 windows application/programs.
-For more information about py2exe please visit http://py2exe.sourceforge.net.
+For more information about py2exe please visit http://www.py2exe.org.
 
 To be able to use py2exe you have to download and install it.
-Please follow the instructions at http://py2exe.sourceforge.net.
+Please follow the instructions at http://www.py2exe.org.
 
 Let’s assume that you have written a python script as in the attachment
 :download:`py2exe_howto/pytables_test.py`
 
 .. literalinclude:: py2exe_howto/pytables_test.py
    :linenos:
-   
+
 To wrap this script into an executable you have to create a setup script and a
 configuration script in your program directory.
 

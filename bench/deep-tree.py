@@ -43,14 +43,14 @@ def populate(f, nlevels):
     recarr = numpy.zeros((10,), "i4,f4")
     descr = {'f0': tables.Int32Col(), 'f1': tables.Float32Col()}
     for i in range(nlevels):
-        #dset = f.createArray(g, "DS1", arr)
-        #dset = f.createArray(g, "DS2", arr)
-        dset = f.createCArray(g, "DS1", tables.IntAtom(), (10,))
-        dset = f.createCArray(g, "DS2", tables.IntAtom(), (10,))
-        #dset = f.createTable(g, "DS1", descr)
-        #dset = f.createTable(g, "DS2", descr)
-        group2 = f.createGroup(g, 'group2_')
-        g = f.createGroup(g, 'group')
+        #dset = f.create_array(g, "DS1", arr)
+        #dset = f.create_array(g, "DS2", arr)
+        dset = f.create_carray(g, "DS1", tables.IntAtom(), (10,))
+        dset = f.create_carray(g, "DS2", tables.IntAtom(), (10,))
+        #dset = f.create_table(g, "DS1", descr)
+        #dset = f.create_table(g, "DS2", descr)
+        group2 = f.create_group(g, 'group2_')
+        g = f.create_group(g, 'group')
 
 
 def getnode(f, nlevels, niter, range_):
@@ -60,7 +60,7 @@ def getnode(f, nlevels, niter, range_):
         for i in range(nlevel):
             groupname += "/group"
         groupname += "/DS1"
-        n = f.getNode(groupname)
+        n = f.get_node(groupname)
 
 
 if __name__=='__main__':
@@ -79,9 +79,9 @@ if __name__=='__main__':
 
     if profile: tref = time()
     if profile: show_stats("Abans de crear...", tref)
-    f = tables.openFile("/tmp/PTdeep-tree.h5", 'w',
-                        NODE_CACHE_SLOTS=nodeCacheSlots,
-                        PYTABLES_SYS_ATTRS=pytablesSysAttrs)
+    f = tables.open_file("/tmp/PTdeep-tree.h5", 'w',
+                        node_cache_slots=nodeCacheSlots,
+                        pytables_sys_attrs=pytablesSysAttrs)
     if doprofile:
         prof.run('populate(f, nlevels)', 'populate.prof')
         stats = pstats.Stats('populate.prof')
@@ -98,9 +98,9 @@ if __name__=='__main__':
 
     if profile: tref = time()
     if profile: show_stats("Abans d'obrir...", tref)
-    f = tables.openFile("/tmp/PTdeep-tree.h5", 'r',
-                        NODE_CACHE_SLOTS=nodeCacheSlots,
-                        PYTABLES_SYS_ATTRS=pytablesSysAttrs)
+    f = tables.open_file("/tmp/PTdeep-tree.h5", 'r',
+                        node_cache_slots=nodeCacheSlots,
+                        pytables_sys_attrs=pytablessysattrs)
     if profile: show_stats("Abans d'accedir...", tref)
     if doprofile:
         prof.run('getnode(f, nlevels, niter, range_)', 'getnode.prof')

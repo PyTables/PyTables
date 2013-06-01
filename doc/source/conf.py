@@ -27,11 +27,17 @@ sys.path.insert(0, os.path.abspath('../sphinxext'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.pngmath',
-              'sphinx.ext.inheritance_diagram', 'sphinx.ext.extlinks',
-              'sphinx.ext.todo', 'sphinx.ext.viewcode',
-              'ipython_console_highlighting', 'numpydoc',
-              ]
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.pngmath',
+    'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.extlinks',
+    'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
+    'ipython_console_highlighting',
+    'numpydoc',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -47,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PyTables'
-copyright = u'2011-2012, The PyTables Governance Team'
+copyright = u'2011-2013, PyTables maintainers'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -130,12 +136,12 @@ html_theme_options = {'sidebarbgcolor': 'rgba(213, 197, 229, 0.15)',
                       'footertextcolor': '#504A4B',
                       'bodytrimcolor': trimcolor,
                       'linkcolor': linkcolor,
-                      'textcolor': '#323039', 
+                      'textcolor': '#323039',
                       'sectionbgcolor': '#3CAD1C',
                       #'sectiontextcolor': '#777777',
-                      #'sectiontrimcolor': trimcolor, 
+                      #'sectiontrimcolor': trimcolor,
                       'codebgcolor': '#F1FFF0',
-                      'codetextcolor': '#000000', 
+                      'codetextcolor': '#000000',
                       'quotebgcolor': '#f6fcfc',
                       'rubricbgcolor': '#D00000',
                       #'min_height': 'bottom',
@@ -176,7 +182,7 @@ html_static_path = ['_static']
 # Custom sidebar templates, maps document names to template names.
 html_sidebars = {
     'index': ['globaltoc.html', 'relations.html', 'sourcelink.html',
-              'searchbox.html']
+              'searchbox.html', 'travis-ci.html']
 }
 
 # Additional templates that should be rendered to pages, maps page names to
@@ -226,7 +232,7 @@ htmlhelp_basename = 'pytablesdoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('usersguide/usersguide', 'usersguide-%s.tex' % version,
-   u'PyTables User Guide', u'The PyTables Governance Team', 'manual'),
+   u'PyTables User Guide', u'PyTables maintainers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -261,7 +267,7 @@ latex_elements = {
 #]
 
 # If false, no module index is generated.
-#latex_domain_indices = True
+latex_domain_indices = False
 
 # -- Options for autodocumentation ---------------------------------------------
 autodoc_member_order = "groupwise"
@@ -272,12 +278,12 @@ autosummary_generate = []
 
 # Bibliographic Dublin Core info.
 epub_title = u'PyTables'
-epub_author = u'The PyTables Governance Team'
-epub_publisher = u'The PyTables Governance Team'
-epub_copyright = u'2011-2012, The PyTables Governance Team'
+epub_author = u'PyTables maintainers'
+epub_publisher = u'PyTables maintainers'
+epub_copyright = u'2011-2013, PyTables maintainers'
 
 # -- External link oOptions ----------------------------------------------------
 extlinks = {
     'issue': ('https://github.com/PyTables/PyTables/issues/%s', 'gh-'),
-    'irc': ('http://pytables.github.com/irc/%s.html', ''),
+    'irc': ('http://pytables.github.io/irc/%s.html', ''),
 }

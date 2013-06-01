@@ -20,8 +20,8 @@ def fill_bucket(lbucket):
 
 # Fill the table
 t1 = time()
-f = tables.openFile("data.nobackup/collations.h5", "w")
-table = f.createTable("/", "Energies", Energies, expectedrows=N)
+f = tables.open_file("data.nobackup/collations.h5", "w")
+table = f.create_table("/", "Energies", Energies, expectedrows=N)
 # Fill the table with values
 lbucket = 1000   # Fill in buckets of 1000 rows, for speed
 for i in xrange(0, N, lbucket):
@@ -34,7 +34,7 @@ f.close()
 print "Time to create the table with %d entries: %.3f" % (N, time()-t1)
 
 # Now, read the table and group it by collection
-f = tables.openFile("data.nobackup/collations.h5", "a")
+f = tables.open_file("data.nobackup/collations.h5", "a")
 table = f.root.Energies
 
 #########################################################
@@ -76,8 +76,8 @@ del collections, energy_this_collection
 print "Time for second solution: %.3f" % (time()-t1)
 
 t1 = time()
-table.cols.collection.createCSIndex()
-#table.cols.collection.reIndex()
+table.cols.collection.create_csindex()
+#table.cols.collection.reindex()
 print "Time for indexing: %.3f" % (time()-t1)
 
 #########################################################
@@ -86,7 +86,7 @@ print "Time for indexing: %.3f" % (time()-t1)
 t1 = time()
 coll3 = []
 for c in np.unique(table.col('collection')) :
-    energy_this_collection = table.readWhere('collection == c', field='energy')
+    energy_this_collection = table.read_where('collection == c', field='energy')
     sener = energy_this_collection.sum()
     coll3.append(sener)
     print c, ' : ', sener
@@ -105,7 +105,7 @@ print "Time for sorting: %.3f" % (time()-t1)
 t1 = time()
 coll4 = []
 for c in np.unique(table2.col('collection')) :
-    energy_this_collection = table2.readWhere(
+    energy_this_collection = table2.read_where(
         'collection == c', field='energy')
     sener = energy_this_collection.sum()
     coll4.append(sener)

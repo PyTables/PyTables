@@ -1,16 +1,21 @@
-"""
-Unit tests for PyTables
-=======================
+# -*- coding: utf-8 -*-
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2005-12-02
-:License:  BSD
-:Revision: $Id$
+########################################################################
+#
+# License: BSD
+# Created: 2005-12-02
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""Unit tests for PyTables
 
 This package contains some modules which provide a ``suite()``
 function (with no arguments) which returns a test suite for some
 PyTables functionality.
+
 """
 
 from tables.tests.test_all import print_versions, test, suite

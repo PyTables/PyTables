@@ -2,12 +2,22 @@
 PyTables Release Notes
 ======================
 
+Migration
+----------
+
+.. toctree::
+    :maxdepth: 1
+
+    Migrating from 2.x to 3.x <MIGRATING_TO_3.x>
+    Migrating from 1.x to 2.x <MIGRATING_TO_2.x>
+
 PyTables
 --------
 
 .. toctree::
     :maxdepth: 1
 
+    release-notes/RELEASE_NOTES_v3.0.x
     release-notes/RELEASE_NOTES_v2.4.x
     release-notes/RELEASE_NOTES_v2.3.x
     release-notes/RELEASE_NOTES_v2.2.x
@@ -47,6 +57,11 @@ Release timeline
 ----------------
 
 =============== =========== ==========
+PyTables        3.0         2013-06-01
+PyTables        3.0rc3      2013-05-29
+PyTables        3.0rc2      2013-05-17
+PyTables        3.0rc1      2013-05-10
+PyTables        3.0b1       2013-04-27
 PyTables        2.4         2012-07-20
 PyTables        2.4rc1      2012-07-16
 PyTables        2.4b1       2012-07-07

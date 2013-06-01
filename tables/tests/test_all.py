@@ -1,10 +1,11 @@
-"""
-Run all test cases.
-"""
+# -*- coding: utf-8 -*-
 
-import sys
+"""Run all test cases."""
+
 import os
 import re
+import sys
+import locale
 import unittest
 
 import numpy
@@ -13,15 +14,13 @@ import numexpr
 import tables
 from tables.req_versions import *
 from tables.tests import common
-from tables.utils import detectNumberOfCores
-
+from tables.utils import detect_number_of_cores
 
 
 def get_tuple_version(hexversion):
     """Get a tuple from a compact version in hex."""
     h = hexversion
     return(h & 0xff0000) >> 16, (h & 0xff00) >> 8, h & 0xff
-
 
 
 def suite():
@@ -53,44 +52,9 @@ def suite():
         'tables.tests.test_index_backcompat',
         # Sub-packages
         'tables.nodes.tests.test_filenode',
-        #'tables.netcdf3.tests.test_netcdf3',
     ]
 
-    # Numeric is now deprecated
-    # Add test_Numeric only if Numeric is installed
-    if False:   # if common.numeric_imported:
-        import Numeric
-        print "Numeric (version %s) is present. Adding the Numeric test suite." % \
-              (Numeric.__version__)
-        if Numeric.__version__ < min_numeric_version:
-            print "*Warning*: Numeric version is lower than recommended: %s < %s" % \
-                  (Numeric.__version__, min_numeric_version)
-        test_modules.append("tables.tests.test_Numeric")
-    else:
-        pass
-        # Do not print this anymore
-        #print "Skipping Numeric test suite."
-
-    # numarray is now deprecated
-    # Add test_numarray only if numarray is installed
-    if False:   # if common.numarray_imported:
-        import numarray
-        print \
-"""numarray (version %s) is present. Adding the numarray test suite.""" % \
-              (numarray.__version__)
-        if numarray.__version__ < min_numarray_version:
-            print \
-"*Warning*: Numarray version is lower than recommended: %s < %s" % \
-                  (numarray.__version__, min_numarray_version)
-        test_modules.append("tables.tests.test_numarray")
-        test_modules.append("tables.nra.tests.test_nestedrecords")
-        test_modules.append("tables.nra.tests.test_nriterators")
-    else:
-        pass
-        # Do not print this anymore
-        #print "Skipping numarray test suite."
-    #print '-=' * 38
-
+    # print '-=' * 38
 
     # The test for garbage must be run *in the last place*.
     # Else, it is not as useful.
@@ -101,7 +65,12 @@ def suite():
         # Add a memory report at the beginning
         alltests.addTest(unittest.makeSuite(common.ShowMemTime))
     for name in test_modules:
-        exec('from %s import suite as test_suite' % name)
+        # Unexpectedly, the following code doesn't seem to work anymore
+        # in python 3
+        # exec('from %s import suite as test_suite' % name)
+        __import__(name)
+        test_suite = sys.modules[name].suite
+
         alltests.addTest(test_suite())
         if common.show_memory:
             # Add a memory report after each test module
@@ -113,9 +82,9 @@ def print_versions():
     """Print all the versions of software that PyTables relies on."""
     print '-=' * 38
     print "PyTables version:  %s" % tables.__version__
-    print "HDF5 version:      %s" % tables.whichLibVersion("hdf5")[1]
+    print "HDF5 version:      %s" % tables.which_lib_version("hdf5")[1]
     print "NumPy version:     %s" % numpy.__version__
-    tinfo = tables.whichLibVersion("zlib")
+    tinfo = tables.which_lib_version("zlib")
     if numexpr.use_vml:
         # Get only the main version number and strip out all the rest
         vml_version = numexpr.get_vml_version()
@@ -126,13 +95,13 @@ def print_versions():
     print "Numexpr version:   %s (%s)" % (numexpr.__version__, vml_avail)
     if tinfo is not None:
         print "Zlib version:      %s (%s)" % (tinfo[1], "in Python interpreter")
-    tinfo = tables.whichLibVersion("lzo")
+    tinfo = tables.which_lib_version("lzo")
     if tinfo is not None:
         print "LZO version:       %s (%s)" % (tinfo[1], tinfo[2])
-    tinfo = tables.whichLibVersion("bzip2")
+    tinfo = tables.which_lib_version("bzip2")
     if tinfo is not None:
         print "BZIP2 version:     %s (%s)" % (tinfo[1], tinfo[2])
-    tinfo = tables.whichLibVersion("blosc")
+    tinfo = tables.which_lib_version("blosc")
     if tinfo is not None:
         blosc_date = tinfo[2].split()[1]
         print "Blosc version:     %s (%s)" % (tinfo[1], blosc_date)
@@ -146,7 +115,8 @@ def print_versions():
         (sysname, nodename, release, version, machine) = os.uname()
         print 'Platform:          %s-%s' % (sys.platform, machine)
     print 'Byte-ordering:     %s' % sys.byteorder
-    print 'Detected cores:    %s' % detectNumberOfCores()
+    print 'Detected cores:    %s' % detect_number_of_cores()
+    print 'Default encoding:  %s' % sys.getdefaultencoding()
     print '-=' * 38
 
 
@@ -197,7 +167,7 @@ def test(verbose=False, heavy=False):
 
 if __name__ == '__main__':
 
-    hdf5_version = get_tuple_version(tables.whichLibVersion("hdf5")[0])
+    hdf5_version = get_tuple_version(tables.which_lib_version("hdf5")[0])
     if hdf5_version < min_hdf5_version:
         print "*Warning*: HDF5 version is lower than recommended: %s < %s" % \
               (hdf5_version, min_hdf5_version)

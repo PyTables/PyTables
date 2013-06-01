@@ -1,4 +1,5 @@
-#  Ei!, emacs, this is -*-Python-*- mode
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 #       License: BSD
@@ -67,6 +68,21 @@ cdef extern from "hdf5.h" nogil:
     H5F_SCOPE_LOCAL     = 0     # specified file handle only
     H5F_SCOPE_GLOBAL    = 1     # entire virtual file
     H5F_SCOPE_DOWN      = 2     # for internal use only
+
+  cdef enum H5FD_mem_t:
+    H5FD_MEM_NOLIST     = -1,   # Data should not appear in the free list.
+                                # Must be negative.
+    H5FD_MEM_DEFAULT    = 0,    # Value not yet set.  Can also be the
+                                # datatype set in a larger allocation
+                                # that will be suballocated by the library.
+                                # Must be zero.
+    H5FD_MEM_SUPER      = 1,    # Superblock data
+    H5FD_MEM_BTREE      = 2,    # B-tree data
+    H5FD_MEM_DRAW       = 3,    # Raw data (content of datasets, etc.)
+    H5FD_MEM_GHEAP      = 4,    # Global heap data
+    H5FD_MEM_LHEAP      = 5,    # Local heap data
+    H5FD_MEM_OHDR       = 6,    # Object header data
+    H5FD_MEM_NTYPES             # Sentinel value - must be last
 
   cdef enum H5O_type_t:
     H5O_TYPE_UNKNOWN = -1       # Unknown object type
@@ -261,6 +277,9 @@ cdef extern from "hdf5.h" nogil:
   htri_t H5Fis_hdf5(char *name)
   herr_t H5Fflush(hid_t object_id, H5F_scope_t scope)
   herr_t H5Fget_vfd_handle(hid_t file_id, hid_t fapl_id, void **file_handle)
+  ssize_t H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
+  herr_t H5Fget_filesize(hid_t file_id, hsize_t *size)
+  hid_t H5Fget_create_plist(hid_t file_id)
 
   # Operations with groups
   hid_t  H5Gcreate(hid_t loc_id, char *name, hid_t lcpl_id, hid_t gcpl_id,
@@ -354,12 +373,46 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Pset_cache(hid_t plist_id, int mdc_nelmts, int rdcc_nelmts,
                       size_t rdcc_nbytes, double rdcc_w0)
   herr_t H5Pset_sieve_buf_size(hid_t fapl_id, hsize_t size)
-  herr_t H5Pset_fapl_log(hid_t fapl_id, char *logfile,
-                         unsigned int flags, size_t buf_size)
   H5D_layout_t H5Pget_layout(hid_t plist)
   int H5Pget_chunk(hid_t plist, int max_ndims, hsize_t *dims)
+
+  hid_t H5Pget_driver(hid_t plist_id)
+  herr_t H5Pset_fapl_sec2(hid_t fapl_id)
+  #herr_t H5Pget_fapl_direct(hid_t fapl_id, size_t *alignment,
+  #                          size_t *block_size, size_t *cbuf_size)
+  #herr_t H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
+  #                          size_t block_size, size_t cbuf_size)
+  herr_t H5Pset_fapl_log(hid_t fapl_id, const_char *logfile,
+                         unsigned long long flags, size_t buf_size)
+  #herr_t H5Pset_fapl_windows(hid_t fapl_id)
+  herr_t H5Pset_fapl_stdio(hid_t fapl_id)
+  #herr_t H5Pget_fapl_core(hid_t fapl_id, size_t *increment,
+  #                        hbool_t *backing_store)
   herr_t H5Pset_fapl_core(hid_t fapl_id, size_t increment,
                           hbool_t backing_store)
+  #herr_t H5Pget_fapl_family(hid_t fapl_id, hsize_t *memb_size,
+  #                          hid_t *memb_fapl_id)
+  herr_t H5Pset_fapl_family(hid_t fapl_id, hsize_t memb_size,
+                            hid_t memb_fapl_id)
+  #herr_t H5Pget_fapl_multi(hid_t fapl_id, H5FD_mem_t *memb_map,
+  #                         hid_t *memb_fapl, const_char **memb_name,
+  #                         haddr_t *memb_addr, hbool_t *relax)
+  herr_t H5Pset_fapl_multi(hid_t fapl_id, H5FD_mem_t *memb_map,
+                           hid_t *memb_fapl, char **memb_name,
+                           haddr_t *memb_addr, hbool_t relax)
+  herr_t H5Pset_fapl_split(hid_t fapl_id, const_char *meta_ext,
+                           hid_t meta_plist_id, const_char *raw_ext,
+                           hid_t raw_plist_id)
+  #herr_t H5Pget_fapl_mpio(hid_t fapl_id, MPI_Comm *comm, MPI_Info *info)
+  #herr_t H5Pset_fapl_mpio(hid_t fapl_id, MPI_Comm comm, MPI_Info info)
+
+  #herr_t H5Pget_fapl_mpiposix(hid_t fapl_id, MPI_Comm *comm,
+  #                            hbool_t *use_gpfs_hints)
+  #herr_t H5Pset_fapl_mpiposix(hid_t fapl_id, MPI_Comm comm,
+  #                            hbool_t use_gpfs_hints)
+  herr_t H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
+  herr_t H5Pget_userblock(hid_t plist, hsize_t *size)
+  herr_t H5Pset_userblock(hid_t plist, hsize_t size)
 
   # Error Handling Interface
   #herr_t H5Eget_auto(hid_t estack_id, H5E_auto_t *func, void** data)
@@ -379,15 +432,16 @@ cdef extern from "hdf5.h" nogil:
 cdef extern from "H5ATTR.h" nogil:
   herr_t H5ATTRget_attribute(hid_t loc_id, char *attr_name,
                              hid_t type_id, void *data)
-  herr_t H5ATTRget_attribute_string(hid_t loc_id, char *attr_name,
-                                    char **attr_value)
-  herr_t H5ATTRget_attribute_vlen_string_array(hid_t loc_id, char *attr_name,
-                                               char ***attr_value)
+  hsize_t H5ATTRget_attribute_string(hid_t loc_id, char *attr_name,
+                                     char **attr_value, int *cset)
+  hsize_t H5ATTRget_attribute_vlen_string_array(hid_t loc_id, char *attr_name,
+                                                char ***attr_value, int *cset)
   herr_t H5ATTRset_attribute(hid_t obj_id, char *attr_name,
                              hid_t type_id, size_t rank,  hsize_t *dims,
-                             char *attr_data )
+                             char *attr_data)
   herr_t H5ATTRset_attribute_string(hid_t loc_id, char *attr_name,
-                                    char *attr_data)
+                                    char *attr_data, hsize_t attr_size,
+                                    int cset)
   herr_t H5ATTRfind_attribute(hid_t loc_id, char *attr_name)
   herr_t H5ATTRget_type_ndims(hid_t loc_id, char *attr_name,
                               hid_t *type_id, H5T_class_t *class_id,
@@ -404,21 +458,33 @@ cdef extern from "H5ARRAY.h" nogil:
 
 
 # Some utilities
+cdef extern from "utils.h" nogil:
+  herr_t set_cache_size(hid_t file_id, size_t cache_size)
+  int get_objinfo(hid_t loc_id, char *name)
+  int get_linkinfo(hid_t loc_id, char *name)
+  hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step)
+  hid_t  create_ieee_float16(char *byteorder)
+  hid_t  create_ieee_complex64(char *byteorder)
+  hid_t  create_ieee_complex128(char *byteorder)
+  hid_t  create_ieee_complex192(char *byteorder)
+  hid_t  create_ieee_complex256(char *byteorder)
+  herr_t set_order(hid_t type_id, char *byteorder)
+  herr_t get_order(hid_t type_id, char *byteorder)
+  int    is_complex(hid_t type_id)
+  herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size)
+  herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
+                               size_t block_size, size_t cbuf_size)
+  herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
+  herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
+  ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
+  int H5_HAVE_DIRECT_DRIVER, H5_HAVE_WINDOWS_DRIVER, H5_HAVE_IMAGE_FILE
+
+
 cdef extern from "utils.h":
-  herr_t set_cache_size(hid_t file_id, size_t cache_size) nogil
-  int get_objinfo(hid_t loc_id, char *name) nogil
-  int get_linkinfo(hid_t loc_id, char *name) nogil
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   object H5UIget_info(hid_t loc_id, char *name, char *byteorder)
-  hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step) nogil
-  hid_t  create_ieee_float16(char *byteorder) nogil
-  hid_t  create_ieee_complex64(char *byteorder) nogil
-  hid_t  create_ieee_complex128(char *byteorder) nogil
-  herr_t set_order(hid_t type_id, char *byteorder) nogil
-  herr_t get_order(hid_t type_id, char *byteorder) nogil
-  int    is_complex(hid_t type_id) nogil
-  herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size) nogil
+
 
 # Type conversion routines
 cdef extern from "typeconv.h" nogil:

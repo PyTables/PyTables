@@ -25,7 +25,7 @@ this::
 
     import tables
 
-.. contents:: Table Of Contents
+.. .. contents:: Table Of Contents
 
 
 Creating a new database
@@ -719,6 +719,6 @@ should be changed to::
 .. _`User's Guide`: http://www.pytables.org/docs/manual
 .. _HDF5: http://www.hdfgroup.org/HDF5
 .. _SQLite: http://www.sqlite.org
-.. _NumPy: http://numpy.scipy.org
+.. _NumPy: http://www.numpy.org
 .. _`Python DBAPI`: http://www.python.org/dev/peps/pep-0249
 

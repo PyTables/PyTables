@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 # License: BSD
@@ -12,18 +14,17 @@
 
 import numpy
 
-from tables.utilsExtension import lrange
-from tables.utils import convertToNPAtom2, SizeType
+from tables.utils import convert_to_np_atom2, SizeType
 from tables.carray import CArray
 
-__version__ = "$Revision$"
-
+from tables._past import previous_api, previous_api_property
 
 # default version for EARRAY objects
-#obversion = "1.0"    # initial version
-#obversion = "1.1"    # support for complex datatypes
-#obversion = "1.2"    # This adds support for time datatypes.
-obversion = "1.3"    # This adds support for enumerated datatypes.
+# obversion = "1.0"    # initial version
+# obversion = "1.1"    # support for complex datatypes
+# obversion = "1.2"    # This adds support for time datatypes.
+# obversion = "1.3"    # This adds support for enumerated datatypes.
+obversion = "1.4"    # Numeric and numarray flavors are gone.
 
 
 class EArray(CArray):
@@ -41,6 +42,15 @@ class EArray(CArray):
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+           Renamed from *parentNode* to *parentnode*.
+
+    name : str
+        The name of this node in its parent group.
+
     atom
         An `Atom` instance representing the *type* and *shape*
         of the atomic objects to be saved.
@@ -92,11 +102,12 @@ class EArray(CArray):
         import tables
         import numpy
 
-        fileh = tables.openFile('earray1.h5', mode='w')
+        fileh = tables.open_file('earray1.h5', mode='w')
         a = tables.StringAtom(itemsize=8)
 
         # Use ``a`` as the object type for the enlargeable array.
-        array_c = fileh.createEArray(fileh.root, 'array_c', a, (0,), \"Chars\")
+        array_c = fileh.create_earray(fileh.root, 'array_c', a, (0,),
+                                      \"Chars\")
         array_c.append(numpy.array(['a'*2, 'b'*4], dtype='S8'))
         array_c.append(numpy.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
 
@@ -113,30 +124,31 @@ class EArray(CArray):
         array_c[2] => 'aaaaaa'
         array_c[3] => 'bbbbbbbb'
         array_c[4] => 'cccccccc'
+
     """
 
     # Class identifier.
-    _c_classId = 'EARRAY'
+    _c_classid = 'EARRAY'
 
+    _c_classId = previous_api_property('_c_classid')
 
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__( self, parentNode, name,
-                  atom=None, shape=None, title="",
-                  filters=None, expectedrows=None,
-                  chunkshape=None, byteorder=None,
-                  _log=True ):
+    def __init__(self, parentnode, name,
+                 atom=None, shape=None, title="",
+                 filters=None, expectedrows=None,
+                 chunkshape=None, byteorder=None,
+                 _log=True):
 
         # Specific of EArray
         if expectedrows is None:
-            expectedrows = parentNode._v_file.params['EXPECTED_ROWS_EARRAY']
+            expectedrows = parentnode._v_file.params['EXPECTED_ROWS_EARRAY']
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the array."""
 
         # Call the parent (CArray) init code
-        super(EArray, self).__init__(parentNode, name, atom, shape, title,
+        super(EArray, self).__init__(parentnode, name, atom, shape, title,
                                      filters, chunkshape, byteorder, _log)
-
 
     # Public and private methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -160,23 +172,23 @@ class EArray(CArray):
         # Finish the common part of the creation process
         return self._g_create_common(self._v_expectedrows)
 
-
-    def _checkShapeAppend(self, nparr):
+    def _check_shape_append(self, nparr):
         "Test that nparr shape is consistent with underlying EArray."
 
         # The arrays conforms self expandibility?
         myrank = len(self.shape)
         narank = len(nparr.shape) - len(self.atom.shape)
         if myrank != narank:
-            raise ValueError("""\
-the ranks of the appended object (%d) and the ``%s`` EArray (%d) differ"""
+            raise ValueError(("the ranks of the appended object (%d) and the "
+                              "``%s`` EArray (%d) differ")
                              % (narank, self._v_pathname, myrank))
         for i in range(myrank):
             if i != self.extdim and self.shape[i] != nparr.shape[i]:
-                raise ValueError("""\
-the shapes of the appended object and the ``%s`` EArray \
-differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
+                raise ValueError(("the shapes of the appended object and the "
+                                  "``%s`` EArray differ in non-enlargeable "
+                                  "dimension %d") % (self._v_pathname, i))
 
+    _checkShapeAppend = previous_api(_check_shape_append)
 
     def append(self, sequence):
         """Add a sequence of data to the end of the dataset.
@@ -187,30 +199,31 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         dimensions must match, with the exception of the enlargeable
         dimension, which can be of any length (even 0!).  If the shape
         of the sequence is invalid, a ValueError is raised.
+
         """
 
-        self._v_file._checkWritable()
+        self._g_check_open()
+        self._v_file._check_writable()
 
         # Convert the sequence into a NumPy object
-        nparr = convertToNPAtom2(sequence, self.atom)
+        nparr = convert_to_np_atom2(sequence, self.atom)
         # Check if it has a consistent shape with underlying EArray
-        self._checkShapeAppend(nparr)
+        self._check_shape_append(nparr)
         # If the size of the nparr is zero, don't do anything else
         if nparr.size > 0:
             self._append(nparr)
 
-
-    def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, chunkshape, _log, **kwargs):
+    def _g_copy_with_stats(self, group, name, start, stop, step,
+                           title, filters, chunkshape, _log, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
 
-        (start, stop, step) = self._processRangeRead(start, stop, step)
+        (start, stop, step) = self._process_range_read(start, stop, step)
         # Build the new EArray object
         maindim = self.maindim
         shape = list(self.shape)
         shape[maindim] = 0
         # The number of final rows
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
         # Build the new EArray object
         object = EArray(
             group, name, atom=self.atom, shape=shape, title=title,
@@ -224,9 +237,9 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         # when copying buffers
         self._v_convert = False
         # Start the copy itself
-        for start2 in lrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step * nrowsinbuf):
             # Save the records on disk
-            stop2 = start2+step*nrowsinbuf
+            stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
             # Set the proper slice in the extensible dimension
@@ -234,10 +247,11 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.itemsize
+        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.itemsize
 
         return (object, nbytes)
 
+    _g_copyWithStats = previous_api(_g_copy_with_stats)
 
 ## Local Variables:
 ## mode: python

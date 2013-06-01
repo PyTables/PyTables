@@ -1,10 +1,20 @@
 #include <stdarg.h>
 #include "utils.h"
-/* #include <string.h> */
 #include "version.h"
 #include "H5Zlzo.h"                /* Import FILTER_LZO */
 #include "H5Zbzip2.h"              /* Import FILTER_BZIP2 */
 
+#if PY_MAJOR_VERSION > 2
+#define PyString_FromString PyUnicode_FromString
+#endif
+
+#ifndef NPY_COMPLEX192
+typedef npy_cdouble npy_complex192;
+#endif
+
+#ifndef NPY_COMPLEX256
+typedef npy_cdouble npy_complex256;
+#endif
 
 /* ---------------------------------------------------------------- */
 
@@ -110,7 +120,7 @@ PyObject *getHDF5VersionInfo(void) {
   }
 
   t = PyTuple_New(2);
-  PyTuple_SetItem(t, 0, PyInt_FromLong(binver));
+  PyTuple_SetItem(t, 0, PyLong_FromLong(binver));
   PyTuple_SetItem(t, 1, PyString_FromString(strver));
   return t;
 }
@@ -204,7 +214,7 @@ PyObject *get_filter_names( hid_t loc_id,
                      cd_values, sizeof(f_name), f_name, NULL);
        filter_values = PyTuple_New(cd_nelmts);
        for (j=0;j<(long)cd_nelmts;j++) {
-         PyTuple_SetItem(filter_values, j, PyInt_FromLong(cd_values[j]));
+         PyTuple_SetItem(filter_values, j, PyLong_FromLong(cd_values[j]));
        }
        PyMapping_SetItemString (filters, f_name, filter_values);
      }
@@ -469,7 +479,7 @@ PyObject *H5UIget_info( hid_t loc_id,
   t = PyTuple_New(rank);
   for(i=0;i<rank;i++) {
     /* I don't know if I should increase the reference count for dims[i]! */
-    PyTuple_SetItem(t, i, PyInt_FromLong((long)dims[i]));
+    PyTuple_SetItem(t, i, PyLong_FromLong((long)dims[i]));
   }
 
   /* Release resources */
@@ -541,7 +551,7 @@ hsize_t _PyEval_SliceIndex_modif(PyObject *v, hssize_t *pi)
 
   if (v != NULL) {
     PY_LONG_LONG x;
-    if (PyInt_Check(v)) {
+    if (PyLong_Check(v)) {
       x = PyLong_AsLongLong(v);
     }
     else if (PyLong_Check(v)) {
@@ -610,7 +620,10 @@ hsize_t getIndicesExt(PyObject *s, hsize_t length,
                 if (!_PyEval_SliceIndex_modif(r->stop, stop)) return -1;
                 if ((PY_LONG_LONG)*stop < 0) *stop += length;
                 if ((PY_LONG_LONG)*stop < 0) *stop = -1;
+                //if ((PY_LONG_LONG)*stop < 0) *stop = (*step < 0) ? -1 : 0;
                 if ((PY_LONG_LONG)*stop > (PY_LONG_LONG)length) *stop = length;
+                //if ((PY_LONG_LONG)*stop >= (PY_LONG_LONG)length)// *stop = length;
+                //        *stop = (*step < 0) ? length - 1 : length;
         }
 
         if (((PY_LONG_LONG)*step < 0 && (PY_LONG_LONG)*stop >= (PY_LONG_LONG)*start)
@@ -794,6 +807,37 @@ hid_t create_ieee_float16(const char *byteorder) {
 }
 
 
+/* Create a HDF5 atomic datatype that represents quad precision floatting
+   point numbers. */
+hid_t create_ieee_quadprecision_float(const char *byteorder) {
+  hid_t float_id;
+
+  if (byteorder == NULL)
+    float_id = H5Tcopy(H5T_NATIVE_DOUBLE);
+  else if (strcmp(byteorder, "little") == 0)
+    float_id = H5Tcopy(H5T_IEEE_F64LE);
+  else
+    float_id = H5Tcopy(H5T_IEEE_F64BE);
+
+  if (float_id < 0)
+    return float_id;
+
+  if (H5Tset_size(float_id, 16) < 0)
+    return -1;
+
+  if ((H5Tset_precision(float_id, 128)) < 0)
+    return -1;
+
+  if (H5Tset_fields(float_id , 127, 112, 15, 0, 112) < 0)
+    return -1;
+
+  if (H5Tset_ebias(float_id, 16383) < 0)
+    return -1;
+
+  return float_id;
+}
+
+
 /* Create a HDF5 compound datatype that represents complex numbers
    defined by numpy as complex64. */
 hid_t create_ieee_complex64(const char *byteorder) {
@@ -806,6 +850,13 @@ hid_t create_ieee_complex64(const char *byteorder) {
     float_id = H5Tcopy(H5T_IEEE_F32LE);
   else
     float_id = H5Tcopy(H5T_IEEE_F32BE);
+
+  if (float_id < 0)
+  {
+    H5Tclose(complex_id);
+    return float_id;
+  }
+
   H5Tinsert(complex_id, "r", HOFFSET(npy_complex64, real), float_id);
   H5Tinsert(complex_id, "i", HOFFSET(npy_complex64, imag), float_id);
   H5Tclose(float_id);
@@ -824,8 +875,79 @@ hid_t create_ieee_complex128(const char *byteorder) {
     float_id = H5Tcopy(H5T_IEEE_F64LE);
   else
     float_id = H5Tcopy(H5T_IEEE_F64BE);
+
+  if (float_id < 0)
+  {
+    H5Tclose(complex_id);
+    return float_id;
+  }
+
   H5Tinsert(complex_id, "r", HOFFSET(npy_complex128, real), float_id);
   H5Tinsert(complex_id, "i", HOFFSET(npy_complex128, imag), float_id);
+  H5Tclose(float_id);
+  return complex_id;
+}
+
+
+/* Counterpart for complex192 */
+hid_t create_ieee_complex192(const char *byteorder) {
+  herr_t err = 0;
+  hid_t float_id, complex_id;
+  H5T_order_t h5order = H5Tget_order(H5T_NATIVE_LDOUBLE);
+
+  complex_id = H5Tcreate(H5T_COMPOUND, sizeof(npy_complex192));
+  float_id = H5Tcopy(H5T_NATIVE_LDOUBLE);
+  if (float_id < 0)
+  {
+    H5Tclose(complex_id);
+    return float_id;
+  }
+
+  if ((strcmp(byteorder, "little") == 0) && (h5order != H5T_ORDER_LE))
+    err = H5Tset_order(float_id, H5T_ORDER_LE);
+  else if ((strcmp(byteorder, "big") == 0) && (h5order != H5T_ORDER_BE))
+    err = H5Tset_order(float_id, H5T_ORDER_BE);
+
+  if (err < 0)
+  {
+    H5Tclose(complex_id);
+    return err;
+  }
+
+  H5Tinsert(complex_id, "r", HOFFSET(npy_complex192, real), float_id);
+  H5Tinsert(complex_id, "i", HOFFSET(npy_complex192, imag), float_id);
+  H5Tclose(float_id);
+  return complex_id;
+}
+
+
+/* Counterpart for complex256 */
+hid_t create_ieee_complex256(const char *byteorder) {
+  herr_t err = 0;
+  hid_t float_id, complex_id;
+  H5T_order_t h5order = H5Tget_order(H5T_NATIVE_LDOUBLE);
+
+  complex_id = H5Tcreate(H5T_COMPOUND, sizeof(npy_complex256));
+  float_id = H5Tcopy(H5T_NATIVE_LDOUBLE);
+  if (float_id < 0)
+  {
+    H5Tclose(complex_id);
+    return float_id;
+  }
+
+  if ((strcmp(byteorder, "little") == 0) && (h5order != H5T_ORDER_LE))
+    err = H5Tset_order(float_id, H5T_ORDER_LE);
+  else if ((strcmp(byteorder, "big") == 0) && (h5order != H5T_ORDER_BE))
+    err = H5Tset_order(float_id, H5T_ORDER_BE);
+
+  if (err < 0)
+  {
+    H5Tclose(complex_id);
+    return err;
+  }
+
+  H5Tinsert(complex_id, "r", HOFFSET(npy_complex256, real), float_id);
+  H5Tinsert(complex_id, "i", HOFFSET(npy_complex256, imag), float_id);
   H5Tclose(float_id);
   return complex_id;
 }
@@ -926,3 +1048,69 @@ out:
  if (dims) free(dims);
  return -1;
 }
+
+
+/*
+ * Helpers for management of HDF5 drivers
+ */
+
+/* DIRECT driver */
+#ifdef H5_HAVE_DIRECT
+
+herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
+                             size_t block_size, size_t cbuf_size)
+{
+ return H5Pset_fapl_direct(fapl_id, alignment, block_size, cbuf_size);
+}
+
+#else /* H5_HAVE_DIRECT */
+
+herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
+                             size_t block_size, size_t cbuf_size)
+{
+ return -1;
+}
+
+#endif /* H5_HAVE_DIRECT */
+
+
+/* WINDOWS driver */
+#ifdef H5_HAVE_WINDOWS
+
+herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
+{
+ return H5Pset_fapl_windows(fapl_id);
+}
+
+#else /* H5_HAVE_WINDOWS */
+
+herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
+{
+ return -1;
+}
+
+#endif /* H5_HAVE_WINDOWS */
+
+
+#if (H5_HAVE_IMAGE_FILE == 1)
+/* HDF5 version >= 1.8.9 */
+
+herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) {
+ return H5Pset_file_image(fapl_id, buf_ptr, buf_len);
+}
+
+ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len) {
+ return H5Fget_file_image(file_id, buf_ptr, buf_len);
+}
+
+#else /* (H5_HAVE_IMAGE_FILE == 1) */
+/* HDF5 version < 1.8.9 */
+
+herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) {
+ return -1;
+}
+
+ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len) {
+ return -1;
+}
+#endif /* (H5_HAVE_IMAGE_FILE == 1) */

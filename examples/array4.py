@@ -4,7 +4,7 @@ from tables import *
 basedim = 4
 file = "array4.h5"
 # Open a new empty HDF5 file
-fileh = openFile(file, mode = "w")
+fileh = open_file(file, mode = "w")
 # Get the root group
 group = fileh.root
 # Set the type codes to test
@@ -15,10 +15,10 @@ for dtype in dtypes:
     a = ones((basedim,) * i, dtype)
     # Save it on the HDF5 file
     dsetname = 'array_' + a.dtype.char
-    hdfarray = fileh.createArray(group, dsetname, a, "Large array")
+    hdfarray = fileh.create_array(group, dsetname, a, "Large array")
     print "Created dataset:", hdfarray
     # Create a new group
-    group = fileh.createGroup(group, 'group' + str(i))
+    group = fileh.create_group(group, 'group' + str(i))
     # increment the range for next iteration
     i += 1
 
@@ -27,7 +27,7 @@ fileh.close()
 
 
 # Open the previous HDF5 file in read-only mode
-fileh = openFile(file, mode = "r")
+fileh = open_file(file, mode = "r")
 # Get the root group
 group = fileh.root
 # Get the metadata on the previosly saved arrays

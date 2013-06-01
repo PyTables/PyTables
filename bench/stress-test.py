@@ -1,6 +1,6 @@
-import sys, time, gc
+import sys, time, gc  # , types
 import numpy
-from tables import Group
+from tables import Group  # , MetaIsDescription
 from tables import *
 
 class Test(IsDescription):
@@ -20,21 +20,21 @@ def createFileArr(filename, ngroups, ntables, nrows):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = openFile(filename, mode="w", title="PyTables Stress Test")
+    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
-        fileh.createGroup("/", 'group%04d'% k, "Group %d" % k)
+        fileh.create_group("/", 'group%04d'% k, "Group %d" % k)
 
     fileh.close()
 
     # Now, create the arrays
     arr = numpy.arange(nrows)
     for k in range(ngroups):
-        fileh = openFile(filename, mode="a", rootUEP='group%04d'% k)
+        fileh = open_file(filename, mode="a", root_uep='group%04d'% k)
         for j in range(ntables):
             # Create the array
-            fileh.createArray("/", 'array%04d'% j, arr, "Array %d" % j)
+            fileh.create_array("/", 'array%04d'% j, arr, "Array %d" % j)
         fileh.close()
 
     return (ngroups*ntables*nrows, 4)
@@ -43,13 +43,13 @@ def readFileArr(filename, ngroups, recsize, verbose):
 
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = openFile(filename, mode="r", rootUEP='group%04d'% ngroup)
+        fileh = open_file(filename, mode="r", root_uep='group%04d'% ngroup)
         # Get the group
         group = fileh.root
         narrai = 0
         if verbose:
             print "Group ==>", group
-        for arrai in fileh.listNodes(group, 'Array'):
+        for arrai in fileh.list_nodes(group, 'Array'):
             if verbose > 1:
                 print "Array ==>", arrai
                 print "Rows in", arrai._v_pathname, ":", arrai.shape
@@ -69,11 +69,11 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = openFile(filename, mode="w", title="PyTables Stress Test")
+    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
-        group = fileh.createGroup("/", 'group%04d'% k, "Group %d" % k)
+        group = fileh.create_group("/", 'group%04d'% k, "Group %d" % k)
 
     fileh.close()
 
@@ -84,13 +84,13 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
 
     for k in range(ngroups):
         print "Filling tables in group:", k
-        fileh = openFile(filename, mode="a", rootUEP='group%04d'% k)
+        fileh = open_file(filename, mode="a", root_uep='group%04d'% k)
         # Get the group
         group = fileh.root
         for j in range(ntables):
             # Create a table
-            #table = fileh.createTable(group, 'table%04d'% j, Test,
-            table = fileh.createTable(group, 'table%04d'% j, TestDict,
+            #table = fileh.create_table(group, 'table%04d'% j, Test,
+            table = fileh.create_table(group, 'table%04d'% j, TestDict,
                                       'Table%04d'%j,
                                       complevel, complib, nrows)
             rowsize = table.rowsize
@@ -118,13 +118,13 @@ def readFile(filename, ngroups, recsize, verbose):
     buffersize = 0
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = openFile(filename, mode="r", rootUEP='group%04d'% ngroup)
+        fileh = open_file(filename, mode="r", root_uep='group%04d'% ngroup)
         # Get the group
         group = fileh.root
         ntable = 0
         if verbose:
             print "Group ==>", group
-        for table in fileh.listNodes(group, 'Table'):
+        for table in fileh.list_nodes(group, 'Table'):
             rowsize = table.rowsize
             buffersize=table.rowsize * table.nrowsinbuf
             if verbose > 1:
@@ -174,7 +174,7 @@ class TrackRefs:
             if verbose:
                 #if t == types.TupleType:
                 if isinstance(o, Group):
-                #if isinstance(o, metaIsDescription):
+                #if isinstance(o, MetaIsDescription):
                     print "-->", o, "refs:", all
                     refrs = gc.get_referrers(o)
                     trefrs = []

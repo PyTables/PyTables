@@ -17,7 +17,7 @@ shuffle = True
 def create_file(kind, prec, synth):
     prefix_orig = 'cellzome/cellzome-'
     iname = dirname+prefix_orig+'none-'+prec+'.h5'
-    f = tb.openFile(iname, "r")
+    f = tb.open_file(iname, "r")
 
     if prec == "single":
         type_ = tb.Float32Atom()
@@ -32,7 +32,7 @@ def create_file(kind, prec, synth):
     for clevel in range(10):
         oname = '%s/%s-%s%d-%s.h5' % (dirname, prefix, kind, clevel, prec)
         #print "creating...", iname
-        f2 = tb.openFile(oname, "w")
+        f2 = tb.open_file(oname, "w")
 
         if kind in ["none", "numpy"]:
             filters = None
@@ -40,8 +40,8 @@ def create_file(kind, prec, synth):
             filters = tb.Filters(complib=kind, complevel=clevel, shuffle=shuffle)
 
         for name in ['maxarea', 'mascotscore']:
-            col = f.getNode('/', name)
-            r = f2.createCArray('/', name, type_, col.shape, filters=filters)
+            col = f.get_node('/', name)
+            r = f2.create_carray('/', name, type_, col.shape, filters=filters)
             if synth:
                 r[:] = np.arange(col.nrows, dtype=type_.dtype)
             else:
@@ -57,7 +57,7 @@ def create_synth(kind, prec):
 
     prefix_orig = 'cellzome/cellzome-'
     iname = dirname+prefix_orig+'none-'+prec+'.h5'
-    f = tb.openFile(iname, "r")
+    f = tb.open_file(iname, "r")
 
     if prec == "single":
         type_ = tb.Float32Atom()
@@ -68,7 +68,7 @@ def create_synth(kind, prec):
     for clevel in range(10):
         oname = '%s/%s-%s%d-%s.h5' % (dirname, prefix, kind, clevel, prec)
         #print "creating...", iname
-        f2 = tb.openFile(oname, "w")
+        f2 = tb.open_file(oname, "w")
 
         if kind in ["none", "numpy"]:
             filters = None
@@ -76,8 +76,8 @@ def create_synth(kind, prec):
             filters = tb.Filters(complib=kind, complevel=clevel, shuffle=shuffle)
 
         for name in ['maxarea', 'mascotscore']:
-            col = f.getNode('/', name)
-            r = f2.createCArray('/', name, type_, col.shape, filters=filters)
+            col = f.get_node('/', name)
+            r = f2.create_carray('/', name, type_, col.shape, filters=filters)
             if name == 'maxarea':
                 r[:] = np.arange(col.nrows, dtype=type_.dtype)
             else:
@@ -101,12 +101,12 @@ def process_file(kind, prec, clevel, synth):
     else:
         prefix = 'cellzome/cellzome-'
     iname = '%s/%s-%s%d-%s.h5' % (dirname, prefix, kind, clevel, prec)
-    f = tb.openFile(iname, "r")
+    f = tb.open_file(iname, "r")
     a_ = f.root.maxarea
     b_ = f.root.mascotscore
 
     oname = '%s/%s-%s%d-%s-r.h5' % (dirname, prefix, kind, clevel, prec)
-    f2 = tb.openFile(oname, "w")
+    f2 = tb.open_file(oname, "w")
     if lib == "none":
         filters = None
     else:
@@ -115,7 +115,7 @@ def process_file(kind, prec, clevel, synth):
         type_ = tb.Float32Atom()
     else:
         type_ = tb.Float64Atom()
-    r = f2.createCArray('/', 'r', type_, a_.shape, filters=filters)
+    r = f2.create_carray('/', 'r', type_, a_.shape, filters=filters)
 
     if kind == "numpy":
         a2, b2 = a_[:], b_[:]
@@ -124,7 +124,7 @@ def process_file(kind, prec, clevel, synth):
         print "%5.2f" % round(time()-t0, 3)
     else:
         expr = tb.Expr(expression, {'a':a_, 'b':b_})
-        expr.setOutput(r)
+        expr.set_output(r)
         expr.eval()
     f.close()
     f2.close()

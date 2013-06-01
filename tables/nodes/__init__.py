@@ -1,11 +1,12 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
-#	License: BSD
-#	Created: October 19, 2004
-#	Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
+# License: BSD
+# Created: October 19, 2004
+# Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
-#	$Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/tables/nodes/__init__.py,v $
-#	$Id$
+# $Id$
 #
 ########################################################################
 
@@ -17,15 +18,12 @@ a file interface to a PyTables node.
 
 
 Package modules:
-	filenode -- A file interface to nodes for PyTables databases.
-"""
+  filenode -- A file interface to nodes for PyTables databases.
 
-# Revision for the package initialization code.
-__revision__ = '$Id$'
+"""
 
 # The list of names to be exported to the importing module.
 __all__ = ['filenode']
-
 
 
 ## Local Variables:

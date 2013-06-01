@@ -62,8 +62,8 @@ To that end, special Python features like generators, slots and
 metaclasses in new-brand classes have been used. In addition,
 iterators has been implemented were context was appropriate so as to
 enable the interactive work to be as productive as possible. For these
-reasons, you will need to use Python 2.4 or higher (Python 2.4.4 or
-better recommended) to take advantage of PyTables.
+reasons, you will need to use Python 2.6 or higher to take advantage of
+PyTables.
 
 Platforms
 ---------
@@ -84,13 +84,9 @@ and bzip2 compression libraries support you will also need recent
 versions of them. LZO and bzip2 compression libraries are, however,
 optional.
 
-We've tested this PyTables version with HDF5 1.8.4/1.8.9, NumPy 1.4.1
-and Numexpr 1.4.1, and you *need* to use these versions, or higher, to
-make use of PyTables. Albeit you won't need numarray or Numeric Python
-in order to compile PyTables, they are supported; you only will need a
-reasonably recent version of them (>= 1.5.2 for numarray and >= 24.x
-for Numeric). PyTables has been successfully tested against numarray
-1.5.2 and Numeric 24.2.
+We've tested this PyTables version with HDF5 1.8.4/1.8.10, NumPy 1.4.1
+and Numexpr 2.0, and you *need* to use these versions, or higher, to
+make use of PyTables.
 
 Installation
 ------------
@@ -104,9 +100,9 @@ http://www.pytables.org/moin/HowToUse).
 
 1. First, make sure that you have HDF5, NumPy and Numexpr installed
    (you will need at least HDF5 1.8.4, NumPy 1.4.1 and Numexpr
-   1.4.1). If don't, get them from http://hdfgroup.org/HDF5/,
-   http://numpy.scipy.org/ and
-   http://code.google.com/p/numexpr. Compile/install them.
+   2.0). If don't, get them from http://www.hdfgroup.org/HDF5/,
+   http://www.numpy.org and http://code.google.com/p/numexpr.
+   Compile/install them.
 
    Optionally, consider to install the excellent LZO compression
    library from http://www.oberhumer.com/opensource/.  You can also
@@ -116,22 +112,22 @@ http://www.pytables.org/moin/HowToUse).
 2. From the main PyTables distribution directory run this command,
    (plus any extra flags needed as discussed above)::
 
-        python setup.py build_ext --inplace
+    $ python setup.py build_ext --inplace
 
 3. To run the test suite, set the PYTHONPATH environment variable to
    include the ``.`` directory, enter the Python interpreter and issue
    the commands::
 
-        >>> import tables
-        >>> tables.test()
+    >>> import tables
+    >>> tables.test()
 
-   If there is some test that does not pass, please run send the
+   If there is some test that does not pass, please send the
    complete output for tests back to us.
 
 4. To install the entire PyTables Python package, run this command as
    the root user (remember to add any extra flags needed)::
 
-        python setup.py install
+    $ python setup.py install
 
 
 That's it!  Good luck, and let us know of any bugs, suggestions,

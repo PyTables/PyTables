@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sys
 import unittest
 import os
@@ -9,25 +11,26 @@ from tables.tests import common
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
 
+
 def WriteRead(filename, testTuple):
     if common.verbose:
         print '\n', '-=' * 30
         print "Running test for object %s" % \
-                  (type(testTuple))
+            (type(testTuple))
 
     # Create an instance of HDF5 Table
-    fileh = openFile(filename, mode = "w")
+    fileh = open_file(filename, mode="w")
     root = fileh.root
     try:
         # Create the array under root and name 'somearray'
         a = testTuple
-        fileh.createArray(root, 'somearray', a, "Some array")
+        fileh.create_array(root, 'somearray', a, "Some array")
     finally:
         # Close the file
         fileh.close()
 
     # Re-open the file in read-only mode
-    fileh = openFile(filename, mode = "r")
+    fileh = open_file(filename, mode="r")
     root = fileh.root
 
     # Read the saved array
@@ -45,8 +48,8 @@ def WriteRead(filename, testTuple):
         # Close the file
         fileh.close()
 
-class BasicTestCase(unittest.TestCase):
 
+class BasicTestCase(unittest.TestCase):
     def test00_char(self):
         "Data integrity during recovery (character types)"
 
@@ -56,7 +59,6 @@ class BasicTestCase(unittest.TestCase):
             WriteRead(fname, a)
         finally:
             os.remove(fname)
-        return
 
     def test01_types(self):
         "Data integrity during recovery (numerical types)"
@@ -67,19 +69,20 @@ class BasicTestCase(unittest.TestCase):
             WriteRead(fname, a)
         finally:
             os.remove(fname)
-        return
+
 
 class Basic0DOneTestCase(BasicTestCase):
     # Scalar case
     title = "Rank-0 case 1"
     numericalList = 3
-    charList = "3"
+    charList = b"3"
+
 
 class Basic0DTwoTestCase(BasicTestCase):
     # Scalar case
     title = "Rank-0 case 2"
     numericalList = 33.34
-    charList = "33"*500
+    charList = b"33"*500
 
 # This does not work anymore because I've splitted the chunked arrays to happen
 # mainly in EArray objects
@@ -88,34 +91,37 @@ class Basic0DTwoTestCase(BasicTestCase):
 #     numericalList = []
 #     charList = []
 
+
 class Basic1DOneTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 1"
     numericalList = [3]
-    charList = ["a"]
+    charList = [b"a"]
+
 
 class Basic1DTwoTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 2"
     numericalList = [3.2, 4.2]
-    charList = ["aaa"]
+    charList = [b"aaa"]
+
 
 class Basic2DTestCase(BasicTestCase):
     # 2D case
     title = "Rank-2 case 1"
     numericalList = [[1, 2]]*5
-    charList = [["qq", "zz"]]*5
+    charList = [[b"qq", b"zz"]]*5
+
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 case 1"
     numericalList = [[[[[[[[[[1, 2], [3, 4]]]]]]]]]]*5
     # Dimensions greather than 6 in strings gives some warnings
-    charList = [[[[[[[[[["a", "b"], ["qq", "zz"]]]]]]]]]]*5
+    charList = [[[[[[[[[[b"a", b"b"], [b"qq", b"zz"]]]]]]]]]]*5
 
 
 class ExceptionTestCase(unittest.TestCase):
-
     def test00_char(self):
         "Non suppported lists objects (character objects)"
 
@@ -138,9 +144,6 @@ class ExceptionTestCase(unittest.TestCase):
         else:
             self.fail("expected a ValueError")
 
-
-        return
-
     def test01_types(self):
         "Non supported lists object (numerical types)"
 
@@ -159,25 +162,22 @@ class ExceptionTestCase(unittest.TestCase):
         else:
             self.fail("expected an ValueError")
 
-        return
-
 
 class Basic1DFourTestCase(ExceptionTestCase):
     title = "Rank-1 case 4 (non-regular list)"
     numericalList = [3, [4, 5.2]]
-    charList = ["aaa", ["bbb", "ccc"]]
+    charList = [b"aaa", [b"bbb", b"ccc"]]
 
 
 class GetItemTestCase(unittest.TestCase):
-
     def test00_single(self):
         "Single element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -189,16 +189,15 @@ class GetItemTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test01_single(self):
         "Single element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -210,16 +209,15 @@ class GetItemTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test02_range(self):
         "Range element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -231,16 +229,15 @@ class GetItemTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test03_range(self):
         "Range element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -252,16 +249,15 @@ class GetItemTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test04_range(self):
         "Range element access, strided (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -273,16 +269,15 @@ class GetItemTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test05_range(self):
         "Range element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -294,16 +289,15 @@ class GetItemTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test06_negativeIndex(self):
         "Negative Index element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -315,16 +309,15 @@ class GetItemTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test07_negativeIndex(self):
         "Negative Index element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -336,16 +329,15 @@ class GetItemTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test08_negativeRange(self):
         "Negative range element access (character types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -357,16 +349,15 @@ class GetItemTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test09_negativeRange(self):
         "Negative range element access (numerical types)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -378,14 +369,15 @@ class GetItemTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
+
 
 class GI1ListTestCase(GetItemTestCase):
     title = "Rank-1 case 1 (lists)"
     numericalList = [3]
     numericalListME = [3, 2, 1, 0, 4, 5, 6]
-    charList = ["3"]
-    charListME = ["321", "221", "121", "021", "421", "521", "621"]
+    charList = [b"3"]
+    charListME = [b"321", b"221", b"121", b"021", b"421", b"521", b"621"]
+
 
 class GI2ListTestCase(GetItemTestCase):
     # A more complex example
@@ -397,25 +389,25 @@ class GI2ListTestCase(GetItemTestCase):
                        [3, 2, 1, 0, 4, 5, 6],
                        [3, 2, 1, 0, 4, 5, 6]]
 
-    charList = ["a", "b"]
-    charListME = [["321", "221", "121", "021", "421", "521", "621"],
-                  ["21", "21", "11", "02", "42", "21", "61"],
-                  ["31", "21", "12", "21", "41", "51", "621"],
-                  ["321", "221", "121", "021", "421", "521", "621"],
-                  ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                  ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]]
+    charList = [b"a", b"b"]
+    charListME = [[b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
+                  [b"21", b"21", b"11", b"02", b"42", b"21", b"61"],
+                  [b"31", b"21", b"12", b"21", b"41", b"51", b"621"],
+                  [b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
+                  [b"3241", b"2321", b"13216",
+                      b"0621", b"4421", b"5421", b"a621"],
+                  [b"a321", b"s221", b"d121", b"g021", b"b421", b"5vvv21", b"6zxzxs21"]]
 
 
 class GeneratorTestCase(unittest.TestCase):
-
     def test00a_single(self):
         "Testing generator access to Arrays, single elements (char)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         ga = [i for i in a]
@@ -429,16 +421,15 @@ class GeneratorTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test00b_me(self):
         "Testing generator access to Arrays, multiple elements (char)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if isinstance(a[0], tuple):
@@ -455,16 +446,15 @@ class GeneratorTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test01a_single(self):
         "Testing generator access to Arrays, single elements (numeric)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         ga = [i for i in a]
@@ -478,16 +468,15 @@ class GeneratorTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
 
     def test01b_me(self):
         "Testing generator access to Arrays, multiple elements (numeric)"
 
         file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
+        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
         if isinstance(a[0], tuple):
@@ -504,15 +493,16 @@ class GeneratorTestCase(unittest.TestCase):
         fileh.close()
         # Then, delete the file
         os.remove(file)
-        return
+
 
 class GE1ListTestCase(GeneratorTestCase):
     # Scalar case
     title = "Rank-1 case 1 (lists)"
     numericalList = [3]
     numericalListME = [3, 2, 1, 0, 4, 5, 6]
-    charList = ["3"]
-    charListME = ["321", "221", "121", "021", "421", "521", "621"]
+    charList = [b"3"]
+    charListME = [b"321", b"221", b"121", b"021", b"421", b"521", b"621"]
+
 
 class GE2ListTestCase(GeneratorTestCase):
     # Scalar case
@@ -524,13 +514,14 @@ class GE2ListTestCase(GeneratorTestCase):
                        [3, 2, 1, 0, 4, 5, 6],
                        [3, 2, 1, 0, 4, 5, 6]]
 
-    charList = ["a", "b"]
-    charListME = [["321", "221", "121", "021", "421", "521", "621"],
-                  ["21", "21", "11", "02", "42", "21", "61"],
-                  ["31", "21", "12", "21", "41", "51", "621"],
-                  ["321", "221", "121", "021", "421", "521", "621"],
-                  ["3241", "2321", "13216", "0621", "4421", "5421", "a621"],
-                  ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]]
+    charList = [b"a", b"b"]
+    charListME = [[b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
+                  [b"21", b"21", b"11", b"02", b"42", b"21", b"61"],
+                  [b"31", b"21", b"12", b"21", b"41", b"51", b"621"],
+                  [b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
+                  [b"3241", b"2321", b"13216",
+                      b"0621", b"4421", b"5421", b"a621"],
+                  [b"a321", b"s221", b"d121", b"g021", b"b421", b"5vvv21", b"6zxzxs21"]]
 
 
 def suite():
@@ -540,7 +531,7 @@ def suite():
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
         theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
-        #theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
+        # theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DFourTestCase))
@@ -555,4 +546,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
+    unittest.main(defaultTest='suite')

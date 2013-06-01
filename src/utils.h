@@ -32,6 +32,25 @@
 #   define TRUE (!FALSE)
 #endif
 
+#ifdef H5_HAVE_WINDOWS
+#define H5_HAVE_WINDOWS_DRIVER 1
+#else
+#define H5_HAVE_WINDOWS_DRIVER 0
+#endif
+
+#ifdef H5_HAVE_DIRECT
+#define H5_HAVE_DIRECT_DRIVER 1
+#else
+#define H5_HAVE_DIRECT_DRIVER 0
+#endif
+
+#if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR == 8 && H5_VERS_RELEASE >= 9) || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR > 8)
+/* HDF5 version >= 1.8.9 */
+#define H5_HAVE_IMAGE_FILE 1
+#else
+/* HDF5 version < 1.8.9 */
+#define H5_HAVE_IMAGE_FILE 0
+#endif
 
 /* Use %ld to print the value because long should cover most cases. */
 /* Used to make certain a return value _is_not_ a value */
@@ -90,11 +109,25 @@ herr_t get_order(hid_t type_id, char *byteorder);
 
 hid_t create_ieee_float16(const char *byteorder);
 
+hid_t create_ieee_quadprecision_float(const char *byteorder);
+
 hid_t create_ieee_complex64(const char *byteorder);
 
 hid_t create_ieee_complex128(const char *byteorder);
+
+hid_t create_ieee_complex192(const char *byteorder);
+
+hid_t create_ieee_complex256(const char *byteorder);
 
 hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step);
 
 herr_t truncate_dset( hid_t dataset_id, const int maindim, const hsize_t size);
 
+herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
+                             size_t block_size, size_t cbuf_size);
+
+herr_t pt_H5Pset_fapl_windows(hid_t fapl_id);
+
+herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len);
+
+ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len);

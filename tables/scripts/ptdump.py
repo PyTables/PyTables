@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
-#       License: BSD
-#       Created: February 10, 2004
-#       Author:  Francesc Alted - faltet@pytables.com
+# License: BSD
+# Created: February 10, 2004
+# Author:  Francesc Alted - faltet@pytables.com
 #
-#       $Id$
+# $Id$
 #
 ########################################################################
 
@@ -18,14 +20,16 @@ import sys
 import os.path
 import getopt
 
-from tables.file import openFile
+from tables.file import open_file
 from tables.group import Group
 from tables.leaf import Leaf
-from tables.table import Table
+from tables.table import Table, Column
 from tables.unimplemented import UnImplemented
-
+from tables._past import previous_api
 
 # default options
+
+
 class Options(object):
     rng = slice(None)
     showattrs = 0
@@ -37,7 +41,7 @@ class Options(object):
 options = Options()
 
 
-def dumpLeaf(leaf):
+def dump_leaf(leaf):
     if options.verbose:
         print repr(leaf)
     else:
@@ -75,29 +79,34 @@ def dumpLeaf(leaf):
     if isinstance(leaf, Table) and options.idxinfo:
         # Show info of indexes
         for colname in leaf.colnames:
-            if leaf.cols._f_col(colname).index is not None:
-                idx = leaf.cols._f_col(colname).index
+            col = leaf.cols._f_col(colname)
+            if isinstance(col, Column) and col.index is not None:
+                idx = col.index
                 print repr(idx)
 
+dumpLeaf = previous_api(dump_leaf)
 
-def dumpGroup(pgroup):
+
+def dump_group(pgroup):
     node_kinds = pgroup._v_file._node_kinds[1:]
-    for group in pgroup._f_walkGroups():
+    for group in pgroup._f_walk_groups():
         print str(group)
         if options.showattrs:
             print "  "+repr(group._v_attrs)
         for kind in node_kinds:
-            for node in group._f_listNodes(kind):
+            for node in group._f_list_nodes(kind):
                 if options.verbose or options.dump:
-                    dumpLeaf(node)
+                    dump_leaf(node)
                 else:
                     print str(node)
 
 
+dumpGroup = previous_api(dump_group)
+
 
 def main():
     usage = \
-    """usage: %s [-d] [-v] [-a] [-c] [-i] [-R start,stop,step] [-h] file[:nodepath]
+        """usage: %s [-d] [-v] [-a] [-c] [-i] [-R start,stop,step] [-h] file[:nodepath]
       -d -- Dump data information on leaves
       -v -- Dump more metainformation on nodes
       -a -- Show attributes in nodes (only useful when -v or -d are active)
@@ -161,14 +170,14 @@ def main():
             nodename = "/"
 
     # Check whether the specified node is a group or a leaf
-    h5file = openFile(filename, 'r')
-    nodeobject = h5file.getNode(nodename)
+    h5file = open_file(filename, 'r')
+    nodeobject = h5file.get_node(nodename)
     if isinstance(nodeobject, Group):
-        # Close the file again and reopen using the rootUEP
-        dumpGroup(nodeobject)
+        # Close the file again and reopen using the root_uep
+        dump_group(nodeobject)
     elif isinstance(nodeobject, Leaf):
         # If it is not a Group, it must be a Leaf
-        dumpLeaf(nodeobject)
+        dump_leaf(nodeobject)
     else:
         # This should never happen
         print "Unrecognized object:", nodeobject

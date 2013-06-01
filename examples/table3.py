@@ -8,8 +8,8 @@ class Particle(IsDescription):
     matrix2D    = ComplexCol(itemsize=16, shape=(2, 2), pos=5)
 
 # Open a file in "w"rite mode
-fileh = openFile("table3.h5", mode = "w")
-table = fileh.createTable(fileh.root, 'table', Particle, "A table")
+fileh = open_file("table3.h5", mode = "w")
+table = fileh.create_table(fileh.root, 'table', Particle, "A table")
 # Append several rows in only one call
 table.append([("Particle:     10", 10j, 0, (10*9+1j, 1), [[10**2j, 11*3]]*2),
               ("Particle:     11", 11j, -1, (11*10+2j, 2), [[11**2j, 10*3]]*2),

@@ -31,17 +31,17 @@ filename = "tutorial1.h5"
 print "Creating file:", filename
 
 # Open a file in "w"rite mode
-h5file = openFile(filename, mode = "w", title = "Test file")
+h5file = open_file(filename, mode = "w", title = "Test file")
 
 print
 print   '-**-**-**-**-**- group and table creation  -**-**-**-**-**-**-**-'
 
 # Create a new group under "/" (root)
-group = h5file.createGroup("/", 'detector', 'Detector information')
+group = h5file.create_group("/", 'detector', 'Detector information')
 print "Group '/detector' created"
 
 # Create one table on it
-table = h5file.createTable(group, 'readout', Particle, "Readout example")
+table = h5file.create_table(group, 'readout', Particle, "Readout example")
 print "Table '/detector/readout' created"
 
 # Print the file
@@ -89,15 +89,15 @@ print
 print   '-**-**-**-**-**-**- array object creation  -**-**-**-**-**-**-**-'
 
 print "Creating a new group called '/columns' to hold new arrays"
-gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
+gcolumns = h5file.create_group(h5file.root, "columns", "Pressure and Name")
 
 print "Creating an array called 'pressure' under '/columns' group"
-h5file.createArray(gcolumns, 'pressure', array(pressure),
+h5file.create_array(gcolumns, 'pressure', array(pressure),
                    "Pressure column selection")
 print repr(h5file.root.columns.pressure)
 
 print "Creating another array called 'name' under '/columns' group"
-h5file.createArray(gcolumns, 'name', names, "Name column selection")
+h5file.create_array(gcolumns, 'name', names, "Name column selection")
 print repr(h5file.root.columns.name)
 
 print "HDF5 file:"

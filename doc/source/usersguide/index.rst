@@ -13,7 +13,7 @@ Hierarchical datasets in Python
 
             |copy| 2008, 2009, 2010 - Francesc Alted
 
-            |copy| 2011-2012 - PyTables maintainers
+            |copy| 2011-2013 - PyTables maintainers
 
 --------
 Contents
@@ -27,11 +27,9 @@ Contents
     libref
     optimization
     filenode
-    netcdf3
     datatypes
     condition_syntax
     parameter_files
-    nested_rec_arrays
     utilities
     file_format
     bibliography

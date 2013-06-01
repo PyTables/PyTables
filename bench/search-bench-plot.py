@@ -2,7 +2,7 @@ import tables
 from pylab import *
 
 def get_values(filename, complib=''):
-    f = tables.openFile(filename)
+    f = tables.open_file(filename)
     nrows = f.root.small.create_best.cols.nrows[:]
     corrected_sizes = nrows/10.**6
     if mb_units:

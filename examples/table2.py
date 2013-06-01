@@ -8,8 +8,8 @@ class Particle(IsDescription):
     matrix2D    = Float64Col(shape=(2, 2), pos=5)      # double (double-precision)
 
 # Open a file in "w"rite mode
-fileh = openFile("table2.h5", mode = "w")
-table = fileh.createTable(fileh.root, 'table', Particle, "A table")
+fileh = open_file("table2.h5", mode = "w")
+table = fileh.create_table(fileh.root, 'table', Particle, "A table")
 # Append several rows in only one call
 table.append([("Particle:     10", 10, 0, (10*9, 1), [[10**2, 11*3]]*2),
               ("Particle:     11", 11, -1, (11*10, 2), [[11**2, 10*3]]*2),

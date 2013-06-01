@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 # License: BSD
@@ -12,9 +14,6 @@
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
-
-__version__ = '$Revision$'
-"""Repository version of this file."""
 
 
 import os
@@ -31,7 +30,7 @@ class HDF5ExtError(RuntimeError):
 
     Errors in the HDF5 C library may be accompanied by an extensive
     HDF5 back trace on standard error (see also
-    :func:`tables.silenceHDF5Messages`).
+    :func:`tables.silence_hdf5_messages`).
 
     .. versionchanged:: 2.4
 
@@ -41,7 +40,7 @@ class HDF5ExtError(RuntimeError):
         error message
     h5bt
         This parameter (keyword only) controls the HDF5 back trace
-        handling. Any keyword arguments other than h5bt are ignored.
+        handling. Any keyword arguments other than h5bt is ignored.
 
         * if set to False the HDF5 back trace is ignored and the
           :attr:`HDF5ExtError.h5backtrace` attribute is set to None
@@ -306,11 +305,6 @@ class FlavorError(ValueError):
     This exception is raised when an unsupported or unavailable flavor
     is given to a dataset, or when a conversion of data between two
     given flavors is not supported nor available.
-
-    A supported flavor may be unavailable if the package which
-    implements it is not installed locally, e.g. you may specify the
-    ``numeric`` flavor, which is supported by PyTables, but if Numeric
-    is not installed on your machine, you will get this error.
     """
 
     pass
@@ -357,22 +351,6 @@ class DataTypeWarning(Warning):
 
     This warning is issued when an unsupported HDF5 data type is found
     (normally in a file created with other tool than PyTables).
-    """
-
-    pass
-
-
-class Incompat16Warning(Warning):
-    """Format incompatible with HDF5 1.6.x format.
-
-    This warning is issued when using a functionality that is
-    incompatible with the HDF5 1.6.x format and that may create issues
-    for reading the files with PyTables compiled against HDF5 1.6.x.
-
-    .. deprecated:: 2.4
-
-        Support for HDF5 1.6.x has been dropped.
-
     """
 
     pass

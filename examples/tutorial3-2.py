@@ -8,25 +8,25 @@ marks.
 import tables
 
 # Create an HDF5 file
-fileh = tables.openFile('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
+fileh = tables.open_file('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
 
          #'-**-**-**-**-**-**- enable undo/redo log  -**-**-**-**-**-**-**-'
-fileh.enableUndo()
+fileh.enable_undo()
 
 # Start undoable operations
-fileh.createArray('/', 'otherarray1', [3, 4], 'Another array 1')
-fileh.createGroup('/', 'agroup', 'Group 1')
+fileh.create_array('/', 'otherarray1', [3, 4], 'Another array 1')
+fileh.create_group('/', 'agroup', 'Group 1')
 # Create a 'first' mark
 fileh.mark('first')
-fileh.createArray('/agroup', 'otherarray2', [4, 5], 'Another array 2')
-fileh.createGroup('/agroup', 'agroup2', 'Group 2')
+fileh.create_array('/agroup', 'otherarray2', [4, 5], 'Another array 2')
+fileh.create_group('/agroup', 'agroup2', 'Group 2')
 # Create a 'second' mark
 fileh.mark('second')
-fileh.createArray('/agroup/agroup2', 'otherarray3', [5, 6], 'Another array 3')
+fileh.create_array('/agroup/agroup2', 'otherarray3', [5, 6], 'Another array 3')
 # Create a 'third' mark
 fileh.mark('third')
-fileh.createArray('/', 'otherarray4', [6, 7], 'Another array 4')
-fileh.createArray('/agroup', 'otherarray5', [7, 8], 'Another array 5')
+fileh.create_array('/', 'otherarray4', [6, 7], 'Another array 4')
+fileh.create_array('/agroup', 'otherarray5', [7, 8], 'Another array 5')
 
 # Now go to mark 'first'
 fileh.goto('first')
@@ -73,7 +73,7 @@ assert fileh.root.agroup.otherarray5.read() == [7, 8]
 
 
          #'-**-**-**-**-**-**- disable undo/redo log  -**-**-**-**-**-**-**-'
-fileh.disableUndo()
+fileh.disable_undo()
 
 # Close the file
 fileh.close()

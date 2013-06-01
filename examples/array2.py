@@ -2,7 +2,7 @@ from numpy import *
 from tables import *
 
 # Open a new empty HDF5 file
-fileh = openFile("array2.h5", mode = "w")
+fileh = open_file("array2.h5", mode = "w")
 # Shortcut to the root group
 root = fileh.root
 
@@ -13,7 +13,7 @@ print "  with shape: ==>", a.shape
 print "  and dtype ==>", a.dtype
 
 # Save it on the HDF5 file
-hdfarray = fileh.createArray(root, 'carray', a, "Float array")
+hdfarray = fileh.create_array(root, 'carray', a, "Float array")
 
 # Get metadata on the previously saved array
 print
@@ -23,7 +23,7 @@ print "Info on the object:", repr(root.carray)
 fileh.close()
 
 # Open the previous HDF5 file in read-only mode
-fileh = openFile("array2.h5", mode = "r")
+fileh = open_file("array2.h5", mode = "r")
 # Get the root group
 root = fileh.root
 

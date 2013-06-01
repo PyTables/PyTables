@@ -1,19 +1,23 @@
-"""
-Functionality related with node paths in a PyTables file.
+# -*- coding: utf-8 -*-
 
-:Author: Ivan Vilata i Balaguer
-:Contact: ivan at selidor dot net
-:License: BSD
-:Created: January 15, 2007
-:Revision: $Id$
+########################################################################
+#
+# License: BSD
+# Created: January 15, 2007
+# Author:  Ivan Vilata i Balaguer - ivan at selidor dot net
+#
+# $Id$
+#
+########################################################################
+
+"""Functionality related with node paths in a PyTables file.
 
 Variables
 =========
 
 `__docformat`__
     The format of documentation strings in this module.
-`__version__`
-    Repository version of this file.
+
 """
 
 # Imports
@@ -23,23 +27,20 @@ import warnings
 import keyword
 
 from tables.exceptions import NaturalNameWarning
-
+from tables._past import previous_api
 
 # Public variables
 # ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
-__version__ = '$Revision$'
-"""Repository version of this file."""
-
 
 # Private variables
 # =================
-_pythonIdRE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
+_python_id_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 """Python identifier regular expression."""
 
-_reservedIdRE = re.compile('^_[cfgv]_')
+_reserved_id_re = re.compile('^_[cfgv]_')
 """PyTables reserved identifier regular expression.
 
 - c: class variables
@@ -48,13 +49,13 @@ _reservedIdRE = re.compile('^_[cfgv]_')
 - v: instance variables
 """
 
-_hiddenNameRE = re.compile('^_[pi]_')
+_hidden_name_re = re.compile('^_[pi]_')
 """Nodes with a name *matching* this expression are considered hidden.
 
 For instance, ``name`` whould be visible while ``_i_name`` would not.
 """
 
-_hiddenPathRE = re.compile('/_[pi]_')
+_hidden_path_re = re.compile('/_[pi]_')
 """Nodes with a path *containing* this expression are considered hidden.
 
 For instance, a node with a pathname like ``/a/b/c`` would be visible
@@ -65,7 +66,7 @@ not.
 
 # Public functions
 # ================
-def checkNameValidity(name):
+def check_name_validity(name):
     """Check the validity of the `name` of an object.
 
     If the name is not valid, a ``ValueError`` is raised.  If it is
@@ -75,7 +76,7 @@ def checkNameValidity(name):
 
     warnInfo = (
         "you will not be able to use natural naming to access this object; "
-        "using ``getattr()`` will still work, though" )
+        "using ``getattr()`` will still work, though")
 
     if not isinstance(name, basestring):  # Python >= 2.3
         raise TypeError("object name is not a string: %r" % (name,))
@@ -87,92 +88,107 @@ def checkNameValidity(name):
     if name == '.':
         raise ValueError("``.`` is not allowed as an object name")
     if '/' in name:
-        raise ValueError( "the ``/`` character is not allowed "
-                          "in object names: %r" % name )
+        raise ValueError("the ``/`` character is not allowed "
+                         "in object names: %r" % name)
 
     # Check whether `name` is a valid Python identifier.
-    if not _pythonIdRE.match(name):
-        warnings.warn( "object name is not a valid Python identifier: %r; "
-                       "it does not match the pattern ``%s``; %s"
-                       % (name, _pythonIdRE.pattern, warnInfo),
-                       NaturalNameWarning )
+    if not _python_id_re.match(name):
+        warnings.warn("object name is not a valid Python identifier: %r; "
+                      "it does not match the pattern ``%s``; %s"
+                      % (name, _python_id_re.pattern, warnInfo),
+                      NaturalNameWarning)
         return
 
     # However, Python identifiers and keywords have the same form.
     if keyword.iskeyword(name):
-        warnings.warn( "object name is a Python keyword: %r; %s"
-                       % (name, warnInfo), NaturalNameWarning )
+        warnings.warn("object name is a Python keyword: %r; %s"
+                      % (name, warnInfo), NaturalNameWarning)
         return
 
     # Still, names starting with reserved prefixes are not allowed.
-    if _reservedIdRE.match(name):
-        raise ValueError( "object name starts with a reserved prefix: %r; "
-                          "it matches the pattern ``%s``"
-                          % (name, _reservedIdRE.pattern) )
+    if _reserved_id_re.match(name):
+        raise ValueError("object name starts with a reserved prefix: %r; "
+                         "it matches the pattern ``%s``"
+                         % (name, _reserved_id_re.pattern))
 
     # ``__members__`` is the only exception to that rule.
     if name == '__members__':
         raise ValueError("``__members__`` is not allowed as an object name")
 
+checkNameValidity = previous_api(check_name_validity)
 
-def joinPath(parentPath, name):
-    """Join a *canonical* `parentPath` with a *non-empty* `name`.
 
-    >>> joinPath('/', 'foo')
+def join_path(parentpath, name):
+    """Join a *canonical* `parentpath` with a *non-empty* `name`.
+
+    .. versionchanged:: 3.0
+       The *parentPath* parameter has been renamed into *parentpath*.
+
+    >>> join_path('/', 'foo')
     '/foo'
-    >>> joinPath('/foo', 'bar')
+    >>> join_path('/foo', 'bar')
     '/foo/bar'
-    >>> joinPath('/foo', '/foo2/bar')
+    >>> join_path('/foo', '/foo2/bar')
     '/foo/foo2/bar'
-    >>> joinPath('/foo', '/')
+    >>> join_path('/foo', '/')
     '/foo'
+
     """
 
     if name.startswith('./'):  # Support relative paths (mainly for links)
         name = name[2:]
-    if parentPath == '/' and name.startswith('/'):
+    if parentpath == '/' and name.startswith('/'):
         pstr = '%s' % name
-    elif parentPath == '/' or name.startswith('/'):
-        pstr = '%s%s' % (parentPath, name)
+    elif parentpath == '/' or name.startswith('/'):
+        pstr = '%s%s' % (parentpath, name)
     else:
-        pstr = '%s/%s' % (parentPath, name)
+        pstr = '%s/%s' % (parentpath, name)
     if pstr.endswith('/'):
         pstr = pstr[:-1]
     return pstr
 
+joinPath = previous_api(join_path)
 
-def splitPath(path):
+
+def split_path(path):
     """Split a *canonical* `path` into a parent path and a node name.
 
     The result is returned as a tuple.  The parent path does not
     include a trailing slash.
 
-    >>> splitPath('/')
+    >>> split_path('/')
     ('/', '')
-    >>> splitPath('/foo/bar')
+    >>> split_path('/foo/bar')
     ('/foo', 'bar')
+
     """
 
-    lastSlash = path.rfind('/')
-    ppath = path[:lastSlash]
-    name = path[lastSlash+1:]
+    lastslash = path.rfind('/')
+    ppath = path[:lastslash]
+    name = path[lastslash + 1:]
 
     if ppath == '':
         ppath = '/'
 
     return (ppath, name)
 
+splitPath = previous_api(split_path)
 
-def isVisibleName(name):
+
+def isvisiblename(name):
     """Does this `name` make the named node a visible one?"""
 
-    return _hiddenNameRE.match(name) is None
+    return _hidden_name_re.match(name) is None
+
+isVisibleName = previous_api(isvisiblename)
 
 
-def isVisiblePath(path):
+def isvisiblepath(path):
     """Does this `path` make the named node a visible one?"""
 
-    return _hiddenPathRE.search(path) is None
+    return _hidden_path_re.search(path) is None
+
+isVisiblePath = previous_api(isvisiblepath)
 
 
 # Main part

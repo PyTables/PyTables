@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 # License: BSD
@@ -12,17 +14,14 @@
 
 import warnings
 
-from tables import hdf5Extension
+from tables import hdf5extension
 from tables.utils import SizeType
 from tables.node import Node
 from tables.leaf import Leaf
+from tables._past import previous_api_property
 
 
-__version__ = "$Revision$"
-
-
-
-class UnImplemented(hdf5Extension.UnImplemented, Leaf):
+class UnImplemented(hdf5extension.UnImplemented, Leaf):
     """This class represents datasets not supported by PyTables in an
     HDF5 file.
 
@@ -44,12 +43,15 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
 
     This class does not have any public instance variables or methods, except
     those inherited from the Leaf class (see :ref:`LeafClassDescr`).
+
     """
 
     # Class identifier.
-    _c_classId = 'UNIMPLEMENTED'
+    _c_classid = 'UNIMPLEMENTED'
 
-    def __init__(self, parentNode, name):
+    _c_classId = previous_api_property('_c_classid')
+
+    def __init__(self, parentnode, name):
         """Create the `UnImplemented` instance."""
 
         # UnImplemented objects always come from opening an existing node
@@ -61,35 +63,32 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         self.shape = (SizeType(0),)
         """The shape of the stored data."""
         self.byteorder = None
-        """The endianness of data in memory ('big', 'little' or 'irrelevant').
-        """
+        """The endianness of data in memory ('big', 'little' or
+        'irrelevant')."""
 
-        super(UnImplemented, self).__init__(parentNode, name)
-
+        super(UnImplemented, self).__init__(parentnode, name)
 
     def _g_open(self):
-        (self.shape, self.byteorder, objectID) = \
-                     self._openUnImplemented()
+        (self.shape, self.byteorder, object_id) = self._open_unimplemented()
         try:
             self.nrows = SizeType(self.shape[0])
         except IndexError:
             self.nrows = SizeType(0)
-        return objectID
+        return object_id
 
-
-    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
+    def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         """Do nothing.
 
         This method does nothing, but a ``UserWarning`` is issued.
         Please note that this method *does not return a new node*, but
         ``None``.
+
         """
 
         warnings.warn(
             "UnImplemented node %r does not know how to copy itself; skipping"
             % (self._v_pathname,))
         return None  # Can you see it?
-
 
     def _f_copy(self, newparent=None, newname=None,
                 overwrite=False, recursive=False, createparents=False,
@@ -99,12 +98,12 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         This method does nothing, since `UnImplemented` nodes can not
         be copied.  However, a ``UserWarning`` is issued.  Please note
         that this method *does not return a new node*, but ``None``.
+
         """
 
         # This also does nothing but warn.
         self._g_copy(newparent, newname, recursive, **kwargs)
         return None  # Can you see it?
-
 
     def __repr__(self):
         return """%s
@@ -115,7 +114,6 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
 """ % (str(self), self._v_file.filename)
 
 
-
 # Classes reported as H5G_UNKNOWN by HDF5
 class Unknown(Node):
     """This class represents nodes reported as *unknown* by the underlying
@@ -123,23 +121,27 @@ class Unknown(Node):
 
     This class does not have any public instance variables or methods, except
     those inherited from the Node class.
+
     """
 
     # Class identifier
-    _c_classId = 'UNKNOWN'
+    _c_classid = 'UNKNOWN'
 
-    def __init__(self, parentNode, name):
+    _c_classId = previous_api_property('_c_classid')
+
+    def __init__(self, parentnode, name):
         """Create the `Unknown` instance."""
-        self._v_new = False
-        super(Unknown, self).__init__(parentNode, name)
 
-    def _g_new(self, parentNode, name, init=False):
+        self._v_new = False
+        super(Unknown, self).__init__(parentnode, name)
+
+    def _g_new(self, parentnode, name, init=False):
         pass
 
     def _g_open(self):
         return 0
 
-    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
+    def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         # Silently avoid doing copies of unknown nodes
         return None
 
@@ -159,7 +161,8 @@ class Unknown(Node):
 """ % (str(self))
 
 
-
 # These are listed here for backward compatibility with PyTables 0.9.x indexes
 class OldIndexArray(UnImplemented):
-    _c_classId = 'IndexArray'
+    _c_classid = 'IndexArray'
+
+    _c_classId = previous_api_property('_c_classid')

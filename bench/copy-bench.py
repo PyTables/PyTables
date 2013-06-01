@@ -6,19 +6,19 @@ if len(sys.argv) != 3:
     print "usage: %s source_file dest_file", sys.argv[0]
 filesrc = sys.argv[1]
 filedest = sys.argv[2]
-filehsrc = tables.openFile(filesrc)
-filehdest = tables.openFile(filedest, 'w')
+filehsrc = tables.open_file(filesrc)
+filehdest = tables.open_file(filedest, 'w')
 ntables = 0
 tsize = 0
 t1 = time.time()
-for group in filehsrc.walkGroups():
+for group in filehsrc.walk_groups():
     if isinstance(group._v_parent, tables.File):
         groupdest = filehdest.root
     else:
         pathname = group._v_parent._v_pathname
-        groupdest = filehdest.createGroup(pathname, group._v_name,
+        groupdest = filehdest.create_group(pathname, group._v_name,
                                           title=group._v_title)
-    for table in filehsrc.listNodes(group, classname='Table'):
+    for table in filehsrc.list_nodes(group, classname='Table'):
         print "copying table -->", table
         table.copy(groupdest, table.name)
         ntables += 1

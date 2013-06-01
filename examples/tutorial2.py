@@ -35,18 +35,18 @@ Event = dtype([
 #     }
 
 # Open a file in "w"rite mode
-fileh = openFile("tutorial2.h5", mode = "w")
+fileh = open_file("tutorial2.h5", mode = "w")
 # Get the HDF5 root group
 root = fileh.root
 # Create the groups:
 for groupname in ("Particles", "Events"):
-    group = fileh.createGroup(root, groupname)
+    group = fileh.create_group(root, groupname)
 # Now, create and fill the tables in Particles group
 gparticles = root.Particles
 # Create 3 new tables
 for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Create a table
-    table = fileh.createTable("/Particles", tablename, Particle,
+    table = fileh.create_table("/Particles", tablename, Particle,
                               "Particles: "+tablename)
     # Get the record object associated with the table:
     particle = table.row
@@ -69,7 +69,7 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
 # Now, go for Events:
 for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     # Create a table in Events group
-    table = fileh.createTable(root.Events, tablename, Event,
+    table = fileh.create_table(root.Events, tablename, Event,
                               "Events: "+tablename)
     # Get the record object associated with the table:
     event = table.row

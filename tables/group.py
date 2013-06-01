@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 # License: BSD
@@ -14,67 +16,78 @@ import warnings
 import weakref
 
 import tables.misc.proxydict
-from tables import hdf5Extension
-from tables import utilsExtension
-from tables.registry import classIdDict
+from tables import hdf5extension
+from tables import utilsextension
+from tables.registry import class_id_dict
 from tables.exceptions import (
     NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning)
 from tables.filters import Filters
-from tables.registry import getClassByName
-from tables.path import checkNameValidity, joinPath, isVisibleName
+from tables.registry import get_class_by_name
+from tables.path import check_name_validity, join_path, isvisiblename
 from tables.node import Node, NotLoggedMixin
 from tables.leaf import Leaf
 from tables.unimplemented import UnImplemented, Unknown
 
 from tables.link import Link, SoftLink, ExternalLink
 
-
-__version__ = "$Revision$"
+from tables._past import previous_api, previous_api_property
 
 obversion = "1.0"
 
 
-
 class _ChildrenDict(tables.misc.proxydict.ProxyDict):
-    def _getValueFromContainer(self, container, key):
-        return container._f_getChild(key)
+    def _get_value_from_container(self, container, key):
+        return container._f_get_child(key)
+
+    _getValueFromContainer = previous_api(_get_value_from_container)
 
 
-class Group(hdf5Extension.Group, Node):
+class Group(hdf5extension.Group, Node):
     """Basic PyTables grouping structure.
 
     Instances of this class are grouping structures containing *child*
-    instances of zero or more groups or leaves, together with supporting
-    metadata. Each group has exactly one *parent* group.
+    instances of zero or more groups or leaves, together with
+    supporting metadata. Each group has exactly one *parent* group.
 
-    Working with groups and leaves is similar in many ways to working with
-    directories and files, respectively, in a Unix filesystem. As with Unix
-    directories and files, objects in the object tree are often described by
-    giving their full (or absolute) path names. This full path can be specified
-    either as a string (like in '/group1/group2') or as a complete object path
-    written in *natural naming* schema (like in file.root.group1.group2).
+    Working with groups and leaves is similar in many ways to working
+    with directories and files, respectively, in a Unix filesystem.
+    As with Unix directories and files, objects in the object tree are
+    often described by giving their full (or absolute) path names.
+    This full path can be specified either as a string (like in
+    '/group1/group2') or as a complete object path written in *natural
+    naming* schema (like in file.root.group1.group2).
 
-    A collateral effect of the *natural naming* schema is that the names of
-    members in the Group class and its instances must be carefully chosen to
-    avoid colliding with existing children node names.  For this reason and to
-    avoid polluting the children namespace all members in a Group start with
-    some reserved prefix, like _f_ (for public methods), _g_ (for private
-    ones), _v_ (for instance variables) or _c_ (for class variables). Any
-    attempt to create a new child node whose name starts with one of these
+    A collateral effect of the *natural naming* schema is that the
+    names of members in the Group class and its instances must be
+    carefully chosen to avoid colliding with existing children node
+    names.  For this reason and to avoid polluting the children
+    namespace all members in a Group start with some reserved prefix,
+    like _f_ (for public methods), _g_ (for private ones), _v_ (for
+    instance variables) or _c_ (for class variables). Any attempt to
+    create a new child node whose name starts with one of these
     prefixes will raise a ValueError exception.
 
-    Another effect of natural naming is that children named after Python
-    keywords or having names not valid as Python identifiers (e.g.  class, $a
-    or 44) can not be accessed using the node.child syntax. You will be forced
-    to use node._f_getChild(child) to access them (which is recommended for
-    programmatic accesses).
+    Another effect of natural naming is that children named after
+    Python keywords or having names not valid as Python identifiers
+    (e.g.  class, $a or 44) can not be accessed using the node.child
+    syntax. You will be forced to use node._f_get_child(child) to
+    access them (which is recommended for programmatic accesses).
 
-    You will also need to use _f_getChild() to access an existing child node if
-    you set a Python attribute in the Group with the same name as that node
-    (you will get a NaturalNameWarning when doing this).
+    You will also need to use _f_get_child() to access an existing
+    child node if you set a Python attribute in the Group with the
+    same name as that node (you will get a NaturalNameWarning when
+    doing this).
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+           Renamed from *parentNode* to *parentnode*
+
+    name : str
+        The name of this node in its parent group.
     title
         The title for this group
     new
@@ -85,22 +98,23 @@ class Group(hdf5Extension.Group, Node):
 
     Notes
     -----
-    The following documentation includes methods that are automatically called
-    when a Group instance is accessed in a special way.
+    The following documentation includes methods that are automatically
+    called when a Group instance is accessed in a special way.
 
     For instance, this class defines the __setattr__, __getattr__, and
     __delattr__ methods, and they set, get and delete *ordinary Python
-    attributes* as normally intended. In addition to that, __getattr__ allows
-    getting *child nodes* by their name for the sake of easy interaction on the
-    command line, as long as there is no Python attribute with the same
-    name. Groups also allow the interactive completion (when using readline) of
-    the names of child nodes. For instance::
+    attributes* as normally intended. In addition to that, __getattr__
+    allows getting *child nodes* by their name for the sake of easy
+    interaction on the command line, as long as there is no Python
+    attribute with the same name. Groups also allow the interactive
+    completion (when using readline) of the names of child nodes.
+    For instance::
 
         # get a Python attribute
         nchild = group._v_nchildren
 
         # Add a Table child called 'table' under 'group'.
-        h5file.createTable(group, 'table', myDescription)
+        h5file.create_table(group, 'table', myDescription)
         table = group.table          # get the table child instance
         group.table = 'foo'          # set a Python attribute
 
@@ -142,10 +156,12 @@ class Group(hdf5Extension.Group, Node):
     """
 
     # Class identifier.
-    _c_classId = 'GROUP'
+    _c_classid = 'GROUP'
+
+    _c_classId = previous_api_property('_c_classid')
 
     # Children containers that should be loaded only in a lazy way.
-    # These are documented in the ``Group._g_addChildrenNames`` method.
+    # These are documented in the ``Group._g_add_children_names`` method.
     _c_lazy_children_attrs = (
         '__members__', '_v_children', '_v_groups', '_v_leaves',
         '_v_links', '_v_unknown', '_v_hidden')
@@ -159,7 +175,6 @@ class Group(hdf5Extension.Group, Node):
 
     _v_nchildren = property(_g_getnchildren, None, None,
                             "The number of children hanging from this group.")
-
 
     # `_v_filters` is a direct read-write shorthand for the ``FILTERS``
     # attribute with the default `Filters` instance as a default value.
@@ -186,12 +201,13 @@ class Group(hdf5Extension.Group, Node):
         delete the FILTERS HDF5 attribute of the group, which stores a Filters
         instance (see :ref:`FiltersClassDescr`). When the group has no such
         attribute, a default Filters instance is used.
-        """ )
+        """)
 
     # </properties>
 
+    _v_maxGroupWidth = previous_api_property('_v_max_group_width')
 
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  title="", new=False, filters=None,
                  _log=True):
 
@@ -205,37 +221,45 @@ class Group(hdf5Extension.Group, Node):
 
         self._v_new = new
         """Is this the first time the node has been created?"""
+
         self._v_new_title = title
         """New title for this node."""
+
         self._v_new_filters = filters
         """New default filter properties for child nodes."""
-        self._v_maxGroupWidth = parentNode._v_file.params['MAX_GROUP_WIDTH']
-        """Maximum number of children on each group before warning the user."""
+
+        self._v_max_group_width = parentnode._v_file.params['MAX_GROUP_WIDTH']
+        """Maximum number of children on each group before warning the user.
+
+        .. versionchanged:: 3.0
+           The *_v_maxGroupWidth* attribute has been renamed into
+           *_v_max_group_width*.
+
+        """
 
         # Finally, set up this object as a node.
-        super(Group, self).__init__(parentNode, name, _log)
+        super(Group, self).__init__(parentnode, name, _log)
 
-
-    def _g_postInitHook(self):
+    def _g_post_init_hook(self):
         if self._v_new:
             if self._v_file.params['PYTABLES_SYS_ATTRS']:
                 # Save some attributes for the new group on disk.
-                setAttr = self._v_attrs._g__setattr
+                set_attr = self._v_attrs._g__setattr
                 # Set the title, class and version attributes.
-                setAttr('TITLE', self._v_new_title)
-                setAttr('CLASS', self._c_classId)
-                setAttr('VERSION', self._v_version)
+                set_attr('TITLE', self._v_new_title)
+                set_attr('CLASS', self._c_classid)
+                set_attr('VERSION', self._v_version)
 
                 # Set the default filter properties.
-                newFilters = self._v_new_filters
-                if newFilters is None:
+                newfilters = self._v_new_filters
+                if newfilters is None:
                     # If no filters have been passed in the constructor,
                     # inherit them from the parent group, but only if they
                     # have been inherited or explicitly set.
-                    newFilters = getattr(
+                    newfilters = getattr(
                         self._v_parent._v_attrs, 'FILTERS', None)
-                if newFilters is not None:
-                    setAttr('FILTERS', newFilters)
+                if newfilters is not None:
+                    set_attr('FILTERS', newfilters)
         else:
             # If the file has PyTables format, get the VERSION attr
             if 'VERSION' in self._v_attrs._v_attrnamessys:
@@ -245,125 +269,134 @@ class Group(hdf5Extension.Group, Node):
             # We don't need to get more attributes from disk,
             # since the most important ones are defined as properties.
 
+    _g_postInitHook = previous_api(_g_post_init_hook)
 
     def __del__(self):
         if (self._v_isopen and
             self._v_pathname in self._v_file._aliveNodes and
-            '_v_children' in self.__dict__):
+                '_v_children' in self.__dict__):
             # The group is going to be killed.  Rebuild weak references
             # (that Python cancelled just before calling this method) so
             # that they are still usable if the object is revived later.
-            selfRef = weakref.ref(self)
-            self._v_children.containerRef = selfRef
-            self._v_groups.containerRef = selfRef
-            self._v_leaves.containerRef = selfRef
-            self._v_links.containerRef = selfRef
-            self._v_unknown.containerRef = selfRef
-            self._v_hidden.containerRef = selfRef
+            selfref = weakref.ref(self)
+            self._v_children.containerref = selfref
+            self._v_groups.containerref = selfref
+            self._v_leaves.containerref = selfref
+            self._v_links.containerref = selfref
+            self._v_unknown.containerref = selfref
+            self._v_hidden.containerref = selfref
 
         super(Group, self).__del__()
 
-
-    def _g_getChildGroupClass(self, childName):
+    def _g_get_child_group_class(self, childname):
         """Get the class of a not-yet-loaded group child.
 
-        `childName` must be the name of a *group* child.
+        `childname` must be the name of a *group* child.
+
         """
 
-        childCID = self._g_getGChildAttr(childName, 'CLASS')
+        childCID = self._g_get_gchild_attr(childname, 'CLASS')
+        if childCID is not None and not isinstance(childCID, str):
+            childCID = childCID.decode('utf-8')
 
-        if childCID in classIdDict:
-            return classIdDict[childCID]  # look up group class
+        if childCID in class_id_dict:
+            return class_id_dict[childCID]  # look up group class
         else:
             return Group  # default group class
 
+    _g_getChildGroupClass = previous_api(_g_get_child_group_class)
 
-    def _g_getChildLeafClass(self, childName, warn=True):
+    def _g_get_child_leaf_class(self, childname, warn=True):
         """Get the class of a not-yet-loaded leaf child.
 
-        `childName` must be the name of a *leaf* child.  If the child
+        `childname` must be the name of a *leaf* child.  If the child
         belongs to an unknown kind of leaf, or if its kind can not be
         guessed, `UnImplemented` will be returned and a warning will be
         issued if `warn` is true.
+
         """
 
         if self._v_file.params['PYTABLES_SYS_ATTRS']:
-            childCID = self._g_getLChildAttr(childName, 'CLASS')
+            childCID = self._g_get_lchild_attr(childname, 'CLASS')
+            if childCID is not None and not isinstance(childCID, str):
+                childCID = childCID.decode('utf-8')
         else:
             childCID = None
 
-        if childCID in classIdDict:
-            return classIdDict[childCID]  # look up leaf class
+        if childCID in class_id_dict:
+            return class_id_dict[childCID]  # look up leaf class
         else:
             # Unknown or no ``CLASS`` attribute, try a guess.
-            childCID2 = utilsExtension.whichClass(
-                self._v_objectID, childName)
+            childCID2 = utilsextension.which_class(self._v_objectid, childname)
             if childCID2 == 'UNSUPPORTED':
                 if warn:
                     if childCID is None:
                         warnings.warn(
                             "leaf ``%s`` is of an unsupported type; "
                             "it will become an ``UnImplemented`` node"
-                            % self._g_join(childName))
+                            % self._g_join(childname))
                     else:
                         warnings.warn(
                             ("leaf ``%s`` has an unknown class ID ``%s``; "
                              "it will become an ``UnImplemented`` node")
-                            % (self._g_join(childName), childCID))
+                            % (self._g_join(childname), childCID))
                 return UnImplemented
-            assert childCID2 in classIdDict
-            return classIdDict[childCID2]  # look up leaf class
+            assert childCID2 in class_id_dict
+            return class_id_dict[childCID2]  # look up leaf class
 
+    _g_getChildLeafClass = previous_api(_g_get_child_leaf_class)
 
-    def _g_addChildrenNames(self):
+    def _g_add_children_names(self):
         """Add children names to this group taking into account their
         visibility and kind.
+
         """
 
-        myDict = self.__dict__
+        mydict = self.__dict__
 
         # The names of the lazy attributes
-        myDict['__members__'] = members = []
-        """The names of visible children nodes for readline-style completion."""
-        myDict['_v_children'] = children = _ChildrenDict(self)
+        mydict['__members__'] = members = []
+        """The names of visible children nodes for readline-style completion.
+        """
+        mydict['_v_children'] = children = _ChildrenDict(self)
         """The number of children hanging from this group."""
-        myDict['_v_groups'] = groups = _ChildrenDict(self)
+        mydict['_v_groups'] = groups = _ChildrenDict(self)
         """Dictionary with all groups hanging from this group."""
-        myDict['_v_leaves'] = leaves = _ChildrenDict(self)
+        mydict['_v_leaves'] = leaves = _ChildrenDict(self)
         """Dictionary with all leaves hanging from this group."""
-        myDict['_v_links'] = links = _ChildrenDict(self)
+        mydict['_v_links'] = links = _ChildrenDict(self)
         """Dictionary with all links hanging from this group."""
-        myDict['_v_unknown'] = unknown = _ChildrenDict(self)
+        mydict['_v_unknown'] = unknown = _ChildrenDict(self)
         """Dictionary with all unknown nodes hanging from this group."""
-        myDict['_v_hidden'] = hidden = _ChildrenDict(self)
+        mydict['_v_hidden'] = hidden = _ChildrenDict(self)
         """Dictionary with all hidden nodes hanging from this group."""
 
         # Get the names of *all* child groups and leaves.
-        (groupNames, leafNames, linkNames, unknownNames) = \
-                     self._g_listGroup(self._v_parent)
+        (group_names, leaf_names, link_names, unknown_names) = \
+            self._g_list_group(self._v_parent)
 
         # Separate groups into visible groups and hidden nodes,
         # and leaves into visible leaves and hidden nodes.
-        for (childNames, childDict) in (
-            (groupNames, groups),
-            (leafNames, leaves),
-            (linkNames, links),
-            (unknownNames, unknown)):
+        for (childnames, childdict) in ((group_names, groups),
+                                        (leaf_names, leaves),
+                                        (link_names, links),
+                                        (unknown_names, unknown)):
 
-            for childName in childNames:
+            for childname in childnames:
                 # See whether the name implies that the node is hidden.
                 # (Assigned values are entirely irrelevant.)
-                if isVisibleName(childName):
+                if isvisiblename(childname):
                     # Visible node.
-                    members.insert(0, childName)
-                    children[childName] = None
-                    childDict[childName] = None
+                    members.insert(0, childname)
+                    children[childname] = None
+                    childdict[childname] = None
                 else:
                     # Hidden node.
-                    hidden[childName] = None
+                    hidden[childname] = None
 
+    _g_addChildrenNames = previous_api(_g_add_children_names)
 
-    def _g_checkHasChild(self, name):
+    def _g_check_has_child(self, name):
         """Check whether 'name' is a children of 'self' and return its type."""
 
         # Get the HDF5 name matching the PyTables name.
@@ -374,6 +407,7 @@ class Group(hdf5Extension.Group, Node):
                 % (self._v_pathname, name))
         return node_type
 
+    _g_checkHasChild = previous_api(_g_check_has_child)
 
     def __iter__(self):
         """Iterate over the child nodes hanging directly from the group.
@@ -389,27 +423,27 @@ class Group(hdf5Extension.Group, Node):
             print "Nodes in '/detector' group:"
             for node in h5file.root.detector:
                 print node
+
         """
 
-        return self._f_iterNodes()
-
+        return self._f_iter_nodes()
 
     def __contains__(self, name):
         """Is there a child with that `name`?
 
         Returns a true value if the group has a child node (visible or
         hidden) with the given `name` (a string), false otherwise.
+
         """
 
-        self._g_checkOpen()
+        self._g_check_open()
         try:
-            self._g_checkHasChild(name)
+            self._g_check_has_child(name)
         except NoSuchNodeError:
             return False
         return True
 
-
-    def _f_walkNodes(self, classname=None):
+    def _f_walknodes(self, classname=None):
         """Iterate over descendant nodes.
 
         This method recursively walks *self* top to bottom (preorder),
@@ -417,9 +451,9 @@ class Group(hdf5Extension.Group, Node):
         nodes.  If classname is supplied, only instances of the named class are
         yielded.
 
-        If *classname* is Group, it behaves like :meth:`Group._f_walkGroups`,
+        If *classname* is Group, it behaves like :meth:`Group._f_walk_groups`,
         yielding only groups.  If you don't want a recursive behavior,
-        use :meth:`Group._f_iterNodes` instead.
+        use :meth:`Group._f_iter_nodes` instead.
 
         Examples
         --------
@@ -428,11 +462,12 @@ class Group(hdf5Extension.Group, Node):
 
             # Recursively print all the arrays hanging from '/'
             print "Arrays in the object tree '/':"
-            for array in h5file.root._f_walkNodes('Array', recursive=True):
+            for array in h5file.root._f_walknodes('Array', recursive=True):
                 print array
+
         """
 
-        self._g_checkOpen()
+        self._g_check_open()
 
         # For compatibility with old default arguments.
         if classname == '':
@@ -440,13 +475,14 @@ class Group(hdf5Extension.Group, Node):
 
         if classname == "Group":
             # Recursive algorithm
-            for group in self._f_walkGroups():
+            for group in self._f_walk_groups():
                 yield group
         else:
-            for group in self._f_walkGroups():
-                for leaf in group._f_iterNodes(classname):
+            for group in self._f_walk_groups():
+                for leaf in group._f_iter_nodes(classname):
                     yield leaf
 
+    _f_walkNodes = previous_api(_f_walknodes)
 
     def _g_join(self, name):
         """Helper method to correctly concatenate a name child object
@@ -455,136 +491,141 @@ class Group(hdf5Extension.Group, Node):
         if name == "/":
             # This case can happen when doing copies
             return self._v_pathname
-        return joinPath(self._v_pathname, name)
+        return join_path(self._v_pathname, name)
 
-
-    def _g_widthWarning(self):
+    def _g_width_warning(self):
         """Issue a :exc:`PerformanceWarning` on too many children."""
 
         warnings.warn("""\
 group ``%s`` is exceeding the recommended maximum number of children (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
-                      % (self._v_pathname, self._v_maxGroupWidth),
+                      % (self._v_pathname, self._v_max_group_width),
                       PerformanceWarning)
 
+    _g_widthWarning = previous_api(_g_width_warning)
 
-    def _g_refNode(self, childNode, childName, validate=True):
-        """Insert references to a `childNode` via a `childName`.
+    def _g_refnode(self, childnode, childname, validate=True):
+        """Insert references to a `childnode` via a `childname`.
 
-        Checks that the `childName` is valid and does not exist, then
-        creates references to the given `childNode` by that `childName`.
+        Checks that the `childname` is valid and does not exist, then
+        creates references to the given `childnode` by that `childname`.
         The validation of the name can be omitted by setting `validate`
         to a false value (this may be useful for adding already existing
         nodes to the tree).
+
         """
 
         # Check for name validity.
         if validate:
-            checkNameValidity(childName)
-            childNode._g_checkName(childName)
+            check_name_validity(childname)
+            childnode._g_check_name(childname)
 
         # Check if there is already a child with the same name.
         # This can be triggered because of the user
         # (via node construction or renaming/movement).
         # Links are not checked here because they are copied and referenced
-        # using ``File.getNode`` so they already exist in `self`.
-        if (not isinstance(childNode, Link)) and childName in self:
+        # using ``File.get_node`` so they already exist in `self`.
+        if (not isinstance(childnode, Link)) and childname in self:
             raise NodeError(
                 "group ``%s`` already has a child node named ``%s``"
-                % (self._v_pathname, childName))
+                % (self._v_pathname, childname))
 
         # Show a warning if there is an object attribute with that name.
-        if childName in self.__dict__:
+        if childname in self.__dict__:
             warnings.warn(
                 "group ``%s`` already has an attribute named ``%s``; "
                 "you will not be able to use natural naming "
                 "to access the child node"
-                % (self._v_pathname, childName), NaturalNameWarning)
+                % (self._v_pathname, childname), NaturalNameWarning)
 
         # Check group width limits.
-        if len(self._v_children) + len(self._v_hidden) >= self._v_maxGroupWidth:
-            self._g_widthWarning()
+        if (len(self._v_children) + len(self._v_hidden) >=
+                                                    self._v_max_group_width):
+            self._g_width_warning()
 
         # Update members information.
         # Insert references to the new child.
         # (Assigned values are entirely irrelevant.)
-        if isVisibleName(childName):
+        if isvisiblename(childname):
             # Visible node.
-            self.__members__.insert(0, childName)  # enable completion
-            self._v_children[childName] = None  # insert node
-            if isinstance(childNode, Unknown):
-                self._v_unknown[childName] = None
-            elif isinstance(childNode, Link):
-                self._v_links[childName] = None
-            elif isinstance(childNode, Leaf):
-                self._v_leaves[childName] = None
-            elif isinstance(childNode, Group):
-                self._v_groups[childName] = None
+            self.__members__.insert(0, childname)  # enable completion
+            self._v_children[childname] = None  # insert node
+            if isinstance(childnode, Unknown):
+                self._v_unknown[childname] = None
+            elif isinstance(childnode, Link):
+                self._v_links[childname] = None
+            elif isinstance(childnode, Leaf):
+                self._v_leaves[childname] = None
+            elif isinstance(childnode, Group):
+                self._v_groups[childname] = None
         else:
             # Hidden node.
-            self._v_hidden[childName] = None  # insert node
+            self._v_hidden[childname] = None  # insert node
 
+    _g_refNode = previous_api(_g_refnode)
 
-    def _g_unrefNode(self, childName):
+    def _g_unrefnode(self, childname):
         """Remove references to a node.
 
         Removes all references to the named node.
+
         """
 
         # This can *not* be triggered because of the user.
-        assert childName in self, \
-               ("group ``%s`` does not have a child node named ``%s``"
-                % (self._v_pathname, childName))
+        assert childname in self, \
+            ("group ``%s`` does not have a child node named ``%s``"
+                % (self._v_pathname, childname))
 
         # Update members information, if needed
         if '_v_children' in self.__dict__:
-            if childName in self._v_children:
+            if childname in self._v_children:
                 # Visible node.
                 members = self.__members__
-                memberIndex = members.index(childName)
+                memberIndex = members.index(childname)
                 del members[memberIndex]  # disables completion
 
-                del self._v_children[childName]  # remove node
-                self._v_unknown.pop(childName, None)
-                self._v_links.pop(childName, None)
-                self._v_leaves.pop(childName, None)
-                self._v_groups.pop(childName, None)
+                del self._v_children[childname]  # remove node
+                self._v_unknown.pop(childname, None)
+                self._v_links.pop(childname, None)
+                self._v_leaves.pop(childname, None)
+                self._v_groups.pop(childname, None)
             else:
                 # Hidden node.
-                del self._v_hidden[childName]  # remove node
+                del self._v_hidden[childname]  # remove node
 
+    _g_unrefNode = previous_api(_g_unrefnode)
 
-    def _g_move(self, newParent, newName):
+    def _g_move(self, newparent, newname):
         # Move the node to the new location.
-        oldPath = self._v_pathname
-        super(Group, self)._g_move(newParent, newName)
-        newPath = self._v_pathname
+        oldpath = self._v_pathname
+        super(Group, self)._g_move(newparent, newname)
+        newpath = self._v_pathname
 
         # Update location information in children.  This node shouldn't
         # be affected since it has already been relocated.
-        self._v_file._updateNodeLocations(oldPath, newPath)
+        self._v_file._update_node_locations(oldpath, newpath)
 
-
-    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
+    def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         # Compute default arguments.
         title = kwargs.get('title', self._v_title)
         filters = kwargs.get('filters', None)
         stats = kwargs.get('stats', None)
 
         # Fix arguments with explicit None values for backwards compatibility.
-        if title is None:  title = self._v_title
+        if title is None:
+            title = self._v_title
         # If no filters have been passed to the call, copy them from the
         # source group, but only if inherited or explicitly set.
         if filters is None:
             filters = getattr(self._v_attrs, 'FILTERS', None)
 
         # Create a copy of the object.
-        newNode = Group(newParent, newName,
-                        title, new=True, filters=filters, _log=_log)
+        new_node = Group(newparent, newname,
+                         title, new=True, filters=filters, _log=_log)
 
         # Copy user attributes if needed.
         if kwargs.get('copyuserattrs', True):
-            self._v_attrs._g_copy(newNode._v_attrs, copyClass=True)
+            self._v_attrs._g_copy(new_node._v_attrs, copyclass=True)
 
         # Update statistics if needed.
         if stats is not None:
@@ -595,35 +636,37 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             # Some arguments should *not* be passed to children copy ops.
             kwargs = kwargs.copy()
             kwargs.pop('title', None)
-            self._g_copyChildren(newNode, **kwargs)
+            self._g_copy_children(new_node, **kwargs)
 
-        return newNode
+        return new_node
 
-
-    def _g_copyChildren(self, newParent, **kwargs):
+    def _g_copy_children(self, newparent, **kwargs):
         """Copy child nodes.
 
         Copies all nodes descending from this one into the specified
-        `newParent`.  If the new parent has a child node with the same
+        `newparent`.  If the new parent has a child node with the same
         name as one of the nodes in this group, the copy fails with a
         `NodeError`, maybe resulting in a partial copy.  Nothing is
         logged.
+
         """
+
         # Recursive version of children copy.
-        ##for srcChild in self._v_children.itervalues():
-        ##    srcChild._g_copyAsChild(newParent, **kwargs)
+        # for srcchild in self._v_children.itervalues():
+        ##    srcchild._g_copy_as_child(newparent, **kwargs)
 
         # Non-recursive version of children copy.
-        parentStack = [(self, newParent)]  # [(source, destination), ...]
-        while parentStack:
-            (srcParent, dstParent) = parentStack.pop()
-            for srcChild in srcParent._v_children.itervalues():
-                dstChild = srcChild._g_copyAsChild(dstParent, **kwargs)
-                if isinstance(srcChild, Group):
-                    parentStack.append((srcChild, dstChild))
+        parentstack = [(self, newparent)]  # [(source, destination), ...]
+        while parentstack:
+            (srcparent, dstparent) = parentstack.pop()
+            for srcchild in srcparent._v_children.itervalues():
+                dstchild = srcchild._g_copy_as_child(dstparent, **kwargs)
+                if isinstance(srcchild, Group):
+                    parentstack.append((srcchild, dstchild))
 
+    _g_copyChildren = previous_api(_g_copy_children)
 
-    def _f_getChild(self, childname):
+    def _f_get_child(self, childname):
         """Get the child called childname of this group.
 
         If the child exists (be it visible or not), it is returned.  Else, a
@@ -632,25 +675,30 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         Using this method is recommended over getattr() when doing programmatic
         accesses to children if childname is unknown beforehand or when its
         name is not a valid Python identifier.
+
         """
 
-        self._g_checkOpen()
+        self._g_check_open()
 
-        self._g_checkHasChild(childname)
+        self._g_check_has_child(childname)
 
-        childPath = joinPath(self._v_pathname, childname)
-        return self._v_file._getNode(childPath)
+        childPath = join_path(self._v_pathname, childname)
+        return self._v_file._get_node(childPath)
 
+    _f_getChild = previous_api(_f_get_child)
 
-    def _f_listNodes(self, classname=None):
+    def _f_list_nodes(self, classname=None):
         """Return a *list* with children nodes.
 
-        This is a list-returning version of :meth:`Group._f_iterNodes()`.
+        This is a list-returning version of :meth:`Group._f_iter_nodes()`.
+
         """
-        return list(self._f_iterNodes(classname))
 
+        return list(self._f_iter_nodes(classname))
 
-    def _f_iterNodes(self, classname=None):
+    _f_listNodes = previous_api(_f_list_nodes)
+
+    def _f_iter_nodes(self, classname=None):
         """Iterate over children nodes.
 
         Child nodes are yielded alphanumerically sorted by node name.  If the
@@ -658,10 +706,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         supplied in the classname parameter, only instances of that class (or
         subclasses of it) will be returned.
 
-        This is an iterator version of :meth:`Group._f_listNodes`.
+        This is an iterator version of :meth:`Group._f_list_nodes`.
+
         """
 
-        self._g_checkOpen()
+        self._g_check_open()
 
         if not classname:
             # Returns all the children alphanumerically sorted
@@ -687,32 +736,34 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             raise TypeError(
                 "listing ``IndexArray`` nodes is not allowed")
         else:
-            class_ = getClassByName(classname)
+            class_ = get_class_by_name(classname)
 
             children = self._v_children
-            childNames = sorted(children.iterkeys())
+            childnames = sorted(children.iterkeys())
 
-            for childName in childNames:
-                childNode = children[childName]
-                if isinstance(childNode, class_):
-                    yield childNode
+            for childname in childnames:
+                childnode = children[childname]
+                if isinstance(childnode, class_):
+                    yield childnode
 
+    _f_iterNodes = previous_api(_f_iter_nodes)
 
-    def _f_walkGroups(self):
+    def _f_walk_groups(self):
         """Recursively iterate over descendent groups (not leaves).
 
         This method starts by yielding *self*, and then it goes on to
         recursively iterate over all child groups in alphanumerical order, top
         to bottom (preorder), following the same procedure.
+
         """
 
-        self._g_checkOpen()
+        self._g_check_open()
 
         stack = [self]
         yield self
         # Iterate over the descendants
         while stack:
-            objgroup=stack.pop()
+            objgroup = stack.pop()
             groupnames = sorted(objgroup._v_groups.iterkeys())
             # Sort the groups before delivering. This uses the groups names
             # for groups in tree (in order to sort() can classify them).
@@ -720,19 +771,21 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                 stack.append(objgroup._v_groups[groupname])
                 yield objgroup._v_groups[groupname]
 
+    _f_walkGroups = previous_api(_f_walk_groups)
 
     def __delattr__(self, name):
         """Delete a Python attribute called name.
 
-        This method deletes an *ordinary Python attribute* from the object. It
-        does *not* remove children nodes from this group; for that,
-        use :meth:`File.removeNode` or :meth:`Node._f_remove`. It does *neither*
-        delete a PyTables node attribute; for that,
-        use :meth:`File.delNodeAttr`, :meth:`Node._f_delAttr`
-        or :attr:`Node._v_attrs``.
+        This method deletes an *ordinary Python attribute* from the object.
+        It does *not* remove children nodes from this group; for that,
+        use :meth:`File.remove_node` or :meth:`Node._f_remove`.
+        It does *neither* delete a PyTables node attribute; for that,
+        use :meth:`File.del_node_attr`, :meth:`Node._f_delattr` or
+        :attr:`Node._v_attrs``.
 
-        If there is an attribute and a child node with the same name, the child
-        node will be made accessible again via natural naming.
+        If there is an attribute and a child node with the same name,
+        the child node will be made accessible again via natural naming.
+
         """
 
         try:
@@ -741,24 +794,23 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             hint = " (use ``node._f_remove()`` if you want to remove a node)"
             raise ae.__class__(str(ae) + hint)
 
-
     def __getattr__(self, name):
         """Get a Python attribute or child node called name.
 
         If the object has a Python attribute called name, its value is
         returned. Else, if the node has a child node called name, it is
         returned.  Else, an AttributeError is raised.
+
         """
 
         # That is true since a `NoSuchNodeError` is an `AttributeError`.
-        myDict = self.__dict__
-        if name in myDict:
-            return myDict[name]
+        mydict = self.__dict__
+        if name in mydict:
+            return mydict[name]
         elif name in self._c_lazy_children_attrs:
-            self._g_addChildrenNames()
-            return myDict[name]
-        return self._f_getChild(name)
-
+            self._g_add_children_names()
+            return mydict[name]
+        return self._f_get_child(name)
 
     def __setattr__(self, name, value):
         """Set a Python attribute called name with the given value.
@@ -768,14 +820,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         File.create*() methods (see the File class
         in :ref:`FileClassDescr`). It does *neither* store a PyTables node
         attribute; for that,
-        use :meth:`File.setNodeAttr`, :meth`:Node._f_setAttr`
+        use :meth:`File.set_node_attr`, :meth`:Node._f_setattr`
         or :attr:`Node._v_attrs`.
 
         If there is already a child node with the same name, a
         NaturalNameWarning will be issued and the child node will not be
         accessible via natural naming nor getattr(). It will still be available
-        via :meth:`File.getNode`, :meth:`Group._f_getChild` and children
+        via :meth:`File.get_node`, :meth:`Group._f_get_child` and children
         dictionaries in the group (if visible).
+
         """
 
         # Show a warning if there is an child node with that name.
@@ -798,8 +851,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         #   check above is disabled, that results in Python entering an
         #   endless loop on exit!
 
-        myDict = self.__dict__
-        if '__members__' in myDict and name in self.__members__:
+        mydict = self.__dict__
+        if '__members__' in mydict and name in self.__members__:
             warnings.warn(
                 "group ``%s`` already has a child node named ``%s``; "
                 "you will not be able to use natural naming "
@@ -808,26 +861,24 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         super(Group, self).__setattr__(name, value)
 
-
     def _f_flush(self):
         """Flush this Group"""
 
-        self._g_checkOpen()
-        self._g_flushGroup()
+        self._g_check_open()
+        self._g_flush_group()
 
-
-    def _g_closeDescendents(self):
+    def _g_close_descendents(self):
         """Close all the *loaded* descendent nodes of this group."""
 
-        def closeNodes(prefix, nodePaths, getNode):
-            for nodePath in nodePaths:
-                if nodePath.startswith(prefix):
+        def closenodes(prefix, nodepaths, get_node):
+            for nodepath in nodepaths:
+                if nodepath.startswith(prefix):
                     try:
-                        node = getNode(nodePath)
+                        node = get_node(nodepath)
                         # Avoid descendent nodes to also iterate over
                         # their descendents, which are already to be
                         # closed by this loop.
-                        if hasattr(node, '_f_getChild'):
+                        if hasattr(node, '_f_get_child'):
                             node._g_close()
                         else:
                             node._f_close()
@@ -840,55 +891,56 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             prefix = '/'
 
         # Close all loaded nodes.
-        aliveNodes = self._v_file._aliveNodes
-        deadNodes = self._v_file._deadNodes
-        reviveNode = self._v_file._reviveNode
+        alivenodes = self._v_file._aliveNodes
+        deadnodes = self._v_file._deadNodes
+        revivenode = self._v_file._revivenode
         # First, close the alive nodes and delete them
         # so they are not placed in the limbo again.
         # These two steps ensure tables are closed *before* their indices.
-        closeNodes(prefix,
-                   [path for path in aliveNodes
-                    if '/_i_' not in path],  # not indices
-                   lambda path: aliveNodes[path])
+        closenodes(prefix,
+                   [path for path in alivenodes
+                        if '/_i_' not in path],  # not indices
+                   lambda path: alivenodes[path])
         # Close everything else (i.e. indices)
-        closeNodes(prefix,
-                   [path for path in aliveNodes],
-                   lambda path: aliveNodes[path])
+        closenodes(prefix,
+                   [path for path in alivenodes],
+                   lambda path: alivenodes[path])
 
         # Next, revive the dead nodes, close and delete them
         # so they are not placed in the limbo again.
         # These two steps ensure tables are closed *before* their indices.
-        closeNodes(prefix,
-                   [path for path in deadNodes
-                    if '/_i_' not in path],  # not indices
-                   lambda path: reviveNode(path))
+        closenodes(prefix,
+                   [path for path in deadnodes
+                        if '/_i_' not in path],  # not indices
+                   lambda path: revivenode(path))
         # Close everything else (i.e. indices)
-        closeNodes(prefix,
-                   [path for path in deadNodes],
-                   lambda path: reviveNode(path))
+        closenodes(prefix,
+                   [path for path in deadnodes],
+                   lambda path: revivenode(path))
 
+    _g_closeDescendents = previous_api(_g_close_descendents)
 
     def _g_close(self):
         """Close this (open) group."""
 
-        # hdf5Extension operations:
+        # hdf5extension operations:
         #   Close HDF5 group.
-        self._g_closeGroup()
+        self._g_close_group()
 
         # Close myself as a node.
         super(Group, self)._f_close()
 
-
     def _f_close(self):
         """Close this group and all its descendents.
 
-        This method has the behavior described in :meth:`Node._f_close`.  It
-        should be noted that this operation closes all the nodes descending
-        from this group.
+        This method has the behavior described in :meth:`Node._f_close`.
+        It should be noted that this operation closes all the nodes
+        descending from this group.
 
         You should not need to close nodes manually because they are
-        automatically opened/closed when they are loaded/evicted from the
-        integrated LRU cache.
+        automatically opened/closed when they are loaded/evicted from
+        the integrated LRU cache.
+
         """
 
         # If the group is already closed, return immediately
@@ -899,8 +951,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # group is being deleted (evicted from LRU cache) or b) the node
         # is being closed during an aborted creation, in which cases
         # this is not an explicit close issued by the user.
-        if not (self._v__deleting or self._v_objectID is None):
-            self._g_closeDescendents()
+        if not (self._v__deleting or self._v_objectid is None):
+            self._g_close_descendents()
 
         # When all the descendents have been closed, close this group.
         # This is done at the end because some nodes may still need to
@@ -908,11 +960,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # open until the very end.
         self._g_close()
 
-
     def _g_remove(self, recursive=False, force=False):
         """Remove (recursively if needed) the Group.
 
         This version correctly handles both visible and hidden nodes.
+
         """
 
         if self._v_nchildren > 0:
@@ -924,11 +976,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
             # First close all the descendents hanging from this group,
             # so that it is not possible to use a node that no longer exists.
-            self._g_closeDescendents()
+            self._g_close_descendents()
 
         # Remove the node itself from the hierarchy.
         super(Group, self)._g_remove(recursive, force)
-
 
     def _f_copy(self, newparent=None, newname=None,
                 overwrite=False, recursive=False, createparents=False,
@@ -941,14 +992,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         Parameters
         ----------
         title
-            The new title for the destination. If omitted or None, the original
-            title is used. This only applies to the topmost node in recursive
-            copies.
+            The new title for the destination. If omitted or None, the
+            original title is used. This only applies to the topmost
+            node in recursive copies.
         filters : Filters
-            Specifying this parameter overrides the original filter properties
-            in the source node. If specified, it must be an instance of the
-            Filters class (see :ref:`FiltersClassDescr`).
-            The default is to copy the filter properties from the source node.
+            Specifying this parameter overrides the original filter
+            properties in the source node. If specified, it must be an
+            instance of the Filters class (see :ref:`FiltersClassDescr`).
+            The default is to copy the filter properties from the source
+            node.
         copyuserattrs
             You can prevent the user attributes from being copied by setting
             thisparameter to False. The default is to copy them.
@@ -958,14 +1010,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             'leaves', 'links' and 'bytes' having a numeric value. Their values
             willbe incremented to reflect the number of groups, leaves and
             bytes, respectively, that have been copied during the operation.
+
         """
+
         return super(Group, self)._f_copy(
             newparent, newname,
             overwrite, recursive, createparents, **kwargs)
 
-
-    def _f_copyChildren(self, dstgroup, overwrite=False, recursive=False,
-                        createparents=False, **kwargs):
+    def _f_copy_children(self, dstgroup, overwrite=False, recursive=False,
+                         createparents=False, **kwargs):
         """Copy the children of this group into another group.
 
         Children hanging directly from this group are copied into dstgroup,
@@ -973,46 +1026,49 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         pathname in string form. If createparents is true, the needed groups
         for the given destination group path to exist will be created.
 
-        The operation will fail with a NodeError if there is a child node in
-        the destination group with the same name as one of the copied children
-        from this one, unless overwrite is true; in this case, the former child
-        node is recursively removed before copying the later.
+        The operation will fail with a NodeError if there is a child node
+        in the destination group with the same name as one of the copied
+        children from this one, unless overwrite is true; in this case,
+        the former child node is recursively removed before copying the
+        later.
 
-        By default, nodes descending from children groups of this node are not
-        copied. If the recursive argument is true, all descendant nodes of this
-        node are recursively copied.
+        By default, nodes descending from children groups of this node
+        are not copied. If the recursive argument is true, all descendant
+        nodes of this node are recursively copied.
 
-        Additional keyword arguments may be passed to customize the copying
-        process. For instance, title and filters may be changed, user
-        attributes may be or may not be copied, data may be sub-sampled, stats
-        may be collected, etc. Arguments unknown to nodes are simply
-        ignored. Check the documentation for copying operations of nodes to see
-        which options they support.
+        Additional keyword arguments may be passed to customize the
+        copying process. For instance, title and filters may be changed,
+        user attributes may be or may not be copied, data may be sub-sampled,
+        stats may be collected, etc. Arguments unknown to nodes are simply
+        ignored. Check the documentation for copying operations of nodes to
+        see which options they support.
+
         """
 
-        self._g_checkOpen()
+        self._g_check_open()
 
         # `dstgroup` is used instead of its path to avoid accepting
         # `Node` objects when `createparents` is true.  Also, note that
         # there is no risk of creating parent nodes and failing later
         # because of destination nodes already existing.
-        dstParent = self._v_file._getOrCreatePath(dstgroup, createparents)
-        self._g_checkGroup(dstParent)  # Is it a group?
+        dstParent = self._v_file._get_or_create_path(dstgroup, createparents)
+        self._g_check_group(dstParent)  # Is it a group?
 
         if not overwrite:
             # Abort as early as possible when destination nodes exist
             # and overwriting is not enabled.
-            for childName in self._v_children:
-                if childName in dstParent:
+            for childname in self._v_children:
+                if childname in dstParent:
                     raise NodeError(
                         "destination group ``%s`` already has "
                         "a node named ``%s``; "
                         "you may want to use the ``overwrite`` argument"
-                        % (dstParent._v_pathname, childName) )
+                        % (dstParent._v_pathname, childname))
 
         for child in self._v_children.itervalues():
             child._f_copy(dstParent, None, overwrite, recursive, **kwargs)
 
+    _f_copyChildren = previous_api(_f_copy_children)
 
     def __str__(self):
         """Return a short string representation of the group.
@@ -1022,16 +1078,16 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         ::
 
-            >>> f=tables.openFile('data/test.h5')
+            >>> f=tables.open_file('data/test.h5')
             >>> print f.root.group0
             /group0 (Group) 'First Group'
+
         """
 
         pathname = self._v_pathname
         classname = self.__class__.__name__
         title = self._v_title
         return "%s (%s) %r" % (pathname, classname, title)
-
 
     def __repr__(self):
         """Return a detailed string representation of the group.
@@ -1041,25 +1097,27 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         ::
 
-            >>> f = tables.openFile('data/test.h5')
+            >>> f = tables.open_file('data/test.h5')
             >>> f.root.group0
             /group0 (Group) 'First Group'
               children := ['tuple1' (Table), 'group1' (Group)]
+
         """
 
-        rep = [ '%r (%s)' %  \
-                (childname, child.__class__.__name__)
-                for (childname, child) in self._v_children.iteritems() ]
+        rep = ['%r (%s)' % (childname, child.__class__.__name__)
+                    for (childname, child) in self._v_children.iteritems()]
         childlist = '[%s]' % (', '.join(rep))
 
-        return "%s\n  children := %s" % \
-               (str(self), childlist)
+        return "%s\n  children := %s" % (str(self), childlist)
 
 
 # Special definition for group root
 class RootGroup(Group):
-    def __init__(self, ptFile, name, title, new, filters):
-        myDict = self.__dict__
+
+    _v_objectId = previous_api_property('_v_objectid')
+
+    def __init__(self, ptfile, name, title, new, filters):
+        mydict = self.__dict__
 
         # Set group attributes.
         self._v_version = obversion
@@ -1072,25 +1130,25 @@ class RootGroup(Group):
             self._v_new_filters = None
 
         # Set node attributes.
-        self._v_file = ptFile
+        self._v_file = ptfile
         self._v_isopen = True  # root is always open
         self._v_pathname = '/'
         self._v_name = '/'
         self._v_depth = 0
-        self._v_maxGroupWidth = ptFile.params['MAX_GROUP_WIDTH']
+        self._v_max_group_width = ptfile.params['MAX_GROUP_WIDTH']
         self._v__deleting = False
-        self._v_objectID = None  # later
+        self._v_objectid = None  # later
 
         # Only the root node has the file as a parent.
         # Bypass __setattr__ to avoid the ``Node._v_parent`` property.
-        myDict['_v_parent'] = ptFile
-        ptFile._refNode(self, '/')
+        mydict['_v_parent'] = ptfile
+        ptfile._refnode(self, '/')
 
-        # hdf5Extension operations (do before setting an AttributeSet):
+        # hdf5extension operations (do before setting an AttributeSet):
         #   Update node attributes.
-        self._g_new(ptFile, name, init=True)
+        self._g_new(ptfile, name, init=True)
         #   Open the node and get its object ID.
-        self._v_objectID = self._g_open()
+        self._v_objectid = self._g_open()
 
         # Set disk attributes and read children names.
         #
@@ -1098,57 +1156,58 @@ class RootGroup(Group):
         # to be created and bound to ``File.root``.
         # This is an exception to the rule, handled by ``File.__init()__``.
         #
-        ##self._g_postInitHook()
+        # self._g_post_init_hook()
 
-
-    def _g_loadChild(self, childName):
+    def _g_load_child(self, childname):
         """Load a child node from disk.
 
-        The child node `childName` is loaded from disk and an adequate
+        The child node `childname` is loaded from disk and an adequate
         `Node` object is created and returned.  If there is no such
         child, a `NoSuchNodeError` is raised.
+
         """
 
-        if self._v_file.rootUEP != "/":
-            childName = joinPath(self._v_file.rootUEP, childName)
+        if self._v_file.root_uep != "/":
+            childname = join_path(self._v_file.root_uep, childname)
         # Is the node a group or a leaf?
-        node_type = self._g_checkHasChild(childName)
+        node_type = self._g_check_has_child(childname)
 
         # Nodes that HDF5 report as H5G_UNKNOWN
         if node_type == 'Unknown':
-            return Unknown(self, childName)
+            return Unknown(self, childname)
 
         # Guess the PyTables class suited to the node,
         # build a PyTables node and return it.
         if node_type == "Group":
             if self._v_file.params['PYTABLES_SYS_ATTRS']:
-                childClass = self._g_getChildGroupClass(childName)
+                ChildClass = self._g_get_child_group_class(childname)
             else:
                 # Default is a Group class
-                childClass = Group
-            return childClass(self, childName, new=False)
+                ChildClass = Group
+            return ChildClass(self, childname, new=False)
         elif node_type == "Leaf":
-            childClass = self._g_getChildLeafClass(childName, warn=True)
+            ChildClass = self._g_get_child_leaf_class(childname, warn=True)
             # Building a leaf may still fail because of unsupported types
             # and other causes.
-            ###return childClass(self, childName)  # uncomment for debugging
+            # return ChildClass(self, childname)  # uncomment for debugging
             try:
-                return childClass(self, childName)
-            except Exception, exc:  #XXX
+                return ChildClass(self, childname)
+            except Exception, exc:  # XXX
                 warnings.warn(
                     "problems loading leaf ``%s``::\n\n"
                     "  %s\n\n"
                     "The leaf will become an ``UnImplemented`` node."
-                    % (self._g_join(childName), exc))
+                    % (self._g_join(childname), exc))
                 # If not, associate an UnImplemented object to it
-                return UnImplemented(self, childName)
+                return UnImplemented(self, childname)
         elif node_type == "SoftLink":
-            return SoftLink(self, childName)
+            return SoftLink(self, childname)
         elif node_type == "ExternalLink":
-            return ExternalLink(self, childName)
+            return ExternalLink(self, childname)
         else:
-            return UnImplemented(self, childName)
+            return UnImplemented(self, childname)
 
+    _g_loadChild = previous_api(_g_load_child)
 
     def _f_rename(self, newname):
         raise NodeError("the root node can not be renamed")
@@ -1156,45 +1215,56 @@ class RootGroup(Group):
     def _f_move(self, newparent=None, newname=None, createparents=False):
         raise NodeError("the root node can not be moved")
 
-    def _f_remove(self, recursive = False):
+    def _f_remove(self, recursive=False):
         raise NodeError("the root node can not be removed")
 
 
-
 class TransactionGroupG(NotLoggedMixin, Group):
-    _c_classId = 'TRANSGROUP'
+    _c_classid = 'TRANSGROUP'
 
-    def _g_widthWarning(self):
+    _c_classId = previous_api_property('_c_classid')
+
+    def _g_width_warning(self):
         warnings.warn("""\
 the number of transactions is exceeding the recommended maximum (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                      % (self._v_maxGroupWidth,), PerformanceWarning)
+                      % (self._v_max_group_width,), PerformanceWarning)
+
+    _g_widthWarning = previous_api(_g_width_warning)
 
 
 class TransactionG(NotLoggedMixin, Group):
-    _c_classId = 'TRANSG'
+    _c_classid = 'TRANSG'
 
-    def _g_widthWarning(self):
+    _c_classId = previous_api_property('_c_classid')
+
+    def _g_width_warning(self):
         warnings.warn("""\
 transaction ``%s`` is exceeding the recommended maximum number of marks (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                      % (self._v_pathname, self._v_maxGroupWidth),
+                      % (self._v_pathname, self._v_max_group_width),
                       PerformanceWarning)
+
+    _g_widthWarning = previous_api(_g_width_warning)
 
 
 class MarkG(NotLoggedMixin, Group):
     # Class identifier.
-    _c_classId = 'MARKG'
+    _c_classid = 'MARKG'
+
+    _c_classId = previous_api_property('_c_classid')
 
     import re
-    _c_shadowNameRE = re.compile(r'^a[0-9]+$')
+    _c_shadow_name_re = re.compile(r'^a[0-9]+$')
 
-    def _g_widthWarning(self):
+    def _g_width_warning(self):
         warnings.warn("""\
 mark ``%s`` is exceeding the recommended maximum action storage (%d nodes);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                      % (self._v_pathname, self._v_maxGroupWidth),
+                      % (self._v_pathname, self._v_max_group_width),
                       PerformanceWarning)
+
+    _g_widthWarning = previous_api(_g_width_warning)
 
     def _g_reset(self):
         """Empty action storage (nodes and attributes).
@@ -1209,11 +1279,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Remove action storage attributes.
         attrs = self._v_attrs
-        shname = self._c_shadowNameRE
+        shname = self._c_shadow_name_re
         for attrname in attrs._v_attrnamesuser[:]:
             if shname.match(attrname):
                 attrs._g__delattr(attrname)
-
 
 
 ## Local Variables:

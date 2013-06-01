@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 # License: BSD
@@ -15,7 +17,7 @@
 import warnings
 import numpy
 
-from tables import utilsExtension
+from tables import utilsextension
 from tables.exceptions import FiltersWarning
 
 
@@ -23,9 +25,6 @@ from tables.exceptions import FiltersWarning
 # ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
-
-__version__ = '$Revision$'
-"""Repository version of this file."""
 
 all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc']
 """List of all compression libraries."""
@@ -88,10 +87,10 @@ class Filters(object):
         import numpy
         from tables import *
 
-        fileh = openFile('test5.h5', mode='w')
+        fileh = open_file('test5.h5', mode='w')
         atom = Float32Atom()
         filters = Filters(complevel=1, complib='blosc', fletcher32=True)
-        arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2),
+        arr = fileh.create_earray(fileh.root, 'earray', atom, (0,2),
                                  "A growable array", filters=filters)
 
         # Append several rows in only one call
@@ -100,8 +99,8 @@ class Filters(object):
                                 [3., 4.]], dtype=numpy.float32))
 
         # Print information on that enlargeable array
-        print "Result Array:"
-        print repr(arr)
+        print("Result Array:")
+        print(repr(arr))
         fileh.close()
 
     This enforces the use of the Blosc library, a compression level of 1 and a
@@ -142,13 +141,13 @@ class Filters(object):
     def _from_leaf(class_, leaf):
         # Get a dictionary with all the filters
         parent = leaf._v_parent
-        filtersDict = utilsExtension.getFilters( parent._v_objectID,
-                                                 leaf._v_name )
+        filtersDict = utilsextension.get_filters(parent._v_objectid,
+                                                 leaf._v_name)
         if filtersDict is None:
             filtersDict = {}  # not chunked
 
-        kwargs = dict( complevel=0, shuffle=False, fletcher32=False,  # all off
-                       _new=False )
+        kwargs = dict(complevel=0, shuffle=False, fletcher32=False,  # all off
+                      _new=False)
         for (name, values) in filtersDict.iteritems():
             if name == 'deflate':
                 name = 'zlib'
@@ -196,8 +195,8 @@ class Filters(object):
         if complevel > 0:
             complib_id = int(packed & 0xff)
             if not (0 < complib_id <= len(all_complibs)):
-                raise ValueError( "invalid compression library id: %d"
-                                  % complib_id )
+                raise ValueError("invalid compression library id: %d"
+                                 % complib_id)
             kwargs['complib'] = all_complibs[complib_id - 1]
         packed >>= 8
         # Byte 2: parameterless filters.
@@ -206,18 +205,7 @@ class Filters(object):
         return class_(**kwargs)
 
     def _pack(self):
-        """Pack the `Filters` object into a 64-bit NumPy integer.
-
-        >>> type(Filters()._pack())
-        <type 'numpy.int64'>
-        >>> hexl = lambda n: hex(long(n))
-        >>> hexl(Filters()._pack())
-        '0x0L'
-        >>> hexl(Filters(1, shuffle=False)._pack())
-        '0x101L'
-        >>> hexl(Filters(9, 'zlib', shuffle=True, fletcher32=True)._pack())
-        '0x30109L'
-        """
+        """Pack the `Filters` object into a 64-bit NumPy integer."""
 
         packed = numpy.int64(0)
         # Byte 2: parameterless filters.
@@ -234,9 +222,9 @@ class Filters(object):
         packed |= self.complevel
         return packed
 
-    def __init__( self, complevel=0, complib=default_complib,
-                  shuffle=True, fletcher32=False,
-                  _new=True ):
+    def __init__(self, complevel=0, complib=default_complib,
+                 shuffle=True, fletcher32=False,
+                 _new=True):
         if not (0 <= complevel <= 9):
             raise ValueError("compression level must be between 0 and 9")
 
@@ -246,11 +234,11 @@ class Filters(object):
                 raise ValueError(
                     "compression library ``%s`` is not supported; "
                     "it must be one of: %s"
-                    % (complib, ", ".join(all_complibs)) )
-            if utilsExtension.whichLibVersion(complib) is None:
-                warnings.warn( "compression library ``%s`` is not available; "
-                               "using ``%s`` instead"
-                               % (complib, default_complib), FiltersWarning )
+                    % (complib, ", ".join(all_complibs)))
+            if utilsextension.which_lib_version(complib) is None:
+                warnings.warn("compression library ``%s`` is not available; "
+                              "using ``%s`` instead"
+                              % (complib, default_complib), FiltersWarning)
                 complib = default_complib  # always available
 
         complevel = int(complevel)
@@ -301,7 +289,7 @@ class Filters(object):
 
     # XXX: API incompatible change for PyTables 3 line
     # Overriding __eq__ blocks inheritance of __hash__ in 3.x
-    #def __hash__(self):
+    # def __hash__(self):
     #    return hash((self.__class__, self.complevel, self.complib,
     #                 self.shuffle, self.fletcher32))
 
@@ -326,9 +314,9 @@ class Filters(object):
             ...
             ValueError: compression library ``None`` is not supported...
             >>> filters3 = filters1.copy(complevel=1, complib='zlib')
-            >>> print filters1
+            >>> print(filters1)
             Filters(complevel=0, shuffle=False, fletcher32=False)
-            >>> print filters3
+            >>> print(filters3)
             Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
             >>> filters1.copy(foobar=42)
             Traceback (most recent call last):

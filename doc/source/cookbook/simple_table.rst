@@ -11,7 +11,7 @@ SimpleTable: simple wrapper around the Table object
 Here it is yet another example on how to inherit from the :class:`tables.Table`
 object so as to build an easy-to-use Table object.
 Thanks to Brent Pedersen for this one (taken from
-http://pypi.python.org/pypi/simpletable/).
+https://pypi.python.org/pypi/simpletable).
 
 ::
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-PYTHON=python2.6
+PYTHON=python
 # Small script to check the example repository quickly
 $PYTHON array1.py
 $PYTHON array2.py
@@ -23,3 +23,6 @@ $PYTHON nested-tut.py
 $PYTHON nested-iter.py
 $PYTHON links.py
 $PYTHON undo-redo.py
+$PYTHON multiprocess_access_queues.py
+$PYTHON multiprocess_access_benchmarks.py
+$PYTHON read_array_out_arg.py

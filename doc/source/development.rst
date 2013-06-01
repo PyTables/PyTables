@@ -1,6 +1,6 @@
-===================
-PyTables Deveopment
-===================
+====================
+PyTables Development
+====================
 
 If you want to follow the development of PyTables and take part in it,
 you may have a look at the PyTables project pages on
@@ -14,9 +14,6 @@ development) from the master branch of the project repository using git::
 
 Also, be sure to subscribe to the `Users' Mailing List`_ and/or the
 `Developers' Mailing List`_.
-
-Development version of the documentation is being built and published at
-http://readthedocs.org/docs/pytables/en/latest
 
 .. _`GitHub project site`: https://github.com/PyTables
 .. _`Users' Mailing List`: https://lists.sourceforge.net/lists/listinfo/pytables-users
@@ -37,14 +34,13 @@ Other resources for developers:
     OME_
   - `develop <https://jenkins.shiningpanda.com/pytables/>`_ branch at
     `Shining Panda`_
+  - `all branches <https://travis-ci.org/PyTables/PyTables>`_ on `Travis-CI`_
 
-* Development version of the
-  `HTML documentation <http://readthedocs.org/docs/pytables/en/latest>`_
 * `Old trac site <http://www.pytables.org/trac-bck>`_
 
 .. _OME: http://www.openmicroscopy.org
-.. _`Shining Panda`: https://www.shiningpanda.com
-
+.. _`Shining Panda`: https://www.shiningpanda-ci.com
+.. _`Travis-CI`: https://travis-ci.org
 
 .. toctree::
     :maxdepth: 1

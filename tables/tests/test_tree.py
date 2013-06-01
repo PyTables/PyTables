@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sys
 import warnings
 import unittest
@@ -14,15 +16,18 @@ from tables.tests import common
 unittest.TestCase.tearDown = common.cleanup
 
 # Test Record class
+
+
 class Record(IsDescription):
-    var1 = StringCol(itemsize=4) # 4-character String
+    var1 = StringCol(itemsize=4)  # 4-character String
     var2 = IntCol()              # integer
     var3 = Int16Col()            # short integer
     var4 = FloatCol()            # double (double-precision)
     var5 = Float32Col()          # float  (single-precision)
 
+
 class TreeTestCase(unittest.TestCase):
-    mode  = "w"
+    mode = "w"
     title = "This is the table title"
     expectedrows = 10
     appendrows = 5
@@ -31,20 +36,20 @@ class TreeTestCase(unittest.TestCase):
         # Create a temporary file
         self.file = tempfile.mktemp(".h5")
         # Create an instance of HDF5 Table
-        self.h5file = openFile(self.file, self.mode, self.title)
+        self.h5file = open_file(self.file, self.mode, self.title)
         self.populateFile()
         self.h5file.close()
 
     def populateFile(self):
         group = self.h5file.root
         maxshort = 1 << 15
-        #maxint   = 2147483647   # (2 ** 31 - 1)
+        # maxint   = 2147483647   # (2 ** 31 - 1)
         for j in range(3):
             # Create a table
-            table = self.h5file.createTable(group, 'table'+str(j), Record,
-                                        title = self.title,
-                                        filters = None,
-                                        expectedrows = self.expectedrows)
+            table = self.h5file.create_table(group, 'table'+str(j), Record,
+                                             title=self.title,
+                                             filters=None,
+                                             expectedrows=self.expectedrows)
             # Get the record object associated with the new table
             d = table.row
             # Fill the table
@@ -59,14 +64,14 @@ class TreeTestCase(unittest.TestCase):
             table.flush()
 
             # Create a couple of arrays in each group
-            var1List = [ x['var1'] for x in table.iterrows() ]
-            var4List = [ x['var4'] for x in table.iterrows() ]
+            var1List = [x['var1'] for x in table.iterrows()]
+            var4List = [x['var4'] for x in table.iterrows()]
 
-            self.h5file.createArray(group, 'var1', var1List, "1")
-            self.h5file.createArray(group, 'var4', var4List, "4")
+            self.h5file.create_array(group, 'var1', var1List, "1")
+            self.h5file.create_array(group, 'var4', var4List, "4")
 
             # Create a new group (descendant of group)
-            group2 = self.h5file.createGroup(group, 'group'+str(j))
+            group2 = self.h5file.create_group(group, 'group'+str(j))
             # Iterate over this new group (group2)
             group = group2
 
@@ -81,29 +86,30 @@ class TreeTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test00_getNode(self):
-        "Checking the File.getNode() with string node names"
+        "Checking the File.get_node() with string node names"
 
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_getNode..." % self.__class__.__name__
 
-        self.h5file = openFile(self.file, "r")
+        self.h5file = open_file(self.file, "r")
         nodelist = ['/', '/table0', '/group0/var1', '/group0/group1/var4']
         nodenames = []
         for node in nodelist:
-            object = self.h5file.getNode(node)
+            object = self.h5file.get_node(node)
             nodenames.append(object._v_pathname)
 
         self.assertEqual(nodenames, nodelist)
         if common.verbose:
-            print "getNode(pathname) test passed"
-        nodegroups = ['/', '/group0', '/group0/group1', '/group0/group1/group2']
+            print "get_node(pathname) test passed"
+        nodegroups = [
+            '/', '/group0', '/group0/group1', '/group0/group1/group2']
         nodenames = ['var1', 'var4']
         nodepaths = []
         for group in nodegroups:
             for name in nodenames:
                 try:
-                    object = self.h5file.getNode(group, name)
+                    object = self.h5file.get_node(group, name)
                 except LookupError:
                     pass
                 else:
@@ -115,15 +121,15 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "getNode(groupname, name) test passed"
+            print "get_node(groupname, name) test passed"
         nodelist = ['/', '/group0', '/group0/group1', '/group0/group1/group2',
                     '/table0']
         nodenames = []
         groupobjects = []
-        #warnings.filterwarnings("error", category=UserWarning)
+        # warnings.filterwarnings("error", category=UserWarning)
         for node in nodelist:
             try:
-                object = self.h5file.getNode(node, classname = 'Group')
+                object = self.h5file.get_node(node, classname='Group')
             except LookupError:
                 if common.verbose:
                     (type, value, traceback) = sys.exc_info()
@@ -137,17 +143,17 @@ class TreeTestCase(unittest.TestCase):
                          ['/', '/group0', '/group0/group1',
                           '/group0/group1/group2'])
         if common.verbose:
-            print "getNode(groupname, classname='Group') test passed"
+            print "get_node(groupname, classname='Group') test passed"
 
         # Reset the warning
-        #warnings.filterwarnings("default", category=UserWarning)
+        # warnings.filterwarnings("default", category=UserWarning)
 
         nodenames = ['var1', 'var4']
         nodearrays = []
         for group in groupobjects:
             for name in nodenames:
                 try:
-                    object = self.h5file.getNode(group, name, 'Array')
+                    object = self.h5file.get_node(group, name, 'Array')
                 except:
                     pass
                 else:
@@ -158,46 +164,46 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/var1', '/group0/var4',
                           '/group0/group1/var1', '/group0/group1/var4'])
         if common.verbose:
-            print "getNode(groupobject, name, classname='Array') test passed"
+            print "get_node(groupobject, name, classname='Array') test passed"
 
     def test01_getNodeClass(self):
-        "Checking the File.getNode() with instances"
+        "Checking the File.get_node() with instances"
 
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_getNodeClass..." % self.__class__.__name__
 
-        self.h5file = openFile(self.file, "r")
-        # This tree ways of getNode usage should return a table instance
-        table = self.h5file.getNode("/group0/table1")
+        self.h5file = open_file(self.file, "r")
+        # This tree ways of get_node usage should return a table instance
+        table = self.h5file.get_node("/group0/table1")
         self.assertTrue(isinstance(table, Table))
-        table = self.h5file.getNode("/group0", "table1")
+        table = self.h5file.get_node("/group0", "table1")
         self.assertTrue(isinstance(table, Table))
-        table = self.h5file.getNode(self.h5file.root.group0, "table1")
+        table = self.h5file.get_node(self.h5file.root.group0, "table1")
         self.assertTrue(isinstance(table, Table))
 
         # This should return an array instance
-        arr = self.h5file.getNode("/group0/var1")
+        arr = self.h5file.get_node("/group0/var1")
         self.assertTrue(isinstance(arr, Array))
         self.assertTrue(isinstance(arr, Leaf))
 
         # And this a Group
-        group = self.h5file.getNode("/group0", "group1", "Group")
+        group = self.h5file.get_node("/group0", "group1", "Group")
         self.assertTrue(isinstance(group, Group))
 
     def test02_listNodes(self):
-        "Checking the File.listNodes() method"
+        "Checking the File.list_nodes() method"
 
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_listNodes..." % self.__class__.__name__
 
         # Made the warnings to raise an error
-        #warnings.filterwarnings("error", category=UserWarning)
-        self.h5file = openFile(self.file, "r")
+        # warnings.filterwarnings("error", category=UserWarning)
+        self.h5file = open_file(self.file, "r")
 
         self.assertRaises(TypeError,
-                          self.h5file.listNodes, '/', 'NoSuchClass')
+                          self.h5file.list_nodes, '/', 'NoSuchClass')
 
         nodelist = ['/', '/group0', '/group0/table1', '/group0/group1/group2',
                     '/var1']
@@ -205,7 +211,7 @@ class TreeTestCase(unittest.TestCase):
         objects = []
         for node in nodelist:
             try:
-                objectlist = self.h5file.listNodes(node)
+                objectlist = self.h5file.list_nodes(node)
             except:
                 pass
             else:
@@ -218,12 +224,12 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1', '/group0/table1',
                           '/group0/var1', '/group0/var4'])
         if common.verbose:
-            print "listNodes(pathname) test passed"
+            print "list_nodes(pathname) test passed"
 
         nodenames = []
         for node in objects:
             try:
-                objectlist = self.h5file.listNodes(node)
+                objectlist = self.h5file.list_nodes(node)
             except:
                 pass
             else:
@@ -237,12 +243,12 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "listNodes(groupobject) test passed"
+            print "list_nodes(groupobject) test passed"
 
         nodenames = []
         for node in objects:
             try:
-                objectlist = self.h5file.listNodes(node, 'Leaf')
+                objectlist = self.h5file.list_nodes(node, 'Leaf')
             except TypeError:
                 if common.verbose:
                     (type, value, traceback) = sys.exc_info()
@@ -259,12 +265,12 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "listNodes(groupobject, classname = 'Leaf') test passed"
+            print "list_nodes(groupobject, classname = 'Leaf') test passed"
 
         nodenames = []
         for node in objects:
             try:
-                objectlist = self.h5file.listNodes(node, 'Table')
+                objectlist = self.h5file.list_nodes(node, 'Table')
             except TypeError:
                 if common.verbose:
                     (type, value, traceback) = sys.exc_info()
@@ -278,22 +284,22 @@ class TreeTestCase(unittest.TestCase):
                          ['/group0/table1', '/group0/group1/table2'])
 
         if common.verbose:
-            print "listNodes(groupobject, classname = 'Table') test passed"
+            print "list_nodes(groupobject, classname = 'Table') test passed"
 
         # Reset the warning
-        #warnings.filterwarnings("default", category=UserWarning)
+        # warnings.filterwarnings("default", category=UserWarning)
 
     def test02b_iterNodes(self):
-        "Checking the File.iterNodes() method"
+        "Checking the File.iter_nodes() method"
 
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_iterNodes..." % self.__class__.__name__
 
-        self.h5file = openFile(self.file, "r")
+        self.h5file = open_file(self.file, "r")
 
         self.assertRaises(TypeError,
-                          self.h5file.listNodes, '/', 'NoSuchClass')
+                          self.h5file.list_nodes, '/', 'NoSuchClass')
 
         nodelist = ['/', '/group0', '/group0/table1', '/group0/group1/group2',
                     '/var1']
@@ -301,7 +307,7 @@ class TreeTestCase(unittest.TestCase):
         objects = []
         for node in nodelist:
             try:
-                objectlist = [o for o in self.h5file.iterNodes(node)]
+                objectlist = [o for o in self.h5file.iter_nodes(node)]
             except:
                 pass
             else:
@@ -314,12 +320,12 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1', '/group0/table1',
                           '/group0/var1', '/group0/var4'])
         if common.verbose:
-            print "iterNodes(pathname) test passed"
+            print "iter_nodes(pathname) test passed"
 
         nodenames = []
         for node in objects:
             try:
-                objectlist = [o for o in self.h5file.iterNodes(node)]
+                objectlist = [o for o in self.h5file.iter_nodes(node)]
             except:
                 pass
             else:
@@ -333,12 +339,12 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "iterNodes(groupobject) test passed"
+            print "iter_nodes(groupobject) test passed"
 
         nodenames = []
         for node in objects:
             try:
-                objectlist = [o for o in self.h5file.iterNodes(node, 'Leaf')]
+                objectlist = [o for o in self.h5file.iter_nodes(node, 'Leaf')]
             except TypeError:
                 if common.verbose:
                     (type, value, traceback) = sys.exc_info()
@@ -355,12 +361,12 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "iterNodes(groupobject, classname = 'Leaf') test passed"
+            print "iter_nodes(groupobject, classname = 'Leaf') test passed"
 
         nodenames = []
         for node in objects:
             try:
-                objectlist = [o for o in self.h5file.iterNodes(node, 'Table')]
+                objectlist = [o for o in self.h5file.iter_nodes(node, 'Table')]
             except TypeError:
                 if common.verbose:
                     (type, value, traceback) = sys.exc_info()
@@ -374,27 +380,27 @@ class TreeTestCase(unittest.TestCase):
                          ['/group0/table1', '/group0/group1/table2'])
 
         if common.verbose:
-            print "iterNodes(groupobject, classname = 'Table') test passed"
+            print "iter_nodes(groupobject, classname = 'Table') test passed"
 
         # Reset the warning
-        #warnings.filterwarnings("default", category=UserWarning)
+        # warnings.filterwarnings("default", category=UserWarning)
 
     def test03_TraverseTree(self):
-        "Checking the File.walkGroups() method"
+        "Checking the File.walk_groups() method"
 
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_TraverseTree..." % self.__class__.__name__
 
-        self.h5file = openFile(self.file, "r")
+        self.h5file = open_file(self.file, "r")
         groups = []
         tables = []
         arrays = []
-        for group in self.h5file.walkGroups():
+        for group in self.h5file.walk_groups():
             groups.append(group._v_pathname)
-            for table in self.h5file.listNodes(group, 'Table'):
+            for table in self.h5file.list_nodes(group, 'Table'):
                 tables.append(table._v_pathname)
-            for arr in self.h5file.listNodes(group, 'Array'):
+            for arr in self.h5file.list_nodes(group, 'Array'):
                 arrays.append(arr._v_pathname)
 
         self.assertEqual(groups,
@@ -409,16 +415,16 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/var1', '/group0/var4',
                           '/group0/group1/var1', '/group0/group1/var4'])
         if common.verbose:
-            print "walkGroups() test passed"
+            print "walk_groups() test passed"
 
         groups = []
         tables = []
         arrays = []
-        for group in self.h5file.walkGroups("/group0/group1"):
+        for group in self.h5file.walk_groups("/group0/group1"):
             groups.append(group._v_pathname)
-            for table in self.h5file.listNodes(group, 'Table'):
+            for table in self.h5file.list_nodes(group, 'Table'):
                 tables.append(table._v_pathname)
-            for arr in self.h5file.listNodes(group, 'Array'):
+            for arr in self.h5file.list_nodes(group, 'Array'):
                 arrays.append(arr._v_pathname)
 
         self.assertEqual(groups,
@@ -426,36 +432,37 @@ class TreeTestCase(unittest.TestCase):
 
         self.assertEqual(tables, ["/group0/group1/table2"])
 
-        self.assertEqual(arrays, ['/group0/group1/var1', '/group0/group1/var4'])
+        self.assertEqual(arrays, [
+                         '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "walkGroups(pathname) test passed"
+            print "walk_groups(pathname) test passed"
 
     def test04_walkNodes(self):
-        "Checking File.walkNodes"
+        "Checking File.walk_nodes"
 
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_walkNodes..." % self.__class__.__name__
 
-        self.h5file = openFile(self.file, "r")
+        self.h5file = open_file(self.file, "r")
 
         self.assertRaises(TypeError,
-                          self.h5file.walkNodes('/', 'NoSuchClass').next)
+                          self.h5file.walk_nodes('/', 'NoSuchClass').next)
 
         groups = []
         tables = []
         tables2 = []
         arrays = []
-        for group in self.h5file.walkNodes(classname="Group"):
+        for group in self.h5file.walk_nodes(classname="Group"):
             groups.append(group._v_pathname)
-            for table in group._f_iterNodes(classname='Table'):
+            for table in group._f_iter_nodes(classname='Table'):
                 tables.append(table._v_pathname)
         # Test the recursivity
-        for table in self.h5file.root._f_walkNodes('Table'):
+        for table in self.h5file.root._f_walknodes('Table'):
             tables2.append(table._v_pathname)
 
-        for arr in self.h5file.walkNodes(classname='Array'):
+        for arr in self.h5file.walk_nodes(classname='Array'):
             arrays.append(arr._v_pathname)
 
         self.assertEqual(groups,
@@ -466,7 +473,7 @@ class TreeTestCase(unittest.TestCase):
                           "/group0/group1/table2"])
         self.assertEqual(tables2,
                          ["/table0", "/group0/table1",
-                           "/group0/group1/table2"])
+                          "/group0/group1/table2"])
         self.assertEqual(arrays,
                          ['/var1', '/var4',
                           '/group0/var1', '/group0/var4',
@@ -478,11 +485,11 @@ class TreeTestCase(unittest.TestCase):
         groups = []
         tables = []
         arrays = []
-        for group in self.h5file.walkNodes("/group0/group1", classname="Group"):
+        for group in self.h5file.walk_nodes("/group0/group1", classname="Group"):
             groups.append(group._v_pathname)
-            for table in group._f_walkNodes('Table'):
+            for table in group._f_walknodes('Table'):
                 tables.append(table._v_pathname)
-            for arr in self.h5file.walkNodes(group, 'Array'):
+            for arr in self.h5file.walk_nodes(group, 'Array'):
                 arrays.append(arr._v_pathname)
 
         self.assertEqual(groups,
@@ -490,10 +497,11 @@ class TreeTestCase(unittest.TestCase):
 
         self.assertEqual(tables, ["/group0/group1/table2"])
 
-        self.assertEqual(arrays, ['/group0/group1/var1', '/group0/group1/var4'])
+        self.assertEqual(arrays, [
+                         '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "walkNodes(pathname, classname) test passed"
+            print "walk_nodes(pathname, classname) test passed"
 
 
 class DeepTreeTestCase(unittest.TestCase):
@@ -514,7 +522,7 @@ class DeepTreeTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         self.file = tempfile.mktemp(".h5")
-        fileh = openFile(self.file, mode = "w")
+        fileh = open_file(self.file, mode="w")
         group = fileh.root
         if common.verbose:
             print "Depth writing progress: ",
@@ -524,12 +532,12 @@ class DeepTreeTestCase(unittest.TestCase):
             if common.verbose:
                 print "%3d," % (depth),
             # Create a couple of arrays here
-            fileh.createArray(group, 'array', [1, 1], "depth: %d" % depth)
-            fileh.createArray(group, 'array2', [1, 1], "depth: %d" % depth)
+            fileh.create_array(group, 'array', [1, 1], "depth: %d" % depth)
+            fileh.create_array(group, 'array2', [1, 1], "depth: %d" % depth)
             # And also a group
-            fileh.createGroup(group, 'group2_' + str(depth))
+            fileh.create_group(group, 'group2_' + str(depth))
             # Finally, iterate over a new group
-            group = fileh.createGroup(group, 'group' + str(depth))
+            group = fileh.create_group(group, 'group' + str(depth))
         # Close the file
         fileh.close()
 
@@ -539,7 +547,7 @@ class DeepTreeTestCase(unittest.TestCase):
 
     def _check_tree(self, file):
         # Open the previous HDF5 file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode="r")
         group = fileh.root
         if common.verbose:
             print "\nDepth reading progress: ",
@@ -552,9 +560,9 @@ class DeepTreeTestCase(unittest.TestCase):
             self.assertTrue("array2" in group)
             self.assertTrue("group2_"+str(depth) in group)
             # Iterate over the next group
-            group = fileh.getNode(group, 'group' + str(depth))
+            group = fileh.get_node(group, 'group' + str(depth))
         if common.verbose:
-            print # This flush the stdout buffer
+            print  # This flush the stdout buffer
         fileh.close()
 
     def test00_deepTree(self):
@@ -563,12 +571,12 @@ class DeepTreeTestCase(unittest.TestCase):
 
     def test01a_copyDeepTree(self):
         "Copy of a large depth object tree."
-        fileh = openFile(self.file, mode = "r")
+        fileh = open_file(self.file, mode="r")
         file2 = tempfile.mktemp(".h5")
-        fileh2 = openFile(file2, mode = "w")
+        fileh2 = open_file(file2, mode="w")
         if common.verbose:
             print "\nCopying deep tree..."
-        fileh.copyNode(fileh.root, fileh2.root, recursive = True)
+        fileh.copy_node(fileh.root, fileh2.root, recursive=True)
         fileh.close()
         fileh2.close()
         self._check_tree(file2)
@@ -576,12 +584,12 @@ class DeepTreeTestCase(unittest.TestCase):
 
     def test01b_copyDeepTree(self):
         "Copy of a large depth object tree with small node cache."
-        fileh = openFile(self.file, mode = "r", NODE_MAX_SLOTS=10)
+        fileh = open_file(self.file, mode="r", node_cache_slots=10)
         file2 = tempfile.mktemp(".h5")
-        fileh2 = openFile(file2, mode = "w", NODE_MAX_SLOTS=10)
+        fileh2 = open_file(file2, mode="w", node_cache_slots=10)
         if common.verbose:
             print "\nCopying deep tree..."
-        fileh.copyNode(fileh.root, fileh2.root, recursive = True)
+        fileh.copy_node(fileh.root, fileh2.root, recursive=True)
         fileh.close()
         fileh2.close()
         self._check_tree(file2)
@@ -589,12 +597,12 @@ class DeepTreeTestCase(unittest.TestCase):
 
     def test01c_copyDeepTree(self):
         "Copy of a large depth object tree with no node cache."
-        fileh = openFile(self.file, mode = "r", NODE_MAX_SLOTS=0)
+        fileh = open_file(self.file, mode="r", node_cache_slots=0)
         file2 = tempfile.mktemp(".h5")
-        fileh2 = openFile(file2, mode = "w", NODE_MAX_SLOTS=0)
+        fileh2 = open_file(file2, mode="w", node_cache_slots=0)
         if common.verbose:
             print "\nCopying deep tree..."
-        fileh.copyNode(fileh.root, fileh2.root, recursive = True)
+        fileh.copy_node(fileh.root, fileh2.root, recursive=True)
         fileh.close()
         fileh2.close()
         self._check_tree(file2)
@@ -605,12 +613,12 @@ class DeepTreeTestCase(unittest.TestCase):
         # Do not execute this in heavy mode
         if common.heavy:
             return
-        fileh = openFile(self.file, mode = "r", NODE_MAX_SLOTS=-256)
+        fileh = open_file(self.file, mode="r", node_cache_slots=-256)
         file2 = tempfile.mktemp(".h5")
-        fileh2 = openFile(file2, mode = "w", NODE_MAX_SLOTS=-256)
+        fileh2 = open_file(file2, mode="w", node_cache_slots=-256)
         if common.verbose:
             print "\nCopying deep tree..."
-        fileh.copyNode(fileh.root, fileh2.root, recursive = True)
+        fileh.copy_node(fileh.root, fileh2.root, recursive=True)
         fileh.close()
         fileh2.close()
         self._check_tree(file2)
@@ -643,17 +651,17 @@ class WideTreeTestCase(unittest.TestCase):
             print "Maximum number of children tested :", maxchildren
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        #file = "test_widetree.h5"
+        # file = "test_widetree.h5"
 
         a = [1, 1]
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         if common.verbose:
             print "Children writing progress: ",
         for child in range(maxchildren):
             if common.verbose:
                 print "%3d," % (child),
-            fileh.createArray(fileh.root, 'array' + str(child),
-                              a, "child: %d" % child)
+            fileh.create_array(fileh.root, 'array' + str(child),
+                               a, "child: %d" % child)
         if common.verbose:
             print
         # Close the file
@@ -662,7 +670,7 @@ class WideTreeTestCase(unittest.TestCase):
         t1 = time.time()
         a = [1, 1]
         # Open the previous HDF5 file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode="r")
         if common.verbose:
             print "\nTime spent opening a file with %d arrays: %s s" % \
                   (maxchildren, time.time()-t1)
@@ -678,12 +686,11 @@ class WideTreeTestCase(unittest.TestCase):
             # Arrays a and b must be equal
             self.assertEqual(a, b)
         if common.verbose:
-            print # This flush the stdout buffer
+            print  # This flush the stdout buffer
         # Close the file
         fileh.close()
         # Then, delete the file
         os.remove(file)
-
 
     def test01_wideTree(self):
         """Checking creation of large number of groups (1024) per group
@@ -709,16 +716,16 @@ class WideTreeTestCase(unittest.TestCase):
             print "Maximum number of children tested :", maxchildren
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        #file = "test_widetree.h5"
+        # file = "test_widetree.h5"
 
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode="w")
         if common.verbose:
             print "Children writing progress: ",
         for child in range(maxchildren):
             if common.verbose:
                 print "%3d," % (child),
-            fileh.createGroup(fileh.root, 'group' + str(child),
-                              "child: %d" % child)
+            fileh.create_group(fileh.root, 'group' + str(child),
+                               "child: %d" % child)
         if common.verbose:
             print
         # Close the file
@@ -726,7 +733,7 @@ class WideTreeTestCase(unittest.TestCase):
 
         t1 = time.time()
         # Open the previous HDF5 file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode="r")
         if common.verbose:
             print "\nTime spent opening a file with %d groups: %s s" % \
                   (maxchildren, time.time()-t1)
@@ -740,12 +747,11 @@ class WideTreeTestCase(unittest.TestCase):
             # Arrays a and b must be equal
             self.assertEqual(group._v_title, "child: %d" % child)
         if common.verbose:
-            print # This flush the stdout buffer
+            print  # This flush the stdout buffer
         # Close the file
         fileh.close()
         # Then, delete the file
         os.remove(file)
-
 
 
 class HiddenTreeTestCase(unittest.TestCase):
@@ -754,39 +760,37 @@ class HiddenTreeTestCase(unittest.TestCase):
 
     def setUp(self):
         self.h5fname = tempfile.mktemp('.h5')
-        self.h5file = openFile(
-            self.h5fname, 'w', title = "Test for hidden nodes")
+        self.h5file = open_file(
+            self.h5fname, 'w', title="Test for hidden nodes")
 
         self.visible = []  # list of visible object paths
         self.hidden = []  # list of hidden object paths
 
         # Create some visible nodes: a, g, g/a1, g/a2, g/g, g/g/a.
         h5f = self.h5file
-        h5f.createArray('/', 'a', [0]);
-        g = h5f.createGroup('/', 'g');
-        h5f.createArray(g, 'a1', [0]);
-        h5f.createArray(g, 'a2', [0]);
-        g_g = h5f.createGroup(g, 'g');
-        h5f.createArray(g_g, 'a', [0]);
+        h5f.create_array('/', 'a', [0])
+        g = h5f.create_group('/', 'g')
+        h5f.create_array(g, 'a1', [0])
+        h5f.create_array(g, 'a2', [0])
+        g_g = h5f.create_group(g, 'g')
+        h5f.create_array(g_g, 'a', [0])
 
         self.visible.extend(['/a', '/g', '/g/a1', '/g/a2', '/g/g', '/g/g/a'])
 
         # Create some hidden nodes: _p_a, _p_g, _p_g/a, _p_g/_p_a, g/_p_a.
-        h5f.createArray('/', '_p_a', [0]);
-        hg = h5f.createGroup('/', '_p_g');
-        h5f.createArray(hg, 'a', [0]);
-        h5f.createArray(hg, '_p_a', [0]);
-        h5f.createArray(g, '_p_a', [0]);
+        h5f.create_array('/', '_p_a', [0])
+        hg = h5f.create_group('/', '_p_g')
+        h5f.create_array(hg, 'a', [0])
+        h5f.create_array(hg, '_p_a', [0])
+        h5f.create_array(g, '_p_a', [0])
 
         self.hidden.extend(
             ['/_p_a', '/_p_g', '/_p_g/a', '/_p_g/_p_a', '/g/_p_a'])
-
 
     def tearDown(self):
         self.h5file.close()
         self.h5file = None
         os.remove(self.h5fname)
-
 
     # The test behind commented out because the .objects dictionary
     # has been removed (as well as .leaves and .groups)
@@ -799,35 +803,34 @@ class HiddenTreeTestCase(unittest.TestCase):
 
         for vpath in self.visible:
             self.assertTrue(vpath in objects,
-                "Missing visible node ``%s`` from ``File.objects``." % vpath)
+                            "Missing visible node ``%s`` from ``File.objects``." % vpath)
         for hpath in self.hidden:
             self.assertTrue(hpath not in objects,
-                "Found hidden node ``%s`` in ``File.objects``." % hpath)
+                            "Found hidden node ``%s`` in ``File.objects``." % hpath)
 
         warnings.filterwarnings('default', category=DeprecationWarning)
-
 
     # The test behind commented out because the .objects dictionary
     # has been removed (as well as .leaves and .groups)
     def _test00b_objects(self):
-        """Object dictionaries conformance with ``walkNodes()``."""
+        """Object dictionaries conformance with ``walk_nodes()``."""
 
-        def dictCheck(dictName, className):
+        def dictCheck(dictName, classname):
             file_ = self.h5file
 
             objects = getattr(file_, dictName)
             walkPaths = [node._v_pathname
-                         for node in file_.walkNodes('/', className)]
+                         for node in file_.walk_nodes('/', classname)]
             dictPaths = [path for path in objects]
             walkPaths.sort()
             dictPaths.sort()
             self.assertEqual(
                 walkPaths, dictPaths,
-                "nodes in ``%s`` do not match those from ``walkNodes()``"
+                "nodes in ``%s`` do not match those from ``walk_nodes()``"
                 % dictName)
             self.assertEqual(
                 len(walkPaths), len(objects),
-                "length of ``%s`` differs from that of ``walkNodes()``"
+                "length of ``%s`` differs from that of ``walk_nodes()``"
                 % dictName)
 
         warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -838,70 +841,64 @@ class HiddenTreeTestCase(unittest.TestCase):
 
         warnings.filterwarnings('default', category=DeprecationWarning)
 
-
     def test01_getNode(self):
-        """Node availability via `File.getNode()`."""
+        """Node availability via `File.get_node()`."""
 
         h5f = self.h5file
 
         for vpath in self.visible:
-            h5f.getNode(vpath)
+            h5f.get_node(vpath)
         for hpath in self.hidden:
-            h5f.getNode(hpath)
-
+            h5f.get_node(hpath)
 
     def test02_walkGroups(self):
-        """Hidden group absence in `File.walkGroups()`."""
+        """Hidden group absence in `File.walk_groups()`."""
 
         hidden = self.hidden
 
-        for group in self.h5file.walkGroups('/'):
+        for group in self.h5file.walk_groups('/'):
             pathname = group._v_pathname
             self.assertTrue(pathname not in hidden,
                             "Walked across hidden group ``%s``." % pathname)
 
-
     def test03_walkNodes(self):
-        """Hidden node absence in `File.walkNodes()`."""
+        """Hidden node absence in `File.walk_nodes()`."""
 
         hidden = self.hidden
 
-        for node in self.h5file.walkNodes('/'):
+        for node in self.h5file.walk_nodes('/'):
             pathname = node._v_pathname
             self.assertTrue(pathname not in hidden,
                             "Walked across hidden node ``%s``." % pathname)
 
-
     def test04_listNodesVisible(self):
-        """Listing visible nodes under a visible group (listNodes)."""
+        """Listing visible nodes under a visible group (list_nodes)."""
 
         hidden = self.hidden
 
-        for node in self.h5file.listNodes('/g'):
+        for node in self.h5file.list_nodes('/g'):
             pathname = node._v_pathname
             self.assertTrue(pathname not in hidden,
                             "Listed hidden node ``%s``." % pathname)
-
 
     def test04b_listNodesVisible(self):
-        """Listing visible nodes under a visible group (iterNodes)."""
+        """Listing visible nodes under a visible group (iter_nodes)."""
 
         hidden = self.hidden
 
-        for node in self.h5file.iterNodes('/g'):
+        for node in self.h5file.iter_nodes('/g'):
             pathname = node._v_pathname
             self.assertTrue(pathname not in hidden,
                             "Listed hidden node ``%s``." % pathname)
 
-
     def test05_listNodesHidden(self):
-        """Listing visible nodes under a hidden group (listNodes)."""
+        """Listing visible nodes under a hidden group (list_nodes)."""
 
         hidden = self.hidden
 
         node_to_find = '/_p_g/a'
         found_node = False
-        for node in self.h5file.listNodes('/_p_g'):
+        for node in self.h5file.list_nodes('/_p_g'):
             pathname = node._v_pathname
             if pathname == node_to_find:
                 found_node = True
@@ -910,16 +907,15 @@ class HiddenTreeTestCase(unittest.TestCase):
 
         self.assertTrue(found_node,
                         "Hidden node ``%s`` was not listed." % node_to_find)
-
 
     def test05b_iterNodesHidden(self):
-        """Listing visible nodes under a hidden group (iterNodes)."""
+        """Listing visible nodes under a hidden group (iter_nodes)."""
 
         hidden = self.hidden
 
         node_to_find = '/_p_g/a'
         found_node = False
-        for node in self.h5file.iterNodes('/_p_g'):
+        for node in self.h5file.iter_nodes('/_p_g'):
             pathname = node._v_pathname
             if pathname == node_to_find:
                 found_node = True
@@ -928,7 +924,6 @@ class HiddenTreeTestCase(unittest.TestCase):
 
         self.assertTrue(found_node,
                         "Hidden node ``%s`` was not listed." % node_to_find)
-
 
     # The test behind commented out because the .objects dictionary
     # has been removed (as well as .leaves and .groups)
@@ -936,21 +931,19 @@ class HiddenTreeTestCase(unittest.TestCase):
         """Reopening a file with hidden nodes."""
 
         self.h5file.close()
-        self.h5file = openFile(self.h5fname)
+        self.h5file = open_file(self.h5fname)
         self.test00_objects()
-
 
     def test07_move(self):
         """Moving a node between hidden and visible groups."""
 
-        isVisibleNode = self.h5file.isVisibleNode
+        is_visible_node = self.h5file.is_visible_node
 
-        self.assertFalse(isVisibleNode('/_p_g/a'))
-        self.h5file.moveNode('/_p_g/a', '/g', 'a')
-        self.assertTrue(isVisibleNode('/g/a'))
-        self.h5file.moveNode('/g/a', '/_p_g', 'a')
-        self.assertFalse(isVisibleNode('/_p_g/a'))
-
+        self.assertFalse(is_visible_node('/_p_g/a'))
+        self.h5file.move_node('/_p_g/a', '/g', 'a')
+        self.assertTrue(is_visible_node('/g/a'))
+        self.h5file.move_node('/g/a', '/_p_g', 'a')
+        self.assertFalse(is_visible_node('/_p_g/a'))
 
     def test08_remove(self):
         """Removing a visible group with hidden children."""
@@ -958,7 +951,6 @@ class HiddenTreeTestCase(unittest.TestCase):
         self.assertTrue('/g/_p_a' in self.h5file)
         self.h5file.root.g._f_remove(recursive=True)
         self.assertFalse('/g/_p_a' in self.h5file)
-
 
 
 class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -975,45 +967,43 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
         super(CreateParentsTestCase, self).setUp()
-        self.h5file.createArray('/', 'array', [1])
-        self.h5file.createGroup('/', 'group', filters=self.filters)
+        self.h5file.create_array('/', 'array', [1])
+        self.h5file.create_group('/', 'group', filters=self.filters)
 
     def test00_parentType(self):
         """Using the right type of parent node argument."""
 
         h5file, root = self.h5file, self.h5file.root
 
-        self.assertRaises( TypeError, h5file.createArray,
-                           root.group, 'arr', [1], createparents=True )
-        self.assertRaises( TypeError, h5file.copyNode,
-                           '/array', root.group, createparents=True )
-        self.assertRaises( TypeError, h5file.moveNode,
-                           '/array', root.group, createparents=True )
-        self.assertRaises( TypeError, h5file.copyChildren,
-                           '/group', root, createparents=True )
+        self.assertRaises(TypeError, h5file.create_array,
+                          root.group, 'arr', [1], createparents=True)
+        self.assertRaises(TypeError, h5file.copy_node,
+                          '/array', root.group, createparents=True)
+        self.assertRaises(TypeError, h5file.move_node,
+                          '/array', root.group, createparents=True)
+        self.assertRaises(TypeError, h5file.copy_children,
+                          '/group', root, createparents=True)
 
     def test01_inside(self):
         """Placing a node inside a nonexistent child of itself."""
-        self.assertRaises( NodeError, self.h5file.moveNode,
-                           '/group', '/group/foo/bar',
-                           createparents=True )
+        self.assertRaises(NodeError, self.h5file.move_node,
+                          '/group', '/group/foo/bar',
+                          createparents=True)
         self.assertFalse('/group/foo' in self.h5file)
-        self.assertRaises( NodeError, self.h5file.copyNode,
-                           '/group', '/group/foo/bar',
-                           recursive=True, createparents=True )
+        self.assertRaises(NodeError, self.h5file.copy_node,
+                          '/group', '/group/foo/bar',
+                          recursive=True, createparents=True)
         self.assertFalse('/group/foo' in self.h5file)
 
     def test02_filters(self):
         """Propagating the filters of created parent groups."""
-        self.h5file.createGroup('/group/foo/bar', 'baz', createparents=True)
+        self.h5file.create_group('/group/foo/bar', 'baz', createparents=True)
         self.assertTrue('/group/foo/bar/baz' in self.h5file)
-        for group in self.h5file.walkGroups('/group'):
+        for group in self.h5file.walk_groups('/group'):
             self.assertEqual(self.filters, group._v_filters)
 
 
-
 #----------------------------------------------------------------------
-
 def suite():
     theSuite = unittest.TestSuite()
     # This counter is useful when detecting memory leaks
@@ -1030,4 +1020,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main( defaultTest='suite' )
+    unittest.main(defaultTest='suite')

@@ -64,7 +64,7 @@ class DB(object):
     def open_db(self, remove=0):
         if remove and os.path.exists(self.filename):
             os.remove(self.filename)
-        con = tables.openFile(self.filename, 'a')
+        con = tables.open_file(self.filename, 'a')
         return con
 
     def create_db(self, verbose):
@@ -83,7 +83,7 @@ class DB(object):
         filters = tables.Filters(complevel=self.docompress,
                                  complib=self.complib)
         atom = tables.Atom.from_kind(self.dtype)
-        earray = self.con.createEArray(self.con.root, 'earray', atom, (0,),
+        earray = self.con.create_earray(self.con.root, 'earray', atom, (0,),
                                        filters=filters,
                                        expectedrows=self.nrows,
                                        chunkshape=(self.chunksize,))

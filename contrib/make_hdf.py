@@ -5,6 +5,7 @@ from __future__ import generators
 import tables, cPickle, time
 #################################################################################
 
+
 def is_scalar(item):
     try:
         iter(item)
@@ -16,12 +17,15 @@ def is_scalar(item):
             return 0
     except:
         return 'notstr'
+
+
 def is_dict(item):
     try:
         item.iteritems()
         return 1
     except:
         return 0
+
 
 def make_col(row_type, row_name, row_item, str_len):
     '''for strings it will always make at least 80 char or twice mac char size'''
@@ -36,6 +40,8 @@ def make_col(row_type, row_name, row_item, str_len):
             float: tables.Col("Float32", 4), #Col("Int16", 1)
             }
         row_type[row_name]=type_matrix[type(row_item)]
+
+
 def make_row(data):
     row_type={}
     scalar_type=is_scalar(data)
@@ -73,6 +79,8 @@ def make_row(data):
                     raise ValueError('too many nested levels of lists')
                 count+=1
     return row_type
+
+
 def add_table(fileh, group_obj, data, table_name):
     #figure out if it is a list of lists or a single list
     #get types of columns
@@ -101,6 +109,7 @@ def add_table(fileh, group_obj, data, table_name):
                 count+=1
     table1.flush()
 
+
 def add_cache(fileh, cache):
     group_name='pytables_cache_v0';table_name='cache0'
     root=fileh.root
@@ -121,6 +130,8 @@ def add_cache(fileh, cache):
         table_cache.row['col_0']=piece
         table_cache.row.append()
     table_cache.flush()
+
+
 def save2(hdf_file, data):
     fileh=tables.openFile(hdf_file, mode='w', title='logon history')
     root=fileh.root;cache_root=cache={}
@@ -164,6 +175,7 @@ class Hdf_dict(dict):
         else:
             self.hdf_dict=self.get_cache()
         self.cur_dict=self.hdf_dict
+
     def get_cache(self):
         fileh=tables.openFile(self.hdf_file, rootUEP='pytables_cache_v0')
         table=fileh.root.cache0
@@ -179,23 +191,30 @@ class Hdf_dict(dict):
         a=cPickle.loads(total)
         print 'cache', time.time()-begin
         return a
+
     def has_key(self, k):
         return k in self.cur_dict
+
     def keys(self):
         return self.cur_dict.keys()
+
     def get(self,key,default=None):
         try:
             return self.__getitem__(key)
         except:
             return default
+
     def items(self):
-            return list(self.iteritems())
+        return list(self.iteritems())
+
     def values(self):
-            return list(self.itervalues())
+        return list(self.itervalues())
+
 
     ###########################################
     def __len__(self):
-        return len(self.cur_dict.keys())
+        return len(self.cur_dict)
+
     def __getitem__(self, k):
         if k in self.cur_dict:
             #now check if k has any data
@@ -238,24 +257,31 @@ class Hdf_dict(dict):
                             return total_columns
         else:
             raise KeyError(k)
+
     def iterkeys(self):
-        for key in self.keys():
+        for key in self.iterkeys():
             yield key
+
     def __iter__(self):
         return self.iterkeys()
+
     def itervalues(self):
         for k in self.iterkeys():
             v=self.__getitem__(k)
             yield v
+
     def iteritems(self):
            # yield children
             for k in self.iterkeys():
                 v=self.__getitem__(k)
                 yield (k, v)
+
     def __repr__(self):
         return '{Hdf dict}'
+
     def __str__(self):
         return self.__repr__()
+
     #####
     def setdefault(self,key,default=None):
         try:
@@ -263,9 +289,11 @@ class Hdf_dict(dict):
         except:
             self.__setitem__(key)
             return default
+
     def update(self, d):
-        for k, v in d.items():
+        for k, v in d.iteritems():
             self.__setitem__(k, v)
+
     def popitem(self):
         try:
             k, v = self.iteritems().next()
@@ -273,12 +301,16 @@ class Hdf_dict(dict):
             return k, v
         except StopIteration:
             raise KeyError("Hdf Dict is empty")
+
     def __setitem__(self, key, value):
         raise NotImplementedError
+
     def __delitem__(self, key):
         raise NotImplementedError
+
     def __hash__(self):
         raise TypeError("Hdf dict bjects are unhashable")
+
 
 if __name__=='__main__':
 
@@ -292,6 +324,7 @@ if __name__=='__main__':
         print 'saving'
         save2(file, data1)
         print 'saved'
+
     def read_small(file=''):
         #a=make_hdf.Hdf_dict(file)
         a=Hdf_dict(file)
@@ -312,10 +345,10 @@ if __name__=='__main__':
             print 'item', i
         for i in a.itervalues():
             print i
+
     a=raw_input('enter y to write out test file to test.hdf')
     if a.strip()=='y':
         print 'writing'
         write_small('test.hdf')
         print 'reading'
         read_small('test.hdf')
-

@@ -8,12 +8,12 @@ class Particle(IsDescription):
     temperature = Float64Col(pos=5)      # double (double-precision)
 
 # Open a file in "w"rite mode
-fileh = openFile("table1.h5", mode = "w")
+fileh = open_file("table1.h5", mode = "w")
 # Create a new group
-group = fileh.createGroup(fileh.root, "newgroup")
+group = fileh.create_group(fileh.root, "newgroup")
 
 # Create a new table in newgroup group
-table = fileh.createTable(group, 'table', Particle, "A table", Filters(1))
+table = fileh.create_table(group, 'table', Particle, "A table", Filters(1))
 particle = table.row
 
 # Fill the table with 10 particles
@@ -42,12 +42,12 @@ table.append([("Particle:     10", 10, 0, 10*10, 10**2),
 
 group = fileh.root.newgroup
 print "Nodes under group", group, ":"
-for node in fileh.listNodes(group):
+for node in fileh.list_nodes(group):
     print node
 print
 
 print "Leaves everywhere in file", fileh.filename, ":"
-for leaf in fileh.walkNodes(classname="Leaf"):
+for leaf in fileh.walk_nodes(classname="Leaf"):
     print leaf
 print
 

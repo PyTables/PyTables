@@ -18,10 +18,10 @@ times for 10 objects (flag -n) each one with 10 elements (flag -s) is:
 $ time python2.4 undo_redo.py -n 10 -i 2 -s 10 data.nobackup/undo_redo.h5
 Time for Undo, Redo (createNode): 0.213686943054 s,  0.0727670192719 s
 Time for Undo, Redo (createNode): 0.271666049957 s,  0.0740389823914 s
-Time for Undo, Redo (copyChildren): 0.296227931976 s,  0.161941051483 s
-Time for Undo, Redo (copyChildren): 0.363519906998 s,  0.162662982941 s
-Time for Undo, Redo (setAttr): 0.208750009537 s,  0.0732419490814 s
-Time for Undo, Redo (setAttr): 0.27628993988 s,  0.0736088752747 s
+Time for Undo, Redo (copy_children): 0.296227931976 s,  0.161941051483 s
+Time for Undo, Redo (copy_children): 0.363519906998 s,  0.162662982941 s
+Time for Undo, Redo (set_attr): 0.208750009537 s,  0.0732419490814 s
+Time for Undo, Redo (set_attr): 0.27628993988 s,  0.0736088752747 s
 
 real    0m5.557s
 user    0m4.354s
@@ -37,10 +37,10 @@ speed:
 $ time python2.4 undo_redo.py -n 10 -i 2 -s 1000 data.nobackup/undo_redo.h5
 Time for Undo, Redo (createNode): 0.213760137558 s,  0.0717759132385 s
 Time for Undo, Redo (createNode): 0.276151895523 s,  0.0724079608917 s
-Time for Undo, Redo (copyChildren): 0.308417797089 s,  0.168260812759 s
-Time for Undo, Redo (copyChildren): 0.382102966309 s,  0.168042898178 s
-Time for Undo, Redo (setAttr): 0.209735155106 s,  0.0740969181061 s
-Time for Undo, Redo (setAttr): 0.279798984528 s,  0.0770981311798 s
+Time for Undo, Redo (copy_children): 0.308417797089 s,  0.168260812759 s
+Time for Undo, Redo (copy_children): 0.382102966309 s,  0.168042898178 s
+Time for Undo, Redo (set_attr): 0.209735155106 s,  0.0740969181061 s
+Time for Undo, Redo (set_attr): 0.279798984528 s,  0.0770981311798 s
 
 real    0m5.835s
 user    0m4.585s
@@ -57,10 +57,10 @@ Secondly, the time for doing/undoing is obviously proportional
 $ time python2.4 undo_redo.py -n 100 -i 2 -s 10 data.nobackup/undo_redo.h5
 Time for Undo, Redo (createNode): 2.27267885208 s,  0.779091119766 s
 Time for Undo, Redo (createNode): 2.31264209747 s,  0.766252040863 s
-Time for Undo, Redo (copyChildren): 3.01871585846 s,  1.63346219063 s
-Time for Undo, Redo (copyChildren): 3.07704997063 s,  1.62615203857 s
-Time for Undo, Redo (setAttr): 2.18017196655 s,  0.809293985367 s
-Time for Undo, Redo (setAttr): 2.23039293289 s,  0.809432029724 s
+Time for Undo, Redo (copy_children): 3.01871585846 s,  1.63346219063 s
+Time for Undo, Redo (copy_children): 3.07704997063 s,  1.62615203857 s
+Time for Undo, Redo (set_attr): 2.18017196655 s,  0.809293985367 s
+Time for Undo, Redo (set_attr): 2.23039293289 s,  0.809432029724 s
 
 real    0m48.395s
 user    0m40.385s
@@ -72,7 +72,7 @@ A note on actual performance and place for improvement
 
 Finally, note how the Undo/Redo capability of PyTables is pretty
 fast. The next benchmark makes 1000 undo and 1000 redos for
-createArray:
+create_array:
 
 $ time python2.4 undo_redo.py -n 1000 -i 2 -t createNode -s 1000 data.nobackup/undo_redo.h5
 Time for Undo, Redo (createNode): 22.7840828896 s,  7.9872610569 s

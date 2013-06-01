@@ -1,12 +1,16 @@
-"""
-Utility scripts for PyTables
-============================
+# -*- coding: utf-8 -*-
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2005-12-01
-:License:  BSD
-:Revision: $Id$
+########################################################################
+#
+# License: BSD
+# Created: 2005-12-01
+# Author:  Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""Utility scripts for PyTables
 
 This package contains some modules which provide a ``main()`` function
 (with no arguments), so that they can be used as scripts.

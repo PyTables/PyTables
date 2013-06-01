@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 # License: BSD
@@ -15,33 +17,39 @@ import sys
 
 import numpy
 
-from tables.utilsExtension import lrange
 from tables.atom import Atom
 from tables.array import Array
 from tables.utils import correct_byteorder, SizeType
 
-
-__version__ = "$Revision$"
-
+from tables._past import previous_api, previous_api_property
 
 # default version for CARRAY objects
-obversion = "1.0"    # Support for time & enumerated datatypes.
+# obversion = "1.0"    # Support for time & enumerated datatypes.
+obversion = "1.1"    # Numeric and numarray flavors are gone.
 
 
 class CArray(Array):
     """This class represents homogeneous datasets in an HDF5 file.
 
     The difference between a CArray and a normal Array (see
-    :ref:`ArrayClassDescr`), from which it inherits, is that a CArray has a
-    chunked layout and, as a consequence, it supports compression.  You can use
-    datasets of this class to easily save or load arrays to or from disk, with
-    compression support included.
+    :ref:`ArrayClassDescr`), from which it inherits, is that a CArray
+    has a chunked layout and, as a consequence, it supports compression.
+    You can use datasets of this class to easily save or load arrays to
+    or from disk, with compression support included.
 
-    CArray includes all the instance variables and methods of Array.  Only those
-    with different behavior are mentioned here.
+    CArray includes all the instance variables and methods of Array.
+    Only those with different behavior are mentioned here.
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+           Renamed from *parentNode* to *parentnode*.
+
+    name : str
+        The name of this node in its parent group.
     atom
        An `Atom` instance representing the *type* and *shape* of
        the atomic objects to be saved.
@@ -73,8 +81,8 @@ class CArray(Array):
     Examples
     --------
 
-    See below a small example of the use of the `CArray` class.  The code is
-    available in ``examples/carray1.py``::
+    See below a small example of the use of the `CArray` class.
+    The code is available in ``examples/carray1.py``::
 
         import numpy
         import tables
@@ -84,15 +92,16 @@ class CArray(Array):
         atom = tables.UInt8Atom()
         filters = tables.Filters(complevel=5, complib='zlib')
 
-        h5f = tables.openFile(fileName, 'w')
-        ca = h5f.createCArray(h5f.root, 'carray', atom, shape, filters=filters)
+        h5f = tables.open_file(fileName, 'w')
+        ca = h5f.create_carray(h5f.root, 'carray', atom, shape,
+                               filters=filters)
 
         # Fill a hyperslab in ``ca``.
         ca[10:60, 20:70] = numpy.ones((50, 50))
         h5f.close()
 
         # Re-open a read another hyperslab
-        h5f = tables.openFile(fileName)
+        h5f = tables.open_file(fileName)
         print h5f
         print h5f.root.carray[8:12, 18:22]
         h5f.close()
@@ -109,22 +118,23 @@ class CArray(Array):
          [0 0 0 0]
          [0 0 1 1]
          [0 0 1 1]]
+
     """
 
     # Class identifier.
-    _c_classId = 'CARRAY'
+    _c_classid = 'CARRAY'
 
+    _c_classId = previous_api_property('_c_classid')
 
     # Properties
     # ~~~~~~~~~~
-
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__( self, parentNode, name,
-                  atom=None, shape=None,
-                  title="", filters=None,
-                  chunkshape=None, byteorder = None,
-                  _log=True ):
+    def __init__(self, parentnode, name,
+                 atom=None, shape=None,
+                 title="", filters=None,
+                 chunkshape=None, byteorder=None,
+                 _log=True):
 
         self.atom = atom
         """An `Atom` instance representing the shape, type of the atomic
@@ -171,15 +181,14 @@ class CArray(Array):
             if not isinstance(atom, Atom):
                 raise ValueError("atom parameter should be an instance of "
                                  "tables.Atom and you passed a %s." %
-                                                                  type(atom))
+                                 type(atom))
             if shape is None:
                 raise ValueError("you must specify a non-empty shape")
             try:
                 shape = tuple(shape)
             except TypeError:
-                raise TypeError(
-                    "`shape` parameter must be a sequence "
-                    "and you passed a %s" % type(shape) )
+                raise TypeError("`shape` parameter must be a sequence "
+                                "and you passed a %s" % type(shape))
             self.shape = tuple(SizeType(s) for s in shape)
 
             if chunkshape is not None:
@@ -188,20 +197,19 @@ class CArray(Array):
                 except TypeError:
                     raise TypeError(
                         "`chunkshape` parameter must be a sequence "
-                        "and you passed a %s" % type(chunkshape) )
+                        "and you passed a %s" % type(chunkshape))
                 if len(shape) != len(chunkshape):
                     raise ValueError("the shape (%s) and chunkshape (%s) "
                                      "ranks must be equal." %
-                                                        (shape, chunkshape))
+                                    (shape, chunkshape))
                 elif min(chunkshape) < 1:
                     raise ValueError("chunkshape parameter cannot have "
                                      "zero-dimensions.")
                 self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         # The `Array` class is not abstract enough! :(
-        super(Array, self).__init__(parentNode, name, new, filters,
+        super(Array, self).__init__(parentnode, name, new, filters,
                                     byteorder, _log)
-
 
     def _g_create(self):
         """Create a new array in file (specific part)."""
@@ -211,7 +219,6 @@ class CArray(Array):
                 "shape parameter cannot have zero-dimensions.")
         # Finish the common part of creation process
         return self._g_create_common(self.nrows)
-
 
     def _g_create_common(self, expectedrows):
         """Create a new array in file (common part)."""
@@ -229,24 +236,25 @@ class CArray(Array):
             self.byteorder = correct_byteorder(self.atom.type, sys.byteorder)
 
         try:
-            # ``self._v_objectID`` needs to be set because would be
+            # ``self._v_objectid`` needs to be set because would be
             # needed for setting attributes in some descendants later
             # on
-            self._v_objectID = self._createCArray(self._v_new_title)
-        except:  #XXX
+            self._v_objectid = self._create_carray(self._v_new_title)
+        except:  # XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
-        return self._v_objectID
 
+        return self._v_objectid
 
-    def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, chunkshape, _log, **kwargs):
+    def _g_copy_with_stats(self, group, name, start, stop, step,
+                           title, filters, chunkshape, _log, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf"""
-        (start, stop, step) = self._processRangeRead(start, stop, step)
+
+        (start, stop, step) = self._process_range_read(start, stop, step)
         maindim = self.maindim
         shape = list(self.shape)
-        shape[maindim] = lrange(start, stop, step).length
+        shape[maindim] = len(xrange(start, stop, step))
         # Now, fill the new carray with values from source
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__
@@ -259,14 +267,14 @@ class CArray(Array):
                         title=title, filters=filters, chunkshape=chunkshape,
                         _log=_log)
         # Start the copy itself
-        for start2 in lrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step * nrowsinbuf):
             # Save the records on disk
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
             # Set the proper slice in the main dimension
             slices[maindim] = slice(start2, stop2, step)
-            start3 = (start2-start)/step
+            start3 = (start2 - start) // step
             stop3 = start3 + nrowsinbuf
             if stop3 > shape[maindim]:
                 stop3 = shape[maindim]
@@ -276,6 +284,8 @@ class CArray(Array):
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.size
+        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object, nbytes)
+
+    _g_copyWithStats = previous_api(_g_copy_with_stats)

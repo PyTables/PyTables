@@ -10,7 +10,7 @@ fileout = "nested1.h5"
 colors = Enum(['red', 'green', 'blue'])
 
 def read(file):
-    fileh = openFile(file, "r")
+    fileh = open_file(file, "r")
 
     print "table (short)-->", fileh.root.table
     print "table (long)-->", repr(fileh.root.table)
@@ -19,10 +19,10 @@ def read(file):
     fileh.close()
 
 def write(file, desc, indexed):
-    fileh = openFile(file, "w")
-    table = fileh.createTable(fileh.root, 'table', desc)
+    fileh = open_file(file, "w")
+    table = fileh.create_table(fileh.root, 'table', desc)
     for colname in indexed:
-        table.colinstances[colname].createIndex()
+        table.colinstances[colname].create_index()
 
     row = table.row
     for i in range(10):

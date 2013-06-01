@@ -35,16 +35,16 @@ class WideTreeTestCase(unittest.TestCase):
         #file = tempfile.mktemp(".h5")
         file = "test_widetree.h5"
 
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         if verbose:
             print "Children writing progress: ",
         for child in range(maxchilds):
             if verbose:
                 print "%3d," % (child),
             a = [1, 1]
-            fileh.createGroup(fileh.root, 'group' + str(child),
+            fileh.create_group(fileh.root, 'group' + str(child),
                               "child: %d" % child)
-            fileh.createArray("/group" + str(child), 'array' + str(child),
+            fileh.create_array("/group" + str(child), 'array' + str(child),
                               a, "child: %d" % child)
         if verbose:
             print
@@ -53,7 +53,7 @@ class WideTreeTestCase(unittest.TestCase):
 
         t1 = time.time()
         # Open the previous HDF5 file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode = "r")
         print "\nTime spent opening a file with %d groups + %d arrays: %s s" % \
               (maxchilds, maxchilds, time.time()-t1)
         if verbose:
@@ -85,13 +85,13 @@ class WideTreeTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         #file = "test_widetree.h5"
 
-        fileh = openFile(file, mode = "w")
+        fileh = open_file(file, mode = "w")
         if verbose:
             print "Children writing progress: ",
         for child in range(maxchilds):
             if verbose:
                 print "%3d," % (child),
-            fileh.createGroup(fileh.root, 'group' + str(child),
+            fileh.create_group(fileh.root, 'group' + str(child),
                               "child: %d" % child)
         if verbose:
             print
@@ -100,7 +100,7 @@ class WideTreeTestCase(unittest.TestCase):
 
         t1 = time.time()
         # Open the previous HDF5 file in read-only mode
-        fileh = openFile(file, mode = "r")
+        fileh = open_file(file, mode = "r")
         print "\nTime spent opening a file with %d groups: %s s" % \
               (maxchilds, time.time()-t1)
         # Close the file

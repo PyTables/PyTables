@@ -28,7 +28,7 @@ class PyTables_DB(DB):
     def open_db(self, remove=0):
         if remove and os.path.exists(self.filename):
             os.remove(self.filename)
-        con = tables.openFile(self.filename, 'a')
+        con = tables.open_file(self.filename, 'a')
         return con
 
     def close_db(self, con):
@@ -44,7 +44,7 @@ class PyTables_DB(DB):
             col3 = tables.Float64Col()
             col4 = tables.Float64Col()
 
-        table = con.createTable(con.root, 'table', Record,
+        table = con.create_table(con.root, 'table', Record,
                                 filters=self.filters, expectedrows=self.nrows)
 
     def fill_table(self, con):
@@ -64,7 +64,7 @@ class PyTables_DB(DB):
 
     def index_col(self, con, column, kind, optlevel, verbose):
         col = getattr(con.root.table.cols, column)
-        col.createIndex(kind=kind, optlevel=optlevel, filters=self.filters,
+        col.create_index(kind=kind, optlevel=optlevel, filters=self.filters,
                         tmp_dir="/scratch2/faltet",
                         _verbose=verbose, _blocksizes=None)
 #                       _blocksizes=(2**27, 2**22, 2**15, 2**7))
@@ -141,23 +141,23 @@ class PyTables_DB(DB):
         ncoords = 0
         if colobj.is_indexed:
             results = [r[column] for r in table.where(condition, self.condvars)]
-#             coords = table.getWhereList(condition, self.condvars)
-#             results = table.readCoordinates(coords, field=column)
+#             coords = table.get_where_list(condition, self.condvars)
+#             results = table.read_coordinates(coords, field=column)
 
-#            results = table.readWhere(condition, self.condvars, field=column)
+#            results = table.read_where(condition, self.condvars, field=column)
 
         elif inkernel:
             print "Performing in-kernel query"
             results = [r[column] for r in table.where(condition, self.condvars)]
             #coords = [r.nrow for r in table.where(condition, self.condvars)]
-            #results = table.readCoordinates(coords)
+            #results = table.read_coordinates(coords)
 #             for r in table.where(condition, self.condvars):
 #                 var = r[column]
 #                 ncoords += 1
         else:
 #             coords = [r.nrow for r in table
 #                       if (self.rng[0]+base <= r[column] <= self.rng[1]+base)]
-#             results = table.readCoordinates(coords)
+#             results = table.read_coordinates(coords)
             print "Performing regular query"
             results = [ r[column] for r in table if
                         (((inf2<=r['col4']) and (r['col4']<sup2)) or

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 # License: BSD
@@ -15,45 +17,38 @@ import math
 import warnings
 import os.path
 from time import time
-try:
-    # functools.reduce is new in python 2.6
-    from functools import reduce as _reduce
-except ImportError:
-    _reduce = reduce
+from functools import reduce as _reduce
 
 import numpy
 import numexpr
 
-from tables import tableExtension
-from tables.utilsExtension import lrange
-from tables.lrucacheExtension import ObjectCache, NumCache
+from tables import tableextension
+from tables.lrucacheextension import ObjectCache, NumCache
 from tables.atom import Atom
 from tables.conditions import compile_condition
 from numexpr.necompiler import (
     getType as numexpr_getType, double, is_cpu_amd_intel)
 from numexpr.expressions import functions as numexpr_functions
-from tables.flavor import flavor_of, array_as_internal, internal_to_flavor, \
-        _numeric_deprecation
+from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
 from tables.leaf import Leaf
 from tables.description import (
     IsDescription, Description, Col, descr_from_dtype)
-from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
-     OldIndexWarning, NoSuchNodeError
-from tables.utilsExtension import getNestedField
+from tables.exceptions import (NodeError, HDF5ExtError, PerformanceWarning,
+                               OldIndexWarning, NoSuchNodeError)
+from tables.utilsextension import get_nested_field
 
-from tables.path import joinPath, splitPath
+from tables.path import join_path, split_path
 from tables.index import (
-    OldIndex, defaultIndexFilters, defaultAutoIndex, Index, IndexesDescG,
+    OldIndex, default_index_filters, default_auto_index, Index, IndexesDescG,
     IndexesTableG)
 
 profile = False
-#profile = True  # Uncomment for profiling
+# profile = True  # Uncomment for profiling
 if profile:
     from tables.utils import show_stats
 
-__version__ = "$Revision$"
-
+from tables._past import previous_api, previous_api_property
 
 # 2.2: Added support for complex types. Introduced in version 0.9.
 # 2.2.1: Added suport for time types.
@@ -61,95 +56,137 @@ __version__ = "$Revision$"
 # 2.4: Changed indexes naming schema (again).
 # 2.5: Added the FIELD_%d_FILL attributes.
 # 2.6: Added the FLAVOR attribute (optional).
-obversion = "2.6"  # The Table VERSION number
+# 2.7: Numeric and numarray flavors are gone.
+obversion = "2.7"  # The Table VERSION number
 
+
+try:
+    # int_, long_ are only available in numexpr >= 2.1
+    from numexpr.necompiler import int_, long_
+except ImportError:
+    int_ = int
+    long_ = long
 
 # Maps NumPy types to the types used by Numexpr.
-_nxTypeFromNPType = {
+_nxtype_from_nptype = {
     numpy.bool_: bool,
-    numpy.int8: int,
-    numpy.int16: int,
-    numpy.int32: int,
-    numpy.int64: long,
-    numpy.uint8: int,
-    numpy.uint16: int,
-    numpy.uint32: long,
-    numpy.uint64: long,
+    numpy.int8: int_,
+    numpy.int16: int_,
+    numpy.int32: int_,
+    numpy.int64: long_,
+    numpy.uint8: int_,
+    numpy.uint16: int_,
+    numpy.uint32: long_,
+    numpy.uint64: long_,
     numpy.float32: float,
     numpy.float64: double,
     numpy.complex64: complex,
     numpy.complex128: complex,
-    numpy.str_: str,
+    numpy.bytes_: bytes,
 }
 
+if sys.version_info[0] > 2:
+    _nxtype_from_nptype[numpy.str_] = str
+
 if hasattr(numpy, 'float16'):
-    _nxTypeFromNPType[numpy.float16] = float    # XXX: check
+    _nxtype_from_nptype[numpy.float16] = float    # XXX: check
+if hasattr(numpy, 'float96'):
+    _nxtype_from_nptype[numpy.float96] = double   # XXX: check
+if hasattr(numpy, 'float128'):
+    _nxtype_from_nptype[numpy.float128] = double  # XXX: check
+if hasattr(numpy, 'complec192'):
+    _nxtype_from_nptype[numpy.complex192] = complex  # XXX: check
+if hasattr(numpy, 'complex256'):
+    _nxtype_from_nptype[numpy.complex256] = complex  # XXX: check
 
 
 # The NumPy scalar type corresponding to `SizeType`.
-_npSizeType = numpy.array(SizeType(0)).dtype.type
+_npsizetype = numpy.array(SizeType(0)).dtype.type
 
-def _indexNameOf(node):
+
+def _index_name_of(node):
     return '_i_%s' % node._v_name
 
-def _indexPathnameOf(node):
-    nodeParentPath = splitPath(node._v_pathname)[0]
-    return joinPath(nodeParentPath, _indexNameOf(node))
+_indexNameOf = previous_api(_index_name_of)
 
-def _indexPathnameOfColumn(table, colpathname):
-    return joinPath(_indexPathnameOf(table), colpathname)
+
+def _index_pathname_of(node):
+    nodeParentPath = split_path(node._v_pathname)[0]
+    return join_path(nodeParentPath, _index_name_of(node))
+
+_indexPathnameOf = previous_api(_index_pathname_of)
+
+
+def _index_pathname_of_column(table, colpathname):
+    return join_path(_index_pathname_of(table), colpathname)
+
+_indexPathnameOfColumn = previous_api(_index_pathname_of_column)
 
 # The next are versions that work with just paths (i.e. we don't need
 # a node instance for using them, which can be critical in certain
 # situations)
-def _indexNameOf_(nodeName):
+
+
+def _index_name_of_(nodeName):
     return '_i_%s' % nodeName
 
-def _indexPathnameOf_(nodePath):
-    nodeParentPath, nodeName = splitPath(nodePath)
-    return joinPath(nodeParentPath, _indexNameOf_(nodeName))
-
-def _indexPathnameOfColumn_(tablePath, colpathname):
-    return joinPath(_indexPathnameOf_(tablePath), colpathname)
+_indexNameOf_ = previous_api(_index_name_of_)
 
 
-def _table__setautoIndex(self, auto):
+def _index_pathname_of_(nodePath):
+    nodeParentPath, nodeName = split_path(nodePath)
+    return join_path(nodeParentPath, _index_name_of_(nodeName))
+
+_indexPathnameOf_ = previous_api(_index_pathname_of_)
+
+
+def _index_pathname_of_column_(tablePath, colpathname):
+    return join_path(_index_pathname_of_(tablePath), colpathname)
+
+_indexPathnameOfColumn_ = previous_api(_index_pathname_of_column_)
+
+
+def _table__setautoindex(self, auto):
     auto = bool(auto)
     try:
-        indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+        indexgroup = self._v_file._get_node(_index_pathname_of(self))
     except NoSuchNodeError:
-        indexgroup = createIndexesTable(self)
+        indexgroup = create_indexes_table(self)
     indexgroup.auto = auto
     # Update the cache in table instance as well
-    self._autoIndex = auto
+    self._autoindex = auto
+
+_table__setautoIndex = previous_api(_table__setautoindex)
 
 
 # **************** WARNING! ***********************
 # This function can be called during the destruction time of a table
 # so measures have been taken so that it doesn't have to revive
 # another node (which can fool the LRU cache). The solution devised
-# has been to add a cache for autoIndex (Table._autoIndex), populate
+# has been to add a cache for autoindex (Table._autoindex), populate
 # it in creation time of the cache (which is a safe period) and then
 # update the cache whenever it changes.
 # This solves the error when running test_indexes.py ManyNodesTestCase.
 # F. Alted 2007-04-20
 # **************************************************
-def _table__getautoIndex(self):
-    if self._autoIndex is None:
+def _table__getautoindex(self):
+    if self._autoindex is None:
         try:
-            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+            indexgroup = self._v_file._get_node(_index_pathname_of(self))
         except NoSuchNodeError:
-            self._autoIndex = defaultAutoIndex  # update cache
-            return self._autoIndex
+            self._autoindex = default_auto_index  # update cache
+            return self._autoindex
         else:
-            self._autoIndex = indexgroup.auto   # update cache
-            return self._autoIndex
+            self._autoindex = indexgroup.auto   # update cache
+            return self._autoindex
     else:
         # The value is in cache, return it
-        return self._autoIndex
+        return self._autoindex
 
-_table__autoIndex = property(
-    _table__getautoIndex, _table__setautoIndex, None,
+_table__getautoIndex = previous_api(_table__getautoindex)
+
+_table__autoindex = property(
+    _table__getautoindex, _table__setautoindex, None,
     """Automatically keep column indexes up to date?
 
     Setting this value states whether existing indexes should be
@@ -159,11 +196,13 @@ _table__autoIndex = property(
 
     This value gets into effect whenever a column is altered.  If you
     don't have automatic indexing activated and you want to do an an
-    immediate update use `Table.flushRowsToIndex()`; for an immediate
-    reindexing of invalidated indexes, use `Table.reIndexDirty()`.
+    immediate update use `Table.flush_rows_to_index()`; for an immediate
+    reindexing of invalidated indexes, use `Table.reindex_dirty()`.
 
     This value is persistent.
     """)
+
+_table__autoIndex = previous_api(_table__autoindex)
 
 
 def restorecache(self):
@@ -179,11 +218,13 @@ def restorecache(self):
     self._dirtycache = False
 
 
-def _table__whereIndexed(self, compiled, condition, condvars,
-                         start, stop, step):
-    if profile: tref = time()
-    if profile: show_stats("Entering table_whereIndexed", tref)
-    self._useIndex = True
+def _table__where_indexed(self, compiled, condition, condvars,
+                          start, stop, step):
+    if profile:
+        tref = time()
+    if profile:
+        show_stats("Entering table_whereIndexed", tref)
+    self._use_index = True
     # Clean the table caches for indexed queries if needed
     if self._dirtycache:
         restorecache(self)
@@ -205,7 +246,8 @@ def _table__whereIndexed(self, compiled, condition, condvars,
         seq = numpy.array(seq, dtype='int64')
         # Correct the ranges in cached sequence
         if (start, stop, step) != (0, self.nrows, 1):
-            seq = seq[(seq>=start)&(seq<stop)&((seq-start)%step==0)]
+            seq = seq[(seq >= start) & (
+                seq < stop) & ((seq - start) % step == 0)]
         return self.itersequence(seq)
     else:
         # No luck.  Set row sequence to empty.  It will be populated
@@ -226,19 +268,19 @@ def _table__whereIndexed(self, compiled, condition, condvars,
         assert not index.dirty, "the chosen column has a dirty index"
 
         # Get the number of rows that the indexed condition yields.
-        range_ = index.getLookupRange(ops, lims)
+        range_ = index.get_lookup_range(ops, lims)
         ncoords = index.search(range_)
         tcoords += ncoords
         if index.reduction == 1 and ncoords == 0:
             # No values from index condition, thus the chunkmap should be empty
             nrowsinchunk = self.chunkshape[0]
-            nchunks = long(math.ceil(float(self.nrows)/nrowsinchunk))
+            nchunks = long(math.ceil(float(self.nrows) / nrowsinchunk))
             chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
         else:
             # Get the chunkmap from the index
             chunkmap = index.get_chunkmap()
         # Assign the chunkmap to the cmvars dictionary
-        cmvars["e%d"%i] = chunkmap
+        cmvars["e%d" % i] = chunkmap
 
     if index.reduction == 1 and tcoords == 0:
         # No candidates found in any indexed expression component, so leave now
@@ -251,45 +293,52 @@ def _table__whereIndexed(self, compiled, condition, condvars,
         # The chunkmap is empty
         return iter([])
 
-    if profile: show_stats("Exiting table_whereIndexed", tref)
+    if profile:
+        show_stats("Exiting table_whereIndexed", tref)
     return chunkmap
 
+_table__whereIndexed = previous_api(_table__where_indexed)
 
-def createIndexesTable(table):
+
+def create_indexes_table(table):
     itgroup = IndexesTableG(
-        table._v_parent, _indexNameOf(table),
-        "Indexes container for table "+table._v_pathname, new=True)
+        table._v_parent, _index_name_of(table),
+        "Indexes container for table " + table._v_pathname, new=True)
     return itgroup
 
+createIndexesTable = previous_api(create_indexes_table)
 
-def createIndexesDescr(igroup, dname, iname, filters):
+
+def create_indexes_descr(igroup, dname, iname, filters):
     idgroup = IndexesDescG(
         igroup, iname,
-        "Indexes container for sub-description "+dname,
+        "Indexes container for sub-description " + dname,
         filters=filters, new=True)
     return idgroup
 
+createIndexesDescr = previous_api(create_indexes_descr)
 
-def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
-                         blocksizes, verbose):
+
+def _column__create_index(self, optlevel, kind, filters, tmp_dir,
+                          blocksizes, verbose):
     name = self.name
     table = self.table
     dtype = self.dtype
     descr = self.descr
     index = self.index
-    getNode = table._v_file._getNode
+    get_node = table._v_file._get_node
 
     # Warn if the index already exists
     if index:
         raise ValueError("%s for column '%s' already exists. If you want to "
-                         "re-create it, please, try with reIndex() method "
+                         "re-create it, please, try with reindex() method "
                          "better" % (str(index), str(self.pathname)))
 
     # Check that the datatype is indexable.
     if dtype.str[1:] == 'u8':
         raise NotImplementedError(
             "indexing 64-bit unsigned integer columns "
-            "is not supported yet, sorry" )
+            "is not supported yet, sorry")
     if dtype.kind == 'c':
         raise TypeError("complex columns can not be indexed")
     if dtype.shape != ():
@@ -297,9 +346,9 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
 
     # Get the indexes group for table, and if not exists, create it
     try:
-        itgroup = getNode(_indexPathnameOf(table))
+        itgroup = get_node(_index_pathname_of(table))
     except NoSuchNodeError:
-        itgroup = createIndexesTable(table)
+        itgroup = create_indexes_table(table)
 
     # Create the necessary intermediate groups for descriptors
     idgroup = itgroup
@@ -311,11 +360,11 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
             if dname == '':
                 dname = iname
             else:
-                dname += '/'+iname
+                dname += '/' + iname
             try:
-                idgroup = getNode('%s/%s' % (itgroup._v_pathname, dname))
+                idgroup = get_node('%s/%s' % (itgroup._v_pathname, dname))
             except NoSuchNodeError:
-                idgroup = createIndexesDescr(idgroup, dname, iname, filters)
+                idgroup = create_indexes_descr(idgroup, dname, iname, filters)
 
     # Create the atom
     assert dtype.shape == ()
@@ -339,14 +388,14 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
         byteorder=table.byteorder,
         blocksizes=blocksizes)
 
-    table._setColumnIndexing(self.pathname, True)
+    table._set_column_indexing(self.pathname, True)
 
     # Feed the index with values
 
     # Add rows to the index if necessary
     if table.nrows > 0:
-        indexedrows = table._addRowsToIndex(
-            self.pathname, 0, table.nrows, lastrow=True, update=False )
+        indexedrows = table._add_rows_to_index(
+            self.pathname, 0, table.nrows, lastrow=True, update=False)
     else:
         indexedrows = 0
     index.dirty = False
@@ -359,9 +408,11 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
     # We cannot do a flush here because when reindexing during a
     # flush, the indexes are created anew, and that creates a nested
     # call to flush().
-    ##table.flush()
+    # table.flush()
 
     return indexedrows
+
+_column__createIndex = previous_api(_column__create_index)
 
 
 class _ColIndexes(dict):
@@ -370,11 +421,11 @@ class _ColIndexes(dict):
     def __repr__(self):
         """Gives a detailed Description column representation."""
 
-        rep = [ '  \"%s\": %s' % (k, self[k]) for k in self.iterkeys()]
+        rep = ['  \"%s\": %s' % (k, self[k]) for k in self.iterkeys()]
         return '{\n  %s}' % (',\n  '.join(rep))
 
 
-class Table(tableExtension.Table, Leaf):
+class Table(tableextension.Table, Leaf):
     """This class represents heterogeneous datasets in an HDF5 file.
 
     Tables are leaves (see the Leaf class in :ref:`LeafClassDescr`) whose data
@@ -419,12 +470,19 @@ class Table(tableExtension.Table, Leaf):
 
     Parameters
     ----------
+    parentnode
+        The parent :class:`Group` object.
+
+        .. versionchanged:: 3.0
+           Renamed from *parentNode* to *parentnode*.
+
+    name : str
+        The name of this node in its parent group.
     description
         An IsDescription subclass or a dictionary where the keys are the field
         names, and the values the type definitions. In addition, a pure NumPy
-        dtype is accepted.  And it can be also a recarray NumPy object,
-        RecArray numarray object or NestedRecArray. If None, the table metadata
-        is read from disk, else, it's taken from previous parameters.
+        dtype is accepted.  If None, the table metadata is read from disk,
+        else, it's taken from previous parameters.
     title
         Sets a TITLE attribute on the HDF5 table entity.
     filters : Filters
@@ -525,8 +583,10 @@ class Table(tableExtension.Table, Leaf):
     """
 
     # Class identifier.
-    _c_classId = 'TABLE'
+    _c_classid = 'TABLE'
 
+    _c_classId = previous_api_property('_c_classid')
+    _v_objectId = previous_api_property('_v_objectid')
 
     # Properties
     # ~~~~~~~~~~
@@ -534,7 +594,7 @@ class Table(tableExtension.Table, Leaf):
     def row(self):
         """The associated Row instance (see :ref:`RowClassDescr`)."""
 
-        return tableExtension.Row(self)
+        return tableextension.Row(self)
 
     @lazyattr
     def dtype(self):
@@ -559,7 +619,6 @@ class Table(tableExtension.Table, Leaf):
         memory.  This may be used in combination with size_on_disk to calculate
         the compression ratio of the data.""")
 
-
     # Lazy attributes
     # ```````````````
     @lazyattr
@@ -582,7 +641,7 @@ class Table(tableExtension.Table, Leaf):
             return None
         wdflts = self._get_container(1)
         for colname, coldflt in self.coldflts.iteritems():
-            ra = getNestedField(wdflts, colname)
+            ra = get_nested_field(wdflts, colname)
             ra[:] = coldflt
         return wdflts
 
@@ -591,14 +650,14 @@ class Table(tableExtension.Table, Leaf):
         """The pathnames of unaligned, *unidimensional* columns."""
         colunaligned, rarr = [], self._get_container(0)
         for colpathname in self.colpathnames:
-            carr = getNestedField(rarr, colpathname)
+            carr = get_nested_field(rarr, colpathname)
             if not carr.flags.aligned and carr.ndim == 1:
                 colunaligned.append(colpathname)
         return frozenset(colunaligned)
 
     # Index-related properties
     # ````````````````````````
-    autoIndex = _table__autoIndex
+    autoindex = _table__autoindex
     """Automatically keep column indexes up to date?
 
     Setting this value states whether existing indexes should be automatically
@@ -607,35 +666,40 @@ class Table(tableExtension.Table, Leaf):
 
     This value gets into effect whenever a column is altered. If you don't have
     automatic indexing activated and you want to do an immediate update use
-    :meth:`Table.flushRowsToIndex`; for immediate reindexing of invalidated
-    indexes, use :meth:`Table.reIndexDirty`.
+    :meth:`Table.flush_rows_to_index`; for immediate reindexing of invalidated
+    indexes, use :meth:`Table.reindex_dirty`.
 
     This value is persistent.
+
+    .. versionchanged:: 3.0
+       The *autoIndex* property has been renamed into *autoindex*.
+
     """
 
+    autoIndex = previous_api_property('autoindex')
+
     indexedcolpathnames = property(
-        lambda self: [ _colpname for _colpname in self.colpathnames
-                       if self.colindexed[_colpname] ],
+        lambda self: [_colpname for _colpname in self.colpathnames
+                      if self.colindexed[_colpname]],
         None, None,
-        """List of pathnames of indexed columns in the table.""" )
+        """List of pathnames of indexed columns in the table.""")
 
     colindexes = property(
         lambda self: _ColIndexes(
-        ( (_colpname, self.cols._f_col(_colpname).index)
-          for _colpname in self.colpathnames
-          if self.colindexed[_colpname] )),
+            ((_colpname, self.cols._f_col(_colpname).index)
+             for _colpname in self.colpathnames
+             if self.colindexed[_colpname])),
         None, None,
         """A dictionary with the indexes of the indexed columns.""")
 
     _dirtyindexes = property(
-        lambda self: self._conditionCache._nailcount > 0,
+        lambda self: self._condition_cache._nailcount > 0,
         None, None,
         """Whether some index in table is dirty.""")
 
-
     # Other methods
     # ~~~~~~~~~~~~~
-    def __init__(self, parentNode, name,
+    def __init__(self, parentnode, name,
                  description=None, title="", filters=None,
                  expectedrows=None, chunkshape=None,
                  byteorder=None, _log=True):
@@ -653,7 +717,7 @@ class Table(tableExtension.Table, Leaf):
         self._rabyteorder = None
         """The computed byteorder of the self._v_recarray."""
         if expectedrows is None:
-            expectedrows = parentNode._v_file.params['EXPECTED_ROWS_TABLE']
+            expectedrows = parentnode._v_file.params['EXPECTED_ROWS_TABLE']
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the table."""
         self.nrows = SizeType(0)
@@ -678,8 +742,8 @@ class Table(tableExtension.Table, Leaf):
         """Number of rows indexed in memory but still not in disk."""
         self._listoldindexes = []
         """The list of columns with old indexes."""
-        self._autoIndex = None
-        """Private variable that caches the value for autoIndex."""
+        self._autoindex = None
+        """Private variable that caches the value for autoindex."""
 
         self.colnames = []
         """A list containing the names of *top-level* columns in the table."""
@@ -708,18 +772,18 @@ class Table(tableExtension.Table, Leaf):
         self.colindexed = {}
         """Is the column which name is used as a key indexed?"""
 
-        self._useIndex = False
+        self._use_index = False
         """Whether an index can be used or not in a search.  Boolean."""
-        self._whereCondition = None
+        self._where_condition = None
         """Condition function and argument list for selection of values."""
-        max_slots = parentNode._v_file.params['COND_CACHE_SLOTS']
-        self._conditionCache = CacheDict(max_slots)
+        max_slots = parentnode._v_file.params['COND_CACHE_SLOTS']
+        self._condition_cache = CacheDict(max_slots)
         """Cache of already compiled conditions."""
-        self._exprvarsCache = {}
+        self._exprvars_cache = {}
         """Cache of variables participating in numexpr expressions."""
-        self._enabledIndexingInQueries = True
+        self._enabled_indexing_in_queries = True
         """Is indexing enabled in queries?  *Use only for testing.*"""
-        self._emptyArrayCache = {}
+        self._empty_array_cache = {}
         """Cache of empty arrays."""
 
         self._v_dtype = None
@@ -741,8 +805,8 @@ class Table(tableExtension.Table, Leaf):
         if new and isinstance(description, dict):
             # Dictionary case
             self.description = Description(description)
-        elif new and ( type(description) == type(IsDescription)
-                       and issubclass(description, IsDescription) ):
+        elif new and (type(description) == type(IsDescription)
+                      and issubclass(description, IsDescription)):
             # IsDescription subclass case
             descr = description()
             self.description = Description(descr.columns)
@@ -755,7 +819,7 @@ class Table(tableExtension.Table, Leaf):
             # Try NumPy dtype instances
             if isinstance(description, numpy.dtype):
                 self.description, self._rabyteorder = \
-                                  descr_from_dtype(description)
+                    descr_from_dtype(description)
 
         # No description yet?
         if new and self.description is None:
@@ -775,14 +839,14 @@ class Table(tableExtension.Table, Leaf):
                 if nrows > 0:
                     self._v_recarray = nparray
                 self.description, self._rabyteorder = \
-                                  descr_from_dtype(nparray.dtype)
+                    descr_from_dtype(nparray.dtype)
 
         # No description yet?
         if new and self.description is None:
             raise TypeError(
                 "the ``description`` argument is not of a supported type: "
                 "``IsDescription`` subclass, ``Description`` instance, "
-                "dictionary, or structured array" )
+                "dictionary, or structured array")
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
@@ -793,25 +857,24 @@ class Table(tableExtension.Table, Leaf):
             except TypeError:
                 raise TypeError(
                     "`chunkshape` parameter must be an integer or sequence "
-                    "and you passed a %s" % type(chunkshape) )
+                    "and you passed a %s" % type(chunkshape))
             if len(chunkshape) != 1:
-                raise ValueError( "`chunkshape` rank (length) must be 1: %r"
-                                  % (chunkshape,) )
+                raise ValueError("`chunkshape` rank (length) must be 1: %r"
+                                 % (chunkshape,))
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
-        super(Table, self).__init__(parentNode, name, new, filters,
+        super(Table, self).__init__(parentnode, name, new, filters,
                                     byteorder, _log)
 
-
-    def _g_postInitHook(self):
+    def _g_post_init_hook(self):
         # We are putting here the index-related issues
         # as well as filling general info for table
         # This is needed because we need first the index objects created
 
         # First, get back the flavor of input data (if any) for
-        # `Leaf._g_postInitHook()`.
+        # `Leaf._g_post_init_hook()`.
         self._flavor, self._descflavor = self._descflavor, None
-        super(Table, self)._g_postInitHook()
+        super(Table, self)._g_post_init_hook()
 
         # Create a cols accessor.
         self.cols = Cols(self, self.description)
@@ -829,14 +892,14 @@ class Table(tableExtension.Table, Leaf):
         # The following code is only for opened tables.
 
         # Do the indexes group exist?
-        indexesGroupPath = _indexPathnameOf(self)
-        igroup = indexesGroupPath in self._v_file
+        indexesgrouppath = _index_pathname_of(self)
+        igroup = indexesgrouppath in self._v_file
         oldindexes = False
         for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
             # Is this column indexed?
             if igroup:
-                indexname = _indexPathnameOfColumn(self, colname)
+                indexname = _index_pathname_of_column(self, colname)
                 indexed = indexname in self._v_file
                 self.colindexed[colname] = indexed
                 if indexed:
@@ -850,7 +913,7 @@ class Table(tableExtension.Table, Leaf):
                         # Tell the condition cache about columns with dirty
                         # indexes.
                         if indexobj.dirty:
-                            self._conditionCache.nail()
+                            self._condition_cache.nail()
             else:
                 indexed = False
                 self.colindexed[colname] = False
@@ -865,7 +928,7 @@ class Table(tableExtension.Table, Leaf):
                 "``ptrepack`` utility in order to recreate the indexes. "
                 "The 1.x indexed columns found are: %s" %
                 (self._v_pathname, self._listoldindexes),
-                OldIndexWarning )
+                OldIndexWarning)
 
         # It does not matter to which column 'indexobj' belongs,
         # since their respective index objects share
@@ -873,19 +936,20 @@ class Table(tableExtension.Table, Leaf):
         if self.indexed:
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
-            # Put the autoIndex value in a cache variable
-            self._autoIndex = self.autoIndex
+            # Put the autoindex value in a cache variable
+            self._autoindex = self.autoindex
 
+    _g_postInitHook = previous_api(_g_post_init_hook)
 
     def _getemptyarray(self, dtype):
         # Acts as a cache for empty arrays
         key = dtype
-        if key in self._emptyArrayCache:
-            return self._emptyArrayCache[key]
+        if key in self._empty_array_cache:
+            return self._empty_array_cache[key]
         else:
-            self._emptyArrayCache[key] = arr = numpy.empty(shape=0, dtype=key)
+            self._empty_array_cache[
+                key] = arr = numpy.empty(shape=0, dtype=key)
             return arr
-
 
     def _get_container(self, shape):
         "Get the appropriate buffer for data depending on table nestedness."
@@ -893,16 +957,16 @@ class Table(tableExtension.Table, Leaf):
         # This is *much* faster than the numpy.rec.array counterpart
         return numpy.empty(shape=shape, dtype=self._v_dtype)
 
-
-    def _getTypeColNames(self, type_):
+    def _get_type_col_names(self, type_):
         """Returns a list containing 'type_' column names."""
 
-        return [ colobj._v_pathname
-                 for colobj in self.description._f_walk('Col')
-                 if colobj.type == type_ ]
+        return [colobj._v_pathname
+                for colobj in self.description._f_walk('Col')
+                if colobj.type == type_]
 
+    _getTypeColNames = previous_api(_get_type_col_names)
 
-    def _getEnumMap(self):
+    def _get_enum_map(self):
         """Return mapping from enumerated column names to `Enum` instances."""
 
         enumMap = {}
@@ -911,6 +975,7 @@ class Table(tableExtension.Table, Leaf):
                 enumMap[colobj._v_pathname] = colobj.enum
         return enumMap
 
+    _getEnumMap = previous_api(_get_enum_map)
 
     def _g_create(self):
         """Create a new table on disk."""
@@ -924,7 +989,7 @@ class Table(tableExtension.Table, Leaf):
                 "maximum number of columns (%d); "
                 "be ready to see PyTables asking for *lots* of memory "
                 "and possibly slow I/O" % (self._v_pathname, maxColumns),
-                PerformanceWarning )
+                PerformanceWarning)
 
         # 1. Create the HDF5 table (some parameters need to be computed).
 
@@ -946,14 +1011,14 @@ class Table(tableExtension.Table, Leaf):
         # Cache some data which is already in the description.
         # This is necessary to happen before creation time in order
         # to be able to populate the self._v_wdflts
-        self._cacheDescriptionData()
+        self._cache_description_data()
 
-        # After creating the table, ``self._v_objectID`` needs to be
+        # After creating the table, ``self._v_objectid`` needs to be
         # set because it is needed for setting attributes afterwards.
-        self._v_objectID = self._createTable(
-            self._v_new_title, self.filters.complib or '', obversion )
+        self._v_objectid = self._create_table(
+            self._v_new_title, self.filters.complib or '', obversion)
         self._v_recarray = None  # not useful anymore
-        self._rabyteorder = None # not useful anymore
+        self._rabyteorder = None  # not useful anymore
 
         # 2. Compute or get chunk shape and buffer size parameters.
         self.nrowsinbuf = self._calc_nrowsinbuf()
@@ -961,13 +1026,12 @@ class Table(tableExtension.Table, Leaf):
         # 3. Get field fill attributes from the table description and
         #    set them on disk.
         if self._v_file.params['PYTABLES_SYS_ATTRS']:
-            setAttr = self._v_attrs._g__setattr
+            set_attr = self._v_attrs._g__setattr
             for i, colobj in enumerate(self.description._f_walk(type="Col")):
                 fieldname = "FIELD_%d_FILL" % i
-                setAttr(fieldname, colobj.dflt)
+                set_attr(fieldname, colobj.dflt)
 
-        return self._v_objectID
-
+        return self._v_objectid
 
     def _g_open(self):
         """Opens a table from disk and read the metadata on it.
@@ -978,7 +1042,7 @@ class Table(tableExtension.Table, Leaf):
         """
 
         # 1. Open the HDF5 table and get some data from it.
-        self._v_objectID, description, chunksize = self._getInfo()
+        self._v_objectid, description, chunksize = self._get_info()
         self._v_expectedrows = self.nrows  # the actual number of rows
 
         # 2. Create an instance description to host the record fields.
@@ -998,20 +1062,20 @@ class Table(tableExtension.Table, Leaf):
         if self._v_file.params['PYTABLES_SYS_ATTRS']:
             if "FIELD_0_FILL" in self._v_attrs._f_list("sys"):
                 i = 0
-                getAttr = self._v_attrs.__getattr__
+                get_attr = self._v_attrs.__getattr__
                 for objcol in self.description._f_walk(type="Col"):
                     colname = objcol._v_pathname
                     # Get the default values for each column
                     fieldname = "FIELD_%s_FILL" % i
-                    defval = getAttr(fieldname)
+                    defval = get_attr(fieldname)
                     if defval is not None:
                         objcol.dflt = defval
                     else:
-                        warnings.warn( "could not load default value "
-                                       "for the ``%s`` column of table ``%s``; "
-                                       "using ``%r`` instead"
-                                       % (colname, self._v_pathname,
-                                          objcol.dflt) )
+                        warnings.warn("could not load default value "
+                                      "for the ``%s`` column of table ``%s``; "
+                                      "using ``%r`` instead"
+                                      % (colname, self._v_pathname,
+                                          objcol.dflt))
                         defval = objcol.dflt
                     i += 1
 
@@ -1019,17 +1083,16 @@ class Table(tableExtension.Table, Leaf):
                 for descr in self.description._f_walk(type="Description"):
                     names = descr._v_names
                     for i in range(len(names)):
-                        objcol = descr._v_colObjects[names[i]]
+                        objcol = descr._v_colobjects[names[i]]
                         if isinstance(objcol, Col):
                             descr._v_dflts[objcol._v_name] = objcol.dflt
 
         # 5. Cache some data which is already in the description.
-        self._cacheDescriptionData()
+        self._cache_description_data()
 
-        return self._v_objectID
+        return self._v_objectid
 
-
-    def _cacheDescriptionData(self):
+    def _cache_description_data(self):
         """Cache some data which is already in the description.
 
         Some information is extracted from `self.description` to build
@@ -1045,19 +1108,20 @@ class Table(tableExtension.Table, Leaf):
         * `self._time64colnames`
         * `self._strcolnames`
         * `self._colenums`
+
         """
 
         self.colnames = list(self.description._v_names)
         self.colpathnames = [
             col._v_pathname for col in self.description._f_walk()
-            if not hasattr(col, '_v_names') ]  # bottom-level
+            if not hasattr(col, '_v_names')]  # bottom-level
 
         # Find ``time64`` column names.
-        self._time64colnames = self._getTypeColNames('time64')
+        self._time64colnames = self._get_type_col_names('time64')
         # Find ``string`` column names.
-        self._strcolnames = self._getTypeColNames('string')
+        self._strcolnames = self._get_type_col_names('string')
         # Get a mapping of enumerated columns to their `Enum` instances.
-        self._colenums = self._getEnumMap()
+        self._colenums = self._get_enum_map()
 
         # Get info about columns
         for colobj in self.description._f_walk(type="Col"):
@@ -1071,43 +1135,49 @@ class Table(tableExtension.Table, Leaf):
         # Assign _v_dtype for this table
         self._v_dtype = self.description._v_dtype
 
+    _cacheDescriptionData = previous_api(_cache_description_data)
 
-    def _getColumnInstance(self, colpathname):
+    def _get_column_instance(self, colpathname):
         """Get the instance of the column with the given `colpathname`.
 
         If the column does not exist in the table, a `KeyError` is
         raised.
+
         """
+
         try:
             return _reduce(getattr, colpathname.split('/'), self.description)
         except AttributeError:
-            raise KeyError( "table ``%s`` does not have a column named ``%s``"
-                            % (self._v_pathname, colpathname) )
+            raise KeyError("table ``%s`` does not have a column named ``%s``"
+                           % (self._v_pathname, colpathname))
 
-    _checkColumn = _getColumnInstance
+    _getColumnInstance = previous_api(_get_column_instance)
 
+    _check_column = _get_column_instance
 
-    def _disableIndexingInQueries(self):
+    def _disable_indexing_in_queries(self):
         """Force queries not to use indexing.  *Use only for testing.*"""
 
-        if not self._enabledIndexingInQueries:
+        if not self._enabled_indexing_in_queries:
             return  # already disabled
         # The nail avoids setting/getting compiled conditions in/from
         # the cache where indexing is used.
-        self._conditionCache.nail()
-        self._enabledIndexingInQueries = False
+        self._condition_cache.nail()
+        self._enabled_indexing_in_queries = False
 
+    _disableIndexingInQueries = previous_api(_disable_indexing_in_queries)
 
-    def _enableIndexingInQueries(self):
+    def _enable_indexing_in_queries(self):
         """Allow queries to use indexing.  *Use only for testing.*"""
 
-        if self._enabledIndexingInQueries:
+        if self._enabled_indexing_in_queries:
             return  # already enabled
-        self._conditionCache.unnail()
-        self._enabledIndexingInQueries = True
+        self._condition_cache.unnail()
+        self._enabled_indexing_in_queries = True
 
+    _enableIndexingInQueries = previous_api(_enable_indexing_in_queries)
 
-    def _requiredExprVars(self, expression, uservars, depth=1):
+    def _required_expr_vars(self, expression, uservars, depth=1):
         """Get the variables required by the `expression`.
 
         A new dictionary defining the variables used in the `expression`
@@ -1127,22 +1197,24 @@ class Table(tableExtension.Table, Leaf):
 
         `depth` specifies the depth of the frame in order to reach local
         or global variables.
+
         """
+
         # Get the names of variables used in the expression.
-        exprvarsCache = self._exprvarsCache
-        if not expression in exprvarsCache:
+        exprvarscache = self._exprvars_cache
+        if not expression in exprvarscache:
             # Protection against growing the cache too much
-            if len(exprvarsCache) > 256:
+            if len(exprvarscache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
-                for k in exprvarsCache.keys()[:10]:
-                    del exprvarsCache[k]
+                for k in exprvarscache.keys()[:10]:
+                    del exprvarscache[k]
             cexpr = compile(expression, '<string>', 'eval')
-            exprvars = [ var for var in cexpr.co_names
-                         if var not in ['None', 'False', 'True']
-                         and var not in numexpr_functions ]
-            exprvarsCache[expression] = exprvars
+            exprvars = [var for var in cexpr.co_names
+                        if var not in ['None', 'False', 'True']
+                        and var not in numexpr_functions]
+            exprvarscache[expression] = exprvars
         else:
-            exprvars = exprvarsCache[expression]
+            exprvars = exprvarscache[expression]
 
         # Get the local and global variable mappings of the user frame
         # if no mapping has been explicitly given for user variables.
@@ -1151,7 +1223,7 @@ class Table(tableExtension.Table, Leaf):
             # We use specified depth to get the frame where the API
             # callable using this method is called.  For instance:
             #
-            # * ``table._requiredExprVars()`` (depth 0) is called by
+            # * ``table._required_expr_vars()`` (depth 0) is called by
             # * ``table._where()`` (depth 1) is called by
             # * ``table.where()`` (depth 2) is called by
             # * user-space functions (depth 3)
@@ -1184,33 +1256,40 @@ class Table(tableExtension.Table, Leaf):
                     raise NotImplementedError(
                         "variable ``%s`` refers to "
                         "a multidimensional column, "
-                        "not yet supported in conditions, sorry" % var )
-                if val._tableFile is not tblfile or val._tablePath != tblpath:
-                    raise ValueError( "variable ``%s`` refers to a column "
-                                      "which is not part of table ``%s``"
-                                      % (var, tblpath) )
+                        "not yet supported in conditions, sorry" % var)
+                if (val._table_file is not tblfile or
+                    val._table_path != tblpath):
+                    raise ValueError("variable ``%s`` refers to a column "
+                                     "which is not part of table ``%s``"
+                                     % (var, tblpath))
                 if val.dtype.str[1:] == 'u8':
                     raise NotImplementedError(
                         "variable ``%s`` refers to "
                         "a 64-bit unsigned integer column, "
                         "not yet supported in conditions, sorry; "
-                        "please use regular Python selections" % var )
+                        "please use regular Python selections" % var)
             elif hasattr(val, '_v_colpathnames'):  # nested column
                 raise TypeError(
                     "variable ``%s`` refers to a nested column, "
-                    "not allowed in conditions" % var )
+                    "not allowed in conditions" % var)
             else:  # only non-column values are converted to arrays
-                val = numpy.asarray(val)
+                # XXX: not 100% sure about this
+                if isinstance(val, unicode):
+                    val = numpy.asarray(val.encode('ascii'))
+                else:
+                    val = numpy.asarray(val)
             reqvars[var] = val
         return reqvars
 
+    _requiredExprVars = previous_api(_required_expr_vars)
 
-    def _getConditionKey(self, condition, condvars):
+    def _get_condition_key(self, condition, condvars):
         """Get the condition cache key for `condition` with `condvars`.
 
         Currently, the key is a tuple of `condition`, column variables
         names, normal variables names, column paths and variable paths
         (all are tuples).
+
         """
 
         # Variable names for column and normal variables.
@@ -1227,16 +1306,17 @@ class Table(tableExtension.Table, Leaf):
                     vartypes.append(numexpr_getType(val))  # expensive
                 except ValueError:
                     # This is more clear than the error given by Numexpr.
-                    raise TypeError( "variable ``%s`` has data type ``%s``, "
-                                     "not allowed in conditions"
-                                     % (var, val.dtype.name) )
+                    raise TypeError("variable ``%s`` has data type ``%s``, "
+                                    "not allowed in conditions"
+                                    % (var, val.dtype.name))
         colnames, varnames = tuple(colnames), tuple(varnames)
         colpaths, vartypes = tuple(colpaths), tuple(vartypes)
         condkey = (condition, colnames, varnames, colpaths, vartypes)
         return condkey
 
+    _getConditionKey = previous_api(_get_condition_key)
 
-    def _compileCondition(self, condition, condvars):
+    def _compile_condition(self, condition, condvars):
         """Compile the `condition` and extract usable index conditions.
 
         This method returns an instance of ``CompiledCondition``.  See
@@ -1244,11 +1324,12 @@ class Table(tableExtension.Table, Leaf):
         module for more information about the compilation process.
 
         This method makes use of the condition cache when possible.
+
         """
 
         # Look up the condition in the condition cache.
-        condcache = self._conditionCache
-        condkey = self._getConditionKey(condition, condvars)
+        condcache = self._condition_cache
+        condkey = self._get_condition_key(condition, condvars)
         compiled = condcache.get(condkey)
         if compiled:
             return compiled.with_replaced_vars(condvars)  # bingo!
@@ -1259,41 +1340,35 @@ class Table(tableExtension.Table, Leaf):
 
         # Extract more information from referenced columns.
         typemap = dict(zip(varnames, vartypes))  # start with normal variables
-        indexedcols, copycols = [], []
+        indexedcols = []
         for colname in colnames:
             col = condvars[colname]
 
             # Extract types from *all* the given variables.
             coltype = col.dtype.type
-            typemap[colname] = _nxTypeFromNPType[coltype]
+            typemap[colname] = _nxtype_from_nptype[coltype]
 
             # Get the set of columns with usable indexes.
-            if ( self._enabledIndexingInQueries  # not test in-kernel searches
-                 and self.colindexed[col.pathname] and not col.index.dirty ):
+            if (self._enabled_indexing_in_queries  # not test in-kernel searches
+               and self.colindexed[col.pathname] and not col.index.dirty):
                 indexedcols.append(colname)
 
-            # Get the list of unaligned, unidimensional columns.  See
-            # the comments in `numexpr.evaluate()` for the
-            # reasons of inserting copy operators for these columns.
-            # Since the inclusion of Numexpr 1.3.1, the copy of unaligned
-            # columns on Intel architectures is not needed anymore.
-            if not is_cpu_amd_intel and col.pathname in self._colunaligned:
-                copycols.append(colname)
         indexedcols = frozenset(indexedcols)
         # Now let ``compile_condition()`` do the Numexpr-related job.
-        compiled = compile_condition(condition, typemap, indexedcols, copycols)
+        compiled = compile_condition(condition, typemap, indexedcols)
 
         # Check that there actually are columns in the condition.
         if not set(compiled.parameters).intersection(set(colnames)):
-            raise ValueError( "there are no columns taking part "
-                              "in condition ``%s``" % (condition,) )
+            raise ValueError("there are no columns taking part "
+                             "in condition ``%s``" % (condition,))
 
         # Store the compiled condition in the cache and return it.
         condcache[condkey] = compiled
         return compiled.with_replaced_vars(condvars)
 
+    _compileCondition = previous_api(_compile_condition)
 
-    def willQueryUseIndexing(self, condition, condvars=None):
+    def will_query_use_indexing(self, condition, condvars=None):
         """Will a query for the condition use indexing?
 
         The meaning of the condition and *condvars* arguments is the same as in
@@ -1304,17 +1379,20 @@ class Table(tableExtension.Table, Leaf):
         This method is mainly intended for testing. Keep in mind that changing
         the set of indexed columns or their dirtiness may make this method
         return different values for the same arguments at different times.
+
         """
+
         # Compile the condition and extract usable index conditions.
-        condvars = self._requiredExprVars(condition, condvars, depth=2)
-        compiled = self._compileCondition(condition, condvars)
+        condvars = self._required_expr_vars(condition, condvars, depth=2)
+        compiled = self._compile_condition(condition, condvars)
         # Return the columns in indexed expressions
         idxcols = [condvars[var].pathname for var in compiled.index_variables]
         return frozenset(idxcols)
 
+    willQueryUseIndexing = previous_api(will_query_use_indexing)
 
-    def where( self, condition, condvars=None,
-               start=None, stop=None, step=None ):
+    def where(self, condition, condvars=None,
+              start=None, stop=None, step=None):
         """Iterate over values fulfilling a condition.
 
         This method returns a Row iterator (see :ref:`RowClassDescr`) which
@@ -1337,9 +1415,7 @@ class Table(tableExtension.Table, Leaf):
         If a range is supplied (by setting some of the start, stop or step
         parameters), only the rows in that range and fulfilling the condition
         are used. The meaning of the start, stop and step parameters is the
-        same as in the range() Python function, except that negative values of
-        step are not allowed. Moreover, if only start is specified, then stop
-        will be set to start+1.
+        same as for Python slices.
 
         When possible, indexed columns participating in the condition will be
         used to speed up the search. It is recommended that you place the
@@ -1356,7 +1432,7 @@ class Table(tableExtension.Table, Leaf):
 
             When in the middle of a table row iterator, you should not
             use methods that can change the number of rows in the table
-            (like :meth:`Table.append` or :meth:`Table.removeRows`) or
+            (like :meth:`Table.append` or :meth:`Table.remove_rows`) or
             unexpected errors will happen.
 
         Examples
@@ -1382,61 +1458,54 @@ class Table(tableExtension.Table, Leaf):
         Table objects offer. See the file :file:`examples/nested-iter.py` for
         the full code.
 
+        .. versionchanged:: 3.0
+        The start, stop and step parameters now behave like in slice.
+
         """
 
         return self._where(condition, condvars, start, stop, step)
 
-
-    def _where( self, condition, condvars,
-                start=None, stop=None, step=None ):
+    def _where(self, condition, condvars, start=None, stop=None, step=None):
         """Low-level counterpart of `self.where()`."""
 
-        if profile: tref = time()
-        if profile: show_stats("Entering table._where", tref)
+        if profile:
+            tref = time()
+        if profile:
+            show_stats("Entering table._where", tref)
         # Adjust the slice to be used.
-        (start, stop, step) = self._processRangeRead(start, stop, step)
+        (start, stop, step) = self._process_range_read(start, stop, step)
         if start >= stop:  # empty range, reset conditions
-            self._useIndex = False
-            self._whereCondition = None
+            self._use_index = False
+            self._where_condition = None
             return iter([])
 
         # Compile the condition and extract usable index conditions.
-        condvars = self._requiredExprVars(condition, condvars, depth=3)
-        compiled = self._compileCondition(condition, condvars)
+        condvars = self._required_expr_vars(condition, condvars, depth=3)
+        compiled = self._compile_condition(condition, condvars)
 
         # Can we use indexes?
         if compiled.index_expressions:
-            chunkmap = _table__whereIndexed(
+            chunkmap = _table__where_indexed(
                 self, compiled, condition, condvars, start, stop, step)
             if not isinstance(chunkmap, numpy.ndarray):
                 # If it is not a NumPy array it should be an iterator
                 # Reset conditions
-                self._useIndex = False
-                self._whereCondition = None
+                self._use_index = False
+                self._where_condition = None
                 # ...and return the iterator
                 return chunkmap
         else:
             chunkmap = None  # default to an in-kernel query
 
         args = [condvars[param] for param in compiled.parameters]
-        self._whereCondition = (compiled.function, args)
-        row = tableExtension.Row(self)
-        if profile: show_stats("Exiting table._where", tref)
+        self._where_condition = (compiled.function, args)
+        row = tableextension.Row(self)
+        if profile:
+            show_stats("Exiting table._where", tref)
         return row._iter(start, stop, step, chunkmap=chunkmap)
 
-
-    def _checkFieldIfNumeric(self, field):
-        """Check that `field` has been selected with ``numeric`` flavor."""
-
-        if self.flavor == 'numeric' and field is None:
-            _numeric_deprecation()
-            raise ValueError(
-                "Numeric does not support heterogeneous datasets; "
-                "you must specify a field when using the ``numeric`` flavor" )
-
-
-    def readWhere( self, condition, condvars=None, field=None,
-                   start=None, stop=None, step=None ):
+    def read_where(self, condition, condvars=None, field=None,
+                   start=None, stop=None, step=None):
         """Read table data fulfilling the given *condition*.
 
         This method is similar to :meth:`Table.read`, having their common
@@ -1445,26 +1514,27 @@ class Table(tableExtension.Table, Leaf):
 
         The meaning of the other arguments is the same as in the
         :meth:`Table.where` method.
+
         """
 
-        self._checkFieldIfNumeric(field)
-
-        coords = [ p.nrow for p in
-                   self._where(condition, condvars, start, stop, step) ]
-        self._whereCondition = None  # reset the conditions
+        self._g_check_open()
+        coords = [p.nrow for p in
+                  self._where(condition, condvars, start, stop, step)]
+        self._where_condition = None  # reset the conditions
         if len(coords) > 1:
-            cstart, cstop = coords[0], coords[-1]+1
+            cstart, cstop = coords[0], coords[-1] + 1
             if cstop - cstart == len(coords):
                 # Chances for monotonically increasing row values. Refine.
                 inc_seq = numpy.alltrue(
                     numpy.arange(cstart, cstop) == numpy.array(coords))
                 if inc_seq:
                     return self.read(cstart, cstop, field=field)
-        return self.readCoordinates(coords, field)
+        return self.read_coordinates(coords, field)
 
+    readWhere = previous_api(read_where)
 
-    def whereAppend( self, dstTable, condition, condvars=None,
-                     start=None, stop=None, step=None ):
+    def append_where(self, dstTable, condition, condvars=None,
+                     start=None, stop=None, step=None):
         """Append rows fulfilling the condition to the dstTable table.
 
         dstTable must be capable of taking the rows resulting from the query,
@@ -1473,10 +1543,16 @@ class Table(tableExtension.Table, Leaf):
         :meth:`Table.where` method.
 
         The number of rows appended to dstTable is returned as a result.
+
+        .. versionchanged:: 3.0
+           The *whereAppend* method has been renamed into *append_where*.
+
         """
 
+        self._g_check_open()
+
         # Check that the destination file is not in read-only mode.
-        dstTable._v_file._checkWritable()
+        dstTable._v_file._check_writable()
 
         # Row objects do not support nested columns, so we must iterate
         # over the flat column paths.  When rows support nesting,
@@ -1492,9 +1568,10 @@ class Table(tableExtension.Table, Leaf):
         dstTable.flush()
         return nrows
 
+    whereAppend = previous_api(append_where)
 
-    def getWhereList( self, condition, condvars=None, sort=False,
-                      start=None, stop=None, step=None ):
+    def get_where_list(self, condition, condvars=None, sort=False,
+                       start=None, stop=None, step=None):
         """Get the row coordinates fulfilling the given condition.
 
         The coordinates are returned as a list of the current flavor.  sort
@@ -1503,17 +1580,21 @@ class Table(tableExtension.Table, Leaf):
 
         The meaning of the other arguments is the same as in the
         :meth:`Table.where` method.
+
         """
 
-        coords = [ p.nrow for p in
-                   self._where(condition, condvars, start, stop, step) ]
+        self._g_check_open()
+
+        coords = [p.nrow for p in
+                  self._where(condition, condvars, start, stop, step)]
         coords = numpy.array(coords, dtype=SizeType)
         # Reset the conditions
-        self._whereCondition = None
+        self._where_condition = None
         if sort:
             coords = numpy.sort(coords)
         return internal_to_flavor(coords, self.flavor)
 
+    getWhereList = previous_api(get_where_list)
 
     def itersequence(self, sequence):
         """Iterate over a sequence of row coordinates.
@@ -1521,11 +1602,12 @@ class Table(tableExtension.Table, Leaf):
         Notes
         -----
         This iterator can be nested (see :meth:`Table.where` for an example).
+
         """
 
         if not hasattr(sequence, '__getitem__'):
-            raise TypeError("""\
-Wrong 'sequence' parameter type. Only sequences are suported.""")
+            raise TypeError(("Wrong 'sequence' parameter type. Only sequences "
+                             "are suported."))
         # start, stop and step are necessary for the new iterator for
         # coordinates, and perhaps it would be useful to add them as
         # parameters in the future (not now, because I've just removed
@@ -1533,17 +1615,17 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         #
         # *Important note*: Negative values for step are not supported
         # for the general case, but only for the itersorted() and
-        # readSorted() purposes!  The self._processRangeRead will raise
+        # read_sorted() purposes!  The self._process_range_read will raise
         # an appropiate error.
         # F. Alted 2008-09-18
-        (start, stop, step) = self._processRangeRead(None, None, None)
+        # A.V. 20130513: _process_range_read --> _process_range
+        (start, stop, step) = self._process_range(None, None, None)
         if (start > stop) or (len(sequence) == 0):
             return iter([])
-        row = tableExtension.Row(self)
+        row = tableextension.Row(self)
         return row._iter(start, stop, step, coords=sequence)
 
-
-    def _check_sortby_CSI(self, sortby, checkCSI):
+    def _check_sortby_csi(self, sortby, checkCSI):
         if isinstance(sortby, Column):
             icol = sortby
         elif isinstance(sortby, str):
@@ -1553,7 +1635,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 "`sortby` can only be a `Column` or string object, "
                 "but you passed an object of type: %s" % type(sortby))
         if icol.is_indexed and icol.index.kind == "full":
-            if checkCSI and not icol.index.is_CSI:
+            if checkCSI and not icol.index.is_csi:
                 # The index exists, but it is not a CSI one.
                 raise ValueError(
                     "Field `%s` must have associated a CSI index "
@@ -1565,6 +1647,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 "Field `%s` must have associated a 'full' index "
                 "in table `%s`." % (sortby, self))
 
+    _check_sortby_CSI = previous_api(_check_sortby_csi)
 
     def itersorted(self, sortby, checkCSI=False,
                    start=None, stop=None, step=None):
@@ -1577,22 +1660,27 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         existence of a CSI index.
 
         The meaning of the start, stop and step arguments is the same as in
-        :meth:`Table.read`.  However, in this case a negative value of step is
-        supported, meaning that the results will be returned in reverse sorted
-        order.
+        :meth:`Table.read`.
+
+        .. versionchanged:: 3.0
+           If the *start* parameter is provided and *stop* is None then the
+           table is iterated from *start* to the last line.
+           In PyTables < 3.0 only one element was returned.
+
         """
 
-        index = self._check_sortby_CSI(sortby, checkCSI)
+        index = self._check_sortby_csi(sortby, checkCSI)
         # Adjust the slice to be used.
-        (start, stop, step) = index._processRange(start, stop, step)
-        if (start >= stop):
+        (start, stop, step) = self._process_range(start, stop, step,
+                                                  warn_negstep=False)
+        if (start > stop and 0 < step) or (start < stop and 0 > step):
+            # Fall-back action is to return an empty iterator
             return iter([])
-        row = tableExtension.Row(self)
+        row = tableextension.Row(self)
         return row._iter(start, stop, step, coords=index)
 
-
-    def readSorted(self, sortby, checkCSI=False, field=None,
-                   start=None, stop=None, step=None):
+    def read_sorted(self, sortby, checkCSI=False, field=None,
+                    start=None, stop=None, step=None):
         """Read table data following the order of the index of sortby column.
 
         The sortby column must have associated a full index.  If you want to
@@ -1607,16 +1695,19 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         array of the current flavor.
 
         The meaning of the start, stop and step arguments is the same as in
-        :meth:`Table.read`.  However, in this case a negative value of step is
-        supported, meaning that the results will be returned in reverse sorted
-        order.
+        :meth:`Table.read`.
+
+        .. versionchanged:: 3.0
+        The start, stop and step parameters now behave like in slice.
+
         """
 
-        self._checkFieldIfNumeric(field)
-        index = self._check_sortby_CSI(sortby, checkCSI)
+        self._g_check_open()
+        index = self._check_sortby_csi(sortby, checkCSI)
         coords = index[start:stop:step]
-        return self.readCoordinates(coords, field)
+        return self.read_coordinates(coords, field)
 
+    readSorted = previous_api(read_sorted)
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterate over the table using a Row instance.
@@ -1624,19 +1715,18 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         If a range is not supplied, *all the rows* in the table are iterated
         upon - you can also use the :meth:`Table.__iter__` special method for
         that purpose. If you want to iterate over a given *range of rows* in
-        the table, you may use the start, stop and step parameters, which have
-        the same meaning as in :meth:`Table.read`.
+        the table, you may use the start, stop and step parameters.
 
         .. warning::
 
             When in the middle of a table row iterator, you should not
             use methods that can change the number of rows in the table
-            (like :meth:`Table.append` or :meth:`Table.removeRows`) or
+            (like :meth:`Table.append` or :meth:`Table.remove_rows`) or
             unexpected errors will happen.
 
         See Also
         --------
-        tableExtension.Row : the table row iterator and field accessor
+        tableextension.Row : the table row iterator and field accessor
 
         Examples
         --------
@@ -1650,15 +1740,19 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         -----
         This iterator can be nested (see :meth:`Table.where` for an example).
 
+        .. versionchanged:: 3.0
+           If the *start* parameter is provided and *stop* is None then the
+           table is iterated from *start* to the last line.
+           In PyTables < 3.0 only one element was returned.
+
         """
-
-        (start, stop, step) = self._processRangeRead(start, stop, step)
-        if start < stop:
-            row = tableExtension.Row(self)
-            return row._iter(start, stop, step)
-        # Fall-back action is to return an empty iterator
-        return iter([])
-
+        (start, stop, step) = self._process_range(start, stop, step,
+                                                  warn_negstep=False)
+        if (start > stop and 0 < step) or (start < stop and 0 > step):
+            # Fall-back action is to return an empty iterator
+            return iter([])
+        row = tableextension.Row(self)
+        return row._iter(start, stop, step)
 
     def __iter__(self):
         """Iterate over the table using a Row instance.
@@ -1668,7 +1762,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         See Also
         --------
-        tableExtension.Row : the table row iterator and field accessor
+        tableextension.Row : the table row iterator and field accessor
 
         Examples
         --------
@@ -1685,11 +1779,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         Notes
         -----
         This iterator can be nested (see :meth:`Table.where` for an example).
+
         """
+
         return self.iterrows()
 
-
-    def _read(self, start, stop, step, field=None):
+    def _read(self, start, stop, step, field=None, out=None):
         """Read a range of rows and return an in-memory object."""
 
         select_field = None
@@ -1700,83 +1795,143 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                     select_field = field
                     field = None
                 else:
-                    raise KeyError("Field %s not found in table %s" %
-                                                            (field, self))
+                    raise KeyError(("Field {0} not found in table "
+                                    "{1}").format(field, self))
             else:
                 # The column hangs directly from the top
-                dtypeField = self.coldtypes[field]
+                dtype_field = self.coldtypes[field]
 
         # Return a rank-0 array if start > stop
-        if start >= stop:
-            if field == None:
+        if (start >= stop and 0 < step) or (start <= stop and 0 > step):
+            if field is None:
                 nra = self._get_container(0)
                 return nra
-            return numpy.empty(shape=0, dtype=dtypeField)
+            return numpy.empty(shape=0, dtype=dtype_field)
 
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
 
-        # Compute the shape of the resulting column object
-        if field:
-            # Create a container for the results
-            result = numpy.empty(shape=nrows, dtype=dtypeField)
+        if out is None:
+            # Compute the shape of the resulting column object
+            if field:
+                # Create a container for the results
+                result = numpy.empty(shape=nrows, dtype=dtype_field)
+            else:
+                # Recarray case
+                result = self._get_container(nrows)
         else:
-            # Recarray case
-            result = self._get_container(nrows)
+            # there is no fast way to byteswap, since different columns may
+            # have different byteorders
+            if not out.dtype.isnative:
+                raise ValueError(("output array must be in system's byteorder "
+                                  "or results will be incorrect"))
+            if field:
+                bytes_required = dtype_field.itemsize * nrows
+            else:
+                bytes_required = self.rowsize * nrows
+            if bytes_required != out.nbytes:
+                raise ValueError(('output array size invalid, got {0} bytes, '
+                                  'need {1} bytes').format(out.nbytes,
+                                                           bytes_required))
+            if not out.flags['C_CONTIGUOUS']:
+                raise ValueError('output array not C contiguous')
+            result = out
 
         # Call the routine to fill-up the resulting array
         if step == 1 and not field:
             # This optimization works three times faster than
-            # the row._fillCol method (up to 170 MB/s on a pentium IV @ 2GHz)
-            self._read_records(start, stop-start, result)
+            # the row._fill_col method (up to 170 MB/s on a pentium IV @ 2GHz)
+            self._read_records(start, stop - start, result)
         # Warning!: _read_field_name should not be used until
-        # H5TBread_fields_name in tableExtension will be finished
+        # H5TBread_fields_name in tableextension will be finished
         # F. Alted 2005/05/26
         # XYX Ho implementem per a PyTables 2.0??
         elif field and step > 15 and 0:
-            # For step>15, this seems to work always faster than row._fillCol.
+            # For step>15, this seems to work always faster than row._fill_col.
             self._read_field_name(result, start, stop, step, field)
         else:
-            self.row._fillCol(result, start, stop, step, field)
+            self.row._fill_col(result, start, stop, step, field)
 
         if select_field:
             return result[select_field]
         else:
             return result
 
-
-    def read(self, start=None, stop=None, step=None, field=None):
+    def read(self, start=None, stop=None, step=None, field=None, out=None):
         """Get data in the table as a (record) array.
 
-        The start, stop and step parameters can be used to select only a *range
-        of rows* in the table. Their meanings are the same as in the built-in
-        range() Python function, except that negative values of step are not
-        allowed yet. Moreover, if only start is specified, then stop will be
-        set to start+1. If you do not specify neither start nor stop, then *all
-        the rows* in the table are selected.
+        The start, stop and step parameters can be used to select only
+        a *range of rows* in the table. Their meanings are the same as
+        in the built-in Python slices.
 
-        If field is supplied only the named column will be selected.  If the
-        column is not nested, an *array* of the current flavor will be
-        returned; if it is, a *structured array* will be used instead.  If no
-        field is specified, all the columns will be returned in a structured
-        array of the current flavor.
+        If field is supplied only the named column will be selected.
+        If the column is not nested, an *array* of the current flavor
+        will be returned; if it is, a *structured array* will be used
+        instead.  If no field is specified, all the columns will be
+        returned in a structured array of the current flavor.
 
-        Columns under a nested column can be specified in the field parameter by
-        using a slash character (/) as a separator (e.g. 'position/x').
+        Columns under a nested column can be specified in the field
+        parameter by using a slash character (/) as a separator (e.g.
+        'position/x').
+
+        The out parameter may be used to specify a NumPy array to
+        receive the output data.  Note that the array must have the
+        same size as the data selected with the other parameters.
+        Note that the array's datatype is not checked and no type
+        casting is performed, so if it does not match the datatype on
+        disk, the output will not be correct.
+
+        When specifying a single nested column with the field parameter,
+        and supplying an output buffer with the out parameter, the
+        output buffer must contain all columns in the table.
+        The data in all columns will be read into the output buffer.
+        However, only the specified nested column will be returned from
+        the method call.
+
+        When data is read from disk in NumPy format, the output will be
+        in the current system's byteorder, regardless of how it is
+        stored on disk. If the out parameter is specified, the output
+        array also must be in the current system's byteorder.
+
+        .. versionchanged:: 3.0
+           Added the *out* parameter.  Also the start, stop and step
+           parameters now behave like in slice.
+
+        Examples
+        --------
+
+        Reading the entire table::
+
+            t.read()
+
+        Reading record n. 6::
+
+            t.read(6, 7)
+
+        Reading from record n. 6 to the end of the table::
+
+            t.read(6)
+
         """
 
+        self._g_check_open()
+
         if field:
-            self._checkColumn(field)
-        else:
-            self._checkFieldIfNumeric(field)
+            self._check_column(field)
 
-        (start, stop, step) = self._processRangeRead(start, stop, step)
+        if out is not None and self.flavor != 'numpy':
+            msg = ("Optional 'out' argument may only be supplied if array "
+                   "flavor is 'numpy', currently is {0}").format(self.flavor)
+            raise TypeError(msg)
 
-        arr = self._read(start, stop, step, field)
+        #(start, stop, step) = self._process_range_read(start, stop, step,
+        (start, stop, step) = self._process_range(start, stop, step,
+                                                  warn_negstep=False)
+
+        arr = self._read(start, stop, step, field, out)
         return internal_to_flavor(arr, self.flavor)
 
-
-    def _readCoordinates(self, coords, field=None):
-        """Private part of `readCoordinates()` with no flavor conversion."""
+    def _read_coordinates(self, coords, field=None):
+        """Private part of `read_coordinates()` with no flavor conversion."""
 
         ncoords = len(coords)
         # Create a read buffer only if needed
@@ -1791,7 +1946,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         if ncoords > 0:
             # Turn coords into an array of coordinate indexes, if necessary
             if not (isinstance(coords, numpy.ndarray) and
-                    coords.dtype.type is _npSizeType and
+                    coords.dtype.type is _npsizetype and
                     coords.flags.contiguous and
                     coords.flags.aligned):
                 # Get a contiguous and aligned coordinate array
@@ -1801,14 +1956,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # Do the final conversions, if needed
         if field:
             if ncoords > 0:
-                result = getNestedField(result, field)
+                result = get_nested_field(result, field)
             else:
                 # Get an empty array from the cache
                 result = self._getemptyarray(self.coldtypes[field])
         return result
 
+    _readCoordinates = previous_api(_read_coordinates)
 
-    def readCoordinates(self, coords, field=None):
+    def read_coordinates(self, coords, field=None):
         """Get a set of rows given their indexes as a (record) array.
 
         This method works much like the :meth:`Table.read` method, but it uses
@@ -1817,23 +1973,26 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         The selected rows are returned in an array or structured array of the
         current flavor.
+
         """
 
-        self._checkFieldIfNumeric(field)
-        result = self._readCoordinates(coords, field)
+        self._g_check_open()
+        result = self._read_coordinates(coords, field)
         return internal_to_flavor(result, self.flavor)
 
+    readCoordinates = previous_api(read_coordinates)
 
-    def getEnum(self, colname):
+    def get_enum(self, colname):
         """Get the enumerated type associated with the named column.
 
         If the column named colname (a string) exists and is of an enumerated
         type, the corresponding Enum instance (see :ref:`EnumClassDescr`) is
         returned. If it is not of an enumerated type, a TypeError is raised. If
         the column does not exist, a KeyError is raised.
+
         """
 
-        self._checkColumn(colname)
+        self._check_column(colname)
 
         try:
             return self._colenums[colname]
@@ -1842,13 +2001,13 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 "column ``%s`` of table ``%s`` is not of an enumerated type"
                 % (colname, self._v_pathname))
 
+    getEnum = previous_api(get_enum)
 
     def col(self, name):
         """Get a column from the table.
 
         If a column called name exists in the table, it is read and returned as
-        a NumPy object, or as a numarray object (depending on the flavor of the
-        table). If it does not exist, a KeyError is raised.
+        a NumPy object. If it does not exist, a KeyError is raised.
 
         Examples
         --------
@@ -1863,10 +2022,10 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         Here you can see how this method can be used as a shorthand for the
         :meth:`Table.read` method.
+
         """
 
         return self.read(field=name)
-
 
     def __getitem__(self, key):
         """Get a row or a range of rows from the table.
@@ -1897,12 +2056,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
             record = table.read(start=4)[0]
             recarray = table.read(start=4, stop=1000, step=2)
-            recarray = table.readCoordinates([4,1000])
-            recarray = table.readCoordinates([True, False, ..., True])
+            recarray = table.read_coordinates([4,1000])
+            recarray = table.read_coordinates([True, False, ..., True])
 
         Here, you can see how indexing can be used as a shorthand for the
-        :meth:`Table.read` and :meth:`Table.readCoordinates` methods.
+        :meth:`Table.read` and :meth:`Table.read_coordinates` methods.
+
         """
+
+        self._g_check_open()
 
         if is_idx(key):
             # Index out of range protection
@@ -1911,29 +2073,28 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            (start, stop, step) = self._processRange(key, key+1, 1)
+            (start, stop, step) = self._process_range(key, key + 1, 1)
             return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
-            (start, stop, step) = self._processRange(
-                key.start, key.stop, key.step )
+            (start, stop, step) = self._process_range(
+                key.start, key.stop, key.step)
             return self.read(start, stop, step)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
-            coords = self._pointSelection(key)
-            return self._readCoordinates(coords, None)
+            coords = self._point_selection(key)
+            return self._read_coordinates(coords, None)
         else:
             raise IndexError("Invalid index or slice: %r" % (key,))
-
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in the table.
 
-        It takes different actions depending on the type of the key parameter:
-        if it is an integer, the corresponding table row is set to value (a
-        record or sequence capable of being converted to the table
-        structure). If key is a slice, the row slice determined by it is set to
-        value (a record array or sequence capable of being converted to the
-        table structure).
+        It takes different actions depending on the type of the *key*
+        parameter: if it is an integer, the corresponding table row is
+        set to *value* (a record or sequence capable of being converted
+        to the table structure).  If *key* is a slice, the row slice
+        determined by it is set to *value* (a record array or sequence
+        capable of being converted to the table structure).
 
         In addition, NumPy-style point selections are supported.  In
         particular, if key is a list of row coordinates, the set of rows
@@ -1959,18 +2120,21 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         Which is equivalent to::
 
-            table.modifyRows(start=2, rows=[456,'db2',1.2])
+            table.modify_rows(start=2, rows=[456,'db2',1.2])
             rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
                                    formats='i4,a3,f8')
-            table.modifyRows(start=1, stop=3, step=2, rows=rows)
-            table.modifyCoordinates([1,3,2], rows)
-            table.modifyCoordinates([True, False, True], rows)
+            table.modify_rows(start=1, stop=3, step=2, rows=rows)
+            table.modify_coordinates([1,3,2], rows)
+            table.modify_coordinates([True, False, True], rows)
 
         Here, you can see how indexing can be used as a shorthand for the
-        :meth:`Table.modifyRows` and :meth:`Table.modifyCoordinates` methods.
+        :meth:`Table.modify_rows` and :meth:`Table.modify_coordinates`
+        methods.
+
         """
 
-        self._v_file._checkWritable()
+        self._g_check_open()
+        self._v_file._check_writable()
 
         if is_idx(key):
             # Index out of range protection
@@ -1979,19 +2143,18 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            return self.modifyRows(key, key+1, 1, [value])
+            return self.modify_rows(key, key + 1, 1, [value])
         elif isinstance(key, slice):
-            (start, stop, step) = self._processRange(
-                key.start, key.stop, key.step )
-            return self.modifyRows(start, stop, step, value)
+            (start, stop, step) = self._process_range(
+                key.start, key.stop, key.step)
+            return self.modify_rows(start, stop, step, value)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
-            return self.modifyCoordinates(key, value)
+            return self.modify_coordinates(key, value)
         else:
             raise IndexError("Invalid index or slice: %r" % (key,))
 
-
-    def _saveBufferedRows(self, wbufRA, lenrows):
+    def _save_buffered_rows(self, wbufRA, lenrows):
         """Update the indexes after a flushing of rows"""
 
         self._open_append(wbufRA)
@@ -2001,22 +2164,23 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             self._unsaved_indexedrows += lenrows
             # The table caches for indexed queries are dirty now
             self._dirtycache = True
-            if self.autoIndex:
+            if self.autoindex:
                 # Flush the unindexed rows
-                self.flushRowsToIndex(_lastrow=False)
+                self.flush_rows_to_index(_lastrow=False)
             else:
                 # All the columns are dirty now
-                self._markColumnsAsDirty(self.colpathnames)
+                self._mark_columns_as_dirty(self.colpathnames)
 
+    _saveBufferedRows = previous_api(_save_buffered_rows)
 
     def append(self, rows):
         """Append a sequence of rows to the end of the table.
 
-        The rows argument may be any object which can be converted to a record
-        array compliant with the table structure (otherwise, a ValueError is
-        raised).  This includes NumPy structured arrays, RecArray (depracated)
-        or NestedRecArray (deprecated) objects if numarray is available, lists
-        of tuples or array records, and a string or Python buffer.
+        The rows argument may be any object which can be converted to
+        a structured array compliant with the table structure
+        (otherwise, a ValueError is raised).  This includes NumPy
+        structured arrays, lists of tuples or array records, and a
+        string or Python buffer.
 
         Examples
         --------
@@ -2032,17 +2196,20 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 pressure    = Float32Col(pos=4)    # float  (single-precision)
                 temperature = FloatCol(pos=5)      # double (double-precision)
 
-            fileh = openFile('test4.h5', mode='w')
-            table = fileh.createTable(fileh.root, 'table', Particle, "A table")
+            fileh = open_file('test4.h5', mode='w')
+            table = fileh.create_table(fileh.root, 'table', Particle,
+                                       "A table")
 
             # Append several rows in only one call
-            table.append([("Particle:     10", 10, 0, 10*10, 10**2),
-                          ("Particle:     11", 11, -1, 11*11, 11**2),
-                          ("Particle:     12", 12, -2, 12*12, 12**2)])
+            table.append([("Particle:     10", 10, 0, 10 * 10, 10**2),
+                          ("Particle:     11", 11, -1, 11 * 11, 11**2),
+                          ("Particle:     12", 12, -2, 12 * 12, 12**2)])
             fileh.close()
+
         """
 
-        self._v_file._checkWritable()
+        self._g_check_open()
+        self._v_file._check_writable()
 
         if not self._chunked:
             raise HDF5ExtError(
@@ -2056,7 +2223,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             # Works for Python structures and always copies the original,
             # so the resulting object is safe for in-place conversion.
             wbufRA = numpy.rec.array(rows, dtype=self._v_dtype)
-        except Exception, exc:  #XXX
+        except Exception, exc:  # XXX
             raise ValueError("rows parameter cannot be converted into a "
                              "recarray object compliant with table '%s'. "
                              "The error was: <%s>" % (str(self), exc))
@@ -2064,8 +2231,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # If the number of rows to append is zero, don't do anything else
         if lenrows > 0:
             # Save write buffer to disk
-            self._saveBufferedRows(wbufRA, lenrows)
-
+            self._save_buffered_rows(wbufRA, lenrows)
 
     def _conv_to_recarr(self, obj):
         """Try to convert the object into a recarray."""
@@ -2084,16 +2250,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 # Works for Python structures and always copies the original,
                 # so the resulting object is safe for in-place conversion.
                 recarr = numpy.rec.array(obj, dtype=self._v_dtype)
-        except Exception, exc:  #XXX
+        except Exception, exc:  # XXX
             raise ValueError("Object cannot be converted into a recarray "
                              "object compliant with table format '%s'. "
                              "The error was: <%s>" %
-                                    (self.description._v_nestedDescr, exc))
+                            (self.description._v_nested_descr, exc))
 
         return recarr
 
-
-    def modifyCoordinates(self, coords, rows):
+    def modify_coordinates(self, coords, rows):
         """Modify a series of rows in positions specified in coords
 
         The values in the selected rows will be modified with the data given in
@@ -2101,13 +2266,14 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         The possible values for the rows argument are the same as in
         :meth:`Table.append`.
+
         """
 
         if rows is None:      # Nothing to be done
             return SizeType(0)
 
         # Convert the coordinates to something expected by HDF5
-        coords = self._pointSelection(coords)
+        coords = self._point_selection(coords)
 
         lcoords = len(coords)
         if len(rows) < lcoords:
@@ -2122,12 +2288,13 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             self._update_elements(lcoords, coords, recarr)
 
         # Redo the index if needed
-        self._reIndex(self.colpathnames)
+        self._reindex(self.colpathnames)
 
         return SizeType(lcoords)
 
+    modifyCoordinates = previous_api(modify_coordinates)
 
-    def modifyRows(self, start=None, stop=None, step=1, rows=None):
+    def modify_rows(self, start=None, stop=None, step=None, rows=None):
         """Modify a series of rows in the slice [start:stop:step].
 
         The values in the selected rows will be modified with the data given in
@@ -2137,8 +2304,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         The possible values for the rows argument are the same as in
         :meth:`Table.append`.
+
         """
 
+        if step is None:
+            step = 1
         if rows is None:      # Nothing to be done
             return SizeType(0)
         if start is None:
@@ -2147,17 +2317,18 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         if start < 0:
             raise ValueError("'start' must have a positive value.")
         if step < 1:
-            raise ValueError("'step' must have a value greater or equal than 1.")
+            raise ValueError(
+                "'step' must have a value greater or equal than 1.")
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
-            stop = start + (len(rows)-1)*step + 1
+            stop = start + (len(rows) - 1) * step + 1
 
-        (start, stop, step) = self._processRange(start, stop, step)
+        (start, stop, step) = self._process_range(start, stop, step)
         if stop > self.nrows:
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
         if len(rows) != nrows:
             raise ValueError("The value has different elements than the "
                              "specified range")
@@ -2174,32 +2345,34 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         self._update_records(start, stop, step, recarr)
 
         # Redo the index if needed
-        self._reIndex(self.colpathnames)
+        self._reindex(self.colpathnames)
 
         return SizeType(lenrows)
 
+    modifyRows = previous_api(modify_rows)
 
-    def modifyColumn(self, start=None, stop=None, step=1,
-                     column=None, colname=None):
+    def modify_column(self, start=None, stop=None, step=None,
+                      column=None, colname=None):
         """Modify one single column in the row slice [start:stop:step].
 
-        The colname argument specifies the name of the column in the table to
-        be modified with the data given in column.  This method returns the
-        number of rows modified.  Should the modification exceed the length of
-        the table, an IndexError is raised before changing data.
+        The colname argument specifies the name of the column in the
+        table to be modified with the data given in column.  This
+        method returns the number of rows modified.  Should the
+        modification exceed the length of the table, an IndexError is
+        raised before changing data.
 
-        The column argument may be any object which can be converted to a
-        (record) array compliant with the structure of the column to be
-        modified (otherwise, a ValueError is raised).  This includes NumPy
-        (record) arrays, NumArray (deprecated), RecArray (deprecated) or
-        NestedRecArray (deprecated) objects if numarray is available, Numeric
-        arrays if available (deprecated), lists of scalars, tuples or array
-        records, and a string or Python buffer.
+        The *column* argument may be any object which can be converted
+        to a (record) array compliant with the structure of the column
+        to be modified (otherwise, a ValueError is raised).  This
+        includes NumPy (record) arrays, lists of scalars, tuples or
+        array records, and a string or Python buffer.
+
         """
-
+        if step is None:
+            step = 1
         if not isinstance(colname, str):
             raise TypeError("The 'colname' parameter must be a string.")
-        self._v_file._checkWritable()
+        self._v_file._check_writable()
 
         if column is None:      # Nothing to be done
             return SizeType(0)
@@ -2209,10 +2382,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         if start < 0:
             raise ValueError("'start' must have a positive value.")
         if step < 1:
-            raise ValueError("'step' must have a value greater or equal than 1.")
+            raise ValueError(
+                "'step' must have a value greater or equal than 1.")
         # Get the column format to be modified:
-        objcol = self._getColumnInstance(colname)
-        descr = [objcol._v_parent._v_nestedDescr[objcol._v_pos]]
+        objcol = self._get_column_instance(colname)
+        descr = [objcol._v_parent._v_nested_descr[objcol._v_pos]]
         # Try to convert the column object into a NumPy ndarray
         try:
             # If the column is a recarray (or kind of), convert into ndarray
@@ -2223,7 +2397,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 # so the resulting object is safe for in-place conversion.
                 iflavor = flavor_of(column)
                 column = array_as_internal(column, iflavor)
-        except Exception, exc:  #XXX
+        except Exception, exc:  # XXX
             raise ValueError("column parameter cannot be converted into a "
                              "ndarray object compliant with specified column "
                              "'%s'. The error was: <%s>" % (str(column), exc))
@@ -2236,63 +2410,66 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
-            stop = start + (len(column)-1)*step + 1
-        (start, stop, step) = self._processRange(start, stop, step)
+            stop = start + (len(column) - 1) * step + 1
+        (start, stop, step) = self._process_range(start, stop, step)
         if stop > self.nrows:
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
         if len(column) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
         # Now, read the original values:
         mod_recarr = self._read(start, stop, step)
         # Modify the appropriate column in the original recarray
-        mod_col = getNestedField(mod_recarr, colname)
+        mod_col = get_nested_field(mod_recarr, colname)
         mod_col[:] = column
         # save this modified rows in table
         self._update_records(start, stop, step, mod_recarr)
         # Redo the index if needed
-        self._reIndex([colname])
+        self._reindex([colname])
 
         return SizeType(nrows)
 
+    modifyColumn = previous_api(modify_column)
 
-    def modifyColumns(self, start=None, stop=None, step=1,
-                      columns=None, names=None):
+    def modify_columns(self, start=None, stop=None, step=None,
+                       columns=None, names=None):
         """Modify a series of columns in the row slice [start:stop:step].
 
-        The names argument specifies the names of the columns in the table to
-        be modified with the data given in columns.  This method returns the
-        number of rows modified.  Should the modification exceed the length of
-        the table, an IndexError is raised before changing data.
+        The names argument specifies the names of the columns in the
+        table to be modified with the data given in columns.  This
+        method returns the number of rows modified.  Should the
+        modification exceed the length of the table, an IndexError
+        is raised before changing data.
 
-        The columns argument may be any object which can be converted to a
-        structured array compliant with the structure of the columns to be
-        modified (otherwise, a ValueError is raised).  This includes NumPy
-        structured arrays, RecArray (deprecated) or NestedRecArray (deprecated)
-        objects if numarray is available, lists of tuples or array records, and
-        a string or Python buffer.
+        The columns argument may be any object which can be converted
+        to a structured array compliant with the structure of the
+        columns to be modified (otherwise, a ValueError is raised).
+        This includes NumPy structured arrays, lists of tuples or array
+        records, and a string or Python buffer.
+
         """
-
+        if step is None:
+            step = 1
         if type(names) not in (list, tuple):
-            raise TypeError("""\
-The 'names' parameter must be a list of strings.""")
+            raise TypeError("The 'names' parameter must be a list of strings.")
 
-        if columns is None:      # Nothing to be done
+        if columns is None:  # Nothing to be done
             return SizeType(0)
         if start is None:
             start = 0
         if start < 0:
             raise ValueError("'start' must have a positive value.")
         if step < 1:
-            raise ValueError("'step' must have a value greater or equal than 1.")        # Get the column formats to be modified:
+            raise ValueError(("'step' must have a value greater or "
+                              "equal than 1."))
         descr = []
         for colname in names:
-            objcol = self._getColumnInstance(colname)
-            descr.append(objcol._v_parent._v_nestedDescr[objcol._v_pos])
-            #descr.append(objcol._v_parent._v_dtype[objcol._v_pos])
+            objcol = self._get_column_instance(colname)
+            descr.append(objcol._v_parent._v_nested_descr[objcol._v_pos])
+            # descr.append(objcol._v_parent._v_dtype[objcol._v_pos])
         # Try to convert the columns object into a recarray
         try:
             # Make sure the result is always a *copy* of the original,
@@ -2303,20 +2480,20 @@ The 'names' parameter must be a list of strings.""")
                 recarray = numpy.rec.array(columns, dtype=descr)
             else:
                 recarray = numpy.rec.fromarrays(columns, dtype=descr)
-        except Exception, exc:  #XXX
+        except Exception, exc:  # XXX
             raise ValueError("columns parameter cannot be converted into a "
                              "recarray object compliant with table '%s'. "
                              "The error was: <%s>" % (str(self), exc))
 
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
-            stop = start + (len(recarray)-1)*step + 1
-        (start, stop, step) = self._processRange(start, stop, step)
+            stop = start + (len(recarray) - 1) * step + 1
+        (start, stop, step) = self._process_range(start, stop, step)
         if stop > self.nrows:
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
         if len(recarray) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2324,22 +2501,24 @@ The 'names' parameter must be a list of strings.""")
         mod_recarr = self._read(start, stop, step)
         # Modify the appropriate columns in the original recarray
         for i, name in enumerate(recarray.dtype.names):
-            mod_col = getNestedField(mod_recarr, names[i])
+            mod_col = get_nested_field(mod_recarr, names[i])
             mod_col[:] = recarray[name].squeeze()
         # save this modified rows in table
         self._update_records(start, stop, step, mod_recarr)
         # Redo the index if needed
-        self._reIndex(names)
+        self._reindex(names)
 
         return SizeType(nrows)
 
+    modifyColumns = previous_api(modify_columns)
 
-    def flushRowsToIndex(self, _lastrow=True):
+    def flush_rows_to_index(self, _lastrow=True):
         """Add remaining rows in buffers to non-dirty indexes.
 
         This can be useful when you have chosen non-automatic indexing
-        for the table (see the :attr:`Table.autoIndex` property in
+        for the table (see the :attr:`Table.autoindex` property in
         :class:`Table`) and you want to update the indexes on it.
+
         """
 
         rowsadded = 0
@@ -2351,14 +2530,15 @@ The 'names' parameter must be a list of strings.""")
                 if colindexed:
                     col = self.cols._g_col(colname)
                     if nrows > 0 and not col.index.dirty:
-                        rowsadded = self._addRowsToIndex(
-                            colname, start, nrows, _lastrow, update=True )
+                        rowsadded = self._add_rows_to_index(
+                            colname, start, nrows, _lastrow, update=True)
             self._unsaved_indexedrows -= rowsadded
             self._indexedrows += rowsadded
         return rowsadded
 
+    flushRowsToIndex = previous_api(flush_rows_to_index)
 
-    def _addRowsToIndex(self, colname, start, nrows, lastrow, update):
+    def _add_rows_to_index(self, colname, start, nrows, lastrow, update):
         """Add more elements to the existing index"""
 
         # This method really belongs to Column, but since it makes extensive
@@ -2370,31 +2550,32 @@ The 'names' parameter must be a list of strings.""")
         # deal with long ints (i.e. more than 32-bit integers)
         # This allows to index columns with more than 2**31 rows
         # F. Alted 2005-05-09
-        startLR = index.sorted.nrows*slicesize
+        startLR = index.sorted.nrows * slicesize
         indexedrows = startLR - start
-        stop = start+nrows-slicesize+1
+        stop = start + nrows - slicesize + 1
         while startLR < stop:
             index.append(
-                [self._read(startLR, startLR+slicesize, 1, colname)],
+                [self._read(startLR, startLR + slicesize, 1, colname)],
                 update=update)
             indexedrows += slicesize
             startLR += slicesize
         # index the remaining rows in last row
         if lastrow and startLR < self.nrows:
-            index.appendLastRow(
+            index.append_last_row(
                 [self._read(startLR, self.nrows, 1, colname)],
                 update=update)
             indexedrows += self.nrows - startLR
         return indexedrows
 
+    _addRowsToIndex = previous_api(_add_rows_to_index)
 
-    def removeRows(self, start, stop=None):
+    def remove_rows(self, start=None, stop=None, step=None):
         """Remove a range of rows in the table.
 
-        If only start is supplied, only this row is to be deleted.  If a range
-        is supplied, i.e. both the start and stop parameters are passed, all
-        the rows in the range are removed. A step parameter is not supported,
-        and it is not foreseen to be implemented anytime soon.
+        .. versionchanged:: 3.0
+        The start, stop and step parameters now behave like in slice.
+
+        .. seealso:: remove_row()
 
         Parameters
         ----------
@@ -2405,62 +2586,108 @@ The 'names' parameter must be a list of strings.""")
         stop : int
             Sets the last row to be removed to stop-1, i.e. the end point is
             omitted (in the Python range() tradition). Negative values are also
-            accepted. A special value of None (the default) means removing just
-            the row supplied in start.
+            accepted.
+        step : int
+            The step size between rows to remove.
+
+            .. versionadded:: 3.0
+
+        Examples
+        --------
+
+        Removing rows from 5 to 10 (excluded)::
+
+            t.remove_rows(5, 10)
+
+        Removing all rows starting drom the 10th::
+
+            t.remove_rows(10)
+
+        Removing the 6th row::
+
+            t.remove_rows(6, 7)
+
+        .. note::
+
+            removing a single row can be done using the specific
+            :meth:`remove_row` method.
+
         """
 
-        (start, stop, step) = self._processRangeRead(start, stop, 1)
-        nrows = stop - start
+        (start, stop, step) = self._process_range(start, stop, step)
+        nrows = numpy.abs(stop - start)
         if nrows >= self.nrows:
             raise NotImplementedError('You are trying to delete all the rows '
-                    'in table "%s". This is not supported right now due to '
-                    'limitations on the underlying HDF5 library. Sorry!' %
-                                                            self._v_pathname)
-        nrows = self._remove_row(start, nrows)
-        # removeRows is a invalidating index operation
-        self._reIndex(self.colpathnames)
+                                      'in table "%s". This is not supported '
+                                      'right now due to limitations on the '
+                                      'underlying HDF5 library. Sorry!' %
+                                      self._v_pathname)
+        nrows = self._remove_rows(start, stop, step)
+        # remove_rows is a invalidating index operation
+        self._reindex(self.colpathnames)
 
         return SizeType(nrows)
 
+    removeRows = previous_api(remove_rows)
 
-    def _g_updateDependent(self):
-        super(Table, self)._g_updateDependent()
+    def remove_row(self, n):
+        """Removes a row from the table.
+
+        If only start is supplied, only this row is to be deleted.  If a range
+        is supplied, i.e. both the start and stop parameters are passed, all
+        the rows in the range are removed. A step parameter is not supported,
+        and it is not foreseen to be implemented anytime soon.
+
+        Parameters
+        ----------
+        n : int
+            The index of the row to remove.
+
+        .. versionadded:: 3.0
+
+        """
+
+        self.remove_rows(start=n, stop=n + 1)
+
+    def _g_update_dependent(self):
+        super(Table, self)._g_update_dependent()
 
         # Update the new path in columns
-        self.cols._g_updateTableLocation(self)
+        self.cols._g_update_table_location(self)
 
         # Update the new path in the Row instance, if cached.  Fixes #224.
         if 'row' in self.__dict__:
-            self.__dict__['row'] = tableExtension.Row(self)
+            self.__dict__['row'] = tableextension.Row(self)
 
+    _g_updateDependent = previous_api(_g_update_dependent)
 
-    def _g_move(self, newParent, newName):
+    def _g_move(self, newparent, newname):
         """Move this node in the hierarchy.
 
         This overloads the Node._g_move() method.
+
         """
 
-        itgpathname = _indexPathnameOf(self)
+        itgpathname = _index_pathname_of(self)
 
         # First, move the table to the new location.
-        super(Table, self)._g_move(newParent, newName)
+        super(Table, self)._g_move(newparent, newname)
 
         # Then move the associated index group (if any).
         try:
-            itgroup = self._v_file._getNode(itgpathname)
+            itgroup = self._v_file._get_node(itgpathname)
         except NoSuchNodeError:
             pass
         else:
             newigroup = self._v_parent
-            newiname = _indexNameOf(self)
+            newiname = _index_name_of(self)
             itgroup._g_move(newigroup, newiname)
-
 
     def _g_remove(self, recursive=False, force=False):
         # Remove the associated index group (if any).
-        itgpathname = _indexPathnameOf(self)
+        itgpathname = _index_pathname_of(self)
         try:
-            itgroup = self._v_file._getNode(itgpathname)
+            itgroup = self._v_file._get_node(itgpathname)
         except NoSuchNodeError:
             pass
         else:
@@ -2470,8 +2697,7 @@ The 'names' parameter must be a list of strings.""")
         # Remove the leaf itself from the hierarchy.
         super(Table, self)._g_remove(recursive, force)
 
-
-    def _setColumnIndexing(self, colpathname, indexed):
+    def _set_column_indexing(self, colpathname, indexed):
         """Mark the referred column as indexed or non-indexed."""
 
         colindexed = self.colindexed
@@ -2480,12 +2706,13 @@ The 'names' parameter must be a list of strings.""")
             return  # indexing state is unchanged
 
         # Changing the set of indexed columns invalidates the condition cache
-        self._conditionCache.clear()
+        self._condition_cache.clear()
         colindexed[colpathname] = isindexed
         self.indexed = max(colindexed.values())  # this is an OR :)
 
+    _setColumnIndexing = previous_api(_set_column_indexing)
 
-    def _markColumnsAsDirty(self, colnames):
+    def _mark_columns_as_dirty(self, colnames):
         """Mark column indexes in `colnames` as dirty."""
 
         assert len(colnames) > 0
@@ -2497,8 +2724,9 @@ The 'names' parameter must be a list of strings.""")
                     col = cols._g_col(colname)
                     col.index.dirty = True
 
+    _markColumnsAsDirty = previous_api(_mark_columns_as_dirty)
 
-    def _reIndex(self, colnames):
+    def _reindex(self, colnames):
         """Re-index columns in `colnames` if automatic indexing is true."""
 
         if self.indexed:
@@ -2511,20 +2739,21 @@ The 'names' parameter must be a list of strings.""")
                     col.index.dirty = True
                     colstoindex.append(colname)
             # Now, re-index the dirty ones
-            if self.autoIndex and colstoindex:
-                self._doReIndex(dirty=True)
+            if self.autoindex and colstoindex:
+                self._do_reindex(dirty=True)
             # The table caches for indexed queries are dirty now
             self._dirtycache = True
 
+    _reIndex = previous_api(_reindex)
 
-    def _doReIndex(self, dirty):
-        """Common code for `reIndex()` and `reIndexDirty()`."""
+    def _do_reindex(self, dirty):
+        """Common code for `reindex()` and `reindex_dirty()`."""
 
         indexedrows = 0
         for (colname, colindexed) in self.colindexed.iteritems():
             if colindexed:
                 indexcol = self.cols._g_col(colname)
-                indexedrows = indexcol._doReIndex(dirty)
+                indexedrows = indexcol._do_reindex(dirty)
         # Update counters in case some column has been updated
         if indexedrows > 0:
             self._indexedrows = indexedrows
@@ -2532,41 +2761,46 @@ The 'names' parameter must be a list of strings.""")
 
         return SizeType(indexedrows)
 
+    _doReIndex = previous_api(_do_reindex)
 
-    def reIndex(self):
+    def reindex(self):
         """Recompute all the existing indexes in the table.
 
         This can be useful when you suspect that, for any reason, the index
         information for columns is no longer valid and want to rebuild the
         indexes on it.
+
         """
 
-        self._doReIndex(dirty=False)
+        self._do_reindex(dirty=False)
 
+    reIndex = previous_api(reindex)
 
-    def reIndexDirty(self):
+    def reindex_dirty(self):
         """Recompute the existing indexes in table, *if* they are dirty.
 
-        This can be useful when you have set :attr:`Table.autoIndex`
+        This can be useful when you have set :attr:`Table.autoindex`
         (see :class:`Table`) to false for the table and you want to
         update the indexes after a invalidating index operation
-        (:meth:`Table.removeRows`, for example).
+        (:meth:`Table.remove_rows`, for example).
+
         """
 
-        self._doReIndex(dirty=True)
+        self._do_reindex(dirty=True)
 
+    reIndexDirty = previous_api(reindex_dirty)
 
-    def _g_copyRows(self, object, start, stop, step, sortby, checkCSI):
+    def _g_copy_rows(self, object, start, stop, step, sortby, checkCSI):
         "Copy rows from self to object"
         if sortby is None:
-            self._g_copyRows_optim(object, start, stop, step)
+            self._g_copy_rows_optim(object, start, stop, step)
             return
         lenbuf = self.nrowsinbuf
         absstep = abs(step)
         if sortby is not None:
-            index = self._check_sortby_CSI(sortby, checkCSI)
-        for start2 in lrange(start, stop, absstep*lenbuf):
-            stop2 = start2+absstep*lenbuf
+            index = self._check_sortby_csi(sortby, checkCSI)
+        for start2 in xrange(start, stop, absstep * lenbuf):
+            stop2 = start2 + absstep * lenbuf
             if stop2 > stop:
                 stop2 = stop
             # The next 'if' is not needed, but it doesn't bother either
@@ -2574,34 +2808,36 @@ The 'names' parameter must be a list of strings.""")
                 rows = self[start2:stop2:step]
             else:
                 coords = index[start2:stop2:step]
-                rows = self.readCoordinates(coords)
+                rows = self.read_coordinates(coords)
             # Save the records on disk
             object.append(rows)
         object.flush()
 
+    _g_copyRows = previous_api(_g_copy_rows)
 
-    def _g_copyRows_optim(self, object, start, stop, step):
+    def _g_copy_rows_optim(self, object, start, stop, step):
         """Copy rows from self to object (optimized version)"""
 
         nrowsinbuf = self.nrowsinbuf
         object._open_append(self._v_iobuf)
         nrowsdest = object.nrows
-        for start2 in lrange(start, stop, step*nrowsinbuf):
+        for start2 in xrange(start, stop, step * nrowsinbuf):
             # Save the records on disk
-            stop2 = start2+step*nrowsinbuf
+            stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
             # Optimized version (it saves some conversions)
             nrows = ((stop2 - start2 - 1) // step) + 1
-            self.row._fillCol(self._v_iobuf, start2, stop2, step, None)
+            self.row._fill_col(self._v_iobuf, start2, stop2, step, None)
             # The output buffer is created anew,
             # so the operation is safe to in-place conversion.
             object._append_records(nrows)
             nrowsdest += nrows
         object._close_append()
 
+    _g_copyRows_optim = previous_api(_g_copy_rows_optim)
 
-    def _g_propIndexes(self, other):
+    def _g_prop_indexes(self, other):
         """Generate index in `other` table for every indexed column here."""
 
         oldcols, newcols = self.colinstances, other.colinstances
@@ -2611,13 +2847,14 @@ The 'names' parameter must be a list of strings.""")
                 if oldcolindexed:
                     oldcolindex = oldcols[colname].index
                     newcol = newcols[colname]
-                    newcol.createIndex(
+                    newcol.create_index(
                         kind=oldcolindex.kind, optlevel=oldcolindex.optlevel,
                         filters=oldcolindex.filters, tmp_dir=None)
 
+    _g_propIndexes = previous_api(_g_prop_indexes)
 
-    def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, chunkshape, _log, **kwargs):
+    def _g_copy_with_stats(self, group, name, start, stop, step,
+                           title, filters, chunkshape, _log, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf"""
 
         # Get the private args for the Table flavor of copy()
@@ -2625,27 +2862,28 @@ The 'names' parameter must be a list of strings.""")
         propindexes = kwargs.pop('propindexes', False)
         checkCSI = kwargs.pop('checkCSI', False)
         # Compute the correct indices.
-        (start, stop, step) = self._processRangeRead(
-            start, stop, step, warn_negstep = sortby is None)
+        (start, stop, step) = self._process_range_read(
+            start, stop, step, warn_negstep=sortby is None)
         # And the number of final rows
-        nrows = lrange(start, stop, step).length
+        nrows = len(xrange(start, stop, step))
         # Create the new table and copy the selected data.
-        newtable = Table( group, name, self.description, title=title,
-                          filters=filters, expectedrows=nrows,
-                          chunkshape=chunkshape,
-                          _log=_log )
-        self._g_copyRows(newtable, start, stop, step, sortby, checkCSI)
+        newtable = Table(group, name, self.description, title=title,
+                         filters=filters, expectedrows=nrows,
+                         chunkshape=chunkshape,
+                         _log=_log)
+        self._g_copy_rows(newtable, start, stop, step, sortby, checkCSI)
         nbytes = newtable.nrows * newtable.rowsize
         # Generate equivalent indexes in the new table, if required.
         if propindexes and self.indexed:
-            self._g_propIndexes(newtable)
+            self._g_prop_indexes(newtable)
         return (newtable, nbytes)
 
+    _g_copyWithStats = previous_api(_g_copy_with_stats)
 
     # This overloading of copy is needed here in order to document
     # the additional keywords for the Table case.
-    def copy( self, newparent=None, newname=None, overwrite=False,
-              createparents=False, **kwargs ):
+    def copy(self, newparent=None, newname=None, overwrite=False,
+             createparents=False, **kwargs):
         """Copy this table and return the new one.
 
         This method has the behavior and keywords described in
@@ -2670,37 +2908,37 @@ The 'names' parameter must be a list of strings.""")
             If true, the existing indexes in the source table are propagated
             (created) to the new one.  If false (the default), the indexes are
             not propagated.
+
         """
+
         return super(Table, self).copy(
             newparent, newname, overwrite, createparents, **kwargs)
-
 
     def flush(self):
         """Flush the table buffers."""
 
         # Flush rows that remains to be appended
         if 'row' in self.__dict__:
-            self.row._flushBufferedRows()
-        if self.indexed and self.autoIndex:
+            self.row._flush_buffered_rows()
+        if self.indexed and self.autoindex:
             # Flush any unindexed row
-            rowsadded = self.flushRowsToIndex(_lastrow=True)
+            rowsadded = self.flush_rows_to_index(_lastrow=True)
             assert rowsadded <= 0 or self._indexedrows == self.nrows, \
-                   ( "internal error: the number of indexed rows (%d) "
-                     "and rows in the table (%d) is not equal; "
-                     "please report this to the authors."
-                     % (self._indexedrows, self.nrows) )
+                ("internal error: the number of indexed rows (%d) "
+                 "and rows in the table (%d) is not equal; "
+                 "please report this to the authors."
+                 % (self._indexedrows, self.nrows))
             if self._dirtyindexes:
                 # Finally, re-index any dirty column
-                self.reIndexDirty()
+                self.reindex_dirty()
 
         super(Table, self).flush()
 
-
-    def _g_preKillHook(self):
+    def _g_pre_kill_hook(self):
         """Code to be called before killing the node."""
 
         # Flush the buffers before to clean-up them
-        #self.flush()
+        # self.flush()
         # It seems that flushing during the __del__ phase is a sure receipt for
         # bringing all kind of problems:
         # 1. Illegal Instruction
@@ -2716,13 +2954,17 @@ The 'names' parameter must be a list of strings.""")
         # I've added a Performance warning in order to compel the user to
         # call self.flush() before the table is being preempted.
         # F. Alted 2006-08-03
-        if (('row' in self.__dict__ and self.row._getUnsavedNrows() > 0) or
-            (self.indexed and self.autoIndex and
+        if (('row' in self.__dict__ and self.row._get_unsaved_nrows() > 0) or
+            (self.indexed and self.autoindex and
              (self._unsaved_indexedrows > 0 or self._dirtyindexes))):
-            warnings.warn("""\
-table ``%s`` is being preempted from alive nodes without its buffers being flushed or with some index being dirty.  This may lead to very ineficient use of resources and even to fatal errors in certain situations.  Please do a call to the .flush() or .reIndexDirty() methods on this table before start using other nodes."""
-                          % (self._v_pathname),
-                          PerformanceWarning)
+            warnings.warn(("table ``%s`` is being preempted from alive nodes "
+                           "without its buffers being flushed or with some "
+                           "index being dirty.  This may lead to very "
+                           "ineficient use of resources and even to fatal "
+                           "errors in certain situations.  Please do a call "
+                           "to the .flush() or .reindex_dirty() methods on "
+                           "this table before start using other nodes.")
+                          % (self._v_pathname), PerformanceWarning)
         # Get rid of the IO buffers (if they have been created at all)
         mydict = self.__dict__
         if '_v_iobuf' in mydict:
@@ -2730,6 +2972,7 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
         if '_v_wdflts' in mydict:
             del mydict['_v_wdflts']
 
+    _g_preKillHook = previous_api(_g_pre_kill_hook)
 
     def _f_close(self, flush=True):
         if not self._v_isopen:
@@ -2746,9 +2989,9 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
         if flush:
             self.flush()
 
-        # Some warnings can be issued after calling `self._g_setLocation()`
+        # Some warnings can be issued after calling `self._g_set_location()`
         # in `self.__init__()`.  If warnings are turned into exceptions,
-        # `self._g_postInitHook` may not be called and `self.cols` not set.
+        # `self._g_post_init_hook` may not be called and `self.cols` not set.
         # One example of this is
         # ``test_create.createTestCase.test05_maxFieldsExceeded()``.
         cols = self.cols
@@ -2757,7 +3000,6 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
 
         # Close myself as a leaf.
         super(Table, self)._f_close(False)
-
 
     def __repr__(self):
         """This provides column metainfo in addition to standard __str__"""
@@ -2768,19 +3010,18 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
   description := %r
   byteorder := %r
   chunkshape := %r
-  autoIndex := %r
+  autoindex := %r
   colindexes := %r"""
-            return format % ( str(self), self.description, self.byteorder,
-                              self.chunkshape, self.autoIndex,
-                              _ColIndexes(self.colindexes) )
+            return format % (str(self), self.description, self.byteorder,
+                             self.chunkshape, self.autoindex,
+                             _ColIndexes(self.colindexes))
         else:
             return """\
 %s
   description := %r
   byteorder := %r
   chunkshape := %r""" % \
-        (str(self), self.description, self.byteorder, self.chunkshape)
-
+                (str(self), self.description, self.byteorder, self.chunkshape)
 
 
 class Cols(object):
@@ -2825,11 +3066,10 @@ class Cols(object):
     """
 
     def _g_gettable(self):
-        return self._v__tableFile._getNode(self._v__tablePath)
+        return self._v__tableFile._get_node(self._v__tablePath)
 
     _v_table = property(_g_gettable, None, None,
-               """The parent Table instance (see :ref:`TableClassDescr`).""")
-
+                    "The parent Table instance (see :ref:`TableClassDescr`).")
 
     def __init__(self, table, desc):
 
@@ -2844,10 +3084,9 @@ class Cols(object):
             if name in desc._v_types:
                 myDict[name] = Column(table, name, desc)
             else:
-                myDict[name] = Cols(table, desc._v_colObjects[name])
+                myDict[name] = Cols(table, desc._v_colobjects[name])
 
-
-    def _g_updateTableLocation(self, table):
+    def _g_update_table_location(self, table):
         """Updates the location information about the associated `table`."""
 
         myDict = self.__dict__
@@ -2856,14 +3095,14 @@ class Cols(object):
 
         # Update the locations in individual columns.
         for colname in self._v_colnames:
-            myDict[colname]._g_updateTableLocation(table)
+            myDict[colname]._g_update_table_location(table)
 
+    _g_updateTableLocation = previous_api(_g_update_table_location)
 
     def __len__(self):
         """Get the number of top level columns in table."""
 
         return len(self._v_colnames)
-
 
     def _f_col(self, colname):
         """Get an accessor to the column colname.
@@ -2877,6 +3116,7 @@ class Cols(object):
         However, the first syntax is more intended for programmatic use.  It is
         also better if you want to access columns with names that are not valid
         Python identifiers.
+
         """
 
         if not isinstance(colname, str):
@@ -2884,10 +3124,11 @@ class Cols(object):
                             "object: %s" % colname)
         if ((colname.find('/') > -1 and
              not colname in self._v_colpathnames) and
-            not colname in self._v_colnames):
-            raise KeyError(
-"Cols accessor ``%s.cols%s`` does not have a column named ``%s``"
-        % (self._v__tablePath, self._v_desc._v_pathname, colname))
+                not colname in self._v_colnames):
+            raise KeyError(("Cols accessor ``%s.cols%s`` does not have a "
+                            "column named ``%s``")
+                           % (self._v__tablePath, self._v_desc._v_pathname,
+                              colname))
 
         return self._g_col(colname)
 
@@ -2900,7 +3141,6 @@ class Cols(object):
         for iname in inames:
             cols = cols.__dict__[iname]
         return cols
-
 
     def __getitem__(self, key):
         """Get a row or a range of rows from a table or nested column.
@@ -2925,6 +3165,7 @@ class Cols(object):
 
         Here you can see how a mix of natural naming, indexing and slicing can
         be used as shorthands for the :meth:`Table.read` method.
+
         """
 
         table = self._v_table
@@ -2936,7 +3177,7 @@ class Cols(object):
             if key < 0:
                 # To support negative values
                 key += nrows
-            (start, stop, step) = table._processRange(key, key+1, 1)
+            (start, stop, step) = table._process_range(key, key + 1, 1)
             colgroup = self._v_desc._v_pathname
             if colgroup == "":  # The root group
                 return table.read(start, stop, step)[0]
@@ -2944,8 +3185,8 @@ class Cols(object):
                 crecord = table.read(start, stop, step)[0]
                 return crecord[colgroup]
         elif isinstance(key, slice):
-            (start, stop, step) = table._processRange(
-                key.start, key.stop, key.step )
+            (start, stop, step) = table._process_range(
+                key.start, key.stop, key.step)
             colgroup = self._v_desc._v_pathname
             if colgroup == "":  # The root group
                 return table.read(start, stop, step)
@@ -2954,10 +3195,9 @@ class Cols(object):
                 if hasattr(crecarray, "field"):
                     return crecarray.field(colgroup)  # RecArray case
                 else:
-                    return getNestedField(crecarray, colgroup)  # numpy case
+                    return get_nested_field(crecarray, colgroup)  # numpy case
         else:
             raise TypeError("invalid index or slice: %r" % (key,))
-
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in a table or nested column.
@@ -2976,12 +3216,13 @@ class Cols(object):
 
         Those statements are equivalent to::
 
-            table.modifyRows(4, rows=record)
-            table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)
+            table.modify_rows(4, rows=record)
+            table.modify_column(4, 1000, 2, colname='Info', column=recarray)
 
-        Here you can see how a mix of natural naming, indexing and slicing can
-        be used as shorthands for the :meth:`Table.modifyRows` and
-        :meth:`Table.modifyColumn` methods.
+        Here you can see how a mix of natural naming, indexing and slicing
+        can be used as shorthands for the :meth:`Table.modify_rows` and
+        :meth:`Table.modify_column` methods.
+
         """
 
         table = self._v_table
@@ -2993,21 +3234,20 @@ class Cols(object):
             if key < 0:
                 # To support negative values
                 key += nrows
-            (start, stop, step) = table._processRange(key, key+1, 1)
+            (start, stop, step) = table._process_range(key, key + 1, 1)
         elif isinstance(key, slice):
-            (start, stop, step) = table._processRange(
-                key.start, key.stop, key.step )
+            (start, stop, step) = table._process_range(
+                key.start, key.stop, key.step)
         else:
             raise TypeError("invalid index or slice: %r" % (key,))
 
         # Actually modify the correct columns
         colgroup = self._v_desc._v_pathname
         if colgroup == "":  # The root group
-            table.modifyRows(start, stop, step, rows=value)
+            table.modify_rows(start, stop, step, rows=value)
         else:
-            table.modifyColumn(
+            table.modify_column(
                 start, stop, step, colname=colgroup, column=value)
-
 
     def _g_close(self):
         # First, close the columns (ie possible indices open)
@@ -3022,7 +3262,6 @@ class Cols(object):
 
         self.__dict__.clear()
 
-
     def __str__(self):
         """The string representation for this object."""
 
@@ -3030,14 +3269,13 @@ class Cols(object):
         tablepathname = self._v__tablePath
         descpathname = self._v_desc._v_pathname
         if descpathname:
-            descpathname = "."+descpathname
+            descpathname = "." + descpathname
         # Get this class name
         classname = self.__class__.__name__
         # The number of columns
         ncols = len(self._v_colnames)
         return "%s.cols%s (%s), %s columns" % \
                (tablepathname, descpathname, classname, ncols)
-
 
     def __repr__(self):
         """A detailed string representation for this object."""
@@ -3051,14 +3289,13 @@ class Cols(object):
                 tcol = self._v_desc._v_dtypes[name]
                 # The shape for this column
                 shape = (self._v_table.nrows,) + \
-                        self._v_desc._v_dtypes[name].shape
+                    self._v_desc._v_dtypes[name].shape
             else:
                 tcol = "Description"
                 # Description doesn't have a shape currently
                 shape = ()
             out += "  %s (%s%s, %s)" % (name, classname, shape, tcol) + "\n"
         return out
-
 
 
 class Column(object):
@@ -3114,16 +3351,16 @@ class Column(object):
     # Properties
     # ~~~~~~~~~~
     def _gettable(self):
-        return self._tableFile._getNode(self._tablePath)
+        return self._table_file._get_node(self._table_path)
 
     table = property(_gettable, None, None,
                      """The parent Table instance (see
                      :ref:`TableClassDescr`).""")
 
     def _getindex(self):
-        indexPath = _indexPathnameOfColumn_(self._tablePath, self.pathname)
+        indexPath = _index_pathname_of_column_(self._table_path, self.pathname)
         try:
-            index = self._tableFile._getNode(indexPath)
+            index = self._table_file._get_node(indexPath)
         except NodeError:
             index = None  # The column is not indexed
         return index
@@ -3133,12 +3370,10 @@ class Column(object):
                      associated with this column (None if the column is not
                      indexed).""")
 
-
     def _getshape(self):
-        return (self.table.nrows,)+self.descr._v_dtypes[self.name].shape
+        return (self.table.nrows,) + self.descr._v_dtypes[self.name].shape
 
     shape = property(_getshape, None, None, "The shape of this column.")
-
 
     def _isindexed(self):
         if self.index is None:
@@ -3147,7 +3382,7 @@ class Column(object):
             return True
 
     is_indexed = property(_isindexed, None, None,
-                          """True if the column is indexed, false otherwise.""")
+                          "True if the column is indexed, false otherwise.")
 
     maindim = property(
         lambda self: 0, None, None,
@@ -3156,24 +3391,24 @@ class Column(object):
 
     def __init__(self, table, name, descr):
 
-        self._tableFile = table._v_file
-        self._tablePath = table._v_pathname
+        self._table_file = table._v_file
+        self._table_path = table._v_pathname
         self.name = name
         """The name of the associated column."""
-        self.pathname = descr._v_colObjects[name]._v_pathname
+        self.pathname = descr._v_colobjects[name]._v_pathname
         """The complete pathname of the associated column (the same as
         Column.name if the column is not inside a nested column)."""
         self.descr = descr
         """The Description (see :ref:`DescriptionClassDescr`) instance of the
         parent table or nested column."""
 
-
-    def _g_updateTableLocation(self, table):
+    def _g_update_table_location(self, table):
         """Updates the location information about the associated `table`."""
 
-        self._tableFile = table._v_file
-        self._tablePath = table._v_pathname
+        self._table_file = table._v_file
+        self._table_path = table._v_pathname
 
+    _g_updateTableLocation = previous_api(_g_update_table_location)
 
     def __len__(self):
         """Get the number of elements in the column.
@@ -3182,7 +3417,6 @@ class Column(object):
         """
 
         return self.table.nrows
-
 
     def __getitem__(self, key):
         """Get a row or a range of rows from a column.
@@ -3203,7 +3437,8 @@ class Column(object):
                 print "Select table.cols.name[1]-->", table.cols.name[1]
                 print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
                 print "Select table.cols.name[:]-->", table.cols.name[:]
-                print "Select table.cols._f_col('name')[:]-->", table.cols._f_col('name')[:]
+                print "Select table.cols._f_col('name')[:]-->",
+                                                table.cols._f_col('name')[:]
 
         The output of this for a certain arbitrary table is::
 
@@ -3223,6 +3458,7 @@ class Column(object):
              'Particle:     13' 'Particle:     14']
 
         See the :file:`examples/table2.py` file for a more complete example.
+
         """
 
         table = self.table
@@ -3240,16 +3476,31 @@ class Column(object):
             if key < 0:
                 # To support negative values
                 key += table.nrows
-            (start, stop, step) = table._processRange(key, key+1, 1)
+            (start, stop, step) = table._process_range(key, key + 1, 1)
             return table.read(start, stop, step, self.pathname)[0]
         elif isinstance(key, slice):
-            (start, stop, step) = table._processRange(
-                key.start, key.stop, key.step )
+            (start, stop, step) = table._process_range(
+                key.start, key.stop, key.step)
             return table.read(start, stop, step, self.pathname)
         else:
             raise TypeError(
                 "'%s' key type is not valid in this context" % key)
 
+    def __iter__(self):
+        """Iterate through all items in the column."""
+
+        table = self.table
+        itemsize = self.dtype.itemsize
+        nrowsinbuf = table._v_file.params['IO_BUFFER_SIZE'] // itemsize
+        buf = numpy.empty((nrowsinbuf, ), self.dtype)
+        max_row = len(self)
+        for start_row in xrange(0, len(self), nrowsinbuf):
+            end_row = min(start_row + nrowsinbuf, max_row)
+            buf_slice = buf[0:end_row - start_row]
+            table.read(start_row, end_row, 1, field=self.pathname,
+                       out=buf_slice)
+            for row in buf_slice:
+                yield row
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in a column.
@@ -3272,15 +3523,17 @@ class Column(object):
         Which is equivalent to::
 
             # Modify row 1
-            table.modifyColumns(start=1, columns=[[-1]], names=['col1'])
+            table.modify_columns(start=1, columns=[[-1]], names=['col1'])
 
             # Modify rows 1 and 3
             columns = numpy.rec.fromarrays([[2,3]], formats='i4')
-            table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])
+            table.modify_columns(start=1, step=2, columns=columns,
+                                 names=['col1'])
+
         """
 
         table = self.table
-        table._v_file._checkWritable()
+        table._v_file._check_writable()
 
         # Generalized key support not there yet, but at least allow
         # for a tuple with one single element (the main dimension).
@@ -3295,27 +3548,26 @@ class Column(object):
             if key < 0:
                 # To support negative values
                 key += table.nrows
-            return table.modifyColumn(key, key+1, 1,
-                                      [[value]], self.pathname)
+            return table.modify_column(key, key + 1, 1,
+                                       [[value]], self.pathname)
         elif isinstance(key, slice):
-            (start, stop, step) = table._processRange(
-                key.start, key.stop, key.step )
-            return table.modifyColumn(start, stop, step,
-                                      value, self.pathname)
+            (start, stop, step) = table._process_range(
+                key.start, key.stop, key.step)
+            return table.modify_column(start, stop, step,
+                                       value, self.pathname)
         else:
             raise ValueError("Non-valid index or slice: %s" % key)
 
-
-    def createIndex( self, optlevel=6, kind="medium", filters=None,
+    def create_index(self, optlevel=6, kind="medium", filters=None,
                      tmp_dir=None, _blocksizes=None, _testmode=False,
-                     _verbose=False ):
+                     _verbose=False):
         """Create an index for this column.
 
         .. warning::
 
             In some situations it is useful to get a completely sorted
             index (CSI).  For those cases, it is best to use the
-            :meth:`Column.createCSIndex` method instead.
+            :meth:`Column.create_csindex` method instead.
 
         Parameters
         ----------
@@ -3338,7 +3590,7 @@ class Column(object):
             guarantees the creation of an index with zero entropy, that is, a
             completely sorted index (CSI) - provided that the number of rows in
             the table does not exceed the 2**48 figure (that is more than 100
-            trillions of rows).  See :meth:`Column.createCSIndex` method for a
+            trillions of rows).  See :meth:`Column.create_csindex` method for a
             more direct way to create a CSI index.
         filters : Filters
             Specify the Filters instance used to compress the index.  If None,
@@ -3350,6 +3602,7 @@ class Column(object):
             to specify the directory for this temporary file.  The default is
             to create it in the same directory as the file containing the
             original table.
+
         """
 
         kinds = ['ultralight', 'light', 'medium', 'full']
@@ -3360,9 +3613,9 @@ class Column(object):
             raise ValueError("Optimization level must be an integer in the "
                              "range 0-9")
         if filters is None:
-            filters = defaultIndexFilters
+            filters = default_index_filters
         if tmp_dir is None:
-            tmp_dir = os.path.dirname(self._tableFile.filename)
+            tmp_dir = os.path.dirname(self._table_file.filename)
         else:
             if not os.path.isdir(tmp_dir):
                 raise ValueError("Temporary directory '%s' does not exist" %
@@ -3371,44 +3624,48 @@ class Column(object):
             (not isinstance(_blocksizes, tuple) or len(_blocksizes) != 4)):
             raise ValueError("_blocksizes must be a tuple with exactly 4 "
                              "elements")
-        idxrows = _column__createIndex(self, optlevel, kind, filters,
+        idxrows = _column__create_index(self, optlevel, kind, filters,
                                        tmp_dir, _blocksizes, _verbose)
         return SizeType(idxrows)
 
+    createIndex = previous_api(create_index)
 
-    def createCSIndex( self, filters=None, tmp_dir=None,
-                       _blocksizes=None, _testmode=False, _verbose=False ):
+    def create_csindex(self, filters=None, tmp_dir=None,
+                       _blocksizes=None, _testmode=False, _verbose=False):
         """Create a completely sorted index (CSI) for this column.
 
         This method guarantees the creation of an index with zero entropy, that
         is, a completely sorted index (CSI) -- provided that the number of rows
         in the table does not exceed the 2**48 figure (that is more than 100
         trillions of rows).  A CSI index is needed for some table methods (like
-        :meth:`Table.itersorted` or :meth:`Table.readSorted`) in order to
+        :meth:`Table.itersorted` or :meth:`Table.read_sorted`) in order to
         ensure completely sorted results.
 
         For the meaning of filters and tmp_dir arguments see
-        :meth:`Column.createIndex`.
+        :meth:`Column.create_index`.
 
         Notes
         -----
         This method is equivalent to
-        Column.createIndex(optlevel=9, kind='full', ...).
+        Column.create_index(optlevel=9, kind='full', ...).
+
         """
 
-        return self.createIndex(
+        return self.create_index(
             kind='full', optlevel=9, filters=filters, tmp_dir=tmp_dir,
             _blocksizes=_blocksizes, _testmode=_testmode, _verbose=_verbose)
 
+    createCSIndex = previous_api(create_csindex)
 
-    def _doReIndex(self, dirty):
-        """Common code for reIndex() and reIndexDirty() codes."""
+    def _do_reindex(self, dirty):
+        """Common code for reindex() and reindex_dirty() codes."""
 
         index = self.index
         dodirty = True
-        if dirty and not index.dirty: dodirty = False
+        if dirty and not index.dirty:
+            dodirty = False
         if index is not None and dodirty:
-            self._tableFile._checkWritable()
+            self._table_file._check_writable()
             # Get the old index parameters
             kind = index.kind
             optlevel = index.optlevel
@@ -3419,65 +3676,71 @@ class Column(object):
             # Delete the existing Index
             index._f_remove()
             # Create a new Index with the previous parameters
-            return SizeType(self.createIndex(
+            return SizeType(self.create_index(
                 kind=kind, optlevel=optlevel, filters=filters))
         else:
             return SizeType(0)  # The column is not intended for indexing
 
+    _doReIndex = previous_api(_do_reindex)
 
-    def reIndex(self):
+    def reindex(self):
         """Recompute the index associated with this column.
 
         This can be useful when you suspect that, for any reason,
         the index information is no longer valid and you want to rebuild it.
 
         This method does nothing if the column is not indexed.
+
         """
 
-        self._doReIndex(dirty=False)
+        self._do_reindex(dirty=False)
 
+    reIndex = previous_api(reindex)
 
-    def reIndexDirty(self):
+    def reindex_dirty(self):
         """Recompute the associated index only if it is dirty.
 
-        This can be useful when you have set :attr:`Table.autoIndex` to false
+        This can be useful when you have set :attr:`Table.autoindex` to false
         for the table and you want to update the column's index after an
-        invalidating index operation (like :meth:`Table.removeRows`).
+        invalidating index operation (like :meth:`Table.remove_rows`).
 
         This method does nothing if the column is not indexed.
+
         """
 
-        self._doReIndex(dirty=True)
+        self._do_reindex(dirty=True)
 
+    reIndexDirty = previous_api(reindex_dirty)
 
-    def removeIndex(self):
+    def remove_index(self):
         """Remove the index associated with this column.
 
         This method does nothing if the column is not indexed. The removed
-        index can be created again by calling the :meth:`Column.createIndex`
+        index can be created again by calling the :meth:`Column.create_index`
         method.
+
         """
 
-        self._tableFile._checkWritable()
+        self._table_file._check_writable()
 
         # Remove the index if existing.
         if self.is_indexed:
             index = self.index
             index._f_remove()
-            self.table._setColumnIndexing(self.pathname, False)
+            self.table._set_column_indexing(self.pathname, False)
 
+    removeIndex = previous_api(remove_index)
 
     def close(self):
         """Close this column"""
 
         self.__dict__.clear()
 
-
     def __str__(self):
         """The string representation for this object."""
 
         # The pathname
-        tablepathname = self._tablePath
+        tablepathname = self._table_path
         pathname = self.pathname.replace('/', '.')
         # Get this class name
         classname = self.__class__.__name__
@@ -3488,12 +3751,10 @@ class Column(object):
         return "%s.cols.%s (%s%s, %s, idx=%s)" % \
                (tablepathname, pathname, classname, shape, tcol, self.index)
 
-
     def __repr__(self):
         """A detailed string representation for this object."""
 
         return str(self)
-
 
 
 ## Local Variables:

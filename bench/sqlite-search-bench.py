@@ -50,25 +50,25 @@ def createNewBenchFile(bfile, verbose):
     if verbose:
         print "Creating a new benchfile:", bfile
     # Open the benchmarking file
-    bf = openFile(bfile, "w")
+    bf = open_file(bfile, "w")
     # Create groups
     for recsize in ["sqlite_small"]:
-        group = bf.createGroup("/", recsize, recsize+" Group")
+        group = bf.create_group("/", recsize, recsize+" Group")
         # Attach the row size of table as attribute
         if recsize == "small":
             group._v_attrs.rowsize = 16
         # Create a Table for writing bench
-        bf.createTable(group, "create_indexed", Create, "indexed values")
-        bf.createTable(group, "create_standard", Create, "standard values")
+        bf.create_table(group, "create_indexed", Create, "indexed values")
+        bf.create_table(group, "create_standard", Create, "standard values")
         # create a group for searching bench
-        groupS = bf.createGroup(group, "search", "Search Group")
+        groupS = bf.create_group(group, "search", "Search Group")
         # Create Tables for searching
         for mode in ["indexed", "standard"]:
-            group = bf.createGroup(groupS, mode, mode+" Group")
+            group = bf.create_group(groupS, mode, mode+" Group")
             # for searching bench
             #for atom in ["string", "int", "float", "bool"]:
             for atom in ["string", "int", "float"]:
-                bf.createTable(group, atom, Search, atom+" bench")
+                bf.create_table(group, atom, Search, atom+" bench")
     bf.close()
 
 def createFile(filename, nrows, filters, indexmode, heavy, noise, bfile,
@@ -172,12 +172,12 @@ CREATE INDEX ivar3 ON small(var3);
     conn.close()
 
     # Collect benchmark data
-    bf = openFile(bfile, "a")
+    bf = open_file(bfile, "a")
     recsize = "sqlite_small"
     if indexmode == "indexed":
-        table = bf.getNode("/"+recsize+"/create_indexed")
+        table = bf.get_node("/"+recsize+"/create_indexed")
     else:
-        table = bf.getNode("/"+recsize+"/create_standard")
+        table = bf.get_node("/"+recsize+"/create_standard")
     table.row["nrows"] = nrows
     table.row["irows"] = nrows
     table.row["tfill"] = t1
@@ -215,7 +215,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     """
 
     # Open the benchmark database
-    bf = openFile(bfile, "a")
+    bf = open_file(bfile, "a")
     #default values for the case that columns are not indexed
     t2 = 0.
     tcpu2 = 0.
@@ -320,7 +320,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         # Collect benchmark data
         recsize = "sqlite_small"
         tablepath = "/"+recsize+"/search/"+indexmode+"/"+atom
-        table = bf.getNode(tablepath)
+        table = bf.get_node(tablepath)
         table.row["nrows"] = nrows
         table.row["rowsel"] = rowsel
         table.row["time1"] = t1

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 # License: BSD
@@ -8,50 +10,104 @@
 #
 ########################################################################
 
+"""PyTables, hierarchical datasets in Python
 
-import sys, os
-if os.name == 'nt':
-    module_path = os.path.abspath(os.path.dirname(__file__))
-    os.environ['PATH'] = ';'.join((os.environ['PATH'], module_path))
-    sys.path.append(module_path)
+:URL: http://www.pytables.org/
 
-# In order to improve diagnosis of a common Windows dependency
-# issue, we explicitly test that we can load the HDF5 dll before
-# loading tables.utilsExtensions.
-if os.name == 'nt':
-    import ctypes.util
+PyTables is a package for managing hierarchical datasets and designed
+to efficiently cope with extremely large amounts of data.
 
-    if not ctypes.util.find_library('hdf5dll.dll'):
-        raise ImportError('Could not load "hdf5dll.dll", please ensure' +
-                ' that it can be found in the system path')
-
-
-# Necessary imports to get versions stored on the Pyrex extension
-from tables.utilsExtension import getPyTablesVersion, getHDF5Version
-
-
-__version__ = getPyTablesVersion()
-"""The PyTables version number."""
-hdf5Version = getHDF5Version()
-"""The underlying HDF5 library version number."""
-is_pro = True
-"""True for PyTables Professional edition, false otherwise.
-
-.. note::
-
-    PyTables Professional edition has been released under an open
-    source license. Starting with version 2.3, PyTables includes all
-    features of PyTables Pro.  In order to reflect the presence of
-    advanced features :data:`is_pro` is always set to True.
-    :data:`is_pro` should be considered *deprecated*.
-    It will be removed in the next major release.
-
-.. deprecated:: 2.3
 """
 
-from tables.utilsExtension import (
-    isHDF5File, isPyTablesFile, whichLibVersion, lrange,
-    setBloscMaxThreads, silenceHDF5Messages)
+
+import os
+
+# On Windows, pre-load the HDF5 DLLs into the process via Ctypes
+# to improve diagnostics and avoid issues when loading DLLs during runtime.
+if os.name == 'nt':
+    import ctypes
+
+    def _load_library(dllname, loadfunction, dllpaths=('', )):
+        """Load a DLL via ctypes load function. Return None on failure.
+
+        By default, try to load the DLL from the current package directory
+        first, then from the Windows DLL search path.
+
+        """
+        try:
+            dllpaths = (os.path.abspath(
+                os.path.dirname(__file__)), ) + dllpaths
+        except NameError:
+            pass  # PyPy and frozen distributions have no __file__ attribute
+        for path in dllpaths:
+            if path:
+                # Temporarily add the path to the PATH environment variable
+                # so Windows can find additional DLL dependencies.
+                try:
+                    oldenv = os.environ['PATH']
+                    os.environ['PATH'] = path + ';' + oldenv
+                except KeyError:
+                    oldenv = None
+            try:
+                return loadfunction(os.path.join(path, dllname))
+            except WindowsError:
+                pass
+            finally:
+                if path and oldenv is not None:
+                    os.environ['PATH'] = oldenv
+        return None
+
+    # In order to improve diagnosis of a common Windows dependency
+    # issue, we explicitly test that we can load the HDF5 dll before
+    # loading tables.utilsExtensions.
+    if not _load_library('hdf5dll.dll', ctypes.cdll.LoadLibrary):
+        raise ImportError(
+            'Could not load "hdf5dll.dll", please ensure'
+            ' that it can be found in the system path')
+
+    # Some PyTables binary distributions place the dependency DLLs in the
+    # tables package directory.
+    # The lzo2 and libbz2 DLLs are loaded dynamically at runtime but can't be
+    # found because the package directory is not in the Windows DLL search
+    # path.
+    # This pre-loads lzo2 and libbz2 DLLs from the tables package directory.
+    if not _load_library('lzo2.dll', ctypes.cdll.LoadLibrary):
+        pass
+
+    if not _load_library('libbz2.dll', ctypes.cdll.LoadLibrary):
+        pass
+
+
+# Necessary imports to get versions stored on the cython extension
+from tables.utilsextension import (get_pytables_version, get_hdf5_version,
+    getPyTablesVersion, getHDF5Version)  # Pending Deprecation!
+
+
+__version__ = get_pytables_version()
+"""The PyTables version number."""
+
+hdf5_version = get_hdf5_version()
+"""The underlying HDF5 library version number.
+
+.. versionadded:: 3.0
+
+"""
+
+hdf5Version = hdf5_version
+"""The underlying HDF5 library version number.
+
+.. deprecated:: 3.0
+
+    hdf5Version is pending deprecation, use :data:`hdf5_version`
+    instead.
+
+"""
+
+from tables.utilsextension import (is_hdf5_file, is_pytables_file,
+    which_lib_version, set_blosc_max_threads, silence_hdf5_messages,
+    # Pending Deprecation!
+    isHDF5File, isPyTablesFile, whichLibVersion, setBloscMaxThreads,
+    silenceHDF5Messages)
 
 from tables.misc.enum import Enum
 from tables.atom import *
@@ -61,7 +117,7 @@ from tables.filters import Filters
 
 # Import the user classes from the proper modules
 from tables.exceptions import *
-from tables.file import File, openFile, copyFile
+from tables.file import File, open_file, copy_file, openFile, copyFile
 from tables.node import Node
 from tables.group import Group
 from tables.leaf import Leaf
@@ -86,10 +142,10 @@ __all__ = [
     'FlavorError', 'FlavorWarning',
     'FiltersWarning', 'DataTypeWarning',
     # Functions:
-    'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
-    'copyFile', 'openFile', 'print_versions', 'test',
-    'split_type', 'restrict_flavors', 'lrange', 'setBloscMaxThreads',
-    'silenceHDF5Messages',
+    'is_hdf5_file', 'is_pytables_file', 'which_lib_version',
+    'copy_file', 'open_file', 'print_versions', 'test',
+    'split_type', 'restrict_flavors', 'set_blosc_max_threads',
+    'silence_hdf5_messages',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
     # Types:
@@ -118,8 +174,23 @@ __all__ = [
     'File',
     # Expr class
     'Expr',
-    ]
+    #
+    # Pending deprecation!!!
+    #
+    'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
+    'copyFile', 'openFile', 'print_versions', 'test',
+    'split_type', 'restrict_flavors', 'setBloscMaxThreads',
+    'silenceHDF5Messages',
+]
 
 if 'Float16Atom' in locals():
     # float16 is new in numpy 1.6.0
     __all__.extend(('Float16Atom', 'Float16Col'))
+
+if 'Float96Atom' in locals():
+    __all__.extend(('Float96Atom', 'Float96Col'))
+    __all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
+
+if 'Float128Atom' in locals():
+    __all__.extend(('Float128Atom', 'Float128Col'))
+    __all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check

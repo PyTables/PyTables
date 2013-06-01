@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 # License: BSD
@@ -21,30 +23,26 @@ Classes:
 
 Functions:
 
-
 Misc variables:
-
-    __version__
 
 """
 
 import os
 import tables as t
-from tables import linkExtension
+from tables import linkextension
 from tables.node import Node
 from tables.utils import lazyattr
 from tables.attributeset import AttributeSet
 import tables.file
+from tables._past import previous_api, previous_api_property
 
 
-__version__ = "$Revision$"
-
-
-
-def _g_getLinkClass(parent_id, name):
+def _g_get_link_class(parent_id, name):
     """Guess the link class."""
 
-    return linkExtension._getLinkClass(parent_id, name)
+    return linkextension._get_link_class(parent_id, name)
+
+_g_getLinkClass = previous_api(_g_get_link_class)
 
 
 class Link(Node):
@@ -79,24 +77,23 @@ class Link(Node):
             def __getattr__(self, name):
                 raise KeyError("you cannot get attributes from this "
                                "`%s` instance" % self.__class__.__name__)
+
             def __setattr__(self, name, value):
                 raise KeyError("you cannot set attributes to this "
                                "`%s` instance" % self.__class__.__name__)
+
             def _g_close(self):
                 pass
         return NoAttrs(self)
 
-
-    def __init__(self, parentNode, name, target=None, _log = False):
+    def __init__(self, parentnode, name, target=None, _log=False):
         self._v_new = target is not None
         self.target = target
         """The path string to the pointed node."""
 
-        super(Link, self).__init__(parentNode, name, _log)
-
+        super(Link, self).__init__(parentnode, name, _log)
 
     # Public and tailored versions for copy, move, rename and remove methods
-
     def copy(self, newparent=None, newname=None,
              overwrite=False, createparents=False):
         """Copy this link and return the new one.
@@ -104,53 +101,57 @@ class Link(Node):
         See :meth:`Node._f_copy` for a complete explanation of the arguments.
         Please note that there is no recursive flag since links do not have
         child nodes.
+
         """
 
         newnode = self._f_copy(newparent=newparent, newname=newname,
-                               overwrite=overwrite, createparents=createparents)
+                               overwrite=overwrite,
+                               createparents=createparents)
         # Insert references to a `newnode` via `newname`
-        newnode._v_parent._g_refNode(newnode, newname, True)
+        newnode._v_parent._g_refnode(newnode, newname, True)
         return newnode
-
 
     def move(self, newparent=None, newname=None, overwrite=False):
         """Move or rename this link.
 
         See :meth:`Node._f_move` for a complete explanation of the arguments.
+
         """
 
         return self._f_move(newparent=newparent, newname=newname,
                             overwrite=overwrite)
-
 
     def remove(self):
         """Remove this link from the hierarchy."""
 
         return self._f_remove()
 
-
     def rename(self, newname=None, overwrite=False):
         """Rename this link in place.
 
         See :meth:`Node._f_rename` for a complete explanation of the arguments.
-        """
-        return self._f_rename(newname=newname, overwrite=overwrite)
 
+        """
+
+        return self._f_rename(newname=newname, overwrite=overwrite)
 
     def __repr__(self):
         return str(self)
 
 
-class SoftLink(linkExtension.SoftLink, Link):
+class SoftLink(linkextension.SoftLink, Link):
     """Represents a soft link (aka symbolic link).
 
     A soft link is a reference to another node in the *same* file hierarchy.
     Getting access to the pointed node (this action is called *dereferrencing*)
     is done via the __call__ special method (see below).
+
     """
 
     # Class identifier.
-    _c_classId = 'SOFTLINK'
+    _c_classid = 'SOFTLINK'
+
+    _c_classId = previous_api_property('_c_classid')
 
     def __call__(self):
         """Dereference `self.target` and return the object.
@@ -160,19 +161,19 @@ class SoftLink(linkExtension.SoftLink, Link):
 
         ::
 
-            >>> f=tables.openFile('data/test.h5')
+            >>> f=tables.open_file('data/test.h5')
             >>> print f.root.link0
             /link0 (SoftLink) -> /another/path
             >>> print f.root.link0()
             /another/path (Group) ''
+
         """
 
         target = self.target
         # Check for relative pathnames
         if not self.target.startswith('/'):
             target = self._v_parent._g_join(self.target)
-        return self._v_file._getNode(target)
-
+        return self._v_file._get_node(target)
 
     def __str__(self):
         """Return a short string representation of the link.
@@ -182,9 +183,10 @@ class SoftLink(linkExtension.SoftLink, Link):
 
         ::
 
-            >>> f=tables.openFile('data/test.h5')
+            >>> f=tables.open_file('data/test.h5')
             >>> print f.root.link0
             /link0 (SoftLink) -> /path/to/node
+
         """
 
         classname = self.__class__.__name__
@@ -200,7 +202,7 @@ class SoftLink(linkExtension.SoftLink, Link):
                                     self.target, dangling)
 
 
-class ExternalLink(linkExtension.ExternalLink, Link):
+class ExternalLink(linkextension.ExternalLink, Link):
     """Represents an external link.
 
     An external link is a reference to a node in *another* file.
@@ -219,28 +221,28 @@ class ExternalLink(linkExtension.ExternalLink, Link):
     """
 
     # Class identifier.
-    _c_classId = 'EXTERNALLINK'
+    _c_classid = 'EXTERNALLINK'
 
-    def __init__(self, parentNode, name, target=None, _log = False):
+    _c_classId = previous_api_property('_c_classid')
+
+    def __init__(self, parentnode, name, target=None, _log=False):
         self.extfile = None
         """The external file handler, if the link has been dereferenced.
         In case the link has not been dereferenced yet, its value is
         None."""
-        super(ExternalLink, self).__init__(parentNode, name, target, _log)
-
+        super(ExternalLink, self).__init__(parentnode, name, target, _log)
 
     def _get_filename_node(self):
         """Return the external filename and nodepath from `self.target`."""
 
         # This is needed for avoiding the 'C:\\file.h5' filepath notation
         filename, target = self.target.split(':/')
-        return filename, '/'+target
-
+        return filename, '/' + target
 
     def __call__(self, **kwargs):
         """Dereference self.target and return the object.
 
-        You can pass all the arguments supported by the :func:`openFile`
+        You can pass all the arguments supported by the :func:`open_file`
         function (except filename, of course) so as to open the referenced
         external file.
 
@@ -249,7 +251,7 @@ class ExternalLink(linkExtension.ExternalLink, Link):
 
         ::
 
-            >>> f=tables.openFile('data1/test1.h5')
+            >>> f=tables.open_file('data1/test1.h5')
             >>> print f.root.link2
             /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
             >>> plink2 = f.root.link2('a')  # open in 'a'ppend mode
@@ -257,7 +259,9 @@ class ExternalLink(linkExtension.ExternalLink, Link):
             /path/to/node (Group) ''
             >>> print plink2._v_filename
             'data2/test2.h5'        # belongs to referenced file
+
         """
+
         filename, target = self._get_filename_node()
 
         if not os.path.isabs(filename):
@@ -272,9 +276,8 @@ class ExternalLink(linkExtension.ExternalLink, Link):
         if filename in open_files:
             self.extfile = open_files[filename]
         else:
-            self.extfile = t.openFile(filename, **kwargs)
-        return self.extfile._getNode(target)
-
+            self.extfile = t.open_file(filename, **kwargs)
+        return self.extfile._get_node(target)
 
     def umount(self):
         """Safely unmount self.extfile, if opened."""
@@ -285,13 +288,11 @@ class ExternalLink(linkExtension.ExternalLink, Link):
             extfile.close()
             self.extfile = None
 
-
     def _f_close(self):
         """Especific close for external links."""
 
         self.umount()
         super(ExternalLink, self)._f_close()
-
 
     def __str__(self):
         """Return a short string representation of the link.
@@ -301,14 +302,14 @@ class ExternalLink(linkExtension.ExternalLink, Link):
 
         ::
 
-            >>> f=tables.openFile('data1/test1.h5')
+            >>> f=tables.open_file('data1/test1.h5')
             >>> print f.root.link2
             /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
+
         """
 
         classname = self.__class__.__name__
         return "%s (%s) -> %s" % (self._v_pathname, classname, self.target)
-
 
 
 ## Local Variables:

@@ -31,13 +31,13 @@ def tables(docompute, dowrite, complib, verbose):
         print "Will use filters:", filters
 
     if dowrite:
-        f = tb.openFile(ifilename, 'w')
+        f = tb.open_file(ifilename, 'w')
 
         # Build input arrays
         t0 = time()
         root = f.root
-        a = f.createCArray(root, 'a', tb.Float32Atom(), shape, filters=filters)
-        b = f.createCArray(root, 'b', tb.Float32Atom(), shape, filters=filters)
+        a = f.create_carray(root, 'a', tb.Float32Atom(), shape, filters=filters)
+        b = f.create_carray(root, 'b', tb.Float32Atom(), shape, filters=filters)
         if verbose:
             print "chunkshape:", a.chunkshape
             print "chunksize:", np.prod(a.chunkshape)*a.dtype.itemsize
@@ -50,15 +50,15 @@ def tables(docompute, dowrite, complib, verbose):
         print "[tables.Expr] Time for creating inputs:", round(time()-t0, 3)
 
     if docompute:
-        f = tb.openFile(ifilename, 'r')
-        fr = tb.openFile(ofilename, 'w')
+        f = tb.open_file(ifilename, 'r')
+        fr = tb.open_file(ofilename, 'w')
         a = f.root.a
         b = f.root.b
-        r1 = f.createCArray(fr.root, 'r1', tb.Float32Atom(), shape,
+        r1 = f.create_carray(fr.root, 'r1', tb.Float32Atom(), shape,
                             filters=filters)
         # The expression
         e = tb.Expr(expr)
-        e.setOutput(r1)
+        e.set_output(r1)
         t0 = time()
         e.eval()
         if verbose:

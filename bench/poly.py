@@ -74,12 +74,12 @@ def populate_x_memmap():
 
 def populate_x_tables(clib, clevel):
     """Populate the values in x axis for pytables."""
-    f = tb.openFile(h5fname, "w")
+    f = tb.open_file(h5fname, "w")
 
     # Create container for input
     atom = tb.Atom.from_dtype(dtype)
     filters = tb.Filters(complib=clib, complevel=clevel)
-    x = f.createCArray(f.root, "x", atom=atom, shape=(N,),
+    x = f.create_carray(f.root, "x", atom=atom, shape=(N,),
                        filters=filters,
                        chunkshape=CHUNKSHAPE,
                        )
@@ -118,19 +118,19 @@ def compute_memmap():
 
 def compute_tables(clib, clevel):
     """Compute the polynomial with tables.Expr."""
-    f = tb.openFile(h5fname, "a")
+    f = tb.open_file(h5fname, "a")
     x = f.root.x               # get the x input
     # Create container for output
     atom = tb.Atom.from_dtype(dtype)
     filters = tb.Filters(complib=clib, complevel=clevel)
-    r = f.createCArray(f.root, "r", atom=atom, shape=(N,),
+    r = f.create_carray(f.root, "r", atom=atom, shape=(N,),
                        filters=filters,
                        chunkshape=CHUNKSHAPE,
                        )
 
     # Do the actual computation and store in output
     ex = tb.Expr(expr)         # parse the expression
-    ex.setOutput(r)            # where is stored the result?
+    ex.set_output(r)            # where is stored the result?
                                # when commented out, the result goes in-memory
     ex.eval()                  # evaluate!
 
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     #supported_clibs = [clib for clib in ("zlib", "lzo", "bzip2", "blosc")
     #supported_clibs = [clib for clib in ("zlib", "lzo", "blosc")
     supported_clibs = [clib for clib in ("blosc",)
-                       if tb.whichLibVersion(clib)]
+                       if tb.which_lib_version(clib)]
 
     # Initialization code
     #for what in ["numpy", "numpy.memmap", "numexpr"]:

@@ -62,7 +62,7 @@ def createFile(filename, totalrows, recsize):
     #sys.exit(0)
     for j in range(3):
         # Create a table
-        #table = fileh.createTable(group, 'tuple'+str(j), Record(), title,
+        #table = fileh.create_table(group, 'tuple'+str(j), Record(), title,
         #                          compress = 6, expectedrows = totalrows)
         # Create a Table instance
         tablename = 'tuple'+str(j)

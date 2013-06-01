@@ -11,8 +11,8 @@ rows_to_read = range(0, 360, 36)
 
 print "="*32
 # Create the EArray
-f = tables.openFile("/tmp/test.h5", "w")
-a = f.createEArray(f.root, "a", tables.Float64Atom(), shape = (dim1, 0),
+f = tables.open_file("/tmp/test.h5", "w")
+a = f.create_earray(f.root, "a", tables.Float64Atom(), shape = (dim1, 0),
                    expectedrows=dim2)
 print "Chunkshape for original array:", a.chunkshape
 

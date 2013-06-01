@@ -1,16 +1,20 @@
-"""
-Test module for enumerated types under PyTables
-===============================================
+# -*- coding: utf-8 -*-
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2005-05-09
-:License:  BSD
-:Revision: $Id$
-"""
+########################################################################
+#
+# License: BSD
+# Created: 2005-05-09
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""Test module for enumerated types under PyTables"""
 
 import unittest
 import operator
+import itertools
 
 import tables
 from tables.tests import common
@@ -28,11 +32,10 @@ class CreateColTestCase(common.PyTablesTestCase):
         self.assertEqual(enumcol.type, 'enum')
         self.assertEqual(enumcol.dtype.base.name, enumcol.base.type)
         # To avoid 'LongInt' vs 'Int' issues
-        #self.assertEqual(enumcol.dflt, sameEnum[dflt])
+        # self.assertEqual(enumcol.dflt, sameEnum[dflt])
         self.assertEqual(int(enumcol.dflt), int(sameEnum[dflt]))
         self.assertEqual(enumcol.dtype.shape, shape)
         self.assertEqual(enumcol.enum, sameEnum)
-
 
     def test00a_validFromEnum(self):
         """Describing an enumerated column from an enumeration."""
@@ -44,50 +47,45 @@ class CreateColTestCase(common.PyTablesTestCase):
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self._createCol(colors, 'red')
 
-
     def test00c_validFromList(self):
         """Describing an enumerated column from a list."""
         colors = ['red', 'green', 'blue']
         self._createCol(colors, 'red')
-
 
     def test00d_invalidFromType(self):
         """Describing an enumerated column from an invalid object."""
         colors = 123
         self.assertRaises(TypeError, self._createCol, colors, 'red')
 
-
     def test01_invalidDflt(self):
         """Describing an enumerated column with an invalid default object."""
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self.assertRaises(KeyError, self._createCol, colors, 'black')
-
 
     def test02a_validDtypeBroader(self):
         """Describing an enumerated column with a broader type."""
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self._createCol(colors, 'red', 'int64')
 
-
     def test02b_invalidDtypeTooNarrow(self):
         """Describing an enumerated column with a too narrow type."""
         colors = ['e%d' % i for i in range(300)]
         self.assertRaises(TypeError, self._createCol, colors, 'e0', 'uint8')
-
 
     def test03a_validShapeMD(self):
         """Describing an enumerated column with multidimensional shape."""
         colors = ['red', 'green', 'blue']
         self._createCol(colors, 'red', shape=(2,))
 
-
     def test04a_validReprEnum(self):
         """Checking the string representation of an enumeration."""
         colors = tables.Enum(['red', 'green', 'blue'])
         enumcol = tables.EnumCol(colors, 'red', base='uint32', shape=())
-        self.assertEqual(repr(enumcol),
-"""EnumCol(enum=Enum({'blue': 2, 'green': 1, 'red': 0}), dflt='red', base=UInt32Atom(shape=(), dflt=0), shape=(), pos=None)""")
-
+        # needed due to "Hash randomization" (default on python 3.3)
+        template = """EnumCol(enum=Enum({%s}), dflt='red', base=UInt32Atom(shape=(), dflt=0), shape=(), pos=None)"""
+        permitations = [template % ', '.join(items) for items in itertools.permutations(
+            ("'blue': 2", "'green': 1", "'red': 0"))]
+        self.assertTrue(repr(enumcol) in permitations)
 
     def test99a_nonIntEnum(self):
         """Describing an enumerated column of floats (not implemented)."""
@@ -95,20 +93,17 @@ class CreateColTestCase(common.PyTablesTestCase):
         self.assertRaises(NotImplementedError, self._createCol, colors, 'red',
                           base=tables.FloatAtom())
 
-
     def test99b_nonIntDtype(self):
         """Describing an enumerated column encoded as floats (not implemented)."""
         colors = ['red', 'green', 'blue']
         self.assertRaises(
             NotImplementedError, self._createCol, colors, 'red', 'float64')
 
-
     def test99b_nonScalarEnum(self):
         """Describing an enumerated column of non-scalars (not implemented)."""
         colors = {'red': (1, 2, 3)}
         self.assertRaises(NotImplementedError, self._createCol, colors, 'red',
                           base=tables.IntAtom(shape=3))
-
 
 
 class CreateAtomTestCase(common.PyTablesTestCase):
@@ -125,48 +120,40 @@ class CreateAtomTestCase(common.PyTablesTestCase):
         self.assertEqual(enumatom.shape, shape)
         self.assertEqual(enumatom.enum, sameEnum)
 
-
     def test00a_validFromEnum(self):
         """Describing an enumerated atom from an enumeration."""
         colors = tables.Enum(['red', 'green', 'blue'])
         self._createAtom(colors, 'red')
-
 
     def test00b_validFromDict(self):
         """Describing an enumerated atom from a dictionary."""
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self._createAtom(colors, 'red')
 
-
     def test00c_validFromList(self):
         """Describing an enumerated atom from a list."""
         colors = ['red', 'green', 'blue']
         self._createAtom(colors, 'red')
-
 
     def test00d_invalidFromType(self):
         """Describing an enumerated atom from an invalid object."""
         colors = 123
         self.assertRaises(TypeError, self._createAtom, colors, 'red')
 
-
     def test02a_validDtypeBroader(self):
         """Describing an enumerated atom with a broader type."""
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self._createAtom(colors, 'red', base='int64')
-
 
     def test02b_invalidDtypeTooNarrow(self):
         """Describing an enumerated atom with a too narrow type."""
         colors = ['e%d' % i for i in range(300)]
         self.assertRaises(TypeError, self._createAtom, colors, 'red', 'uint8')
 
-
     def test03a_validShapeMD(self):
         """Describing an enumerated atom with multidimensional shape."""
         colors = ['red', 'green', 'blue']
         self._createAtom(colors, 'red', shape=(2,))
-
 
     def test99a_nonIntEnum(self):
         """Describing an enumerated atom of floats (not implemented)."""
@@ -174,20 +161,17 @@ class CreateAtomTestCase(common.PyTablesTestCase):
         self.assertRaises(NotImplementedError, self._createAtom, colors, 'red',
                           base=tables.FloatAtom())
 
-
     def test99b_nonIntDtype(self):
         """Describing an enumerated atom encoded as a float (not implemented)."""
         colors = ['red', 'green', 'blue']
         self.assertRaises(
             NotImplementedError, self._createAtom, colors, 'red', 'float64')
 
-
     def test99b_nonScalarEnum(self):
         """Describing an enumerated atom of non-scalars (not implemented)."""
         colors = {'red': (1, 2, 3)}
         self.assertRaises(NotImplementedError, self._createAtom, colors, 'red',
                           base=tables.IntAtom(shape=3))
-
 
 
 class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -200,7 +184,6 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     valueOutOfEnum = 1234
     enumType = 'uint16'
 
-
     def _description(self, shape=()):
         class TestDescription(tables.IsDescription):
             rid = tables.IntCol(pos=0)
@@ -210,19 +193,17 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         return TestDescription
 
-
     def test00a_reopen(self):
         """Reopening a file with tables using enumerated data."""
 
-        self.h5file.createTable(
+        self.h5file.create_table(
             '/', 'test', self._description(), title=self._getMethodName())
 
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum('rcolor'), self.enum,
+            self.h5file.root.test.get_enum('rcolor'), self.enum,
             "Enumerated type was not restored correctly from disk.")
-
 
     def test00b_reopenMD(self):
         """
@@ -230,20 +211,19 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         data.
         """
 
-        self.h5file.createTable(
+        self.h5file.create_table(
             '/', 'test', self._description((2,)), title=self._getMethodName())
 
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum('rcolor'), self.enum,
+            self.h5file.root.test.get_enum('rcolor'), self.enum,
             "Enumerated type was not restored correctly from disk.")
-
 
     def test01_rowAppend(self):
         """Appending enumerated values using ``row.append()``."""
 
-        tbl = self.h5file.createTable(
+        tbl = self.h5file.create_table(
             '/', 'test', self._description(), title=self._getMethodName())
 
         appended = [
@@ -266,15 +246,14 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         common.verbosePrint(
             "* appended value: %s\n"
             "* read value: %s\n"
-            % (appended[:-1], read) )
+            % (appended[:-1], read))
         self.assertEqual(
             appended[:-1], read, "Written and read values differ.")
-
 
     def test02_append(self):
         """Appending enumerated values using ``table.append()``."""
 
-        tbl = self.h5file.createTable(
+        tbl = self.h5file.create_table(
             '/', 'test', self._description(), title=self._getMethodName())
 
         appended = [
@@ -288,14 +267,13 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         common.verbosePrint(
             "* appended value: %s\n"
             "* read value: %s\n"
-            % (appended, read) )
+            % (appended, read))
         self.assertEqual(appended, read, "Written and read values differ.")
-
 
     def test03_setitem(self):
         """Changing enumerated values using ``table.__setitem__()``."""
 
-        tbl = self.h5file.createTable(
+        tbl = self.h5file.create_table(
             '/', 'test', self._description(), title=self._getMethodName())
 
         appended = [
@@ -312,14 +290,13 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         common.verbosePrint(
             "* written value: %s\n"
             "* read value: %s\n"
-            % (written, read) )
+            % (written, read))
         self.assertEqual(written, read, "Written and read values differ.")
-
 
     def test04_multidim(self):
         """Appending multi-dimensional enumerated data."""
 
-        tbl = self.h5file.createTable(
+        tbl = self.h5file.create_table(
             '/', 'test', self._description((2,)), title=self._getMethodName())
 
         appended = [
@@ -343,11 +320,10 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertEqual(appended[i][1][1], read[i][1][1],
                              "Written and read values differ.")
 
-
     def test05_where(self):
         """Searching enumerated data."""
 
-        tbl = self.h5file.createTable(
+        tbl = self.h5file.create_table(
             '/', 'test', self._description(), title=self._getMethodName())
 
         appended = [
@@ -359,7 +335,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         searched = [
             (row['rid'], row['rcolor'])
-            for row in tbl.where('rcolor == v', {'v': self.valueInEnum}) ]
+            for row in tbl.where('rcolor == v', {'v': self.valueInEnum})]
         common.verbosePrint(
             "* ``valueInEnum``: %s\n"
             "* ``rcolor`` column: ``%s``\n"
@@ -368,7 +344,6 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
             % (self.valueInEnum, tbl.cols.rcolor, searched, appended[:-1]))
         self.assertEqual(
             searched, appended[:-1], "Search returned incorrect results.")
-
 
 
 class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -380,26 +355,23 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     valueOutOfEnum = 1234
     enumType = 'uint16'
 
-
     def _atom(self, shape=()):
         return tables.EnumAtom(
             self.enum, 'red', base=self.enumType, shape=shape)
 
-
     def test00a_reopen(self):
         """Reopening a file with extendable arrays using enumerated data."""
 
-        self.h5file.createEArray(
+        self.h5file.create_earray(
             '/', 'test', self._atom(), shape=(0,),
-            title=self._getMethodName() )
+            title=self._getMethodName())
         self.h5file.root.test.flavor = 'python'
 
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum(), self.enum,
+            self.h5file.root.test.get_enum(), self.enum,
             "Enumerated type was not restored correctly from disk.")
-
 
     def test00b_reopenMD(self):
         """
@@ -407,24 +379,23 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         multi-dimensional data.
         """
 
-        self.h5file.createEArray(
+        self.h5file.create_earray(
             '/', 'test', self._atom(), shape=(0, 2),
-            title=self._getMethodName() )
+            title=self._getMethodName())
         self.h5file.root.test.flavor = 'python'
 
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum(), self.enum,
+            self.h5file.root.test.get_enum(), self.enum,
             "Enumerated type was not restored correctly from disk.")
-
 
     def test01_append(self):
         """Appending scalar elements of enumerated values."""
 
-        earr = self.h5file.createEArray(
+        earr = self.h5file.create_earray(
             '/', 'test', self._atom(), shape=(0,),
-            title=self._getMethodName() )
+            title=self._getMethodName())
         earr.flavor = 'python'
 
         appended = [self.valueInEnum, self.valueOutOfEnum]
@@ -434,13 +405,12 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         read = earr.read()
         self.assertEqual(appended, read, "Written and read values differ.")
 
-
     def test02_appendMD(self):
         """Appending multi-dimensional elements of enumerated values."""
 
-        earr = self.h5file.createEArray(
+        earr = self.h5file.create_earray(
             '/', 'test', self._atom(), shape=(0, 2),
-            title=self._getMethodName() )
+            title=self._getMethodName())
         earr.flavor = 'python'
 
         appended = [
@@ -452,13 +422,12 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         read = earr.read()
         self.assertEqual(appended, read, "Written and read values differ.")
 
-
     def test03_setitem(self):
         """Changing enumerated values using ``earray.__setitem__()``."""
 
-        earr = self.h5file.createEArray(
+        earr = self.h5file.create_earray(
             '/', 'test', self._atom(), shape=(0,),
-            title=self._getMethodName() )
+            title=self._getMethodName())
         earr.flavor = 'python'
 
         appended = (self.valueInEnum, self.valueInEnum)
@@ -470,7 +439,6 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(written, read, "Written and read values differ.")
 
 
-
 class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     """Test variable-length arrays of enumerated values."""
@@ -480,26 +448,23 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     valueOutOfEnum = 1234
     enumType = 'uint16'
 
-
     def _atom(self, shape=()):
         return tables.EnumAtom(
             self.enum, 'red', base=self.enumType, shape=shape)
 
-
     def test00a_reopen(self):
         """Reopening a file with variable-length arrays using enumerated data."""
 
-        self.h5file.createVLArray(
+        self.h5file.create_vlarray(
             '/', 'test', self._atom(),
-            title=self._getMethodName() )
+            title=self._getMethodName())
         self.h5file.root.test.flavor = 'python'
 
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum(), self.enum,
+            self.h5file.root.test.get_enum(), self.enum,
             "Enumerated type was not restored correctly from disk.")
-
 
     def test00b_reopenMD(self):
         """
@@ -507,28 +472,27 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         multi-dimensional data.
         """
 
-        self.h5file.createVLArray(
+        self.h5file.create_vlarray(
             '/', 'test', self._atom((2,)),
-            title=self._getMethodName() )
+            title=self._getMethodName())
         self.h5file.root.test.flavor = 'python'
 
         self._reopen()
 
         self.assertEqual(
-            self.h5file.root.test.getEnum(), self.enum,
+            self.h5file.root.test.get_enum(), self.enum,
             "Enumerated type was not restored correctly from disk.")
-
 
     def test01_append(self):
         """Appending scalar elements of enumerated values."""
 
-        vlarr = self.h5file.createVLArray(
+        vlarr = self.h5file.create_vlarray(
             '/', 'test', self._atom(),
-            title=self._getMethodName() )
+            title=self._getMethodName())
         vlarr.flavor = 'python'
 
         appended = [
-            [self.valueInEnum,],
+            [self.valueInEnum, ],
             [self.valueInEnum, self.valueOutOfEnum]]
 
         vlarr.append(appended[0])
@@ -538,20 +502,19 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         common.verbosePrint(
             "* appended value: %s\n"
             "* read value: %s\n"
-            % (appended, read) )
+            % (appended, read))
         self.assertEqual(appended, read, "Written and read values differ.")
-
 
     def test02_appendMD(self):
         """Appending multi-dimensional elements of enumerated values."""
 
-        vlarr = self.h5file.createVLArray(
+        vlarr = self.h5file.create_vlarray(
             '/', 'test', self._atom((2,)),
-            title=self._getMethodName() )
+            title=self._getMethodName())
         vlarr.flavor = 'python'
 
         appended = [
-            [[self.valueInEnum, self.valueInEnum],],
+            [[self.valueInEnum, self.valueInEnum], ],
             [[self.valueInEnum, self.valueOutOfEnum],
              [self.valueInEnum, self.valueInEnum]]]
 
@@ -562,16 +525,15 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         common.verbosePrint(
             "* appended value: %s\n"
             "* read value: %s\n"
-            % (appended, read) )
+            % (appended, read))
         self.assertEqual(appended, read, "Written and read values differ.")
-
 
     def test03_setitem(self):
         """Changing enumerated values using ``vlarray.__setitem__()``."""
 
-        vlarr = self.h5file.createVLArray(
+        vlarr = self.h5file.create_vlarray(
             '/', 'test', self._atom(),
-            title=self._getMethodName() )
+            title=self._getMethodName())
         vlarr.flavor = 'python'
 
         appended = (self.valueInEnum, self.valueInEnum)
@@ -583,9 +545,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         common.verbosePrint(
             "* written value: %s\n"
             "* read value: %s\n"
-            % (written, read) )
+            % (written, read))
         self.assertEqual(written, read[0], "Written and read values differ.")
-
 
 
 def suite():
@@ -597,7 +558,7 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
-    #theSuite.addTest(unittest.makeSuite(EnumTableTestCase))
+    # theSuite.addTest(unittest.makeSuite(EnumTableTestCase))
     for i in range(niter):
         theSuite.addTest(doctest.DocTestSuite(enum))
         theSuite.addTest(unittest.makeSuite(CreateColTestCase))
@@ -607,7 +568,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(EnumVLArrayTestCase))
 
     return theSuite
-
 
 
 if __name__ == '__main__':

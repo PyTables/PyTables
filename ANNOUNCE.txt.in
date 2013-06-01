@@ -1,41 +1,60 @@
-==========================
-Announcing PyTables @VERSION@
-==========================
+===========================
+ Announcing PyTables @VERSION@
+===========================
 
 We are happy to announce PyTables @VERSION@.
 
-This is an incremental release which includes many changes to prepare for
-future Python 3 support.
+PyTables @VERSION@ comes after about 5 years from the last major release
+(2.0) and 7 months since the last stable release (2.4.0).
+
+This is new major release and an important milestone for the PyTables project
+since it provides the long waited support for Python 3.x, which has been around
+for 4 years.
+
+Almost all of the core numeric/scientific packages for Python already support
+Python 3 so we are very happy that now also PyTables can provide this
+important feature.
 
 
 What's new
 ==========
 
-This release includes support for the float16 data type and read-only support
-for variable length string attributes.
+A short summary of main new features:
 
-The handling of HDF5 errors has been improved.  The user will no longer see
-HDF5 error stacks dumped to the console.  All HDF5 error messages are trapped
-and attached to a proper Python exception.
+- Since this release, PyTables now provides full support to Python 3
+- The entire code base is now more compliant with coding style guidelines
+  described in PEP8.
+- Basic support for HDF5 drivers.  It now is possible to open/create an
+  HDF5 file using one of the SEC2, DIRECT, LOG, WINDOWS, STDIO or CORE
+  drivers.
+- Basic support for in-memory image files.  An HDF5 file can be set from or
+  copied into a memory buffer.
+- Implemented methods to get/set the user block size in a HDF5 file.
+- All read methods now have an optional *out* argument that allows to pass a
+  pre-allocated array to store data.
+- Added support for the floating point data types with extended precision
+  (Float96, Float128, Complex192 and Complex256).
+- Consistent ``create_xxx()`` signatures.  Now it is possible to create all
+  data sets Array, CArray, EArray, VLArray, and Table from existing Python
+  objects.
+- Complete rewrite of the `nodes.filenode` module. Now it is fully
+  compliant with the interfaces defined in the standard `io` module.
+  Only non-buffered binary I/O is supported currently.
 
-Now PyTables only supports HDF5 v1.8.4+. All the code has been updated to
-the new HDF5 API.  Supporting only HDF5 1.8 series is beneficial for future
-development.
-
-Documentation has been improved.
+Please refer to the RELEASE_NOTES document for a more detailed list of
+changes in this release.
 
 As always, a large amount of bugs have been addressed and squashed as well.
 
 In case you want to know more in detail what has changed in this
-version, please refer to:
-http://pytables.github.com/release_notes.html
+version, please refer to: http://pytables.github.io/release_notes.html
 
 You can download a source package with generated PDF and HTML docs, as
 well as binaries for Windows, from:
 http://sourceforge.net/projects/pytables/files/pytables/@VERSION@
 
 For an online version of the manual, visit:
-http://pytables.github.com/usersguide/index.html
+http://pytables.github.io/usersguide/index.html
 
 
 What it is?
@@ -66,22 +85,21 @@ Acknowledgments
 Thanks to many users who provided feature improvements, patches, bug
 reports, support and suggestions.  See the ``THANKS`` file in the
 distribution package for a (incomplete) list of contributors.  Most
-specially, a lot of kudos go to the HDF5 and NumPy (and numarray!)
-makers.  Without them, PyTables simply would not exist.
+specially, a lot of kudos go to the HDF5 and NumPy makers.
+Without them, PyTables simply would not exist.
 
 
 Share your experience
 =====================
 
-Let us know of any bugs, suggestions, gripes, kudos, etc. you may
-have.
+Let us know of any bugs, suggestions, gripes, kudos, etc. you may have.
 
 
 ----
 
   **Enjoy data!**
 
-  -- The PyTables Team
+  -- The PyTables Developers
 
 .. Local Variables:
 .. mode: rst

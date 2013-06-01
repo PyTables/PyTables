@@ -25,14 +25,14 @@ class Medium(IsDescription):
 def createFile(filename, nrows, filters, atom, recsize, index, verbose):
 
     # Open a file in "w"rite mode
-    fileh = openFile(filename, mode = "w", title="Searchsorted Benchmark",
+    fileh = open_file(filename, mode = "w", title="Searchsorted Benchmark",
                      filters=filters)
     title = "This is the IndexArray title"
     # Create an IndexArray instance
     rowswritten = 0
     # Create an entry
     klass = {"small":Small, "medium":Medium}
-    table = fileh.createTable(fileh.root, 'table', klass[recsize], title,
+    table = fileh.create_table(fileh.root, 'table', klass[recsize], title,
                               None, nrows)
     for i in xrange(nrows):
         #table.row['var1'] = str(i)
@@ -50,13 +50,13 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
     # Index one entry:
     if index:
         if atom == "string":
-            indexrows = table.cols.var1.createIndex()
+            indexrows = table.cols.var1.create_index()
         elif atom == "bool":
-            indexrows = table.cols.var4.createIndex()
+            indexrows = table.cols.var4.create_index()
         elif atom == "int":
-            indexrows = table.cols.var2.createIndex()
+            indexrows = table.cols.var2.create_index()
         elif atom == "float":
-            indexrows = table.cols.var3.createIndex()
+            indexrows = table.cols.var3.create_index()
         else:
             raise ValueError("Index type not supported yet")
         if verbose:
@@ -69,7 +69,7 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
 def readFile(filename, atom, niter, verbose):
     # Open the HDF5 file in read-only mode
 
-    fileh = openFile(filename, mode = "r")
+    fileh = open_file(filename, mode = "r")
     table = fileh.root.table
     print "reading", table
     if atom == "string":
@@ -143,7 +143,7 @@ def readFile(filename, atom, niter, verbose):
 def searchFile(filename, atom, verbose, item):
     # Open the HDF5 file in read-only mode
 
-    fileh = openFile(filename, mode = "r")
+    fileh = open_file(filename, mode = "r")
     rowsread = 0
     uncomprBytes = 0
     table = fileh.root.table

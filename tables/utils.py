@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ########################################################################
 #
 #       License: BSD
@@ -10,20 +12,23 @@
 
 """Utility functions"""
 
-import os, os.path, subprocess
+import os
 import sys
+import subprocess
 from time import time
 
 import numpy
 
 from tables.flavor import array_of_flavor
-
+from tables._past import previous_api
 
 # The map between byteorders in NumPy and PyTables
-byteorders = {'>': 'big',
-              '<': 'little',
-              '=': sys.byteorder,
-              '|': 'irrelevant'}
+byteorders = {
+    '>': 'big',
+    '<': 'little',
+    '=': sys.byteorder,
+    '|': 'irrelevant',
+}
 
 # The type used for size values: indexes, coordinates, dimension
 # lengths, row numbers, shapes, chunk shapes, byte counts...
@@ -76,8 +81,8 @@ def idx2long(index):
 # with atom from a generic python type.  If copy is stated as True, it
 # is assured that it will return a copy of the object and never the same
 # object or a new one sharing the same memory.
-def convertToNPAtom(arr, atom, copy=False):
-    "Convert a generic object into a NumPy object compliant with atom."
+def convert_to_np_atom(arr, atom, copy=False):
+    """Convert a generic object into a NumPy object compliant with atom."""
 
     # First, convert the object into a NumPy array
     nparr = array_of_flavor(arr, 'numpy')
@@ -102,27 +107,31 @@ def convertToNPAtom(arr, atom, copy=False):
         nparr = nparr2.view(atom.dtype)
     return nparr
 
+convertToNPAtom = previous_api(convert_to_np_atom)
+
 
 # The next is used in Array, EArray and VLArray, and it is a bit more
-# high level than convertToNPAtom
-def convertToNPAtom2(object, atom):
+# high level than convert_to_np_atom
+def convert_to_np_atom2(object, atom):
     """Convert a generic object into a NumPy object compliant with atom."""
 
     # Check whether the object needs to be copied to make the operation
     # safe to in-place conversion.
     copy = atom.type in ['time64']
-    nparr = convertToNPAtom(object, atom, copy)
+    nparr = convert_to_np_atom(object, atom, copy)
     # Finally, check the byteorder and change it if needed
     byteorder = byteorders[nparr.dtype.byteorder]
-    if ( byteorder in ['little', 'big'] and byteorder != sys.byteorder ):
+    if (byteorder in ['little', 'big'] and byteorder != sys.byteorder):
         # The byteorder needs to be fixed (a copy is made
         # so that the original array is not modified)
         nparr = nparr.byteswap()
 
     return nparr
 
+convertToNPAtom2 = previous_api(convert_to_np_atom2)
 
-def checkFileAccess(filename, mode='r'):
+
+def check_file_access(filename, mode='r'):
     """Check for file access in the specified `mode`.
 
     `mode` is one of the modes supported by `File` objects.  If the file
@@ -133,6 +142,7 @@ def checkFileAccess(filename, mode='r'):
     All this paraphernalia is used to avoid the lengthy and scaring HDF5
     messages produced when there are problems opening a file.  No
     changes are ever made to the file system.
+
     """
 
     if mode == 'r':
@@ -148,7 +158,7 @@ def checkFileAccess(filename, mode='r'):
         if os.access(filename, os.F_OK):
             # Since the file is not removed but replaced,
             # it must already be accessible to read and write operations.
-            checkFileAccess(filename, 'r+')
+            check_file_access(filename, 'r+')
         else:
             # A new file is going to be created,
             # so the directory should be writable.
@@ -160,20 +170,22 @@ def checkFileAccess(filename, mode='r'):
             if not os.path.isdir(parentname):
                 raise IOError("``%s`` is not a directory" % (parentname,))
             if not os.access(parentname, os.W_OK):
-                raise IOError("directory ``%s`` exists but it can not be written"
-                              % (parentname,))
+                raise IOError("directory ``%s`` exists but it can not be "
+                              "written" % (parentname,))
     elif mode == 'a':
         if os.access(filename, os.F_OK):
-            checkFileAccess(filename, 'r+')
+            check_file_access(filename, 'r+')
         else:
-            checkFileAccess(filename, 'w')
+            check_file_access(filename, 'w')
     elif mode == 'r+':
-        checkFileAccess(filename, 'r')
+        check_file_access(filename, 'r')
         if not os.access(filename, os.W_OK):
             raise IOError("file ``%s`` exists but it can not be written"
                           % (filename,))
     else:
         raise ValueError("invalid mode: %r" % (mode,))
+
+checkFileAccess = previous_api(check_file_access)
 
 
 def lazyattr(fget):
@@ -188,7 +200,7 @@ def lazyattr(fget):
     ...     @lazyattr
     ...     def attribute(self):
     ...         'Attribute description.'
-    ...         print 'creating value'
+    ...         print('creating value')
     ...         return 10
     ...
     >>> type(MyClass.attribute)
@@ -214,25 +226,32 @@ def lazyattr(fget):
 
         Please note that this decorator *changes the type of the
         decorated object* from an instance method into a property.
+
     """
 
     name = fget.__name__
+
     def newfget(self):
         mydict = self.__dict__
         if name in mydict:
             return mydict[name]
         mydict[name] = value = fget(self)
         return value
+
     return property(newfget, None, None, fget.__doc__)
 
 
-def show_stats(explain, tref):
+def show_stats(explain, tref, encoding=None):
     """Show the used memory (only works for Linux 2.6.x)."""
+
+    if encoding is None:
+        encoding = sys.getdefaultencoding()
 
     # Build the command to obtain memory info
     cmd = "cat /proc/%s/status" % os.getpid()
     sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
     for line in sout:
+        line = line.decode(encoding)
         if line.startswith("VmSize:"):
             vmsize = int(line.split()[1])
         elif line.startswith("VmRSS:"):
@@ -260,12 +279,16 @@ def show_stats(explain, tref):
 tracked_classes = {}
 import weakref
 
-def logInstanceCreation(instance, name=None):
+
+def log_instance_creation(instance, name=None):
     if name is None:
         name = instance.__class__.__name__
         if name not in tracked_classes:
             tracked_classes[name] = []
         tracked_classes[name].append(weakref.ref(instance))
+
+logInstanceCreation = previous_api(log_instance_creation)
+
 
 def string_to_classes(s):
     if s == '*':
@@ -274,15 +297,22 @@ def string_to_classes(s):
     else:
         return s.split()
 
-def fetchLoggedInstances(classes="*"):
+
+def fetch_logged_instances(classes="*"):
     classnames = string_to_classes(classes)
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
-def countLoggedInstances(classes, file=sys.stdout):
+fetchLoggedInstances = previous_api(fetch_logged_instances)
+
+
+def count_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
 
-def listLoggedInstances(classes, file=sys.stdout):
+countLoggedInstances = previous_api(count_logged_instances)
+
+
+def list_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write('\n%s:\n' % classname)
         for ref in tracked_classes[classname]:
@@ -290,7 +320,10 @@ def listLoggedInstances(classes, file=sys.stdout):
             if obj is not None:
                 file.write('    %s\n' % repr(obj))
 
-def dumpLoggedInstances(classes, file=sys.stdout):
+listLoggedInstances = previous_api(list_logged_instances)
+
+
+def dump_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write('\n%s:\n' % classname)
         for ref in tracked_classes[classname]:
@@ -299,6 +332,8 @@ def dumpLoggedInstances(classes, file=sys.stdout):
                 file.write('    %s:\n' % obj)
                 for key, value in obj.__dict__.iteritems():
                     file.write('        %20s : %s\n' % (key, value))
+
+dumpLoggedInstances = previous_api(dump_logged_instances)
 
 
 #
@@ -337,8 +372,10 @@ class NailedDict(object):
 
     def clear(self):
         self._cache.clear()
+
     def nail(self):
         self._nailcount += 1
+
     def unnail(self):
         self._nailcount -= 1
 
@@ -373,7 +410,7 @@ class NailedDict(object):
         cache[key] = value
 
 
-def detectNumberOfCores():
+def detect_number_of_cores():
     """Detects the number of cores on a system. Cribbed from pp."""
 
     # Linux, Unix and MacOS:
@@ -383,15 +420,16 @@ def detectNumberOfCores():
             ncpus = os.sysconf("SC_NPROCESSORS_ONLN")
             if isinstance(ncpus, int) and ncpus > 0:
                 return ncpus
-        else: # OSX:
+        else:  # OSX:
             return int(os.popen2("sysctl -n hw.ncpu")[1].read())
     # Windows:
     if "NUMBER_OF_PROCESSORS" in os.environ:
-        ncpus = int(os.environ["NUMBER_OF_PROCESSORS"]);
+        ncpus = int(os.environ["NUMBER_OF_PROCESSORS"])
         if ncpus > 0:
             return ncpus
-    return 1 # Default
+    return 1  # Default
 
+detectNumberOfCores = previous_api(detect_number_of_cores)
 
 
 # Main part

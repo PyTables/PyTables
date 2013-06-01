@@ -32,50 +32,41 @@ compiled source is included in the source distribution.
 
 To compile PyTables you will need a recent version of Python, the HDF5 (C
 flavor) library from http://www.hdfgroup.org, and the NumPy (see
-:ref:`[NUMPY] <NUMPY>`) and Numexpr (see  :ref:`[NUMEXPR] <NUMEXPR>`)
+:ref:`[NUMPY] <NUMPY>`) and Numexpr (see :ref:`[NUMEXPR] <NUMEXPR>`)
 packages.
-Although you won't need numarray (see :ref:`[NUMARRAY] <NUMARRAY>`) or Numeric
-(see :ref:`[NUMERIC] <NUMERIC>`) in order to compile PyTables, they are
-supported; you only need a reasonably recent version of them (>= 1.5.2 for
-numarray and >= 24.2 for Numeric) if you plan on using them in your
-applications. If you already have numarray and/or Numeric installed, the test
-driver module will detect them and will run the tests for numarray and/or
-Numeric automatically.
 
-.. warning:: The use of numarray and Numeric in PyTables is now deprecated.
-
-    Support for these packages will be dropped in future versions.
 
 Prerequisites
 ~~~~~~~~~~~~~
 
 First, make sure that you have
 
-* Python_ >= 2.4 (Python 3.x is not supported currently),
+* Python_ >= 2.6 including Python 3.x
 * HDF5_ >= 1.8.4,
 * NumPy_ >= 1.4.1,
-* Numexpr_ >= 1.4.1 and
+* Numexpr_ >= 2.0 and
 * Cython_ >= 0.13
+* argparse_ (only Python 2.6, it it used by the :program:`pt2to3` utility)
 
-installed (for testing purposes, we are using HDF5_ 1.8.9, NumPy_ 1.6.1
-and Numexpr_ 1.4.2 currently). If you don't, fetch and install them before
+installed (for testing purposes, we are using HDF5_ 1.8.9, NumPy_ 1.7.1
+and Numexpr_ 2.1 currently). If you don't, fetch and install them before
 proceeding.
 
 .. _Python: http://www.python.org
 .. _HDF5: http://www.hdfgroup.org/HDF5
-.. _NumPy: http://numpy.scipy.org
+.. _NumPy: http://www.numpy.org
 .. _Numexpr: http://code.google.com/p/numexpr
-.. _Cython: http://cython.org
-
-.. note:: Users of Python 2.4.x also need to install ctypes_
+.. _Cython: http://www.cython.org
+.. _argparse: http://code.google.com/p/argparse
 
 .. note::
 
-    Currently PyTables does not use setuptools_ so do not expect that the
-    setup.py script automatically install all packages PyTables depends on.
+    Currently PyTables does not use setuptools_ by default so do not expect
+    that the setup.py script automatically install all packages PyTables
+    depends on.
 
-.. _setuptools: http://pypi.python.org/pypi/setuptools
-.. _ctypes: http://pypi.python.org/pypi/ctypes
+.. _setuptools: https://pypi.python.org/pypi/setuptools
+.. _ctypes: https://pypi.python.org/pypi/ctypes
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
 instructions on how to install precompiled binaries if you are not willing to
@@ -135,6 +126,16 @@ PyTables, so you don't need to install it separately.
     CPU has support for SSE2 vector instructions, you may want to pass the
     :option:`-msse2` flag that will accelerate Blosc operation.
 
+    .. hint::
+
+        some GNU/Linux distributions provide a packaged version of the HDF5
+        libraries with MPI support.  In this case you may need to specify
+        the path of the MPH headers as additional include directory.
+
+        On Ubuntu 12.04 the following command has been reported to work::
+
+          $ C_INCLUDE_PATH=/usr/lib/openmpi/include pip install --upgrade tables
+
 **Windows**
 
     You can get ready-to-use Windows binaries and other development files for
@@ -193,17 +194,19 @@ you can proceed with the PyTables package itself.
 #. Run this command from the main PyTables distribution directory, including
    any extra command line arguments as discussed above::
 
-      $ python setup.py build_ext --inplace
+      $ python setup.py build
 
 #. To run the test suite, execute any of these commands.
 
    **Unix**
       In the sh shell and its variants::
 
+        $ cd build/lib.linux-x86_64-2.7
         $ env PYTHONPATH=. python tables/tests/test_all.py
 
       or, if you prefer::
 
+        $ cd build/lib.linux-x86_64-2.7
         $ env PYTHONPATH=. python -c "import tables; tables.test()"
 
       .. note::
@@ -222,11 +225,13 @@ you can proceed with the PyTables package itself.
 
       Open the command prompt (cmd.exe or command.com) and type::
 
+        > cd build\\lib.linux-x86_64-2.7
         > set PYTHONPATH=.;%PYTHONPATH%
         > python tables\\tests\\test_all.py
 
       or::
 
+        > cd build\\lib.linux-x86_64-2.7
         > set PYTHONPATH=.;%PYTHONPATH%
         > python -c "import tables; tables.test()"
 
@@ -323,21 +328,15 @@ This section is intended for installing precompiled binaries on Windows
 platforms. You may also find it useful for instructions on how to install
 *binary prerequisites* even if you want to compile PyTables itself on Windows.
 
-.. warning::
-
-    Since PyTables 2.2b3, Windows binaries are distributed with SSE2
-    instructions enabled.  If your processor does not have support for SSE2,
-    then you will not be able to use these binaries.
-
 
 .. _prerequisitesBinInst:
 
 Windows prerequisites
 ~~~~~~~~~~~~~~~~~~~~~
 
-First, make sure that you have Python 2.4, NumPy 1.4.1 and Numexpr 1.4.1 or
-higher installed (PyTables binaries have been built using NumPy 1.5 and
-Numexpr 1.4.1).  The binaries already include DLLs for HDF5 (1.8.4, 1.8.9),
+First, make sure that you have Python 2.6, NumPy 1.4.1 and Numexpr 2.0 or
+higher installed (PyTables binaries have been built using NumPy 1.7 and
+Numexpr 2.1).  The binaries already include DLLs for HDF5 (1.8.4, 1.8.9),
 zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2 (1.0.5) for
 Windows (2.8.0).
 The LZO DLL can't be included because of license issues (but read below for
@@ -364,6 +363,10 @@ PyTables package installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download the tables-<version>.win32-py<version>.exe file and execute it.
+
+Binary packahes can be found e.g. at the `Unofficial Windows Binaries for
+Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs/#pytables>`_
+page.
 
 You can (and *you should*) test your installation by running the next
 commands::

@@ -39,12 +39,12 @@ print   '-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-'
 filename = "nested-tut.h5"
 
 print "Creating file:", filename
-fileh = openFile(filename, "w")
+fileh = open_file(filename, "w")
 
 print
 print   '-**-**-**-**-**- nested table creation  -**-**-**-**-**-'
 
-table = fileh.createTable(fileh.root, 'table', NestedDescr)
+table = fileh.create_table(fileh.root, 'table', NestedDescr)
 
 # Fill the table with some rows
 row = table.row
@@ -66,7 +66,7 @@ table.append(nra)
 print repr(table.nrows)
 
 # Create a new table
-table2 = fileh.createTable(fileh.root, 'table2', nra)
+table2 = fileh.create_table(fileh.root, 'table2', nra)
 print repr(table2[:])
 
 # Read also the info2/name values with color == colors.red
@@ -102,24 +102,24 @@ print
 print "**** more from manual, period ***"
 print repr(table.description.info1)
 print repr(table.description.info2.info3)
-print repr(table.description._v_nestedNames)
-print repr(table.description.info1._v_nestedNames)
+print repr(table.description._v_nested_names)
+print repr(table.description.info1._v_nested_names)
 print
 print "**** now some for nested records, take that ****"
-print repr(table.description._v_nestedDescr)
+print repr(table.description._v_nested_descr)
 print repr(numpy.rec.array(None, shape=0,
-                           dtype=table.description._v_nestedDescr))
+                           dtype=table.description._v_nested_descr))
 print repr(numpy.rec.array(None, shape=0,
-                           dtype=table.description.info2._v_nestedDescr))
+                           dtype=table.description.info2._v_nested_descr))
 # NumPy recarrays doesn't have the machinery to understand the idiom below,
 # please use the above form instead.
 ###print repr(numpy.rec.array(None, shape=1,
-###           names=table.description._v_nestedNames,
-###           formats=table.description._v_nestedFormats))
+###           names=table.description._v_nested_names,
+###           formats=table.description._v_nested_formats))
 from tables import nra
-print repr(nra.array(None, descr=table.description._v_nestedDescr))
-print repr(nra.array(None, names=table.description._v_nestedNames,
-                     formats=table.description._v_nestedFormats))
+print repr(nra.array(None, descr=table.description._v_nested_descr))
+print repr(nra.array(None, names=table.description._v_nested_names,
+                     formats=table.description._v_nested_formats))
 print
 print "**** and some iteration over descriptions, too ****"
 for coldescr in table.description._f_walk():

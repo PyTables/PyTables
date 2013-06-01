@@ -19,7 +19,7 @@ PyTables User's Guide
 
             |copy| 2008, 2009, 2010 - Francesc Alted
 
-            |copy| 2011-2012 - PyTables maintainers
+            |copy| 2011-2013 - PyTables maintainers
 :Date:      |today|
 :Version:   |version|
 :Home Page: http://www.pytables.org
@@ -85,7 +85,6 @@ Complementary modules
     :maxdepth: 1
 
     filenode
-    netcdf3
 
 
 ----------
@@ -101,7 +100,6 @@ Appendixes
     datatypes
     condition_syntax
     parameter_files
-    nested_rec_arrays
     utilities
     file_format
 

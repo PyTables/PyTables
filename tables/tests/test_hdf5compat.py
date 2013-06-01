@@ -1,16 +1,21 @@
-"""
-Test module for compatibility with plain HDF files
-==================================================
+# -*- coding: utf-8 -*-
 
-:Author:   Ivan Vilata i Balaguer
-:Contact:  ivan@selidor.net
-:Created:  2005-09-29
-:License:  BSD
-:Revision: $Id$
-"""
+########################################################################
+#
+# License: BSD
+# Created: 2005-09-29
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
+"""Test module for compatibility with plain HDF files"""
 
 import unittest
-import tempfile, shutil, os
+import tempfile
+import shutil
+import os
 
 import numpy
 
@@ -32,18 +37,15 @@ class HDF5CompatibilityTestCase(common.PyTablesTestCase):
     def setUp(self):
         self.h5file = None
 
-
     def tearDown(self):
         if self.h5file is not None:
             self.h5file.close()
         self.h5file = None
 
-
     def test(self):
         self.h5fname = self._testFilename(self.h5fname)
-        self.h5file = tables.openFile(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         self._test()
-
 
 
 class EnumTestCase(HDF5CompatibilityTestCase):
@@ -59,10 +61,10 @@ class EnumTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/EnumTest' in self.h5file)
 
-        arr = self.h5file.getNode('/EnumTest')
+        arr = self.h5file.get_node('/EnumTest')
         self.assertTrue(isinstance(arr, tables.Array))
 
-        enum = arr.getEnum()
+        enum = arr.get_enum()
         expectedEnum = tables.Enum(['RED', 'GREEN', 'BLUE', 'WHITE', 'BLACK'])
         self.assertEqual(enum, expectedEnum)
 
@@ -72,7 +74,6 @@ class EnumTestCase(HDF5CompatibilityTestCase):
             ['RED', 'GREEN', 'BLUE', 'WHITE', 'BLACK',
              'RED', 'GREEN', 'BLUE', 'WHITE', 'BLACK']]
         self.assertEqual(data, expectedData)
-
 
 
 class NumericTestCase(HDF5CompatibilityTestCase):
@@ -87,7 +88,7 @@ class NumericTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/TestArray' in self.h5file)
 
-        arr = self.h5file.getNode('/TestArray')
+        arr = self.h5file.get_node('/TestArray')
         self.assertTrue(isinstance(arr, tables.Array))
 
         self.assertEqual(arr.atom.type, self.type)
@@ -105,37 +106,40 @@ class NumericTestCase(HDF5CompatibilityTestCase):
         self.assertTrue(common.areArraysEqual(data, expectedData))
 
 
-
 class F64BETestCase(NumericTestCase):
     h5fname = 'smpl_f64be.h5'
     type = 'float64'
     byteorder = 'big'
+
 
 class F64LETestCase(NumericTestCase):
     h5fname = 'smpl_f64le.h5'
     type = 'float64'
     byteorder = 'little'
 
+
 class I64BETestCase(NumericTestCase):
     h5fname = 'smpl_i64be.h5'
     type = 'int64'
     byteorder = 'big'
+
 
 class I64LETestCase(NumericTestCase):
     h5fname = 'smpl_i64le.h5'
     type = 'int64'
     byteorder = 'little'
 
+
 class I32BETestCase(NumericTestCase):
     h5fname = 'smpl_i32be.h5'
     type = 'int32'
     byteorder = 'big'
 
+
 class I32LETestCase(NumericTestCase):
     h5fname = 'smpl_i32le.h5'
     type = 'int32'
     byteorder = 'little'
-
 
 
 class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
@@ -152,7 +156,7 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/CompoundChunked' in self.h5file)
 
-        tbl = self.h5file.getNode('/CompoundChunked')
+        tbl = self.h5file.get_node('/CompoundChunked')
         self.assertTrue(isinstance(tbl, tables.Table))
 
         self.assertEqual(
@@ -180,9 +184,9 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
         for m in range(len(tbl)):
             row = tbl[m]
         # This version of the loop seems to fail because of ``iterrows()``.
-        #for (m, row) in enumerate(tbl):
+        # for (m, row) in enumerate(tbl):
             self.assertEqual(row['a_name'], m)
-            self.assertEqual(row['c_name'], "Hello!")
+            self.assertEqual(row['c_name'], b"Hello!")
             dRow = row['d_name']
             for n in range(5):
                 for o in range(10):
@@ -207,7 +211,7 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/test_var/structure variable' in self.h5file)
 
-        tbl = self.h5file.getNode('/test_var/structure variable')
+        tbl = self.h5file.get_node('/test_var/structure variable')
         self.assertTrue(isinstance(tbl, tables.Table))
 
         self.assertEqual(
@@ -230,8 +234,8 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
             self.assertEqual(row['a'], 3.0)
             self.assertEqual(row['b'], 4.0)
             self.assertTrue(allequal(row['c'], numpy.array([2.0, 3.0],
-                                                        dtype="float64")))
-            self.assertEqual(row['d'], "d")
+                                                           dtype="float64")))
+            self.assertEqual(row['d'], b"d")
 
         self.h5file.close()
 
@@ -252,11 +256,11 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
         shutil.copy(self.h5fname, h5fname_copy)
         # Reopen in 'a'ppend mode
         try:
-            self.h5file = tables.openFile(h5fname_copy, 'a')
+            self.h5file = tables.open_file(h5fname_copy, 'a')
         except IOError:
             # Problems for opening (probably not permisions to write the file)
             return
-        tbl = self.h5file.getNode('/test_var/structure variable')
+        tbl = self.h5file.get_node('/test_var/structure variable')
         # Try to add rows to a non-chunked table (this should raise an error)
         self.assertRaises(tables.HDF5ExtError, tbl.append,
                           [(4.0, 5.0, [2.0, 3.0], 'd')])
@@ -265,7 +269,6 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
         # Remove the file copy
         self.h5file.close()  # Close the handler first
         os.remove(h5fname_copy)
-
 
 
 class ExtendibleTestCase(HDF5CompatibilityTestCase):
@@ -281,7 +284,7 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/ExtendibleArray' in self.h5file)
 
-        arr = self.h5file.getNode('/ExtendibleArray')
+        arr = self.h5file.get_node('/ExtendibleArray')
         self.assertTrue(isinstance(arr, tables.EArray))
 
         self.assertEqual(arr.byteorder, 'big')
@@ -316,9 +319,34 @@ class SzipTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assertTrue('/dset_szip' in self.h5file)
 
-        arr = self.h5file.getNode('/dset_szip')
+        arr = self.h5file.get_node('/dset_szip')
         filters = "Filters(complib='szip', shuffle=False, fletcher32=False)"
         self.assertEqual(repr(arr.filters), filters)
+
+
+# this demonstrates github #203
+class MatlabFileTestCase(common.PyTablesTestCase):
+
+    def setUp(self):
+        h5fname = 'matlab_file.mat'
+        file_path = self._testFilename(h5fname)
+        self.h5file = tables.open_file(file_path, 'r')
+
+    def tearDown(self):
+        self.h5file.close()
+
+    def test_unicode(self):
+        array = self.h5file.get_node(unicode('/'), unicode('a'))
+        self.assertEqual(array.shape, (3, 1))
+
+    # in Python 3 this will be the same as the test above
+    def test_string(self):
+        array = self.h5file.get_node('/', 'a')
+        self.assertEqual(array.shape, (3, 1))
+
+    def test_numpy_str(self):
+        array = self.h5file.get_node(numpy.str_('/'), numpy.str_('a'))
+        self.assertEqual(array.shape, (3, 1))
 
 
 def suite():
@@ -329,24 +357,20 @@ def suite():
 
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(EnumTestCase))
-
         theSuite.addTest(unittest.makeSuite(F64BETestCase))
         theSuite.addTest(unittest.makeSuite(F64LETestCase))
         theSuite.addTest(unittest.makeSuite(I64BETestCase))
         theSuite.addTest(unittest.makeSuite(I64LETestCase))
         theSuite.addTest(unittest.makeSuite(I32BETestCase))
         theSuite.addTest(unittest.makeSuite(I32LETestCase))
-
         theSuite.addTest(unittest.makeSuite(ChunkedCompoundTestCase))
         theSuite.addTest(unittest.makeSuite(ContiguousCompoundTestCase))
         theSuite.addTest(unittest.makeSuite(ContiguousCompoundAppendTestCase))
-
         theSuite.addTest(unittest.makeSuite(ExtendibleTestCase))
-
         theSuite.addTest(unittest.makeSuite(SzipTestCase))
+        theSuite.addTest(unittest.makeSuite(MatlabFileTestCase))
 
     return theSuite
-
 
 
 if __name__ == '__main__':

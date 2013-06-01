@@ -8,14 +8,14 @@ from tables import *
 
 # Open a new empty HDF5 file
 filename = "earray2.h5"
-fileh = openFile(filename, mode = "w")
+fileh = open_file(filename, mode = "w")
 # Get the root group
 root = fileh.root
 
 # Create an string atom
 a = StringAtom(itemsize=1)
 # Use it as a type for the enlargeable array
-hdfarray = fileh.createEArray(root, 'array_c', a, (0,), "Character array")
+hdfarray = fileh.create_earray(root, 'array_c', a, (0,), "Character array")
 hdfarray.append(array(['a', 'b', 'c']))
 # The next is legal:
 hdfarray.append(array(['c', 'b', 'c', 'd']))
@@ -25,12 +25,12 @@ hdfarray.append(array(['c', 'b', 'c', 'd']))
 
 # Create an atom
 a = UInt16Atom()
-hdfarray = fileh.createEArray(root, 'array_e', a, (2, 0, 3),
+hdfarray = fileh.create_earray(root, 'array_e', a, (2, 0, 3),
                               "Unsigned short array")
 
 # Create an enlargeable array
 a = UInt8Atom()
-hdfarray = fileh.createEArray(root, 'array_b', a, (2, 0, 3),
+hdfarray = fileh.create_earray(root, 'array_b', a, (2, 0, 3),
                               "Unsigned byte array", Filters(complevel = 1))
 
 # Append an array to this table
@@ -44,7 +44,7 @@ hdfarray.append(array([[1, 2, 3], [3, 2, 1], [2, 4, 6], [6, 4, 2]],
 fileh.close()
 
 # Open the file for reading
-fileh = openFile(filename, mode = "r")
+fileh = open_file(filename, mode = "r")
 # Get the root group
 root = fileh.root
 

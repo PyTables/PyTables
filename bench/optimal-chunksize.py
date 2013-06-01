@@ -47,8 +47,8 @@ def bench(chunkshape, filters):
     filename = tempfile.mktemp(suffix='.h5')
     print "Doing test on the file system represented by:", filename
 
-    f = tables.openFile(filename, 'w')
-    e = f.createEArray(f.root, 'earray', datom, shape=(0, M),
+    f = tables.open_file(filename, 'w')
+    e = f.create_earray(f.root, 'earray', datom, shape=(0, M),
                        filters = filters,
                        chunkshape = chunkshape)
     # Fill the array

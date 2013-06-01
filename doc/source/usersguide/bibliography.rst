@@ -6,7 +6,7 @@ Bibliography
 :ref:`[HDFG1] <HDFG1>`
     The HDF Group. What is HDF5?. Concise description about HDF5 capabilities
     and its differences from earlier versions (HDF4).
-    `<http://www.hdfgroup.org/whatishdf5.html>`_.
+    `<http://www.hdfgroup.org/HDF5/whatishdf5.html>`_.
 
 .. _HDFG2:
 
@@ -34,22 +34,7 @@ Bibliography
 :ref:`[CYTHON] <CYTHON>`
     Stefan Behnel, Robert Bradshaw, Dag Sverre Seljebotn, and Greg Ewing.
     Cython. A language that makes writing C extensions for the Python
-    language as easy as Python itself. `<http://cython.org>`_.
-
-.. _NETCDF1:
-
-:ref:`[NETCDF1] <NETCDF1>`
-    Glenn Davis, Russ Rew, Steve Emmerson, John Caron, and Harvey Davies.
-    NetCDF. Network Common Data Form. An interface for array-oriented data
-    access and a library that provides an implementation of the interface.
-    `<http://www.unidata.ucar.edu/software/netcdf/>`_.
-
-.. _NETCDF2:
-
-:ref:`[NETCDF2] <NETCDF2>`
-    Russ Rew, Mike Folk, and et al. NetCDF-4. Network Common Data Form
-    version 4. Merging the NetCDF and HDF5 Libraries.
-    `<http://www.unidata.ucar.edu/software/netcdf/index.html>`_.
+    language as easy as Python itself. `<http://www.cython.org>`_.
 
 .. _NUMPY:
 
@@ -59,23 +44,7 @@ Bibliography
     date.
     It implements all the features that can be found in Numeric and numarray,
     plus a bunch of new others. In general, it is more efficient as well.
-    `<http://numpy.scipy.org/>`_.
-
-.. _NUMERIC:
-
-:ref:`[NUMERIC] <NUMERIC>`
-    David Ascher, Paul F Dubois, Konrad Hinsen, Jim Hugunin, and Travis
-    Oliphant. Numerical Python. Package to speed-up arithmetic operations on
-    arrays of numbers. `<http://sourceforge.net/projects/numpy/>`_.
-
-.. _NUMARRAY:
-
-:ref:`[NUMARRAY] <NUMARRAY>`
-    Perry Greenfield, Todd Miller, Richard L White, J. C. Hsu, Paul Barrett,
-    Jochen |Kuepper|, and Peter J Verveer. Numarray. Reimplementation of
-    Numeric which adds the ability to efficiently manipulate large numeric
-    arrays in ways similar to Matlab and IDL. Among others, Numarray provides
-    the record array extension. `<http://stsdas.stsci.edu/numarray/>`_.
+    `<http://www.numpy.org>`_.
 
 .. _NUMEXPR:
 
@@ -114,7 +83,7 @@ Bibliography
     Francesc Alted. Blosc. A blocking, shuffling and loss-less compression
     library.  A compressor designed to transmit data from memory to CPU
     (and back) faster than a plain memcpy().
-    `<http://blosc.pytables.org/>`_.
+    `<http://www.blosc.org/>`_.
 
 .. _GNUWIN32:
 
@@ -185,7 +154,7 @@ Bibliography
 :ref:`[SPHINX] <SPHINX>`
     Sphinx is a tool that makes it easy to create intelligent and beautiful
     documentation, written by Georg Brandl and licensed under the BSD license
-    `<http://sphinx.pocoo.org/>`_.
+    `<http://sphinx-doc.org>`_.
 
 .. |Kuepper| unicode:: K U+00FC pper .. Kuepper
 
