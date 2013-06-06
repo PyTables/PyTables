@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
-inmemory.py
+"""inmemory.py
 
 Example usage of creating in-memory HDF5 file with a specified chunksize
 using PyTables 3.0.0+
