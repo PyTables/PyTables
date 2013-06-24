@@ -234,7 +234,7 @@ def _arch_without_blosc():
     for a in ["arm", "sparc", "mips"]:
         if a in arch:
             return True
-        return False
+    return False
 
 # Only register bloc compressor on platforms that actually support it.
 if _arch_without_blosc():

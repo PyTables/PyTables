@@ -11,7 +11,7 @@
 Changes from 2.4 to 3.X.Y (in development)
 ==========================================
 
-None
+* Fixed detection of platforms supporting blosc
 
 
 Changes from 2.4 to 3.0
