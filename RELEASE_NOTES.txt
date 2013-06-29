@@ -11,9 +11,24 @@
 Changes from 3.0 to 3.X.Y (in development)
 ==========================================
 
-* Fixed detection of platforms supporting blosc
+New features
+------------
+
+* Now PyTables is able to save/restore the default value of :class:`EnumAtom`
+  types (closes :issue:`234`).
+
+
+Improvements
+------------
+
 * Documented an unexpected behaviour with string literals in query conditions
   on Python 3 (closes :issue:`265`)
+
+
+Bugs fixed
+----------
+
+* Fixed detection of platforms supporting blosc
 
 
 Changes from 2.4 to 3.0

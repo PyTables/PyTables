@@ -985,10 +985,8 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
 enumFromHDF5 = previous_api(enum_from_hdf5)
 
 
-def enum_to_hdf5(object enumAtom, str byteorder):
-  """enum_to_hdf5(enumAtom, byteorder) -> hid_t
-
-  Convert a PyTables enumerated type to an HDF5 one.
+def enum_to_hdf5(object enum_atom, str byteorder):
+  """Convert a PyTables enumerated type to an HDF5 one.
 
   This function creates an HDF5 enumerated type from the information
   contained in `enumAtom` (an ``Atom`` object), with the specified
@@ -997,41 +995,47 @@ def enum_to_hdf5(object enumAtom, str byteorder):
 
   """
 
-  cdef bytes  name
-  cdef hid_t  baseId, enumId
-  cdef long   bytestride, i
-  cdef void  *rbuffer, *rbuf
-  cdef ndarray npValues
-  cdef object baseAtom
+  cdef bytes   name
+  cdef hid_t   base_id, enum_id
+  cdef long    bytestride, i
+  cdef void    *rbuffer, *rbuf
+  cdef ndarray values
+  cdef object  base_atom
 
   # Get the base HDF5 type and create the enumerated type.
-  baseAtom = Atom.from_dtype(enumAtom.dtype.base)
-  baseId = atom_to_hdf5_type(baseAtom, byteorder)
+  base_atom = Atom.from_dtype(enum_atom.dtype.base)
+  base_id = atom_to_hdf5_type(base_atom, byteorder)
 
   try:
-    enumId = H5Tenum_create(baseId)
-    if enumId < 0:
+    enum_id = H5Tenum_create(base_id)
+    if enum_id < 0:
       raise HDF5ExtError("failed to create HDF5 enumerated type")
   finally:
-    if H5Tclose(baseId) < 0:
+    if H5Tclose(base_id) < 0:
       raise HDF5ExtError("failed to close HDF5 base type")
 
   # Set the name and value of each of the members.
-  npNames = enumAtom._names
-  npValues = enumAtom._values
-  bytestride = npValues.strides[0]
-  rbuffer = npValues.data
-  for i from 0 <= i < len(npNames):
-    name = npNames[i].encode('utf-8')
+  names = enum_atom._names
+  values = enum_atom._values
+  bytestride = values.strides[0]
+  rbuffer = values.data
+
+  i = names.index(enum_atom._defname)
+  idx = list(range(len(names)))
+  idx.pop(i)
+  idx.insert(0, i)
+
+  for i in idx:
+    name = names[i].encode('utf-8')
     rbuf = <void *>(<char *>rbuffer + bytestride * i)
-    if H5Tenum_insert(enumId, name, rbuf) < 0:
+    if H5Tenum_insert(enum_id, name, rbuf) < 0:
       e = HDF5ExtError("failed to insert value into HDF5 enumerated type")
-      if H5Tclose(enumId) < 0:
+      if H5Tclose(enum_id) < 0:
         raise HDF5ExtError("failed to close HDF5 enumerated type")
       raise e
 
   # Return the new, open HDF5 enumerated type.
-  return enumId
+  return enum_id
 
 
 enumToHDF5 = previous_api(enum_to_hdf5)

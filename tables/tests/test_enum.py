@@ -21,7 +21,6 @@ from tables.tests import common
 
 
 class CreateColTestCase(common.PyTablesTestCase):
-
     """Test creating enumerated column descriptions."""
 
     def _createCol(self, enum, dflt, base='uint32', shape=()):
@@ -82,9 +81,14 @@ class CreateColTestCase(common.PyTablesTestCase):
         colors = tables.Enum(['red', 'green', 'blue'])
         enumcol = tables.EnumCol(colors, 'red', base='uint32', shape=())
         # needed due to "Hash randomization" (default on python 3.3)
-        template = """EnumCol(enum=Enum({%s}), dflt='red', base=UInt32Atom(shape=(), dflt=0), shape=(), pos=None)"""
-        permitations = [template % ', '.join(items) for items in itertools.permutations(
-            ("'blue': 2", "'green': 1", "'red': 0"))]
+        template = (
+            "EnumCol(enum=Enum({%s}), dflt='red', base=UInt32Atom(shape=(), "
+            "dflt=0), shape=(), pos=None)"
+        )
+        permitations = [
+            template % ', '.join(items) for items in itertools.permutations(
+                ("'blue': 2", "'green': 1", "'red': 0"))
+        ]
         self.assertTrue(repr(enumcol) in permitations)
 
     def test99a_nonIntEnum(self):
@@ -94,7 +98,8 @@ class CreateColTestCase(common.PyTablesTestCase):
                           base=tables.FloatAtom())
 
     def test99b_nonIntDtype(self):
-        """Describing an enumerated column encoded as floats (not implemented)."""
+        """Describing an enumerated column encoded as floats
+        (not implemented)."""
         colors = ['red', 'green', 'blue']
         self.assertRaises(
             NotImplementedError, self._createCol, colors, 'red', 'float64')
@@ -107,7 +112,6 @@ class CreateColTestCase(common.PyTablesTestCase):
 
 
 class CreateAtomTestCase(common.PyTablesTestCase):
-
     """Test creating enumerated atoms."""
 
     def _createAtom(self, enum, dflt, base='uint32', shape=()):
@@ -162,7 +166,8 @@ class CreateAtomTestCase(common.PyTablesTestCase):
                           base=tables.FloatAtom())
 
     def test99b_nonIntDtype(self):
-        """Describing an enumerated atom encoded as a float (not implemented)."""
+        """Describing an enumerated atom encoded as a float
+        (not implemented)."""
         colors = ['red', 'green', 'blue']
         self.assertRaises(
             NotImplementedError, self._createAtom, colors, 'red', 'float64')
@@ -175,7 +180,6 @@ class CreateAtomTestCase(common.PyTablesTestCase):
 
 
 class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     """Test tables with enumerated columns."""
 
     enum = tables.Enum({'red': 4, 'green': 2, 'blue': 1, 'black': 0})
@@ -347,7 +351,6 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     """Test extendable arrays of enumerated values."""
 
     enum = tables.Enum({'red': 4, 'green': 2, 'blue': 1, 'black': 0})
@@ -389,6 +392,78 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(
             self.h5file.root.test.get_enum(), self.enum,
             "Enumerated type was not restored correctly from disk.")
+
+    def test_enum_default_persistence_red(self):
+        dflt = 'red'
+        atom = tables.EnumAtom(
+            self.enum, dflt, base=self.enumType, shape=())
+
+        self.h5file.create_earray('/', 'test', atom, shape=(0,),
+                                  title=self._getMethodName())
+        self._reopen()
+
+        self.assertEqual(
+            self.h5file.root.test.get_enum(), self.enum,
+            "Enumerated type was not restored correctly from disk.")
+
+        self.assertEqual(
+            self.h5file.root.test.atom.dflt, self.enum[dflt],
+            "The default value of enumerated type was not restored correctly "
+            "from disk.")
+
+    def test_enum_default_persistence_green(self):
+        dflt = 'green'
+        atom = tables.EnumAtom(
+            self.enum, dflt, base=self.enumType, shape=())
+
+        self.h5file.create_earray('/', 'test', atom, shape=(0,),
+                                  title=self._getMethodName())
+        self._reopen()
+
+        self.assertEqual(
+            self.h5file.root.test.get_enum(), self.enum,
+            "Enumerated type was not restored correctly from disk.")
+
+        self.assertEqual(
+            self.h5file.root.test.atom.dflt, self.enum[dflt],
+            "The default value of enumerated type was not restored correctly "
+            "from disk.")
+
+    def test_enum_default_persistence_blue(self):
+        dflt = 'blue'
+        atom = tables.EnumAtom(
+            self.enum, dflt, base=self.enumType, shape=())
+
+        self.h5file.create_earray('/', 'test', atom, shape=(0,),
+                                  title=self._getMethodName())
+        self._reopen()
+
+        self.assertEqual(
+            self.h5file.root.test.get_enum(), self.enum,
+            "Enumerated type was not restored correctly from disk.")
+
+        self.assertEqual(
+            self.h5file.root.test.atom.dflt, self.enum[dflt],
+            "The default value of enumerated type was not restored correctly "
+            "from disk.")
+
+    def test_enum_default_persistence_black(self):
+        dflt = 'black'
+        atom = tables.EnumAtom(
+            self.enum, dflt, base=self.enumType, shape=())
+
+        self.h5file.create_earray('/', 'test', atom, shape=(0,),
+                                  title=self._getMethodName())
+        self._reopen()
+
+        self.assertEqual(
+            self.h5file.root.test.get_enum(), self.enum,
+            "Enumerated type was not restored correctly from disk.")
+
+        self.assertEqual(
+            self.h5file.root.test.atom.dflt, self.enum[dflt],
+            "The default value of enumerated type was not restored correctly "
+            "from disk.")
 
     def test01_append(self):
         """Appending scalar elements of enumerated values."""
@@ -440,7 +515,6 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     """Test variable-length arrays of enumerated values."""
 
     enum = tables.Enum({'red': 4, 'green': 2, 'blue': 1, 'black': 0})
@@ -453,7 +527,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.enum, 'red', base=self.enumType, shape=shape)
 
     def test00a_reopen(self):
-        """Reopening a file with variable-length arrays using enumerated data."""
+        """Reopening a file with variable-length arrays using
+        enumerated data."""
 
         self.h5file.create_vlarray(
             '/', 'test', self._atom(),
@@ -572,7 +647,6 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')
-
 
 
 ## Local Variables:
