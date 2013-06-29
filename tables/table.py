@@ -1459,7 +1459,7 @@ class Table(tableextension.Table, Leaf):
         the full code.
 
         .. versionchanged:: 3.0
-        The start, stop and step parameters now behave like in slice.
+           The start, stop and step parameters now behave like in slice.
 
         """
 
@@ -1698,7 +1698,7 @@ class Table(tableextension.Table, Leaf):
         :meth:`Table.read`.
 
         .. versionchanged:: 3.0
-        The start, stop and step parameters now behave like in slice.
+           The start, stop and step parameters now behave like in slice.
 
         """
 
