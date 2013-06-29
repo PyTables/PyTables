@@ -119,6 +119,7 @@ def print_versions():
     print 'Byte-ordering:     %s' % sys.byteorder
     print 'Detected cores:    %s' % detect_number_of_cores()
     print 'Default encoding:  %s' % sys.getdefaultencoding()
+    print 'Default locale:    (%s, %s)' % locale.getdefaultlocale()
     print '-=' * 38
 
     # This should improve readability whan tests are run by CI tools
