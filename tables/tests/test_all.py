@@ -80,6 +80,7 @@ def suite():
 
 def print_versions():
     """Print all the versions of software that PyTables relies on."""
+
     print '-=' * 38
     print "PyTables version:  %s" % tables.__version__
     print "HDF5 version:      %s" % tables.which_lib_version("hdf5")[1]
@@ -118,6 +119,9 @@ def print_versions():
     print 'Detected cores:    %s' % detect_number_of_cores()
     print 'Default encoding:  %s' % sys.getdefaultencoding()
     print '-=' * 38
+
+    # This should improve readability whan tests are run by CI tools
+    sys.stdout.flush()
 
 
 def print_heavy(heavy):
