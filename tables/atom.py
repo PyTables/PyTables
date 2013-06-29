@@ -833,15 +833,15 @@ class EnumAtom(Atom):
     The next C enum construction::
 
         enum myEnum {
-                    T0,
-                    T1,
-                    T2
-                    };
+            T0,
+            T1,
+            T2
+        };
 
     would correspond to the following PyTables
     declaration::
 
-        >>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')
+        >>> my_enum_atom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')
 
     Please note the dflt argument with a value of 'T0'. Since the concrete
     value matching T0 is unknown right now (we have not used explicit concrete
@@ -853,14 +853,15 @@ class EnumAtom(Atom):
     could be selected by using the base argument (this time with a full-blown
     storage atom)::
 
-        >>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())
+        >>> my_enum_atom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())
 
     You can also define multidimensional arrays for data elements::
 
-        >>> myEnumAtom = EnumAtom(
+        >>> my_enum_atom = EnumAtom(
         ...    ['T0', 'T1', 'T2'], 'T0', base='uint32', shape=(3,2))
 
     for 3x2 arrays of uint32.
+
     """
 
     # Registering this class in the class map may be a little wrong,
