@@ -1458,6 +1458,42 @@ class Table(tableextension.Table, Leaf):
         Table objects offer. See the file :file:`examples/nested-iter.py` for
         the full code.
 
+        .. note::
+
+            A special care should be taken when the query condition includes
+            string literals.  Indeed Python 2 string literals are string of
+            bytes while Python 3 strings are unicode objects.
+
+            Let's assume that the table ``table`` has the following
+            structure::
+
+                class Record(IsDescription):
+                    col1 = StringCol(4)  # 4-character String of bytes
+                    col2 = IntCol()
+                    col3 = FloatCol()
+
+            The type of "col1" do not change depending on the Python version
+            used (of course) and it always corresponds to strings of bytes.
+
+            Any condition involving "col1" should be written using the
+            appropriate type for string literals in order to avoid
+            :exc:`TypeError`\ s.
+
+            The code below will work fine in Python 2 but will fail with a
+            :exc:`TypeError` in Python 3::
+
+                condition = 'col1 == "AAAA"'
+                for record in table.where(condition):  # TypeError in Python3
+                    # do something with "record"
+
+            The reason is that in Python 3 "condition" implies a comparison
+            between a string of bytes ("col1" contents) and an unicode literal
+            ("AAAA").
+
+            The correct way to write the condition is::
+
+                condition = 'col1 == b"AAAA"'
+
         .. versionchanged:: 3.0
            The start, stop and step parameters now behave like in slice.
 

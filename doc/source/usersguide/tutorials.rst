@@ -18,10 +18,8 @@ reference in :ref:`library_reference`. If you are reading this in PDF or HTML
 formats, follow the corresponding hyperlink near each newly introduced
 entity.
 
-Please note that throughout this document the terms
-*column* and *field* will be used
-interchangeably, as will the terms *row* and
-*record*.
+Please note that throughout this document the terms *column* and *field*
+will be used interchangeably, as will the terms *row* and *record*.
 
 .. currentmodule:: tables
 
@@ -260,9 +258,8 @@ data in table is exhausted. These rows are filtered using the expression::
 
     x['TDCcount'] > 3 and 20 <= x['pressure'] < 50
 
-So, we are selecting the values of the pressure
-column from filtered records to create the final list and assign it to
-pressure variable.
+So, we are selecting the values of the pressure column from filtered records
+to create the final list and assign it to pressure variable.
 
 We could have used a normal for loop to accomplish the same purpose, but I
 find comprehension syntax to be more compact and elegant.
@@ -283,6 +280,38 @@ In-kernel and indexed queries are not only much faster, but as you can see,
 they also look more compact, and are among the greatests features for
 PyTables, so be sure that you use them a lot. See :ref:`condition_syntax` and
 :ref:`searchOptim` for more information on in-kernel and indexed selections.
+
+.. note::
+
+    A special care should be taken when the query condition includes
+    string literals.  Indeed Python 2 string literals are string of
+    bytes while Python 3 strings are unicode objects.
+
+    With reference to the above definition of :class:`Particle` it has to be
+    noted that the type of the "name" column do not change depending on the
+    Python version used (of course).
+    It always corresponds to strings of bytes.
+
+    Any condition involving the "name" column should be written using the
+    appropriate type for string literals in order to avoid
+    :exc:`TypeError`\ s.
+
+    Suppose one wants to get rows corresponding to specific particle names.
+
+    The code below will work fine in Python 2 but will fail with a
+    :exc:`TypeError` in Python 3::
+
+        >>> condition = '(name == "Particle:      5") | (name == "Particle:      7")'
+        >>> for record in table.where(condition):  # TypeError in Python3
+        ...     # do something with "record"
+
+    The reason is that in Python 3 "condition" implies a comparison
+    between a string of bytes ("name" column contents) and an unicode
+    literals.
+
+    The correct way to write the condition is::
+
+        >>> condition = '(name == b"Particle:      5") | (name == b"Particle:      7")'
 
 That's enough about selections for now. The next section will show you how to
 save these selected results to a file.

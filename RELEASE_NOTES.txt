@@ -8,10 +8,12 @@
 .. py:currentmodule:: tables
 
 
-Changes from 2.4 to 3.X.Y (in development)
+Changes from 3.0 to 3.X.Y (in development)
 ==========================================
 
 * Fixed detection of platforms supporting blosc
+* Documented an unexpected behaviour with string literals in query conditions
+  on Python 3 (closes :issue:`265`)
 
 
 Changes from 2.4 to 3.0
