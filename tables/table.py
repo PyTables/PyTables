@@ -2573,7 +2573,7 @@ class Table(tableextension.Table, Leaf):
         """Remove a range of rows in the table.
 
         .. versionchanged:: 3.0
-        The start, stop and step parameters now behave like in slice.
+           The start, stop and step parameters now behave like in slice.
 
         .. seealso:: remove_row()
 
