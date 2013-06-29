@@ -2,11 +2,11 @@
 
 """Run all test cases."""
 
-import os
 import re
 import sys
 import locale
 import unittest
+import platform
 
 import numpy
 
@@ -112,9 +112,10 @@ def print_versions():
     except:
         pass
     print 'Python version:    %s' % sys.version
-    if os.name == 'posix':
-        (sysname, nodename, release, version, machine) = os.uname()
-        print 'Platform:          %s-%s' % (sys.platform, machine)
+    print 'Platform:          %s' % platform.platform()
+    #if os.name == 'posix':
+    #    (sysname, nodename, release, version, machine) = os.uname()
+    #    print 'Platform:          %s-%s' % (sys.platform, machine)
     print 'Byte-ordering:     %s' % sys.byteorder
     print 'Detected cores:    %s' % detect_number_of_cores()
     print 'Default encoding:  %s' % sys.getdefaultencoding()
