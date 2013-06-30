@@ -25,12 +25,16 @@ Improvements
   on Python 3 (closes :issue:`265`)
 * The deprecated :mod:`getopt` module has been dropped in favour of
   :mod:`argparse` in all command line utilities (close :issue:`251`)
+* Improved the installation section of the :doc:`../usersguide/index`.
+  Instructions for installing PyTables via pip_ have been added.
 
 
 Bugs fixed
 ----------
 
 * Fixed detection of platforms supporting blosc
+
+.. _pip: http://www.pip-installer.org
 
 
 Changes from 2.4 to 3.0

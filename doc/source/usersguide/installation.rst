@@ -69,8 +69,8 @@ proceeding.
 .. _ctypes: https://pypi.python.org/pypi/ctypes
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
-instructions on how to install precompiled binaries if you are not willing to
-compile the prerequisites on Windows systems).
+instructions on how to install pre-compiled binaries if you are not willing
+to compile the prerequisites on Windows systems).
 
 For compression (and possibly improved performance), you will need to install
 the Zlib (see :ref:`[ZLIB] <ZLIB>`), which is also required by HDF5 as well.
@@ -201,12 +201,12 @@ you can proceed with the PyTables package itself.
    **Unix**
       In the sh shell and its variants::
 
-        $ cd build/lib.linux-x86_64-2.7
+        $ cd build/lib.linux-x86_64-3.3
         $ env PYTHONPATH=. python tables/tests/test_all.py
 
       or, if you prefer::
 
-        $ cd build/lib.linux-x86_64-2.7
+        $ cd build/lib.linux-x86_64-3.3
         $ env PYTHONPATH=. python -c "import tables; tables.test()"
 
       .. note::
@@ -317,6 +317,57 @@ you can proceed with the PyTables package itself.
    for more information on that subject.
 
 That's it! Now you can skip to the next chapter to learn how to use PyTables.
+
+
+Installation with :program:`pip`
+--------------------------------
+
+Many users find it useful to use the :program:`pip` program (or similar ones)
+to install python packages.
+
+As explained in previous sections the user should in any case ensure that all
+dependencies listed in the `Prerequisites`_ section are correctly installed.
+
+The simplest way to install PyTables using :program:`pip` is the following::
+
+  $ pip install tables
+
+The following example shows how to install the latest stable version of
+PyTables in the user folder when a older version of the package is already
+installed at system level::
+
+  $ pip install --user --upgrade tables
+
+The `--user` option tels to the :program:`pip` tool to install the package in
+the user folder (``$HOME/.local`` on GNU/Linux and Unix systems), while the
+`--upgrade` option forces the installation of the latest version even if an
+older version of the package is already installed.
+
+The :program:`pip` tool can also be used to install packages from a source
+tar-ball::
+
+  $ pip install tables-3.0.0.tar.gz
+
+To install the development version of PyTables from the *develop* branch of
+the main :program:`git` :ref:`[GIT] <GIT>` repository the command is the
+following::
+
+  $ pip install git+https://github.com/PyTables/PyTables.git@develop#egg=tables
+
+A similar command can be used to install a specific tagged fersion::
+
+  $ pip install git+https://github.com/PyTables/PyTables.git@v.2.4.0#egg=tables
+
+Finally, PyTables developers provide a :file:`requirements.txt` file that
+can be used by :program:`pip` to install the PyTables package and its
+dependencies::
+
+  $ wget https://raw.github.com/PyTables/PyTables/develop/requirements.txt
+  $ pip install -r requirements.txt
+
+Of course the :file:`requirements.txt` file can be used to install only
+python packages.  Other dependencies like the HDF5 library of compression
+libraries have to be installed by the user.
 
 
 .. _binaryInstallationDescr:
