@@ -23,6 +23,8 @@ Improvements
 
 * Documented an unexpected behaviour with string literals in query conditions
   on Python 3 (closes :issue:`265`)
+* The deprecated :mod:`getopt` module has been dropped in favour of
+  :mod:`argparse` in all command line utilities (close :issue:`251`)
 
 
 Bugs fixed
