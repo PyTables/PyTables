@@ -17,10 +17,11 @@ Pass the flag -h to this for help on usage.
 """
 
 import sys
-import os.path
 import time
-import getopt
+import os.path
+import argparse
 import warnings
+
 
 from tables.file import open_file
 from tables.group import Group
@@ -273,162 +274,155 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
 copyChildren = previous_api(copy_children)
 
 
+def _get_parser():
+    parser = argparse.ArgumentParser(
+        description='''This utility is very powerful and lets you copy any
+        leaf, group or complete subtree into another file.
+        During the copy process you are allowed to change the filter
+        properties if you want so. Also, in the case of duplicated pathnames,
+        you can decide if you want to overwrite already existing nodes on the
+        destination file. Generally speaking, ptrepack can be useful in may
+        situations, like replicating a subtree in another file, change the
+        filters in objects and see how affect this to the compression degree
+        or I/O performance, consolidating specific data in repositories or
+        even *importing* generic HDF5 files and create true PyTables
+        counterparts.''')
+
+    parser.add_argument(
+        '-v', '--verbose', action='store_true',
+        help='show verbose information',
+    )
+    parser.add_argument(
+        '-o', '--overwrite', action='store_true', dest='overwritefile',
+        help='overwrite destination file',
+    )
+    parser.add_argument(
+        '-R', '--range', dest='rng', metavar='RANGE',
+        help='''select a RANGE of rows (in the form "start,stop,step")
+        during the copy of *all* the leaves.
+        Default values are "None,None,1", which means a copy of all the
+        rows.''',
+    )
+    parser.add_argument(
+        '--non-recursive', action='store_false', default=True,
+        dest='recursive',
+        help='do not do a recursive copy. Default is to do it',
+    )
+    parser.add_argument(
+        '--dest-title', dest='title', default='',
+        help='title for the new file (if not specified, the source is copied)',
+    )
+    parser.add_argument(
+        '--dont-create-sysattrs', action='store_false', default=True,
+        dest='createsysattrs',
+        help='do not create sys attrs (default is to do it)',
+    )
+    parser.add_argument(
+        '--dont-copy-userattrs', action='store_false', default=True,
+        dest='copyuserattrs',
+        help='do not copy the user attrs (default is to do it)',
+    )
+    parser.add_argument(
+        '--overwrite-nodes', action='store_true', dest='overwrtnodes',
+        help='''overwrite destination nodes if they exist.
+        Default is to not overwrite them''',
+    )
+    parser.add_argument(
+        '--complevel', type=int, default=0,
+        help='''set a compression level (0 for no compression, which is the
+        default)''',
+    )
+    parser.add_argument(
+        '--complib', choices=("zlib", "lzo", "bzip2", "blosc"), default='zlib',
+        help='''set the compression library to be used during the copy.
+        Defaults to %(default)s''',
+    )
+    parser.add_argument(
+        '--shuffle', type=int, choices=(0, 1),
+        help='''activate or not the shuffling filter (default is active if
+        complevel > 0)''',
+    )
+    parser.add_argument(
+        '--fletcher32', type=int, choices=(0, 1),
+        help='''whether to activate or not the fletcher32 filter (not active
+        by default)''',
+    )
+    parser.add_argument(
+        '--keep-source-filters', action='store_true', dest='keepfilters',
+        help='''use the original filters in source files.
+        The default is not doing that if any of --complevel, --complib,
+        --shuffle or --fletcher32 option is specified''',
+    )
+    parser.add_argument(
+        '--chunkshape', default='keep',
+        help='''set a chunkshape.
+        Possible options are: "keep" | "auto" | int | tuple.
+        A value of "auto" computes a sensible value for the chunkshape of the
+        leaves copied.  The default is to "keep" the original value''',
+    )
+    parser.add_argument(
+        '--upgrade-flavors', action='store_true', dest='upgradeflavors',
+        help='''when repacking PyTables 1.x or PyTables 2.x files, the flavor
+        of leaves will be unset. With this, such a leaves will be serialized
+        as objects with the internal flavor ('numpy' for 3.x series)''',
+    )
+    parser.add_argument(
+        '--dont-regenerate-old-indexes', action='store_false', default=True,
+        dest='regoldindexes',
+        help='''disable regenerating old indexes.
+        The default is to regenerate old indexes as they are found''',
+    )
+    parser.add_argument(
+        '--sortby', metavar='COLUMN',
+        help='''do a table copy sorted by the index in "column".
+        For reversing the order, use a negative value in the "step" part of
+        "RANGE" (see "-r" flag).  Only applies to table objects''',
+    )
+    parser.add_argument(
+        '--checkCSI', action='store_true',
+        help='Force the check for a CSI index for the --sortby column',
+    )
+    parser.add_argument(
+        '--propindexes', action='store_true',
+        help='''propagate the indexes existing in original tables. The default
+        is to not propagate them.  Only applies to table objects''',
+    )
+    parser.add_argument(
+        'src', metavar='sourcefile:sourcegroup', help='source file/group',
+    )
+    parser.add_argument(
+        'dst', metavar='destfile:destgroup', help='destination file/group',
+    )
+
+    return parser
+
+
 def main():
     global verbose
     global regoldindexes
     global createsysattrs
 
-    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-create-sysattrs] [--dont-copy-userattrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--checkCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
-     -h -- Print usage message.
-     -v -- Show more information.
-     -o -- Overwrite destination file.
-     -R RANGE -- Select a RANGE of rows (in the form "start,stop,step")
-         during the copy of *all* the leaves.  Default values are
-         "None,None,1", which means a copy of all the rows.
-     --non-recursive -- Do not do a recursive copy. Default is to do it.
-     --dest-title=title -- Title for the new file (if not specified,
-         the source is copied).
-     --dont-create-sysattrs -- Do not create sys attrs (default is to do it).
-     --dont-copy-userattrs -- Do not copy the user attrs (default is to do it).
-     --overwrite-nodes -- Overwrite destination nodes if they exist. Default is
-         to not overwrite them.
-     --complevel=(0-9) -- Set a compression level (0 for no compression, which
-         is the default).
-     --complib=lib -- Set the compression library to be used during the copy.
-         lib can be set to "zlib", "lzo", "bzip2" or "blosc".  Defaults to
-         "zlib".
-     --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
-         if complevel>0).
-     --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter
-        (not active by default).
-     --keep-source-filters -- Use the original filters in source files. The
-         default is not doing that if any of --complevel, --complib, --shuffle
-         or --fletcher32 option is specified.
-     --chunkshape=("keep"|"auto"|int|tuple) -- Set a chunkshape.  A value
-         of "auto" computes a sensible value for the chunkshape of the
-         leaves copied.  The default is to "keep" the original value.
-     --upgrade-flavors -- When repacking PyTables 1.x files, the flavor of
-         leaves will be unset. With this, such a leaves will be serialized
-         as objects with the internal flavor ('numpy' for 2.x series).
-     --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
-         default is to regenerate old indexes as they are found.
-     --sortby=column -- Do a table copy sorted by the index in "column".
-         For reversing the order, use a negative value in the "step" part of
-         "RANGE" (see "-R" flag).  Only applies to table objects.
-     --checkCSI -- Force the check for a CSI index for the --sortby column.
-     --propindexes -- Propagate the indexes existing in original tables.  The
-         default is to not propagate them.  Only applies to table objects.
-    \n""" % os.path.basename(sys.argv[0])
+    parser = _get_parser()
+    args = parser.parse_args()
 
-    try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'hvoR:',
-                                    ['non-recursive',
-                                     'dest-title=',
-                                     'dont-create-sysattrs',
-                                     'dont-copy-userattrs',
-                                     'overwrite-nodes',
-                                     'complevel=',
-                                     'complib=',
-                                     'shuffle=',
-                                     'fletcher32=',
-                                     'keep-source-filters',
-                                     'chunkshape=',
-                                     'upgrade-flavors',
-                                     'dont-regenerate-old-indexes',
-                                     'sortby=',
-                                     'checkCSI',
-                                     'propindexes',
-                                     ])
-    except:
-        (type, value, traceback) = sys.exc_info()
-        print "Error parsing the options. The error was:", value
-        sys.stderr.write(usage)
-        sys.exit(0)
+    # check arguments
+    if args.rng:
+        try:
+            args.rng = eval("slice(" + args.rng + ")")
+        except Exception:
+            parser.error("Error when getting the range parameter.")
 
-    # default options
-    overwritefile = False
-    keepfilters = False
-    chunkshape = "keep"
-    complevel = None
-    complib = None
-    shuffle = None
-    fletcher32 = None
-    title = ""
-    copyuserattrs = True
-    rng = None
-    recursive = True
-    overwrtnodes = False
-    upgradeflavors = False
-    sortby = None
-    checkCSI = False
-    propindexes = False
+    if args.chunkshape.isdigit() or args.chunkshape.startswith('('):
+        args.chunkshape = eval(args.chunkshape)
 
-    # Get the options
-    for option in opts:
-        if option[0] == '-h':
-            sys.stderr.write(usage)
-            sys.exit(0)
-        elif option[0] == '-v':
-            verbose = True
-        elif option[0] == '-o':
-            overwritefile = True
-        elif option[0] == '-R':
-            try:
-                rng = eval("slice("+option[1]+")")
-            except:
-                print "Error when getting the range parameter."
-                (type, value, traceback) = sys.exc_info()
-                print "  The error was:", value
-                sys.stderr.write(usage)
-                sys.exit(0)
-        elif option[0] == '--dest-title':
-            title = option[1]
-        elif option[0] == '--dont-create-sysattrs':
-            createsysattrs = False
-        elif option[0] == '--dont-copy-userattrs':
-            copyuserattrs = False
-        elif option[0] == '--non-recursive':
-            recursive = False
-        elif option[0] == '--overwrite-nodes':
-            overwrtnodes = True
-        elif option[0] == '--keep-source-filters':
-            keepfilters = True
-        elif option[0] == '--chunkshape':
-            chunkshape = option[1]
-            if chunkshape.isdigit() or chunkshape.startswith('('):
-                chunkshape = eval(chunkshape)
-        elif option[0] == '--upgrade-flavors':
-            upgradeflavors = True
-        elif option[0] == '--dont-regenerate-old-indexes':
-            regoldindexes = False
-        elif option[0] == '--complevel':
-            complevel = int(option[1])
-        elif option[0] == '--complib':
-            complib = option[1]
-        elif option[0] == '--shuffle':
-            shuffle = int(option[1])
-        elif option[0] == '--fletcher32':
-            fletcher32 = int(option[1])
-        elif option[0] == '--sortby':
-            sortby = option[1]
-        elif option[0] == '--propindexes':
-            propindexes = True
-        elif option[0] == '--checkCSI':
-            checkCSI = True
-        else:
-            print option[0], ": Unrecognized option"
-            sys.stderr.write(usage)
-            sys.exit(0)
-
-    # if we pass a number of files different from 2, abort
-    if len(pargs) != 2:
-        print "You need to pass both source and destination!."
-        sys.stderr.write(usage)
-        sys.exit(0)
+    if args.complevel < 0 or args.complevel > 9:
+        parser.error(
+            'invalid "complevel" value, it sould be in te range [0, 9]'
+        )
 
     # Catch the files passed as the last arguments
-    src = pargs[0].split(':')
-    dst = pargs[1].split(':')
+    src = args.src.split(':')
+    dst = args.dst.split(':')
     if len(src) == 1:
         srcfile, srcnode = src[0], "/"
     else:
@@ -449,53 +443,66 @@ def main():
     # Ignore the warnings for tables that contains oldindexes
     # (these will be handled by the copying routines)
     warnings.filterwarnings("ignore", category=OldIndexWarning)
+
     # Ignore the flavors warnings during upgrading flavor operations
-    if upgradeflavors:
+    if args.upgradeflavors:
         warnings.filterwarnings("ignore", category=FlavorWarning)
 
     # Build the Filters instance
-    if ((complevel, complib, shuffle, fletcher32) == (None,)*4 or keepfilters):
+    filter_params = (
+        args.complevel,
+        args.complib,
+        args.shuffle,
+        args.fletcher32,
+    )
+    if (filter_params == (None,) * 4 or args.keepfilters):
         filters = None
     else:
-        if complevel is None:
-            complevel = 0
-        if shuffle is None:
-            if complevel > 0:
-                shuffle = True
+        if args.complevel is None:
+            args.complevel = 0
+        if args.shuffle is None:
+            if args.complevel > 0:
+                args.shuffle = True
             else:
-                shuffle = False
-        if complib is None:
-            complib = "zlib"
-        if fletcher32 is None:
-            fletcher32 = False
-        filters = Filters(complevel=complevel, complib=complib,
-                          shuffle=shuffle, fletcher32=fletcher32)
+                args.shuffle = False
+        if args.complib is None:
+            args.complib = "zlib"
+        if args.fletcher32 is None:
+            args.fletcher32 = False
+        filters = Filters(complevel=args.complevel, complib=args.complib,
+                          shuffle=args.shuffle, fletcher32=args.fletcher32)
 
     # The start, stop and step params:
     start, stop, step = None, None, 1  # Defaults
-    if rng:
-        start, stop, step = rng.start, rng.stop, rng.step
+    if args.rng:
+        start, stop, step = args.rng.start, args.rng.stop, args.rng.step
+
+    # Set globals
+    verbose = args.verbose
+    regoldindexes = args.regoldindexes
+    createsysattrs = args.createsysattrs
 
     # Some timing
     t1 = time.time()
     cpu1 = time.clock()
     # Copy the file
     if verbose:
-        print "+=+"*20
-        print "Recursive copy:", recursive
+        print "+=+" * 20
+        print "Recursive copy:", args.recursive
         print "Applying filters:", filters
-        if sortby is not None:
-            print "Sorting table(s) by column:", sortby
-            print "Forcing a CSI creation:", checkCSI
-        if propindexes:
+        if args.sortby is not None:
+            print "Sorting table(s) by column:", args.sortby
+            print "Forcing a CSI creation:", args.checkCSI
+        if args.propindexes:
             print "Recreating indexes in copied table(s)"
         print "Start copying %s:%s to %s:%s" % (srcfile, srcnode,
                                                 dstfile, dstnode)
-        print "+=+"*20
+        print "+=+" * 20
 
     # Check whether the specified source node is a group or a leaf
     h5srcfile = open_file(srcfile, 'r')
     srcnodeobject = h5srcfile.get_node(srcnode)
+
     # Close the file again
     h5srcfile.close()
 
@@ -503,29 +510,32 @@ def main():
     if isinstance(srcnodeobject, Group):
         copy_children(
             srcfile, dstfile, srcnode, dstnode,
-            title=title, recursive=recursive, filters=filters,
-            copyuserattrs=copyuserattrs, overwritefile=overwritefile,
-            overwrtnodes=overwrtnodes, stats=stats,
-            start=start, stop=stop, step=step, chunkshape=chunkshape,
-            sortby=sortby, checkCSI=checkCSI, propindexes=propindexes,
-            upgradeflavors=upgradeflavors)
+            title=args.title, recursive=args.recursive, filters=filters,
+            copyuserattrs=args.copyuserattrs, overwritefile=args.overwritefile,
+            overwrtnodes=args.overwrtnodes, stats=stats,
+            start=start, stop=stop, step=step, chunkshape=args.chunkshape,
+            sortby=args.sortby, checkCSI=args.checkCSI,
+            propindexes=args.propindexes,
+            upgradeflavors=args.upgradeflavors)
     else:
         # If not a Group, it should be a Leaf
         copy_leaf(
             srcfile, dstfile, srcnode, dstnode,
-            title=title, filters=filters, copyuserattrs=copyuserattrs,
-            overwritefile=overwritefile, overwrtnodes=overwrtnodes,
+            title=args.title, filters=filters,
+            copyuserattrs=args.copyuserattrs,
+            overwritefile=args.overwritefile, overwrtnodes=args.overwrtnodes,
             stats=stats, start=start, stop=stop, step=step,
-            chunkshape=chunkshape,
-            sortby=sortby, checkCSI=checkCSI, propindexes=propindexes,
-            upgradeflavors=upgradeflavors)
+            chunkshape=args.chunkshape,
+            sortby=args.sortby, checkCSI=args.checkCSI,
+            propindexes=args.propindexes,
+            upgradeflavors=args.upgradeflavors)
 
     # Gather some statistics
     t2 = time.time()
     cpu2 = time.clock()
-    tcopy = round(t2-t1, 3)
-    cpucopy = round(cpu2-cpu1, 3)
-    tpercent = int(round(cpucopy/tcopy, 2)*100)
+    tcopy = round(t2 - t1, 3)
+    cpucopy = round(cpu2 - cpu1, 3)
+    tpercent = int(round(cpucopy / tcopy, 2) * 100)
 
     if verbose:
         ngroups = stats['groups']
@@ -534,16 +544,17 @@ def main():
         nbytescopied = stats['bytes']
         nnodes = ngroups + nleaves + nlinks
 
-        print \
-            "Groups copied:", ngroups, \
-            " Leaves copied:", nleaves, \
-            " Links copied:", nlinks
-        if copyuserattrs:
+        print(
+            "Groups copied:", ngroups,
+            " Leaves copied:", nleaves,
+            " Links copied:", nlinks,
+        )
+        if args.copyuserattrs:
             print "User attrs copied"
         else:
             print "User attrs not copied"
-        print "KBytes copied:", round(nbytescopied/1024., 3)
-        print "Time copying: %s s (real) %s s (cpu)  %s%%" % \
-              (tcopy, cpucopy, tpercent)
+        print "KBytes copied:", round(nbytescopied / 1024., 3)
+        print "Time copying: %s s (real) %s s (cpu)  %s%%" % (
+            tcopy, cpucopy, tpercent)
         print "Copied nodes/sec: ", round((nnodes) / float(tcopy), 1)
         print "Copied KB/s :", int(nbytescopied / (tcopy * 1024))
