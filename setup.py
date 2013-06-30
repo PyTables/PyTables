@@ -157,17 +157,20 @@ def add_from_flags(envname, flag_key, dirs):
             dirs.append(flag[len(flag_key):])
 
 if os.name == 'posix':
+    prefixes = ('/usr/local', '/sw', '/opt', '/opt/local', '/usr', '/')
+
     default_header_dirs = []
     add_from_path("CPATH", default_header_dirs)
     add_from_path("C_INCLUDE_PATH", default_header_dirs)
     add_from_flags("CPPFLAGS", "-I", default_header_dirs)
-    default_header_dirs.extend(['/usr/include', '/usr/local/include'])
+    default_header_dirs.extend(
+        os.path.join(_tree, 'include') for _tree in prefixes
+    )
 
     default_library_dirs = []
     add_from_flags("LDFLAGS", "-L", default_library_dirs)
     default_library_dirs.extend(
-        os.path.join(_tree, _arch)
-        for _tree in ('/usr/local', '/sw', '/opt', '/opt/local', '/usr', '/')
+        os.path.join(_tree, _arch) for _tree in prefixes
         for _arch in ('lib64', 'lib'))
     default_runtime_dirs = default_library_dirs
 
