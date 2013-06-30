@@ -359,8 +359,7 @@ A similar command can be used to install a specific tagged fersion::
   $ pip install git+https://github.com/PyTables/PyTables.git@v.2.4.0#egg=tables
 
 Finally, PyTables developers provide a :file:`requirements.txt` file that
-can be used by :program:`pip` to install the PyTables package and its
-dependencies::
+can be used by :program:`pip` to install the PyTables dependencies::
 
   $ wget https://raw.github.com/PyTables/PyTables/develop/requirements.txt
   $ pip install -r requirements.txt
