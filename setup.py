@@ -40,7 +40,8 @@ if sys.version_info >= (3,):
         setuptools_kwargs['use_2to3_exclude_fixers'] = exclude_fixers
     else:
         from distutils.command.build_py import build_py_2to3 as build_py
-        from distutils.command.build_scripts import build_scripts_2to3 as build_scripts
+        from distutils.command.build_scripts \
+            import build_scripts_2to3 as build_scripts
 
         from lib2to3.refactor import get_fixers_from_package
 
@@ -167,7 +168,7 @@ if os.name == 'posix':
     default_library_dirs.extend(
         os.path.join(_tree, _arch)
         for _tree in ('/usr/local', '/sw', '/opt', '/opt/local', '/usr', '/')
-            for _arch in ('lib64', 'lib'))
+        for _arch in ('lib64', 'lib'))
     default_runtime_dirs = default_library_dirs
 
 elif os.name == 'nt':
@@ -253,8 +254,10 @@ class Package(object):
             # component directories to the given path.
             # Remove leading and trailing '"' chars that can mislead
             # the finding routines on Windows machines
-            locations = [os.path.join(location.strip('"'), compdir)
-                                        for compdir in self._component_dirs]
+            locations = [
+                os.path.join(location.strip('"'), compdir)
+                for compdir in self._component_dirs
+            ]
 
         directories = [None, None, None]  # headers, libraries, runtime
         for idx, (name, find_path, default_dirs) in enumerate(dirdata):
@@ -321,10 +324,10 @@ def get_hdf5_version(headername):
         if 'H5_VERS_RELEASE' in line:
             release_version = int(re.split("\s*", line)[2])
         if (major_version != -1 and minor_version != -1 and
-                                                    release_version != -1):
+                release_version != -1):
             break
     if (major_version == -1 or minor_version == -1 or
-                                                    release_version == -1):
+            release_version == -1):
         exit_with_error("Unable to detect HDF5 library version!")
     return (major_version, minor_version, release_version)
 
@@ -586,7 +589,8 @@ def get_cython_extfiles(extnames):
             # Cython files (!)  Do that manually...
             print("cythoning %s to %s" % (extpfile, extcfile))
             retcode = subprocess.call(
-                            [sys.executable, "-m", "cython", extpfile])
+                [sys.executable, "-m", "cython", extpfile]
+            )
             if retcode > 0:
                 print("cython aborted compilation with retcode:", retcode)
                 sys.exit()
@@ -810,10 +814,11 @@ Operating System :: Microsoft :: Windows
 Operating System :: Unix
 """
 
-setup(name=name,
-      version=VERSION,
-      description='Hierarchical datasets for Python',
-      long_description="""\
+setup(
+    name=name,
+    version=VERSION,
+    description='Hierarchical datasets for Python',
+    long_description="""\
 PyTables is a package for managing hierarchical datasets and
 designed to efficently cope with extremely large amounts of
 data. PyTables is built on top of the HDF5 library and the
@@ -823,17 +828,17 @@ makes of it a fast, yet extremely easy to use tool for
 interactively save and retrieve large amounts of data.
 
 """,
-      classifiers=[c for c in classifiers.split("\n") if c],
-      author='Francesc Alted, Ivan Vilata, et al.',
-      author_email='pytables@pytables.org',
-      maintainer='PyTables maintainers',
-      maintainer_email='pytables@pytables.org',
-      url='http://www.pytables.org/',
-      license='http://www.opensource.org/licenses/bsd-license.php',
-      download_url="http://sourceforge.net/projects/pytables/files/pytables/",
-      platforms=['any'],
-      ext_modules=extensions,
-      cmdclass=cmdclass,
-      data_files=data_files,
-      **setuptools_kwargs
+    classifiers=[c for c in classifiers.split("\n") if c],
+    author='Francesc Alted, Ivan Vilata, et al.',
+    author_email='pytables@pytables.org',
+    maintainer='PyTables maintainers',
+    maintainer_email='pytables@pytables.org',
+    url='http://www.pytables.org/',
+    license='http://www.opensource.org/licenses/bsd-license.php',
+    download_url="http://sourceforge.net/projects/pytables/files/pytables/",
+    platforms=['any'],
+    ext_modules=extensions,
+    cmdclass=cmdclass,
+    data_files=data_files,
+    **setuptools_kwargs
 )
