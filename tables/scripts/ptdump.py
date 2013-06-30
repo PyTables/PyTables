@@ -16,9 +16,7 @@ Pass the flag -h to this for help on usage.
 
 """
 
-import sys
-import os.path
-import getopt
+import argparse
 
 from tables.file import open_file
 from tables.group import Group
@@ -28,17 +26,14 @@ from tables.unimplemented import UnImplemented
 from tables._past import previous_api
 
 # default options
-
-
-class Options(object):
-    rng = slice(None)
-    showattrs = 0
-    verbose = 0
-    dump = 0
-    colinfo = 0
-    idxinfo = 0
-
-options = Options()
+options = argparse.Namespace(
+    rng=slice(None),
+    showattrs=0,
+    verbose=0,
+    dump=0,
+    colinfo=0,
+    idxinfo=0,
+)
 
 
 def dump_leaf(leaf):
@@ -50,7 +45,8 @@ def dump_leaf(leaf):
         print "  "+repr(leaf.attrs)
     if options.dump and not isinstance(leaf, UnImplemented):
         print "  Data dump:"
-        # print leaf.read(options.rng.start, options.rng.stop, options.rng.step)
+        # print (leaf.read(options.rng.start, options.rng.stop,
+        #        options.rng.step)
         # This is better for large objects
         if options.rng.start is None:
             start = 0
@@ -104,63 +100,64 @@ def dump_group(pgroup):
 dumpGroup = previous_api(dump_group)
 
 
+def _get_parser():
+    parser = argparse.ArgumentParser(
+        description='''The ptdump utility allows you look into the contents
+        of your PyTables files. It lets you see not only the data but also
+        the metadata (that is, the *structure* and additional information in
+        the form of *attributes*).''')
+
+    parser.add_argument(
+        '-v', '--verbose', action='store_true',
+        help='dump more metainformation on nodes',
+    )
+    parser.add_argument(
+        '-d', '--dump', action='store_true',
+        help='dump data information on leaves',
+    )
+    parser.add_argument(
+        '-a', '--showattrs', action='store_true',
+        help='show attributes in nodes (only useful when -v or -d are active)',
+    )
+    parser.add_argument(
+        '-c', '--colinfo', action='store_true',
+        help='''show info of columns in tables (only useful when -v or -d
+        are active)''',
+    )
+    parser.add_argument(
+        '-i', '--idxinfo', action='store_true',
+        help='''show info of indexed columns (only useful when -v or -d are
+        active)''',
+    )
+    parser.add_argument(
+        '-R', '--range', dest='rng', metavar='RANGE',
+        help='''select a RANGE of rows (in the form "start,stop,step")
+        during the copy of *all* the leaves.
+        Default values are "None,None,1", which means a copy of all the
+        rows.''',
+    )
+    parser.add_argument('src', metavar='filename[:nodepath]',
+                        help='name of the HDF5 file to dump')
+
+    return parser
+
+
 def main():
-    usage = \
-        """usage: %s [-d] [-v] [-a] [-c] [-i] [-R start,stop,step] [-h] file[:nodepath]
-      -d -- Dump data information on leaves
-      -v -- Dump more metainformation on nodes
-      -a -- Show attributes in nodes (only useful when -v or -d are active)
-      -c -- Show info of columns in tables (only useful when -v or -d are active)
-      -i -- Show info of indexed columns (only useful when -v or -d are active)
-      -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
-      -h -- Print help on usage
-                \n""" \
-    % os.path.basename(sys.argv[0])
+    parser = _get_parser()
 
-    try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'R:ahdvci')
-    except:
-        sys.stderr.write(usage)
-        sys.exit(0)
-
-    # if we pass too much parameters, abort
-    if len(pargs) != 1:
-        sys.stderr.write(usage)
-        sys.exit(0)
+    args = parser.parse_args(namespace=options)
 
     # Get the options
-    for option in opts:
-        if option[0] == '-R':
-            options.dump = 1
-            try:
-                options.rng = eval("slice("+option[1]+")")
-            except:
-                print "Error when getting the range parameter."
-                (type, value, traceback) = sys.exc_info()
-                print "  The error was:", value
-                sys.stderr.write(usage)
-                sys.exit(0)
-
-        elif option[0] == '-a':
-            options.showattrs = 1
-        elif option[0] == '-h':
-            sys.stderr.write(usage)
-            sys.exit(0)
-        elif option[0] == '-v':
-            options.verbose = 1
-        elif option[0] == '-d':
-            options.dump = 1
-        elif option[0] == '-c':
-            options.colinfo = 1
-        elif option[0] == '-i':
-            options.idxinfo = 1
+    if isinstance(args.rng, basestring):
+        try:
+            options.rng = eval("slice(" + args.rng + ")")
+        except Exception:
+            parser.error("Error when getting the range parameter.")
         else:
-            print option[0], ": Unrecognized option"
-            sys.stderr.write(usage)
-            sys.exit(0)
+            args.dump = 1
 
     # Catch the files passed as the last arguments
-    src = pargs[0].split(':')
+    src = args.src.split(':')
     if len(src) == 1:
         filename, nodename = src[0], "/"
     else:
