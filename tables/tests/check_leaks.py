@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import popen2
 import time
+
 import tables
 
 tref = time.time()
@@ -12,23 +12,22 @@ trel = tref
 def show_mem(explain):
     global tref, trel
 
-    cmd = "cat /proc/%s/status" % os.getpid()
-    sout, sin = popen2.popen2(cmd)
-    for line in sout:
-        if line.startswith("VmSize:"):
-            vmsize = int(line.split()[1])
-        elif line.startswith("VmRSS:"):
-            vmrss = int(line.split()[1])
-        elif line.startswith("VmData:"):
-            vmdata = int(line.split()[1])
-        elif line.startswith("VmStk:"):
-            vmstk = int(line.split()[1])
-        elif line.startswith("VmExe:"):
-            vmexe = int(line.split()[1])
-        elif line.startswith("VmLib:"):
-            vmlib = int(line.split()[1])
-    sout.close()
-    sin.close()
+    filename = "/proc/%s/status" % os.getpid()
+    with open(filename) as fd:
+        for line in fd:
+            if line.startswith("VmSize:"):
+                vmsize = int(line.split()[1])
+            elif line.startswith("VmRSS:"):
+                vmrss = int(line.split()[1])
+            elif line.startswith("VmData:"):
+                vmdata = int(line.split()[1])
+            elif line.startswith("VmStk:"):
+                vmstk = int(line.split()[1])
+            elif line.startswith("VmExe:"):
+                vmexe = int(line.split()[1])
+            elif line.startswith("VmLib:"):
+                vmlib = int(line.split()[1])
+
     print "\nMemory usage: ******* %s *******" % explain
     print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
     print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
