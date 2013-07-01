@@ -78,7 +78,7 @@ class Filters(object):
         *Fletcher32* filter in the HDF5 library.
         This is used to add a checksum on each data chunk. A false
         value (the default) disables the checksum.
-    least_significant_digit : int32
+    least_significant_digit : int
         If specified, data will be truncated (quantized). In conjunction
         with enabling compression, this produces 'lossy', but
         significantly more efficient compression. For example, if
@@ -86,6 +86,11 @@ class Filters(object):
         ``around(scale*data)/scale``, where ``scale = 2**bits``, and
         bits is determined so that a precision of 0.1 is retained (in
         this case bits=4). Default is *None*, or no quantization.
+
+        .. note::
+
+            quantization is only applied if some form of compression is
+            enabled
 
     Examples
     --------
@@ -147,17 +152,16 @@ class Filters(object):
 
     @classmethod
     def _from_leaf(class_, leaf):
-        # TODO: include least_significant_digit???
         # Get a dictionary with all the filters
         parent = leaf._v_parent
-        filtersDict = utilsextension.get_filters(parent._v_objectid,
-                                                 leaf._v_name)
-        if filtersDict is None:
-            filtersDict = {}  # not chunked
+        filters_dict = utilsextension.get_filters(parent._v_objectid,
+                                                  leaf._v_name)
+        if filters_dict is None:
+            filters_dict = {}  # not chunked
 
         kwargs = dict(complevel=0, shuffle=False, fletcher32=False,  # all off
-                      _new=False, least_significant_digit=None)
-        for (name, values) in filtersDict.iteritems():
+                      least_significant_digit=None, _new=False)
+        for (name, values) in filters_dict.iteritems():
             if name == 'deflate':
                 name = 'zlib'
             if name in all_complibs:
@@ -216,6 +220,7 @@ class Filters(object):
 
     def _pack(self):
         """Pack the `Filters` object into a 64-bit NumPy integer."""
+
         # TODO: include least_significant_digit in packing
         packed = numpy.int64(0)
         # Byte 2: parameterless filters.
@@ -234,7 +239,7 @@ class Filters(object):
 
     def __init__(self, complevel=0, complib=default_complib,
                  shuffle=True, fletcher32=False,
-                 _new=True, least_significant_digit=None):
+                 least_significant_digit=None, _new=True):
         if not (0 <= complevel <= 9):
             raise ValueError("compression level must be between 0 and 9")
 
@@ -256,7 +261,7 @@ class Filters(object):
         shuffle = bool(shuffle)
         fletcher32 = bool(fletcher32)
         if least_significant_digit is not None:
-            least_significant_digit = numpy.int32(least_significant_digit)
+            least_significant_digit = numpy.int8(least_significant_digit)
 
         if complevel == 0:
             # Override some inputs when compression is not enabled.
@@ -269,15 +274,18 @@ class Filters(object):
 
         self.complevel = complevel
         """The compression level (0 disables compression)."""
+
         self.complib = complib
-        """
-        The compression filter used (irrelevant when compression is
+        """The compression filter used (irrelevant when compression is
         not enabled).
         """
+
         self.shuffle = shuffle
         """Whether the *Shuffle* filter is active or not."""
+
         self.fletcher32 = fletcher32
         """Whether the *Fletcher32* filter is active or not."""
+
         self.least_significant_digit = least_significant_digit
         """The least significant digit to which data shall be truncated."""
 
@@ -289,8 +297,8 @@ class Filters(object):
             args.append('complib=%r' % self.complib)
         args.append('shuffle=%s' % self.shuffle)
         args.append('fletcher32=%s' % self.fletcher32)
-        args.append('ĺeast_significant_digit=%s' %
-                self.least_significant_digit)
+        args.append(
+            'least_significant_digit=%s' % self.least_significant_digit)
         return '%s(%s)' % (self.__class__.__name__, ', '.join(args))
 
     def __str__(self):
@@ -340,6 +348,7 @@ class Filters(object):
             ...
             TypeError: __init__() got an unexpected keyword argument 'foobar'
         """
+
         newargs = self.__dict__.copy()
         newargs.update(override)
         return self.__class__(**newargs)
