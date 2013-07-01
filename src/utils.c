@@ -184,59 +184,58 @@ PyObject *createNamesList(char *buffer[], int nelements)
 PyObject *get_filter_names( hid_t loc_id,
                             const char *dset_name)
 {
- hid_t    dset;
- hid_t    dcpl;           /* dataset creation property list */
-/*  hsize_t  chsize[64];     /\* chunk size in elements *\/ */
- int      i, j;
- int      nf;             /* number of filters */
- unsigned filt_flags;     /* filter flags */
- size_t   cd_nelmts;      /* filter client number of values */
- unsigned cd_values[20];  /* filter client data values */
- char     f_name[256];    /* filter name */
- PyObject *filters;
- PyObject *filter_values;
+  hid_t    dset;
+  hid_t    dcpl;           /* dataset creation property list */
+  /*  hsize_t  chsize[64];     /\* chunk size in elements *\/ */
+  int      i, j;
+  int      nf;             /* number of filters */
+  unsigned filt_flags;     /* filter flags */
+  size_t   cd_nelmts;      /* filter client number of values */
+  unsigned cd_values[20];  /* filter client data values */
+  char     f_name[256];    /* filter name */
+  PyObject *filters;
+  PyObject *filter_values;
 
- /* Open the dataset. */
- if ( (dset = H5Dopen( loc_id, dset_name, H5P_DEFAULT )) < 0 ) {
-   goto out;
- }
+  /* Open the dataset. */
+  if ( (dset = H5Dopen( loc_id, dset_name, H5P_DEFAULT )) < 0 ) {
+    goto out;
+  }
 
- /* Get the properties container */
- dcpl = H5Dget_create_plist(dset);
- /* Collect information about filters on chunked storage */
- if (H5D_CHUNKED==H5Pget_layout(dcpl)) {
-   filters = PyDict_New();
-    nf = H5Pget_nfilters(dcpl);
-   if ((nf = H5Pget_nfilters(dcpl))>0) {
-     for (i=0; i<nf; i++) {
-       cd_nelmts = 20;
-       H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
-                     cd_values, sizeof(f_name), f_name, NULL);
-       filter_values = PyTuple_New(cd_nelmts);
-       for (j=0;j<(long)cd_nelmts;j++) {
-         PyTuple_SetItem(filter_values, j, PyLong_FromLong(cd_values[j]));
-       }
-       PyMapping_SetItemString (filters, f_name, filter_values);
-     }
-   }
- }
- else {
-   /* http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52309 */
-   Py_INCREF(Py_None);
-   filters = Py_None;   /* Not chunked, so return None */
- }
+  /* Get the properties container */
+  dcpl = H5Dget_create_plist(dset);
+  /* Collect information about filters on chunked storage */
+  if (H5D_CHUNKED==H5Pget_layout(dcpl)) {
+    filters = PyDict_New();
+    if ((nf = H5Pget_nfilters(dcpl))>0) {
+      for (i=0; i<nf; i++) {
+        cd_nelmts = 20;
+        H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
+                      cd_values, sizeof(f_name), f_name, NULL);
+        filter_values = PyTuple_New(cd_nelmts);
+        for (j=0;j<(long)cd_nelmts;j++) {
+          PyTuple_SetItem(filter_values, j, PyLong_FromLong(cd_values[j]));
+        }
+        PyMapping_SetItemString (filters, f_name, filter_values);
+      }
+    }
+  }
+  else {
+    /* http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52309 */
+    Py_INCREF(Py_None);
+    filters = Py_None;   /* Not chunked, so return None */
+  }
 
- H5Pclose(dcpl);
- H5Dclose(dset);
+  H5Pclose(dcpl);
+  H5Dclose(dset);
 
-return filters;
+  return filters;
 
 out:
- H5Dclose(dset);
- Py_INCREF(Py_None);
- return Py_None;        /* Not chunked, so return None */
-
+  H5Dclose(dset);
+  Py_INCREF(Py_None);
+  return Py_None;        /* Not chunked, so return None */
 }
+
 
 /****************************************************************
 **

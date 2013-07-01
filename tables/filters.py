@@ -185,11 +185,11 @@ class Filters(object):
         """Create a new `Filters` object from a packed version.
 
         >>> Filters._unpack(0)
-        Filters(complevel=0, shuffle=False, fletcher32=False)
+        Filters(complevel=0, shuffle=False, fletcher32=False, least_significant_digit=None)
         >>> Filters._unpack(0x101)
-        Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
+        Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False, least_significant_digit=None)
         >>> Filters._unpack(0x30109)
-        Filters(complevel=9, complib='zlib', shuffle=True, fletcher32=True)
+        Filters(complevel=9, complib='zlib', shuffle=True, fletcher32=True, least_significant_digit=None)
         >>> Filters._unpack(0x3010A)
         Traceback (most recent call last):
           ...
@@ -198,6 +198,7 @@ class Filters(object):
         Traceback (most recent call last):
           ...
         ValueError: invalid compression library id: 0
+
         """
 
         # TODO: include least_significant_digit in unpacking
@@ -340,13 +341,14 @@ class Filters(object):
             ValueError: compression library ``None`` is not supported...
             >>> filters3 = filters1.copy(complevel=1, complib='zlib')
             >>> print(filters1)
-            Filters(complevel=0, shuffle=False, fletcher32=False)
+            Filters(complevel=0, shuffle=False, fletcher32=False, least_significant_digit=None)
             >>> print(filters3)
-            Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
+            Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False, least_significant_digit=None)
             >>> filters1.copy(foobar=42)
             Traceback (most recent call last):
             ...
             TypeError: __init__() got an unexpected keyword argument 'foobar'
+
         """
 
         newargs = self.__dict__.copy()
