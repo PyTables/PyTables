@@ -21,7 +21,7 @@ from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 
 from tables.utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
-                          byteorders)
+                          byteorders, quantize)
 from tables.leaf import Leaf
 
 from tables._past import previous_api, previous_api_property
@@ -703,6 +703,11 @@ class Array(hdf5extension.Array, Leaf):
         nparr = convert_to_np_atom2(value, self.atom)
         if nparr.size == 0:
             return
+
+        # truncate data if least_significant_digit filter is set
+        # TODO: add the least_significant_digit attribute to the array on disk
+        if (self.filters.least_significant_digit is not None and not numpy.issubdtype(nparr.dtype, int)):
+            nparr = quantize(nparr, self.filters.least_significant_digit)
 
         try:
             startl, stopl, stepl, shape = self._interpret_indexing(key)
