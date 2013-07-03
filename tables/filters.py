@@ -40,6 +40,7 @@ default_complib = 'zlib'
 # =================
 _shuffle_flag = 0x1
 _fletcher32_flag = 0x2
+_rounding_flag = 0x4
 
 
 # Classes
@@ -203,9 +204,11 @@ class Filters(object):
 
         # TODO: include least_significant_digit in unpacking
         kwargs = {'_new': False}
+
         # Byte 0: compression level.
         kwargs['complevel'] = complevel = packed & 0xff
         packed >>= 8
+
         # Byte 1: compression library id (0 for none).
         if complevel > 0:
             complib_id = int(packed & 0xff)
@@ -214,9 +217,19 @@ class Filters(object):
                                  % complib_id)
             kwargs['complib'] = all_complibs[complib_id - 1]
         packed >>= 8
+
         # Byte 2: parameterless filters.
         kwargs['shuffle'] = packed & _shuffle_flag
         kwargs['fletcher32'] = packed & _fletcher32_flag
+        has_rounding = packed & _rounding_flag
+        packed >>= 8
+
+        # Byte 3: least significant digit.
+        if has_rounding:
+            kwargs['least_significant_digit'] = numpy.int8(packed & 0xff)
+        else:
+            kwargs['least_significant_digit'] = None
+
         return class_(**kwargs)
 
     def _pack(self):
@@ -224,18 +237,30 @@ class Filters(object):
 
         # TODO: include least_significant_digit in packing
         packed = numpy.int64(0)
+
+        # Byte 3: least significant digit.
+        if self.least_significant_digit is not None:
+            #assert isinstance(self.least_significant_digit, numpy.int8)
+            packed |= self.least_significant_digit
+        packed <<= 8
+
         # Byte 2: parameterless filters.
         if self.shuffle:
             packed |= _shuffle_flag
         if self.fletcher32:
             packed |= _fletcher32_flag
+        if self.least_significant_digit:
+            packed |= _rounding_flag
         packed <<= 8
+
         # Byte 1: compression library id (0 for none).
         if self.complevel > 0:
             packed |= all_complibs.index(self.complib) + 1
         packed <<= 8
+
         # Byte 0: compression level.
         packed |= self.complevel
+
         return packed
 
     def __init__(self, complevel=0, complib=default_complib,

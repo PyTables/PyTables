@@ -1492,6 +1492,38 @@ class FilterTestCase(common.PyTablesTestCase):
         filter_ = Filters(1, shuffle=False, least_significant_digit=5)
         self.assertEqual(self._hexl(filter_._pack()), '0x5040101')
 
+    def test_filter_unpack_01(self):
+        filter_ = Filters._unpack(numpy.int64(0x0))
+        self.assertFalse(filter_.shuffle)
+        self.assertFalse(filter_.fletcher32)
+        self.assertEqual(filter_.least_significant_digit, None)
+        self.assertEqual(filter_.complevel, 0)
+        self.assertEqual(filter_.complib, None)
+
+    def test_filter_unpack_02(self):
+        filter_ = Filters._unpack(numpy.int64(0x101))
+        self.assertFalse(filter_.shuffle)
+        self.assertFalse(filter_.fletcher32)
+        self.assertEqual(filter_.least_significant_digit, None)
+        self.assertEqual(filter_.complevel, 1)
+        self.assertEqual(filter_.complib, 'zlib')
+
+    def test_filter_unpack_03(self):
+        filter_ = Filters._unpack(numpy.int64(0x30109))
+        self.assertTrue(filter_.shuffle)
+        self.assertTrue(filter_.fletcher32)
+        self.assertEqual(filter_.least_significant_digit, None)
+        self.assertEqual(filter_.complevel, 9)
+        self.assertEqual(filter_.complib, 'zlib')
+
+    def test_filter_unpack_04(self):
+        filter_ = Filters._unpack(numpy.int64(0x5040101))
+        self.assertFalse(filter_.shuffle)
+        self.assertFalse(filter_.fletcher32)
+        self.assertEqual(filter_.least_significant_digit, 5)
+        self.assertEqual(filter_.complevel, 1)
+        self.assertEqual(filter_.complib, 'zlib')
+
 
 class DefaultDriverTestCase(common.PyTablesTestCase):
     DRIVER = None
