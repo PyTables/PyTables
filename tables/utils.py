@@ -277,12 +277,15 @@ def show_stats(explain, tref, encoding=None):
 # truncate data before calling __setitem__, to improve compression ratio
 # this function is taken verbatim from netcdf4-python
 def quantize(data, least_significant_digit):
-    """quantize data to improve compression. data is quantized using
-    around(scale*data)/scale, where scale is 2**bits, and bits is determined
-    from the least_significant_digit. For example, if
-    least_significant_digit=1, bits will be 4.
+    """quantize data to improve compression.
+
+    Data is quantized using around(scale*data)/scale, where scale is
+    2**bits, and bits is determined from the least_significant_digit.
+
+    For example, if least_significant_digit=1, bits will be 4.
 
     """
+
     precision = pow(10., -least_significant_digit)
     exp = numpy.log10(precision)
     if exp < 0:
@@ -292,9 +295,8 @@ def quantize(data, least_significant_digit):
     bits = numpy.ceil(numpy.log2(pow(10., -exp)))
     scale = pow(2., bits)
     datout = numpy.around(scale * data) / scale
+
     return datout
-
-
 
 
 # Utilities to detect leaked instances.  See recipe 14.10 of the Python
