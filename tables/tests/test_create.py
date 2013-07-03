@@ -1466,18 +1466,31 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class FilterTestCase(common.PyTablesTestCase):
-    def test_filter_01(self):
+    def test_filter_pack_type(self):
         self.assertEqual(type(Filters()._pack()), numpy.int64)
 
-    def test_filter_02(self):
+    @staticmethod
+    def _hexl(n):
         if sys.version_info[0] > 2:
-            hexl = lambda n: hex(int(n))
+            return hex(int(n))
         else:
-            hexl = lambda n: hex(long(n))
-            self.assertEqual(hexl(Filters()._pack()), '0x0L')
-            self.assertEqual(hexl(Filters(1, shuffle=False)._pack()), '0x101L')
-            filter_ = Filters(9, 'zlib', shuffle=True, fletcher32=True)
-            self.assertEqual(hexl(filter_._pack()), '0x30109L')
+            return hex(long(n)).rstrip('L')
+
+    def test_filter_pack_01(self):
+        filter_ = Filters()
+        self.assertEqual(self._hexl(filter_._pack()), '0x0')
+
+    def test_filter_pack_02(self):
+        filter_ = Filters(1, shuffle=False)
+        self.assertEqual(self._hexl(filter_._pack()), '0x101')
+
+    def test_filter_pack_03(self):
+        filter_ = Filters(9, 'zlib', shuffle=True, fletcher32=True)
+        self.assertEqual(self._hexl(filter_._pack()), '0x30109')
+
+    def test_filter_pack_04(self):
+        filter_ = Filters(1, shuffle=False, least_significant_digit=5)
+        self.assertEqual(self._hexl(filter_._pack()), '0x5040101')
 
 
 class DefaultDriverTestCase(common.PyTablesTestCase):
