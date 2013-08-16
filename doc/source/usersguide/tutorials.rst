@@ -1093,7 +1093,7 @@ With the sole exception that you cannot use negative values for step to refer
 to indexes that you want to modify. See :meth:`Array.__getitem__` for more
 examples on how to use extended slicing in PyTables objects.
 
-Similarly, with and array of strings::
+Similarly, with an array of strings::
 
     >>> nameObject = h5file.root.columns.name
     >>> print "Before modif-->", nameObject[:]
@@ -1112,7 +1112,7 @@ Similarly, with and array of strings::
 And finally... how to delete rows from a table
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 We'll finish this tutorial by deleting some rows from the table we have.
-Suppose that we want to delete the the 5th to 9th rows (inclusive)::
+Suppose that we want to delete the 5th to 9th rows (inclusive)::
 
     >>> table.remove_rows(5,10)
     5
