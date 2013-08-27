@@ -590,6 +590,8 @@ def get_cython_extfiles(extnames):
         if not exists(extcfile) or newer(extpfile, extcfile):
             # For some reason, setup in setuptools does not compile
             # Cython files (!)  Do that manually...
+            # 2013/08/24: the issue should be fixed in distribute 0.6.15
+            # see also https://bitbucket.org/tarek/distribute/issue/195
             print("cythoning %s to %s" % (extpfile, extcfile))
             retcode = subprocess.call(
                 [sys.executable, "-m", "cython", extpfile]
