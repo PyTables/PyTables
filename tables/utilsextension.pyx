@@ -1280,16 +1280,16 @@ def atom_from_hdf5_type(hid_t type_id, pure_numpy_types=False):
   """
 
   cdef object stype, shape, atom_, sctype, tsize, kind
-  cdef object dflt, base, enum, nptype
+  cdef object dflt, base, enum_, nptype
 
   stype, shape = hdf5_to_np_ext_type(type_id, pure_numpy_types, atom=True)
   # Create the Atom
   if stype == 'e':
-    (enum, nptype) = load_enum(type_id)
+    (enum_, nptype) = load_enum(type_id)
     # Take one of the names as the default in the enumeration.
-    dflt = next(iter(enum))[0]
+    dflt = next(iter(enum_))[0]
     base = Atom.from_dtype(nptype)
-    atom_ = EnumAtom(enum, dflt, base, shape=shape)
+    atom_ = EnumAtom(enum_, dflt, base, shape=shape)
   else:
     kind = npext_prefixes_to_ptkinds[stype[0]]
     tsize = int(stype[1:])
