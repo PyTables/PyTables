@@ -738,7 +738,10 @@ class _ComplexErrorAtom(ComplexAtom):
             "where N=8 for single precision complex atoms, "
             "and N=16 for double precision complex atoms")
 Complex32Atom = Complex64Atom = Complex128Atom = _ComplexErrorAtom
-Complex192Atom = Complex256Atom = _ComplexErrorAtom  # XXX check
+if hasattr(numpy, 'complex192'):
+    Complex192Atom = _ComplexErrorAtom
+if hasattr(numpy, 'complex256'):
+    Complex256Atom = _ComplexErrorAtom
 
 
 class TimeAtom(Atom):

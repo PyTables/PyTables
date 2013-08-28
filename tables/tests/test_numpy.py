@@ -24,11 +24,11 @@ else:
     typecodes += ['B', 'H', 'I', 'L', 'F', 'D']
 typecodes += ['b1']   # boolean
 
-if 'float16' in typeDict:
+if 'Float16Atom' in globals():
     typecodes.append('e')
-if 'float96' in typeDict or 'float128' in typeDict:
+if 'Float96Atom' in globals() or 'Float128Atom' in globals():
     typecodes.append('g')
-if 'complex192' in typeDict or 'conplex256' in typeDict:
+if 'Complex192Atom' in globals() or 'Conplex256Atom' in globals():
     typecodes.append('G')
 
 byteorder = {'little': '<', 'big': '>'}[sys.byteorder]
@@ -404,15 +404,15 @@ class Record(IsDescription):
     var12 = Float64Col(dflt=1.0)
     var13 = ComplexCol(itemsize=8, dflt=(1.+0.j))
     var14 = ComplexCol(itemsize=16, dflt=(1.+0.j))
-    if 'float16' in typeDict:
+    if 'Float16Col' in globals():
         var15 = Float16Col(dflt=1.0)
-    if 'float96' in typeDict:
+    if 'Float96Col' in globals():
         var16 = Float96Col(dflt=1.0)
-    if 'float128' in typeDict:
+    if 'Float128Col' in globals():
         var17 = Float128Col(dflt=1.0)
-    if 'complex196' in typeDict:
+    if 'Complex196Col' in globals():
         var18 = ComplexCol(itemsize=24, dflt=(1.+0.j))
-    if 'complex256' in typeDict:
+    if 'Complex256Col' in globals():
         var19 = ComplexCol(itemsize=32, dflt=(1.+0.j))
 
 

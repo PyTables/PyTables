@@ -861,7 +861,8 @@ class TypesTestCase(unittest.TestCase):
                   "Float64",
                   ]
         for name in ("float16", "float96", "float128"):
-            if hasattr(numpy, name):
+            atomname = name.capitalize() + 'Atom'
+            if atomname in globals():
                 ttypes.append(name)
 
         if common.verbose:
@@ -903,11 +904,11 @@ class TypesTestCase(unittest.TestCase):
             "Float32": numpy.float32,
             "Float64": numpy.float64,
         }
-        if hasattr(numpy, "float16"):
+        if "Float16Atom" in globals():
             ttypes["float16"] = numpy.float16
-        if hasattr(numpy, "float96"):
+        if "Float96Atom" in globals():
             ttypes["float96"] = numpy.float96
-        if hasattr(numpy, "float128"):
+        if "Float128Atom" in globals():
             ttypes["float128"] = numpy.float128
 
         if common.verbose:
@@ -956,7 +957,8 @@ class TypesTestCase(unittest.TestCase):
             "Float64",
         ]
         for name in ("float16", "float96", "float128"):
-            if hasattr(numpy, name):
+            atomname = name.capitalize() + 'Atom'
+            if atomname in globals():
                 ttypes.append(name)
 
         if common.verbose:
@@ -1002,11 +1004,11 @@ class TypesTestCase(unittest.TestCase):
             "Float32": numpy.float32,
             "Float64": numpy.float64,
         }
-        if hasattr(numpy, "float16"):
+        if "Float16Atom" in globals():
             ttypes["float16"] = numpy.float16
-        if hasattr(numpy, "float96"):
+        if "Float96Atom" in globals():
             ttypes["float96"] = numpy.float96
-        if hasattr(numpy, "float128"):
+        if "Float128Atom" in globals():
             ttypes["float128"] = numpy.float128
 
         if common.verbose:
@@ -1060,11 +1062,11 @@ class TypesTestCase(unittest.TestCase):
             "Float32": numpy.float32,
             "Float64": numpy.float64,
         }
-        if hasattr(numpy, "float16"):
+        if "Float16Atom" in globals():
             ttypes["float16"] = numpy.float16
-        if hasattr(numpy, "float96"):
+        if "Float96Atom" in globals():
             ttypes["float96"] = numpy.float96
-        if hasattr(numpy, "float128"):
+        if "Float128Atom" in globals():
             ttypes["float128"] = numpy.float128
 
         if common.verbose:
@@ -1840,10 +1842,15 @@ class MDTypesTestCase(unittest.TestCase):
             "Complex32",
             "Complex64",
         ]
-        for name in ("float16", "float96", "float128",
-                     "Complex192", "Complex256"):
-            if hasattr(numpy, name):
+
+        for name in ("float16", "float96", "float128"):
+            atomname = name.capitalize() + "Atom"
+            if atomname in globals():
                 ttypes.append(name.capitalize())
+        for itemsize in (192, 256):
+            atomname = "Complex%dAtom" % itemsize
+            if atomname in globals():
+                ttypes.append("Complex%d" % (itemsize // 2))
 
         root = self.rootgroup
         if common.verbose:
@@ -2322,10 +2329,16 @@ class FlavorTestCase(unittest.TestCase):
             "Complex32",
             "Complex64",
         ]
-        for name in ("float16", "float96", "float128",
-                     "Complex192", "Complex256"):
-            if hasattr(numpy, name):
+
+        for name in ("float16", "float96", "float128"):
+            atomname = name.capitalize() + "Atom"
+            if atomname in globals():
                 ttypes.append(name.capitalize())
+
+        for itemsize in (192, 256):
+            atomname = "Complex%dAtom" % itemsize
+            if atomname in globals():
+                ttypes.append("Complex%d" % (itemsize // 2))
 
         root = self.rootgroup
         if common.verbose:

@@ -258,9 +258,9 @@ def _generate_col_classes():
     # Bottom-level complex classes are not in the type map, of course.
     # We still want the user to get the compatibility warning, though.
     cprefixes.extend(['Complex32', 'Complex64', 'Complex128'])
-    if hasattr(numpy, 'complex192'):
+    if hasattr(atom, 'Complex192Atom'):
         cprefixes.append('Complex192')
-    if hasattr(numpy, 'complex256'):
+    if hasattr(atom, 'Complex256Atom'):
         cprefixes.append('Complex256')
 
     for cprefix in cprefixes:

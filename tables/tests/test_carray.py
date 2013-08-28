@@ -2758,19 +2758,19 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Int8TestCase))
         theSuite.addTest(unittest.makeSuite(Int16TestCase))
         theSuite.addTest(unittest.makeSuite(Int32TestCase))
-        if hasattr(numpy, 'float16'):
+        if 'Float16Atom' in globals():
             theSuite.addTest(unittest.makeSuite(Float16TestCase))
         theSuite.addTest(unittest.makeSuite(Float32TestCase))
         theSuite.addTest(unittest.makeSuite(Float64TestCase))
-        if hasattr(numpy, 'float96'):
+        if 'Float96Atom' in globals():
             theSuite.addTest(unittest.makeSuite(Float96TestCase))
-        if hasattr(numpy, 'float128'):
+        if 'Float128Atom' in globals():
             theSuite.addTest(unittest.makeSuite(Float128TestCase))
         theSuite.addTest(unittest.makeSuite(Complex64TestCase))
         theSuite.addTest(unittest.makeSuite(Complex128TestCase))
-        if hasattr(numpy, 'complex192'):
+        if 'Complex192Atom' in globals():
             theSuite.addTest(unittest.makeSuite(Complex192TestCase))
-        if hasattr(numpy, 'complex256'):
+        if 'Complex256Atom' in globals():
             theSuite.addTest(unittest.makeSuite(Complex256TestCase))
         theSuite.addTest(unittest.makeSuite(ComprTestCase))
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))

@@ -399,7 +399,8 @@ class BasicTestCase(unittest.TestCase):
 
         for name in ('float16', 'float96', 'float128',
                      'complex192', 'complex256'):
-            if hasattr(numpy, name):
+            atomname = name.capitalize() + 'Atom'
+            if atomname in globals():
                 typecodes.append(name)
 
         for typecode in typecodes:
@@ -420,7 +421,8 @@ class BasicTestCase(unittest.TestCase):
 
         for name in ('float16', 'float96', 'float128',
                      'complex192', 'complex256'):
-            if hasattr(numpy, name):
+            atomname = name.capitalize() + 'Atom'
+            if atomname in globals():
                 typecodes.append(name)
 
         for typecode in typecodes:
@@ -906,11 +908,11 @@ class GroupsArrayTestCase(unittest.TestCase):
         # http://projects.scipy.org/scipy/numpy/ticket/290
         typecodes = ['b', 'B', 'h', 'H', 'i', 'I', 'l', 'L', 'q', 'f', 'd',
                      'F', 'D']
-        if hasattr(numpy, 'float16'):
+        if 'Float16Atom' in globals():
             typecodes.append('e')
-        if hasattr(numpy, 'float96') or hasattr(numpy, 'float128'):
+        if 'Float96Atom' in globals() or 'Float128Atom' in globals():
             typecodes.append('g')
-        if hasattr(numpy, 'complex192') or hasattr(numpy, 'complex256'):
+        if 'Complex192Atom' in globals() or 'Complex256Atom' in globals():
             typecodes.append('G')
 
         for i, typecode in enumerate(typecodes):

@@ -35,18 +35,18 @@ class Record(IsDescription):
         0.+1.j), pos=8)  # Complex single precision
     var10 = ComplexCol(itemsize=16, dflt=(
         1.-0.j), pos=9)  # Complex double precision
-    if 'float16' in np.typeDict:
+    if 'Float16Col' in globals():
         var11 = Float16Col(dflt=6.4)               # float  (half-precision)
-    if 'float96' in np.typeDict:
+    if 'Float96Col' in globals():
         var12 = Float96Col(
             dflt=6.4)               # float  (extended precision)
-    if 'float128' in np.typeDict:
+    if 'Float128Col' in globals():
         var13 = Float128Col(
             dflt=6.4)              # float  (extended precision)
-    if 'complex192' in np.typeDict:
+    if 'Complex192Col' in globals():
         var14 = ComplexCol(itemsize=24, dflt=(
             1.-0.j))  # Complex double (extended precision)
-    if 'complex256' in np.typeDict:
+    if 'Complex256Col' in globals():
         var15 = ComplexCol(itemsize=32, dflt=(
             1.-0.j))  # Complex double (extended precision)
 
@@ -64,19 +64,19 @@ RecordDescriptionDict = {
     'var10': ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9),  # Complex double precision
 }
 
-if 'float16' in np.typeDict:
+if 'Float16Col' in globals():
     RecordDescriptionDict['var11'] = Float16Col(
         dflt=6.4)    # float  (half-precision)
-if 'float96' in np.typeDict:
+if 'Float96Col' in globals():
     RecordDescriptionDict['var12'] = Float96Col(
         dflt=6.4)    # float  (extended precision)
-if 'float128' in np.typeDict:
+if 'Float128Col' in globals():
     RecordDescriptionDict['var13'] = Float128Col(
         dflt=6.4)   # float  (extended precision)
-if 'complex192' in np.typeDict:
+if 'Complex192Col' in globals():
     RecordDescriptionDict['var14'] = ComplexCol(itemsize=24, dflt=(
         1.-0.j))  # Complex double (extended precision)
-if 'complex256' in np.typeDict:
+if 'Complex256Col' in globals():
     RecordDescriptionDict['var15'] = ComplexCol(itemsize=32, dflt=(
         1.-0.j))  # Complex double (extended precision)
 
@@ -93,15 +93,15 @@ class OldRecord(IsDescription):
     var8 = Col.from_type("bool", shape=(), dflt=1, pos=7)
     var9 = ComplexCol(itemsize=8, shape=(), dflt=(0.+1.j), pos=8)
     var10 = ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos = 9)
-    if 'float16' in np.typeDict:
+    if 'Float16Col' in globals():
         var11 = Col.from_type("float16", (), 6.4)
-    if 'float96' in np.typeDict:
+    if 'Float96Col' in globals():
         var12 = Col.from_type("float96", (), 6.4)
-    if 'float128' in np.typeDict:
+    if 'Float128Col' in globals():
         var13 = Col.from_type("float128", (), 6.4)
-    if 'complex192' in np.typeDict:
+    if 'Complex192Col' in globals():
         var14 = ComplexCol(itemsize=24, shape=(), dflt=(1.-0.j))
-    if 'complex256' in np.typeDict:
+    if 'Complex256Col' in globals():
         var15 = ComplexCol(itemsize=32, shape=(), dflt=(1.-0.j))
 
 
@@ -164,27 +164,27 @@ class BasicTestCase(common.PyTablesTestCase):
                 tmplist.append([float(i)+0j, 1 + float(i)*1j])
             else:
                 tmplist.append(1 + float(i)*1j)
-            if 'float16' in np.typeDict:
+            if 'Float16Col' in globals():
                 if isinstance(row['var11'], np.ndarray):
                     tmplist.append(np.array((float(i),)*4))
                 else:
                     tmplist.append(float(i))
-            if 'float96' in np.typeDict:
+            if 'Float96Col' in globals():
                 if isinstance(row['var12'], np.ndarray):
                     tmplist.append(np.array((float(i),)*4))
                 else:
                     tmplist.append(float(i))
-            if 'float128' in np.typeDict:
+            if 'Float128Col' in globals():
                 if isinstance(row['var13'], np.ndarray):
                     tmplist.append(np.array((float(i),)*4))
                 else:
                     tmplist.append(float(i))
-            if 'complex192' in np.typeDict:
+            if 'Complex192Col' in globals():
                 if isinstance(row['var14'], np.ndarray):
                     tmplist.append([float(i)+0j, 1 + float(i)*1j])
                 else:
                     tmplist.append(1 + float(i)*1j)
-            if 'complex256' in np.typeDict:
+            if 'Complex256Col' in globals():
                 if isinstance(row['var15'], np.ndarray):
                     tmplist.append([float(i)+0j, 1 + float(i)*1j])
                 else:
@@ -247,27 +247,27 @@ class BasicTestCase(common.PyTablesTestCase):
                         row['var5'] = np.array((float(i),)*4)
                     else:
                         row['var5'] = float(i)
-                    if 'float16' in np.typeDict:
+                    if 'Float16Col' in globals():
                         if isinstance(row['var11'], np.ndarray):
                             row['var11'] = np.array((float(i),)*4)
                         else:
                             row['var11'] = float(i)
-                    if 'float96' in np.typeDict:
+                    if 'Float96Col' in globals():
                         if isinstance(row['var12'], np.ndarray):
                             row['var12'] = np.array((float(i),)*4)
                         else:
                             row['var12'] = float(i)
-                    if 'float128' in np.typeDict:
+                    if 'Float128Col' in globals():
                         if isinstance(row['var13'], np.ndarray):
                             row['var13'] = np.array((float(i),)*4)
                         else:
                             row['var13'] = float(i)
-                    if 'complex192' in np.typeDict:
+                    if 'Complex192Col' in globals():
                         if isinstance(row['var14'], np.ndarray):
                             row['var14'] = [float(i)+0j, 1 + float(i)*1j]
                         else:
                             row['var14'] = 1 + float(i)*1j
-                    if 'complex256' in np.typeDict:
+                    if 'Complex256Col' in globals():
                         if isinstance(row['var15'], np.ndarray):
                             row['var15'] = [float(i)+0j, 1 + float(i)*1j]
                         else:
@@ -321,7 +321,8 @@ class BasicTestCase(common.PyTablesTestCase):
         expectedNames = ['var%d' % n for n in range(1, fix_n_column + 1)]
         types = ("float16", "float96", "float128", "complex192", "complex256")
         for n, typename in enumerate(types, fix_n_column + 1):
-            if typename in np.typeDict:
+            name = typename.capitalize() + 'Col'
+            if name in globals():
                 expectedNames.append('var%d' % n)
 
         self.assertEqual(expectedNames, list(tbl.colnames))
@@ -774,27 +775,27 @@ class BasicTestCase(common.PyTablesTestCase):
                 row['var5'] = np.array((float(i),)*4)
             else:
                 row['var5'] = float(i)
-            if 'float16' in np.typeDict:
+            if 'Float16Col' in globals():
                 if isinstance(row['var11'], np.ndarray):
                     row['var11'] = np.array((float(i),)*4)
                 else:
                     row['var11'] = float(i)
-            if 'float96' in np.typeDict:
+            if 'Float96Col' in globals():
                 if isinstance(row['var12'], np.ndarray):
                     row['var12'] = np.array((float(i),)*4)
                 else:
                     row['var12'] = float(i)
-            if 'float128' in np.typeDict:
+            if 'Float128Col' in globals():
                 if isinstance(row['var13'], np.ndarray):
                     row['var13'] = np.array((float(i),)*4)
                 else:
                     row['var13'] = float(i)
-            if 'complex192' in np.typeDict:
+            if 'Complex192Col' in globals():
                 if isinstance(row['var14'], np.ndarray):
                     row['var14'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
                     row['var14'] = 1 + float(i)*1j
-            if 'complex256' in np.typeDict:
+            if 'Complex256Col' in globals():
                 if isinstance(row['var15'], np.ndarray):
                     row['var15'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
@@ -872,27 +873,27 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var5'] = np.array((float(i),)*4)
                 else:
                     row['var5'] = float(i)
-                if 'float16' in np.typeDict:
+                if 'Float16Col' in globals():
                     if isinstance(row['var11'], np.ndarray):
                         row['var11'] = np.array((float(i),)*4)
                     else:
                         row['var11'] = float(i)
-                if 'float96' in np.typeDict:
+                if 'Float96Col' in globals():
                     if isinstance(row['var12'], np.ndarray):
                         row['var12'] = np.array((float(i),)*4)
                     else:
                         row['var12'] = float(i)
-                if 'float128' in np.typeDict:
+                if 'Float128Col' in globals():
                     if isinstance(row['var13'], np.ndarray):
                         row['var13'] = np.array((float(i),)*4)
                     else:
                         row['var13'] = float(i)
-                if 'complex192' in np.typeDict:
+                if 'Complex192Col' in globals():
                     if isinstance(row['var14'], np.ndarray):
                         row['var14'] = [float(i)+0j, 1 + float(i)*1j]
                     else:
                         row['var14'] = 1 + float(i)*1j
-                if 'complex256' in np.typeDict:
+                if 'Complex256Col' in globals():
                     if isinstance(row['var15'], np.ndarray):
                         row['var15'] = [float(i)+0j, 1 + float(i)*1j]
                     else:
@@ -973,27 +974,27 @@ class BasicTestCase(common.PyTablesTestCase):
                 row['var5'] = np.array((float(i),)*4)
             else:
                 row['var5'] = float(i)
-            if 'float16' in np.typeDict:
+            if 'Float16Col' in globals():
                 if isinstance(row['var11'], np.ndarray):
                     row['var11'] = np.array((float(i),)*4)
                 else:
                     row['var11'] = float(i)
-            if 'float96' in np.typeDict:
+            if 'Float96Col' in globals():
                 if isinstance(row['var12'], np.ndarray):
                     row['var12'] = np.array((float(i),)*4)
                 else:
                     row['var12'] = float(i)
-            if 'float128' in np.typeDict:
+            if 'Float128Col' in globals():
                 if isinstance(row['var13'], np.ndarray):
                     row['var13'] = np.array((float(i),)*4)
                 else:
                     row['var13'] = float(i)
-            if 'complex192' in np.typeDict:
+            if 'Complex192Col' in globals():
                 if isinstance(row['var14'], np.ndarray):
                     row['var14'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
                     row['var14'] = 1 + float(i)*1j
-            if 'complex256' in np.typeDict:
+            if 'Complex256Col' in globals():
                 if isinstance(row['var15'], np.ndarray):
                     row['var15'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
@@ -1410,27 +1411,27 @@ class BasicTestCase(common.PyTablesTestCase):
                 row['var5'] = np.array((float(i),)*4)
             else:
                 row['var5'] = float(i)
-            if 'float16' in np.typeDict:
+            if 'Float16Col' in globals():
                 if isinstance(row['var11'], np.ndarray):
                     row['var11'] = np.array((float(i),)*4)
                 else:
                     row['var11'] = float(i)
-            if 'float96' in np.typeDict:
+            if 'Float96Col' in globals():
                 if isinstance(row['var12'], np.ndarray):
                     row['var12'] = np.array((float(i),)*4)
                 else:
                     row['var12'] = float(i)
-            if 'float128' in np.typeDict:
+            if 'Float128Col' in globals():
                 if isinstance(row['var13'], np.ndarray):
                     row['var13'] = np.array((float(i),)*4)
                 else:
                     row['var13'] = float(i)
-            if 'complex192' in np.typeDict:
+            if 'Complex192Col' in globals():
                 if isinstance(row['var14'], np.ndarray):
                     row['var14'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
                     row['var14'] = 1 + float(i)*1j
-            if 'complex256' in np.typeDict:
+            if 'Complex256Col' in globals():
                 if isinstance(row['var15'], np.ndarray):
                     row['var15'] = [float(i)+0j, 1 + float(i)*1j]
                 else:
@@ -1527,19 +1528,19 @@ class NumPyDTWriteTestCase(BasicTestCase):
     formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
-    if 'float16' in np.typeDict:
+    if 'Float16Col' in globals():
         formats.append('f2')
         names.append('var11')
-    if 'float96' in np.typeDict:
+    if 'Float96Col' in globals():
         formats.append('f12')
         names.append('var12')
-    if 'float128' in np.typeDict:
+    if 'Float128Col' in globals():
         formats.append('f16')
         names.append('var13')
-    if 'complex192' in np.typeDict:
+    if 'Complex192Col' in globals():
         formats.append('c24')
         names.append('var14')
-    if 'complex256' in np.typeDict:
+    if 'Complex256Col' in globals():
         formats.append('c32')
         names.append('var15')
 
@@ -1552,19 +1553,19 @@ class RecArrayOneWriteTestCase(BasicTestCase):
     formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
-    if 'float16' in np.typeDict:
+    if 'Float16Col' in globals():
         formats.append('f2')
         names.append('var11')
-    if 'float96' in np.typeDict:
+    if 'Float96Col' in globals():
         formats.append('f12')
         names.append('var12')
-    if 'float128' in np.typeDict:
+    if 'Float128Col' in globals():
         formats.append('f16')
         names.append('var13')
-    if 'complex192' in np.typeDict:
+    if 'Complex192Col' in globals():
         formats.append('c24')
         names.append('var14')
-    if 'complex256' in np.typeDict:
+    if 'Complex256Col' in globals():
         formats.append('c32')
         names.append('var15')
 
@@ -1579,19 +1580,19 @@ class RecArrayTwoWriteTestCase(BasicTestCase):
     formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
-    if 'float16' in np.typeDict:
+    if 'Float16Col' in globals():
         formats.append('f2')
         names.append('var11')
-    if 'float96' in np.typeDict:
+    if 'Float96Col' in globals():
         formats.append('f12')
         names.append('var12')
-    if 'float128' in np.typeDict:
+    if 'Float128Col' in globals():
         formats.append('f16')
         names.append('var13')
-    if 'complex192' in np.typeDict:
+    if 'Complex192Col' in globals():
         formats.append('c24')
         names.append('var14')
-    if 'complex256' in np.typeDict:
+    if 'Complex256Col' in globals():
         formats.append('c32')
         names.append('var15')
 
@@ -1606,19 +1607,19 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
-    if 'float16' in np.typeDict:
+    if 'Float16Col' in globals():
         formats.append('f2')
         names.append('var11')
-    if 'float96' in np.typeDict:
+    if 'Float96Col' in globals():
         formats.append('f12')
         names.append('var12')
-    if 'float128' in np.typeDict:
+    if 'Float128Col' in globals():
         formats.append('f16')
         names.append('var13')
-    if 'complex192' in np.typeDict:
+    if 'Complex192Col' in globals():
         formats.append('c24')
         names.append('var14')
-    if 'complex256' in np.typeDict:
+    if 'Complex256Col' in globals():
         formats.append('c32')
         names.append('var15')
 
@@ -5351,19 +5352,19 @@ class DefaultValues(unittest.TestCase):
         values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1 + 0j]
         formats = 'a4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
 
-        if 'float16' in np.typeDict:
+        if 'Float16Col' in globals():
             values.append(6.4)
             formats.append('f2')
-        if 'float96' in np.typeDict:
+        if 'Float96Col' in globals():
             values.append(6.4)
             formats.append('f12')
-        if 'float128' in np.typeDict:
+        if 'Float128Col' in globals():
             values.append(6.4)
             formats.append('f16')
-        if 'complex192' in np.typeDict:
+        if 'Complex192Col' in globals():
             values.append(1.-0.j)
             formats.append('c24')
-        if 'complex256' in np.typeDict:
+        if 'Complex256Col' in globals():
             values.append(1.-0.j)
             formats.append('c32')
 
@@ -5430,19 +5431,19 @@ class DefaultValues(unittest.TestCase):
         values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1 + 0j]
         formats = 'a4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
 
-        if 'float16' in np.typeDict:
+        if 'Float16Col' in globals():
             values.append(6.4)
             formats.append('f2')
-        if 'float96' in np.typeDict:
+        if 'Float96Col' in globals():
             values.append(6.4)
             formats.append('f12')
-        if 'float128' in np.typeDict:
+        if 'Float128Col' in globals():
             values.append(6.4)
             formats.append('f16')
-        if 'complex192' in np.typeDict:
+        if 'Complex192Col' in globals():
             values.append(1.-0.j)
             formats.append('c24')
-        if 'complex256' in np.typeDict:
+        if 'Complex256Col' in globals():
             values.append(1.-0.j)
             formats.append('c32')
 
