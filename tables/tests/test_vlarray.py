@@ -1125,9 +1125,9 @@ class TypesTestCase(unittest.TestCase):
             "Complex64",
         ]
 
-        if hasattr(numpy, "complex192"):
+        if "Complex192Atom" in globals():
             ttypes.append("Complex96")
-        if hasattr(numpy, "complex256"):
+        if "Complex256Atom" in globals():
             ttypes.append("Complex128")
 
         if common.verbose:
@@ -1173,9 +1173,9 @@ class TypesTestCase(unittest.TestCase):
             "Complex64",
         ]
 
-        if hasattr(numpy, "complex192"):
+        if "Complex192Atom" in globals():
             ttypes.append("Complex96")
-        if hasattr(numpy, "complex256"):
+        if "Complex256Atom" in globals():
             ttypes.append("Complex128")
 
         if common.verbose:
