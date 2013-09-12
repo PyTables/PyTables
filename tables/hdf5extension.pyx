@@ -588,7 +588,7 @@ cdef class File:
 
   def _close_file(self):
     # Close the file
-    H5Fclose( self.file_id )
+    H5Fclose(self.file_id)
     self.file_id = 0    # Means file closed
 
   _closeFile = previous_api(_close_file)

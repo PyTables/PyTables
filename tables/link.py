@@ -271,12 +271,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
             filename = os.path.join(base_directory, filename)
 
         # Fetch the external file and save a reference to it.
-        # Check first in already opened files.
-        open_files = tables.file._open_files
-        if filename in open_files:
-            self.extfile = open_files[filename]
-        else:
-            self.extfile = t.open_file(filename, **kwargs)
+        self.extfile = t.open_file(filename, **kwargs)
         return self.extfile._get_node(target)
 
     def umount(self):
