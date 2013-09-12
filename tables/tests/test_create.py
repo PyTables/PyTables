@@ -1691,6 +1691,7 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
         self.h5file = None
 
     def tearDown(self):
+        # FIXME not sure about this
         if self.h5file:
             self.h5file.close()
         elif self.h5fname in tables.file._open_files:
@@ -1932,6 +1933,7 @@ class NotSpportedDriverTestCase(common.PyTablesTestCase):
         self.h5fname = tempfile.mktemp(suffix=".h5")
 
     def tearDown(self):
+        # FIXME not sure about this
         if self.h5fname in tables.file._open_files:
             h5file = tables.file._open_files[self.h5fname]
             h5file.close()

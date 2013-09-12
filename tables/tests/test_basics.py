@@ -32,9 +32,6 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
     def setUp(self):
         import tables.file
 
-        self.N = len(tables.file._open_files)
-        self.open_files = tables.file._open_files
-
     def test01_openFile(self):
         """Checking opening of a non existing file"""
 
@@ -43,7 +40,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
             fileh = open_file(filename)
             fileh.close()
         except IOError:
-            self.assertEqual(self.N, len(self.open_files))
+            pass
         else:
             self.fail("IOError exception not raised")
 
@@ -56,13 +53,12 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
 
         # Try to open the dummy file
         try:
-            try:
-                fileh = tables.open_file(filename)
-                fileh.close()
-            except HDF5ExtError:
-                self.assertEqual(self.N, len(self.open_files))
-            else:
-                self.fail("HDF5ExtError exception not raised")
+            fileh = tables.open_file(filename)
+            fileh.close()
+        except HDF5ExtError:
+            pass
+        else:
+            self.fail("HDF5ExtError exception not raised")
         finally:
             os.remove(filename)
 
@@ -2136,30 +2132,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.h5file.close()
         self.assertRaises(ClosedNodeError, getattr, node, '_v_attrs')
-
-    def test23_reopenFile(self):
-        """Testing reopening a file and closing it several times."""
-
-        self.h5file.create_array('/', 'test', [1, 2, 3])
-        self.h5file.close()
-
-        file1 = open_file(self.h5fname, "r")
-        self.assertEqual(file1.open_count, 1)
-        file2 = open_file(self.h5fname, "r")
-        self.assertEqual(file1.open_count, 2)
-        self.assertEqual(file2.open_count, 2)
-        if common.verbose:
-            print "(file1) open_count:", file1.open_count
-            print "(file1) test[1]:", file1.root.test[1]
-        self.assertEqual(file1.root.test[1], 2)
-        file1.close()
-        self.assertEqual(file2.open_count, 1)
-        if common.verbose:
-            print "(file2) open_count:", file2.open_count
-            print "(file2) test[1]:", file2.root.test[1]
-        self.assertEqual(file2.root.test[1], 2)
-        file2.close()
-
 
 class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
