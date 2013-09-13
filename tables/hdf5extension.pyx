@@ -298,7 +298,7 @@ cdef class File:
   cdef hid_t   access_plist
   cdef object  name
 
-  def _g_new(self, name, pymode, **params):
+  def __init__(self, name, pymode, **params):
     cdef herr_t err = 0
     cdef hid_t access_plist, create_plist = H5P_DEFAULT
     cdef size_t img_buf_len = 0, user_block_size = 0

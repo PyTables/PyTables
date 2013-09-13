@@ -490,7 +490,7 @@ class File(hdf5extension.File, object):
         self.params = params
 
         # Now, it is time to initialize the File extension
-        self._g_new(filename, mode, **params)
+        super(File, self).__init__(filename, mode, **params)
 
         # Check filters and set PyTables format version for new files.
         new = self._v_new
