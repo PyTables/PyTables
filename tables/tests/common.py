@@ -18,20 +18,9 @@ import time
 import unittest
 import tempfile
 import warnings
-
 import os.path
 
-try:
-    # collections.Callable is new in python 2.6
-    from collections import Callable
-except ImportError:
-    is_callable = callable
-else:
-    def is_callable(x):
-        return isinstance(x, Callable)
-
 import numpy
-
 import tables
 
 verbose = False
@@ -190,7 +179,7 @@ class MetaPyTablesTestCase(type):
     def __new__(class_, name, bases, dict_):
         newdict = {}
         for (aname, avalue) in dict_.iteritems():
-            if is_callable(avalue) and aname.startswith('test'):
+            if callable(avalue) and aname.startswith('test'):
                 avalue = pyTablesTest(avalue)
             newdict[aname] = avalue
         return type.__new__(class_, name, bases, newdict)
