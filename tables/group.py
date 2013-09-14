@@ -825,20 +825,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     def __getattr__(self, name):
         """Get a Python attribute or child node called name.
-
-        If the object has a Python attribute called name, its value is
-        returned. Else, if the node has a child node called name, it is
-        returned.  Else, an AttributeError is raised.
-
+        If the node has a child node called name it is returned,
+        else an AttributeError is raised.
         """
 
-        # That is true since a `NoSuchNodeError` is an `AttributeError`.
-        mydict = self.__dict__
-        if name in mydict:
-            return mydict[name]
-        elif name in self._c_lazy_children_attrs:
+        if name in self._c_lazy_children_attrs:
             self._g_add_children_names()
-            return mydict[name]
+            return self.__dict__[name]
         return self._f_get_child(name)
 
     def __setattr__(self, name, value):
