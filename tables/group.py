@@ -804,12 +804,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
     def __delattr__(self, name):
         """Delete a Python attribute called name.
 
-        This method deletes an *ordinary Python attribute* from the object.
-        It does *not* remove children nodes from this group; for that,
-        use :meth:`File.remove_node` or :meth:`Node._f_remove`.
-        It does *neither* delete a PyTables node attribute; for that,
-        use :meth:`File.del_node_attr`, :meth:`Node._f_delattr` or
-        :attr:`Node._v_attrs``.
+        This method only provides a extra warning in case the user
+        tries to delete a children node using __delattr__.
+
+        To remove a children node from this group use
+        :meth:`File.remove_node` or :meth:`Node._f_remove`. To delete
+        a PyTables node attribute use :meth:`File.del_node_attr`,
+        :meth:`Node._f_delattr` or :attr:`Node._v_attrs``.
 
         If there is an attribute and a child node with the same name,
         the child node will be made accessible again via natural naming.
