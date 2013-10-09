@@ -328,7 +328,7 @@ class File(hdf5extension.File, object):
     """The in-memory representation of a PyTables file.
 
     An instance of this class is returned when a PyTables file is
-    opened with the :func`tables.open_file` function. It offers methods
+    opened with the :func:`tables.open_file` function. It offers methods
     to manipulate (create, rename, delete...) nodes and handle their
     attributes, as well as methods to traverse the object tree.
     The *user entry point* to the object tree attached to the HDF5 file
