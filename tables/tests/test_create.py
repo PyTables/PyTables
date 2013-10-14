@@ -1502,15 +1502,18 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
         if os.path.isfile(self.h5fname):
             os.remove(self.h5fname)
 
+    def assertIsFile(self):
+        self.assertTrue(os.path.isfile(self.h5fname))
+
     def test_newFile(self):
         self.assertTrue(isinstance(self.h5file, tables.File))
-        self.assertTrue(os.path.isfile(self.h5fname))
+        self.assertIsFile()
 
     def test_readFile(self):
         self.h5file.close()
         self.h5file = None
 
-        self.assertTrue(os.path.isfile(self.h5fname))
+        self.assertIsFile()
 
         # Open an existing HDF5 file
         self.h5file = tables.open_file(self.h5fname, mode="r",
@@ -1533,7 +1536,7 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
         self.h5file.close()
         self.h5file = None
 
-        self.assertTrue(os.path.isfile(self.h5fname))
+        self.assertIsFile()
 
         # Open an existing HDF5 file in append mode
         self.h5file = tables.open_file(self.h5fname, mode="a",
@@ -1589,7 +1592,7 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
         self.h5file.close()
         self.h5file = None
 
-        self.assertTrue(os.path.isfile(self.h5fname))
+        self.assertIsFile()
 
         # Open an existing HDF5 file in append mode
         self.h5file = tables.open_file(self.h5fname, mode="r+",
@@ -1923,6 +1926,35 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
                 self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
+class SplitDriverTestCase(DefaultDriverTestCase):
+    DRIVER = "H5FD_SPLIT"
+    DRIVER_PARAMS = {
+        "DRIVER_SPLIT_META_EXT": "-xm.h5",
+        "DRIVER_SPLIT_RAW_EXT": "-xr.h5",
+        }
+
+    def tearDown(self):
+        if self.h5file:
+            self.h5file.close()
+        else:
+            h5file = tables.file._open_files.get(self.h5fname)
+            if h5file is not None:
+                h5file.close()
+        self.h5file = None
+        for k in "DRIVER_SPLIT_META_EXT", "DRIVER_SPLIT_RAW_EXT":
+            fname = self.h5fname + self.DRIVER_PARAMS[k]
+            if os.path.isfile(fname):
+                os.remove(fname)
+
+    def assertIsFile(self):
+        for k in "DRIVER_SPLIT_META_EXT", "DRIVER_SPLIT_RAW_EXT":
+            self.assertTrue(os.path.isfile(self.h5fname+self.DRIVER_PARAMS[k]))
+
+    @unittest.skip('opening in append mode appears to be broken')
+    def test_openFileA(self):
+        pass
+
+
 class NotSpportedDriverTestCase(common.PyTablesTestCase):
     DRIVER = None
     DRIVER_PARAMS = {}
@@ -1994,10 +2026,6 @@ class FamilyDriverTestCase(NotSpportedDriverTestCase):
 
 class MultiDriverTestCase(NotSpportedDriverTestCase):
     DRIVER = "H5FD_MULTI"
-
-
-class SplitDriverTestCase(NotSpportedDriverTestCase):
-    DRIVER = "H5FD_SPLIT"
 
 
 class MpioDriverTestCase(NotSpportedDriverTestCase):
@@ -2311,6 +2339,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StdioDriverTestCase))
         theSuite.addTest(unittest.makeSuite(CoreDriverTestCase))
         theSuite.addTest(unittest.makeSuite(CoreDriverNoBackingStoreTestCase))
+        theSuite.addTest(unittest.makeSuite(SplitDriverTestCase))
 
         theSuite.addTest(unittest.makeSuite(LogDriverTestCase))
         theSuite.addTest(unittest.makeSuite(DirectDriverTestCase))
@@ -2318,7 +2347,6 @@ def suite():
 
         theSuite.addTest(unittest.makeSuite(FamilyDriverTestCase))
         theSuite.addTest(unittest.makeSuite(MultiDriverTestCase))
-        theSuite.addTest(unittest.makeSuite(SplitDriverTestCase))
         theSuite.addTest(unittest.makeSuite(MpioDriverTestCase))
         theSuite.addTest(unittest.makeSuite(MpiPosixDriverTestCase))
         theSuite.addTest(unittest.makeSuite(StreamDriverTestCase))

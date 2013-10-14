@@ -267,6 +267,11 @@ Following drivers are supported:
       memory until the file is closed. At closing, the memory version
       of the file can be written back to disk or abandoned.
 
+    * H5FD_SPLIT: this file driver splits a file into two parts.
+      One part stores metadata, and the other part stores raw data.
+      This splitting a file into two parts is a limited case of the
+      Multi driver.
+
 The following drivers are not currently supported:
 
     * H5FD_LOG: this is the H5FD_SEC2 driver with logging capabilities.
@@ -281,11 +286,6 @@ The following drivers are not currently supported:
       files according to the type of the data. I/O might work better if
       data is stored in separate files based on the type of data.
       The Split driver is a special case of this driver.
-
-    * H5FD_SPLIT: this file driver splits a file into two parts.
-      One part stores metadata, and the other part stores raw data.
-      This splitting a file into two parts is a limited case of the
-      Multi driver.
 
     * H5FD_MPIO: this is the standard HDF5 file driver for parallel
       file systems. This driver uses the MPI standard for both
@@ -404,6 +404,30 @@ returned file object is set up using the specified image.
 
 A file image can be retrieved from an existing (and opened) file object
 using the :meth:`tables.File.get_file_image` method.
+
+.. note:: requires HDF5 >= 1.8.9.
+
+.. versionadded:: 3.0
+
+"""
+
+DRIVER_SPLIT_META_EXT = '-m.h5'
+"""The extension to be used for the meta file used by the H5FD_SPLIT driver.
+
+If this option is passed to the :func:`tables.openFile` function it will
+be used to set the meta extension used by the H5FD_SPLIT driver.
+
+.. note:: requires HDF5 >= 1.8.9.
+
+.. versionadded:: 3.0
+
+"""
+
+DRIVER_SPLIT_RAW_EXT = '-r.h5'
+"""The extension to be used for the raw file used by the H5FD_SPLIT driver.
+
+If this option is passed to the :func:`tables.openFile` function it will
+be used to set the raw extension used by the H5FD_SPLIT driver.
 
 .. note:: requires HDF5 >= 1.8.9.
 

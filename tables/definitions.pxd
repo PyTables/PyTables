@@ -400,8 +400,8 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Pset_fapl_multi(hid_t fapl_id, H5FD_mem_t *memb_map,
                            hid_t *memb_fapl, char **memb_name,
                            haddr_t *memb_addr, hbool_t relax)
-  herr_t H5Pset_fapl_split(hid_t fapl_id, const_char *meta_ext,
-                           hid_t meta_plist_id, const_char *raw_ext,
+  herr_t H5Pset_fapl_split(hid_t fapl_id, char *meta_ext,
+                           hid_t meta_plist_id, char *raw_ext,
                            hid_t raw_plist_id)
   #herr_t H5Pget_fapl_mpio(hid_t fapl_id, MPI_Comm *comm, MPI_Info *info)
   #herr_t H5Pset_fapl_mpio(hid_t fapl_id, MPI_Comm comm, MPI_Info info)
