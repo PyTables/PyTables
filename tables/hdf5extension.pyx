@@ -312,6 +312,9 @@ cdef class File:
     driver = params["DRIVER"]
     if driver is not None and driver not in _supported_drivers:
       raise ValueError("Invalid or not supported driver: '%s'" % driver)
+    if driver == "H5FD_SPLIT":
+      meta_name = name + params.get("DRIVER_SPLIT_META_EXT", "-m.h5")
+      raw_name = name + params.get("DRIVER_SPLIT_RAW_EXT", "-r.h5")
 
     # Create a new file using default properties
     self.name = name
@@ -344,10 +347,8 @@ cdef class File:
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
     if driver == "H5FD_SPLIT":
-      meta_ext = params.get("DRIVER_SPLIT_META_EXT", '-m.h5')
-      raw_ext = params.get("DRIVER_SPLIT_RAW_EXT", '-r.h5')
-      check_file_access(name + meta_ext, pymode)
-      check_file_access(name + raw_ext, pymode)
+      for n in meta_name, raw_name:
+        check_file_access(n, pymode)
     else:
       backing_store = params.get("DRIVER_CORE_BACKING_STORE", 1)
       if driver != "H5FD_CORE" or backing_store:
@@ -356,6 +357,8 @@ cdef class File:
     # Should a new file be created?
     if image:
       exists = True
+    elif driver == "H5FD_SPLIT":
+      exists = os.path.exists(meta_name) and os.path.exists(raw_name)
     else:
       exists = os.path.exists(name)
     self._v_new = not (pymode in ('r', 'r+') or (pymode == 'a' and exists))

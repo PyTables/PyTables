@@ -1950,10 +1950,6 @@ class SplitDriverTestCase(DefaultDriverTestCase):
         for k in "DRIVER_SPLIT_META_EXT", "DRIVER_SPLIT_RAW_EXT":
             self.assertTrue(os.path.isfile(self.h5fname+self.DRIVER_PARAMS[k]))
 
-    @unittest.skip('opening in append mode appears to be broken')
-    def test_openFileA(self):
-        pass
-
 
 class NotSpportedDriverTestCase(common.PyTablesTestCase):
     DRIVER = None
