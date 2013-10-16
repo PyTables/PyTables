@@ -1933,22 +1933,29 @@ class SplitDriverTestCase(DefaultDriverTestCase):
         "DRIVER_SPLIT_RAW_EXT": "-xr.h5",
         }
 
+    def setUp(self):
+        self.h5fname = tempfile.mktemp()
+        self.h5fnames = [self.h5fname + self.DRIVER_PARAMS[k] for k in
+                         ("DRIVER_SPLIT_META_EXT", "DRIVER_SPLIT_RAW_EXT")]
+        self.h5file = tables.open_file(self.h5fname, mode="w",
+                                       driver=self.DRIVER, **self.DRIVER_PARAMS)
+        root = self.h5file.root
+        self.h5file.set_node_attr(root, "testattr", 41)
+        self.h5file.create_array(root, "array", [1, 2], title="array")
+        self.h5file.create_table(root, "table", {"var1": tables.IntCol()},
+                                 title="table")
+
     def tearDown(self):
         if self.h5file:
             self.h5file.close()
-        else:
-            h5file = tables.file._open_files.get(self.h5fname)
-            if h5file is not None:
-                h5file.close()
         self.h5file = None
-        for k in "DRIVER_SPLIT_META_EXT", "DRIVER_SPLIT_RAW_EXT":
-            fname = self.h5fname + self.DRIVER_PARAMS[k]
+        for fname in self.h5fnames:
             if os.path.isfile(fname):
                 os.remove(fname)
 
     def assertIsFile(self):
-        for k in "DRIVER_SPLIT_META_EXT", "DRIVER_SPLIT_RAW_EXT":
-            self.assertTrue(os.path.isfile(self.h5fname+self.DRIVER_PARAMS[k]))
+        for fname in self.h5fnames:
+            self.assertTrue(os.path.isfile(fname))
 
 
 class NotSpportedDriverTestCase(common.PyTablesTestCase):
