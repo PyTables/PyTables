@@ -412,26 +412,26 @@ using the :meth:`tables.File.get_file_image` method.
 """
 
 DRIVER_SPLIT_META_EXT = '-m.h5'
-"""The extension to be used for the meta file used by the H5FD_SPLIT driver.
+"""The extension for the metadata file used by the H5FD_SPLIT driver.
 
-If this option is passed to the :func:`tables.openFile` function it will
-be used to set the meta extension used by the H5FD_SPLIT driver.
+If this option is passed to the :func:`tables.openFile` function along
+with driver='H5FD_SPLIT' it will be appended to the metadata file name.
 
 .. note:: requires HDF5 >= 1.8.9.
 
-.. versionadded:: 3.0
+.. versionadded:: 3.1
 
 """
 
 DRIVER_SPLIT_RAW_EXT = '-r.h5'
-"""The extension to be used for the raw file used by the H5FD_SPLIT driver.
+"""The extension for the raw data file used by the H5FD_SPLIT driver.
 
-If this option is passed to the :func:`tables.openFile` function it will
-be used to set the raw extension used by the H5FD_SPLIT driver.
+If this option is passed to the :func:`tables.openFile` function along
+with driver='H5FD_SPLIT' it will be appended to the raw data file name.
 
 .. note:: requires HDF5 >= 1.8.9.
 
-.. versionadded:: 3.0
+.. versionadded:: 3.1
 
 """
 
