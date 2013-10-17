@@ -1938,14 +1938,14 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 class SplitDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_SPLIT"
     DRIVER_PARAMS = {
-        "DRIVER_SPLIT_META_EXT": "-xm.h5",
-        "DRIVER_SPLIT_RAW_EXT": "-xr.h5",
+        "driver_split_meta_ext": "-xm.h5",
+        "driver_split_raw_ext": "-xr.h5",
     }
 
     def setUp(self):
         self.h5fname = tempfile.mktemp()
         self.h5fnames = [self.h5fname + self.DRIVER_PARAMS[k] for k in
-                         ("DRIVER_SPLIT_META_EXT", "DRIVER_SPLIT_RAW_EXT")]
+                         ("driver_split_meta_ext", "driver_split_raw_ext")]
         self.h5file = tables.open_file(self.h5fname, mode="w",
                                        driver=self.DRIVER,
                                        **self.DRIVER_PARAMS)
