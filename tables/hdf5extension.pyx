@@ -317,6 +317,8 @@ cdef class File:
       raw_ext = params.get("DRIVER_SPLIT_RAW_EXT", "-r.h5")
       meta_name = meta_ext % name if "%s" in meta_ext else name + meta_ext
       raw_name = raw_ext % name if "%s" in raw_ext else name + raw_ext
+      enc_meta_ext = encode_filename(meta_ext)
+      enc_raw_ext = encode_filename(raw_ext)
 
     # Create a new file using default properties
     self.name = name
@@ -443,10 +445,8 @@ cdef class File:
     #  err = H5Pset_fapl_multi(access_plist, memb_map, memb_fapl, memb_name,
     #                          memb_addr, relax)
     elif driver == "H5FD_SPLIT":
-      meta_ext = params.get("DRIVER_SPLIT_META_EXT", '-m.h5')
-      raw_ext = params.get("DRIVER_SPLIT_RAW_EXT", '-r.h5')
-      err = H5Pset_fapl_split(access_plist, meta_ext, meta_plist_id, raw_ext,
-                              raw_plist_id)
+      err = H5Pset_fapl_split(access_plist, enc_meta_ext, meta_plist_id,
+                              enc_raw_ext, raw_plist_id)
     if err < 0:
       e = HDF5ExtError("Unable to set the file access property list")
       H5Pclose(create_plist)
