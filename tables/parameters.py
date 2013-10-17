@@ -415,7 +415,10 @@ DRIVER_SPLIT_META_EXT = '-m.h5'
 """The extension for the metadata file used by the H5FD_SPLIT driver.
 
 If this option is passed to the :func:`tables.openFile` function along
-with driver='H5FD_SPLIT' it will be appended to the metadata file name.
+with driver='H5FD_SPLIT', the extension is appended to the name passed
+as the first parameter to form the name of the metadata file. If the
+string '%s' is used in the extension, the metadata file name is formed
+by replacing '%s' with the name passed as the first parameter instead.
 
 .. note:: requires HDF5 >= 1.8.9.
 
@@ -427,7 +430,10 @@ DRIVER_SPLIT_RAW_EXT = '-r.h5'
 """The extension for the raw data file used by the H5FD_SPLIT driver.
 
 If this option is passed to the :func:`tables.openFile` function along
-with driver='H5FD_SPLIT' it will be appended to the raw data file name.
+with driver='H5FD_SPLIT', the extension is appended to the name passed
+as the first parameter to form the name of the raw data file. If the
+string '%s' is used in the extension, the raw data file name is formed
+by replacing '%s' with the name passed as the first parameter instead.
 
 .. note:: requires HDF5 >= 1.8.9.
 

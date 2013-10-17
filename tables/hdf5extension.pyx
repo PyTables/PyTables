@@ -313,8 +313,10 @@ cdef class File:
     if driver is not None and driver not in _supported_drivers:
       raise ValueError("Invalid or not supported driver: '%s'" % driver)
     if driver == "H5FD_SPLIT":
-      meta_name = name + params.get("DRIVER_SPLIT_META_EXT", "-m.h5")
-      raw_name = name + params.get("DRIVER_SPLIT_RAW_EXT", "-r.h5")
+      meta_ext = params.get("DRIVER_SPLIT_META_EXT", "-m.h5")
+      raw_ext = params.get("DRIVER_SPLIT_RAW_EXT", "-r.h5")
+      meta_name = meta_ext % name if "%s" in meta_ext else name + meta_ext
+      raw_name = raw_ext % name if "%s" in raw_ext else name + raw_ext
 
     # Create a new file using default properties
     self.name = name
