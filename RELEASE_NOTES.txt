@@ -8,31 +8,32 @@
 .. py:currentmodule:: tables
 
 
-Changes from 3.0 to 3.X.Y (in development)
+Changes from 3.0 to 3.1.0 (in development)
 ==========================================
 
 New features
 ------------
 
-* Now PyTables is able to save/restore the default value of :class:`EnumAtom`
+- Now PyTables is able to save/restore the default value of :class:`EnumAtom`
   types (closes :issue:`234`).
-
+- Implemented support for the H5FD_SPLIT driver (closes :issue:`288`).
+  Many thanks to simleo.
 
 Improvements
 ------------
 
-* Documented an unexpected behaviour with string literals in query conditions
+- Documented an unexpected behaviour with string literals in query conditions
   on Python 3 (closes :issue:`265`)
-* The deprecated :mod:`getopt` module has been dropped in favour of
+- The deprecated :mod:`getopt` module has been dropped in favour of
   :mod:`argparse` in all command line utilities (close :issue:`251`)
-* Improved the installation section of the :doc:`../usersguide/index`.
+- Improved the installation section of the :doc:`../usersguide/index`.
   Instructions for installing PyTables via pip_ have been added.
 
 
 Bugs fixed
 ----------
 
-* Fixed detection of platforms supporting blosc
+- Fixed detection of platforms supporting blosc
 
 .. _pip: http://www.pip-installer.org
 
