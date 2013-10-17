@@ -267,6 +267,11 @@ Following drivers are supported:
       memory until the file is closed. At closing, the memory version
       of the file can be written back to disk or abandoned.
 
+    * H5FD_SPLIT: this file driver splits a file into two parts.
+      One part stores metadata, and the other part stores raw data.
+      This splitting a file into two parts is a limited case of the
+      Multi driver.
+
 The following drivers are not currently supported:
 
     * H5FD_LOG: this is the H5FD_SEC2 driver with logging capabilities.
@@ -281,11 +286,6 @@ The following drivers are not currently supported:
       files according to the type of the data. I/O might work better if
       data is stored in separate files based on the type of data.
       The Split driver is a special case of this driver.
-
-    * H5FD_SPLIT: this file driver splits a file into two parts.
-      One part stores metadata, and the other part stores raw data.
-      This splitting a file into two parts is a limited case of the
-      Multi driver.
 
     * H5FD_MPIO: this is the standard HDF5 file driver for parallel
       file systems. This driver uses the MPI standard for both
@@ -408,6 +408,32 @@ using the :meth:`tables.File.get_file_image` method.
 .. note:: requires HDF5 >= 1.8.9.
 
 .. versionadded:: 3.0
+
+"""
+
+DRIVER_SPLIT_META_EXT = '-m.h5'
+"""The extension for the metadata file used by the H5FD_SPLIT driver.
+
+If this option is passed to the :func:`tables.openFile` function along
+with driver='H5FD_SPLIT', the extension is appended to the name passed
+as the first parameter to form the name of the metadata file. If the
+string '%s' is used in the extension, the metadata file name is formed
+by replacing '%s' with the name passed as the first parameter instead.
+
+.. versionadded:: 3.1
+
+"""
+
+DRIVER_SPLIT_RAW_EXT = '-r.h5'
+"""The extension for the raw data file used by the H5FD_SPLIT driver.
+
+If this option is passed to the :func:`tables.openFile` function along
+with driver='H5FD_SPLIT', the extension is appended to the name passed
+as the first parameter to form the name of the raw data file. If the
+string '%s' is used in the extension, the raw data file name is formed
+by replacing '%s' with the name passed as the first parameter instead.
+
+.. versionadded:: 3.1
 
 """
 

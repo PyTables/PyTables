@@ -84,6 +84,7 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Adelete, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT, H5T_STRING, H5Tget_order,
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pget_userblock, H5Pset_userblock,
   H5Pset_fapl_sec2, H5Pset_fapl_log, H5Pset_fapl_stdio, H5Pset_fapl_core,
+  H5Pset_fapl_split,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
@@ -281,7 +282,7 @@ _supported_drivers = (
     "H5FD_CORE",
     #"H5FD_FAMILY",
     #"H5FD_MULTI",
-    #"H5FD_SPLIT",
+    "H5FD_SPLIT",
     #"H5FD_MPIO",
     #"H5FD_MPIPOSIX",
     #"H5FD_STREAM",
@@ -301,6 +302,7 @@ cdef class File:
   def _g_new(self, name, pymode, **params):
     cdef herr_t err = 0
     cdef hid_t access_plist, create_plist = H5P_DEFAULT
+    cdef hid_t meta_plist_id, raw_plist_id = H5P_DEFAULT
     cdef size_t img_buf_len = 0, user_block_size = 0
     cdef void *img_buf_p = NULL
     cdef bytes encname
@@ -310,6 +312,13 @@ cdef class File:
     driver = params["DRIVER"]
     if driver is not None and driver not in _supported_drivers:
       raise ValueError("Invalid or not supported driver: '%s'" % driver)
+    if driver == "H5FD_SPLIT":
+      meta_ext = params.get("DRIVER_SPLIT_META_EXT", "-m.h5")
+      raw_ext = params.get("DRIVER_SPLIT_RAW_EXT", "-r.h5")
+      meta_name = meta_ext % name if "%s" in meta_ext else name + meta_ext
+      raw_name = raw_ext % name if "%s" in raw_ext else name + raw_ext
+      enc_meta_ext = encode_filename(meta_ext)
+      enc_raw_ext = encode_filename(raw_ext)
 
     # Create a new file using default properties
     self.name = name
@@ -341,14 +350,19 @@ cdef class File:
 
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
-    # But only if we are using file backed storage.
-    backing_store = params.get("DRIVER_CORE_BACKING_STORE", 1)
-    if driver != "H5FD_CORE" or backing_store:
-      check_file_access(name, pymode)
+    if driver == "H5FD_SPLIT":
+      for n in meta_name, raw_name:
+        check_file_access(n, pymode)
+    else:
+      backing_store = params.get("DRIVER_CORE_BACKING_STORE", 1)
+      if driver != "H5FD_CORE" or backing_store:
+        check_file_access(name, pymode)
 
     # Should a new file be created?
     if image:
       exists = True
+    elif driver == "H5FD_SPLIT":
+      exists = os.path.exists(meta_name) and os.path.exists(raw_name)
     else:
       exists = os.path.exists(name)
     self._v_new = not (pymode in ('r', 'r+') or (pymode == 'a' and exists))
@@ -430,9 +444,9 @@ cdef class File:
     #elif driver == "H5FD_MULTI":
     #  err = H5Pset_fapl_multi(access_plist, memb_map, memb_fapl, memb_name,
     #                          memb_addr, relax)
-    #elif driver == "H5FD_SPLIT":
-    #  err = H5Pset_fapl_split(access_plist, meta_ext, meta_plist_id, raw_ext,
-    #                          raw_plist_id)
+    elif driver == "H5FD_SPLIT":
+      err = H5Pset_fapl_split(access_plist, enc_meta_ext, meta_plist_id,
+                              enc_raw_ext, raw_plist_id)
     if err < 0:
       e = HDF5ExtError("Unable to set the file access property list")
       H5Pclose(create_plist)
