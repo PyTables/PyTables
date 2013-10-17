@@ -420,8 +420,6 @@ as the first parameter to form the name of the metadata file. If the
 string '%s' is used in the extension, the metadata file name is formed
 by replacing '%s' with the name passed as the first parameter instead.
 
-.. note:: requires HDF5 >= 1.8.9.
-
 .. versionadded:: 3.1
 
 """
@@ -434,8 +432,6 @@ with driver='H5FD_SPLIT', the extension is appended to the name passed
 as the first parameter to form the name of the raw data file. If the
 string '%s' is used in the extension, the raw data file name is formed
 by replacing '%s' with the name passed as the first parameter instead.
-
-.. note:: requires HDF5 >= 1.8.9.
 
 .. versionadded:: 3.1
 
