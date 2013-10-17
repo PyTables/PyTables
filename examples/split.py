@@ -5,16 +5,19 @@ In this example, we store the metadata file in the current directory
 and the raw data file in a subdirectory.
 """
 
-import os, errno
-import numpy, tables
+import os
+import errno
+import numpy
+import tables
 
 FNAME = "split"
 DRIVER = "H5FD_SPLIT"
 RAW_DIR = "raw"
 DRIVER_PROPS = {
     "DRIVER_SPLIT_RAW_EXT": os.path.join(RAW_DIR, "%s-r.h5")
-    }
+}
 DATA_SHAPE = (2, 10)
+
 
 class FooBar(tables.IsDescription):
     tag = tables.StringCol(16)
