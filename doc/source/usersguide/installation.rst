@@ -11,11 +11,16 @@ The Python Distutils are used to build and install PyTables, so it is fairly
 simple to get the application up and running. If you want to install the
 package from sources you can go on reading to the next section.
 
-However, if you are running Windows and want to install precompiled binaries,
-you can jump straight to :ref:`binaryInstallationDescr`. In addition, binary
-packages are available for many different Linux distributions, MacOSX and
-other Unices.  Just check the package repository for your preferred operating
-system.
+However, if you want to go straight to binaries that 'just work' for the main
+platforms (Linux, Mac OSX and Windows), you might want to use the excellent
+Anaconda_ or Canopy_ distributions.  PyTables usually distributes its own
+Windows binaries too; go :ref:`binaryInstallationDescr` for instructions.
+Finally `Christoph Gohlke`_ also maintains an excellent suite of a variety of
+binary packages for Windows at his site.
+
+.. _Anaconda: https://store.continuum.io/cshop/anaconda/
+.. _Canopy: https://www.enthought.com/products/canopy/
+.. _`Christoph Gohlke`: http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
 Installation from source
 ------------------------
@@ -46,7 +51,7 @@ First, make sure that you have
 * NumPy_ >= 1.4.1,
 * Numexpr_ >= 2.0 and
 * Cython_ >= 0.13
-* argparse_ (only Python 2.6, it it used by the :program:`pt2to3` utility)
+* argparse_ (only Python 2.6, it is used by the :program:`pt2to3` utility)
 
 installed (for testing purposes, we are using HDF5_ 1.8.9, NumPy_ 1.7.1
 and Numexpr_ 2.1 currently). If you don't, fetch and install them before
