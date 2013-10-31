@@ -302,7 +302,7 @@ cdef class File:
   def _g_new(self, name, pymode, **params):
     cdef herr_t err = 0
     cdef hid_t access_plist, create_plist = H5P_DEFAULT
-    cdef hid_t meta_plist_id, raw_plist_id = H5P_DEFAULT
+    cdef hid_t meta_plist_id = H5P_DEFAULT, raw_plist_id = H5P_DEFAULT
     cdef size_t img_buf_len = 0, user_block_size = 0
     cdef void *img_buf_p = NULL
     cdef bytes encname
