@@ -2684,31 +2684,26 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.close()
         self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
 
-class BroadcastTest(common.PyTablesTestCase):
 
-    def setUp(self):
-        # Create an instance of an HDF5 Array
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = fileh = open_file(self.file, "w")
-        # Create a sample array
-        self.element_shape = (3,)
-        self.array_shape = (2, 3)
-        
-        self.atom = Atom.from_dtype(numpy.dtype((numpy.int, self.element_shape)))
-        self.tbarr = fileh.create_carray(fileh.root, 'array', self.atom, self.array_shape)
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
+class BroadcastTest(common.TempFileMixin, common.PyTablesTestCase):
 
     def test(self):
-        """Test arrays are broadcasted correctly when the array dtype is not scalar"""
-        size = numpy.prod(self.element_shape)
-        A = numpy.arange(size).reshape(self.element_shape)
-        
-        self.tbarr[0] = A
-        self.assertTrue(numpy.all(self.tbarr[0] == A))
+        """Test correct broadcasting when the array atom is not scalar"""
+
+        array_shape = (2, 3)
+        element_shape = (3,)
+
+        dtype = numpy.dtype((numpy.int, element_shape))
+        atom = Atom.from_dtype(dtype)
+        h5arr = self.h5file.create_carray(self.h5file.root, 'array',
+                                          atom, array_shape)
+
+        size = numpy.prod(element_shape)
+        nparr = numpy.arange(size).reshape(element_shape)
+
+        h5arr[0] = nparr
+        self.assertTrue(numpy.all(h5arr[0] == nparr))
+
 
 class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
     where = '/'
