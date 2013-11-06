@@ -1969,6 +1969,8 @@ class Table(tableextension.Table, Leaf):
     def _read_coordinates(self, coords, field=None):
         """Private part of `read_coordinates()` with no flavor conversion."""
 
+        coords = self._point_selection(coords)
+
         ncoords = len(coords)
         # Create a read buffer only if needed
         if field is None or ncoords > 0:
@@ -2117,8 +2119,7 @@ class Table(tableextension.Table, Leaf):
             return self.read(start, stop, step)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
-            coords = self._point_selection(key)
-            return self._read_coordinates(coords, None)
+            return self._read_coordinates(key, None)
         else:
             raise IndexError("Invalid index or slice: %r" % (key,))
 

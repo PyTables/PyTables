@@ -2759,6 +2759,21 @@ class getItemTestCase(unittest.TestCase):
         result = table.read_coordinates(idx)
         self.assertEqual(result["var2"].tolist(), idx)
 
+    def test11_list_booleans(self):
+        """Checking accessing Table with a list of boolean values"""
+
+        self.fileh = open_file(self.file, "r")
+        table = self.fileh.root.table0
+        idx = list(range(10, 70, 11))
+
+        selection = [n in idx for n in range(self.expectedrows)]
+
+        result = table[selection]
+        self.assertEqual(result["var2"].tolist(), idx)
+
+        result = table.read_coordinates(selection)
+        self.assertEqual(result["var2"].tolist(), idx)
+
 
 class Rec(IsDescription):
     col1 = IntCol(pos=1)
