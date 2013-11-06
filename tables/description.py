@@ -404,6 +404,9 @@ class Description(object):
 
     def __init__(self, classdict, nestedlvl=-1, validate=True):
 
+        if not classdict:
+            raise ValueError("cannot create an empty data type")
+
         # Do a shallow copy of classdict just in case this is going to
         # be shared by other instances
         newdict = self.__dict__
