@@ -42,7 +42,7 @@ Bugs fixed
 - Prevent creation of a table with no columns (closes :issue:`18` and
   :issue:`299`)
 - Automatically disable extended float support if a buggy version of HDF5
-  is detected (se also `Issues with H5T_NATIVE_LDOUBLE`_).
+  is detected (see also `Issues with H5T_NATIVE_LDOUBLE`_).
   Closes :issue:`275` and :issue:`290`.
 
 .. _pip: http://www.pip-installer.org
