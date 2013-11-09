@@ -187,10 +187,30 @@ if 'Float16Atom' in locals():
     # float16 is new in numpy 1.6.0
     __all__.extend(('Float16Atom', 'Float16Col'))
 
-if 'Float96Atom' in locals():
-    __all__.extend(('Float96Atom', 'Float96Col'))
-    __all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
 
-if 'Float128Atom' in locals():
-    __all__.extend(('Float128Atom', 'Float128Col'))
-    __all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check
+from tables.utilsextension import _broken_hdf5_extended_float
+if not _broken_hdf5_extended_float():
+    if 'Float96Atom' in locals():
+        __all__.extend(('Float96Atom', 'Float96Col'))
+        __all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
+
+    if 'Float128Atom' in locals():
+        __all__.extend(('Float128Atom', 'Float128Col'))
+        __all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check
+
+else:
+
+    from tables import atom as _atom
+    from tables import description as _description
+    try:
+        del _atom.Float96Atom, _atom.Complex192Col
+        del _description.Float96Col, _description.Complex192Col
+        _atom.all_types.discard('complex192')
+        _atom.ComplexAtom._isizes.remove(24)
+    except AttributeError:
+        del _atom.Float128Atom, _atom.Complex256Atom
+        del _description.Float128Col, _description.Complex256Col
+        _atom.all_types.discard('complex256')
+        _atom.ComplexAtom._isizes.remove(32)
+    del _atom, _description
+del _broken_hdf5_extended_float
