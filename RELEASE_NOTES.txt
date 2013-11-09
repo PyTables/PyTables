@@ -16,8 +16,8 @@ New features
 
 - Now PyTables is able to save/restore the default value of :class:`EnumAtom`
   types (closes :issue:`234`).
-- Implemented support for the H5FD_SPLIT driver (closes :issue:`288`).
-  Many thanks to simleo.
+- Implemented support for the H5FD_SPLIT driver (closes :issue:`288`,
+  :issue:`289` and :issue:`295`). Many thanks to simleo.
 
 Improvements
 ------------
@@ -27,15 +27,25 @@ Improvements
 - The deprecated :mod:`getopt` module has been dropped in favour of
   :mod:`argparse` in all command line utilities (close :issue:`251`)
 - Improved the installation section of the :doc:`../usersguide/index`.
-  Instructions for installing PyTables via pip_ have been added.
+
+  * instructions for installing PyTables via pip_ have been added.
+  * added a reference to the Anaconda_, Canopy_ and `Christoph Gohlke suites`_
+    (closes :issue:`291`)
 
 
 Bugs fixed
 ----------
 
 - Fixed detection of platforms supporting blosc
+- Fixed a crash that occurred when one attempts to write a numpy_ array to
+  an :class:`Atom` (closes :issue:`209` and :issue:`296`)
+- Prevent creation of a table with no columns (closes :issue:`18` and
+  :issue:`299`)
 
 .. _pip: http://www.pip-installer.org
+.. _Anaconda: https://store.continuum.io/cshop/anaconda
+.. _Canopy: https://www.enthought.com/products/canopy
+.. _`Christoph Gohlke suites`: http://www.lfd.uci.edu/~gohlke/pythonlibs
 
 
 Changes from 2.4 to 3.0
