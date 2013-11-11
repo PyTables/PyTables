@@ -186,6 +186,51 @@ def keysort(ndarray array1, ndarray array2):
     raise ValueError("This shouldn't happen!")
 
 
+# This has been copied from the standard module bisect.
+# Checks for the values out of limits has been added at the beginning
+# because I forsee that this should be a very common case.
+# 2004-05-20
+def _bisect_left(a, x, int hi):
+  """Return the index where to insert item x in list a, assuming a is sorted.
+
+  The return value i is such that all e in a[:i] have e < x, and all e in
+  a[i:] have e >= x.  So if x already appears in the list, i points just
+  before the leftmost x already there.
+
+  """
+
+  cdef int lo, mid
+
+  lo = 0
+  if x <= a[0]: return 0
+  if a[-1] < x: return hi
+  while lo < hi:
+      mid = (lo+hi)/2
+      if a[mid] < x: lo = mid+1
+      else: hi = mid
+  return lo
+
+
+def _bisect_right(a, x, int hi):
+  """Return the index where to insert item x in list a, assuming a is sorted.
+
+  The return value i is such that all e in a[:i] have e <= x, and all e in
+  a[i:] have e > x.  So if x already appears in the list, i points just
+  beyond the rightmost x already there.
+
+  """
+
+  cdef int lo, mid
+
+  lo = 0
+  if x < a[0]: return 0
+  if a[-1] <= x: return hi
+  while lo < hi:
+    mid = (lo+hi)/2
+    if x < a[mid]: hi = mid
+    else: lo = mid+1
+  return lo
+
 # Classes
 
 
@@ -337,50 +382,6 @@ cdef class IndexArray(Array):
     return self.bufferlb
 
   _readSortedSlice = previous_api(_read_sorted_slice)
-
-# This has been copied from the standard module bisect.
-# Checks for the values out of limits has been added at the beginning
-# because I forsee that this should be a very common case.
-# 2004-05-20
-  def _bisect_left(self, a, x, int hi):
-    """Return the index where to insert item x in list a, assuming a is sorted.
-
-    The return value i is such that all e in a[:i] have e < x, and all e in
-    a[i:] have e >= x.  So if x already appears in the list, i points just
-    before the leftmost x already there.
-
-    """
-
-    cdef int lo, mid
-
-    lo = 0
-    if x <= a[0]: return 0
-    if a[-1] < x: return hi
-    while lo < hi:
-        mid = (lo+hi)/2
-        if a[mid] < x: lo = mid+1
-        else: hi = mid
-    return lo
-
-  def _bisect_right(self, a, x, int hi):
-    """Return the index where to insert item x in list a, assuming a is sorted.
-
-    The return value i is such that all e in a[:i] have e <= x, and all e in
-    a[i:] have e > x.  So if x already appears in the list, i points just
-    beyond the rightmost x already there.
-
-    """
-
-    cdef int lo, mid
-
-    lo = 0
-    if x < a[0]: return 0
-    if a[-1] <= x: return hi
-    while lo < hi:
-      mid = (lo+hi)/2
-      if x < a[mid]: hi = mid
-      else: lo = mid+1
-    return lo
 
   cdef void *get_lru_bounds(self, int nrow, int nbounds):
     """Get the bounds from the cache, or read them."""

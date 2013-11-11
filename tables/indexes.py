@@ -162,7 +162,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             nchunk = bisect_left(bounds, item1)
             chunk = self._read_sorted_slice(nrow, chunksize * nchunk,
                                             chunksize * (nchunk + 1))
-            result1 = self._bisect_left(chunk, item1, chunksize)
+            result1 = indexesextension._bisect_left(chunk, item1, chunksize)
             result1 += chunksize * nchunk
         # Lookup in the middle of slice for item2
         if result2 < 0:
@@ -171,7 +171,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             if nchunk2 != nchunk:
                 chunk = self._read_sorted_slice(nrow, chunksize * nchunk2,
                                                 chunksize * (nchunk2 + 1))
-            result2 = self._bisect_right(chunk, item2, chunksize)
+            result2 = indexesextension._bisect_right(chunk, item2, chunksize)
             result2 += chunksize * nchunk2
         return (result1, result2)
 
