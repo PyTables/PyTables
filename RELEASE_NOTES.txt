@@ -43,7 +43,7 @@ Bugs fixed
   :issue:`299`)
 - Automatically disable extended float support if a buggy version of HDF5
   is detected (see also `Issues with H5T_NATIVE_LDOUBLE`_).
-  Closes :issue:`275` and :issue:`290`.
+  See also :issue:`275` and :issue:`290`.
 
 .. _pip: http://www.pip-installer.org
 .. _Anaconda: https://store.continuum.io/cshop/anaconda

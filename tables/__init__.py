@@ -188,8 +188,8 @@ if 'Float16Atom' in locals():
     __all__.extend(('Float16Atom', 'Float16Col'))
 
 
-from tables.utilsextension import _broken_hdf5_extended_float
-if not _broken_hdf5_extended_float():
+from tables.utilsextension import _broken_hdf5_long_double
+if not _broken_hdf5_long_double():
     if 'Float96Atom' in locals():
         __all__.extend(('Float96Atom', 'Float96Col'))
         __all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
@@ -213,4 +213,4 @@ else:
         _atom.all_types.discard('complex256')
         _atom.ComplexAtom._isizes.remove(32)
     del _atom, _description
-del _broken_hdf5_extended_float
+del _broken_hdf5_long_double

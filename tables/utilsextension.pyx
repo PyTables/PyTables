@@ -383,7 +383,7 @@ silenceHDF5Messages = previous_api(silence_hdf5_messages)
 silence_hdf5_messages()
 
 
-def _broken_hdf5_extended_float():
+def _broken_hdf5_long_double():
     # HDF5 < 1.8.12 has a bug that prevents correct identification of the
     # long double data type when the code is built with gcc 4.8.
     # See also: http://hdf-forum.184993.n3.nabble.com/Issues-with-H5T-NATIVE-LDOUBLE-tt4026450.html
