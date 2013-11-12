@@ -52,7 +52,8 @@ from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   H5Fopen, H5Gclose, H5Gopen, H5P_DEFAULT, H5T_ARRAY, H5T_BITFIELD,
   H5T_COMPOUND, H5T_CSET_ASCII, H5T_CSET_UTF8, H5T_C_S1, H5T_DIR_DEFAULT,
   H5T_ENUM, H5T_FLOAT, H5T_IEEE_F32BE, H5T_IEEE_F32LE, H5T_IEEE_F64BE,
-  H5T_IEEE_F64LE, H5T_INTEGER, H5T_NATIVE_LDOUBLE, H5T_NO_CLASS, H5T_OPAQUE,
+  H5T_IEEE_F64LE, H5T_INTEGER, H5T_NATIVE_DOUBLE, H5T_NATIVE_LDOUBLE,
+  H5T_NO_CLASS, H5T_OPAQUE,
   H5T_ORDER_BE, H5T_ORDER_LE, H5T_REFERENCE, H5T_STD_B8BE, H5T_STD_B8LE,
   H5T_STD_I16BE, H5T_STD_I16LE, H5T_STD_I32BE, H5T_STD_I32LE, H5T_STD_I64BE,
   H5T_STD_I64LE, H5T_STD_I8BE, H5T_STD_I8LE, H5T_STD_U16BE, H5T_STD_U16LE,
@@ -380,6 +381,14 @@ silenceHDF5Messages = previous_api(silence_hdf5_messages)
 
 # Disable automatic HDF5 error logging
 silence_hdf5_messages()
+
+
+def _broken_hdf5_long_double():
+    # HDF5 < 1.8.12 has a bug that prevents correct identification of the
+    # long double data type when the code is built with gcc 4.8.
+    # See also: http://hdf-forum.184993.n3.nabble.com/Issues-with-H5T-NATIVE-LDOUBLE-tt4026450.html
+
+    return H5Tget_order(H5T_NATIVE_DOUBLE) != H5Tget_order(H5T_NATIVE_LDOUBLE)
 
 
 # Helper functions
