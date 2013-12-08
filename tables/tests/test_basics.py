@@ -127,8 +127,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         file = tempfile.mktemp(".h5")
         fileh = open_file(
             file, mode="w", node_cache_slots=self.nodeCacheSlots)
-        fileh.create_array(fileh.root, 'array', [
-                           1, 2], title="Array example")
+        fileh.create_array(fileh.root, 'array', [1, 2],
+                           title="Array example")
         # Get the CLASS attribute of the arr object
         class_ = fileh.root.array.attrs.CLASS
 
@@ -333,11 +333,13 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test05b_removeGroupRecursively(self):
-        """Checking removing a group recursively and access to it immediately"""
+        """Checking removing a group recursively and access to it
+        immediately"""
 
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test05b_removeGroupRecursively..." % self.__class__.__name__
+            print ("Running %s.test05b_removeGroupRecursively..." %
+                   self.__class__.__name__)
 
         # Delete a group with leafs
         fileh = open_file(
