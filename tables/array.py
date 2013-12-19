@@ -340,6 +340,7 @@ class Array(hdf5extension.Array, Leaf):
         # listarr buffer
         if self._nrowsread >= self._stop:
             self._init = False
+            self.listarr = None        # fixes issue #308
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
