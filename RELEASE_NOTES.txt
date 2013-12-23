@@ -41,6 +41,10 @@ Bugs fixed
   an :class:`Atom` (closes :issue:`209` and :issue:`296`)
 - Prevent creation of a table with no columns (closes :issue:`18` and
   :issue:`299`)
+- Fixed a memory leak that occurs when iterating over
+  :class:`CArray`/:class:`EArray` objects (closes :issue:`308`,
+  see also :issue:`309`).
+  Many thanks to Alistair Muldal.
 
 .. _pip: http://www.pip-installer.org
 .. _Anaconda: https://store.continuum.io/cshop/anaconda
