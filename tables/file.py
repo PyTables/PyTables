@@ -306,24 +306,6 @@ class _NoDeadNodes(object):
         return iter([])
 
 
-class _NodeDict(tables.misc.proxydict.ProxyDict):
-    """A proxy dictionary which is able to delegate access to missing items
-    to the container object (a `File`)."""
-
-    def _get_value_from_container(self, container, key):
-        return container.get_node(key)
-
-    _getValueFromContainer = previous_api(_get_value_from_container)
-
-    def _condition(self, node):
-        """Nodes fulfilling the condition are considered to belong here."""
-        raise NotImplementedError
-
-
-    # def __len__(self):
-    #    return len(list(self.iterkeys()))
-
-
 class File(hdf5extension.File, object):
     """The in-memory representation of a PyTables file.
 
