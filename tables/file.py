@@ -315,6 +315,150 @@ class _NoDeadNodes(object):
             return d
         raise KeyError(key)
 
+
+class NodeManager(object):
+    def __init__(self, nslots=64, node_factory=None, close_node=None):
+        super(NodeManager, self).__init__()
+
+        self.registry = weakref.WeakValueDictionary()
+
+        if nslots > 0:
+            cache = lrucacheextension.NodeCache(nslots)
+        else:
+            cache = _NoDeadNodes()
+
+        self.cache = cache
+
+        # node_factory(node_path)
+        self.node_factory = node_factory
+
+        # close_node(node_obj)
+        if close_node is None:
+            self.close_node = self._default_close_node
+        else:
+            self.close_node = close_node
+
+    def register_node(self, node, key):
+        if key is None:
+            key = node._v_pathname
+
+        if key in self.registry:
+            if not self.registry[key]._v_isopen:
+                del self.registry[key]
+            elif self.registry[key] is not node:
+                raise RuntimeError('trying to ragister a node with an '
+                                   'existing key: ``%s``' % key)
+        else:
+            self.registry[key] = node
+
+    def cache_node(self, node, key=None):
+        if key is None:
+            key = node._v_pathname
+
+        self.register_node(node, key)
+        if key in self.cache:
+            oldnode = self.cache.pop(key)
+            if oldnode is not node and oldnode._v_isopen:
+                raise RuntimeError('trying to cache a node with an '
+                                   'existing key: ``%s``' % key)
+
+        self.cache[key] = node
+
+    def get_node(self, key):
+        node = self.cache.pop(key, None)
+        if node is not None:
+            if node._v_isopen:
+                self.cache_node(node, key)
+                return node
+            else:
+                # this should not happen
+                warnings.warn("a closed node found in the cache: ``%s``" % key)
+
+        if key in self.registry:
+            node = self.registry[key]
+            if node is None:
+                # this should not happen since WeakValueDictionary drops all
+                # dead weakrefs
+                warnings.warn("None is stored in the registry for key: "
+                              "``%s``" % key)
+            elif node._v_isopen:
+                self.cache_node(node, key)
+                return node
+            else:
+                # this should not happen
+                warnings.warn("a closed node found in the registry: "
+                              "``%s``" % key)
+                del self.registry[key]
+                node = None
+
+        if self.node_factory:
+            node = self.node_factory(key)
+            self.cache_node(node, key)
+
+        return node
+
+    def rename_node(self, oldkey, newkey):
+        for cache in (self.cache, self.registry):
+            if oldkey in cache:
+                node = cache.pop(oldkey)
+                cache[newkey] = node
+
+    def drop_from_cache(self, nodepath):
+        '''Remove the node from cache'''
+
+        # Remove the node from the cache.
+        self.cache.pop(nodepath, None)
+
+    def _default_close_node(self, node):
+        node._f_close()
+
+    def drop_node(self, node, check_unregistered=True):
+        """Drop the `node`.
+
+        Remove the node from the cache and, if it has no more refernces,
+        close it.
+
+        """
+
+        # Remove all references to the node.
+        nodepath = node._v_pathname
+
+        self.drop_from_cache(nodepath)
+
+        if nodepath in self.registry:
+            if not node._v_isopen:
+                del self.registry[nodepath]
+        elif check_unregistered:
+            # If the node is not in the registry (this should never happen)
+            # we close it forcibly since it is not ensured that the __del__
+            # method is called for object that are still alive when the
+            # interpreter is shut down
+            if node._v_isopen:
+                warnings.warn("dropping a node that is not in the registry: "
+                              "``%s``" % nodepath)
+
+                node._g_pre_kill_hook()
+                self.close_node(node)
+
+    def flush_nodes(self):
+        # Only iter on the nodes in the registry since nodes in the cahce
+        # should always have an entry in the registry
+        closed_keys = []
+        for path, node in self.registry.items():
+            if not node._v_isopen:
+                closed_keys.append(path)
+            elif '/_i_' not in path:  # Indexes are not necessary to be flushed
+                if isinstance(node, Leaf):
+                    node.flush()
+
+        for path in closed_keys:
+            # self.cache.pop(path, None)
+            if path in self.cache:
+                warnings.warn("closed node the cache: ``%s``" % path)
+                self.cache.pop(path, None)
+            self.registry.pop(path)
+
+
 class File(hdf5extension.File, object):
     """The in-memory representation of a PyTables file.
 
