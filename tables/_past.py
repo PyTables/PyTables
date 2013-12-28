@@ -170,10 +170,6 @@ old2newnames = dict([
     ('_getMarkID', '_get_mark_id'),
     ('_getFinalAction', '_get_final_action'),
     ('getCurrentMark', 'get_current_mark'),
-    ('_refNode', '_refnode'),
-    ('_unrefNode', '_unrefnode'),
-    ('_killNode', '_killnode'),
-    ('_reviveNode', '_revivenode'),
     ('_updateNodeLocations', '_update_node_locations'),
     # from group.py
     #('parentNode', 'parentnode'),                       # kwarg
@@ -300,7 +296,6 @@ old2newnames = dict([
     #('parentNode', 'parentnode'),                       # kwarg
     ('_g_logCreate', '_g_log_create'),
     ('_g_preKillHook', '_g_pre_kill_hook'),
-    ('_g_postReviveHook', '_g_post_revive_hook'),
     ('_g_checkOpen', '_g_check_open'),
     ('_g_setLocation', '_g_set_location'),
     ('_g_updateLocation', '_g_update_location'),

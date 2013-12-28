@@ -33,8 +33,7 @@ from tables import hdf5extension
 from tables import utilsextension
 from tables import parameters
 from tables.exceptions import (ClosedFileError, FileModeError, NodeError,
-                               NoSuchNodeError, UndoRedoError,
-                               PerformanceWarning)
+                               NoSuchNodeError, UndoRedoError)
 from tables.registry import get_class_by_name
 from tables.path import join_path, split_path
 from tables import undoredo
@@ -251,47 +250,6 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
     return File(filename, mode, title, root_uep, filters, **kwargs)
 
 openFile = previous_api(open_file)
-
-
-class _AliveNodes(dict):
-    """Stores strong or weak references to nodes in a transparent way."""
-
-    def __init__(self, nodeCacheSlots):
-        if nodeCacheSlots > 0:
-            self.hasdeadnodes = True
-        else:
-            self.hasdeadnodes = False
-        if nodeCacheSlots >= 0:
-            self.hassoftlinks = True
-        else:
-            self.hassoftlinks = False
-        self.nodeCacheSlots = nodeCacheSlots
-        super(_AliveNodes, self).__init__()
-
-    def __getitem__(self, key):
-        if self.hassoftlinks:
-            ref = super(_AliveNodes, self).__getitem__(key)()
-        else:
-            ref = super(_AliveNodes, self).__getitem__(key)
-        return ref
-
-    def __setitem__(self, key, value):
-        if self.hassoftlinks:
-            ref = weakref.ref(value)
-        else:
-            ref = value
-            # Check if we are running out of space
-            if self.nodeCacheSlots < 0 and len(self) > -self.nodeCacheSlots:
-                warnings.warn("the dictionary of alive nodes is exceeding "
-                              "the recommended maximum number (%d); "
-                              "be ready to see PyTables asking for *lots* "
-                              "of memory and possibly slow I/O." % (
-                              -self.nodeCacheSlots), PerformanceWarning)
-        super(_AliveNodes, self).__setitem__(key, ref)
-
-
-class _DeadNodes(lrucacheextension.NodeCache):
-    pass
 
 
 # A dumb class that doesn't keep nothing at all
@@ -668,16 +626,11 @@ class File(hdf5extension.File, object):
             self.format_version = format_version
             """The PyTables version number of this file."""
 
-        # Nodes referenced by a variable are kept in `_aliveNodes`.
-        # When they are no longer referenced, they move themselves
-        # to `_deadNodes`, where they are kept until they are referenced again
-        # or they are preempted from it by other unreferenced nodes.
-        nodeCacheSlots = params['NODE_CACHE_SLOTS']
-        self._aliveNodes = _AliveNodes(nodeCacheSlots)
-        if nodeCacheSlots > 0:
-            self._deadNodes = _DeadNodes(nodeCacheSlots)
-        else:
-            self._deadNodes = _NoDeadNodes()
+        # The node manager must be initialized before the root group
+        # initialization but the node_factory attribute is set onl later
+        # because it is a bount method of the root grop itself.
+        node_cache_slots = params['NODE_CACHE_SLOTS']
+        self._node_manager = NodeManager(nslots=node_cache_slots)
 
         # For the moment Undo/Redo is not enabled.
         self._undoEnabled = False
@@ -700,6 +653,7 @@ class File(hdf5extension.File, object):
         # Complete the creation of the root node
         # (see the explanation in ``RootGroup.__init__()``.
         root._g_post_init_hook()
+        self._node_manager.node_factory = self.root._g_load_child
 
         # Save the PyTables format version for this file.
         if new:
@@ -1419,31 +1373,13 @@ class File(hdf5extension.File, object):
 
     createExternalLink = previous_api(create_external_link)
 
-    # There is another version of _get_node in cython space, but only
-    # marginally faster (5% or less, but sometimes slower!) than this one.
-    # So I think it is worth to use this one instead (much easier to debug).
-    def _get_node(self, nodePath):
+    def _get_node(self, nodepath):
         # The root node is always at hand.
-        if nodePath == '/':
+        if nodepath == '/':
             return self.root
 
-        aliveNodes = self._aliveNodes
-        deadNodes = self._deadNodes
-
-        if nodePath in aliveNodes:
-            # The parent node is in memory and alive, so get it.
-            node = aliveNodes[nodePath]
-            assert node is not None, \
-                "stale weak reference to dead node ``%s``" % nodePath
-            return node
-        if nodePath in deadNodes:
-            # The parent node is in memory but dead, so revive it.
-            node = self._revivenode(nodePath)
-            return node
-
-        # The node has not been found in alive or dead nodes.
-        # Open it directly from disk.
-        node = self.root._g_load_child(nodePath)
+        node = self._node_manager.get_node(nodepath)
+        assert node is not None, "unable to instantiate node ``%s``" % nodepath
         return node
 
     _getNode = previous_api(_get_node)
@@ -2582,17 +2518,19 @@ class File(hdf5extension.File, object):
 
         self._check_open()
 
-        # First, flush PyTables buffers on alive leaves.
-        # Leaves that are dead should have been flushed already (at least,
-        # users are directed to do this through a PerformanceWarning!)
-        for path, refnode in self._aliveNodes.iteritems():
-            if '/_i_' not in path:  # Indexes are not necessary to be flushed
-                if (self._aliveNodes.hassoftlinks):
-                    node = refnode()
-                else:
-                    node = refnode
+        # Only iter on the nodes in the registry since nodes in the cahce
+        # should always have an entry in the registry
+        registry = self._node_manager.registry
+        closed_keys = []
+        for path, node in registry.items():
+            if not node._v_isopen:
+                closed_keys.append(path)
+            elif '/_i_' not in path:  # Indexes are not necessary to be flushed
                 if isinstance(node, Leaf):
                     node.flush()
+
+        for path in closed_keys:
+            registry.pop(path)
 
         # Flush the cache to disk
         self._flush_file(0)  # 0 means local scope, 1 global (virtual) scope
@@ -2621,14 +2559,14 @@ class File(hdf5extension.File, object):
         self.root._f_close()
 
         # Post-conditions
-        assert len(self._deadNodes) == 0, \
-            ("dead nodes remain after closing dead nodes: %s"
-                % [path for path in self._deadNodes])
+        assert len(self._node_manager.cache) == 0, \
+            ("cached nodes remain after closing: %s"
+                % list(self._node_manager.cache))
 
         # No other nodes should have been revived.
-        assert len(self._aliveNodes) == 0, \
-            ("alive nodes remain after closing dead nodes: %s"
-                % [path for path in self._aliveNodes])
+        assert len(self._node_manager.registry) == 0, \
+            ("alive nodes remain after closing: %s"
+                % list(self._node_manager.registry))
 
         # Close the file
         self._close_file()
@@ -2718,101 +2656,24 @@ class File(hdf5extension.File, object):
                     astring += repr(node) + '\n'
         return astring
 
-    def _refnode(self, node, nodePath):
-        """Register `node` as alive and insert references to it."""
-
-        if nodePath != '/':
-            # The root group does not participate in alive/dead stuff.
-            aliveNodes = self._aliveNodes
-            assert nodePath not in aliveNodes, \
-                "file already has a node with path ``%s``" % nodePath
-
-            # Add the node to the set of referenced ones.
-            aliveNodes[nodePath] = node
-
-    _refNode = previous_api(_refnode)
-
-    def _unrefnode(self, nodePath):
-        """Unregister `node` as alive and remove references to it."""
-
-        if nodePath != '/':
-            # The root group does not participate in alive/dead stuff.
-            aliveNodes = self._aliveNodes
-            assert nodePath in aliveNodes, \
-                "file does not have a node with path ``%s``" % nodePath
-
-            # Remove the node from the set of referenced ones.
-            del aliveNodes[nodePath]
-
-    _unrefNode = previous_api(_unrefnode)
-
-    def _killnode(self, node):
-        """Kill the `node`.
-
-        Moves the `node` from the set of alive, referenced nodes to the
-        set of dead, unreferenced ones.
-
-        """
-
-        nodePath = node._v_pathname
-        assert nodePath in self._aliveNodes, \
-            "trying to kill non-alive node ``%s``" % nodePath
-
-        node._g_pre_kill_hook()
-
-        # Remove all references to the node.
-        self._unrefnode(nodePath)
-        # Save the dead node in the limbo.
-        if self._aliveNodes.hasdeadnodes:
-            self._deadNodes[nodePath] = node
-        else:
-            # We have not a cache for dead nodes,
-            # so follow the usual deletion procedure.
-            node._v__deleting = True
-            node._f_close()
-
-    _killNode = previous_api(_killnode)
-
-    def _revivenode(self, nodePath):
-        """Revive the node under `nodePath` and return it.
-
-        Moves the node under `nodePath` from the set of dead,
-        unreferenced nodes to the set of alive, referenced ones.
-
-        """
-
-        assert nodePath in self._deadNodes, \
-            "trying to revive non-dead node ``%s``" % nodePath
-
-        # Take the node out of the limbo.
-        node = self._deadNodes.pop(nodePath)
-        # Make references to the node.
-        self._refnode(node, nodePath)
-
-        node._g_post_revive_hook()
-
-        return node
-
-    _reviveNode = previous_api(_revivenode)
-
-    def _update_node_locations(self, oldPath, newPath):
-        """Update location information of nodes under `oldPath`.
+    def _update_node_locations(self, oldpath, newpath):
+        """Update location information of nodes under `oldpath`.
 
         This only affects *already loaded* nodes.
         """
 
-        oldPrefix = oldPath + '/'  # root node can not be renamed, anyway
-        oldPrefixLen = len(oldPrefix)
+        old_prefix = oldpath + '/'  # root node can not be renamed, anyway
+        old_prefix_len = len(old_prefix)
 
         # Update alive and dead descendents.
-        for cache in [self._aliveNodes, self._deadNodes]:
-            for nodePath in cache:
-                if nodePath.startswith(oldPrefix) and nodePath != oldPrefix:
-                    nodeSuffix = nodePath[oldPrefixLen:]
-                    newNodePath = join_path(newPath, nodeSuffix)
-                    newNodePPath = split_path(newNodePath)[0]
-                    descendentNode = self._get_node(nodePath)
-                    descendentNode._g_update_location(newNodePPath)
+        for cache in [self._node_manager.cache, self._node_manager.registry]:
+            for nodepath in cache:
+                if nodepath.startswith(old_prefix) and nodepath != old_prefix:
+                    node_suffix = nodepath[old_prefix_len:]
+                    new_nodepath = join_path(newpath, node_suffix)
+                    new_node_ppath = split_path(new_nodepath)[0]
+                    descendent_node = self._get_node(nodepath)
+                    descendent_node._g_update_location(new_node_ppath)
 
     _updateNodeLocations = previous_api(_update_node_locations)
 
