@@ -2518,21 +2518,8 @@ class File(hdf5extension.File, object):
 
         self._check_open()
 
-        # Only iter on the nodes in the registry since nodes in the cahce
-        # should always have an entry in the registry
-        registry = self._node_manager.registry
-        closed_keys = []
-        for path, node in registry.items():
-            if not node._v_isopen:
-                closed_keys.append(path)
-            elif '/_i_' not in path:  # Indexes are not necessary to be flushed
-                if isinstance(node, Leaf):
-                    node.flush()
-
-        for path in closed_keys:
-            registry.pop(path)
-
         # Flush the cache to disk
+        self._node_manager.flush_nodes()
         self._flush_file(0)  # 0 means local scope, 1 global (virtual) scope
 
     def close(self):
