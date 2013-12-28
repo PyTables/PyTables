@@ -540,7 +540,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # Check group width limits.
         if (len(self._v_children) + len(self._v_hidden) >=
-                                                    self._v_max_group_width):
+                self._v_max_group_width):
             self._g_width_warning()
 
         # Update members information.
@@ -1104,8 +1104,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         """
 
-        rep = ['%r (%s)' % (childname, child.__class__.__name__)
-                    for (childname, child) in self._v_children.iteritems()]
+        rep = [
+            '%r (%s)' % (childname, child.__class__.__name__)
+            for (childname, child) in self._v_children.iteritems()
+        ]
         childlist = '[%s]' % (', '.join(rep))
 
         return "%s\n  children := %s" % (str(self), childlist)

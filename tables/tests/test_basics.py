@@ -76,8 +76,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
                           node_cache_slots=self.nodeCacheSlots)
         root = fileh.root
         # Create an array
-        fileh.create_array(root, 'array', [1, 2],
-                           title="Array example")
+        fileh.create_array(root, 'array', [1, 2], title="Array example")
         fileh.create_table(root, 'table', {'var1': IntCol()}, "Table example")
         root._v_attrs.testattr = 41
 
