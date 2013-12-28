@@ -870,50 +870,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
     def _g_close_descendents(self):
         """Close all the *loaded* descendent nodes of this group."""
 
-        def closenodes(prefix, nodepaths, get_node):
-            for nodepath in nodepaths:
-                if nodepath.startswith(prefix):
-                    try:
-                        node = get_node(nodepath)
-                        # Avoid descendent nodes to also iterate over
-                        # their descendents, which are already to be
-                        # closed by this loop.
-                        if hasattr(node, '_f_get_child'):
-                            node._g_close()
-                        else:
-                            node._f_close()
-                        del node
-                    except KeyError:
-                        pass
-
-        prefix = self._v_pathname + '/'
-        if prefix == '//':
-            prefix = '/'
-
         node_manager = self._v_file._node_manager
-
-        # First, close cached nodes and delete them from the cache.
-        # These two steps ensure tables are closed *before* their indices.
-        cachednodes = node_manager.cache
-
-        # Close not indices
-        paths = [path for path in cachednodes if '/_i_' not in path]
-        closenodes(prefix, paths, cachednodes.pop)
-
-        # Close everything else (i.e. indices)
-        closenodes(prefix, list(cachednodes), cachednodes.pop)
-
-        # Next, close and delete nodes in the registry (all nodes that are
-        # still not explicitly closed have a weakref inthe registry).
-        # These two steps ensure tables are closed *before* their indices.
-        registerednodes = node_manager.registry
-
-        # Close not indices
-        paths = [path for path in registerednodes if '/_i_' not in path]
-        closenodes(prefix, paths, registerednodes.pop)
-
-        # Close everything else (i.e. indices)
-        closenodes(prefix, list(registerednodes), registerednodes.pop)
+        node_manager.close_subtree(self._v_pathname)
 
     _g_closeDescendents = previous_api(_g_close_descendents)
 

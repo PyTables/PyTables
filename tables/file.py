@@ -275,7 +275,7 @@ class _NoDeadNodes(object):
 
 
 class NodeManager(object):
-    def __init__(self, nslots=64, node_factory=None, close_node=None):
+    def __init__(self, nslots=64, node_factory=None):
         super(NodeManager, self).__init__()
 
         self.registry = weakref.WeakValueDictionary()
@@ -289,12 +289,6 @@ class NodeManager(object):
 
         # node_factory(node_path)
         self.node_factory = node_factory
-
-        # close_node(node_obj)
-        if close_node is None:
-            self.close_node = self._default_close_node
-        else:
-            self.close_node = close_node
 
     def register_node(self, node, key):
         if key is None:
@@ -367,9 +361,6 @@ class NodeManager(object):
         # Remove the node from the cache.
         self.cache.pop(nodepath, None)
 
-    def _default_close_node(self, node):
-        node._f_close()
-
     def drop_node(self, node, check_unregistered=True):
         """Drop the `node`.
 
@@ -396,7 +387,7 @@ class NodeManager(object):
                               "``%s``" % nodepath)
 
                 node._g_pre_kill_hook()
-                self.close_node(node)
+                node._f_close()
 
     def flush_nodes(self):
         # Only iter on the nodes in the registry since nodes in the cahce
@@ -415,6 +406,73 @@ class NodeManager(object):
                 warnings.warn("closed node the cache: ``%s``" % path)
                 self.cache.pop(path, None)
             self.registry.pop(path)
+
+    @staticmethod
+    def _close_nodes(nodepaths, get_node):
+        for nodepath in nodepaths:
+            try:
+                node = get_node(nodepath)
+            except KeyError:
+                pass
+            else:
+                if not node._v_isopen or node._v__deleting:
+                    continue
+
+                # Avoid descendent nodes to also iterate over
+                # their descendents, which are already to be
+                # closed by this loop.
+                if hasattr(node, '_f_get_child'):
+                    node._g_close()
+                else:
+                    node._f_close()
+                del node
+
+    def close_subtree(self, prefix='/'):
+        if not prefix.endswith('/'):
+            prefix = prefix + '/'
+
+        cache = self.cache
+        registry = self.registry
+
+        # Close not indices (ensure tables are closed *before* their indices)
+        paths = [
+            path for path in cache
+            if path.startswith(prefix) and '/_i_' not in path
+        ]
+        self._close_nodes(paths, cache.pop)
+
+        # Close everything else (i.e. indices)
+        paths = [path for path in cache if path.startswith(prefix)]
+        self._close_nodes(paths, cache.pop)
+
+        # Close not indices (ensure tables are closed *before* their indices)
+        paths = [
+            path for path in registry
+            if path.startswith(prefix) and '/_i_' not in path
+        ]
+        self._close_nodes(paths, registry.pop)
+
+        # Close everything else (i.e. indices)
+        paths = [path for path in registry if path.startswith(prefix)]
+        self._close_nodes(paths, registry.pop)
+
+    def shutdown(self):
+        registry = self.registry
+        cache = self.cache
+
+        #self.close_subtree('/')
+
+        keys = list(cache)  # copy
+        for key in keys:
+            node = cache.pop(key)
+            if node._v_isopen:
+                registry.pop(node._v_pathname, None)
+                node._f_close()
+
+        while registry:
+            key, node = registry.popitem()
+            if node._v_isopen:
+                node._f_close()
 
 
 class File(hdf5extension.File, object):
@@ -2544,6 +2602,8 @@ class File(hdf5extension.File, object):
 
         # Close all loaded nodes.
         self.root._f_close()
+
+        self._node_manager.shutdown()
 
         # Post-conditions
         assert len(self._node_manager.cache) == 0, \
