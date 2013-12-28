@@ -305,6 +305,15 @@ class _NoDeadNodes(object):
     def __iter__(self):
         return iter([])
 
+    def __setitem__(self, key, value):
+        pass
+
+    __marker = object()
+
+    def pop(self, key, d=__marker):
+        if d is not self.__marker:
+            return d
+        raise KeyError(key)
 
 class File(hdf5extension.File, object):
     """The in-memory representation of a PyTables file.
