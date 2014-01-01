@@ -253,7 +253,7 @@ openFile = previous_api(open_file)
 
 
 # A dumb class that doesn't keep nothing at all
-class _NoDeadNodes(object):
+class _NoCache(object):
     def __len__(self):
         return 0
 
@@ -274,6 +274,24 @@ class _NoDeadNodes(object):
         raise KeyError(key)
 
 
+class _DictCache(dict):
+    def __init__(self, nslots):
+        if nslots < 1:
+            raise ValueError("Invaòlid number of slots: %d" % nslots)
+        self.nslots = nslots
+        super(_DictCache, self).__init__()
+
+    def __setitem__(self, key, value):
+        # Check if we are running out of space
+        if len(self) > self.nslots:
+            warnings.warn("the dictionary of node cache is exceeding "
+                          "the recommended maximum number (%d); "
+                          "be ready to see PyTables asking for *lots* "
+                          "of memory and possibly slow I/O." % (
+                          self.nslots), PerformanceWarning)
+        super(_DictCache, self).__setitem__(key, value)
+
+
 class NodeManager(object):
     def __init__(self, nslots=64, node_factory=None):
         super(NodeManager, self).__init__()
@@ -282,8 +300,11 @@ class NodeManager(object):
 
         if nslots > 0:
             cache = lrucacheextension.NodeCache(nslots)
+        elif nslots == 0:
+            cache = _NoCache()
         else:
-            cache = _NoDeadNodes()
+            # nslots < 0
+            cache = _DictCache(-nslots)
 
         self.cache = cache
 
