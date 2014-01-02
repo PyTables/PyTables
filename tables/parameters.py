@@ -159,7 +159,7 @@ METADATA_CACHE_SIZE = 1 * _MB  # 1 MB is the default for HDF5
 # number of leaves, try increasing this value and see if it fits better
 # for you. Please report back your feedback.
 NODE_CACHE_SLOTS = 64
-"""Maximum number of nodes to be kept in mamory.
+"""Maximum number of nodes to be kept in the metadata cache.
 
 It is the number of nodes to be kept in the metadata cache. Least recently
 used nodes are unloaded from memory when this number of loaded nodes is
@@ -168,7 +168,13 @@ Nodes referenced by user variables and, in general, all nodes that are still
 open are registered in the node manager and can be quickly accessed even
 if they are not in the cache.
 
-A value of zero means that any cache mechanism is disabled.
+Negative value means that all the touched nodes will be kept in an
+internal dictionary.  This is the faster way to load/retrieve nodes.
+However, and in order to avoid a large memory comsumption, the user will
+be warned when the number of loaded nodes will reach the
+``-NODE_CACHE_SLOTS`` value.
+
+Finally, a value of zero means that any cache mechanism is disabled.
 """
 
 
