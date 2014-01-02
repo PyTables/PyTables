@@ -32,6 +32,10 @@ Improvements
   * added a reference to the Anaconda_, Canopy_ and `Christoph Gohlke suites`_
     (closes :issue:`291`)
 
+- The node caching mechanism has been completely redesigned to be simpler and
+  less dependent from specific behaviours of the ``__del__`` method.
+  Now PyTables is compatible with the forthcoming Python 3.4.
+  Closes :issue:`306`.
 
 Bugs fixed
 ----------

@@ -273,7 +273,7 @@ class Group(hdf5extension.Group, Node):
 
     def __del__(self):
         if (self._v_isopen and
-            self._v_pathname in self._v_file._aliveNodes and
+            self._v_pathname in self._v_file._node_manager.registry and
                 '_v_children' in self.__dict__):
             # The group is going to be killed.  Rebuild weak references
             # (that Python cancelled just before calling this method) so
@@ -540,7 +540,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # Check group width limits.
         if (len(self._v_children) + len(self._v_hidden) >=
-                                                    self._v_max_group_width):
+                self._v_max_group_width):
             self._g_width_warning()
 
         # Update members information.
@@ -870,62 +870,18 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
     def _g_close_descendents(self):
         """Close all the *loaded* descendent nodes of this group."""
 
-        def closenodes(prefix, nodepaths, get_node):
-            for nodepath in nodepaths:
-                if nodepath.startswith(prefix):
-                    try:
-                        node = get_node(nodepath)
-                        # Avoid descendent nodes to also iterate over
-                        # their descendents, which are already to be
-                        # closed by this loop.
-                        if hasattr(node, '_f_get_child'):
-                            node._g_close()
-                        else:
-                            node._f_close()
-                        del node
-                    except KeyError:
-                        pass
-
-        prefix = self._v_pathname + '/'
-        if prefix == '//':
-            prefix = '/'
-
-        # Close all loaded nodes.
-        alivenodes = self._v_file._aliveNodes
-        deadnodes = self._v_file._deadNodes
-        revivenode = self._v_file._revivenode
-        # First, close the alive nodes and delete them
-        # so they are not placed in the limbo again.
-        # These two steps ensure tables are closed *before* their indices.
-        closenodes(prefix,
-                   [path for path in alivenodes
-                        if '/_i_' not in path],  # not indices
-                   lambda path: alivenodes[path])
-        # Close everything else (i.e. indices)
-        closenodes(prefix,
-                   [path for path in alivenodes],
-                   lambda path: alivenodes[path])
-
-        # Next, revive the dead nodes, close and delete them
-        # so they are not placed in the limbo again.
-        # These two steps ensure tables are closed *before* their indices.
-        closenodes(prefix,
-                   [path for path in deadnodes
-                        if '/_i_' not in path],  # not indices
-                   lambda path: revivenode(path))
-        # Close everything else (i.e. indices)
-        closenodes(prefix,
-                   [path for path in deadnodes],
-                   lambda path: revivenode(path))
+        node_manager = self._v_file._node_manager
+        node_manager.close_subtree(self._v_pathname)
 
     _g_closeDescendents = previous_api(_g_close_descendents)
 
     def _g_close(self):
         """Close this (open) group."""
 
-        # hdf5extension operations:
-        #   Close HDF5 group.
-        self._g_close_group()
+        if self._v_isopen:
+            # hdf5extension operations:
+            #   Close HDF5 group.
+            self._g_close_group()
 
         # Close myself as a node.
         super(Group, self)._f_close()
@@ -1104,8 +1060,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         """
 
-        rep = ['%r (%s)' % (childname, child.__class__.__name__)
-                    for (childname, child) in self._v_children.iteritems()]
+        rep = [
+            '%r (%s)' % (childname, child.__class__.__name__)
+            for (childname, child) in self._v_children.iteritems()
+        ]
         childlist = '[%s]' % (', '.join(rep))
 
         return "%s\n  children := %s" % (str(self), childlist)
@@ -1142,7 +1100,7 @@ class RootGroup(Group):
         # Only the root node has the file as a parent.
         # Bypass __setattr__ to avoid the ``Node._v_parent`` property.
         mydict['_v_parent'] = ptfile
-        ptfile._refnode(self, '/')
+        ptfile._node_manager.register_node(self, '/')
 
         # hdf5extension operations (do before setting an AttributeSet):
         #   Update node attributes.

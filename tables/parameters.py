@@ -159,13 +159,14 @@ METADATA_CACHE_SIZE = 1 * _MB  # 1 MB is the default for HDF5
 # number of leaves, try increasing this value and see if it fits better
 # for you. Please report back your feedback.
 NODE_CACHE_SLOTS = 64
-"""Maximum number of unreferenced nodes to be kept in memory.
+"""Maximum number of nodes to be kept in the metadata cache.
 
-If positive, this is the number of *unreferenced* nodes to be kept in
-the metadata cache. Least recently used nodes are unloaded from memory
-when this number of loaded nodes is reached. To load a node again,
-simply access it as usual. Nodes referenced by user variables are not
-taken into account nor unloaded.
+It is the number of nodes to be kept in the metadata cache. Least recently
+used nodes are unloaded from memory when this number of loaded nodes is
+reached. To load a node again, simply access it as usual.
+Nodes referenced by user variables and, in general, all nodes that are still
+open are registered in the node manager and can be quickly accessed even
+if they are not in the cache.
 
 Negative value means that all the touched nodes will be kept in an
 internal dictionary.  This is the faster way to load/retrieve nodes.
