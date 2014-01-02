@@ -277,7 +277,7 @@ class _NoCache(object):
 class _DictCache(dict):
     def __init__(self, nslots):
         if nslots < 1:
-            raise ValueError("Invaòlid number of slots: %d" % nslots)
+            raise ValueError("Invalid number of slots: %d" % nslots)
         self.nslots = nslots
         super(_DictCache, self).__init__()
 
@@ -385,7 +385,7 @@ class NodeManager(object):
     def drop_node(self, node, check_unregistered=True):
         """Drop the `node`.
 
-        Remove the node from the cache and, if it has no more refernces,
+        Remove the node from the cache and, if it has no more references,
         close it.
 
         """
@@ -455,7 +455,7 @@ class NodeManager(object):
         cache = self.cache
         registry = self.registry
 
-        # Close not indices (ensure tables are closed *before* their indices)
+        # Ensure tables are closed before their indices
         paths = [
             path for path in cache
             if path.startswith(prefix) and '/_i_' not in path
@@ -466,7 +466,7 @@ class NodeManager(object):
         paths = [path for path in cache if path.startswith(prefix)]
         self._close_nodes(paths, cache.pop)
 
-        # Close not indices (ensure tables are closed *before* their indices)
+        # Ensure tables are closed before their indices
         paths = [
             path for path in registry
             if path.startswith(prefix) and '/_i_' not in path
