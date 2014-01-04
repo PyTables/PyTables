@@ -31,7 +31,7 @@ Improvements
   * instructions for installing PyTables via pip_ have been added.
   * added a reference to the Anaconda_, Canopy_ and `Christoph Gohlke suites`_
     (closes :issue:`291`)
-
+- Enabled Travis-CI builds for Python 3.3
 
 Bugs fixed
 ----------
