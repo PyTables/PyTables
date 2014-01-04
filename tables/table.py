@@ -2899,7 +2899,7 @@ class Table(tableextension.Table, Leaf):
     _g_propIndexes = previous_api(_g_prop_indexes)
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+                           title, filters, chunkshape, _log, defonly = False, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         # Get the private args for the Table flavor of copy()
@@ -2916,7 +2916,8 @@ class Table(tableextension.Table, Leaf):
                          filters=filters, expectedrows=nrows,
                          chunkshape=chunkshape,
                          _log=_log)
-        self._g_copy_rows(newtable, start, stop, step, sortby, checkCSI)
+        if not defonly:
+            self._g_copy_rows(newtable, start, stop, step, sortby, checkCSI)
         nbytes = newtable.nrows * newtable.rowsize
         # Generate equivalent indexes in the new table, if required.
         if propindexes and self.indexed:

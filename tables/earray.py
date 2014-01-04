@@ -214,7 +214,7 @@ class EArray(CArray):
             self._append(nparr)
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+                           title, filters, chunkshape, _log, defonly = False, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)
@@ -229,24 +229,25 @@ class EArray(CArray):
             group, name, atom=self.atom, shape=shape, title=title,
             filters=filters, expectedrows=nrows, chunkshape=chunkshape,
             _log=_log)
-        # Now, fill the new earray with values from source
-        nrowsinbuf = self.nrowsinbuf
-        # The slices parameter for self.__getitem__
-        slices = [slice(0, dim, 1) for dim in self.shape]
-        # This is a hack to prevent doing unnecessary conversions
-        # when copying buffers
-        self._v_convert = False
-        # Start the copy itself
-        for start2 in xrange(start, stop, step * nrowsinbuf):
-            # Save the records on disk
-            stop2 = start2 + step * nrowsinbuf
-            if stop2 > stop:
-                stop2 = stop
-            # Set the proper slice in the extensible dimension
-            slices[maindim] = slice(start2, stop2, step)
-            object._append(self.__getitem__(tuple(slices)))
-        # Active the conversion again (default)
-        self._v_convert = True
+        if not defonly:
+            # Now, fill the new earray with values from source
+            nrowsinbuf = self.nrowsinbuf
+            # The slices parameter for self.__getitem__
+            slices = [slice(0, dim, 1) for dim in self.shape]
+            # This is a hack to prevent doing unnecessary conversions
+            # when copying buffers
+            self._v_convert = False
+            # Start the copy itself
+            for start2 in xrange(start, stop, step * nrowsinbuf):
+                # Save the records on disk
+                stop2 = start2 + step * nrowsinbuf
+                if stop2 > stop:
+                    stop2 = stop
+                # Set the proper slice in the extensible dimension
+                slices[maindim] = slice(start2, stop2, step)
+                object._append(self.__getitem__(tuple(slices)))
+            # Active the conversion again (default)
+            self._v_convert = True
         nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.itemsize
 
         return (object, nbytes)

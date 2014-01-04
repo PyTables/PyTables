@@ -650,6 +650,10 @@ very small/large chunksize, you may want to increase/decrease it."""
             best performance when accessing the dataset through the main
             dimension.  Any other value should be an integer or a tuple
             matching the dimensions of the leaf.
+        defonly : bool
+            If set to True, the data itself will not be copied, thus making
+            a new leaf with the same type and structure of the original, without
+            copying any of its contents.
 
         """
 

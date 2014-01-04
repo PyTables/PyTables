@@ -814,7 +814,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         return rows
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+                           title, filters, chunkshape, _log, defonly = False, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         # Build the new VLArray object
@@ -822,32 +822,34 @@ class VLArray(hdf5extension.VLArray, Leaf):
             group, name, self.atom, title=title, filters=filters,
             expectedrows=self._v_expectedrows, chunkshape=chunkshape,
             _log=_log)
-
-        # Now, fill the new vlarray with values from the old one
-        # This is not buffered because we cannot forsee the length
-        # of each record. So, the safest would be a copy row by row.
-        # In the future, some analysis can be done in order to buffer
-        # the copy process.
-        nrowsinbuf = 1
-        (start, stop, step) = self._process_range_read(start, stop, step)
-        # Optimized version (no conversions, no type and shape checks, etc...)
-        nrowscopied = SizeType(0)
-        nbytes = 0
-        if not hasattr(self.atom, 'size'):  # it is a pseudo-atom
-            atomsize = self.atom.base.size
+        if defonly:
+            nbytes = 0
         else:
-            atomsize = self.atom.size
-        for start2 in xrange(start, stop, step * nrowsinbuf):
-            # Save the records on disk
-            stop2 = start2 + step * nrowsinbuf
-            if stop2 > stop:
-                stop2 = stop
-            nparr = self._read_array(start=start2, stop=stop2, step=step)[0]
-            nobjects = nparr.shape[0]
-            object._append(nparr, nobjects)
-            nbytes += nobjects * atomsize
-            nrowscopied += 1
-        object.nrows = nrowscopied
+            # Now, fill the new vlarray with values from the old one
+            # This is not buffered because we cannot forsee the length
+            # of each record. So, the safest would be a copy row by row.
+            # In the future, some analysis can be done in order to buffer
+            # the copy process.
+            nrowsinbuf = 1
+            (start, stop, step) = self._process_range_read(start, stop, step)
+            # Optimized version (no conversions, no type and shape checks, etc...)
+            nrowscopied = SizeType(0)
+            nbytes = 0
+            if not hasattr(self.atom, 'size'):  # it is a pseudo-atom
+                atomsize = self.atom.base.size
+            else:
+                atomsize = self.atom.size
+            for start2 in xrange(start, stop, step * nrowsinbuf):
+                # Save the records on disk
+                stop2 = start2 + step * nrowsinbuf
+                if stop2 > stop:
+                    stop2 = stop
+                nparr = self._read_array(start=start2, stop=stop2, step=step)[0]
+                nobjects = nparr.shape[0]
+                object._append(nparr, nobjects)
+                nbytes += nobjects * atomsize
+                nrowscopied += 1
+            object.nrows = nrowscopied
         return (object, nbytes)
 
     _g_copyWithStats = previous_api(_g_copy_with_stats)
