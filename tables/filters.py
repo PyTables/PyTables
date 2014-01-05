@@ -40,6 +40,7 @@ default_complib = 'zlib'
 # =================
 _shuffle_flag = 0x1
 _fletcher32_flag = 0x2
+_rounding_flag = 0x4
 
 
 # Classes
@@ -78,6 +79,19 @@ class Filters(object):
         *Fletcher32* filter in the HDF5 library.
         This is used to add a checksum on each data chunk. A false
         value (the default) disables the checksum.
+    least_significant_digit : int
+        If specified, data will be truncated (quantized). In conjunction
+        with enabling compression, this produces 'lossy', but
+        significantly more efficient compression. For example, if
+        *least_significant_digit=1*, data will be quantized using
+        ``around(scale*data)/scale``, where ``scale = 2**bits``, and
+        bits is determined so that a precision of 0.1 is retained (in
+        this case bits=4). Default is *None*, or no quantization.
+
+        .. note::
+
+            quantization is only applied if some form of compression is
+            enabled
 
     Examples
     --------
@@ -141,14 +155,14 @@ class Filters(object):
     def _from_leaf(class_, leaf):
         # Get a dictionary with all the filters
         parent = leaf._v_parent
-        filtersDict = utilsextension.get_filters(parent._v_objectid,
-                                                 leaf._v_name)
-        if filtersDict is None:
-            filtersDict = {}  # not chunked
+        filters_dict = utilsextension.get_filters(parent._v_objectid,
+                                                  leaf._v_name)
+        if filters_dict is None:
+            filters_dict = {}  # not chunked
 
         kwargs = dict(complevel=0, shuffle=False, fletcher32=False,  # all off
-                      _new=False)
-        for (name, values) in filtersDict.iteritems():
+                      least_significant_digit=None, _new=False)
+        for (name, values) in filters_dict.iteritems():
             if name == 'deflate':
                 name = 'zlib'
             if name in all_complibs:
@@ -172,11 +186,11 @@ class Filters(object):
         """Create a new `Filters` object from a packed version.
 
         >>> Filters._unpack(0)
-        Filters(complevel=0, shuffle=False, fletcher32=False)
+        Filters(complevel=0, shuffle=False, fletcher32=False, least_significant_digit=None)
         >>> Filters._unpack(0x101)
-        Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
+        Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False, least_significant_digit=None)
         >>> Filters._unpack(0x30109)
-        Filters(complevel=9, complib='zlib', shuffle=True, fletcher32=True)
+        Filters(complevel=9, complib='zlib', shuffle=True, fletcher32=True, least_significant_digit=None)
         >>> Filters._unpack(0x3010A)
         Traceback (most recent call last):
           ...
@@ -185,12 +199,16 @@ class Filters(object):
         Traceback (most recent call last):
           ...
         ValueError: invalid compression library id: 0
+
         """
 
+        # TODO: include least_significant_digit in unpacking
         kwargs = {'_new': False}
+
         # Byte 0: compression level.
         kwargs['complevel'] = complevel = packed & 0xff
         packed >>= 8
+
         # Byte 1: compression library id (0 for none).
         if complevel > 0:
             complib_id = int(packed & 0xff)
@@ -199,32 +217,55 @@ class Filters(object):
                                  % complib_id)
             kwargs['complib'] = all_complibs[complib_id - 1]
         packed >>= 8
+
         # Byte 2: parameterless filters.
         kwargs['shuffle'] = packed & _shuffle_flag
         kwargs['fletcher32'] = packed & _fletcher32_flag
+        has_rounding = packed & _rounding_flag
+        packed >>= 8
+
+        # Byte 3: least significant digit.
+        if has_rounding:
+            kwargs['least_significant_digit'] = numpy.int8(packed & 0xff)
+        else:
+            kwargs['least_significant_digit'] = None
+
         return class_(**kwargs)
 
     def _pack(self):
         """Pack the `Filters` object into a 64-bit NumPy integer."""
 
+        # TODO: include least_significant_digit in packing
         packed = numpy.int64(0)
+
+        # Byte 3: least significant digit.
+        if self.least_significant_digit is not None:
+            #assert isinstance(self.least_significant_digit, numpy.int8)
+            packed |= self.least_significant_digit
+        packed <<= 8
+
         # Byte 2: parameterless filters.
         if self.shuffle:
             packed |= _shuffle_flag
         if self.fletcher32:
             packed |= _fletcher32_flag
+        if self.least_significant_digit:
+            packed |= _rounding_flag
         packed <<= 8
+
         # Byte 1: compression library id (0 for none).
         if self.complevel > 0:
             packed |= all_complibs.index(self.complib) + 1
         packed <<= 8
+
         # Byte 0: compression level.
         packed |= self.complevel
+
         return packed
 
     def __init__(self, complevel=0, complib=default_complib,
                  shuffle=True, fletcher32=False,
-                 _new=True):
+                 least_significant_digit=None, _new=True):
         if not (0 <= complevel <= 9):
             raise ValueError("compression level must be between 0 and 9")
 
@@ -245,26 +286,34 @@ class Filters(object):
         complib = str(complib)
         shuffle = bool(shuffle)
         fletcher32 = bool(fletcher32)
+        if least_significant_digit is not None:
+            least_significant_digit = numpy.int8(least_significant_digit)
 
         if complevel == 0:
             # Override some inputs when compression is not enabled.
             complib = None  # make it clear there is no compression
             shuffle = False  # shuffling and not compressing makes no sense
+            least_significant_digit = None
         elif complib not in all_complibs:
             # Do not try to use a meaningful level for unsupported libs.
             complevel = -1
 
         self.complevel = complevel
         """The compression level (0 disables compression)."""
+
         self.complib = complib
-        """
-        The compression filter used (irrelevant when compression is
+        """The compression filter used (irrelevant when compression is
         not enabled).
         """
+
         self.shuffle = shuffle
         """Whether the *Shuffle* filter is active or not."""
+
         self.fletcher32 = fletcher32
         """Whether the *Fletcher32* filter is active or not."""
+
+        self.least_significant_digit = least_significant_digit
+        """The least significant digit to which data shall be truncated."""
 
     def __repr__(self):
         args, complevel = [], self.complevel
@@ -274,6 +323,8 @@ class Filters(object):
             args.append('complib=%r' % self.complib)
         args.append('shuffle=%s' % self.shuffle)
         args.append('fletcher32=%s' % self.fletcher32)
+        args.append(
+            'least_significant_digit=%s' % self.least_significant_digit)
         return '%s(%s)' % (self.__class__.__name__, ', '.join(args))
 
     def __str__(self):
@@ -315,14 +366,16 @@ class Filters(object):
             ValueError: compression library ``None`` is not supported...
             >>> filters3 = filters1.copy(complevel=1, complib='zlib')
             >>> print(filters1)
-            Filters(complevel=0, shuffle=False, fletcher32=False)
+            Filters(complevel=0, shuffle=False, fletcher32=False, least_significant_digit=None)
             >>> print(filters3)
-            Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
+            Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False, least_significant_digit=None)
             >>> filters1.copy(foobar=42)
             Traceback (most recent call last):
             ...
             TypeError: __init__() got an unexpected keyword argument 'foobar'
+
         """
+
         newargs = self.__dict__.copy()
         newargs.update(override)
         return self.__class__(**newargs)
