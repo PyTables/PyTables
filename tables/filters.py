@@ -202,7 +202,6 @@ class Filters(object):
 
         """
 
-        # TODO: include least_significant_digit in unpacking
         kwargs = {'_new': False}
 
         # Byte 0: compression level.
@@ -235,7 +234,6 @@ class Filters(object):
     def _pack(self):
         """Pack the `Filters` object into a 64-bit NumPy integer."""
 
-        # TODO: include least_significant_digit in packing
         packed = numpy.int64(0)
 
         # Byte 3: least significant digit.
