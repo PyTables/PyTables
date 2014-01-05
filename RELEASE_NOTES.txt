@@ -18,6 +18,10 @@ New features
   types (closes :issue:`234`).
 - Implemented support for the H5FD_SPLIT driver (closes :issue:`288`,
   :issue:`289` and :issue:`295`). Many thanks to simleo.
+- New quantization filter: the filter truncates floating point data to a
+  specified precision before writing to disk. This can significantly improve
+  the performance of compressors (closes :issue:`261`).
+  Thanks to Andreas Hilboll.
 
 Improvements
 ------------
