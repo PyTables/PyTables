@@ -2452,10 +2452,17 @@ class QuantizeTestCase(unittest.TestCase):
         quantized_1 = quantize(self.randomdata, 1)
         quantized_2 = quantize(self.randomdata, 2)
         quantized_m1 = quantize(self.randomdata, -1)
-        self.assertLess(numpy.abs(quantized_0 - self.randomdata).max(), 0.5)
-        self.assertLess(numpy.abs(quantized_1 - self.randomdata).max(), 0.05)
-        self.assertLess(numpy.abs(quantized_2 - self.randomdata).max(), 0.005)
-        self.assertLess(numpy.abs(quantized_m1 - self.randomdata).max(), 1.)
+        # assertLess is new in Python 2.7
+        #self.assertLess(numpy.abs(quantized_0 - self.randomdata).max(), 0.5)
+        #self.assertLess(numpy.abs(quantized_1 - self.randomdata).max(), 0.05)
+        #self.assertLess(numpy.abs(quantized_2 - self.randomdata).max(), 0.005)
+        #self.assertLess(numpy.abs(quantized_m1 - self.randomdata).max(), 1.)
+
+        self.assertTrue(numpy.abs(quantized_0 - self.randomdata).max() < 0.5)
+        self.assertTrue(numpy.abs(quantized_1 - self.randomdata).max() < 0.05)
+        self.assertTrue(numpy.abs(quantized_2 - self.randomdata).max() < 0.005)
+        self.assertTrue(numpy.abs(quantized_m1 - self.randomdata).max() < 1.)
+
 
     def test02_array(self):
         """Checking quantized data as written to disk"""
@@ -2471,8 +2478,13 @@ class QuantizeTestCase(unittest.TestCase):
                                          self.randomints)
         self.assertEqual(self.h5file.root.integers[:].dtype,
                          self.randomints.dtype)
-        self.assertLess(
-            numpy.abs(self.h5file.root.floats[:] - self.randomdata).max(),
+        # assertLess is new in Python 2.7
+        #self.assertLess(
+        #    numpy.abs(self.h5file.root.floats[:] - self.randomdata).max(),
+        #    0.05
+        #)
+        self.assertTrue(
+            numpy.abs(self.h5file.root.floats[:] - self.randomdata).max() <
             0.05
         )
 
