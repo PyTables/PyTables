@@ -224,8 +224,10 @@ class ReadFloatTestCase(common.PyTablesTestCase):
                                       getattr, self.fileh.root, dtype)
                 self.assertTrue(isinstance(ds, UnImplemented))
             except AssertionError:
-                ds = getattr(self.fileh.root, dtype)
-                self.assertEqual(ds.dtype, "float64")
+                from tables.utilsextension import _broken_hdf5_long_double
+                if not _broken_hdf5_long_double():
+                    ds = getattr(self.fileh.root, dtype)
+                    self.assertEqual(ds.dtype, "float64")
 
     def test05_read_quadprecision_float(self):
         # XXX: check
