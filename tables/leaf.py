@@ -550,7 +550,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Get the True coordinates (64-bit indices!)
             coords = numpy.asarray(key.nonzero(), dtype='i8')
             coords = numpy.transpose(coords)
-        elif key.dtype.kind == 'i':
+        elif key.dtype.kind == 'i' or key.dtype.kind == 'u':
             if len(key.shape) > 2:
                 raise IndexError(
                     "Coordinate indexing array has incompatible shape")

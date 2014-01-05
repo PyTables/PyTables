@@ -482,7 +482,7 @@ class TableReadTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         table.flavor = "numpy"
-        coords = (1, 2, 3)
+        coords = [1, 2, 3]
         self.nrows = len(coords)
         for colname in table.colnames:
             numcol = table.read_coordinates(coords, field=colname)
@@ -509,7 +509,7 @@ class TableReadTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         table.flavor = "numpy"
-        coords = (1, 2, 3)
+        coords = [1, 2, 3]
         self.nrows = len(coords)
         for colname in table.colnames:
             numcol = table.read_coordinates(coords, field=colname)
