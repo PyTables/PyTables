@@ -2470,7 +2470,7 @@ class Issue282IndexingNans(TempFileMixin, PyTablesTestCase):
     def test_indexing_nans(self):
 
         trMap = {'index': Int64Col(), 'values': FloatCol()}
-        table = self.h5file.createTable('/', 'table', trMap)
+        table = self.h5file.create_table('/', 'table', trMap)
 
         r = table.row
         for i in range(5):
@@ -2479,10 +2479,10 @@ class Issue282IndexingNans(TempFileMixin, PyTablesTestCase):
             r.append()
         table.flush()
 
-        table.cols.values.createIndex()
+        table.cols.values.create_index()
 
         # retrieve
-        result = table.readWhere('(values >= 0)')
+        result = table.read_where('(values >= 0)')
         self.assertTrue(len(result) == 4)
 
 

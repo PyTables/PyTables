@@ -257,7 +257,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
     colNotIndexable_re = re.compile(r"\bcan not be indexed\b")
     condNotBoolean_re = re.compile(r"\bdoes not have a boolean type\b")
 
-    def createIndexes(self, colname, ncolname, extracolname):
+    def create_indexes(self, colname, ncolname, extracolname):
         if not self.indexed:
             return
         try:
@@ -371,7 +371,7 @@ def create_test_method(type_, op, extracond):
         pycond = compile(pycond, '<string>', 'eval')
 
         table = self.table
-        self.createIndexes(colname, ncolname, 'c_idxextra')
+        self.create_indexes(colname, ncolname, 'c_idxextra')
 
         table_slice = dict(start=1, stop=table.nrows - 5, step=3)
         rownos, fvalues = None, None
