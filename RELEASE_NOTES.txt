@@ -39,6 +39,9 @@ Improvements
 - Enabled Travis-CI builds for Python 3.3
 - :meth:`Tables.read_coordinates` now also works with boolean indices input.
   Closes :issue:`287` and :issue:`298`.
+- Automatically disable extended float support if a buggy version of HDF5
+  is detected (see also `Issues with H5T_NATIVE_LDOUBLE`_).
+  See also :issue:`275`, :issue:`290` and :issue:`300`.
 
 Bugs fixed
 ----------
@@ -52,9 +55,7 @@ Bugs fixed
   :class:`CArray`/:class:`EArray` objects (closes :issue:`308`,
   see also :issue:`309`).
   Many thanks to Alistair Muldal.
-- Automatically disable extended float support if a buggy version of HDF5
-  is detected (see also `Issues with H5T_NATIVE_LDOUBLE`_).
-  See also :issue:`275` and :issue:`290`.
+- Make NaN types sort to the end. Closes :issue:`282` and :issue:`313`
 
 .. _pip: http://www.pip-installer.org
 .. _Anaconda: https://store.continuum.io/cshop/anaconda
