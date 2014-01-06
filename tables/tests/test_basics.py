@@ -2,10 +2,12 @@
 
 import os
 import sys
+import Queue
 import shutil
 import tempfile
 import unittest
 import warnings
+import threading
 import subprocess
 
 try:
@@ -1768,6 +1770,41 @@ class CheckFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
 
+class ThreadingTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def setUp(self):
+        super(ThreadingTestCase, self).setUp()
+        self.h5file.create_carray('/', 'test_array', tables.Int64Atom(),
+                                  (200, 300))
+        self.h5file.close()
+
+    def test(self):
+        filename = self.h5fname
+
+        def run(filename, q):
+            try:
+                f = tables.open_file(filename, mode='r')
+                arr = f.root.test_array[8:12, 18:22]
+                assert arr.max() == arr.min() == 0
+                f.close()
+            except Exception as e:
+                q.put(sys.exc_info())
+            else:
+                q.put('OK')
+
+        threads = []
+        q = Queue.Queue()
+        for i in xrange(10):
+            t = threading.Thread(target=run, args=(filename, q))
+            t.start()
+            threads.append(t)
+
+        for i in xrange(10):
+            self.assertEqual(q.get(), 'OK')
+
+        for t in threads:
+            t.join()
+
+
 class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     """Test interactions of Python attributes and child nodes."""
@@ -2789,6 +2826,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(NoNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(DictNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(CheckFileTestCase))
+        theSuite.addTest(unittest.makeSuite(ThreadingTestCase))
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
