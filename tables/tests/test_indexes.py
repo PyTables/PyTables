@@ -2466,6 +2466,26 @@ class Issue119Time64ColTestCase(Issue119Time32ColTestCase):
     col_typ = Time64Col
 
 
+class Issue282IndexingNans(TempFileMixin, PyTablesTestCase):
+    def test_indexing_nans(self):
+
+        trMap = {'index': Int64Col(), 'values': FloatCol()}
+        table = self.h5file.createTable('/', 'table', trMap)
+
+        r = table.row
+        for i in range(5):
+            r['index'] = i
+            r['values'] = numpy.nan if i == 0 else i
+            r.append()
+        table.flush()
+
+        table.cols.values.createIndex()
+
+        # retrieve
+        result = table.readWhere('(values >= 0)')
+        self.assertTrue(len(result) == 4)
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -2503,6 +2523,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Issue156TestCase02))
         theSuite.addTest(unittest.makeSuite(Issue119Time32ColTestCase))
         theSuite.addTest(unittest.makeSuite(Issue119Time64ColTestCase))
+        theSuite.addTest(unittest.makeSuite(Issue282IndexingNans))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))
