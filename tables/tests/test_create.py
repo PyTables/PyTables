@@ -2381,7 +2381,7 @@ class QuantizeTestCase(unittest.TestCase):
         self.data = numpy.linspace(-5., 5., 41)
         self.randomdata = numpy.random.random_sample(1000000)
         self.randomints = numpy.random.random_integers(-1000000, 1000000,
-                1000000)
+                1000000).astype('int64')
         # Create a temporary file
         self.file = tempfile.mktemp(".h5")
         # Create an instance of HDF5 Table
