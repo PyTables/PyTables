@@ -74,8 +74,8 @@ from tables._past import previous_api, previous_api_property
 # format_version = "1.6"  # Support for NumPy objects and new flavors for
 #                         # objects.
 #                         # 1.6 was introduced in pytables 1.3
-#format_version = "2.0"  # Pickles are not used anymore in system attrs
-#                        # 2.0 was introduced in PyTables 2.0
+#format_version = "2.0"   # Pickles are not used anymore in system attrs
+#                         # 2.0 was introduced in PyTables 2.0
 format_version = "2.1"  # Numeric and numarray flavors are gone.
 
 compatible_formats = []  # Old format versions we can read

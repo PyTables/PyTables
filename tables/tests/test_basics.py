@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import os
-import shutil
 import sys
-import unittest
+import shutil
 import tempfile
+import unittest
 import warnings
 import subprocess
 
@@ -333,11 +333,13 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test05b_removeGroupRecursively(self):
-        """Checking removing a group recursively and access to it immediately"""
+        """Checking removing a group recursively and access to it immediately
+        """
 
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test05b_removeGroupRecursively..." % self.__class__.__name__
+            print("Running %s.test05b_removeGroupRecursively..." %
+                  self.__class__.__name__)
 
         # Delete a group with leafs
         fileh = open_file(
