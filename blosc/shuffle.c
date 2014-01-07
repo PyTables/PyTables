@@ -242,12 +242,12 @@ shuffle16(uint8_t* dest, uint8_t* src, size_t size)
 void shuffle(size_t bytesoftype, size_t blocksize,
              uint8_t* _src, uint8_t* _dest) {
   int unaligned_dest = (int)((uintptr_t)_dest % 16);
-  int power_of_two = (blocksize & (blocksize - 1)) == 0;
+  int multiple_of_block = (blocksize % (16 * bytesoftype)) == 0;
   int too_small = (blocksize < 256);
 
-  if (unaligned_dest || !power_of_two || too_small) {
-    /* _dest buffer is not aligned, not a power of two or is too
-       small.  Call the non-sse2 version. */
+  if (unaligned_dest || !multiple_of_block || too_small) {
+    /* _dest buffer is not aligned, not multiple of the vectorization size
+     * or is too small.  Call the non-sse2 version. */
     _shuffle(bytesoftype, blocksize, _src, _dest);
     return;
   }
@@ -456,12 +456,12 @@ void unshuffle(size_t bytesoftype, size_t blocksize,
                uint8_t* _src, uint8_t* _dest) {
   int unaligned_src = (int)((uintptr_t)_src % 16);
   int unaligned_dest = (int)((uintptr_t)_dest % 16);
-  int power_of_two = (blocksize & (blocksize - 1)) == 0;
+  int multiple_of_block = (blocksize % (16 * bytesoftype)) == 0;
   int too_small = (blocksize < 256);
 
-  if (unaligned_src || unaligned_dest || !power_of_two || too_small) {
-    /* _src or _dest buffer is not aligned, not a power of two or is
-       too small.  Call the non-sse2 version. */
+  if (unaligned_src || unaligned_dest || !multiple_of_block || too_small) {
+    /* _src or _dest buffer is not aligned, not multiple of the vectorization
+     * size or is not too small.  Call the non-sse2 version. */
     _unshuffle(bytesoftype, blocksize, _src, _dest);
     return;
   }

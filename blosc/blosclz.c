@@ -66,12 +66,8 @@
 /*
  * Use inlined functions for supported systems.
  */
-#if defined(__GNUC__) || defined(__DMC__) || defined(__POCC__) || defined(__WATCOMC__) || defined(__SUNPRO_C)
-#define BLOSCLZ_INLINE inline
-#elif defined(__BORLANDC__) || defined(_MSC_VER) || defined(__LCC__)
-#define BLOSCLZ_INLINE __inline
-#else
-#define BLOSCLZ_INLINE
+#if defined(_MSC_VER) && !defined(__cplusplus)   /* Visual Studio */
+#define inline __inline  /* Visual C is not C99, but supports some kind of inline */
 #endif
 
 #define MAX_COPY       32
@@ -86,7 +82,7 @@
 #endif
 
 
-static BLOSCLZ_INLINE int32_t hash_function(uint8_t* p, uint8_t hash_log)
+static inline int32_t hash_function(uint8_t* p, uint8_t hash_log)
 {
   int32_t v;
 
@@ -109,13 +105,12 @@ int blosclz_compress(int opt_level, const void* input,
   uint8_t* op = (uint8_t*) output;
 
   /* Hash table depends on the opt level.  Hash_log cannot be larger than 15. */
-  uint8_t hash_log_[10] = {-1, 8, 9, 9, 11, 11, 12, 13, 14, 15};
+  int8_t hash_log_[10] = {-1, 8, 9, 9, 11, 11, 12, 13, 14, 15};
   uint8_t hash_log = hash_log_[opt_level];
   uint16_t hash_size = 1 << hash_log;
   uint16_t *htab;
   uint8_t* op_limit;
 
-  int32_t hslot;
   int32_t hval;
   uint8_t copy;
 
@@ -132,7 +127,7 @@ int blosclz_compress(int opt_level, const void* input,
     return 0;                   /* Mark this as uncompressible */
   }
 
-  htab = (uint16_t *) malloc(hash_size*sizeof(uint16_t));
+  htab = (uint16_t *) calloc(hash_size, sizeof(uint16_t));
 
   /* sanity check */
   if(BLOSCLZ_UNEXPECT_CONDITIONAL(length < 4)) {
@@ -147,10 +142,6 @@ int blosclz_compress(int opt_level, const void* input,
     }
     else goto out;
   }
-
-  /* initializes hash table */
-  for (hslot = 0; hslot < hash_size; hslot++)
-    htab[hslot] = 0;
 
   /* we start with literal copy */
   copy = 2;

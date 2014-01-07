@@ -16,7 +16,6 @@
 #include <string.h>
 #include <errno.h>
 #include "hdf5.h"
-#include "../blosc/blosc.h"
 #include "blosc_filter.h"
 
 #if H5Epush_vers == 2
@@ -169,12 +168,16 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
                     size_t *buf_size, void **buf){
 
     void* outbuf = NULL;
-    int status = 0;              /* Return code from Blosc routines */
+    int status = 0;                /* Return code from Blosc routines */
     size_t typesize;
     size_t outbuf_size;
-    int clevel = 5;              /* Compression level default */
-    int doshuffle = 1;           /* Shuffle default */
-
+    int clevel = 5;                /* Compression level default */
+    int doshuffle = 1;             /* Shuffle default */
+    int compcode;                  /* Blosc compressor */
+    int code;
+    char *compname = NULL;
+    char *complist;
+    char errmsg[256];
 
     /* Filter params that are always set */
     typesize = cd_values[2];      /* The datatype size */
@@ -186,12 +189,26 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     if (cd_nelmts >= 6) {
         doshuffle = cd_values[5];     /* Shuffle? */
     }
+    if (cd_nelmts >= 7) {
+        compcode = cd_values[6];     /* The Blosc compressor used */
+	/* Check that we actually have support for the compressor code */
+        complist = blosc_list_compressors();
+	code = blosc_compcode_to_compname(compcode, &compname);
+	if (code == -1) {
+	    sprintf(errmsg, "this Blosc library does not have support for "
+                    "the '%s' compressor, but only for: %s",
+		    compname, complist);
+            PUSH_ERR("blosc_filter", H5E_CALLBACK, errmsg);
+            goto failed;
+	}
+    }
 
     /* We're compressing */
     if(!(flags & H5Z_FLAG_REVERSE)){
 
 #ifdef BLOSC_DEBUG
-        fprintf(stderr, "Blosc: Compress %zd chunk w/buffer %zd\n", nbytes, outbuf_size);
+        fprintf(stderr, "Blosc: Compress %zd chunk w/buffer %zd\n",
+		nbytes, outbuf_size);
 #endif
 
         /* Allocate an output buffer exactly as long as the input data; if
@@ -208,6 +225,10 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
                      "Can't allocate compression buffer");
             goto failed;
         }
+
+	/* Select the correct compressor to use */
+        if (compname != NULL)
+	  blosc_set_compressor(compname);
 
         status = blosc_compress(clevel, doshuffle, typesize, nbytes,
                                 *buf, outbuf, nbytes);
