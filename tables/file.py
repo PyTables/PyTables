@@ -287,11 +287,6 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
             raise ValueError(
                 "The file '%s' is already opened.  Please "
                 "close it before reopening in write mode." % filename)
-        #else:
-        #    # The file is already open and modes are compatible
-        #    # Increase the number of openings for this file
-        #    filehandle._open_count += 1
-        #    return filehandle
 
     # Finally, create the File instance, and return it
     return File(filename, mode, title, root_uep, filters, **kwargs)

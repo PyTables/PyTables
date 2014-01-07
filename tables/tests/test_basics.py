@@ -2185,9 +2185,6 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         file1 = open_file(self.h5fname, "r")
         self.assertEqual(file1.open_count, 1)
         file2 = open_file(self.h5fname, "r")
-        # Caching of file handlers has been disabled
-        #self.assertEqual(file1.open_count, 2)
-        #self.assertEqual(file2.open_count, 2)
         self.assertEqual(file1.open_count, 1)
         self.assertEqual(file2.open_count, 1)
         if common.verbose:
