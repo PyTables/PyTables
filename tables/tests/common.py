@@ -12,6 +12,7 @@
 
 """Utilities for PyTables' test suites"""
 
+from __future__ import print_function
 import os
 import sys
 import time
@@ -50,9 +51,9 @@ def verbosePrint(string, nonl=False):
     if not verbose:
         return
     if nonl:
-        print string,
+        print(string, end=' ')
     else:
-        print string
+        print(string)
 
 
 def cleanup(klass):
@@ -78,13 +79,13 @@ def allequal(a, b, flavor="numpy"):
 
     if a.shape != b.shape:
         if verbose:
-            print "Shape is not equal:", a.shape, "!=", b.shape
+            print("Shape is not equal:", a.shape, "!=", b.shape)
         return 0
 
     # Way to check the type equality without byteorder considerations
     if hasattr(b, "dtype") and a.dtype.str[1:] != b.dtype.str[1:]:
         if verbose:
-            print "dtype is not equal:", a.dtype, "!=", b.dtype
+            print("dtype is not equal:", a.dtype, "!=", b.dtype)
         return 0
 
     # Rank-0 case
@@ -93,7 +94,7 @@ def allequal(a, b, flavor="numpy"):
             return 1
         else:
             if verbose:
-                print "Shape is not equal:", a.shape, "!=", b.shape
+                print("Shape is not equal:", a.shape, "!=", b.shape)
             return 0
 
     # null arrays
@@ -102,16 +103,16 @@ def allequal(a, b, flavor="numpy"):
             return 1
         else:
             if verbose:
-                print "length is not equal"
-                print "len(a.data) ==>", len(a.data)
-                print "len(b.data) ==>", len(b.data)
+                print("length is not equal")
+                print("len(a.data) ==>", len(a.data))
+                print("len(b.data) ==>", len(b.data))
             return 0
 
     # Multidimensional case
     result = (a == b)
     result = numpy.all(result)
     if not result and verbose:
-        print "Some of the elements in arrays are not equal"
+        print("Some of the elements in arrays are not equal")
 
     return result
 
@@ -207,7 +208,7 @@ class PyTablesTestCase(unittest.TestCase):
             methodName = self._getMethodName()
 
             title = "Running %s.%s" % (name, methodName)
-            print '%s\n%s' % (title, '-' * len(title))
+            print('%s\n%s' % (title, '-' * len(title)))
 
     @classmethod
     def _testFilename(class_, filename):
@@ -292,11 +293,11 @@ class PyTablesTestCase(unittest.TestCase):
         try:
             callableObj(*args, **kwargs)
         except excClass as exc:
-            print (
+            print((
                 "Great!  The following ``%s`` was caught::\n"
                 "\n"
                 "  %s\n"
-                % (exc.__class__.__name__, exc))
+                % (exc.__class__.__name__, exc)))
         else:
             raise self.failureException(
                 "``%s`` was not raised" % excClass.__name__)
@@ -305,8 +306,8 @@ class PyTablesTestCase(unittest.TestCase):
 
     def _checkEqualityGroup(self, node1, node2, hardlink=False):
         if verbose:
-            print "Group 1:", node1
-            print "Group 2:", node2
+            print("Group 1:", node1)
+            print("Group 2:", node2)
         if hardlink:
             self.assertTrue(node1._v_pathname != node2._v_pathname,
                             "node1 and node2 have the same pathnames.")
@@ -318,8 +319,8 @@ class PyTablesTestCase(unittest.TestCase):
 
     def _checkEqualityLeaf(self, node1, node2, hardlink=False):
         if verbose:
-            print "Leaf 1:", node1
-            print "Leaf 2:", node2
+            print("Leaf 1:", node1)
+            print("Leaf 2:", node2)
         if hardlink:
             self.assertTrue(node1._v_pathname != node2._v_pathname,
                 "node1 and node2 have the same pathnames.")
@@ -383,11 +384,11 @@ class ShowMemTime(PyTablesTestCase):
                 vmexe = int(line.split()[1])
             elif line.startswith("VmLib:"):
                 vmlib = int(line.split()[1])
-        print "\nWallClock time:", time.time() - self.tref
-        print "Memory usage: ******* %s *******" % self._getName()
-        print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
-        print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
-        print "VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib)
+        print("\nWallClock time:", time.time() - self.tref)
+        print("Memory usage: ******* %s *******" % self._getName())
+        print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
+        print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
+        print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
 
 
 ## Local Variables:

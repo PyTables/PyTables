@@ -2,6 +2,7 @@
 
 """Run all test cases."""
 
+from __future__ import print_function
 import re
 import sys
 import locale
@@ -81,10 +82,10 @@ def suite():
 def print_versions():
     """Print all the versions of software that PyTables relies on."""
 
-    print '-=' * 38
-    print "PyTables version:  %s" % tables.__version__
-    print "HDF5 version:      %s" % tables.which_lib_version("hdf5")[1]
-    print "NumPy version:     %s" % numpy.__version__
+    print('-=' * 38)
+    print("PyTables version:  %s" % tables.__version__)
+    print("HDF5 version:      %s" % tables.which_lib_version("hdf5")[1])
+    print("NumPy version:     %s" % numpy.__version__)
     tinfo = tables.which_lib_version("zlib")
     if numexpr.use_vml:
         # Get only the main version number and strip out all the rest
@@ -93,34 +94,34 @@ def print_versions():
         vml_avail = "using VML/MKL %s" % vml_version
     else:
         vml_avail = "not using Intel's VML/MKL"
-    print "Numexpr version:   %s (%s)" % (numexpr.__version__, vml_avail)
+    print("Numexpr version:   %s (%s)" % (numexpr.__version__, vml_avail))
     if tinfo is not None:
-        print "Zlib version:      %s (%s)" % (tinfo[1], "in Python interpreter")
+        print("Zlib version:      %s (%s)" % (tinfo[1], "in Python interpreter"))
     tinfo = tables.which_lib_version("lzo")
     if tinfo is not None:
-        print "LZO version:       %s (%s)" % (tinfo[1], tinfo[2])
+        print("LZO version:       %s (%s)" % (tinfo[1], tinfo[2]))
     tinfo = tables.which_lib_version("bzip2")
     if tinfo is not None:
-        print "BZIP2 version:     %s (%s)" % (tinfo[1], tinfo[2])
+        print("BZIP2 version:     %s (%s)" % (tinfo[1], tinfo[2]))
     tinfo = tables.which_lib_version("blosc")
     if tinfo is not None:
         blosc_date = tinfo[2].split()[1]
-        print "Blosc version:     %s (%s)" % (tinfo[1], blosc_date)
+        print("Blosc version:     %s (%s)" % (tinfo[1], blosc_date))
     try:
         from Cython.Compiler.Main import Version as Cython_Version
-        print 'Cython version:    %s' % Cython_Version.version
+        print('Cython version:    %s' % Cython_Version.version)
     except:
         pass
-    print 'Python version:    %s' % sys.version
-    print 'Platform:          %s' % platform.platform()
+    print('Python version:    %s' % sys.version)
+    print('Platform:          %s' % platform.platform())
     #if os.name == 'posix':
     #    (sysname, nodename, release, version, machine) = os.uname()
     #    print 'Platform:          %s-%s' % (sys.platform, machine)
-    print 'Byte-ordering:     %s' % sys.byteorder
-    print 'Detected cores:    %s' % detect_number_of_cores()
-    print 'Default encoding:  %s' % sys.getdefaultencoding()
-    print 'Default locale:    (%s, %s)' % locale.getdefaultlocale()
-    print '-=' * 38
+    print('Byte-ordering:     %s' % sys.byteorder)
+    print('Detected cores:    %s' % detect_number_of_cores())
+    print('Default encoding:  %s' % sys.getdefaultencoding())
+    print('Default locale:    (%s, %s)' % locale.getdefaultlocale())
+    print('-=' * 38)
 
     # This should improve readability whan tests are run by CI tools
     sys.stdout.flush()
@@ -128,16 +129,16 @@ def print_versions():
 
 def print_heavy(heavy):
     if heavy:
-        print """\
-Performing the complete test suite!"""
+        print("""\
+Performing the complete test suite!""")
     else:
-        print """\
+        print("""\
 Performing only a light (yet comprehensive) subset of the test suite.
 If you want a more complete test, try passing the --heavy flag to this script
 (or set the 'heavy' parameter in case you are using tables.test() call).
 The whole suite will take more than 4 hours to complete on a relatively
-modern CPU and around 512 MB of main memory."""
-    print '-=' * 38
+modern CPU and around 512 MB of main memory.""")
+    print('-=' * 38)
 
 
 def test(verbose=False, heavy=False):
@@ -175,12 +176,12 @@ if __name__ == '__main__':
 
     hdf5_version = get_tuple_version(tables.which_lib_version("hdf5")[0])
     if hdf5_version < min_hdf5_version:
-        print "*Warning*: HDF5 version is lower than recommended: %s < %s" % \
-              (hdf5_version, min_hdf5_version)
+        print("*Warning*: HDF5 version is lower than recommended: %s < %s" % \
+              (hdf5_version, min_hdf5_version))
 
     if numpy.__version__ < min_numpy_version:
-        print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
-              (numpy.__version__, min_numpy_version)
+        print("*Warning*: NumPy version is lower than recommended: %s < %s" % \
+              (numpy.__version__, min_numpy_version))
 
     # Handle some global flags (i.e. only useful for test_all.py)
     only_versions = 0

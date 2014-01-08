@@ -12,6 +12,7 @@
 
 """Test module for evaluating expressions under PyTables"""
 
+from __future__ import print_function
 import unittest
 
 import numpy as np
@@ -119,8 +120,8 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval(self.expr, self.npvars)
         if common.verbose:
-            print "Computed expression:", repr(r1)
-            print "Should look like:", repr(r2)
+            print("Computed expression:", repr(r1))
+            print("Should look like:", repr(r2))
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -134,8 +135,8 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             r1 = r1[:]
         r2 = eval(self.expr, self.npvars)
         if common.verbose:
-            print "Computed expression:", repr(r1)
-            print "Should look like:", repr(r2)
+            print("Computed expression:", repr(r1))
+            print("Should look like:", repr(r2))
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -227,8 +228,8 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval(self.expr, self.npvars)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
 
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
@@ -241,8 +242,8 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval(expr_str, self.npvars)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
             r1.shape == r2.shape and r1.dtype == r2.dtype and r1 == r2,
             "Evaluate is returning a wrong value.")
@@ -253,15 +254,15 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr = tb.Expr(self.expr, self.vars)
         for r1 in self.rnda, self.rarr, self.rcarr, self.rearr, self.rcol:
             if common.verbose:
-                print "Checking output container:", type(r1)
+                print("Checking output container:", type(r1))
             expr.set_output(r1)
             r1 = expr.eval()
             if not isinstance(r1, type(self.rnda)):
                 r1 = r1[:]
             r2 = eval(self.expr, self.npvars)
             if common.verbose:
-                print "Computed expression:", repr(r1), r1.dtype
-                print "Should look like:", repr(r2), r2.dtype
+                print("Computed expression:", repr(r1), r1.dtype)
+                print("Should look like:", repr(r2), r2.dtype)
             self.assertTrue(common.areArraysEqual(r1, r2),
                             "Evaluate is returning a wrong value.")
 
@@ -275,14 +276,14 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr = tb.Expr(expr_str, self.vars)
         for r1 in self.rnda, self.rarr, self.rcarr, self.rearr, self.rcol:
             if common.verbose:
-                print "Checking output container:", type(r1)
+                print("Checking output container:", type(r1))
             expr.set_output(r1)
             r1 = expr.eval()
             r1 = r1[()]  # convert a 0-dim array into a scalar
             r2 = eval(expr_str, self.npvars)
             if common.verbose:
-                print "Computed expression:", repr(r1), r1.dtype
-                print "Should look like:", repr(r2), r2.dtype
+                print("Computed expression:", repr(r1), r1.dtype)
+                print("Should look like:", repr(r2), r2.dtype)
             self.assertTrue(common.areArraysEqual(r1, r2),
                             "Evaluate is returning a wrong value.")
 
@@ -296,8 +297,8 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -311,8 +312,8 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -326,8 +327,8 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -342,8 +343,8 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -391,8 +392,8 @@ class UnalignedObject(common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval(sexpr)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -416,8 +417,8 @@ class UnalignedObject(common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval(sexpr)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -440,8 +441,8 @@ class NonContiguousObject(common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval(sexpr)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -460,8 +461,8 @@ class NonContiguousObject(common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval(sexpr)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -480,8 +481,8 @@ class NonContiguousObject(common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval(sexpr)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -588,9 +589,9 @@ class BroadcastTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval("2 * a + b-c")
         if common.verbose:
-            print "Tested shapes:", self.shape1, self.shape2, self.shape3
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shapes:", self.shape1, self.shape2, self.shape3)
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -661,9 +662,9 @@ class DiffLengthTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(c is not None)
         r2 = eval("2 * a + b-c")
         if common.verbose:
-            print "Tested shapes:", self.shape1, self.shape2, self.shape3
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shapes:", self.shape1, self.shape2, self.shape3)
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -716,8 +717,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval("a | b")
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -726,7 +727,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         for dtype in 'int8', 'uint8', 'int16', 'uint16', 'int32':
             if common.verbose:
-                print "Checking type:", dtype
+                print("Checking type:", dtype)
             # Build arrays with different shapes as inputs
             a = np.array([1, 2, 3], dtype)
             b = np.array([3, 4, 5], dtype)
@@ -740,8 +741,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             b = np.array([3, 4, 5], 'int32')
             r2 = eval("two * a-b")
             if common.verbose:
-                print "Computed expression:", repr(r1), r1.dtype
-                print "Should look like:", repr(r2), r2.dtype
+                print("Computed expression:", repr(r1), r1.dtype)
+                print("Should look like:", repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
             self.assertTrue(common.areArraysEqual(r1, r2),
                             "Evaluate is returning a wrong value.")
@@ -754,7 +755,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         for dtype in 'uint32', 'int64':
             if common.verbose:
-                print "Checking type:", dtype
+                print("Checking type:", dtype)
             # Build arrays with different shapes as inputs
             a = np.array([1, 2, 3], dtype)
             b = np.array([3, 4, 5], dtype)
@@ -767,8 +768,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             b = np.array([3, 4, 5], 'int64')
             r2 = eval("2 * a-b")
             if common.verbose:
-                print "Computed expression:", repr(r1), r1.dtype
-                print "Should look like:", repr(r2), r2.dtype
+                print("Computed expression:", repr(r1), r1.dtype)
+                print("Should look like:", repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
             self.assertTrue(common.areArraysEqual(r1, r2),
                             "Evaluate is returning a wrong value.")
@@ -781,7 +782,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         for dtype in 'float32', 'float64':
             if common.verbose:
-                print "Checking type:", dtype
+                print("Checking type:", dtype)
             # Build arrays with different shapes as inputs
             a = np.array([1, 2, 3], dtype)
             b = np.array([3, 4, 5], dtype)
@@ -794,8 +795,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             b = np.array([3, 4, 5], dtype)
             r2 = eval("2 * a-b")
             if common.verbose:
-                print "Computed expression:", repr(r1), r1.dtype
-                print "Should look like:", repr(r2), r2.dtype
+                print("Computed expression:", repr(r1), r1.dtype)
+                print("Should look like:", repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
             self.assertTrue(common.areArraysEqual(r1, r2),
                             "Evaluate is returning a wrong value.")
@@ -808,7 +809,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         for dtype in 'complex64', 'complex128':
             if common.verbose:
-                print "Checking type:", dtype
+                print("Checking type:", dtype)
             # Build arrays with different shapes as inputs
             a = np.array([1, 2j, 3 + 2j], dtype)
             b = np.array([3, 4j, 5 + 1j], dtype)
@@ -821,8 +822,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             b = np.array([3, 4j, 5 + 1j], 'complex128')
             r2 = eval("2 * a-b")
             if common.verbose:
-                print "Computed expression:", repr(r1), r1.dtype
-                print "Should look like:", repr(r2), r2.dtype
+                print("Computed expression:", repr(r1), r1.dtype)
+                print("Should look like:", repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
             self.assertTrue(common.areArraysEqual(r1, r2),
                             "Evaluate is returning a wrong value.")
@@ -845,8 +846,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval("(a > b'a') | ( b > b'b')")
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -870,8 +871,8 @@ class FunctionsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = np.sin(a) * np.sqrt(b)
         if common.verbose:
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -903,9 +904,9 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval("2 * a + b-c")
         if common.verbose:
-            print "Tested shape:", shape
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shape:", shape)
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -937,9 +938,9 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr.eval()
         r2 = eval("2 * a + b-c")
         if common.verbose:
-            print "Tested shape:", shape
-            print "Computed expression:", repr(r1[:]), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shape:", shape)
+            print("Computed expression:", repr(r1[:]), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1[:], r2),
                         "Evaluate is returning a wrong value.")
 
@@ -974,9 +975,9 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval("2 * a + b-c")
         if common.verbose:
-            print "Tested shape:", shape
-            print "Computed expression:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shape:", shape)
+            print("Computed expression:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -1012,9 +1013,9 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr.eval()
         r2 = eval("2 * a + b-c")
         if common.verbose:
-            print "Tested shape:", shape
-            print "Computed expression:", repr(r1[:]), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shape:", shape)
+            print("Computed expression:", repr(r1[:]), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1[:], r2),
                         "Evaluate is returning a wrong value.")
 
@@ -1106,9 +1107,9 @@ class AppendModeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr.eval()
         r2 = eval("2 * a + b-c")
         if common.verbose:
-            print "Tested shape:", shape
-            print "Computed expression:", repr(r1[:]), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shape:", shape)
+            print("Computed expression:", repr(r1[:]), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1[:], r2),
                         "Evaluate is returning a wrong value.")
 
@@ -1154,9 +1155,9 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = np.array([row for row in expr])
         r2 = eval(self.sexpr, self.npvars)
         if common.verbose:
-            print "Tested shape, maindim:", self.shape, self.maindim
-            print "Computed expression:", repr(r1[:]), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shape, maindim:", self.shape, self.maindim)
+            print("Computed expression:", repr(r1[:]), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1[:], r2),
                         "Evaluate is returning a wrong value.")
 
@@ -1171,9 +1172,9 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.npvars, start, stop, step, self.shape, self.maindim)
         r2 = eval(self.sexpr, npvars)
         if common.verbose:
-            print "Tested shape, maindim:", self.shape, self.maindim
-            print "Computed expression:", repr(r1[:]), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shape, maindim:", self.shape, self.maindim)
+            print("Computed expression:", repr(r1[:]), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1[:], r2),
                         "Evaluate is returning a wrong value.")
 
@@ -1188,9 +1189,9 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.npvars, start, stop, step, self.shape, self.maindim)
         r2 = eval(self.sexpr, npvars)
         if common.verbose:
-            print "Tested shape, maindim:", self.shape, self.maindim
-            print "Computed expression:", repr(r1[:]), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shape, maindim:", self.shape, self.maindim)
+            print("Computed expression:", repr(r1[:]), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1[:], r2),
                         "Evaluate is returning a wrong value.")
 
@@ -1205,9 +1206,9 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.npvars, start, stop, step, self.shape, self.maindim)
         r2 = eval(self.sexpr, npvars)
         if common.verbose:
-            print "Tested shape, maindim:", self.shape, self.maindim
-            print "Computed expression:", repr(r1[:]), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shape, maindim:", self.shape, self.maindim)
+            print("Computed expression:", repr(r1[:]), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1[:], r2),
                         "Evaluate is returning a wrong value.")
 
@@ -1274,9 +1275,9 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r2 = eval("a-b-1")
         r[start:stop:step] = r2[:len(xrange(start, stop, step))]
         if common.verbose:
-            print "Tested shape:", shape
-            print "Computed expression:", repr(r1[:]), r1.dtype
-            print "Should look like:", repr(r), r.dtype
+            print("Tested shape:", shape)
+            print("Computed expression:", repr(r1[:]), r1.dtype)
+            print("Should look like:", repr(r), r.dtype)
         self.assertTrue(common.areArraysEqual(r1[:], r),
                         "Evaluate is returning a wrong value.")
 
@@ -1312,9 +1313,9 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r.__setitem__(lsl + (slice(start, stop, step),),
                       r2.__getitem__(lsl + (slice(0, l),)))
         if common.verbose:
-            print "Tested shape:", shape
-            print "Computed expression:", repr(r1[:]), r1.dtype
-            print "Should look like:", repr(r), r.dtype
+            print("Tested shape:", shape)
+            print("Computed expression:", repr(r1[:]), r1.dtype)
+            print("Should look like:", repr(r), r.dtype)
         self.assertTrue(common.areArraysEqual(r1[:], r),
                         "Evaluate is returning a wrong value.")
 
@@ -1410,9 +1411,9 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = r1[-10:]  # Get the last ten rows
         r2 = np.zeros(10, dtype='float64')
         if common.verbose:
-            print "Tested shape:", shape
-            print "Ten last rows:", repr(r1), r1.dtype
-            print "Should look like:", repr(r2), r2.dtype
+            print("Tested shape:", shape)
+            print("Ten last rows:", repr(r1), r1.dtype)
+            print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
@@ -1424,7 +1425,7 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # The iterator is much more slower, so don't run it for
             # extremeley large arrays.
             if common.verbose:
-                print "Skipping this *very* long test"
+                print("Skipping this *very* long test")
             return
         # Use filters so as to not use too much space
         if tb.which_lib_version("lzo") is not None:
@@ -1445,9 +1446,9 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr = tb.Expr("a-b + 1")
         r1 = sum(expr)     # Should give 0
         if common.verbose:
-            print "Tested shape:", shape
-            print "Cummulated sum:", r1
-            print "Should look like:", 0
+            print("Tested shape:", shape)
+            print("Cummulated sum:", r1)
+            print("Should look like:", 0)
         self.assertEqual(r1, 0, "Evaluate is returning a wrong value.")
 
 # The next can go on regular tests, as it should be light enough

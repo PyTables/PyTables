@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import sys
 import unittest
 import os
@@ -29,9 +30,9 @@ class BasicTestCase(unittest.TestCase):
     def write_read(self, testarray):
         a = testarray
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running test for array with type '%s'" % a.dtype.type,
-            print "for class check:", self.title
+            print('\n', '-=' * 30)
+            print("Running test for array with type '%s'" % a.dtype.type, end=' ')
+            print("for class check:", self.title)
 
         # Create an instance of HDF5 file
         filename = tempfile.mktemp(".h5")
@@ -56,18 +57,18 @@ class BasicTestCase(unittest.TestCase):
 
                 # Compare them. They should be equal.
                 if common.verbose and not allequal(a, b):
-                    print "Write and read arrays differ!"
+                    print("Write and read arrays differ!")
                     # print "Array written:", a
-                    print "Array written shape:", a.shape
-                    print "Array written itemsize:", a.itemsize
-                    print "Array written type:", a.dtype.type
+                    print("Array written shape:", a.shape)
+                    print("Array written itemsize:", a.itemsize)
+                    print("Array written type:", a.dtype.type)
                     # print "Array read:", b
-                    print "Array read shape:", b.shape
-                    print "Array read itemsize:", b.itemsize
-                    print "Array read type:", b.dtype.type
+                    print("Array read shape:", b.shape)
+                    print("Array read itemsize:", b.itemsize)
+                    print("Array read type:", b.dtype.type)
                     if a.dtype.kind != "S":
-                        print "Array written byteorder:", a.dtype.byteorder
-                        print "Array read byteorder:", b.dtype.byteorder
+                        print("Array written byteorder:", a.dtype.byteorder)
+                        print("Array read byteorder:", b.dtype.byteorder)
 
                 # Check strictly the array equality
                 self.assertEqual(a.shape, b.shape)
@@ -108,9 +109,9 @@ class BasicTestCase(unittest.TestCase):
         a = testarray
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running test for array with type '%s'" % a.dtype.type,
-            print "for class check:", self.title
+            print('\n', '-=' * 30)
+            print("Running test for array with type '%s'" % a.dtype.type, end=' ')
+            print("for class check:", self.title)
 
         # Create an instance of HDF5 file
         filename = tempfile.mktemp(".h5")
@@ -163,9 +164,9 @@ class BasicTestCase(unittest.TestCase):
         byteorder = None
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running test for array with type '%s'" % a.dtype.type,
-            print "for class check:", self.title
+            print('\n', '-=' * 30)
+            print("Running test for array with type '%s'" % a.dtype.type, end=' ')
+            print("for class check:", self.title)
 
         # Create an instance of HDF5 file
         filename = tempfile.mktemp(".h5")
@@ -201,18 +202,18 @@ class BasicTestCase(unittest.TestCase):
 
                 # Compare them. They should be equal.
                 if common.verbose and not allequal(a, b):
-                    print "Write and read arrays differ!"
+                    print("Write and read arrays differ!")
                     # print "Array written:", a
-                    print "Array written shape:", a.shape
-                    print "Array written itemsize:", a.itemsize
-                    print "Array written type:", a.dtype.type
+                    print("Array written shape:", a.shape)
+                    print("Array written itemsize:", a.itemsize)
+                    print("Array written type:", a.dtype.type)
                     # print "Array read:", b
-                    print "Array read shape:", b.shape
-                    print "Array read itemsize:", b.itemsize
-                    print "Array read type:", b.dtype.type
+                    print("Array read shape:", b.shape)
+                    print("Array read itemsize:", b.itemsize)
+                    print("Array read type:", b.dtype.type)
                     if a.dtype.kind != "S":
-                        print "Array written byteorder:", a.dtype.byteorder
-                        print "Array read byteorder:", b.dtype.byteorder
+                        print("Array written byteorder:", a.dtype.byteorder)
+                        print("Array read byteorder:", b.dtype.byteorder)
 
                 # Check strictly the array equality
                 self.assertEqual(a.shape, b.shape)
@@ -658,9 +659,9 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
     def write_read(self, testArray):
         if common.verbose:
-            print '\n', '-=' * 30
-            print "\nRunning test for array with type '%s'" % \
-                  testArray.dtype.type
+            print('\n', '-=' * 30)
+            print("\nRunning test for array with type '%s'" % \
+                  testArray.dtype.type)
 
         # Create the array under root and name 'somearray'
         a = testArray
@@ -686,15 +687,15 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Compare them. They should be equal.
         if not allequal(c, b) and common.verbose:
-            print "Write and read arrays differ!"
-            print "Array written:", a
-            print "Array written shape:", a.shape
-            print "Array written itemsize:", a.itemsize
-            print "Array written type:", a.dtype.type
-            print "Array read:", b
-            print "Array read shape:", b.shape
-            print "Array read itemsize:", b.itemsize
-            print "Array read type:", b.dtype.type
+            print("Write and read arrays differ!")
+            print("Array written:", a)
+            print("Array written shape:", a.shape)
+            print("Array written itemsize:", a.itemsize)
+            print("Array written type:", a.dtype.type)
+            print("Array read:", b)
+            print("Array read shape:", b.shape)
+            print("Array read itemsize:", b.itemsize)
+            print("Array read type:", b.dtype.type)
 
         # Check strictly the array equality
         self.assertEqual(a.shape, b.shape)
@@ -819,10 +820,10 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Check that the array is back in the correct byteorder
         c = array[...]
         if common.verbose:
-            print "byteorder of array on disk-->", array.byteorder
-            print "byteorder of subarray-->", b.dtype.byteorder
-            print "subarray-->", b
-            print "retrieved array-->", c
+            print("byteorder of array on disk-->", array.byteorder)
+            print("byteorder of subarray-->", b.dtype.byteorder)
+            print("subarray-->", b)
+            print("retrieved array-->", c)
         self.assertTrue(allequal(a, c))
         # Close the file
         fileh.close()
@@ -853,10 +854,10 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Check that the array is back in the correct byteorder
         c = array[...]
         if common.verbose:
-            print "byteorder of array on disk-->", array.byteorder
-            print "byteorder of subarray-->", b.dtype.byteorder
-            print "subarray-->", b
-            print "retrieved array-->", c
+            print("byteorder of array on disk-->", array.byteorder)
+            print("byteorder of subarray-->", b.dtype.byteorder)
+            print("subarray-->", b)
+            print("retrieved array-->", c)
         self.assertTrue(allequal(a, c))
         # Close the file
         fileh.close()
@@ -891,9 +892,9 @@ class GroupsArrayTestCase(unittest.TestCase):
         """Checking combinations of arrays with groups."""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_iterativeGroups..." % \
-                  self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00_iterativeGroups..." % \
+                  self.__class__.__name__)
 
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
@@ -919,7 +920,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             a = numpy.ones((3,), typecode)
             dsetname = 'array_' + typecode
             if common.verbose:
-                print "Creating dataset:", group._g_join(dsetname)
+                print("Creating dataset:", group._g_join(dsetname))
             fileh.create_array(group, dsetname, a, "Large array")
             group = fileh.create_group(group, 'group' + str(i))
 
@@ -940,11 +941,11 @@ class GroupsArrayTestCase(unittest.TestCase):
             # Get the actual array
             b = dset.read()
             if common.verbose:
-                print "Info from dataset:", dset._v_pathname
-                print "  shape ==>", dset.shape,
-                print "  type ==> %s" % dset.atom.dtype
-                print "Array b read from file. Shape: ==>", b.shape,
-                print ". Type ==> %s" % b.dtype
+                print("Info from dataset:", dset._v_pathname)
+                print("  shape ==>", dset.shape, end=' ')
+                print("  type ==> %s" % dset.atom.dtype)
+                print("Array b read from file. Shape: ==>", b.shape, end=' ')
+                print(". Type ==> %s" % b.dtype)
             self.assertEqual(a.shape, b.shape)
             self.assertEqual(a.dtype, b.dtype)
             self.assertTrue(allequal(a, b))
@@ -971,22 +972,22 @@ class GroupsArrayTestCase(unittest.TestCase):
         maxrank = 32
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_largeRankArrays..." % \
-                  self.__class__.__name__
-            print "Maximum rank for tested arrays:", maxrank
+            print('\n', '-=' * 30)
+            print("Running %s.test01_largeRankArrays..." % \
+                  self.__class__.__name__)
+            print("Maximum rank for tested arrays:", maxrank)
         # Open a new empty HDF5 file
         # file = tempfile.mktemp(".h5")
         file = "test_array.h5"
         fileh = open_file(file, mode="w")
         group = fileh.root
         if common.verbose:
-            print "Rank array writing progress: ",
+            print("Rank array writing progress: ", end=' ')
         for rank in range(minrank, maxrank + 1):
             # Create an array of integers, with incrementally bigger ranges
             a = numpy.ones((1,) * rank, numpy.int32)
             if common.verbose:
-                print "%3d," % (rank),
+                print("%3d," % (rank), end=' ')
             fileh.create_array(group, "array", a, "Rank: %s" % rank)
             group = fileh.create_group(group, 'group' + str(rank))
         # Flush the buffers
@@ -998,8 +999,8 @@ class GroupsArrayTestCase(unittest.TestCase):
         fileh = open_file(file, mode="r")
         group = fileh.root
         if common.verbose:
-            print
-            print "Rank array reading progress: "
+            print()
+            print("Rank array reading progress: ")
         # Get the metadata on the previosly saved arrays
         for rank in range(minrank, maxrank + 1):
             # Create an array for later comparison
@@ -1007,13 +1008,13 @@ class GroupsArrayTestCase(unittest.TestCase):
             # Get the actual array
             b = group.array.read()
             if common.verbose:
-                print "%3d," % (rank),
+                print("%3d," % (rank), end=' ')
             if common.verbose and not allequal(a, b):
-                print "Info from dataset:", dset._v_pathname
-                print "  Shape: ==>", dset.shape,
-                print "  typecode ==> %c" % dset.typecode
-                print "Array b read from file. Shape: ==>", b.shape,
-                print ". Type ==> %c" % b.dtype
+                print("Info from dataset:", dset._v_pathname)
+                print("  Shape: ==>", dset.shape, end=' ')
+                print("  typecode ==> %c" % dset.typecode)
+                print("Array b read from file. Shape: ==>", b.shape, end=' ')
+                print(". Type ==> %c" % b.dtype)
 
             self.assertEqual(a.shape, b.shape)
             self.assertEqual(a.dtype, b.dtype)
@@ -1024,7 +1025,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             group = fileh.get_node(group, 'group' + str(rank))
 
         if common.verbose:
-            print  # This flush the stdout buffer
+            print()  # This flush the stdout buffer
         # Close the file
         fileh.close()
 
@@ -1038,8 +1039,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Array.copy() method """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
@@ -1054,18 +1055,18 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
             # print "dirs-->", dir(array1), dir(array2)
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         self.assertTrue(allequal(array1.read(), array2.read()))
@@ -1084,8 +1085,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Array.copy() method (where specified)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
@@ -1101,18 +1102,18 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
         if common.verbose:
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
             # print "dirs-->", dir(array1), dir(array2)
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         self.assertTrue(allequal(array1.read(), array2.read()))
@@ -1131,8 +1132,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Array.copy() method (checking title copying)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
@@ -1149,7 +1150,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
@@ -1157,7 +1158,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert user attributes
         if common.verbose:
-            print "title of destination array-->", array2.title
+            print("title of destination array-->", array2.title)
         self.assertEqual(array2.title, "title array2")
 
         # Close the file
@@ -1168,8 +1169,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Array.copy() method (user attributes copied)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
@@ -1186,15 +1187,15 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Assert user attributes
         self.assertEqual(array2.attrs.attr1, "attr1")
@@ -1208,8 +1209,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Array.copy() method (user attributes not copied)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05b_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05b_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
@@ -1226,15 +1227,15 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Assert user attributes
         self.assertEqual(hasattr(array2.attrs, "attr1"), 0)
@@ -1259,8 +1260,8 @@ class CopyIndexTestCase(unittest.TestCase):
         """Checking Array.copy() method with indexes"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_index..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_index..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Array
         file = tempfile.mktemp(".h5")
@@ -1278,10 +1279,10 @@ class CopyIndexTestCase(unittest.TestCase):
                              stop=self.stop,
                              step=self.step)
         if common.verbose:
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
@@ -1289,8 +1290,8 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Assert the number of rows in array
         if common.verbose:
-            print "nrows in array2-->", array2.nrows
-            print "and it should be-->", r2.shape[0]
+            print("nrows in array2-->", array2.nrows)
+            print("and it should be-->", r2.shape[0])
         self.assertEqual(r2.shape[0], array2.nrows)
 
         # Close the file
@@ -1301,8 +1302,8 @@ class CopyIndexTestCase(unittest.TestCase):
         """Checking Array.copy() method with indexes (close file version)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_indexclosef..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_indexclosef..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Array
         file = tempfile.mktemp(".h5")
@@ -1326,10 +1327,10 @@ class CopyIndexTestCase(unittest.TestCase):
         array2 = fileh.root.array2
 
         if common.verbose:
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
@@ -1337,8 +1338,8 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Assert the number of rows in array
         if common.verbose:
-            print "nrows in array2-->", array2.nrows
-            print "and it should be-->", r2.shape[0]
+            print("nrows in array2-->", array2.nrows)
+            print("and it should be-->", r2.shape[0])
         self.assertEqual(r2.shape[0], array2.nrows)
 
         # Close the file
@@ -1436,8 +1437,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original first element:", a[0], type(a[0])
-            print "Read first element:", arr[0], type(arr[0])
+            print("Original first element:", a[0], type(a[0]))
+            print("Read first element:", arr[0], type(arr[0]))
         self.assertTrue(allequal(a[0], arr[0]))
         self.assertEqual(type(a[0]), type(arr[0]))
 
@@ -1463,8 +1464,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original first element:", a[0], type(a[0])
-            print "Read first element:", arr[0], type(arr[0])
+            print("Original first element:", a[0], type(a[0]))
+            print("Read first element:", arr[0], type(arr[0]))
         self.assertEqual(a[0], arr[0])
         self.assertEqual(type(a[0]), type(arr[0]))
 
@@ -1490,8 +1491,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4]
-            print "Read elements:", arr[1:4]
+            print("Original elements:", a[1:4])
+            print("Read elements:", arr[1:4])
         self.assertTrue(allequal(a[1:4], arr[1:4]))
 
         # Close the file
@@ -1516,8 +1517,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4]
-            print "Read elements:", arr[1:4]
+            print("Original elements:", a[1:4])
+            print("Read elements:", arr[1:4])
         self.assertTrue(allequal(a[1:4], arr[1:4]))
 
         # Close the file
@@ -1542,8 +1543,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4:2]
-            print "Read elements:", arr[1:4:2]
+            print("Original elements:", a[1:4:2])
+            print("Read elements:", arr[1:4:2])
         self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
 
         # Close the file
@@ -1568,8 +1569,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4:2]
-            print "Read elements:", arr[1:4:2]
+            print("Original elements:", a[1:4:2])
+            print("Read elements:", arr[1:4:2])
         self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
         # Close the file
         fileh.close()
@@ -1593,8 +1594,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original last element:", a[-1]
-            print "Read last element:", arr[-1]
+            print("Original last element:", a[-1])
+            print("Read last element:", arr[-1])
         self.assertTrue(allequal(a[-1], arr[-1]))
 
         # Close the file
@@ -1619,8 +1620,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original before last element:", a[-2]
-            print "Read before last element:", arr[-2]
+            print("Original before last element:", a[-2])
+            print("Read before last element:", arr[-2])
         if isinstance(a[-2], numpy.ndarray):
             self.assertTrue(allequal(a[-2], arr[-2]))
         else:
@@ -1648,8 +1649,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original last elements:", a[-4:-1]
-            print "Read last elements:", arr[-4:-1]
+            print("Original last elements:", a[-4:-1])
+            print("Read last elements:", arr[-4:-1])
         self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
         # Close the file
         fileh.close()
@@ -1673,8 +1674,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original last elements:", a[-4:-1]
-            print "Read last elements:", arr[-4:-1]
+            print("Original last elements:", a[-4:-1])
+            print("Read last elements:", arr[-4:-1])
         self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
 
         # Close the file
@@ -1753,8 +1754,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original first element:", a[0]
-            print "Read first element:", arr[0]
+            print("Original first element:", a[0])
+            print("Read first element:", arr[0])
         self.assertTrue(allequal(a[0], arr[0]))
 
         # Close the file
@@ -1783,8 +1784,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original first element:", a[0]
-            print "Read first element:", arr[0]
+            print("Original first element:", a[0])
+            print("Read first element:", arr[0])
         self.assertEqual(a[0], arr[0])
 
         # Close the file
@@ -1813,8 +1814,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4]
-            print "Read elements:", arr[1:4]
+            print("Original elements:", a[1:4])
+            print("Read elements:", arr[1:4])
         self.assertTrue(allequal(a[1:4], arr[1:4]))
 
         # Close the file
@@ -1846,8 +1847,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4]
-            print "Read elements:", arr[1:4]
+            print("Original elements:", a[1:4])
+            print("Read elements:", arr[1:4])
         self.assertTrue(allequal(a[1:4], arr[1:4]))
 
         # Close the file
@@ -1877,8 +1878,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4:2]
-            print "Read elements:", arr[1:4:2]
+            print("Original elements:", a[1:4:2])
+            print("Read elements:", arr[1:4:2])
         self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
 
         # Close the file
@@ -1910,8 +1911,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4:2]
-            print "Read elements:", arr[1:4:2]
+            print("Original elements:", a[1:4:2])
+            print("Read elements:", arr[1:4:2])
         self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
 
         # Close the file
@@ -1941,8 +1942,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original last element:", a[-1]
-            print "Read last element:", arr[-1]
+            print("Original last element:", a[-1])
+            print("Read last element:", arr[-1])
         self.assertTrue(allequal(a[-1], arr[-1]))
 
         # Close the file
@@ -1972,8 +1973,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original before last element:", a[-2]
-            print "Read before last element:", arr[-2]
+            print("Original before last element:", a[-2])
+            print("Read before last element:", arr[-2])
         if isinstance(a[-2], numpy.ndarray):
             self.assertTrue(allequal(a[-2], arr[-2]))
         else:
@@ -2006,8 +2007,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original last elements:", a[-4:-1]
-            print "Read last elements:", arr[-4:-1]
+            print("Original last elements:", a[-4:-1])
+            print("Read last elements:", arr[-4:-1])
         self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
 
         # Close the file
@@ -2039,8 +2040,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original last elements:", a[-4:-1]
-            print "Read last elements:", arr[-4:-1]
+            print("Original last elements:", a[-4:-1])
+            print("Read last elements:", arr[-4:-1])
         self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
 
         # Close the file
@@ -2075,8 +2076,8 @@ class SetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original last elements:", a[-4:-1]
-            print "Read last elements:", arr[-4:-1]
+            print("Original last elements:", a[-4:-1])
+            print("Read last elements:", arr[-4:-1])
         self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
 
         # Close the file
@@ -2153,8 +2154,8 @@ class GeneratorTestCase(unittest.TestCase):
         ga = [i for i in a]
         garr = [i for i in arr]
         if common.verbose:
-            print "Result of original iterator:", ga
-            print "Result of read generator:", garr
+            print("Result of original iterator:", ga)
+            print("Result of read generator:", garr)
         self.assertEqual(ga, garr)
 
         # Close the file
@@ -2182,8 +2183,8 @@ class GeneratorTestCase(unittest.TestCase):
         garr = [i for i in arr]
 
         if common.verbose:
-            print "Result of original iterator:", ga
-            print "Result of read generator:", garr
+            print("Result of original iterator:", ga)
+            print("Result of read generator:", garr)
         for i in range(len(ga)):
             self.assertTrue(allequal(ga[i], garr[i]))
 
@@ -2211,8 +2212,8 @@ class GeneratorTestCase(unittest.TestCase):
         ga = [i for i in a]
         garr = [i for i in arr]
         if common.verbose:
-            print "Result of original iterator:", ga
-            print "Result of read generator:", garr
+            print("Result of original iterator:", ga)
+            print("Result of read generator:", garr)
         self.assertEqual(ga, garr)
 
         # Close the file
@@ -2239,8 +2240,8 @@ class GeneratorTestCase(unittest.TestCase):
         ga = [i for i in a]
         garr = [i for i in arr]
         if common.verbose:
-            print "Result of original iterator:", ga
-            print "Result of read generator:", garr
+            print("Result of original iterator:", ga)
+            print("Result of read generator:", garr)
         for i in range(len(ga)):
             self.assertTrue(allequal(ga[i], garr[i]))
 
@@ -2346,7 +2347,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = (nparr >= value1) & (nparr < value2)
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             a = nparr[key]
             b = tbarr[key]
 #             if common.verbose:
@@ -2363,7 +2364,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = numpy.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             a = nparr[key]
             b = tbarr[key]
 #             if common.verbose:
@@ -2380,7 +2381,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = numpy.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             # a = nparr[key]
             fkey = numpy.array(key, "f4")
             self.assertRaises(IndexError, tbarr.__getitem__, fkey)
@@ -2392,7 +2393,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = (nparr >= value1) & (nparr < value2)
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             s = nparr[key]
             nparr[key] = s * 2
             tbarr[key] = s * 2
@@ -2412,7 +2413,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = numpy.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             s = nparr[key]
             nparr[key] = s * 2
             tbarr[key] = s * 2
@@ -2432,7 +2433,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = numpy.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             # s = nparr[key]
             nparr[key] = 2   # force a broadcast
             tbarr[key] = 2   # force a broadcast
@@ -2537,7 +2538,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         tbarr = self.tbarr
         for key in self.working_keyset:
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             a = nparr[key]
             b = tbarr[key]
 #             if common.verbose:
@@ -2553,7 +2554,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         tbarr = self.tbarr
         for key in self.not_working_keyset:
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             # a = nparr[key]
             self.assertRaises(IndexError, tbarr.__getitem__, key)
 
@@ -2563,7 +2564,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         tbarr = self.tbarr
         for key in self.not_working_oob:
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             self.assertRaises(IndexError, nparr.__getitem__, key)
             self.assertRaises(IndexError, tbarr.__getitem__, key)
 
@@ -2573,7 +2574,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         tbarr = self.tbarr
         for key in self.not_working_too_many:
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             # ValueError for numpy 1.6.x and earlier
             # IndexError in numpy > 1.8.0
             self.assertRaises((ValueError, IndexError), nparr.__getitem__, key)
@@ -2585,7 +2586,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         tbarr = self.tbarr
         for key in self.working_keyset:
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             s = nparr[key]
             nparr[key] = s * 2
             tbarr[key] = s * 2
@@ -2604,7 +2605,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         tbarr = self.tbarr
         for key in self.working_keyset:
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             # s = nparr[key]
             nparr[key] = 2   # broadcast value
             tbarr[key] = 2   # broadcast value

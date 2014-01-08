@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import os
 import shutil
 import sys
@@ -232,8 +233,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -247,8 +248,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except IOError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next IOError was catched!"
-                print value
+                print("\nGreat!, the next IOError was catched!")
+                print(value)
         else:
             self.fail("expected an IOError")
 
@@ -260,7 +261,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
                           node_cache_slots=self.nodeCacheSlots)
         # Get the CLASS attribute of the arr object
         if common.verbose:
-            print "\nFile tree dump:", fileh
+            print("\nFile tree dump:", fileh)
         title = fileh.root.anarray1.get_attr("TITLE")
         # Get the node again, as this can trigger errors in some situations
         anarray1 = fileh.root.anarray1
@@ -280,8 +281,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except RuntimeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next RuntimeError was catched!"
-                print value
+                print("\nGreat!, the next RuntimeError was catched!")
+                print(value)
         else:
             self.fail("expected an IOError")
 
@@ -297,8 +298,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected a NodeError")
 
@@ -316,8 +317,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         # Try to get a child of the removed object
@@ -326,8 +327,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -336,8 +337,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         """Checking removing a group recursively and access to it immediately"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05b_removeGroupRecursively..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05b_removeGroupRecursively..." % self.__class__.__name__)
 
         # Delete a group with leafs
         fileh = open_file(
@@ -348,8 +349,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected a NodeError")
 
@@ -362,8 +363,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         # Try to get a child of the removed object
@@ -372,8 +373,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -391,8 +392,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except AttributeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next AttributeError was catched!"
-                print value
+                print("\nGreat!, the next AttributeError was catched!")
+                print(value)
         else:
             self.fail("expected an AttributeError")
 
@@ -415,8 +416,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -438,8 +439,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -457,8 +458,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -475,8 +476,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -498,8 +499,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -526,8 +527,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -550,8 +551,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -593,8 +594,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected an NodeError")
         # Now overwrite the destination node.
@@ -617,8 +618,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NaturalNameWarning:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NaturalNameWarning was catched!"
-                print value
+                print("\nGreat!, the next NaturalNameWarning was catched!")
+                print(value)
         else:
             self.fail("expected an NaturalNameWarning")
         # Reset the warning
@@ -651,8 +652,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         # Try to get a child with the old pathname
@@ -661,8 +662,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -689,8 +690,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         # Try to get a child with the old pathname
@@ -699,8 +700,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -772,8 +773,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -797,8 +798,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -829,8 +830,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected an NodeError")
         fileh.close()
@@ -858,8 +859,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -883,8 +884,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -940,8 +941,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected an NodeError")
         fileh.close()
@@ -988,8 +989,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         # Try to get a child with the old pathname
@@ -998,8 +999,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -1028,8 +1029,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         # Try to get a child with the old pathname
@@ -1038,8 +1039,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except LookupError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
+                print("\nGreat!, the next LookupError was catched!")
+                print(value)
         else:
             self.fail("expected an LookupError")
         fileh.close()
@@ -1073,8 +1074,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected an NodeError")
         fileh.close()
@@ -1119,8 +1120,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected an NodeError")
         fileh.close()
@@ -1255,8 +1256,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected an NodeError")
         fileh.close()
@@ -1309,8 +1310,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected an NodeError")
         fileh.close()
@@ -1327,8 +1328,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected an NodeError")
         fileh.close()
@@ -1345,8 +1346,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NodeError was catched!"
-                print value
+                print("\nGreat!, the next NodeError was catched!")
+                print(value)
         else:
             self.fail("expected an NodeError")
         fileh.close()
@@ -1505,7 +1506,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Get the file descriptor for this file
         fd = fileh.fileno()
         if common.verbose:
-            print "Value of fileno():", fd
+            print("Value of fileno():", fd)
         self.assertTrue(fd >= 0)
         fileh.close()
 
@@ -1538,7 +1539,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
 
         # When file has an HDF5 format, always returns 1
         if common.verbose:
-            print "\nisHDF5File(%s) ==> %d" % (file, is_hdf5_file(file))
+            print("\nisHDF5File(%s) ==> %d" % (file, is_hdf5_file(file)))
         self.assertEqual(is_hdf5_file(file), 1)
 
         # Then, delete the file
@@ -1593,9 +1594,9 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # When file has a PyTables format, always returns "1.0" string or
         # greater
         if common.verbose:
-            print
-            print "\nPyTables format version number ==> %s" % \
-                version
+            print()
+            print("\nPyTables format version number ==> %s" % \
+                version)
         self.assertTrue(version >= "1.0")
 
         # Then, delete the file
@@ -1614,9 +1615,9 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # When file is not a PyTables format, always returns 0 or
         # negative value
         if common.verbose:
-            print
-            print "\nPyTables format version number ==> %s" % \
-                version
+            print()
+            print("\nPyTables format version number ==> %s" % \
+                version)
         self.assertTrue(version is None)
 
         # Then, delete the file
@@ -1644,8 +1645,8 @@ class CheckFileTestCase(common.PyTablesTestCase):
         ui = fileh.get_node(columns, "pressure", classname="Array")
         self.assertEqual(ui._v_name, "pressure")
         if common.verbose:
-            print "Array object with type H5T_ARRAY -->", repr(ui)
-            print "Array contents -->", ui[:]
+            print("Array object with type H5T_ARRAY -->", repr(ui))
+            print("Array contents -->", ui[:])
 
         # A Table
         table = fileh.get_node("/detector", "table", classname="Table")
@@ -1691,7 +1692,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
             UserWarning, fileh.get_node, '/CompoundChunked')
         self.assertEqual(ui._v_name, 'CompoundChunked')
         if common.verbose:
-            print "UnImplement object -->", repr(ui)
+            print("UnImplement object -->", repr(ui))
 
         # Check that it cannot be copied to another file
         file2 = tempfile.mktemp(".h5")
@@ -1703,8 +1704,8 @@ class CheckFileTestCase(common.PyTablesTestCase):
         except UserWarning:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next UserWarning was catched:"
-                print value
+                print("\nGreat!, the next UserWarning was catched:")
+                print(value)
         else:
             self.fail("expected an UserWarning")
 
@@ -1735,7 +1736,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         ui = fileh.get_node(fileh.root.columns, "pressure")
         self.assertEqual(ui._v_name, "pressure")
         if common.verbose:
-            print "UnImplement object -->", repr(ui)
+            print("UnImplement object -->", repr(ui))
 
         # Check that it cannot be copied to another file
         file2 = tempfile.mktemp(".h5")
@@ -1747,8 +1748,8 @@ class CheckFileTestCase(common.PyTablesTestCase):
         except UserWarning:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next UserWarning was catched:"
-                print value
+                print("\nGreat!, the next UserWarning was catched:")
+                print(value)
         else:
             self.fail("expected an UserWarning")
 
@@ -2149,14 +2150,14 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(file1.open_count, 2)
         self.assertEqual(file2.open_count, 2)
         if common.verbose:
-            print "(file1) open_count:", file1.open_count
-            print "(file1) test[1]:", file1.root.test[1]
+            print("(file1) open_count:", file1.open_count)
+            print("(file1) test[1]:", file1.root.test[1])
         self.assertEqual(file1.root.test[1], 2)
         file1.close()
         self.assertEqual(file2.open_count, 1)
         if common.verbose:
-            print "(file2) open_count:", file2.open_count
-            print "(file2) test[1]:", file2.root.test[1]
+            print("(file2) open_count:", file2.open_count)
+            print("(file2) test[1]:", file2.root.test[1])
         self.assertEqual(file2.root.test[1], 2)
         file2.close()
 
@@ -2295,9 +2296,9 @@ class UnicodeFilename(common.PyTablesTestCase):
 
         test = self.h5file.root.test
         if common.verbose:
-            print "Filename:", self.h5fname
-            print "Array:", test[:]
-            print "Should look like:", [1, 2]
+            print("Filename:", self.h5fname)
+            print("Array:", test[:])
+            print("Should look like:", [1, 2])
         self.assertEqual(test[:], [1, 2], "Values does not match.")
 
     def test02(self):
@@ -2305,8 +2306,8 @@ class UnicodeFilename(common.PyTablesTestCase):
 
         self.h5file.close()
         if common.verbose:
-            print "Filename:", self.h5fname
-            print "is_hdf5_file?:", tables.is_hdf5_file(self.h5fname)
+            print("Filename:", self.h5fname)
+            print("is_hdf5_file?:", tables.is_hdf5_file(self.h5fname))
         self.assertTrue(tables.is_hdf5_file(self.h5fname))
 
     def test03(self):
@@ -2314,8 +2315,8 @@ class UnicodeFilename(common.PyTablesTestCase):
 
         self.h5file.close()
         if common.verbose:
-            print "Filename:", self.h5fname
-            print "is_pytables_file?:", tables.is_pytables_file(self.h5fname)
+            print("Filename:", self.h5fname)
+            print("is_pytables_file?:", tables.is_pytables_file(self.h5fname))
         self.assertNotEqual(tables.is_pytables_file(self.h5fname), False)
 
 
@@ -2419,13 +2420,13 @@ class BloscBigEndian(common.PyTablesTestCase):
 def _worker(fn, qout=None):
     fp = tables.open_file(fn)
     if common.verbose:
-        print "About to load: ", fn
+        print("About to load: ", fn)
     rows = fp.root.table.where('(f0 < 10)')
     if common.verbose:
-        print "Got the iterator, about to iterate"
+        print("Got the iterator, about to iterate")
     next(rows)
     if common.verbose:
-        print "Succeeded in one iteration\n"
+        print("Succeeded in one iteration\n")
     fp.close()
 
     if qout is not None:
@@ -2458,16 +2459,16 @@ class BloscSubprocess(common.PyTablesTestCase):
         fp.close()
 
         if common.verbose:
-            print "**** Running from main process:"
+            print("**** Running from main process:")
         _worker(fn)
 
         if common.verbose:
-            print "**** Running from subprocess:"
+            print("**** Running from subprocess:")
 
         try:
             qout = mp.Queue()
         except OSError:
-            print "Permission denied due to /dev/shm settings"
+            print("Permission denied due to /dev/shm settings")
         else:
             ps = mp.Process(target=_worker, args=(fn, qout,))
             ps.daemon = True
@@ -2475,7 +2476,7 @@ class BloscSubprocess(common.PyTablesTestCase):
 
             result = qout.get()
             if common.verbose:
-                print result
+                print(result)
 
         os.remove(fn)
 

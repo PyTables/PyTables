@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import unittest
 
 from tables import *
@@ -35,8 +36,8 @@ class IndexesTestCase(common.PyTablesTestCase):
         """Checking string indexes"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_string..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_string..." % self.__class__.__name__)
 
         table1 = self.table1
         table2 = self.table2
@@ -57,9 +58,9 @@ class IndexesTestCase(common.PyTablesTestCase):
         if verbose:
 #             print "Superior & inferior limits:", il, sl
 #             print "Selection results (index):", results1
-            print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Should look like:", results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -67,8 +68,8 @@ class IndexesTestCase(common.PyTablesTestCase):
         """Checking bool indexes"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_bool..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_bool..." % self.__class__.__name__)
 
         table1 = self.table1
         table2 = self.table2
@@ -80,10 +81,10 @@ class IndexesTestCase(common.PyTablesTestCase):
         results2 = [p["var2"] for p in table2
                     if p["var2"] == True]
         if verbose:
-            print "Selection results (index):", results1
-            print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Selection results (index):", results1)
+            print("Should look like:", results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -91,8 +92,8 @@ class IndexesTestCase(common.PyTablesTestCase):
         """Checking int indexes"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_int..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_int..." % self.__class__.__name__)
 
         table1 = self.table1
         table2 = self.table2
@@ -116,8 +117,8 @@ class IndexesTestCase(common.PyTablesTestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -125,8 +126,8 @@ class IndexesTestCase(common.PyTablesTestCase):
         """Checking float indexes"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_float..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_float..." % self.__class__.__name__)
 
         table1 = self.table1
         table2 = self.table2
@@ -150,8 +151,8 @@ class IndexesTestCase(common.PyTablesTestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 

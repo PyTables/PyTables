@@ -16,6 +16,8 @@ Pass the flag -h to this for help on usage.
 
 """
 
+from __future__ import print_function
+
 import argparse
 
 from tables.file import open_file
@@ -38,13 +40,13 @@ options = argparse.Namespace(
 
 def dump_leaf(leaf):
     if options.verbose:
-        print repr(leaf)
+        print(repr(leaf))
     else:
-        print str(leaf)
+        print(str(leaf))
     if options.showattrs:
-        print "  "+repr(leaf.attrs)
+        print("  "+repr(leaf.attrs))
     if options.dump and not isinstance(leaf, UnImplemented):
-        print "  Data dump:"
+        print("  Data dump:")
         # print (leaf.read(options.rng.start, options.rng.stop,
         #        options.rng.step)
         # This is better for large objects
@@ -62,15 +64,15 @@ def dump_leaf(leaf):
         else:
             step = options.rng.step
         if leaf.shape == ():
-            print "[SCALAR] %s" % (leaf[()])
+            print("[SCALAR] %s" % (leaf[()]))
         else:
             for i in range(start, stop, step):
-                print "[%s] %s" % (i, leaf[i])
+                print("[%s] %s" % (i, leaf[i]))
 
     if isinstance(leaf, Table) and options.colinfo:
         # Show info of columns
         for colname in leaf.colnames:
-            print repr(leaf.cols._f_col(colname))
+            print(repr(leaf.cols._f_col(colname)))
 
     if isinstance(leaf, Table) and options.idxinfo:
         # Show info of indexes
@@ -78,7 +80,7 @@ def dump_leaf(leaf):
             col = leaf.cols._f_col(colname)
             if isinstance(col, Column) and col.index is not None:
                 idx = col.index
-                print repr(idx)
+                print(repr(idx))
 
 dumpLeaf = previous_api(dump_leaf)
 
@@ -86,15 +88,15 @@ dumpLeaf = previous_api(dump_leaf)
 def dump_group(pgroup):
     node_kinds = pgroup._v_file._node_kinds[1:]
     for group in pgroup._f_walk_groups():
-        print str(group)
+        print(str(group))
         if options.showattrs:
-            print "  "+repr(group._v_attrs)
+            print("  "+repr(group._v_attrs))
         for kind in node_kinds:
             for node in group._f_list_nodes(kind):
                 if options.verbose or options.dump:
                     dump_leaf(node)
                 else:
-                    print str(node)
+                    print(str(node))
 
 
 dumpGroup = previous_api(dump_group)
@@ -177,7 +179,7 @@ def main():
         dump_leaf(nodeobject)
     else:
         # This should never happen
-        print "Unrecognized object:", nodeobject
+        print("Unrecognized object:", nodeobject)
 
     # Close the file
     h5file.close()

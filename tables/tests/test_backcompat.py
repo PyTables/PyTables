@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import os
 import shutil
 import tempfile
@@ -27,8 +28,8 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
         """Checking backward compatibility of old formats of tables"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_readTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         warnings.filterwarnings("ignore", category=UserWarning)
@@ -40,9 +41,9 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
         # Read the 100 records
         result = [rec['var2'] for rec in table]
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last record in table ==>", rec
-            print "Total selected records in table ==> ", len(result)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last record in table ==>", rec)
+            print("Total selected records in table ==> ", len(result))
 
         self.assertEqual(len(result), 100)
         self.fileh.close()
@@ -77,8 +78,8 @@ class BackCompatAttrsTestCase(common.PyTablesTestCase):
         """Checking backward compatibility of old formats for attributes"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_readAttr..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_readAttr..." % self.__class__.__name__)
 
         # Read old formats
         filename = self._testFilename(self.file)

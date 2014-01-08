@@ -12,6 +12,7 @@
 
 """Here is defined the Expr class."""
 
+from __future__ import print_function
 import sys
 import warnings
 
@@ -708,7 +709,7 @@ if __name__ == "__main__":
     expr.set_output(out)
     d = expr.eval()
 
-    print "returned-->", repr(d)
+    print("returned-->", repr(d))
     # print `d[:]`
 
     f.close()

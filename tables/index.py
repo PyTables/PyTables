@@ -12,6 +12,7 @@
 
 """Here is defined the Index class."""
 
+from __future__ import print_function
 import sys
 from bisect import bisect_left, bisect_right
 from time import time, clock
@@ -474,7 +475,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         (self.superblocksize, self.blocksize,
          self.slicesize, self.chunksize) = self.blocksizes
         if debug:
-            print "blocksizes:", self.blocksizes
+            print("blocksizes:", self.blocksizes)
         # Compute the reduction level
         self.reduction = get_reduction_level(
             self.indsize, self.optlevel, self.slicesize, self.chunksize)
@@ -795,7 +796,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         optmedian, optstarts, optstops, optfull = opts
 
         if debug:
-            print "optvalues:", opts
+            print("optvalues:", opts)
 
         self.create_temp2()
         # Start the optimization process
@@ -956,7 +957,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         if self.verbose:
             t = round(time() - t1, 4)
             c = round(clock() - c1, 4)
-            print "time: %s. clock: %s" % (t, c)
+            print("time: %s. clock: %s" % (t, c))
 
     def swap(self, what, mode=None):
         """Swap chunks or slices using a certain bounds reference."""
@@ -985,7 +986,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         if self.verbose:
             t = round(time() - t1, 4)
             c = round(clock() - c1, 4)
-            print "time: %s. clock: %s" % (t, c)
+            print("time: %s. clock: %s" % (t, c))
         # Check that entropy is actually decreasing
         if what == "chunks" and self.last_tover > 0. and self.last_nover > 0:
             tover_var = (self.last_tover - tover) / self.last_tover
@@ -1097,7 +1098,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         """Copy the data and delete the temporaries for sorting purposes."""
 
         if self.verbose:
-            print "Copying temporary data..."
+            print("Copying temporary data...")
         # tmp -> index
         reduction = self.reduction
         cs = self.chunksize // reduction
@@ -1144,7 +1145,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self.indicesLR.attrs.nelements = self.nelementsILR
 
         if self.verbose:
-            print "Deleting temporaries..."
+            print("Deleting temporaries...")
         self.tmp = None
         self.tmpfile.close()
         os.remove(self.tmpfilename)
@@ -1452,7 +1453,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                 # so skip the reordering of this superblock
                 # (too expensive for such a little improvement)
                 if self.verbose:
-                    print "skipping reordering of superblock ->", sblock
+                    print("skipping reordering of superblock ->", sblock)
                 continue
             ns = sblock * nss2
             # Swap sorted and indices slices following the new order
@@ -1610,9 +1611,9 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             if erange > 0:
                 toverlap = soverlap / erange
         if verbose and message != "init":
-            print "toverlap (%s):" % message, toverlap
-            print "multiplicity:\n", multiplicity, multiplicity.sum()
-            print "overlaps:\n", overlaps, overlaps.sum()
+            print("toverlap (%s):" % message, toverlap)
+            print("multiplicity:\n", multiplicity, multiplicity.sum())
+            print("overlaps:\n", overlaps, overlaps.sum())
         noverlaps = overlaps.sum()
         # For full indexes, set the 'is_csi' flag
         if self.indsize == 8 and self._v_file._iswritable():
@@ -1674,8 +1675,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             if erange > 0:
                 toverlap = soverlap / erange
         if verbose:
-            print "overlaps (%s):" % message, noverlaps, toverlap
-            print multiplicity
+            print("overlaps (%s):" % message, noverlaps, toverlap)
+            print(multiplicity)
         # For full indexes, set the 'is_csi' flag
         if self.indsize == 8 and self._v_file._iswritable():
             self._v_attrs.is_csi = (noverlaps == 0)

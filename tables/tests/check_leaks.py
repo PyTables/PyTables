@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import os
 import time
 
@@ -28,12 +29,12 @@ def show_mem(explain):
             elif line.startswith("VmLib:"):
                 vmlib = int(line.split()[1])
 
-    print "\nMemory usage: ******* %s *******" % explain
-    print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
-    print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
-    print "VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib)
-    print "WallClock time:", time.time() - tref,
-    print "  Delta time:", time.time() - trel
+    print("\nMemory usage: ******* %s *******" % explain)
+    print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
+    print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
+    print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
+    print("WallClock time:", time.time() - tref, end=' ')
+    print("  Delta time:", time.time() - trel)
     trel = time.time()
 
 
@@ -333,7 +334,7 @@ if __name__ == '__main__':
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
             if args.verbose:
-                print 'profile -verbose'
+                print('profile -verbose')
                 stats.print_stats()
             else:
                 stats.print_stats(20)

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import sys
 import unittest
 import os
@@ -82,12 +83,12 @@ class RangeTestCase(unittest.TestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next ValueError was catched!"
-                print value
+                print("\nGreat!, the next ValueError was catched!")
+                print(value)
             pass
         else:
             if common.verbose:
-                print "\nNow, the range overflow no longer issues a ValueError"
+                print("\nNow, the range overflow no longer issues a ValueError")
 
     def test01_type(self):
         """Testing the type check"""
@@ -103,11 +104,11 @@ class RangeTestCase(unittest.TestCase):
         except TypeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next TypeError was catched!"
-                print value
+                print("\nGreat!, the next TypeError was catched!")
+                print(value)
             pass
         else:
-            print rec
+            print(rec)
             self.fail("expected a TypeError")
         rec['var6'] = float(i)
         rec['var7'] = complex(i, i)

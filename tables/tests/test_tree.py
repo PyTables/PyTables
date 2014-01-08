@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import sys
 import warnings
 import unittest
@@ -89,8 +90,8 @@ class TreeTestCase(unittest.TestCase):
         "Checking the File.get_node() with string node names"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_getNode..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00_getNode..." % self.__class__.__name__)
 
         self.h5file = open_file(self.file, "r")
         nodelist = ['/', '/table0', '/group0/var1', '/group0/group1/var4']
@@ -101,7 +102,7 @@ class TreeTestCase(unittest.TestCase):
 
         self.assertEqual(nodenames, nodelist)
         if common.verbose:
-            print "get_node(pathname) test passed"
+            print("get_node(pathname) test passed")
         nodegroups = [
             '/', '/group0', '/group0/group1', '/group0/group1/group2']
         nodenames = ['var1', 'var4']
@@ -121,7 +122,7 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "get_node(groupname, name) test passed"
+            print("get_node(groupname, name) test passed")
         nodelist = ['/', '/group0', '/group0/group1', '/group0/group1/group2',
                     '/table0']
         nodenames = []
@@ -133,8 +134,8 @@ class TreeTestCase(unittest.TestCase):
             except LookupError:
                 if common.verbose:
                     (type, value, traceback) = sys.exc_info()
-                    print "\nGreat!, the next LookupError was catched!"
-                    print value
+                    print("\nGreat!, the next LookupError was catched!")
+                    print(value)
             else:
                 nodenames.append(object._v_pathname)
                 groupobjects.append(object)
@@ -143,7 +144,7 @@ class TreeTestCase(unittest.TestCase):
                          ['/', '/group0', '/group0/group1',
                           '/group0/group1/group2'])
         if common.verbose:
-            print "get_node(groupname, classname='Group') test passed"
+            print("get_node(groupname, classname='Group') test passed")
 
         # Reset the warning
         # warnings.filterwarnings("default", category=UserWarning)
@@ -164,14 +165,14 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/var1', '/group0/var4',
                           '/group0/group1/var1', '/group0/group1/var4'])
         if common.verbose:
-            print "get_node(groupobject, name, classname='Array') test passed"
+            print("get_node(groupobject, name, classname='Array') test passed")
 
     def test01_getNodeClass(self):
         "Checking the File.get_node() with instances"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_getNodeClass..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_getNodeClass..." % self.__class__.__name__)
 
         self.h5file = open_file(self.file, "r")
         # This tree ways of get_node usage should return a table instance
@@ -195,8 +196,8 @@ class TreeTestCase(unittest.TestCase):
         "Checking the File.list_nodes() method"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_listNodes..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_listNodes..." % self.__class__.__name__)
 
         # Made the warnings to raise an error
         # warnings.filterwarnings("error", category=UserWarning)
@@ -224,7 +225,7 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1', '/group0/table1',
                           '/group0/var1', '/group0/var4'])
         if common.verbose:
-            print "list_nodes(pathname) test passed"
+            print("list_nodes(pathname) test passed")
 
         nodenames = []
         for node in objects:
@@ -243,7 +244,7 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "list_nodes(groupobject) test passed"
+            print("list_nodes(groupobject) test passed")
 
         nodenames = []
         for node in objects:
@@ -252,8 +253,8 @@ class TreeTestCase(unittest.TestCase):
             except TypeError:
                 if common.verbose:
                     (type, value, traceback) = sys.exc_info()
-                    print "\nGreat!, the next TypeError was catched!"
-                    print value
+                    print("\nGreat!, the next TypeError was catched!")
+                    print(value)
             else:
                 for object in objectlist:
                     nodenames.append(object._v_pathname)
@@ -265,7 +266,7 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "list_nodes(groupobject, classname = 'Leaf') test passed"
+            print("list_nodes(groupobject, classname = 'Leaf') test passed")
 
         nodenames = []
         for node in objects:
@@ -274,8 +275,8 @@ class TreeTestCase(unittest.TestCase):
             except TypeError:
                 if common.verbose:
                     (type, value, traceback) = sys.exc_info()
-                    print "\nGreat!, the next TypeError was catched!"
-                    print value
+                    print("\nGreat!, the next TypeError was catched!")
+                    print(value)
             else:
                 for object in objectlist:
                     nodenames.append(object._v_pathname)
@@ -284,7 +285,7 @@ class TreeTestCase(unittest.TestCase):
                          ['/group0/table1', '/group0/group1/table2'])
 
         if common.verbose:
-            print "list_nodes(groupobject, classname = 'Table') test passed"
+            print("list_nodes(groupobject, classname = 'Table') test passed")
 
         # Reset the warning
         # warnings.filterwarnings("default", category=UserWarning)
@@ -293,8 +294,8 @@ class TreeTestCase(unittest.TestCase):
         "Checking the File.iter_nodes() method"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b_iterNodes..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02b_iterNodes..." % self.__class__.__name__)
 
         self.h5file = open_file(self.file, "r")
 
@@ -320,7 +321,7 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1', '/group0/table1',
                           '/group0/var1', '/group0/var4'])
         if common.verbose:
-            print "iter_nodes(pathname) test passed"
+            print("iter_nodes(pathname) test passed")
 
         nodenames = []
         for node in objects:
@@ -339,7 +340,7 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "iter_nodes(groupobject) test passed"
+            print("iter_nodes(groupobject) test passed")
 
         nodenames = []
         for node in objects:
@@ -348,8 +349,8 @@ class TreeTestCase(unittest.TestCase):
             except TypeError:
                 if common.verbose:
                     (type, value, traceback) = sys.exc_info()
-                    print "\nGreat!, the next TypeError was catched!"
-                    print value
+                    print("\nGreat!, the next TypeError was catched!")
+                    print(value)
             else:
                 for object in objectlist:
                     nodenames.append(object._v_pathname)
@@ -361,7 +362,7 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "iter_nodes(groupobject, classname = 'Leaf') test passed"
+            print("iter_nodes(groupobject, classname = 'Leaf') test passed")
 
         nodenames = []
         for node in objects:
@@ -370,8 +371,8 @@ class TreeTestCase(unittest.TestCase):
             except TypeError:
                 if common.verbose:
                     (type, value, traceback) = sys.exc_info()
-                    print "\nGreat!, the next TypeError was catched!"
-                    print value
+                    print("\nGreat!, the next TypeError was catched!")
+                    print(value)
             else:
                 for object in objectlist:
                     nodenames.append(object._v_pathname)
@@ -380,7 +381,7 @@ class TreeTestCase(unittest.TestCase):
                          ['/group0/table1', '/group0/group1/table2'])
 
         if common.verbose:
-            print "iter_nodes(groupobject, classname = 'Table') test passed"
+            print("iter_nodes(groupobject, classname = 'Table') test passed")
 
         # Reset the warning
         # warnings.filterwarnings("default", category=UserWarning)
@@ -389,8 +390,8 @@ class TreeTestCase(unittest.TestCase):
         "Checking the File.walk_groups() method"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_TraverseTree..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_TraverseTree..." % self.__class__.__name__)
 
         self.h5file = open_file(self.file, "r")
         groups = []
@@ -415,7 +416,7 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/var1', '/group0/var4',
                           '/group0/group1/var1', '/group0/group1/var4'])
         if common.verbose:
-            print "walk_groups() test passed"
+            print("walk_groups() test passed")
 
         groups = []
         tables = []
@@ -436,14 +437,14 @@ class TreeTestCase(unittest.TestCase):
                          '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "walk_groups(pathname) test passed"
+            print("walk_groups(pathname) test passed")
 
     def test04_walkNodes(self):
         "Checking File.walk_nodes"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_walkNodes..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_walkNodes..." % self.__class__.__name__)
 
         self.h5file = open_file(self.file, "r")
 
@@ -480,7 +481,7 @@ class TreeTestCase(unittest.TestCase):
                           '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "File.__iter__() and Group.__iter__ test passed"
+            print("File.__iter__() and Group.__iter__ test passed")
 
         groups = []
         tables = []
@@ -501,7 +502,7 @@ class TreeTestCase(unittest.TestCase):
                          '/group0/group1/var1', '/group0/group1/var4'])
 
         if common.verbose:
-            print "walk_nodes(pathname, classname) test passed"
+            print("walk_nodes(pathname, classname) test passed")
 
 
 class DeepTreeTestCase(unittest.TestCase):
@@ -518,19 +519,19 @@ class DeepTreeTestCase(unittest.TestCase):
         else:
             self.maxdepth = 64  # This should be safe for most machines
         if common.verbose:
-            print "Maximum depth tested :", self.maxdepth
+            print("Maximum depth tested :", self.maxdepth)
 
         # Open a new empty HDF5 file
         self.file = tempfile.mktemp(".h5")
         fileh = open_file(self.file, mode="w")
         group = fileh.root
         if common.verbose:
-            print "Depth writing progress: ",
+            print("Depth writing progress: ", end=' ')
         # Iterate until maxdepth
         for depth in range(self.maxdepth):
             # Save it on the HDF5 file
             if common.verbose:
-                print "%3d," % (depth),
+                print("%3d," % (depth), end=' ')
             # Create a couple of arrays here
             fileh.create_array(group, 'array', [1, 1], "depth: %d" % depth)
             fileh.create_array(group, 'array2', [1, 1], "depth: %d" % depth)
@@ -550,11 +551,11 @@ class DeepTreeTestCase(unittest.TestCase):
         fileh = open_file(file, mode="r")
         group = fileh.root
         if common.verbose:
-            print "\nDepth reading progress: ",
+            print("\nDepth reading progress: ", end=' ')
         # Get the metadata on the previosly saved arrays
         for depth in range(self.maxdepth):
             if common.verbose:
-                print "%3d," % (depth),
+                print("%3d," % (depth), end=' ')
             # Check the contents
             self.assertEqual(group.array[:], [1, 1])
             self.assertTrue("array2" in group)
@@ -562,7 +563,7 @@ class DeepTreeTestCase(unittest.TestCase):
             # Iterate over the next group
             group = fileh.get_node(group, 'group' + str(depth))
         if common.verbose:
-            print  # This flush the stdout buffer
+            print()  # This flush the stdout buffer
         fileh.close()
 
     def test00_deepTree(self):
@@ -575,7 +576,7 @@ class DeepTreeTestCase(unittest.TestCase):
         file2 = tempfile.mktemp(".h5")
         fileh2 = open_file(file2, mode="w")
         if common.verbose:
-            print "\nCopying deep tree..."
+            print("\nCopying deep tree...")
         fileh.copy_node(fileh.root, fileh2.root, recursive=True)
         fileh.close()
         fileh2.close()
@@ -588,7 +589,7 @@ class DeepTreeTestCase(unittest.TestCase):
         file2 = tempfile.mktemp(".h5")
         fileh2 = open_file(file2, mode="w", node_cache_slots=10)
         if common.verbose:
-            print "\nCopying deep tree..."
+            print("\nCopying deep tree...")
         fileh.copy_node(fileh.root, fileh2.root, recursive=True)
         fileh.close()
         fileh2.close()
@@ -601,7 +602,7 @@ class DeepTreeTestCase(unittest.TestCase):
         file2 = tempfile.mktemp(".h5")
         fileh2 = open_file(file2, mode="w", node_cache_slots=0)
         if common.verbose:
-            print "\nCopying deep tree..."
+            print("\nCopying deep tree...")
         fileh.copy_node(fileh.root, fileh2.root, recursive=True)
         fileh.close()
         fileh2.close()
@@ -617,7 +618,7 @@ class DeepTreeTestCase(unittest.TestCase):
         file2 = tempfile.mktemp(".h5")
         fileh2 = open_file(file2, mode="w", node_cache_slots=-256)
         if common.verbose:
-            print "\nCopying deep tree..."
+            print("\nCopying deep tree...")
         fileh.copy_node(fileh.root, fileh2.root, recursive=True)
         fileh.close()
         fileh2.close()
@@ -645,10 +646,10 @@ class WideTreeTestCase(unittest.TestCase):
         else:
             maxchildren = 256
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_wideTree..." % \
-                  self.__class__.__name__
-            print "Maximum number of children tested :", maxchildren
+            print('\n', '-=' * 30)
+            print("Running %s.test00_wideTree..." % \
+                  self.__class__.__name__)
+            print("Maximum number of children tested :", maxchildren)
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
         # file = "test_widetree.h5"
@@ -656,14 +657,14 @@ class WideTreeTestCase(unittest.TestCase):
         a = [1, 1]
         fileh = open_file(file, mode="w")
         if common.verbose:
-            print "Children writing progress: ",
+            print("Children writing progress: ", end=' ')
         for child in range(maxchildren):
             if common.verbose:
-                print "%3d," % (child),
+                print("%3d," % (child), end=' ')
             fileh.create_array(fileh.root, 'array' + str(child),
                                a, "child: %d" % child)
         if common.verbose:
-            print
+            print()
         # Close the file
         fileh.close()
 
@@ -672,13 +673,13 @@ class WideTreeTestCase(unittest.TestCase):
         # Open the previous HDF5 file in read-only mode
         fileh = open_file(file, mode="r")
         if common.verbose:
-            print "\nTime spent opening a file with %d arrays: %s s" % \
-                  (maxchildren, time.time()-t1)
-            print "\nChildren reading progress: ",
+            print("\nTime spent opening a file with %d arrays: %s s" % \
+                  (maxchildren, time.time()-t1))
+            print("\nChildren reading progress: ", end=' ')
         # Get the metadata on the previosly saved arrays
         for child in range(maxchildren):
             if common.verbose:
-                print "%3d," % (child),
+                print("%3d," % (child), end=' ')
             # Create an array for later comparison
             # Get the actual array
             array_ = getattr(fileh.root, 'array' + str(child))
@@ -686,7 +687,7 @@ class WideTreeTestCase(unittest.TestCase):
             # Arrays a and b must be equal
             self.assertEqual(a, b)
         if common.verbose:
-            print  # This flush the stdout buffer
+            print()  # This flush the stdout buffer
         # Close the file
         fileh.close()
         # Then, delete the file
@@ -710,24 +711,24 @@ class WideTreeTestCase(unittest.TestCase):
             # for standard platforms
             maxchildren = 256
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_wideTree..." % \
-                  self.__class__.__name__
-            print "Maximum number of children tested :", maxchildren
+            print('\n', '-=' * 30)
+            print("Running %s.test00_wideTree..." % \
+                  self.__class__.__name__)
+            print("Maximum number of children tested :", maxchildren)
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
         # file = "test_widetree.h5"
 
         fileh = open_file(file, mode="w")
         if common.verbose:
-            print "Children writing progress: ",
+            print("Children writing progress: ", end=' ')
         for child in range(maxchildren):
             if common.verbose:
-                print "%3d," % (child),
+                print("%3d," % (child), end=' ')
             fileh.create_group(fileh.root, 'group' + str(child),
                                "child: %d" % child)
         if common.verbose:
-            print
+            print()
         # Close the file
         fileh.close()
 
@@ -735,19 +736,19 @@ class WideTreeTestCase(unittest.TestCase):
         # Open the previous HDF5 file in read-only mode
         fileh = open_file(file, mode="r")
         if common.verbose:
-            print "\nTime spent opening a file with %d groups: %s s" % \
-                  (maxchildren, time.time()-t1)
-            print "\nChildren reading progress: ",
+            print("\nTime spent opening a file with %d groups: %s s" % \
+                  (maxchildren, time.time()-t1))
+            print("\nChildren reading progress: ", end=' ')
         # Get the metadata on the previosly saved arrays
         for child in range(maxchildren):
             if common.verbose:
-                print "%3d," % (child),
+                print("%3d," % (child), end=' ')
             # Get the actual group
             group = getattr(fileh.root, 'group' + str(child))
             # Arrays a and b must be equal
             self.assertEqual(group._v_title, "child: %d" % child)
         if common.verbose:
-            print  # This flush the stdout buffer
+            print()  # This flush the stdout buffer
         # Close the file
         fileh.close()
         # Then, delete the file

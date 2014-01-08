@@ -14,6 +14,7 @@
 
 # Imports
 # =======
+from __future__ import print_function
 import sys
 import copy
 import warnings
@@ -877,31 +878,31 @@ if __name__ == "__main__":
     klass = Test()
     # klass = Info()
     desc = Description(klass.columns)
-    print "Description representation (short) ==>", desc
-    print "Description representation (long) ==>", repr(desc)
-    print "Column names ==>", desc._v_names
-    print "Column x ==>", desc.x
-    print "Column Info ==>", desc.Info
-    print "Column Info.value ==>", desc.Info.Value
-    print "Nested column names  ==>", desc._v_nested_names
-    print "Defaults ==>", desc._v_dflts
-    print "Nested Formats ==>", desc._v_nested_formats
-    print "Nested Descriptions ==>", desc._v_nested_descr
-    print "Nested Descriptions (info) ==>", desc.info._v_nested_descr
-    print "Total size ==>", desc._v_dtype.itemsize
+    print("Description representation (short) ==>", desc)
+    print("Description representation (long) ==>", repr(desc))
+    print("Column names ==>", desc._v_names)
+    print("Column x ==>", desc.x)
+    print("Column Info ==>", desc.Info)
+    print("Column Info.value ==>", desc.Info.Value)
+    print("Nested column names  ==>", desc._v_nested_names)
+    print("Defaults ==>", desc._v_dflts)
+    print("Nested Formats ==>", desc._v_nested_formats)
+    print("Nested Descriptions ==>", desc._v_nested_descr)
+    print("Nested Descriptions (info) ==>", desc.info._v_nested_descr)
+    print("Total size ==>", desc._v_dtype.itemsize)
 
     # check _f_walk
     for object in desc._f_walk():
         if isinstance(object, Description):
-            print "******begin object*************",
-            print "name -->", object._v_name
+            print("******begin object*************", end=' ')
+            print("name -->", object._v_name)
             # print "name -->", object._v_dtype.name
             # print "object childs-->", object._v_names
             # print "object nested childs-->", object._v_nested_names
-            print "totalsize-->", object._v_dtype.itemsize
+            print("totalsize-->", object._v_dtype.itemsize)
         else:
             # pass
-            print "leaf -->", object._v_name, object.dtype
+            print("leaf -->", object._v_name, object.dtype)
 
     class testDescParent(IsDescription):
         c = Int32Col()

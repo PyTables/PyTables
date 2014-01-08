@@ -11,6 +11,7 @@ It also checks:
 
 """
 
+from __future__ import print_function
 import os
 import sys
 import hashlib
@@ -89,8 +90,8 @@ class createTestCase(unittest.TestCase):
         except NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NameError was catched!"
-                print value
+                print("\nGreat!, the next NameError was catched!")
+                print(value)
         else:
             self.fail("expected a NodeError")
 
@@ -106,8 +107,8 @@ class createTestCase(unittest.TestCase):
         except NaturalNameWarning:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NaturalNameWarning was catched!"
-                print value
+                print("\nGreat!, the next NaturalNameWarning was catched!")
+                print(value)
         else:
             self.fail("expected a NaturalNameWarning")
 
@@ -118,8 +119,8 @@ class createTestCase(unittest.TestCase):
         except NaturalNameWarning:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NaturalNameWarning was catched!"
-                print value
+                print("\nGreat!, the next NaturalNameWarning was catched!")
+                print(value)
         else:
             self.fail("expected a NaturalNameWarning")
 
@@ -130,8 +131,8 @@ class createTestCase(unittest.TestCase):
         except NaturalNameWarning:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NaturalNameWarning was catched!"
-                print value
+                print("\nGreat!, the next NaturalNameWarning was catched!")
+                print(value)
         else:
             self.fail("expected a NaturalNameWarning")
         # Reset the warning
@@ -213,8 +214,8 @@ class createTestCase(unittest.TestCase):
         # Compare the input rowlist and output row list. They should
         # be equal.
         if common.verbose:
-            print "Original row list:", listrows[-1]
-            print "Retrieved row list:", listout[-1]
+            print("Original row list:", listrows[-1])
+            print("Retrieved row list:", listout[-1])
         self.assertEqual(listrows, listout)
 
     # The next limitation has been released. A warning is still there, though
@@ -248,8 +249,8 @@ class createTestCase(unittest.TestCase):
         except PerformanceWarning:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next PerformanceWarning was catched!"
-                print value
+                print("\nGreat!, the next PerformanceWarning was catched!")
+                print(value)
         else:
             self.fail("expected an PerformanceWarning")
         # Reset the warning
@@ -277,8 +278,8 @@ class createTestCase(unittest.TestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next ValueError was catched!"
-                print value
+                print("\nGreat!, the next ValueError was catched!")
+                print(value)
         else:
             self.fail("expected an ValueError")
 
@@ -377,13 +378,13 @@ class FiltersTreeTestCase(unittest.TestCase):
         "Checking inheritance of filters on trees (open file version)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_checkFilters..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00_checkFilters..." % self.__class__.__name__)
 
         # First level check
         if common.verbose:
-            print "Test filter:", repr(self.filters)
-            print "Filters in file:", repr(self.h5file.filters)
+            print("Test filter:", repr(self.filters))
+            print("Filters in file:", repr(self.h5file.filters))
 
         if self.filters is None:
             filters = Filters()
@@ -410,8 +411,8 @@ class FiltersTreeTestCase(unittest.TestCase):
         else:
             gfilters = self.gfilters
         if common.verbose:
-            print "Test gfilter:", repr(gfilters)
-            print "Filters in file:", repr(group1._v_filters)
+            print("Test gfilter:", repr(gfilters))
+            print("Filters in file:", repr(group1._v_filters))
 
         self.assertEqual(repr(gfilters), repr(group1._v_filters))
         # The next nodes have to have the same filter properties as
@@ -436,8 +437,8 @@ class FiltersTreeTestCase(unittest.TestCase):
             filters = self.filters
         group3 = self.h5file.root.group0.group1.group2.group3
         if common.verbose:
-            print "Test filter:", repr(filters)
-            print "Filters in file:", repr(group3._v_filters)
+            print("Test filter:", repr(filters))
+            print("Filters in file:", repr(group3._v_filters))
 
         self.assertEqual(repr(filters), repr(group3._v_filters))
         # The next nodes have to have the same filter properties as
@@ -470,8 +471,8 @@ class FiltersTreeTestCase(unittest.TestCase):
         "Checking inheritance of filters on trees (close file version)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_checkFilters..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_checkFilters..." % self.__class__.__name__)
 
         # Close the file
         self.h5file.close()
@@ -484,8 +485,8 @@ class FiltersTreeTestCase(unittest.TestCase):
         else:
             filters = self.filters
         if common.verbose:
-            print "Test filter:", repr(filters)
-            print "Filters in file:", repr(self.h5file.filters)
+            print("Test filter:", repr(filters))
+            print("Filters in file:", repr(self.h5file.filters))
 
         self.assertEqual(repr(filters), repr(self.h5file.filters))
         # The next nodes have to have the same filter properties as
@@ -508,8 +509,8 @@ class FiltersTreeTestCase(unittest.TestCase):
         else:
             gfilters = self.gfilters
         if common.verbose:
-            print "Test filter:", repr(gfilters)
-            print "Filters in file:", repr(group1._v_filters)
+            print("Test filter:", repr(gfilters))
+            print("Filters in file:", repr(group1._v_filters))
 
         repr(gfilters) == repr(group1._v_filters)
         # The next nodes have to have the same filter properties as
@@ -533,8 +534,8 @@ class FiltersTreeTestCase(unittest.TestCase):
             filters = self.filters
         group3 = self.h5file.root.group0.group1.group2.group3
         if common.verbose:
-            print "Test filter:", repr(filters)
-            print "Filters in file:", repr(group3._v_filters)
+            print("Test filter:", repr(filters))
+            print("Filters in file:", repr(group3._v_filters))
 
         repr(filters) == repr(group3._v_filters)
         # The next nodes have to have the same filter properties as
@@ -705,8 +706,8 @@ class CopyGroupTestCase(unittest.TestCase):
         "Checking non-recursive copy of a Group"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_nonRecursive..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00_nonRecursive..." % self.__class__.__name__)
 
         # Copy a group non-recursively
         srcgroup = self.h5file.root.group0.group1
@@ -729,8 +730,8 @@ class CopyGroupTestCase(unittest.TestCase):
         nodelist1.sort()
         nodelist2.sort()
         if common.verbose:
-            print "The origin node list -->", nodelist1
-            print "The copied node list -->", nodelist2
+            print("The origin node list -->", nodelist1)
+            print("The copied node list -->", nodelist2)
         self.assertEqual(srcgroup._v_nchildren, dstgroup._v_nchildren)
         self.assertEqual(nodelist1, nodelist2)
 
@@ -738,9 +739,9 @@ class CopyGroupTestCase(unittest.TestCase):
         "Checking non-recursive copy of a Group (attributes copied)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print ("Running %s.test01_nonRecursiveAttrs..." %
-                   self.__class__.__name__)
+            print('\n', '-=' * 30)
+            print(("Running %s.test01_nonRecursiveAttrs..." %
+                   self.__class__.__name__))
 
         # Copy a group non-recursively with attrs
         srcgroup = self.h5file.root.group0.group1
@@ -773,13 +774,13 @@ class CopyGroupTestCase(unittest.TestCase):
                 dstattrskeys.remove('FILTERS')
             # These lists should already be ordered
             if common.verbose:
-                print "srcattrskeys for node %s: %s" % (srcnode._v_name,
-                                                        srcattrskeys)
-                print "dstattrskeys for node %s: %s" % (dstnode._v_name,
-                                                        dstattrskeys)
+                print("srcattrskeys for node %s: %s" % (srcnode._v_name,
+                                                        srcattrskeys))
+                print("dstattrskeys for node %s: %s" % (dstnode._v_name,
+                                                        dstattrskeys))
             self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
-                print "The attrs names has been copied correctly"
+                print("The attrs names has been copied correctly")
 
             # Now, for the contents of attributes
             for srcattrname in srcattrskeys:
@@ -790,14 +791,14 @@ class CopyGroupTestCase(unittest.TestCase):
                 self.assertEqual(dstattrs.FILTERS, self.filters)
 
             if common.verbose:
-                print "The attrs contents has been copied correctly"
+                print("The attrs contents has been copied correctly")
 
     def test02_Recursive(self):
         "Checking recursive copy of a Group"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_Recursive..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_Recursive..." % self.__class__.__name__)
 
         # Create the destination node
         group = self.h5file2.root
@@ -844,17 +845,17 @@ class CopyGroupTestCase(unittest.TestCase):
             nodelist2.append(node._v_pathname[lenDstGroup:])
 
         if common.verbose:
-            print "The origin node list -->", nodelist1
-            print "The copied node list -->", nodelist2
+            print("The origin node list -->", nodelist1)
+            print("The copied node list -->", nodelist2)
         self.assertEqual(nodelist1, nodelist2)
 
     def test03_RecursiveFilters(self):
         "Checking recursive copy of a Group (cheking Filters)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print ("Running %s.test03_RecursiveFilters..." %
-                   self.__class__.__name__)
+            print('\n', '-=' * 30)
+            print(("Running %s.test03_RecursiveFilters..." %
+                   self.__class__.__name__))
 
         # Create the destination node
         group = self.h5file2.root
@@ -1050,8 +1051,8 @@ class CopyFileTestCase(unittest.TestCase):
         "Checking copy of a File (overwriting file)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_overwrite..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00_overwrite..." % self.__class__.__name__)
 
         # Create a temporary file
         file2h = open(self.file2, "w")
@@ -1080,8 +1081,8 @@ class CopyFileTestCase(unittest.TestCase):
         nodelist1.sort()
         nodelist2.sort()
         if common.verbose:
-            print "The origin node list -->", nodelist1
-            print "The copied node list -->", nodelist2
+            print("The origin node list -->", nodelist1)
+            print("The copied node list -->", nodelist2)
         self.assertEqual(srcgroup._v_nchildren, dstgroup._v_nchildren)
         self.assertEqual(nodelist1, nodelist2)
         self.assertEqual(self.h5file2.title, self.title)
@@ -1090,8 +1091,8 @@ class CopyFileTestCase(unittest.TestCase):
         "Checking copy of a File (srcfile == dstfile)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00a_srcdstequal..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00a_srcdstequal..." % self.__class__.__name__)
 
         # Copy the file to the destination
         self.assertRaises(IOError, self.h5file.copy_file, self.h5file.filename)
@@ -1100,8 +1101,8 @@ class CopyFileTestCase(unittest.TestCase):
         "Checking copy of a File (first-class function)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00b_firstclass..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00b_firstclass..." % self.__class__.__name__)
 
         # Close the temporary file
         self.h5file.close()
@@ -1123,8 +1124,8 @@ class CopyFileTestCase(unittest.TestCase):
         nodelist1.sort()
         nodelist2.sort()
         if common.verbose:
-            print "The origin node list -->", nodelist1
-            print "The copied node list -->", nodelist2
+            print("The origin node list -->", nodelist1)
+            print("The copied node list -->", nodelist2)
         self.assertEqual(srcgroup._v_nchildren, dstgroup._v_nchildren)
         self.assertEqual(nodelist1, nodelist2)
         self.assertEqual(self.h5file2.title, self.title)
@@ -1133,8 +1134,8 @@ class CopyFileTestCase(unittest.TestCase):
         "Checking copy of a File (attributes not copied)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_copy..." % self.__class__.__name__)
 
         # Copy the file to the destination
         self.h5file.copy_file(self.file2, title=self.title,
@@ -1159,8 +1160,8 @@ class CopyFileTestCase(unittest.TestCase):
         nodelist1.sort()
         nodelist2.sort()
         if common.verbose:
-            print "The origin node list -->", nodelist1
-            print "The copied node list -->", nodelist2
+            print("The origin node list -->", nodelist1)
+            print("The copied node list -->", nodelist2)
         self.assertEqual(srcgroup._v_nchildren, dstgroup._v_nchildren)
         self.assertEqual(nodelist1, nodelist2)
         # print "_v_attrnames-->", self.h5file2.root._v_attrs._v_attrnames
@@ -1179,13 +1180,13 @@ class CopyFileTestCase(unittest.TestCase):
                 dstattrskeys.remove('FILTERS')
             # These lists should already be ordered
             if common.verbose:
-                print "srcattrskeys for node %s: %s" % (srcnode._v_name,
-                                                        srcattrskeys)
-                print "dstattrskeys for node %s: %s" % (dstnode._v_name,
-                                                        dstattrskeys)
+                print("srcattrskeys for node %s: %s" % (srcnode._v_name,
+                                                        srcattrskeys))
+                print("dstattrskeys for node %s: %s" % (dstnode._v_name,
+                                                        dstattrskeys))
             self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
-                print "The attrs names has been copied correctly"
+                print("The attrs names has been copied correctly")
 
             # Now, for the contents of attributes
             for srcattrname in srcattrskeys:
@@ -1196,14 +1197,14 @@ class CopyFileTestCase(unittest.TestCase):
                 self.assertEqual(dstattrs.FILTERS, self.filters)
 
             if common.verbose:
-                print "The attrs contents has been copied correctly"
+                print("The attrs contents has been copied correctly")
 
     def test02_Attrs(self):
         "Checking copy of a File (attributes copied)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_Attrs..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_Attrs..." % self.__class__.__name__)
 
         # Copy the file to the destination
         self.h5file.copy_file(self.file2, title=self.title,
@@ -1230,16 +1231,16 @@ class CopyFileTestCase(unittest.TestCase):
             dstattrskeys = dstattrs._f_list("all")
             # These lists should already be ordered
             if common.verbose:
-                print "srcattrskeys for node %s: %s" % (srcnode._v_name,
-                                                        srcattrskeys)
-                print "dstattrskeys for node %s: %s" % (dstnode._v_name,
-                                                        dstattrskeys)
+                print("srcattrskeys for node %s: %s" % (srcnode._v_name,
+                                                        srcattrskeys))
+                print("dstattrskeys for node %s: %s" % (dstnode._v_name,
+                                                        dstattrskeys))
             # Filters may differ, do not take into account
             if self.filters is not None:
                 dstattrskeys.remove('FILTERS')
             self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
-                print "The attrs names has been copied correctly"
+                print("The attrs names has been copied correctly")
 
             # Now, for the contents of attributes
             for srcattrname in srcattrskeys:
@@ -1250,7 +1251,7 @@ class CopyFileTestCase(unittest.TestCase):
                 self.assertEqual(dstattrs.FILTERS, self.filters)
 
             if common.verbose:
-                print "The attrs contents has been copied correctly"
+                print("The attrs contents has been copied correctly")
 
 
 class CopyFileCase1(CopyFileTestCase):
@@ -1307,8 +1308,8 @@ class CopyFileCase10(unittest.TestCase):
         "Checking copy of a File (checking not overwriting)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_notoverwrite..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_notoverwrite..." % self.__class__.__name__)
 
         # Create two empty files:
         file = tempfile.mktemp(".h5")
@@ -1322,8 +1323,8 @@ class CopyFileCase10(unittest.TestCase):
         except IOError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next IOError was catched!"
-                print value
+                print("\nGreat!, the next IOError was catched!")
+                print(value)
         else:
             self.fail("expected a IOError")
 
@@ -1442,16 +1443,16 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin,
         """Checking set_blosc_max_threads()"""
         nthreads_old = tables.set_blosc_max_threads(4)
         if common.verbose:
-            print "Previous max threads:", nthreads_old
-            print "Should be:", self.h5file.params['MAX_BLOSC_THREADS']
+            print("Previous max threads:", nthreads_old)
+            print("Should be:", self.h5file.params['MAX_BLOSC_THREADS'])
         self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
         self.h5file.create_carray('/', 'some_array',
                                   atom=tables.Int32Atom(), shape=(3, 3),
                                   filters = self.filters)
         nthreads_old = tables.set_blosc_max_threads(1)
         if common.verbose:
-            print "Previous max threads:", nthreads_old
-            print "Should be:", 4
+            print("Previous max threads:", nthreads_old)
+            print("Should be:", 4)
         self.assertEqual(nthreads_old, 4)
 
     def test01(self):
@@ -1463,8 +1464,8 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin,
         self._reopen()
         nthreads_old = tables.set_blosc_max_threads(4)
         if common.verbose:
-            print "Previous max threads:", nthreads_old
-            print "Should be:", self.h5file.params['MAX_BLOSC_THREADS']
+            print("Previous max threads:", nthreads_old)
+            print("Should be:", self.h5file.params['MAX_BLOSC_THREADS'])
         self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
 
 

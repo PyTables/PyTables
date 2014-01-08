@@ -1,5 +1,6 @@
 # -*- coding: latin-1 -*-
 
+from __future__ import print_function
 import sys
 import unittest
 import os
@@ -82,8 +83,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking vlarray read"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_read..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_read..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -95,9 +96,9 @@ class BasicTestCase(unittest.TestCase):
         row = vlarray.read(0)[0]
         row2 = vlarray.read(2)[0]
         if common.verbose:
-            print "Flavor:", vlarray.flavor
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row
+            print("Flavor:", vlarray.flavor)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row)
 
         nrows = 5
         self.assertEqual(nrows, vlarray.nrows)
@@ -114,26 +115,26 @@ class BasicTestCase(unittest.TestCase):
 
         # Check filters:
         if self.compress != vlarray.filters.complevel and common.verbose:
-            print "Error in compress. Class:", self.__class__.__name__
-            print "self, vlarray:", self.compress, vlarray.filters.complevel
+            print("Error in compress. Class:", self.__class__.__name__)
+            print("self, vlarray:", self.compress, vlarray.filters.complevel)
         self.assertEqual(vlarray.filters.complevel, self.compress)
         if self.compress > 0 and which_lib_version(self.complib):
             self.assertEqual(vlarray.filters.complib, self.complib)
         if self.shuffle != vlarray.filters.shuffle and common.verbose:
-            print "Error in shuffle. Class:", self.__class__.__name__
-            print "self, vlarray:", self.shuffle, vlarray.filters.shuffle
+            print("Error in shuffle. Class:", self.__class__.__name__)
+            print("self, vlarray:", self.shuffle, vlarray.filters.shuffle)
         self.assertEqual(self.shuffle, vlarray.filters.shuffle)
         if self.fletcher32 != vlarray.filters.fletcher32 and common.verbose:
-            print "Error in fletcher32. Class:", self.__class__.__name__
-            print "self, vlarray:", self.fletcher32, vlarray.filters.fletcher32
+            print("Error in fletcher32. Class:", self.__class__.__name__)
+            print("self, vlarray:", self.fletcher32, vlarray.filters.fletcher32)
         self.assertEqual(self.fletcher32, vlarray.filters.fletcher32)
 
     def test02a_getitem(self):
         """Checking vlarray __getitem__ (slices)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02a_getitem..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02a_getitem..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -153,10 +154,10 @@ class BasicTestCase(unittest.TestCase):
             rows1 = rows[slc]
             rows1f = []
             if common.verbose:
-                print "Flavor:", vlarray.flavor
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "Original rows ==>", rows1
-                print "Rows read in vlarray ==>", rows2
+                print("Flavor:", vlarray.flavor)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("Original rows ==>", rows1)
+                print("Rows read in vlarray ==>", rows2)
 
             if self.flavor == "numpy":
                 for val in rows1:
@@ -170,8 +171,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking vlarray __getitem__ (scalars)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b_getitem..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02b_getitem..." % self.__class__.__name__)
 
         if self.flavor != "numpy":
             # This test is only valid for NumPy
@@ -189,10 +190,10 @@ class BasicTestCase(unittest.TestCase):
             rows2 = vlarray[slc]
             rows1 = rows[slc]
             if common.verbose:
-                print "Flavor:", vlarray.flavor
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "Original rows ==>", rows1
-                print "Rows read in vlarray ==>", rows2
+                print("Flavor:", vlarray.flavor)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("Original rows ==>", rows1)
+                print("Rows read in vlarray ==>", rows2)
 
             for i in range(len(rows1)):
                 self.assertTrue(allequal(rows2[i], rows1[i], self.flavor))
@@ -201,8 +202,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking vlarray append"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_append..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_append..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "a")
@@ -217,9 +218,9 @@ class BasicTestCase(unittest.TestCase):
         row2 = vlarray[2]
         row3 = vlarray[-1]
         if common.verbose:
-            print "Flavor:", vlarray.flavor
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row1
+            print("Flavor:", vlarray.flavor)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row1)
 
         nrows = 6
         self.assertEqual(nrows, vlarray.nrows)
@@ -323,8 +324,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking vlarray with NumPy string atoms ('numpy' flavor)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_StringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom',
                                             atom=StringAtom(itemsize=3),
@@ -342,9 +343,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
         npt.assert_array_equal(
@@ -358,8 +359,8 @@ class TypesTestCase(unittest.TestCase):
         strided)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_StringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom',
                                             atom=StringAtom(itemsize=3),
@@ -377,9 +378,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
         npt.assert_array_equal(row[0], numpy.array(["1", "123", "123"], 'S'))
@@ -391,8 +392,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking vlarray with NumPy string atoms (NumPy flavor, no conv)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_2_StringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_2_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom',
                                             atom=StringAtom(itemsize=3),
@@ -410,9 +411,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
         npt.assert_array_equal(
@@ -425,8 +426,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking vlarray with NumPy string atoms (python flavor)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b_StringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom2',
                                             atom=StringAtom(itemsize=3),
@@ -444,10 +445,10 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Testing String flavor"
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Testing String flavor")
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertEqual(row[0], [b"1", b"12", b"123", b"123", b"123"])
@@ -460,8 +461,8 @@ class TypesTestCase(unittest.TestCase):
         ('numpy' flavor)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01c_StringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01c_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom',
                                             atom=StringAtom(itemsize=3),
@@ -483,9 +484,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertTrue(
@@ -498,8 +499,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking updating vlarray with string atoms (String flavor)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01d_StringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01d_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom2',
                                             atom=StringAtom(itemsize=3),
@@ -521,10 +522,10 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Testing String flavor"
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Testing String flavor")
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertEqual(row[0], [b"1", b"123", b"12", b"", b"123"])
@@ -536,8 +537,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking vlarray with boolean atoms"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_BoolAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_BoolAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', 'BoolAtom',
                                             atom=BoolAtom(),
@@ -554,9 +555,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertTrue(allequal(row[0], numpy.array([1, 0, 1], dtype='bool')))
@@ -568,8 +569,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking setting vlarray with boolean atoms"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b_BoolAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02b_BoolAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', 'BoolAtom',
                                             atom=BoolAtom(),
@@ -590,9 +591,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertTrue(allequal(row[0], numpy.array([0, 1, 1], dtype='bool')))
@@ -614,8 +615,8 @@ class TypesTestCase(unittest.TestCase):
             #"UInt64",  # Unavailable in some platforms
         ]
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_IntAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_IntAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray('/', atype,
@@ -632,10 +633,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(allequal(row[
@@ -659,8 +660,8 @@ class TypesTestCase(unittest.TestCase):
             #"UInt64": numpy.int64,  # Unavailable in some platforms
         }
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03a_IntAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03a_IntAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray(
@@ -683,10 +684,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(
@@ -710,8 +711,8 @@ class TypesTestCase(unittest.TestCase):
             #"UInt64",  # Unavailable in some platforms
         ]
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_IntAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_IntAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray(
@@ -732,10 +733,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(allequal(row[
@@ -759,8 +760,8 @@ class TypesTestCase(unittest.TestCase):
             #"UInt64": numpy.int64,  # Unavailable in some platforms
         }
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03c_IntAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03c_IntAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray(
@@ -789,10 +790,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(
@@ -816,8 +817,8 @@ class TypesTestCase(unittest.TestCase):
             #"UInt64": numpy.int64,  # Unavailable in some platforms
         }
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03d_IntAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03d_IntAtom..." % self.__class__.__name__)
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         for atype in ttypes:
@@ -848,10 +849,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             byteorder2 = byteorders[row[0].dtype.byteorder]
             if byteorder2 != "irrelevant":
@@ -878,8 +879,8 @@ class TypesTestCase(unittest.TestCase):
                 ttypes.append(name)
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_FloatAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_FloatAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray(
@@ -896,10 +897,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(allequal(row[
@@ -924,8 +925,8 @@ class TypesTestCase(unittest.TestCase):
             ttypes["float128"] = numpy.float128
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04a_FloatAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04a_FloatAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray(
@@ -948,10 +949,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(allequal(row[0], numpy.array([1.3, 2.2, 3.3],
@@ -974,8 +975,8 @@ class TypesTestCase(unittest.TestCase):
                 ttypes.append(name)
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04b_FloatAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04b_FloatAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray(
@@ -996,10 +997,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(allequal(row[
@@ -1024,8 +1025,8 @@ class TypesTestCase(unittest.TestCase):
             ttypes["float128"] = numpy.float128
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04c_FloatAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04c_FloatAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray(
@@ -1054,10 +1055,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(allequal(row[0], numpy.array([4.3, 2.2, 4.3],
@@ -1082,8 +1083,8 @@ class TypesTestCase(unittest.TestCase):
             ttypes["float128"] = numpy.float128
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04d_FloatAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04d_FloatAtom..." % self.__class__.__name__)
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         for atype in ttypes:
@@ -1114,10 +1115,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.byteorder, byteorder)
             self.assertTrue(byteorders[row[0].dtype.byteorder], sys.byteorder)
@@ -1143,8 +1144,8 @@ class TypesTestCase(unittest.TestCase):
             ttypes.append("Complex128")
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_ComplexAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_ComplexAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray(
@@ -1161,10 +1162,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(
@@ -1191,8 +1192,8 @@ class TypesTestCase(unittest.TestCase):
             ttypes.append("Complex128")
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04b_ComplexAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray(
@@ -1213,10 +1214,10 @@ class TypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing type:", atype)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(
@@ -1237,8 +1238,8 @@ class TypesTestCase(unittest.TestCase):
             return
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_VLStringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_VLStringAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray(
             '/', "VLStringAtom", atom=VLStringAtom())
@@ -1260,9 +1261,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 4)
         self.assertEqual(row[0], "asd")
@@ -1278,8 +1279,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking updating vlarray with variable length strings"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05b_VLStringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05b_VLStringAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray(
             '/', "VLStringAtom", atom=VLStringAtom())
@@ -1301,10 +1302,10 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", repr(row[0])
-            print "Second row in vlarray ==>", repr(row[1])
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", repr(row[0]))
+            print("Second row in vlarray ==>", repr(row[1]))
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertEqual(row[0], b"as4")
@@ -1316,8 +1317,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking vlarray with object atoms """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06a_Object..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06a_Object..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray(
             '/', "Object", atom=ObjectAtom())
@@ -1334,9 +1335,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
         self.assertEqual(row[0], [[1, 2, 3], "aaa", u"aaaççç"])
@@ -1353,8 +1354,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking updating vlarray with object atoms """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06b_Object..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06b_Object..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', "Object", atom=ObjectAtom())
         # When updating an object, this seems to change the number
@@ -1379,9 +1380,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertEqual(row[0], ([1, 2, 4], "aa4", u"çç5"))
@@ -1397,8 +1398,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking vlarray with object atoms (numpy arrays as values)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06c_Object..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06c_Object..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', "Object", atom=ObjectAtom())
         vlarray.append(numpy.array([[1, 2], [0, 4]], 'i4'))
@@ -1414,9 +1415,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
         self.assertTrue(allequal(row[0], numpy.array([[1, 2], [0, 4]], 'i4')))
@@ -1427,8 +1428,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking updating vlarray with object atoms (numpy arrays)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06d_Object..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06d_Object..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', "Object", atom=ObjectAtom())
         vlarray.append(numpy.array([[1, 2], [0, 4]], 'i4'))
@@ -1451,9 +1452,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
         self.assertTrue(allequal(row[0], numpy.array([[1, 0], [0, 4]], 'i4')))
@@ -1468,8 +1469,8 @@ class TypesTestCase(unittest.TestCase):
             return
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test07_VLUnicodeAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test07_VLUnicodeAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray(
             '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
@@ -1491,9 +1492,9 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 4)
         self.assertEqual(row[0], u"asd")
@@ -1509,8 +1510,8 @@ class TypesTestCase(unittest.TestCase):
         """Checking updating vlarray with variable length Unicode strings"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test07b_VLUnicodeAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test07b_VLUnicodeAtom..." % self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray(
             '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
@@ -1532,10 +1533,10 @@ class TypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", repr(row[0])
-            print "Second row in vlarray ==>", repr(row[1])
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", repr(row[0]))
+            print("Second row in vlarray ==>", repr(row[1]))
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertEqual(row[0], u"as\xe4")
@@ -1578,8 +1579,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_StringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_StringAtom..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'stringAtom',
@@ -1592,9 +1593,9 @@ class MDTypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
         npt.assert_array_equal(
@@ -1610,8 +1611,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b_StringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b_StringAtom..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'stringAtom',
@@ -1625,9 +1626,9 @@ class MDTypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertEqual(row[0], [[b"123", b"45"], [b"45", b"123"]])
@@ -1641,8 +1642,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01c_StringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01c_StringAtom..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'stringAtom',
@@ -1659,9 +1660,9 @@ class MDTypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertEqual(row[0], [[b"123", b"45"], [b"45", b"123"]])
@@ -1675,8 +1676,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01d_StringAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01d_StringAtom..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'stringAtom',
@@ -1693,9 +1694,9 @@ class MDTypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertEqual(row[0], [[b"123", b"45"]])
@@ -1708,8 +1709,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_BoolAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_BoolAtom..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'BoolAtom',
@@ -1721,9 +1722,9 @@ class MDTypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertTrue(
@@ -1739,8 +1740,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b_BoolAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02b_BoolAtom..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'BoolAtom',
@@ -1755,9 +1756,9 @@ class MDTypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertTrue(
@@ -1773,8 +1774,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02c_BoolAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02c_BoolAtom..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'BoolAtom',
@@ -1789,9 +1790,9 @@ class MDTypesTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
         self.assertTrue(
@@ -1817,8 +1818,8 @@ class MDTypesTestCase(unittest.TestCase):
                   ]
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_IntAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_IntAtom..." % self.__class__.__name__)
 
         # Create an string atom
         for atype in ttypes:
@@ -1831,9 +1832,9 @@ class MDTypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "Second row in vlarray ==>", repr(row[1])
+                print("Testing type:", atype)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("Second row in vlarray ==>", repr(row[1]))
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(
@@ -1866,8 +1867,8 @@ class MDTypesTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_FloatAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_FloatAtom..." % self.__class__.__name__)
 
         # Create an string atom
         for atype in ttypes:
@@ -1880,9 +1881,9 @@ class MDTypesTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing type:", atype
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "Second row in vlarray ==>", row[1]
+                print("Testing type:", atype)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("Second row in vlarray ==>", row[1])
 
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(
@@ -1922,8 +1923,8 @@ class AppendShapeTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_difinputs..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00_difinputs..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'vlarray',
@@ -1939,7 +1940,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             vlarray = self.fileh.root.vlarray
@@ -1947,9 +1948,9 @@ class AppendShapeTestCase(unittest.TestCase):
         # Read all the vlarray
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
         self.assertEqual(row[0], [1, 2, 3])
@@ -1961,8 +1962,8 @@ class AppendShapeTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_toomanydims..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_toomanydims..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'vlarray',
@@ -1974,14 +1975,14 @@ class AppendShapeTestCase(unittest.TestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next RuntimeError was catched!"
-                print value
+                print("\nGreat!, the next RuntimeError was catched!")
+                print(value)
         else:
             self.fail("expected a ValueError")
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             vlarray = self.fileh.root.vlarray
@@ -1989,8 +1990,8 @@ class AppendShapeTestCase(unittest.TestCase):
         # Read all the rows (there should be none)
         row = vlarray.read()
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
         self.assertEqual(vlarray.nrows, 0)
 
@@ -1999,8 +2000,8 @@ class AppendShapeTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_zerodims..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_zerodims..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'vlarray',
@@ -2010,7 +2011,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             vlarray = self.fileh.root.vlarray
@@ -2018,9 +2019,9 @@ class AppendShapeTestCase(unittest.TestCase):
         # Read the only row in vlarray
         row = vlarray.read(0)[0]
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", repr(row)
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", repr(row))
 
         self.assertEqual(vlarray.nrows, 1)
         self.assertTrue(allequal(row, numpy.zeros(dtype='int32', shape=(0,))))
@@ -2031,8 +2032,8 @@ class AppendShapeTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03a_cast..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03a_cast..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'vlarray',
@@ -2043,7 +2044,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             vlarray = self.fileh.root.vlarray
@@ -2051,9 +2052,9 @@ class AppendShapeTestCase(unittest.TestCase):
         # Read the only row in vlarray
         row = vlarray.read(0)[0]
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", repr(row)
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", repr(row))
 
         self.assertEqual(vlarray.nrows, 1)
         self.assertTrue(allequal(row, numpy.array([1, 2], dtype='int32')))
@@ -2064,8 +2065,8 @@ class AppendShapeTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03b_cast..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03b_cast..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, 'vlarray',
@@ -2076,7 +2077,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             vlarray = self.fileh.root.vlarray
@@ -2084,9 +2085,9 @@ class AppendShapeTestCase(unittest.TestCase):
         # Read the only row in vlarray
         row = vlarray.read(0)[0]
         if common.verbose:
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", repr(row)
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", repr(row))
 
         self.assertEqual(vlarray.nrows, 1)
         self.assertTrue(allequal(row, numpy.array([1, 2], dtype='int32')))
@@ -2125,8 +2126,8 @@ class FlavorTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_EmptyVLArray..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_EmptyVLArray..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, "vlarray",
@@ -2138,9 +2139,9 @@ class FlavorTestCase(unittest.TestCase):
         vlarray = self.fileh.root.vlarray
         row = vlarray.read()
         if common.verbose:
-            print "Testing flavor:", self.flavor
-            print "Object read:", row, repr(row)
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print("Testing flavor:", self.flavor)
+            print("Object read:", row, repr(row))
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
         # Check that the object read is effectively empty
         self.assertEqual(vlarray.nrows, 0)
         self.assertEqual(row, [])
@@ -2150,8 +2151,8 @@ class FlavorTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_EmptyVLArray..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_EmptyVLArray..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, "vlarray",
@@ -2160,9 +2161,9 @@ class FlavorTestCase(unittest.TestCase):
         # Read all the rows (it should be empty):
         row = vlarray.read()
         if common.verbose:
-            print "Testing flavor:", self.flavor
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print("Testing flavor:", self.flavor)
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
         # Check that the object read is effectively empty
         self.assertEqual(vlarray.nrows, 0)
         self.assertEqual(row, [])
@@ -2172,8 +2173,8 @@ class FlavorTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_BoolAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_BoolAtom..." % self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, "Bool", BoolAtom())
@@ -2185,10 +2186,10 @@ class FlavorTestCase(unittest.TestCase):
         # Read all the rows:
         row = vlarray.read()
         if common.verbose:
-            print "Testing flavor:", self.flavor
-            print "Object read:", row
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print("Testing flavor:", self.flavor)
+            print("Object read:", row)
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
         self.assertEqual(len(row[0]), 3)
@@ -2228,8 +2229,8 @@ class FlavorTestCase(unittest.TestCase):
                   ]
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_IntAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_IntAtom..." % self.__class__.__name__)
 
         # Create an string atom
         for atype in ttypes:
@@ -2243,10 +2244,10 @@ class FlavorTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing flavor:", self.flavor
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing flavor:", self.flavor)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 3)
             self.assertEqual(len(row[0]), 3)
@@ -2286,8 +2287,8 @@ class FlavorTestCase(unittest.TestCase):
                   ]
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_IntAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_IntAtom..." % self.__class__.__name__)
 
         # Create an string atom
         for atype in ttypes:
@@ -2304,10 +2305,10 @@ class FlavorTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing flavor:", self.flavor
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing flavor:", self.flavor)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 3)
             self.assertEqual(len(row[0]), 3)
@@ -2354,8 +2355,8 @@ class FlavorTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_FloatAtom..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_FloatAtom..." % self.__class__.__name__)
 
         # Create an string atom
         for atype in ttypes:
@@ -2369,10 +2370,10 @@ class FlavorTestCase(unittest.TestCase):
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
-                print "Testing flavor:", self.flavor
-                print "Object read:", row
-                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-                print "First row in vlarray ==>", row[0]
+                print("Testing flavor:", self.flavor)
+                print("Object read:", row)
+                print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+                print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 3)
             self.assertEqual(len(row[0]), 3)
@@ -2443,8 +2444,8 @@ class ReadRangeTestCase(unittest.TestCase):
     def test01_start(self):
         "Checking reads with only a start value"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_start..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_start..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2455,8 +2456,8 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(99)[0])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 0)
@@ -2469,8 +2470,8 @@ class ReadRangeTestCase(unittest.TestCase):
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b_start..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b_start..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2481,8 +2482,8 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[10])
         row.append(vlarray[99])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 0)
@@ -2495,8 +2496,8 @@ class ReadRangeTestCase(unittest.TestCase):
     def test01np_start(self):
         "Checking reads with only a start value in a slice (numpy indexes)"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01np_start..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01np_start..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2507,8 +2508,8 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[numpy.int32(10)])
         row.append(vlarray[numpy.int64(99)])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 0)
@@ -2521,8 +2522,8 @@ class ReadRangeTestCase(unittest.TestCase):
     def test02_stop(self):
         "Checking reads with only a stop value"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_stop..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_stop..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2535,9 +2536,9 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(stop=10))
         row.append(vlarray.read(stop=99))
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 1)
@@ -2554,8 +2555,8 @@ class ReadRangeTestCase(unittest.TestCase):
     def test02b_stop(self):
         "Checking reads with only a stop value in a slice"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b_stop..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02b_stop..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2568,8 +2569,8 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[:10])
         row.append(vlarray[:99])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 1)
@@ -2588,8 +2589,8 @@ class ReadRangeTestCase(unittest.TestCase):
     def test03_startstop(self):
         "Checking reads with a start and stop values"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_startstop..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_startstop..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2602,8 +2603,8 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(5, 15))
         row.append(vlarray.read(0, 100))  # read all the array
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 10)
@@ -2622,8 +2623,8 @@ class ReadRangeTestCase(unittest.TestCase):
     def test03b_startstop(self):
         "Checking reads with a start and stop values in slices"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03b_startstop..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03b_startstop..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2636,8 +2637,8 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[5:15])
         row.append(vlarray[:])  # read all the array
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 10)
@@ -2656,8 +2657,8 @@ class ReadRangeTestCase(unittest.TestCase):
     def test04_startstopstep(self):
         "Checking reads with a start, stop & step values"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_startstopstep..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_startstopstep..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2670,8 +2671,8 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(5, 15, 3))
         row.append(vlarray.read(0, 100, 20))
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 5)
@@ -2690,8 +2691,8 @@ class ReadRangeTestCase(unittest.TestCase):
     def test04np_startstopstep(self):
         "Checking reads with a start, stop & step values (numpy indices)"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04np_startstopstep..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04np_startstopstep..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2705,8 +2706,8 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(numpy.int8(
             0), numpy.int8(100), numpy.int8(20)))
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 5)
@@ -2725,8 +2726,8 @@ class ReadRangeTestCase(unittest.TestCase):
     def test04b_slices(self):
         "Checking reads with start, stop & step values in slices"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04b_slices..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04b_slices..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2739,8 +2740,8 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[5:15:3])
         row.append(vlarray[0:100:20])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 5)
@@ -2761,8 +2762,8 @@ class ReadRangeTestCase(unittest.TestCase):
         (numpy indices)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04bnp_slices..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04bnp_slices..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2775,8 +2776,8 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[numpy.int16(5):numpy.int16(15):numpy.int64(3)])
         row.append(vlarray[numpy.uint16(0):numpy.int32(100):numpy.int8(20)])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 5)
@@ -2795,23 +2796,23 @@ class ReadRangeTestCase(unittest.TestCase):
     def test05_out_of_range(self):
         "Checking out of range reads"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_out_of_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_out_of_range..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
         try:
             row = vlarray.read(1000)[0]
-            print "row-->", row
+            print("row-->", row)
         except IndexError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next IndexError was catched!"
-                print value
+                print("\nGreat!, the next IndexError was catched!")
+                print(value)
             self.fileh.close()
         else:
             (type, value, traceback) = sys.exc_info()
@@ -2855,8 +2856,8 @@ class GetItemRangeTestCase(unittest.TestCase):
     def test01_start(self):
         "Checking reads with only a start value"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_start..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_start..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2868,8 +2869,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[numpy.array(10)])
         row.append(vlarray[99])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 0)
@@ -2885,8 +2886,8 @@ class GetItemRangeTestCase(unittest.TestCase):
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b_start..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b_start..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2897,8 +2898,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[10])
         row.append(vlarray[99])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 0)
@@ -2911,8 +2912,8 @@ class GetItemRangeTestCase(unittest.TestCase):
     def test02_stop(self):
         "Checking reads with only a stop value"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_stop..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_stop..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2925,9 +2926,9 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[:10])
         row.append(vlarray[:99])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("First row in vlarray ==>", row[0])
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 1)
@@ -2944,8 +2945,8 @@ class GetItemRangeTestCase(unittest.TestCase):
     def test02b_stop(self):
         "Checking reads with only a stop value in a slice"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b_stop..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02b_stop..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2958,8 +2959,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[:10])
         row.append(vlarray[:99])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 1)
@@ -2978,8 +2979,8 @@ class GetItemRangeTestCase(unittest.TestCase):
     def test03_startstop(self):
         "Checking reads with a start and stop values"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_startstop..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_startstop..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2992,8 +2993,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[5:15])
         row.append(vlarray[0:100])  # read all the array
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 10)
@@ -3012,8 +3013,8 @@ class GetItemRangeTestCase(unittest.TestCase):
     def test03b_startstop(self):
         "Checking reads with a start and stop values in slices"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03b_startstop..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03b_startstop..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -3026,8 +3027,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[5:15])
         row.append(vlarray[:])  # read all the array
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 10)
@@ -3046,8 +3047,8 @@ class GetItemRangeTestCase(unittest.TestCase):
     def test04_slices(self):
         "Checking reads with a start, stop & step values"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_slices..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_slices..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -3060,8 +3061,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[5:15:3])
         row.append(vlarray[0:100:20])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 5)
@@ -3080,8 +3081,8 @@ class GetItemRangeTestCase(unittest.TestCase):
     def test04bnp_slices(self):
         "Checking reads with start, stop & step values (numpy indices)"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04np_slices..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04np_slices..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -3094,8 +3095,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[numpy.int8(5):numpy.int8(15):numpy.int8(3)])
         row.append(vlarray[numpy.int8(0):numpy.int8(100):numpy.int8(20)])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 5)
@@ -3114,23 +3115,23 @@ class GetItemRangeTestCase(unittest.TestCase):
     def test05_out_of_range(self):
         "Checking out of range reads"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_out_of_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_out_of_range..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
         try:
             row = vlarray[1000]
-            print "row-->", row
+            print("row-->", row)
         except IndexError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next IndexError was catched!"
-                print value
+                print("\nGreat!, the next IndexError was catched!")
+                print(value)
             self.fileh.close()
         else:
             (type, value, traceback) = sys.exc_info()
@@ -3139,23 +3140,23 @@ class GetItemRangeTestCase(unittest.TestCase):
     def test05np_out_of_range(self):
         "Checking out of range reads (numpy indexes)"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05np_out_of_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05np_out_of_range..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
         try:
             row = vlarray[numpy.int32(1000)]
-            print "row-->", row
+            print("row-->", row)
         except IndexError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next IndexError was catched!"
-                print value
+                print("\nGreat!, the next IndexError was catched!")
+                print(value)
             self.fileh.close()
         else:
             (type, value, traceback) = sys.exc_info()
@@ -3199,8 +3200,8 @@ class SetRangeTestCase(unittest.TestCase):
     def test01_start(self):
         "Checking updates that modifies a complete row"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_start..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_start..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3216,8 +3217,8 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(99)[0])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 0)
@@ -3233,8 +3234,8 @@ class SetRangeTestCase(unittest.TestCase):
     def test01np_start(self):
         "Checking updates that modifies a complete row"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01np_start..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01np_start..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3250,8 +3251,8 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(numpy.int8(10))[0])
         row.append(vlarray.read(numpy.int8(99))[0])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 0)
@@ -3267,8 +3268,8 @@ class SetRangeTestCase(unittest.TestCase):
     def test02_partial(self):
         "Checking updates with only a part of a row"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_partial..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_partial..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3284,8 +3285,8 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(96)[0])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 0)
@@ -3302,8 +3303,8 @@ class SetRangeTestCase(unittest.TestCase):
     def test03a_several_rows(self):
         "Checking updating several rows at once (slice style)"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03a_several_rows..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03a_several_rows..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3319,8 +3320,8 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(4)[0])
         row.append(vlarray.read(5)[0])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 3)
@@ -3333,8 +3334,8 @@ class SetRangeTestCase(unittest.TestCase):
     def test03b_several_rows(self):
         "Checking updating several rows at once (list style)"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03b_several_rows..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03b_several_rows..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3350,8 +3351,8 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(96)[0])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 0)
@@ -3367,8 +3368,8 @@ class SetRangeTestCase(unittest.TestCase):
     def test03c_several_rows(self):
         "Checking updating several rows at once (NumPy's where style)"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03c_several_rows..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03c_several_rows..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3384,8 +3385,8 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(96)[0])
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+            print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, self.nrows)
         self.assertEqual(len(row[0]), 0)
@@ -3401,22 +3402,22 @@ class SetRangeTestCase(unittest.TestCase):
     def test04_out_of_range(self):
         "Checking out of range updates (first index)"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_out_of_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_out_of_range..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
         try:
             vlarray[1000] = [1]
         except IndexError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next IndexError was catched!"
-                print value
+                print("\nGreat!, the next IndexError was catched!")
+                print(value)
             self.fileh.close()
         else:
             (type, value, traceback) = sys.exc_info()
@@ -3425,23 +3426,23 @@ class SetRangeTestCase(unittest.TestCase):
     def test05_value_error(self):
         "Checking out value errors"
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_value_error..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_value_error..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
         try:
             vlarray[10] = [1]*100
-            print "row-->", row
+            print("row-->", row)
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next ValueError was catched!"
-                print value
+                print("\nGreat!, the next ValueError was catched!")
+                print(value)
             self.fileh.close()
         else:
             (type, value, traceback) = sys.exc_info()
@@ -3455,8 +3456,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking VLArray.copy() method """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -3473,7 +3474,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -3483,19 +3484,19 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "array1-->", repr(array1)
-            print "array2-->", repr(array2)
-            print "array1[:]-->", repr(array1.read())
-            print "array2[:]-->", repr(array2.read())
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("array1-->", repr(array1))
+            print("array2-->", repr(array2))
+            print("array1[:]-->", repr(array1.read()))
+            print("array2[:]-->", repr(array2.read()))
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         self.assertEqual(array1.read(), array2.read())
@@ -3517,8 +3518,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking VLArray.copy() method. Pseudo-atom case."""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -3535,7 +3536,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -3545,19 +3546,19 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "array1-->", repr(array1)
-            print "array2-->", repr(array2)
-            print "array1[:]-->", repr(array1.read())
-            print "array2[:]-->", repr(array2.read())
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("array1-->", repr(array1))
+            print("array2-->", repr(array2))
+            print("array1[:]-->", repr(array1.read()))
+            print("array2[:]-->", repr(array2.read()))
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         self.assertEqual(array1.read(), array2.read())
@@ -3579,8 +3580,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking VLArray.copy() method (where specified)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -3597,7 +3598,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -3608,19 +3609,19 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
         if common.verbose:
-            print "array1-->", repr(array1)
-            print "array2-->", repr(array2)
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("array1-->", repr(array1))
+            print("array2-->", repr(array2))
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         self.assertEqual(array1.read(), array2.read())
@@ -3641,8 +3642,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking VLArray.copy() method ('python' flavor)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -3659,7 +3660,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -3669,15 +3670,15 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
@@ -3695,8 +3696,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking VLArray.copy() method (checking title copying)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -3715,7 +3716,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -3725,7 +3726,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
@@ -3733,7 +3734,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert user attributes
         if common.verbose:
-            print "title of destination array-->", array2.title
+            print("title of destination array-->", array2.title)
         self.assertEqual(array2.title, "title array2")
 
         # Close the file
@@ -3744,8 +3745,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking VLArray.copy() method (user attributes copied)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -3764,7 +3765,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -3774,15 +3775,15 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Assert user attributes
         self.assertEqual(array2.attrs.attr1, "attr1")
@@ -3796,8 +3797,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking VLArray.copy() method (user attributes not copied)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05b_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05b_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -3816,7 +3817,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -3826,15 +3827,15 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Assert user attributes
         self.assertEqual(array2.attrs.attr1, None)
@@ -3859,8 +3860,8 @@ class CopyIndexTestCase(unittest.TestCase):
         """Checking VLArray.copy() method with indexes"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_index..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_index..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Array
         file = tempfile.mktemp(".h5")
@@ -3878,7 +3879,7 @@ class CopyIndexTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -3891,12 +3892,12 @@ class CopyIndexTestCase(unittest.TestCase):
 
         r2 = r[self.start:self.stop:self.step]
         if common.verbose:
-            print "r2-->", r2
-            print "array2-->", array2[:]
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
-            print "nrows in array2-->", array2.nrows
-            print "and it should be-->", len(r2)
+            print("r2-->", r2)
+            print("array2-->", array2[:])
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
+            print("nrows in array2-->", array2.nrows)
+            print("and it should be-->", len(r2))
         # Check that all the elements are equal
         self.assertEqual(r2, array2[:])
         # Assert the number of rows in array
@@ -4010,7 +4011,7 @@ class ChunkshapeTestCase(unittest.TestCase):
 
         vla = self.fileh.root.vlarray
         if common.verbose:
-            print "chunkshape-->", vla.chunkshape
+            print("chunkshape-->", vla.chunkshape)
         self.assertEqual(vla.chunkshape, (13,))
 
     def test01(self):
@@ -4020,7 +4021,7 @@ class ChunkshapeTestCase(unittest.TestCase):
         self.fileh = open_file(self.file, 'r')
         vla = self.fileh.root.vlarray
         if common.verbose:
-            print "chunkshape-->", vla.chunkshape
+            print("chunkshape-->", vla.chunkshape)
         self.assertEqual(vla.chunkshape, (13,))
 
 
@@ -4068,13 +4069,13 @@ class TruncateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             array1 = self.fileh.root.array1
 
         if common.verbose:
-            print "array1-->", array1.read()
+            print("array1-->", array1.read())
 
         self.assertEqual(array1.nrows, 0)
         self.assertEqual(array1[:], [])
@@ -4088,13 +4089,13 @@ class TruncateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             array1 = self.fileh.root.array1
 
         if common.verbose:
-            print "array1-->", array1.read()
+            print("array1-->", array1.read())
 
         self.assertEqual(array1.nrows, 1)
         self.assertTrue(
@@ -4109,13 +4110,13 @@ class TruncateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             array1 = self.fileh.root.array1
 
         if common.verbose:
-            print "array1-->", array1.read()
+            print("array1-->", array1.read())
 
         self.assertEqual(array1.nrows, 2)
         self.assertTrue(
@@ -4131,13 +4132,13 @@ class TruncateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             array1 = self.fileh.root.array1
 
         if common.verbose:
-            print "array1-->", array1.read()
+            print("array1-->", array1.read())
 
         self.assertEqual(array1.nrows, 4)
         # Check the original values
@@ -4205,7 +4206,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         vlarr = self.vlarr
         for key in self.working_keyset:
             if common.verbose:
-                print "Selection to test:", repr(key)
+                print("Selection to test:", repr(key))
             a = nparr[key].tolist()
             b = vlarr[key]
             # if common.verbose:
@@ -4220,7 +4221,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         vlarr = self.vlarr
         for key in self.not_working_keyset:
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             self.assertRaises(IndexError, vlarr.__getitem__, key)
 
 

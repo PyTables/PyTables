@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import sys
 import unittest
 import os
@@ -352,9 +353,9 @@ class BasicTestCase(common.PyTablesTestCase):
         # Column defaults.
         for v in expectedNames:
             if common.verbose:
-                print "dflt-->", columns[v].dflt, type(columns[v].dflt)
-                print "coldflts-->", tbl.coldflts[v], type(tbl.coldflts[v])
-                print "desc.dflts-->", desc._v_dflts[v], type(desc._v_dflts[v])
+                print("dflt-->", columns[v].dflt, type(columns[v].dflt))
+                print("coldflts-->", tbl.coldflts[v], type(tbl.coldflts[v]))
+                print("desc.dflts-->", desc._v_dflts[v], type(desc._v_dflts[v]))
             self.assertTrue(areArraysEqual(tbl.coldflts[v], columns[v].dflt))
             self.assertTrue(areArraysEqual(desc._v_dflts[v], columns[v].dflt))
 
@@ -373,8 +374,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking table read"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_readTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -385,9 +386,9 @@ class BasicTestCase(common.PyTablesTestCase):
         # Read the records and select those with "var2" file less than 20
         result = [rec['var2'] for rec in table.iterrows() if rec['var2'] < 20]
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last record in table ==>", rec
-            print "Total selected records in table ==> ", len(result)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last record in table ==>", rec)
+            print("Total selected records in table ==> ", len(result))
         nrows = self.expectedrows - 1
         rec = list(table.iterrows())[-1]
         self.assertEqual((rec['var1'], rec['var2'], rec['var7']),
@@ -410,8 +411,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking table read (using Row.fetch_all_fields)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_fetch_all_fields..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_fetch_all_fields..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -424,9 +425,9 @@ class BasicTestCase(common.PyTablesTestCase):
                   if rec['var2'] < 20]
         rec = result[-1]
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last record in table ==>", rec
-            print "Total selected records in table ==> ", len(result)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last record in table ==>", rec)
+            print("Total selected records in table ==> ", len(result))
         nrows = 20 - 1
         strnrows = "%04d" % (self.expectedrows - nrows)
         strnrows = strnrows.encode('ascii')
@@ -450,8 +451,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking table read (using Row[integer])"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_integer..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_integer..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -463,9 +464,9 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [rec[1] for rec in table.iterrows()
                   if rec['var2'] < 20]
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Total selected records in table ==> ", len(result)
-            print "All results ==>", result
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Total selected records in table ==> ", len(result))
+            print("All results ==>", result)
         self.assertEqual(len(result), 20)
         self.assertEqual(result, range(20))
 
@@ -473,8 +474,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking table read (using Row[::2])"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_extslice..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_extslice..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -487,9 +488,9 @@ class BasicTestCase(common.PyTablesTestCase):
                   if rec['var2'] < 20]
         rec = result[-1]
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last record in table ==>", rec
-            print "Total selected records in table ==> ", len(result)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last record in table ==>", rec)
+            print("Total selected records in table ==> ", len(result))
         nrows = 20 - 1
         strnrows = "%04d" % (self.expectedrows - nrows)
         strnrows = strnrows.encode('ascii')
@@ -513,8 +514,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking table read (using Row['no-field'])"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_nofield..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_nofield..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -528,18 +529,18 @@ class BasicTestCase(common.PyTablesTestCase):
         except KeyError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next KeyError was catched!"
-                print value
+                print("\nGreat!, the next KeyError was catched!")
+                print(value)
         else:
-            print result
+            print(result)
             self.fail("expected a KeyError")
 
     def test01a_badtypefield(self):
         """Checking table read (using Row[{}])"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_badtypefield..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_badtypefield..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -553,18 +554,18 @@ class BasicTestCase(common.PyTablesTestCase):
         except TypeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next TypeError was catched!"
-                print value
+                print("\nGreat!, the next TypeError was catched!")
+                print(value)
         else:
-            print result
+            print(result)
             self.fail("expected a TypeError")
 
     def test01b_readTable(self):
         """Checking table read and cuts (multidimensional columns case)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b_readTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -576,11 +577,11 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [rec['var5'] for rec in table.iterrows()
                   if rec['var2'] < 20]
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last record in table ==>", rec
-            print "rec['var5'] ==>", rec['var5'],
-            print "nrows ==>", table.nrows
-            print "Total selected records in table ==> ", len(result)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last record in table ==>", rec)
+            print("rec['var5'] ==>", rec['var5'], end=' ')
+            print("nrows ==>", table.nrows)
+            print("Total selected records in table ==> ", len(result))
         nrows = table.nrows
         rec = list(table.iterrows())[-1]
         if isinstance(rec['var5'], np.ndarray):
@@ -629,8 +630,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking nested iterators (reading)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01c_readTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01c_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -643,7 +644,7 @@ class BasicTestCase(common.PyTablesTestCase):
                 if rec2['var2'] < 20:
                     result.append([rec['var2'], rec2['var2']])
         if common.verbose:
-            print "result ==>", result
+            print("result ==>", result)
 
         self.assertEqual(result, [[0, 0], [0, 1], [1, 0], [1, 1]])
 
@@ -651,8 +652,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking nested iterators (reading, mixed conditions)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01d_readTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01d_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -664,7 +665,7 @@ class BasicTestCase(common.PyTablesTestCase):
             for rec2 in table.where('var2 < 20', stop=2):
                 result.append([rec['var2'], rec2['var2']])
         if common.verbose:
-            print "result ==>", result
+            print("result ==>", result)
 
         self.assertEqual(result, [[0, 0], [0, 1], [1, 0], [1, 1]])
 
@@ -672,8 +673,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking nested iterators (reading, both conditions)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01e_readTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01e_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -685,7 +686,7 @@ class BasicTestCase(common.PyTablesTestCase):
             for rec2 in table.where('var2 < 3'):
                 result.append([rec['var2'], rec2['var3']])
         if common.verbose:
-            print "result ==>", result
+            print("result ==>", result)
 
         self.assertEqual(result,
                          [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])
@@ -694,8 +695,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking nested iterators (reading, break in the loop)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01f_readTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01f_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -709,7 +710,7 @@ class BasicTestCase(common.PyTablesTestCase):
                     break
                 result.append([rec['var2'], rec2['var3']])
         if common.verbose:
-            print "result ==>", result
+            print("result ==>", result)
 
         self.assertEqual(result,
                          [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])
@@ -718,8 +719,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking iterator with an evanescent table."""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01g_readTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01g_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -737,17 +738,17 @@ class BasicTestCase(common.PyTablesTestCase):
         self.fileh = open_file(self.file, mode="a")
         self.rootgroup = self.fileh.root
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_AppendRows..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_AppendRows..." % self.__class__.__name__)
 
         # Get a table
         table = self.fileh.get_node("/group0/table1")
         # Get their row object
         row = table.row
         if common.verbose:
-            print "Nrows in old", table._v_pathname, ":", table.nrows
-            print "Record Format ==>", table.description._v_nested_formats
-            print "Record Size ==>", table.rowsize
+            print("Nrows in old", table._v_pathname, ":", table.nrows)
+            print("Record Format ==>", table.description._v_nested_formats)
+            print("Record Size ==>", table.rowsize)
         # Append some rows
         for i in xrange(self.appendrows):
             s = '%04d' % (self.appendrows - i)
@@ -832,8 +833,8 @@ class BasicTestCase(common.PyTablesTestCase):
         self.fileh = open_file(self.file, mode="a")
         self.rootgroup = self.fileh.root
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02a_AppendRows..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02a_AppendRows..." % self.__class__.__name__)
 
         group = self.rootgroup
         for i in range(3):
@@ -844,9 +845,9 @@ class BasicTestCase(common.PyTablesTestCase):
             # Get their row object
             row = table.row
             if common.verbose:
-                print "Nrows in old", table._v_pathname, ":", table.nrows
-                print "Record Format ==>", table.description._v_nested_formats
-                print "Record Size ==>", table.rowsize
+                print("Nrows in old", table._v_pathname, ":", table.nrows)
+                print("Record Format ==>", table.description._v_nested_formats)
+                print("Record Size ==>", table.rowsize)
             # Append some rows
             for i in xrange(self.appendrows):
                 row['var1'] = '%04d' % (self.appendrows - i)
@@ -932,15 +933,15 @@ class BasicTestCase(common.PyTablesTestCase):
         self.fileh = open_file(self.file, mode="a")
         self.rootgroup = self.fileh.root
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b_AppendRows..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02b_AppendRows..." % self.__class__.__name__)
 
         # Get a table
         table = self.fileh.get_node("/group0/table1")
         if common.verbose:
-            print "Nrows in old", table._v_pathname, ":", table.nrows
-            print "Record Format ==>", table.description._v_nested_formats
-            print "Record Size ==>", table.rowsize
+            print("Nrows in old", table._v_pathname, ":", table.nrows)
+            print("Record Format ==>", table.description._v_nested_formats)
+            print("Record Size ==>", table.rowsize)
         # Set a small number of buffer to make this test faster
         table.nrowsinbuf = 3
         # Get their row object
@@ -1016,8 +1017,8 @@ class BasicTestCase(common.PyTablesTestCase):
         table.flush()
         result = [row['var2'] for row in table.iterrows() if row['var2'] < 20]
         if common.verbose:
-            print "Result length ==>", len(result)
-            print "Result contents ==>", result
+            print("Result length ==>", len(result))
+            print("Result contents ==>", result)
         self.assertEqual(len(result), 20 + 3 * table.nrowsinbuf)
         self.assertEqual(result, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
                                   10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
@@ -1028,8 +1029,8 @@ class BasicTestCase(common.PyTablesTestCase):
         # row['var7'] = row['var1'][-1]
         result7 = [row['var7'] for row in table.iterrows() if row['var2'] < 20]
         if common.verbose:
-            print "Result7 length ==>", len(result7)
-            print "Result7 contents ==>", result7
+            print("Result7 length ==>", len(result7))
+            print("Result7 contents ==>", result7)
         self.assertEqual(
             result7,
             [b'0', b'9', b'8', b'7', b'6', b'5', b'4', b'3', b'2', b'1',
@@ -1048,15 +1049,15 @@ class BasicTestCase(common.PyTablesTestCase):
         self.fileh = open_file(self.file, mode="a")
         self.rootgroup = self.fileh.root
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02c_AppendRows..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02c_AppendRows..." % self.__class__.__name__)
 
         # Get a table
         table = self.fileh.get_node("/group0/table1")
         if common.verbose:
-            print "Nrows in old", table._v_pathname, ":", table.nrows
-            print "Record Format ==>", table.description._v_nested_formats
-            print "Record Size ==>", table.rowsize
+            print("Nrows in old", table._v_pathname, ":", table.nrows)
+            print("Record Format ==>", table.description._v_nested_formats)
+            print("Record Size ==>", table.rowsize)
         # Set a small number of buffer to make this test faster
         table.nrowsinbuf = 3
         # Get their row object
@@ -1091,8 +1092,8 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [row['var2'] for row in table.iterrows()
                   if 100 <= row['var2'] < 122]
         if common.verbose:
-            print "Result length ==>", len(result)
-            print "Result contents ==>", result
+            print("Result length ==>", len(result))
+            print("Result contents ==>", result)
         self.assertEqual(len(result), 22)
         self.assertEqual(
             result,
@@ -1108,15 +1109,15 @@ class BasicTestCase(common.PyTablesTestCase):
         self.fileh = open_file(self.file, mode="a")
         self.rootgroup = self.fileh.root
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02d_AppendRows..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02d_AppendRows..." % self.__class__.__name__)
 
         # Get a table
         table = self.fileh.get_node("/group0/table1")
         if common.verbose:
-            print "Nrows in old", table._v_pathname, ":", table.nrows
-            print "Record Format ==>", table.description._v_nested_formats
-            print "Record Size ==>", table.rowsize
+            print("Nrows in old", table._v_pathname, ":", table.nrows)
+            print("Record Format ==>", table.description._v_nested_formats)
+            print("Record Size ==>", table.rowsize)
         # Set a small number of buffer to make this test faster
         table.nrowsinbuf = 3
         # Get their row object
@@ -1135,8 +1136,8 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [row['var2'] for row in table.iterrows()
                   if 100 <= row['var2'] < 120]
         if common.verbose:
-            print "Result length ==>", len(result)
-            print "Result contents ==>", result
+            print("Result length ==>", len(result))
+            print("Result contents ==>", result)
         if table.nrows > 119:
             # Case for big tables
             self.assertEqual(len(result), 39)
@@ -1191,8 +1192,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking if table is endianess aware"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_endianess..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_endianess..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -1201,11 +1202,11 @@ class BasicTestCase(common.PyTablesTestCase):
         # Read the records and select the ones with "var3" column less than 20
         result = [rec['var2'] for rec in table.iterrows() if rec['var3'] < 20]
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "On-disk byteorder ==>", table.byteorder
-            print "Last record in table ==>", rec
-            print "Selected records ==>", result
-            print "Total selected records in table ==>", len(result)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("On-disk byteorder ==>", table.byteorder)
+            print("Last record in table ==>", rec)
+            print("Selected records ==>", result)
+            print("Total selected records in table ==>", len(result))
         nrows = self.expectedrows - 1
         self.assertEqual(table.byteorder,
                          {"little": "big", "big": "little"}[sys.byteorder])
@@ -1217,8 +1218,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking whether a single row can be deleted"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_delete..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_delete..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "a")
@@ -1228,9 +1229,9 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last selected value ==>", result[-1]
-            print "Total selected records in table ==>", len(result)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last selected value ==>", result[-1])
+            print("Total selected records in table ==>", len(result))
 
         nrows = table.nrows
         table.nrowsinbuf = 3  # small value of the buffer
@@ -1241,9 +1242,9 @@ class BasicTestCase(common.PyTablesTestCase):
         result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last selected value ==>", result2[-1]
-            print "Total selected records in table ==>", len(result2)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last selected value ==>", result2[-1])
+            print("Total selected records in table ==>", len(result2))
 
         self.assertEqual(table.nrows, nrows - 1)
         self.assertEqual(table.shape, (nrows - 1,))
@@ -1255,8 +1256,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking whether a single row can be deleted"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_delete..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_delete..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "a")
@@ -1266,9 +1267,9 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last selected value ==>", result[-1]
-            print "Total selected records in table ==>", len(result)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last selected value ==>", result[-1])
+            print("Total selected records in table ==>", len(result))
 
         nrows = table.nrows
         table.nrowsinbuf = 3  # small value of the buffer
@@ -1279,9 +1280,9 @@ class BasicTestCase(common.PyTablesTestCase):
         result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last selected value ==>", result2[-1]
-            print "Total selected records in table ==>", len(result2)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last selected value ==>", result2[-1])
+            print("Total selected records in table ==>", len(result2))
 
         self.assertEqual(table.nrows, nrows - 1)
         self.assertEqual(table.shape, (nrows - 1,))
@@ -1293,8 +1294,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking whether a range of rows can be deleted"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04b_delete..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04b_delete..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "a")
@@ -1304,9 +1305,9 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last selected value ==>", result[-1]
-            print "Total selected records in table ==>", len(result)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last selected value ==>", result[-1])
+            print("Total selected records in table ==>", len(result))
 
         nrows = table.nrows
         table.nrowsinbuf = 4  # small value of the buffer
@@ -1317,9 +1318,9 @@ class BasicTestCase(common.PyTablesTestCase):
         result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last selected value ==>", result2[-1]
-            print "Total selected records in table ==>", len(result2)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last selected value ==>", result2[-1])
+            print("Total selected records in table ==>", len(result2))
 
         self.assertEqual(table.nrows, nrows - 10)
         self.assertEqual(table.shape, (nrows - 10,))
@@ -1331,8 +1332,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking whether removing a bad range of rows is detected"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04c_delete..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04c_delete..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "a")
@@ -1350,9 +1351,9 @@ class BasicTestCase(common.PyTablesTestCase):
         result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last selected value ==>", result2[-1]
-            print "Total selected records in table ==>", len(result2)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last selected value ==>", result2[-1])
+            print("Total selected records in table ==>", len(result2))
 
         self.assertEqual(table.nrows, 10)
         self.assertEqual(table.shape, (10,))
@@ -1364,8 +1365,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking whether removing rows several times at once is working"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04d_delete..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04d_delete..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "a")
@@ -1448,9 +1449,9 @@ class BasicTestCase(common.PyTablesTestCase):
         result2 = [r['var2'] for r in table if r['var2'] < 20]
 
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last selected value ==>", result2[-1]
-            print "Total selected records in table ==>", len(result2)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last selected value ==>", result2[-1])
+            print("Total selected records in table ==>", len(result2))
 
         self.assertEqual(table.nrows, nrows - 5)
         self.assertEqual(table.shape, (nrows - 5,))
@@ -1463,8 +1464,8 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking tablefilters"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_filtersTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_filtersTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -1472,18 +1473,18 @@ class BasicTestCase(common.PyTablesTestCase):
 
         # Check filters:
         if self.compress != table.filters.complevel and common.verbose:
-            print "Error in compress. Class:", self.__class__.__name__
-            print "self, table:", self.compress, table.filters.complevel
+            print("Error in compress. Class:", self.__class__.__name__)
+            print("self, table:", self.compress, table.filters.complevel)
         self.assertEqual(table.filters.complevel, self.compress)
         if self.compress > 0 and which_lib_version(self.complib):
             self.assertEqual(table.filters.complib, self.complib)
         if self.shuffle != table.filters.shuffle and common.verbose:
-            print "Error in shuffle. Class:", self.__class__.__name__
-            print "self, table:", self.shuffle, table.filters.shuffle
+            print("Error in shuffle. Class:", self.__class__.__name__)
+            print("self, table:", self.shuffle, table.filters.shuffle)
         self.assertEqual(self.shuffle, table.filters.shuffle)
         if self.fletcher32 != table.filters.fletcher32 and common.verbose:
-            print "Error in fletcher32. Class:", self.__class__.__name__
-            print "self, table:", self.fletcher32, table.filters.fletcher32
+            print("Error in fletcher32. Class:", self.__class__.__name__)
+            print("self, table:", self.fletcher32, table.filters.fletcher32)
         self.assertEqual(self.fletcher32, table.filters.fletcher32)
 
     def test06_attributes(self):
@@ -2110,20 +2111,20 @@ class BasicRangeTestCase(unittest.TestCase):
             stopr = self.nrows
 
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
+            print("Nrows in", table._v_pathname, ":", table.nrows)
             if reslength:
                 if self.checkrecarray:
-                    print "Last record *read* in recarray ==>", recarray[-1]
+                    print("Last record *read* in recarray ==>", recarray[-1])
                 elif self.checkgetCol:
-                    print "Last value *read* in getCol ==>", column[-1]
+                    print("Last value *read* in getCol ==>", column[-1])
                 else:
-                    print "Last record *read* in table range ==>", rec
-            print "Total number of selected records ==>", len(result)
-            print "Selected records:\n", result
-            print "Selected records should look like:\n", \
-                  range(startr, stopr, self.step)
-            print "start, stop, step ==>", self.start, self.stop, self.step
-            print "startr, stopr, step ==>", startr, stopr, self.step
+                    print("Last record *read* in table range ==>", rec)
+            print("Total number of selected records ==>", len(result))
+            print("Selected records:\n", result)
+            print("Selected records should look like:\n", \
+                  range(startr, stopr, self.step))
+            print("start, stop, step ==>", self.start, self.stop, self.step)
+            print("startr, stopr, step ==>", startr, stopr, self.step)
 
         self.assertEqual(result, range(startr, stopr, self.step))
         if not (self.checkrecarray or self.checkgetCol):
@@ -2153,8 +2154,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case1)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_range..." % self.__class__.__name__)
 
         # Case where step < nrowsinbuf < 2 * step
         self.nrows = 21
@@ -2169,8 +2170,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case1)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_range..." % self.__class__.__name__)
 
         # Case where step < nrowsinbuf < 2 * step
         self.nrows = 21
@@ -2185,8 +2186,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case2)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_range..." % self.__class__.__name__)
 
         # Case where step < nrowsinbuf < 10 * step
         self.nrows = 21
@@ -2201,8 +2202,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case3)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_range..." % self.__class__.__name__)
 
         # Case where step < nrowsinbuf < 1.1 * step
         self.nrows = self.expectedrows
@@ -2217,8 +2218,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case4)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_range..." % self.__class__.__name__)
 
         # Case where step == nrowsinbuf
         self.nrows = self.expectedrows
@@ -2233,8 +2234,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case5)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_range..." % self.__class__.__name__)
 
         # Case where step > 1.1 * nrowsinbuf
         self.nrows = 21
@@ -2249,8 +2250,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case6)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06_range..." % self.__class__.__name__)
 
         # Case where step > 3 * nrowsinbuf
         self.nrows = 3
@@ -2265,8 +2266,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case7)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test07_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test07_range..." % self.__class__.__name__)
 
         # Case where start == stop
         self.nrows = 2
@@ -2281,8 +2282,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case8)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08_range..." % self.__class__.__name__)
 
         # Case where start > stop
         self.nrows = 2
@@ -2297,8 +2298,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case9)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09_range..." % self.__class__.__name__)
 
         # Case where stop = None (last row)
         self.nrows = 100
@@ -2313,8 +2314,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case10)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test10_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test10_range..." % self.__class__.__name__)
 
         # Case where start < 0 and stop = None (last row)
         self.nrows = self.expectedrows
@@ -2331,8 +2332,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case10a)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test10a_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test10a_range..." % self.__class__.__name__)
 
         # Case where start < 0 and stop = 0
         self.nrows = self.expectedrows
@@ -2349,8 +2350,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case11)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test11_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test11_range..." % self.__class__.__name__)
 
         # Case where start < 0 and stop < 0
         self.nrows = self.expectedrows
@@ -2367,8 +2368,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case12)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test12_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test12_range..." % self.__class__.__name__)
 
         # Case where start < 0 and stop < 0 and start > stop
         self.nrows = self.expectedrows
@@ -2385,8 +2386,8 @@ class BasicRangeTestCase(unittest.TestCase):
         """Checking ranges in table iterators (case13)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test13_range..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test13_range..." % self.__class__.__name__)
 
         # Case where step < 0
         self.step = -11
@@ -2395,8 +2396,8 @@ class BasicRangeTestCase(unittest.TestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next ValueError was catched!"
-                print value
+                print("\nGreat!, the next ValueError was catched!")
+                print(value)
             self.fileh.close()
         #else:
         #    print rec
@@ -2409,8 +2410,8 @@ class BasicRangeTestCase(unittest.TestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next ValueError was catched!"
-                print value
+                print("\nGreat!, the next ValueError was catched!")
+                print(value)
             self.fileh.close()
         #else:
         #    print rec
@@ -2432,8 +2433,8 @@ class getColRangeTestCase(BasicRangeTestCase):
         """Checking non-existing Field in getCol method """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_nonexistentField..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_nonexistentField..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -2446,11 +2447,11 @@ class getColRangeTestCase(BasicRangeTestCase):
         except KeyError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next KeyError was catched!"
-                print value
+                print("\nGreat!, the next KeyError was catched!")
+                print(value)
             self.fileh.close()
         else:
-            print rec
+            print(rec)
             self.fail("expected a KeyError")
 
 
@@ -2529,8 +2530,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method with single parameter (int) """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_singleItem..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_singleItem..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2545,8 +2546,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method with single parameter (neg. int)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b_singleItem..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b_singleItem..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2561,8 +2562,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method with single parameter (long)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01c_singleItem..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01c_singleItem..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2577,8 +2578,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method with single parameter (neg. long)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01d_singleItem..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01d_singleItem..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2593,8 +2594,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method with single parameter (rank-0 ints)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01e_singleItem..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01e_singleItem..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2609,8 +2610,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method with start, stop parameters """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_twoItem..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_twoItem..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2629,8 +2630,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method with start, stop, step parameters """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_threeItem..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_threeItem..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2649,8 +2650,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method with negative step parameter"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_negativeStep..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_negativeStep..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2659,8 +2660,8 @@ class getItemTestCase(unittest.TestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next ValueError was catched!"
-                print value
+                print("\nGreat!, the next ValueError was catched!")
+                print(value)
         else:
             self.fail("expected a ValueError")
 
@@ -2668,8 +2669,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method in Col with single parameter """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06a_singleItemCol..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06a_singleItemCol..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2683,8 +2684,8 @@ class getItemTestCase(unittest.TestCase):
         (negative)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06b_singleItem..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06b_singleItem..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2697,8 +2698,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method in Col with start, stop parameters """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test07_twoItemCol..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test07_twoItemCol..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2714,8 +2715,8 @@ class getItemTestCase(unittest.TestCase):
         parameters"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08_threeItemCol..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08_threeItemCol..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2730,8 +2731,8 @@ class getItemTestCase(unittest.TestCase):
         """Checking __getitem__ method in Col with negative step parameter"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09_negativeStep..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09_negativeStep..." % self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2741,8 +2742,8 @@ class getItemTestCase(unittest.TestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next ValueError was catched!"
-                print value
+                print("\nGreat!, the next ValueError was catched!")
+                print(value)
         else:
             self.fail("expected a ValueError")
 
@@ -2819,8 +2820,8 @@ class setItem(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -2855,8 +2856,8 @@ class setItem(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -2892,8 +2893,8 @@ class setItem(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -2931,8 +2932,8 @@ class setItem(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -2970,8 +2971,8 @@ class setItem(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3006,8 +3007,8 @@ class setItem(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3042,8 +3043,8 @@ class setItem(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3072,8 +3073,8 @@ class setItem(common.PyTablesTestCase):
         except NotImplementedError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next NotImplementedError was catched!"
-                print value
+                print("\nGreat!, the next NotImplementedError was catched!")
+                print(value)
         else:
             self.fail("expected a NotImplementedError")
 
@@ -3125,8 +3126,8 @@ class setItem(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3161,8 +3162,8 @@ class setItem(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3200,8 +3201,8 @@ class setItem(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3265,8 +3266,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3306,8 +3307,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3347,8 +3348,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3388,8 +3389,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3426,8 +3427,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3464,8 +3465,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3502,8 +3503,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3550,8 +3551,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, nrows)
 
@@ -3598,8 +3599,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, nrows)
 
@@ -3651,8 +3652,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, nrows)
 
@@ -3705,8 +3706,8 @@ class updateRow(common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, nrows)
 
@@ -3736,8 +3737,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking saving a regular recarray"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -3763,8 +3764,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking saving a recarray with an offset in its buffer"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -3794,8 +3795,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking saving a large recarray with an offset in its buffer"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -3824,8 +3825,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking saving a strided recarray with an offset in its buffer"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -3856,8 +3857,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking appending several rows at once"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -3887,8 +3888,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = fileh.root.recarray.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3899,8 +3900,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking appending several rows at once (close file version)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -3929,8 +3930,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = fileh.root.recarray.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3941,8 +3942,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying one table row (list version)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06a..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -3969,8 +3970,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -3981,8 +3982,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying one table row (recarray version)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06b..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4010,8 +4011,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4022,8 +4023,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying several rows at once (list version)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test07a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test07a..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4050,8 +4051,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4062,8 +4063,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying several rows at once (recarray version)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test07b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test07b..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4092,8 +4093,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4104,8 +4105,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying several rows with a mismatching value"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test07c..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test07c..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4130,8 +4131,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying one column (single column version)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08a..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4159,8 +4160,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4171,8 +4172,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying one column (single column version, modify_column)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08a2..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08a2..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4200,8 +4201,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4212,8 +4213,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying one column (single column version, recarray)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08b..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4242,8 +4243,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4255,8 +4256,8 @@ class RecArrayIO(unittest.TestCase):
         modify_column)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08b2..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08b2..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4285,8 +4286,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4297,8 +4298,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying one column (single column version, single element)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08c..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08c..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4328,8 +4329,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4340,8 +4341,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying table columns (multiple column version)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09a..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4371,8 +4372,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4383,8 +4384,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying table columns (multiple columns, recarray)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09b..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4414,8 +4415,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4426,8 +4427,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying table columns (single column, step)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09c..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09c..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4457,8 +4458,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4469,8 +4470,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying table columns (multiple columns, step)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09d..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09d..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4501,8 +4502,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4513,8 +4514,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying rows using coordinates (readCoords/modifyCoords)."
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test10a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test10a..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4549,8 +4550,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4561,8 +4562,8 @@ class RecArrayIO(unittest.TestCase):
         "Checking modifying rows using coordinates (getitem/setitem)."
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test10b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test10b..." % self.__class__.__name__)
 
         file = tempfile.mktemp(".h5")
         fileh = open_file(file, "w")
@@ -4597,8 +4598,8 @@ class RecArrayIO(unittest.TestCase):
             table = fileh.root.recarray
         r2 = table.read()
         if common.verbose:
-            print "Original table-->", repr(r2)
-            print "Should look like-->", repr(r1)
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
         self.assertEqual(table.nrows, 4)
 
@@ -4636,8 +4637,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Table.copy() method """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -4651,7 +4652,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             table1 = fileh.root.table1
@@ -4661,18 +4662,18 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             table1 = fileh.root.table1
             table2 = fileh.root.table2
 
         if common.verbose:
-            print "table1-->", table1.read()
-            print "table2-->", table2.read()
+            print("table1-->", table1.read())
+            print("table2-->", table2.read())
             # print "dirs-->", dir(table1), dir(table2)
-            print "attrs table1-->", repr(table1.attrs)
-            print "attrs table2-->", repr(table2.attrs)
+            print("attrs table1-->", repr(table1.attrs))
+            print("attrs table2-->", repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
@@ -4712,8 +4713,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Table.copy() method (where specified)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -4727,7 +4728,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             table1 = fileh.root.table1
@@ -4738,17 +4739,17 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             table1 = fileh.root.table1
             table2 = fileh.root.group1.table2
 
         if common.verbose:
-            print "table1-->", table1.read()
-            print "table2-->", table2.read()
-            print "attrs table1-->", repr(table1.attrs)
-            print "attrs table2-->", repr(table2.attrs)
+            print("table1-->", table1.read())
+            print("table2-->", table2.read())
+            print("attrs table1-->", repr(table1.attrs))
+            print("attrs table2-->", repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
@@ -4782,8 +4783,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Table.copy() method (table larger than buffer)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -4801,7 +4802,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             table1 = fileh.root.table1
@@ -4812,17 +4813,17 @@ class CopyTestCase(unittest.TestCase):
         table2 = table1.copy(group1, 'table2', title="title table2")
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             table1 = fileh.root.table1
             table2 = fileh.root.group1.table2
 
         if common.verbose:
-            print "table1-->", table1.read()
-            print "table2-->", table2.read()
-            print "attrs table1-->", repr(table1.attrs)
-            print "attrs table2-->", repr(table2.attrs)
+            print("table1-->", table1.read())
+            print("table2-->", table2.read())
+            print("attrs table1-->", repr(table1.attrs))
+            print("attrs table2-->", repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
@@ -4856,8 +4857,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Table.copy() method (different compress level)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -4871,7 +4872,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             table1 = fileh.root.table1
@@ -4883,17 +4884,17 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             table1 = fileh.root.table1
             table2 = fileh.root.group1.table2
 
         if common.verbose:
-            print "table1-->", table1.read()
-            print "table2-->", table2.read()
-            print "attrs table1-->", repr(table1.attrs)
-            print "attrs table2-->", repr(table2.attrs)
+            print("table1-->", table1.read())
+            print("table2-->", table2.read())
+            print("attrs table1-->", repr(table1.attrs))
+            print("attrs table2-->", repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
@@ -4926,8 +4927,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Table.copy() method (user attributes copied)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -4944,7 +4945,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             table1 = fileh.root.table1
@@ -4957,17 +4958,17 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             table1 = fileh.root.table1
             table2 = fileh.root.group1.table2
 
         if common.verbose:
-            print "table1-->", table1.read()
-            print "table2-->", table2.read()
-            print "attrs table1-->", repr(table1.attrs)
-            print "attrs table2-->", repr(table2.attrs)
+            print("table1-->", table1.read())
+            print("table2-->", table2.read())
+            print("attrs table1-->", repr(table1.attrs))
+            print("attrs table2-->", repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
@@ -5002,8 +5003,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking Table.copy() method (user attributes not copied)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05b_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05b_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -5020,7 +5021,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             table1 = fileh.root.table1
@@ -5033,17 +5034,17 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             table1 = fileh.root.table1
             table2 = fileh.root.group1.table2
 
         if common.verbose:
-            print "table1-->", table1.read()
-            print "table2-->", table2.read()
-            print "attrs table1-->", repr(table1.attrs)
-            print "attrs table2-->", repr(table2.attrs)
+            print("table1-->", table1.read())
+            print("table2-->", table2.read())
+            print("attrs table1-->", repr(table1.attrs))
+            print("attrs table2-->", repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
@@ -5090,8 +5091,8 @@ class CopyIndexTestCase(unittest.TestCase):
         """Checking Table.copy() method with indexes"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_index..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_index..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -5108,7 +5109,7 @@ class CopyIndexTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             table1 = fileh.root.table1
@@ -5120,10 +5121,10 @@ class CopyIndexTestCase(unittest.TestCase):
                              stop=self.stop,
                              step=self.step)
         if common.verbose:
-            print "table1-->", table1.read()
-            print "table2-->", table2.read()
-            print "attrs table1-->", repr(table1.attrs)
-            print "attrs table2-->", repr(table2.attrs)
+            print("table1-->", table1.read())
+            print("table2-->", table2.read())
+            print("attrs table1-->", repr(table1.attrs))
+            print("attrs table2-->", repr(table2.attrs))
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
@@ -5134,8 +5135,8 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Assert the number of rows in table
         if common.verbose:
-            print "nrows in table2-->", table2.nrows
-            print "and it should be-->", r2.shape[0]
+            print("nrows in table2-->", table2.nrows)
+            print("and it should be-->", r2.shape[0])
         self.assertEqual(r2.shape[0], table2.nrows)
 
         # Close the file
@@ -5146,8 +5147,8 @@ class CopyIndexTestCase(unittest.TestCase):
         """Checking Table.copy() method with indexes (close file version)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_indexclosef..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_indexclosef..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -5161,7 +5162,7 @@ class CopyIndexTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             table1 = fileh.root.table1
@@ -5179,10 +5180,10 @@ class CopyIndexTestCase(unittest.TestCase):
         table2 = fileh.root.table2
 
         if common.verbose:
-            print "table1-->", table1.read()
-            print "table2-->", table2.read()
-            print "attrs table1-->", repr(table1.attrs)
-            print "attrs table2-->", repr(table2.attrs)
+            print("table1-->", table1.read())
+            print("table2-->", table2.read())
+            print("attrs table1-->", repr(table1.attrs))
+            print("attrs table2-->", repr(table2.attrs))
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
@@ -5193,8 +5194,8 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Assert the number of rows in table
         if common.verbose:
-            print "nrows in table2-->", table2.nrows
-            print "and it should be-->", r2.shape[0]
+            print("nrows in table2-->", table2.nrows)
+            print("and it should be-->", r2.shape[0])
         self.assertEqual(r2.shape[0], table2.nrows)
 
         # Close the file
@@ -5409,13 +5410,13 @@ class DefaultValues(unittest.TestCase):
         # This generates too much output. Activate only when
         # self.nrowsinbuf is very small (<10)
         if common.verbose:
-            print "First 10 table values:"
+            print("First 10 table values:")
             for row in table.iterrows(0, 10):
-                print row
-            print "The first 5 read recarray values:"
-            print r2[:5]
-            print "Records should look like:"
-            print r[:5]
+                print(row)
+            print("The first 5 read recarray values:")
+            print(r2[:5])
+            print("Records should look like:")
+            print(r[:5])
 
         for name1, name2 in zip(r.dtype.names, r2.dtype.names):
             self.assertTrue(allequal(r[name1], r2[name2]))
@@ -5488,13 +5489,13 @@ class DefaultValues(unittest.TestCase):
         # This generates too much output. Activate only when
         # self.nrowsinbuf is very small (<10)
         if common.verbose:
-            print "First 10 table values:"
+            print("First 10 table values:")
             for row in table.iterrows(0, 10):
-                print row
-            print "The first 5 read recarray values:"
-            print r2[:5]
-            print "Records should look like:"
-            print r[:5]
+                print(row)
+            print("The first 5 read recarray values:")
+            print(r2[:5])
+            print("Records should look like:")
+            print(r[:5])
 
         for name1, name2 in zip(r.dtype.names, r2.dtype.names):
             self.assertTrue(allequal(r[name1], r2[name2]))
@@ -5560,8 +5561,8 @@ class LengthTestCase(unittest.TestCase):
         """Checking __length__ in Table"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_lengthrows..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_lengthrows..." % self.__class__.__name__)
 
         # Number of rows
         len(self.table) == self.nrows
@@ -5570,8 +5571,8 @@ class LengthTestCase(unittest.TestCase):
         """Checking __length__ in Cols"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_lengthcols..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_lengthcols..." % self.__class__.__name__)
 
         # Number of columns
         if self.record is Record:
@@ -5583,8 +5584,8 @@ class LengthTestCase(unittest.TestCase):
         """Checking __length__ in Column"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_lengthcol..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_lengthcol..." % self.__class__.__name__)
 
         # Number of rows for all columns column
         for colname in self.table.colnames:
@@ -5792,7 +5793,7 @@ class ChunkshapeTestCase(unittest.TestCase):
 
         tbl = self.fileh.root.table
         if common.verbose:
-            print "chunkshape-->", tbl.chunkshape
+            print("chunkshape-->", tbl.chunkshape)
         self.assertEqual(tbl.chunkshape, (13,))
 
     def test01(self):
@@ -5802,7 +5803,7 @@ class ChunkshapeTestCase(unittest.TestCase):
         self.fileh = open_file(self.file, 'r')
         tbl = self.fileh.root.table
         if common.verbose:
-            print "chunkshape-->", tbl.chunkshape
+            print("chunkshape-->", tbl.chunkshape)
         self.assertEqual(tbl.chunkshape, (13,))
 
 
@@ -5863,8 +5864,8 @@ class IrregularStrideTestCase(unittest.TestCase):
         coords1 = table.get_where_list('c1<5')
         coords2 = table.get_where_list('c2<5')
         if common.verbose:
-            print "\nSelected coords1-->", coords1
-            print "Selected coords2-->", coords2
+            print("\nSelected coords1-->", coords1)
+            print("Selected coords2-->", coords2)
         self.assertTrue(allequal(coords1, np.arange(5, dtype=SizeType)))
         self.assertTrue(allequal(coords2, np.arange(5, dtype=SizeType)))
 
@@ -5909,10 +5910,10 @@ class Issue262TestCase(unittest.TestCase):
         data = data[np.where((data['c1'] > 5) & (data['c2'] < 30))]
 
         if common.verbose:
-            print
-            print "Selected coords1-->", coords1
-            print "Selected coords2-->", coords2
-            print "Selected data-->", data
+            print()
+            print("Selected coords1-->", coords1)
+            print("Selected coords2-->", coords2)
+            print("Selected data-->", data)
         self.assertEqual(len(coords1) + len(coords2), len(data))
 
     def test_gh262_01(self):
@@ -5922,8 +5923,8 @@ class Issue262TestCase(unittest.TestCase):
         data = table.get_where_list('(c1>5)&(~(c1>5))', start=0, step=1)
 
         if common.verbose:
-            print
-            print "data -->", data
+            print()
+            print("data -->", data)
         self.assertEqual(len(data), 0)
 
     def test_gh262_02(self):
@@ -5933,8 +5934,8 @@ class Issue262TestCase(unittest.TestCase):
         data = table.get_where_list('(c1>5)&(~(c1>5))', start=1, step=1)
 
         if common.verbose:
-            print
-            print "data -->", data
+            print()
+            print("data -->", data)
         self.assertEqual(len(data), 0)
 
     def test_gh262_03(self):
@@ -5944,8 +5945,8 @@ class Issue262TestCase(unittest.TestCase):
         data = table.get_where_list('(c1>5)&(~(c1>5))', start=0, step=2)
 
         if common.verbose:
-            print
-            print "data -->", data
+            print()
+            print("data -->", data)
         self.assertEqual(len(data), 0)
 
     def test_gh262_04(self):
@@ -5955,8 +5956,8 @@ class Issue262TestCase(unittest.TestCase):
         data = table.get_where_list('(c1>5)&(~(c1>5))', start=1, step=2)
 
         if common.verbose:
-            print
-            print "data -->", data
+            print()
+            print("data -->", data)
         self.assertEqual(len(data), 0)
 
 
@@ -5989,13 +5990,13 @@ class TruncateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             table = self.fileh.root.table
 
         if common.verbose:
-            print "table-->", table.read()
+            print("table-->", table.read())
 
         self.assertEqual(table.nrows, 0)
         for row in table:
@@ -6010,13 +6011,13 @@ class TruncateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             table = self.fileh.root.table
 
         if common.verbose:
-            print "table-->", table.read()
+            print("table-->", table.read())
 
         self.assertEqual(table.nrows, 1)
         for row in table:
@@ -6031,13 +6032,13 @@ class TruncateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             table = self.fileh.root.table
 
         if common.verbose:
-            print "table-->", table.read()
+            print("table-->", table.read())
 
         self.assertEqual(table.nrows, 2)
         for row in table:
@@ -6052,13 +6053,13 @@ class TruncateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r")
             table = self.fileh.root.table
 
         if common.verbose:
-            print "table-->", table.read()
+            print("table-->", table.read())
 
         self.assertEqual(table.nrows, 4)
         # Check the original values
@@ -6133,12 +6134,12 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = (data >= value1) & (data < value2)
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             a = recarr[key]
             b = table[key]
             if common.verbose:
-                print "NumPy selection:", a
-                print "PyTables selection:", b
+                print("NumPy selection:", a)
+                print("PyTables selection:", b)
             npt.assert_array_equal(
                 a, b, "NumPy array and PyTables selections does not match.")
 
@@ -6150,7 +6151,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))
             if common.verbose:
-                print "Selection to test:", key, type(key)
+                print("Selection to test:", key, type(key))
             a = recarr[key]
             b = table[key]
 #             if common.verbose:
@@ -6167,7 +6168,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             recarr[key]
             fkey = np.array(key, "f4")
             self.assertRaises(TypeError, table.__getitem__, fkey)
@@ -6180,7 +6181,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))[0]
             if common.verbose:
-                print "Selection to test:", key, type(key)
+                print("Selection to test:", key, type(key))
             a = recarr[key]
             b = table[key]
 #             if common.verbose:
@@ -6197,7 +6198,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))[0].tolist()
             if common.verbose:
-                print "Selection to test:", key, type(key)
+                print("Selection to test:", key, type(key))
             a = recarr[key]
             b = table[key]
 #             if common.verbose:
@@ -6214,7 +6215,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             s = recarr[key]
             # Modify the s recarray
             s["f0"][:] = data[:len(s)]*2
@@ -6238,7 +6239,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))
             if common.verbose:
-                print "Selection to test:", key
+                print("Selection to test:", key)
             s = recarr[key]
             # Modify the s recarray
             s["f0"][:] = data[:len(s)]*2
@@ -6269,7 +6270,7 @@ class MDLargeColTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
         # Check the value
         if common.verbose:
-            print "First row-->", tbl[0]['col1']
+            print("First row-->", tbl[0]['col1'])
         npt.assert_array_equal(tbl[0]['col1'], np.zeros(N, 'i1'))
 
 
@@ -6328,7 +6329,7 @@ class ExhaustedIter(common.PyTablesTestCase):
             vals = [row['value'] for row in rows_grouped]
             scenario_means.append(self.average(vals))
         if common.verbose:
-            print 'Means -->', scenario_means
+            print('Means -->', scenario_means)
         self.assertEqual(scenario_means, [112.0, 112.0, 112.0])
 
     def test01_groupby(self):
@@ -6342,7 +6343,7 @@ class ExhaustedIter(common.PyTablesTestCase):
             vals = [row['value'] for row in rows_grouped]
             scenario_means.append(self.average(vals))
         if common.verbose:
-            print 'Means -->', scenario_means
+            print('Means -->', scenario_means)
         self.assertEqual(scenario_means, [112.0, 112.0, 112.0])
 
 
@@ -6354,7 +6355,7 @@ class SpecialColnamesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t = f.create_table(f.root, "test", a)
         self.assertEqual(len(t.colnames), 3, "Number of columns incorrect")
         if common.verbose:
-            print "colnames -->", t.colnames
+            print("colnames -->", t.colnames)
         for name, name2 in zip(t.colnames, ("a", "_b", "__c")):
             self.assertEqual(name, name2)
 
@@ -6366,7 +6367,7 @@ class RowContainsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t = f.create_table(f.root, "test", a)
         row = [r for r in t.iterrows()][0]
         if common.verbose:
-            print "row -->", row[:]
+            print("row -->", row[:])
         for item in (1, 2, 3):
             self.assertTrue(item in row)
         self.assertTrue(4 not in row)

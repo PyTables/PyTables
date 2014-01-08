@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import sys
 import unittest
 import os
@@ -65,8 +66,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking simple do/undo"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_simple..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00_simple..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -82,7 +83,7 @@ class BasicTestCase(unittest.TestCase):
         self._doReopen()
         self.fileh.redo()
         if common.verbose:
-            print "Object tree after redo:", self.fileh
+            print("Object tree after redo:", self.fileh)
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/otherarray" in self.fileh)
         self.assertEqual(self.fileh.root.otherarray.read(), [3, 4])
@@ -94,8 +95,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking do/undo (twice operations intertwined)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_twice..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_twice..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -125,8 +126,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking twice ops and two marks"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_twice2..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_twice2..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -172,8 +173,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking with six ops and three marks"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_6times3marks..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_6times3marks..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -255,8 +256,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking with six operations, three marks and do/undo in random order"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_6times3marksro..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_6times3marksro..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -276,7 +277,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue("/otherarray4" not in self.fileh)
         # Put a mark in the middle of stack
         if common.verbose:
-            print "All nodes:", self.fileh.walk_nodes()
+            print("All nodes:", self.fileh.walk_nodes())
         self.fileh.mark()
         self._doReopen()
         self.fileh.create_array('/', 'otherarray5', [7, 8], "Another array 5")
@@ -325,8 +326,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking with a destructive action during undo"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_destructive..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_destructive..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -354,8 +355,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking with a destructive action during undo (II)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05b_destructive..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05b_destructive..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -390,8 +391,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking with a destructive action during undo (III)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05c_destructive..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05c_destructive..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -424,8 +425,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking with a destructive action during undo (IV)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05d_destructive..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05d_destructive..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -456,8 +457,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking with a destructive action during undo (V)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05e_destructive..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05e_destructive..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -483,8 +484,8 @@ class BasicTestCase(unittest.TestCase):
         "Checking with a destructive creation of existing node during undo"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05f_destructive..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05f_destructive..." % self.__class__.__name__)
 
         self.fileh.enable_undo()
         self.fileh.create_array('/', 'newarray', [1])
@@ -504,8 +505,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking do/undo (total unwind)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06_totalunwind..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06_totalunwind..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -523,8 +524,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking do/undo (total rewind)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test07_totalunwind..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test07_totalunwind..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -549,8 +550,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking mark names"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08_marknames..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08_marknames..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -598,8 +599,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking initial mark"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08_initialmark..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08_initialmark..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -628,8 +629,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking mark names (wrong direction)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09_marknames..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09_marknames..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -650,8 +651,8 @@ class BasicTestCase(unittest.TestCase):
         except UndoRedoError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next UndoRedoError was catched!"
-                print value
+                print("\nGreat!, the next UndoRedoError was catched!")
+                print(value)
         else:
             self.fail("expected an UndoRedoError")
         # Now go to mark "third"
@@ -663,8 +664,8 @@ class BasicTestCase(unittest.TestCase):
         except UndoRedoError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next UndoRedoError was catched!"
-                print value
+                print("\nGreat!, the next UndoRedoError was catched!")
+                print(value)
         else:
             self.fail("expected an UndoRedoError")
         # Final checks
@@ -677,8 +678,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking mark names (goto)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test10_goto..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test10_goto..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -728,8 +729,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking mark sequential ids (goto)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test10_gotoint..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test10_gotoint..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -786,8 +787,8 @@ class BasicTestCase(unittest.TestCase):
         "Creating contiguous marks"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test11_contiguous..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test11_contiguous..." % self.__class__.__name__)
 
         self.fileh.enable_undo()
         m1 = self.fileh.mark()
@@ -812,8 +813,8 @@ class BasicTestCase(unittest.TestCase):
         "Ensuring the mark is kept after an UNDO operation"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test12_keepMark..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test12_keepMark..." % self.__class__.__name__)
 
         self.fileh.enable_undo()
         self.fileh.create_array('/', 'newarray1', [1])
@@ -831,8 +832,8 @@ class BasicTestCase(unittest.TestCase):
         "Checking that successive enable/disable Undo works"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test13_severalEnableDisable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test13_severalEnableDisable..." % self.__class__.__name__)
 
         self.fileh.enable_undo()
         self.fileh.create_array('/', 'newarray1', [1])
@@ -933,8 +934,8 @@ class createArrayTestCase(unittest.TestCase):
         """Checking one action"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -955,8 +956,8 @@ class createArrayTestCase(unittest.TestCase):
         """Checking two actions"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -982,8 +983,8 @@ class createArrayTestCase(unittest.TestCase):
         """Checking three actions"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1014,8 +1015,8 @@ class createArrayTestCase(unittest.TestCase):
         """Checking three actions in different depth levels"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1087,8 +1088,8 @@ class createGroupTestCase(unittest.TestCase):
         """Checking one action"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1109,8 +1110,8 @@ class createGroupTestCase(unittest.TestCase):
         """Checking two actions"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1136,8 +1137,8 @@ class createGroupTestCase(unittest.TestCase):
         """Checking three actions"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1168,8 +1169,8 @@ class createGroupTestCase(unittest.TestCase):
         """Checking three actions in different depth levels"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1232,9 +1233,9 @@ def populateTable(where, name):
     # Do not index the var4 column
     # indexrows = table.cols.var4.create_index()
     if common.verbose:
-        print "Number of written rows:", nrows
-        print "Number of indexed rows:", table.cols.var1.index.nelements
-        print "Number of indexed rows(2):", indexrows
+        print("Number of written rows:", nrows)
+        print("Number of indexed rows:", table.cols.var1.index.nelements)
+        print("Number of indexed rows(2):", indexrows)
 
 
 class renameNodeTestCase(unittest.TestCase):
@@ -1279,8 +1280,8 @@ class renameNodeTestCase(unittest.TestCase):
         """Checking rename_node (over Groups without children)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1303,8 +1304,8 @@ class renameNodeTestCase(unittest.TestCase):
         """Checking rename_node (over Groups with children)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1335,8 +1336,8 @@ class renameNodeTestCase(unittest.TestCase):
         """Checking rename_node (over Groups with children 2)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1368,8 +1369,8 @@ class renameNodeTestCase(unittest.TestCase):
         """Checking rename_node (over Leaves)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1392,8 +1393,8 @@ class renameNodeTestCase(unittest.TestCase):
         """Checking rename_node (over Tables)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1471,8 +1472,8 @@ class moveNodeTestCase(unittest.TestCase):
         """Checking move_node (over Leaf)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1496,8 +1497,8 @@ class moveNodeTestCase(unittest.TestCase):
         """Checking move_node (over Groups with children)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1529,8 +1530,8 @@ class moveNodeTestCase(unittest.TestCase):
         """Checking move_node (over Groups with children 2)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1563,8 +1564,8 @@ class moveNodeTestCase(unittest.TestCase):
         """Checking move_node (over Leaves)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1587,8 +1588,8 @@ class moveNodeTestCase(unittest.TestCase):
         """Checking move_node (over Tables)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1667,8 +1668,8 @@ class removeNodeTestCase(unittest.TestCase):
         """Checking remove_node (over Leaf)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1688,8 +1689,8 @@ class removeNodeTestCase(unittest.TestCase):
         """Checking remove_node (over several Leaves)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00b..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1714,8 +1715,8 @@ class removeNodeTestCase(unittest.TestCase):
         """Checking remove_node (over Tables)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00c..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00c..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1743,8 +1744,8 @@ class removeNodeTestCase(unittest.TestCase):
         """Checking remove_node (over Groups with children)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1770,8 +1771,8 @@ class removeNodeTestCase(unittest.TestCase):
         """Checking remove_node (over Groups with children 2)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1841,8 +1842,8 @@ class copyNodeTestCase(unittest.TestCase):
         """Checking copy_node (over Leaves)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_copyLeaf..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00_copyLeaf..." % self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -1864,8 +1865,8 @@ class copyNodeTestCase(unittest.TestCase):
         """Checking copy_node (over Tables)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00b_copyTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00b_copyTable..." % self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -1916,8 +1917,8 @@ class copyNodeTestCase(unittest.TestCase):
         "Copying a group (recursively)."
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_copyGroup..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_copyGroup..." % self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -1946,8 +1947,8 @@ class copyNodeTestCase(unittest.TestCase):
         "Copying a leaf, overwriting destination."
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_copyLeafOverwrite..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_copyLeafOverwrite..." % self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -1972,8 +1973,8 @@ class copyNodeTestCase(unittest.TestCase):
         "Copying the children of a group."
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_copyChildren..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_copyChildren..." % self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -2035,8 +2036,8 @@ class ComplexTestCase(unittest.TestCase):
            copy_node and copy_children."""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00..." % self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -2078,8 +2079,8 @@ class ComplexTestCase(unittest.TestCase):
         "Test with multiple generations (Leaf case)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01..." % self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -2112,8 +2113,8 @@ class ComplexTestCase(unittest.TestCase):
         "Test with multiple generations (Group case)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02..." % self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -2147,8 +2148,8 @@ class ComplexTestCase(unittest.TestCase):
         "Test with multiple generations (Group case, recursive remove)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03..." % self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -2188,8 +2189,8 @@ class ComplexTestCase(unittest.TestCase):
         "Test with multiple generations (Group case, recursive remove, case 2)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03b..." % self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -2240,8 +2241,8 @@ class AttributesTestCase(unittest.TestCase):
         "Setting a nonexistent attribute."
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_setAttr..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test00_setAttr..." % self.__class__.__name__)
 
         array = self.fileh.root.array
         attrs = array.attrs
@@ -2260,8 +2261,8 @@ class AttributesTestCase(unittest.TestCase):
         "Setting an existing attribute."
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_setAttrExisting..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_setAttrExisting..." % self.__class__.__name__)
 
         array = self.fileh.root.array
         attrs = array.attrs
@@ -2281,8 +2282,8 @@ class AttributesTestCase(unittest.TestCase):
         "Removing an attribute."
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_delAttr..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_delAttr..." % self.__class__.__name__)
 
         array = self.fileh.root.array
         attrs = array.attrs
@@ -2300,8 +2301,8 @@ class AttributesTestCase(unittest.TestCase):
         "Copying an attribute set."
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_copyNodeAttrs..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_copyNodeAttrs..." % self.__class__.__name__)
 
         rattrs = self.fileh.root._v_attrs
         rattrs.attr_0 = 0
@@ -2331,8 +2332,8 @@ class AttributesTestCase(unittest.TestCase):
         "Replacing a node with a rewritten attribute."
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_replaceNode..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_replaceNode..." % self.__class__.__name__)
 
         array = self.fileh.root.array
         attrs = array.attrs

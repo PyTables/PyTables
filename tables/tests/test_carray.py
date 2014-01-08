@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import unittest
 import os
 import tempfile
@@ -76,7 +77,7 @@ class BasicTestCase(unittest.TestCase):
                 object = numpy.arange(self.objsize, dtype=carray.atom.dtype)
                 object.shape = carray.shape
         if common.verbose:
-            print "Object to append -->", repr(object)
+            print("Object to append -->", repr(object))
 
         carray[...] = object
 
@@ -113,8 +114,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking read() of chunked layout arrays"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_readCArray..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_readCArray..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         if self.reopen:
@@ -124,9 +125,9 @@ class BasicTestCase(unittest.TestCase):
         # Choose a small value for buffer size
         carray.nrowsinbuf = 3
         if common.verbose:
-            print "CArray descr:", repr(carray)
-            print "shape of read array ==>", carray.shape
-            print "reopening?:", self.reopen
+            print("CArray descr:", repr(carray))
+            print("shape of read array ==>", carray.shape)
+            print("reopening?:", self.reopen)
 
         shape = self._get_shape()
 
@@ -169,9 +170,9 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             if hasattr(object, "shape"):
-                print "shape should look as:", object.shape
-            print "Object read ==>", repr(data)
-            print "Should look like ==>", repr(object)
+                print("shape should look as:", object.shape)
+            print("Object read ==>", repr(data))
+            print("Should look like ==>", repr(object))
 
         if hasattr(data, "shape"):
             self.assertEqual(len(data.shape), len(shape))
@@ -244,8 +245,8 @@ class BasicTestCase(unittest.TestCase):
         """Checking chunked layout array __getitem__ special method"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_getitemCArray..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_getitemCArray..." % self.__class__.__name__)
 
         if not hasattr(self, "slices"):
             # If there is not a slices attribute, create it
@@ -257,9 +258,9 @@ class BasicTestCase(unittest.TestCase):
         carray = self.fileh.get_node("/carray1")
 
         if common.verbose:
-            print "CArray descr:", repr(carray)
-            print "shape of read array ==>", carray.shape
-            print "reopening?:", self.reopen
+            print("CArray descr:", repr(carray))
+            print("shape of read array ==>", carray.shape)
+            print("reopening?:", self.reopen)
 
         shape = self._get_shape()
 
@@ -280,19 +281,19 @@ class BasicTestCase(unittest.TestCase):
         try:
             data = carray.__getitem__(self.slices)
         except IndexError:
-            print "IndexError!"
+            print("IndexError!")
             if self.flavor == "numpy":
                 data = numpy.empty(shape=self.shape, dtype=self.type)
             else:
                 data = numpy.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
-            print "Object read:\n", repr(data)  # , data.info()
-            print "Should look like:\n", repr(object)  # , object.info()
+            print("Object read:\n", repr(data))  # , data.info()
+            print("Should look like:\n", repr(object))  # , object.info()
             if hasattr(object, "shape"):
-                print "Original object shape:", self.shape
-                print "Shape read:", data.shape
-                print "shape should look as:", object.shape
+                print("Original object shape:", self.shape)
+                print("Shape read:", data.shape)
+                print("shape should look as:", object.shape)
 
         if not hasattr(data, "shape"):
             # Scalar case
@@ -307,8 +308,8 @@ class BasicTestCase(unittest.TestCase):
             # see test_earray.py BasicTestCase.test03_setitemEArray
             return
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_setitemCArray..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03_setitemCArray..." % self.__class__.__name__)
 
         if not hasattr(self, "slices"):
             # If there is not a slices attribute, create it
@@ -320,9 +321,9 @@ class BasicTestCase(unittest.TestCase):
         carray = self.fileh.get_node("/carray1")
 
         if common.verbose:
-            print "CArray descr:", repr(carray)
-            print "shape of read array ==>", carray.shape
-            print "reopening?:", self.reopen
+            print("CArray descr:", repr(carray))
+            print("shape of read array ==>", carray.shape)
+            print("reopening?:", self.reopen)
 
         shape = self._get_shape()
 
@@ -361,19 +362,19 @@ class BasicTestCase(unittest.TestCase):
         try:
             data = carray.__getitem__(self.slices)
         except IndexError:
-            print "IndexError!"
+            print("IndexError!")
             if self.flavor == "numpy":
                 data = numpy.empty(shape=self.shape, dtype=self.type)
             else:
                 data = numpy.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
-            print "Object read:\n", repr(data)  # , data.info()
-            print "Should look like:\n", repr(object)  # , object.info()
+            print("Object read:\n", repr(data))  # , data.info()
+            print("Should look like:\n", repr(object))  # , object.info()
             if hasattr(object, "shape"):
-                print "Original object shape:", self.shape
-                print "Shape read:", data.shape
-                print "shape should look as:", object.shape
+                print("Original object shape:", self.shape)
+                print("Shape read:", data.shape)
+                print("shape should look as:", object.shape)
 
         if not hasattr(data, "shape"):
             # Scalar case
@@ -1069,8 +1070,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_String..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_String..." % self.__class__.__name__)
 
         shape = (3, 2, 2)
         # Create an string atom
@@ -1089,9 +1090,9 @@ class OffsetStrideTestCase(unittest.TestCase):
         # Read all the data:
         data = carray.read()
         if common.verbose:
-            print "Object read:", data
-            print "Nrows in", carray._v_pathname, ":", carray.nrows
-            print "Second row in carray ==>", data[1].tolist()
+            print("Object read:", data)
+            print("Nrows in", carray._v_pathname, ":", carray.nrows)
+            print("Second row in carray ==>", data[1].tolist())
 
         self.assertEqual(carray.nrows, 3)
         self.assertEqual(data[0].tolist(), [[b"123", b"45"], [b"45", b"123"]])
@@ -1104,8 +1105,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b_String..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b_String..." % self.__class__.__name__)
 
         shape = (3, 2, 2)
         # Create an string atom
@@ -1124,9 +1125,9 @@ class OffsetStrideTestCase(unittest.TestCase):
         # Read all the rows:
         data = carray.read()
         if common.verbose:
-            print "Object read:", data
-            print "Nrows in", carray._v_pathname, ":", carray.nrows
-            print "Second row in carray ==>", data[1].tolist()
+            print("Object read:", data)
+            print("Nrows in", carray._v_pathname, ":", carray.nrows)
+            print("Second row in carray ==>", data[1].tolist())
 
         self.assertEqual(carray.nrows, 3)
         self.assertEqual(data[0].tolist(), [[b"a", b"b"], [b"45", b"123"]])
@@ -1139,8 +1140,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02a_int..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02a_int..." % self.__class__.__name__)
 
         shape = (3, 3)
         # Create an string atom
@@ -1157,9 +1158,9 @@ class OffsetStrideTestCase(unittest.TestCase):
         # Read all the rows:
         data = carray.read()
         if common.verbose:
-            print "Object read:", data
-            print "Nrows in", carray._v_pathname, ":", carray.nrows
-            print "Third row in carray ==>", data[2]
+            print("Object read:", data)
+            print("Nrows in", carray._v_pathname, ":", carray.nrows)
+            print("Third row in carray ==>", data[2])
 
         self.assertEqual(carray.nrows, 3)
         self.assertTrue(allequal(data[
@@ -1174,8 +1175,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b_int..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02b_int..." % self.__class__.__name__)
 
         shape = (3, 3)
         # Create an string atom
@@ -1192,9 +1193,9 @@ class OffsetStrideTestCase(unittest.TestCase):
         # Read all the rows:
         data = carray.read()
         if common.verbose:
-            print "Object read:", data
-            print "Nrows in", carray._v_pathname, ":", carray.nrows
-            print "Third row in carray ==>", data[2]
+            print("Object read:", data)
+            print("Nrows in", carray._v_pathname, ":", carray.nrows)
+            print("Third row in carray ==>", data[2])
 
         self.assertEqual(carray.nrows, 3)
         self.assertTrue(allequal(data[
@@ -1211,8 +1212,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking CArray.copy() method """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1228,7 +1229,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -1238,18 +1239,18 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
             # print "dirs-->", dir(array1), dir(array2)
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         self.assertTrue(allequal(array1.read(), array2.read()))
@@ -1276,8 +1277,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking CArray.copy() method """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1293,7 +1294,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -1303,18 +1304,18 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
             # print "dirs-->", dir(array1), dir(array2)
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         self.assertTrue(allequal(array1.read(), array2.read()))
@@ -1339,8 +1340,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking CArray.copy() method """
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01c_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01c_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1356,7 +1357,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -1366,18 +1367,18 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
             # print "dirs-->", dir(array1), dir(array2)
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         self.assertTrue(allequal(array1.read(), array2.read()))
@@ -1404,8 +1405,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking CArray.copy() method (where specified)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1421,7 +1422,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -1432,18 +1433,18 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
         if common.verbose:
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
             # print "dirs-->", dir(array1), dir(array2)
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         self.assertTrue(allequal(array1.read(), array2.read()))
@@ -1470,8 +1471,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking CArray.copy() method (python flavor)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03c_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03c_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1487,7 +1488,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -1497,15 +1498,15 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all elements are equal
         self.assertEqual(array1.read(), array2.read())
@@ -1531,8 +1532,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking CArray.copy() method (string python flavor)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03d_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03d_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1548,7 +1549,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -1558,17 +1559,17 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "type value-->", type(array2[:][0][0])
-            print "value-->", array2[:]
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("type value-->", type(array2[:][0][0]))
+            print("value-->", array2[:])
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all elements are equal
         self.assertEqual(array1.read(), array2.read())
@@ -1595,8 +1596,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking CArray.copy() method (chararray flavor)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03e_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03e_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1611,7 +1612,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -1621,15 +1622,15 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all elements are equal
         self.assertTrue(allequal(array1.read(), array2.read()))
@@ -1655,8 +1656,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking CArray.copy() method (checking title copying)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1675,7 +1676,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -1685,7 +1686,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
@@ -1693,7 +1694,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Assert user attributes
         if common.verbose:
-            print "title of destination array-->", array2.title
+            print("title of destination array-->", array2.title)
         self.assertEqual(array2.title, "title array2")
 
         # Close the file
@@ -1704,8 +1705,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking CArray.copy() method (user attributes copied)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1724,7 +1725,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -1734,15 +1735,15 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Assert user attributes
         self.assertEqual(array2.attrs.attr1, "attr1")
@@ -1756,8 +1757,8 @@ class CopyTestCase(unittest.TestCase):
         """Checking CArray.copy() method (user attributes not copied)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05b_copy..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05b_copy..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -1776,7 +1777,7 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="a")
             array1 = fileh.root.array1
@@ -1786,15 +1787,15 @@ class CopyTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             fileh.close()
             fileh = open_file(file, mode="r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
         if common.verbose:
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Assert user attributes
         self.assertEqual(hasattr(array2.attrs, "attr1"), 0)
@@ -1820,8 +1821,8 @@ class CopyIndexTestCase(unittest.TestCase):
         """Checking CArray.copy() method with indexes"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_index..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_index..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Array
         file = tempfile.mktemp(".h5")
@@ -1846,10 +1847,10 @@ class CopyIndexTestCase(unittest.TestCase):
                              stop=self.stop,
                              step=self.step)
         if common.verbose:
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
@@ -1857,8 +1858,8 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Assert the number of rows in array
         if common.verbose:
-            print "nrows in array2-->", array2.nrows
-            print "and it should be-->", r2.shape[0]
+            print("nrows in array2-->", array2.nrows)
+            print("and it should be-->", r2.shape[0])
 
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
@@ -1874,8 +1875,8 @@ class CopyIndexTestCase(unittest.TestCase):
         """Checking CArray.copy() method with indexes (close file version)"""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_indexclosef..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02_indexclosef..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Array
         file = tempfile.mktemp(".h5")
@@ -1906,10 +1907,10 @@ class CopyIndexTestCase(unittest.TestCase):
         array2 = fileh.root.array2
 
         if common.verbose:
-            print "array1-->", array1.read()
-            print "array2-->", array2.read()
-            print "attrs array1-->", repr(array1.attrs)
-            print "attrs array2-->", repr(array2.attrs)
+            print("array1-->", array1.read())
+            print("array2-->", array2.read())
+            print("attrs array1-->", repr(array1.attrs))
+            print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
@@ -1918,8 +1919,8 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Assert the number of rows in array
         if common.verbose:
-            print "nrows in array2-->", array2.nrows
-            print "and it should be-->", r2.shape[0]
+            print("nrows in array2-->", array2.nrows)
+            print("and it should be-->", r2.shape[0])
         self.assertEqual(r2.shape[0], array2.nrows)
 
         # Close the file
@@ -2051,30 +2052,30 @@ class Rows64bitsTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 # Check how many entries there are in the array
-                print "Before closing"
-                print "Entries:", array.nrows, type(array.nrows)
-                print "Entries:", array.nrows / (1000 * 1000), "Millions"
-                print "Shape:", array.shape
+                print("Before closing")
+                print("Entries:", array.nrows, type(array.nrows))
+                print("Entries:", array.nrows / (1000 * 1000), "Millions")
+                print("Shape:", array.shape)
             # Close the file
             fileh.close()
             # Re-open the file
             fileh = self.fileh = open_file(self.file)
             array = fileh.root.array
             if common.verbose:
-                print "After re-open"
+                print("After re-open")
 
         # Check how many entries there are in the array
         if common.verbose:
-            print "Entries:", array.nrows, type(array.nrows)
-            print "Entries:", array.nrows / (1000 * 1000), "Millions"
-            print "Shape:", array.shape
-            print "Last 10 elements-->", array[-10:]
+            print("Entries:", array.nrows, type(array.nrows))
+            print("Entries:", array.nrows / (1000 * 1000), "Millions")
+            print("Shape:", array.shape)
+            print("Last 10 elements-->", array[-10:])
             stop = self.narows % 256
             if stop > 127:
                 stop -= 256
             start = stop - 10
             # print "start, stop-->", start, stop
-            print "Should look like:", numpy.arange(start, stop, dtype='int8')
+            print("Should look like:", numpy.arange(start, stop, dtype='int8'))
 
         nrows = self.narows * self.nanumber
         # check nrows
@@ -2150,7 +2151,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check the values
         values = self.h5file.root.bar[:]
         if common.verbose:
-            print "Read values:", values
+            print("Read values:", values)
         self.assertTrue(
             allequal(values, numpy.array(["abdef"]*100, "S5").reshape(10, 10)))
 
@@ -2167,7 +2168,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check the values
         values = self.h5file.root.bar[:]
         if common.verbose:
-            print "Read values:", values
+            print("Read values:", values)
         self.assertTrue(allequal(values, numpy.ones((10, 10), "i4")))
 
     def test02_dflt(self):
@@ -2183,7 +2184,7 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check the values
         values = self.h5file.root.bar[:]
         if common.verbose:
-            print "Read values:", values
+            print("Read values:", values)
         self.assertTrue(allequal(values, numpy.ones((10, 10), "f8")*1.134))
 
 
@@ -2208,8 +2209,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Check the value
         if common.verbose:
-            print "First row-->", repr(ca[0])
-            print "Defaults-->", repr(ca.atom.dflt)
+            print("First row-->", repr(ca[0]))
+            print("Defaults-->", repr(ca.atom.dflt))
         self.assertTrue(allequal(ca[0], numpy.zeros(N, 'S3')))
         self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
 
@@ -2223,8 +2224,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Check the value
         if common.verbose:
-            print "First row-->", ca[0]
-            print "Defaults-->", ca.atom.dflt
+            print("First row-->", ca[0])
+            print("Defaults-->", ca.atom.dflt)
         self.assertTrue(allequal(ca[0], numpy.zeros(N, 'S3')))
         self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
 
@@ -2238,8 +2239,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Check the value
         if common.verbose:
-            print "First row-->", ca[0]
-            print "Defaults-->", ca.atom.dflt
+            print("First row-->", ca[0])
+            print("Defaults-->", ca.atom.dflt)
         self.assertTrue(allequal(ca[0], numpy.ones(N, 'i4')))
         self.assertTrue(allequal(ca.atom.dflt, numpy.ones(N, 'i4')))
 
@@ -2254,8 +2255,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Check the value
         if common.verbose:
-            print "First row-->", ca[0]
-            print "Defaults-->", ca.atom.dflt
+            print("First row-->", ca[0])
+            print("Defaults-->", ca.atom.dflt)
         self.assertTrue(allequal(ca[0], numpy.ones(N, 'f4')*generic))
         self.assertTrue(allequal(ca.atom.dflt, numpy.ones(N, 'f4')*generic))
 
@@ -2269,8 +2270,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Check the value
         if common.verbose:
-            print "First row-->", repr(ca[0])
-            print "Defaults-->", repr(ca.atom.dflt)
+            print("First row-->", repr(ca[0]))
+            print("Defaults-->", repr(ca.atom.dflt))
         self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
 
     def test02b_None(self):
@@ -2283,8 +2284,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Check the value
         if common.verbose:
-            print "First row-->", ca[0]
-            print "Defaults-->", ca.atom.dflt
+            print("First row-->", ca[0])
+            print("Defaults-->", ca.atom.dflt)
         self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
 
 
@@ -2318,7 +2319,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ca[0] = [[1, 3], [4, 5]]
         self.assertEqual(ca.nrows, 1)
         if common.verbose:
-            print "First row-->", ca[0]
+            print("First row-->", ca[0])
         self.assertTrue(allequal(ca[0], numpy.array([[1, 3], [4, 5]], 'i4')))
 
     def test01b_assign(self):
@@ -2333,7 +2334,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ca[:] = [[[1]], [[2]], [[3]]]   # Simple broadcast
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
-            print "Third row-->", ca[2]
+            print("Third row-->", ca[2])
         self.assertTrue(allequal(ca[2], numpy.array([[3, 3], [3, 3]], 'i4')))
 
     def test02a_assign(self):
@@ -2348,7 +2349,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ca[:] = [[[1, 3], [4, 5], [7, 9]]]
         self.assertEqual(ca.nrows, 1)
         if common.verbose:
-            print "First row-->", ca[0]
+            print("First row-->", ca[0])
         self.assertTrue(allequal(ca[0], numpy.array(
             [[1, 3], [4, 5], [7, 9]], 'i4')))
 
@@ -2366,7 +2367,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
                  [[-2, 3], [-5, 5], [7, -9]]]
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
-            print "Third row-->", ca[2]
+            print("Third row-->", ca[2])
         self.assertTrue(
             allequal(ca[2], numpy.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
 
@@ -2384,7 +2385,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ca[:] = [a * 1, a*2, a*3]
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
-            print "Third row-->", ca[2]
+            print("Third row-->", ca[2])
         self.assertTrue(allequal(ca[2], a * 3))
 
     def test03b_MDMDMD(self):
@@ -2401,7 +2402,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ca[:] = a
         self.assertEqual(ca.nrows, 2)
         if common.verbose:
-            print "Third row-->", ca[:, 2, ...]
+            print("Third row-->", ca[:, 2, ...])
         self.assertTrue(allequal(ca[:, 2, ...], a[:, 2, ...]))
 
     def test03c_MDMDMD(self):
@@ -2418,7 +2419,7 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ca[:] = a
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
-            print "Second row-->", ca[:, :, 1, ...]
+            print("Second row-->", ca[:, :, 1, ...])
         self.assertTrue(allequal(ca[:, :, 1, ...], a[:, :, 1, ...]))
 
 
@@ -2443,7 +2444,7 @@ class MDLargeAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ca = self.h5file.root.test
         # Check the value
         if common.verbose:
-            print "First row-->", ca[0]
+            print("First row-->", ca[0])
         self.assertTrue(allequal(ca[0], numpy.zeros(N, 'i4')))
 
 

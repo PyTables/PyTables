@@ -16,6 +16,7 @@ Pass the flag -h to this for help on usage.
 
 """
 
+from __future__ import print_function
 import sys
 import time
 import os.path
@@ -69,16 +70,16 @@ def recreate_indexes(table, dstfileh, dsttable):
     if listoldindexes != []:
         if not regoldindexes:
             if verbose:
-                print "[I]Not regenerating indexes for table: '%s:%s'" % \
-                      (dstfileh.filename, dsttable._v_pathname)
+                print("[I]Not regenerating indexes for table: '%s:%s'" % \
+                      (dstfileh.filename, dsttable._v_pathname))
             return
         # Now, recreate the indexed columns
         if verbose:
-            print "[I]Regenerating indexes for table: '%s:%s'" % \
-                  (dstfileh.filename, dsttable._v_pathname)
+            print("[I]Regenerating indexes for table: '%s:%s'" % \
+                  (dstfileh.filename, dsttable._v_pathname))
         for colname in listoldindexes:
             if verbose:
-                print "[I]Indexing column: '%s'. Please wait..." % colname
+                print("[I]Indexing column: '%s'. Please wait..." % colname)
             colobj = dsttable.cols._f_col(colname)
             # We don't specify the filters for the indexes
             colobj.create_index(filters=None)
@@ -149,10 +150,10 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
             sortby=sortby, checkCSI=checkCSI, propindexes=propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
-        print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
-              (srcfile, srcnode, dstfile, dstnode)
-        print "The error was --> %s: %s" % (type, value)
-        print "The destination file looks like:\n", dstfileh
+        print("Problems doing the copy from '%s:%s' to '%s:%s'" % \
+              (srcfile, srcnode, dstfile, dstnode))
+        print("The error was --> %s: %s" % (type, value))
+        print("The destination file looks like:\n", dstfileh)
         # Close all the open files:
         srcfileh.close()
         dstfileh.close()
@@ -239,10 +240,10 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
             sortby=sortby, checkCSI=checkCSI, propindexes=propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
-        print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
-              (srcfile, srcgroup, dstfile, dstgroup)
-        print "The error was --> %s: %s" % (type, value)
-        print "The destination file looks like:\n", dstfileh
+        print("Problems doing the copy from '%s:%s' to '%s:%s'" % \
+              (srcfile, srcgroup, dstfile, dstgroup))
+        print("The error was --> %s: %s" % (type, value))
+        print("The destination file looks like:\n", dstfileh)
         # Close all the open files:
         srcfileh.close()
         dstfileh.close()
@@ -487,17 +488,17 @@ def main():
     cpu1 = time.clock()
     # Copy the file
     if verbose:
-        print "+=+" * 20
-        print "Recursive copy:", args.recursive
-        print "Applying filters:", filters
+        print("+=+" * 20)
+        print("Recursive copy:", args.recursive)
+        print("Applying filters:", filters)
         if args.sortby is not None:
-            print "Sorting table(s) by column:", args.sortby
-            print "Forcing a CSI creation:", args.checkCSI
+            print("Sorting table(s) by column:", args.sortby)
+            print("Forcing a CSI creation:", args.checkCSI)
         if args.propindexes:
-            print "Recreating indexes in copied table(s)"
-        print "Start copying %s:%s to %s:%s" % (srcfile, srcnode,
-                                                dstfile, dstnode)
-        print "+=+" * 20
+            print("Recreating indexes in copied table(s)")
+        print("Start copying %s:%s to %s:%s" % (srcfile, srcnode,
+                                                dstfile, dstnode))
+        print("+=+" * 20)
 
     # Check whether the specified source node is a group or a leaf
     h5srcfile = open_file(srcfile, 'r')
@@ -544,17 +545,17 @@ def main():
         nbytescopied = stats['bytes']
         nnodes = ngroups + nleaves + nlinks
 
-        print(
+        print((
             "Groups copied:", ngroups,
             " Leaves copied:", nleaves,
             " Links copied:", nlinks,
-        )
+        ))
         if args.copyuserattrs:
-            print "User attrs copied"
+            print("User attrs copied")
         else:
-            print "User attrs not copied"
-        print "KBytes copied:", round(nbytescopied / 1024., 3)
-        print "Time copying: %s s (real) %s s (cpu)  %s%%" % (
-            tcopy, cpucopy, tpercent)
-        print "Copied nodes/sec: ", round((nnodes) / float(tcopy), 1)
-        print "Copied KB/s :", int(nbytescopied / (tcopy * 1024))
+            print("User attrs not copied")
+        print("KBytes copied:", round(nbytescopied / 1024., 3))
+        print("Time copying: %s s (real) %s s (cpu)  %s%%" % (
+            tcopy, cpucopy, tpercent))
+        print("Copied nodes/sec: ", round((nnodes) / float(tcopy), 1))
+        print("Copied KB/s :", int(nbytescopied / (tcopy * 1024)))

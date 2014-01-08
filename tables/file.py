@@ -19,6 +19,7 @@ memory. File class offer methods to traverse the tree, as well as to
 create new nodes.
 """
 
+from __future__ import print_function
 import os
 import sys
 import time
@@ -2687,13 +2688,13 @@ class File(hdf5extension.File, object):
 def close_open_files():
     are_open_files = len(_open_files) > 0
     if are_open_files:
-        print >> sys.stderr, "Closing remaining open files:",
+        print("Closing remaining open files:", end=' ', file=sys.stderr)
     for fname, fileh in _open_files.items():
-        print >> sys.stderr, "%s..." % (fname,),
+        print("%s..." % (fname,), end=' ', file=sys.stderr)
         fileh.close()
-        print >> sys.stderr, "done",
+        print("done", end=' ', file=sys.stderr)
     if are_open_files:
-        print >> sys.stderr
+        print(file=sys.stderr)
 
 import atexit
 atexit.register(close_open_files)

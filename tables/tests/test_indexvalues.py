@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import os
 import random
 import unittest
@@ -48,7 +49,7 @@ class SelectValuesTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of an HDF5 Table
         if verbose:
-            print "Checking index kind-->", self.kind
+            print("Checking index kind-->", self.kind)
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, "w")
         self.rootgroup = self.fileh.root
@@ -106,8 +107,8 @@ class SelectValuesTestCase(unittest.TestCase):
             indexrows = col.create_index(
                 kind=self.kind, _blocksizes=self.blocksizes)
         if verbose:
-            print "Number of written rows:", table1.nrows
-            print "Number of indexed rows:", indexrows
+            print("Number of written rows:", table1.nrows)
+            print("Number of indexed rows:", indexrows)
 
         if self.reopen:
             self.fileh.close()
@@ -126,8 +127,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index (string flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -148,9 +149,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Superior & inferior limits:", il, sl
 #             print "Selection results (index):", results1
-            print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Should look like:", results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -165,8 +166,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -181,8 +182,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -198,8 +199,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -207,8 +208,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index (string flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -226,11 +227,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -242,11 +243,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -258,11 +259,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -275,11 +276,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -287,8 +288,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index (bool flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -302,8 +303,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -311,8 +312,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index (bool flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test02b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -326,8 +327,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -335,8 +336,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index (int flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -360,8 +361,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -376,8 +377,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -392,8 +393,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -408,8 +409,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -417,8 +418,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index (int flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -440,11 +441,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -457,11 +458,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -474,11 +475,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -491,11 +492,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -503,8 +504,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index (long flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03c..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03c..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -526,11 +527,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -543,11 +544,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -560,11 +561,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -577,11 +578,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -589,8 +590,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index (long and int flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03d..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test03d..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -612,11 +613,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -629,11 +630,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -646,11 +647,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -663,11 +664,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -675,8 +676,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index (float flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -700,8 +701,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 
@@ -716,8 +717,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -732,8 +733,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -750,8 +751,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -759,8 +760,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index (float flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test04b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test04b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -782,11 +783,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -799,11 +800,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -816,11 +817,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -833,11 +834,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -845,8 +846,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking get_where_list & itersequence (string, python flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -873,8 +874,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 
@@ -894,8 +895,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -915,8 +916,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -938,8 +939,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -947,8 +948,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking get_where_list & itersequence (numpy string lims & python flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test05b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -974,11 +975,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -995,11 +996,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1016,11 +1017,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1037,11 +1038,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1049,8 +1050,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking get_where_list & itersequence (bool flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1068,8 +1069,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1077,8 +1078,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking get_where_list & itersequence (numpy bool limits & flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test06b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1098,8 +1099,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1107,8 +1108,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking get_where_list & itersequence (int flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test07a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test07a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1135,8 +1136,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 
@@ -1156,8 +1157,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1177,8 +1178,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1200,8 +1201,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1209,8 +1210,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking get_where_list & itersequence (numpy int limits & flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test07b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test07b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1236,11 +1237,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1257,11 +1258,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1278,11 +1279,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1299,11 +1300,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1311,8 +1312,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking get_where_list & itersequence (float flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1340,8 +1341,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 
@@ -1361,8 +1362,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1382,8 +1383,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1405,8 +1406,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1414,8 +1415,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking get_where_list & itersequence (numpy float limits & flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test08b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test08b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1440,11 +1441,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1461,11 +1462,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1482,11 +1483,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1503,11 +1504,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1515,8 +1516,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking non-indexed where() (string flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1539,11 +1540,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var1"] for p in table2.iterrows(2, 10)
                     if p["var1"] <= sl]
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (in-kernel):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1555,11 +1556,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
                     if il < p["var1"] < sl]
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (in-kernel):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1571,12 +1572,12 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var1"] for p in table2.iterrows(2, -5)  # Negative indices
                     if (il > p["var1"] > sl)]
         if verbose:
-            print "Limits:", il, sl
-            print "Limit:", sl
+            print("Limits:", il, sl)
+            print("Limit:", sl)
 #             print "Selection results (in-kernel):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1605,11 +1606,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
                     if p["var1"] >= sl]
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (in-kernel):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1622,8 +1623,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking non-indexed where() (float flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1646,11 +1647,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var4"] for p in table2.iterrows(2, 5)
                     if p["var4"] < sl]
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (in-kernel):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1662,11 +1663,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var4"] for p in table2.iterrows(2, -1, 2)
                     if il < p["var4"] <= sl]
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (in-kernel):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1678,11 +1679,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var4"] for p in table2.iterrows(2, -5)  # Negative indices
                     if il <= p["var4"] <= sl]
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (in-kernel):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1694,11 +1695,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var4"] for p in table2.iterrows(0, -1, 3)
                     if p["var4"] >= sl]
         if verbose:
-            print "Limit:", sl
+            print("Limit:", sl)
 #             print "Selection results (in-kernel):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1711,8 +1712,8 @@ class SelectValuesTestCase(unittest.TestCase):
         "Check non-indexed where() w/ ranges, changing step (string flavor)"
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09c..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09c..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1739,11 +1740,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1759,11 +1760,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1779,11 +1780,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1799,11 +1800,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1816,8 +1817,8 @@ class SelectValuesTestCase(unittest.TestCase):
         "Checking non-indexed where() w/ ranges, changing step (int flavor)"
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test09d..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test09d..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1844,11 +1845,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1864,11 +1865,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1884,11 +1885,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1904,11 +1905,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1921,8 +1922,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking indexed where() with ranges (string flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test10a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test10a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1946,11 +1947,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1967,11 +1968,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1988,11 +1989,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Limits:", il, sl)
+            print("Selection results (indexed):", results1)
+            print("Should look like:", results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2009,11 +2010,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2030,11 +2031,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2042,8 +2043,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking indexed where() with ranges (int flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test10b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test10b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2067,11 +2068,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2088,11 +2089,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2109,11 +2110,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2130,11 +2131,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2142,8 +2143,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking indexed where() with ranges, changing step (string flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test10c..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test10c..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2168,11 +2169,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2189,11 +2190,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2210,11 +2211,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2231,11 +2232,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2243,8 +2244,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking indexed where() with ranges, changing step (int flavor)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test10d..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test10d..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2269,11 +2270,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2290,11 +2291,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2311,11 +2312,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2332,11 +2333,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2344,8 +2345,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values from an Index via read_coordinates()"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test11a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test11a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2370,8 +2371,8 @@ class SelectValuesTestCase(unittest.TestCase):
 #             print "Superior & inferior limits:", il, sl
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2379,8 +2380,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking selecting values after a Table.append() operation."""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test12a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test12a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2436,9 +2437,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Superior & inferior limits:", il, sl
 #             print "Selection results (index):", results1
-            print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Should look like:", results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2449,8 +2450,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2471,8 +2472,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2493,8 +2494,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 
@@ -2502,8 +2503,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking repeated queries (checking caches)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test13a..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test13a..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2526,11 +2527,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2547,11 +2548,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2559,8 +2560,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking repeated queries, varying step (checking caches)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test13b..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test13b..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2583,11 +2584,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2604,11 +2605,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2616,8 +2617,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking repeated queries, varying start, stop, step"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test13c..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test13c..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2640,11 +2641,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2661,11 +2662,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2673,8 +2674,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking repeated queries, varying start, stop, step (another twist)"""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test13d..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test13d..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2697,11 +2698,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2718,11 +2719,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #            print "Selection results (indexed):", results1
 #            print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2730,8 +2731,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking repeated queries, with varying condition."""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test13e..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test13e..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2754,11 +2755,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2777,11 +2778,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2789,8 +2790,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking repeated queries, with varying condition."""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test13f..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test13f..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2819,11 +2820,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2840,11 +2841,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2862,11 +2863,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2874,8 +2875,8 @@ class SelectValuesTestCase(unittest.TestCase):
         """Checking repeated queries, with different limits."""
 
         if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test13g..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test13g..." % self.__class__.__name__)
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2898,11 +2899,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2923,11 +2924,11 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-            print "Limits:", il, sl
+            print("Limits:", il, sl)
 #             print "Selection results (indexed):", results1
 #             print "Should look like:", results2
-            print "Length results:", len(results1)
-            print "Should be:", len(results2)
+            print("Length results:", len(results1))
+            print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 

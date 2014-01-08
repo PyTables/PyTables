@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import sys
 import unittest
 import os
@@ -14,9 +15,9 @@ unittest.TestCase.tearDown = common.cleanup
 
 def WriteRead(filename, testTuple):
     if common.verbose:
-        print '\n', '-=' * 30
-        print "Running test for object %s" % \
-            (type(testTuple))
+        print('\n', '-=' * 30)
+        print("Running test for object %s" % \
+            (type(testTuple)))
 
     # Create an instance of HDF5 Table
     fileh = open_file(filename, mode="w")
@@ -38,9 +39,9 @@ def WriteRead(filename, testTuple):
         b = root.somearray.read()
         # Compare them. They should be equal.
         if not a == b and common.verbose:
-            print "Write and read lists/tuples differ!"
-            print "Object written:", a
-            print "Object read:", b
+            print("Write and read lists/tuples differ!")
+            print("Object written:", a)
+            print("Object read:", b)
 
         # Check strictly the array equality
         assert a == b
@@ -126,9 +127,9 @@ class ExceptionTestCase(unittest.TestCase):
         "Non suppported lists objects (character objects)"
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running test for %s" % \
-                  (self.title)
+            print('\n', '-=' * 30)
+            print("Running test for %s" % \
+                  (self.title))
         a = self.charList
         try:
             fname = tempfile.mktemp(".h5")
@@ -139,8 +140,8 @@ class ExceptionTestCase(unittest.TestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next error was catched!"
-                print type, ":", value
+                print("\nGreat!, the next error was catched!")
+                print(type, ":", value)
         else:
             self.fail("expected a ValueError")
 
@@ -157,8 +158,8 @@ class ExceptionTestCase(unittest.TestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next was catched!"
-                print value
+                print("\nGreat!, the next was catched!")
+                print(value)
         else:
             self.fail("expected an ValueError")
 
@@ -181,8 +182,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original first element:", a[0]
-            print "Read first element:", arr[0]
+            print("Original first element:", a[0])
+            print("Read first element:", arr[0])
         self.assertEqual(a[0], arr[0])
 
         # Close the file
@@ -201,8 +202,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original first element:", a[0]
-            print "Read first element:", arr[0]
+            print("Original first element:", a[0])
+            print("Read first element:", arr[0])
         self.assertEqual(a[0], arr[0])
 
         # Close the file
@@ -221,8 +222,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4]
-            print "Read elements:", arr[1:4]
+            print("Original elements:", a[1:4])
+            print("Read elements:", arr[1:4])
         self.assertEqual(a[1:4], arr[1:4])
 
         # Close the file
@@ -241,8 +242,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4]
-            print "Read elements:", arr[1:4]
+            print("Original elements:", a[1:4])
+            print("Read elements:", arr[1:4])
         self.assertEqual(a[1:4], arr[1:4])
 
         # Close the file
@@ -261,8 +262,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4:2]
-            print "Read elements:", arr[1:4:2]
+            print("Original elements:", a[1:4:2])
+            print("Read elements:", arr[1:4:2])
         self.assertEqual(a[1:4:2], arr[1:4:2])
 
         # Close the file
@@ -281,8 +282,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original elements:", a[1:4:2]
-            print "Read elements:", arr[1:4:2]
+            print("Original elements:", a[1:4:2])
+            print("Read elements:", arr[1:4:2])
         self.assertEqual(a[1:4:2], arr[1:4:2])
 
         # Close the file
@@ -301,8 +302,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original last element:", a[-1]
-            print "Read last element:", arr[-1]
+            print("Original last element:", a[-1])
+            print("Read last element:", arr[-1])
         self.assertEqual(a[-1], arr[-1])
 
         # Close the file
@@ -321,8 +322,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original before last element:", a[-2]
-            print "Read before last element:", arr[-2]
+            print("Original before last element:", a[-2])
+            print("Read before last element:", arr[-2])
         self.assertEqual(a[-2], arr[-2])
 
         # Close the file
@@ -341,8 +342,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original last elements:", a[-4:-1]
-            print "Read last elements:", arr[-4:-1]
+            print("Original last elements:", a[-4:-1])
+            print("Read last elements:", arr[-4:-1])
         self.assertEqual(a[-4:-1], arr[-4:-1])
 
         # Close the file
@@ -361,8 +362,8 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original last elements:", a[-4:-1]
-            print "Read last elements:", arr[-4:-1]
+            print("Original last elements:", a[-4:-1])
+            print("Read last elements:", arr[-4:-1])
         self.assertEqual(a[-4:-1], arr[-4:-1])
 
         # Close the file
@@ -413,8 +414,8 @@ class GeneratorTestCase(unittest.TestCase):
         ga = [i for i in a]
         garr = [i for i in arr]
         if common.verbose:
-            print "Result of original iterator:", ga
-            print "Result of read generator:", garr
+            print("Result of original iterator:", ga)
+            print("Result of read generator:", garr)
         self.assertEqual(ga, garr)
 
         # Close the file
@@ -438,8 +439,8 @@ class GeneratorTestCase(unittest.TestCase):
             ga = [i for i in a]
         garr = [i for i in arr]
         if common.verbose:
-            print "Result of original iterator:", ga
-            print "Result of read generator:", garr
+            print("Result of original iterator:", ga)
+            print("Result of read generator:", garr)
         self.assertEqual(ga, garr)
 
         # Close the file
@@ -460,8 +461,8 @@ class GeneratorTestCase(unittest.TestCase):
         ga = [i for i in a]
         garr = [i for i in arr]
         if common.verbose:
-            print "Result of original iterator:", ga
-            print "Result of read generator:", garr
+            print("Result of original iterator:", ga)
+            print("Result of read generator:", garr)
         self.assertEqual(ga, garr)
 
         # Close the file
@@ -485,8 +486,8 @@ class GeneratorTestCase(unittest.TestCase):
             ga = [i for i in a]
         garr = [i for i in arr]
         if common.verbose:
-            print "Result of original iterator:", ga
-            print "Result of read generator:", garr
+            print("Result of original iterator:", ga)
+            print("Result of read generator:", garr)
         self.assertEqual(ga, garr)
 
         # Close the file
