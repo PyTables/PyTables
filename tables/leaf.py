@@ -371,7 +371,7 @@ class Leaf(Node):
         # equal to the chunksize.
         # See gh-206 and gh-238
         if self.chunkshape is not None:
-            chunksize = numpy.asarray(self.chunkshape).prod()
+            chunksize = self.chunkshape[0]
             if nrowsinbuf < chunksize:
                 nrowsinbuf = chunksize
 
