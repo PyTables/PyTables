@@ -5640,7 +5640,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Rows resulting from the query are those in the new table.
         it2 = iter(tbl2)
         for r1 in tbl1.where('id > 1'):
-            r2 = it2.next()
+            r2 = next(it2)
             self.assertTrue(r1['id'] == r2['id'] and r1['v1'] == r2['v1']
                             and r1['v2'] == r2['v2'])
 
@@ -5664,7 +5664,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Rows resulting from the query are those in the new table.
         it2 = iter(tbl2)
         for r1 in tbl1.where('id > 1'):
-            r2 = it2.next()
+            r2 = next(it2)
             self.assertTrue(r1['id'] == r2['id'] and r1['v1'] == r2['v1']
                             and r1['v2'] == r2['v2'])
 
@@ -5687,7 +5687,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Rows resulting from the query are those in the new table.
         it2 = iter(tbl2)
         for r1 in tbl1.where('id > 1'):
-            r2 = it2.next()
+            r2 = next(it2)
             self.assertTrue(r1['id'] == r2['id'] and int(r1['v1']) == r2['v1']
                             and r1['v2'] == r2['v2'])
 
