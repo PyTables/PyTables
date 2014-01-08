@@ -14,6 +14,7 @@
 
 import os
 import sys
+import warnings
 import subprocess
 from time import time
 
@@ -55,6 +56,10 @@ def is_idx(index):
             return False
         try:
             index.__index__()
+            if isinstance(index, bool):
+                warnings.warn(
+                    'using a boolean instead of an integer will result in an '
+                    'error in the future', DeprecationWarning, stacklevel=2)
             return True
         except TypeError:
             return False
