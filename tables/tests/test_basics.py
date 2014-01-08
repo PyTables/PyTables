@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-import shutil
 import sys
-import unittest
+import Queue
+import shutil
 import tempfile
+import unittest
 import warnings
+import threading
 import subprocess
 
 try:
@@ -333,11 +335,13 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test05b_removeGroupRecursively(self):
-        """Checking removing a group recursively and access to it immediately"""
+        """Checking removing a group recursively and access to it immediately
+        """
 
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test05b_removeGroupRecursively..." % self.__class__.__name__
+            print("Running %s.test05b_removeGroupRecursively..." %
+                  self.__class__.__name__)
 
         # Delete a group with leafs
         fileh = open_file(
@@ -1766,6 +1770,41 @@ class CheckFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
 
+class ThreadingTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def setUp(self):
+        super(ThreadingTestCase, self).setUp()
+        self.h5file.create_carray('/', 'test_array', tables.Int64Atom(),
+                                  (200, 300))
+        self.h5file.close()
+
+    def test(self):
+        filename = self.h5fname
+
+        def run(filename, q):
+            try:
+                f = tables.open_file(filename, mode='r')
+                arr = f.root.test_array[8:12, 18:22]
+                assert arr.max() == arr.min() == 0
+                f.close()
+            except Exception as e:
+                q.put(sys.exc_info())
+            else:
+                q.put('OK')
+
+        threads = []
+        q = Queue.Queue()
+        for i in xrange(10):
+            t = threading.Thread(target=run, args=(filename, q))
+            t.start()
+            threads.append(t)
+
+        for i in xrange(10):
+            self.assertEqual(q.get(), 'OK')
+
+        for t in threads:
+            t.join()
+
+
 class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     """Test interactions of Python attributes and child nodes."""
@@ -2146,8 +2185,8 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         file1 = open_file(self.h5fname, "r")
         self.assertEqual(file1.open_count, 1)
         file2 = open_file(self.h5fname, "r")
-        self.assertEqual(file1.open_count, 2)
-        self.assertEqual(file2.open_count, 2)
+        self.assertEqual(file1.open_count, 1)
+        self.assertEqual(file2.open_count, 1)
         if common.verbose:
             print "(file1) open_count:", file1.open_count
             print "(file1) test[1]:", file1.root.test[1]
@@ -2787,6 +2826,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(NoNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(DictNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(CheckFileTestCase))
+        theSuite.addTest(unittest.makeSuite(ThreadingTestCase))
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))

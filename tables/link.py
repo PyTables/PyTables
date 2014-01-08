@@ -270,13 +270,13 @@ class ExternalLink(linkextension.ExternalLink, Link):
             base_directory = os.path.dirname(self._v_file.filename)
             filename = os.path.join(base_directory, filename)
 
-        # Fetch the external file and save a reference to it.
-        # Check first in already opened files.
-        open_files = tables.file._open_files
-        if filename in open_files:
-            self.extfile = open_files[filename]
-        else:
+        if self.extfile is None or not self.extfile.isopen:
             self.extfile = t.open_file(filename, **kwargs)
+        else:
+            # XXX: implement better consistency checks
+            assert self.extfile.filename == filename
+            assert self.extfile.mode == kwargs.get('mode', 'r')
+
         return self.extfile._get_node(target)
 
     def umount(self):

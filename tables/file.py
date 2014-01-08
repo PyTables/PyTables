@@ -24,6 +24,7 @@ import sys
 import time
 import weakref
 import warnings
+import collections
 
 import numexpr
 import numpy
@@ -74,15 +75,61 @@ from tables._past import previous_api, previous_api_property
 # format_version = "1.6"  # Support for NumPy objects and new flavors for
 #                         # objects.
 #                         # 1.6 was introduced in pytables 1.3
-#format_version = "2.0"  # Pickles are not used anymore in system attrs
-#                        # 2.0 was introduced in PyTables 2.0
+#format_version = "2.0"   # Pickles are not used anymore in system attrs
+#                         # 2.0 was introduced in PyTables 2.0
 format_version = "2.1"  # Numeric and numarray flavors are gone.
 
 compatible_formats = []  # Old format versions we can read
                          # Empty means that we support all the old formats
 
+
+class _FileRegistry():
+    def __init__(self):
+        self._name_mapping = collections.defaultdict(set)
+        self._handlers = set()
+
+    @property
+    def filenames(self):
+        return self._name_mapping.keys()
+
+    @property
+    def handlers(self):
+        #return set(self._handlers)  # return a copy
+        return self._handlers
+
+    def __len__(self):
+        return len(self._handlers)
+
+    def __contains__(self, filename):
+        return filename in self.filenames
+
+    def add(self, handler):
+        self._name_mapping[handler.filename].add(handler)
+        self._handlers.add(handler)
+
+    def remove(self, handler):
+        self._name_mapping[handler.filename].remove(handler)
+        self._handlers.remove(handler)
+
+    def get_handlers_by_name(self, filename):
+        #return set(self._name_mapping[filename])  # return a copy
+        return self._name_mapping[filename]
+
+    def close_all(self):
+        are_open_files = len(self._handlers) > 0
+        if are_open_files:
+            sys.stderr.write("Closing remaining open files:")
+        handlers = list(self._handlers)  # make a copy
+        for fileh in handlers:
+            sys.stderr.write("%s..." % fileh.filename)
+            fileh.close()
+            sys.stderr.write("done")
+        if are_open_files:
+            sys.stderr.write("\n")
+
+
 # Dict of opened files (keys are filenames and values filehandlers)
-_open_files = {}
+_open_files = _FileRegistry()
 
 # Opcodes for do-undo actions
 _op_to_code = {
@@ -222,9 +269,7 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
     """
 
     # Get the list of already opened files
-    ofiles = [fname for fname in _open_files]
-    if filename in ofiles:
-        filehandle = _open_files[filename]
+    for filehandle in _open_files.get_handlers_by_name(filename):
         omode = filehandle.mode
         # 'r' is incompatible with everything except 'r' itself
         if mode == 'r' and omode != 'r':
@@ -242,11 +287,7 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
             raise ValueError(
                 "The file '%s' is already opened.  Please "
                 "close it before reopening in write mode." % filename)
-        else:
-            # The file is already open and modes are compatible
-            # Increase the number of openings for this file
-            filehandle._open_count += 1
-            return filehandle
+
     # Finally, create the File instance, and return it
     return File(filename, mode, title, root_uep, filters, **kwargs)
 
@@ -282,11 +323,12 @@ class _AliveNodes(dict):
             ref = value
             # Check if we are running out of space
             if self.nodeCacheSlots < 0 and len(self) > -self.nodeCacheSlots:
-                warnings.warn("the dictionary of alive nodes is exceeding "
-                              "the recommended maximum number (%d); "
-                              "be ready to see PyTables asking for *lots* "
-                              "of memory and possibly slow I/O." % (
-                              -self.nodeCacheSlots), PerformanceWarning)
+                warnings.warn(
+                    "the dictionary of alive nodes is exceeding the "
+                    "recommended maximum number (%d); "
+                    "be ready to see PyTables asking for *lots* of memory "
+                    "and possibly slow I/O." % (-self.nodeCacheSlots),
+                    PerformanceWarning)
         super(_AliveNodes, self).__setitem__(key, ref)
 
 
@@ -554,7 +596,7 @@ class File(hdf5extension.File, object):
         """True if the underlying file os open, False otherwise."""
 
         # Append the name of the file to the global dict of files opened.
-        _open_files[self.filename] = self
+        _open_files.add(self)
 
         # Set the number of times this file has been opened to 1
         self._open_count = 1
@@ -2497,14 +2539,20 @@ class File(hdf5extension.File, object):
 
         # Close the file
         self._close_file()
+
         # After the objects are disconnected, destroy the
         # object dictionary using the brute force ;-)
         # This should help to the garbage collector
         self.__dict__.clear()
+
         # Set the flag to indicate that the file is closed
         self.isopen = 0
-        # Delete the entry in the dictionary of opened files
-        del _open_files[filename]
+
+        # Restore the filename attribute that is used by _FileRegistry
+        self.filename = filename
+
+        # Delete the entry from he registry of opened files
+        _open_files.remove(self)
 
     def __enter__(self):
         """Enter a context and return the same file."""
@@ -2684,19 +2732,8 @@ class File(hdf5extension.File, object):
 
 # If a user hits ^C during a run, it is wise to gracefully close the
 # opened files.
-def close_open_files():
-    are_open_files = len(_open_files) > 0
-    if are_open_files:
-        print >> sys.stderr, "Closing remaining open files:",
-    for fname, fileh in _open_files.items():
-        print >> sys.stderr, "%s..." % (fname,),
-        fileh.close()
-        print >> sys.stderr, "done",
-    if are_open_files:
-        print >> sys.stderr
-
 import atexit
-atexit.register(close_open_files)
+atexit.register(_open_files.close_all)
 
 
 ## Local Variables:

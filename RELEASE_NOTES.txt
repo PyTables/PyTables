@@ -42,6 +42,10 @@ Improvements
 - Automatically disable extended float support if a buggy version of HDF5
   is detected (see also `Issues with H5T_NATIVE_LDOUBLE`_).
   See also :issue:`275`, :issue:`290` and :issue:`300`.
+- PyTables no longer uses shared/cached file handlers. This change somewhat
+  improves support for concurrent reading allowing the user to safely open the
+  same file in different threads for reading.
+  See also :issue:`130`, :issue:`129` :issue:`292` and :issue:`216`.
 
 Bugs fixed
 ----------

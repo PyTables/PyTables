@@ -15,12 +15,9 @@
 import os
 import unittest
 import tempfile
-import shutil
 
 import tables as t
 from tables.tests import common
-
-from tables.link import ExternalLink
 
 
 # Test for hard links
