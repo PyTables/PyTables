@@ -697,7 +697,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
                                                               nobjects))
             try:
                 nparr[:] = value
-            except Exception, exc:  # XXX
+            except Exception as exc:  # XXX
                 raise ValueError("Value parameter:\n'%r'\n"
                                  "cannot be converted into an array object "
                                  "compliant vlarray[%s] row: \n'%r'\n"

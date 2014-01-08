@@ -66,7 +66,7 @@ def _check_indexable_cmp(getidxcmp):
         if result[0] is not None:
             try:
                 typeCompileAst(expressionToAST(exprnode))
-            except NotImplementedError, nie:
+            except NotImplementedError as nie:
                 # Try to make this Numexpr error less cryptic.
                 raise _unsupported_operation_error(nie)
         return result
@@ -417,7 +417,7 @@ def compile_condition(condition, typemap, indexedcols):
         # reasons of inserting copy operators for unaligned,
         # *unidimensional* arrays.
         func = NumExpr(expr, signature)
-    except NotImplementedError, nie:
+    except NotImplementedError as nie:
         # Try to make this Numexpr error less cryptic.
         raise _unsupported_operation_error(nie)
     params = varnames

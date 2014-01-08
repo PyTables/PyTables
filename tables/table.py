@@ -2260,7 +2260,7 @@ class Table(tableextension.Table, Leaf):
             # Works for Python structures and always copies the original,
             # so the resulting object is safe for in-place conversion.
             wbufRA = numpy.rec.array(rows, dtype=self._v_dtype)
-        except Exception, exc:  # XXX
+        except Exception as exc:  # XXX
             raise ValueError("rows parameter cannot be converted into a "
                              "recarray object compliant with table '%s'. "
                              "The error was: <%s>" % (str(self), exc))
@@ -2287,7 +2287,7 @@ class Table(tableextension.Table, Leaf):
                 # Works for Python structures and always copies the original,
                 # so the resulting object is safe for in-place conversion.
                 recarr = numpy.rec.array(obj, dtype=self._v_dtype)
-        except Exception, exc:  # XXX
+        except Exception as exc:  # XXX
             raise ValueError("Object cannot be converted into a recarray "
                              "object compliant with table format '%s'. "
                              "The error was: <%s>" %
@@ -2434,7 +2434,7 @@ class Table(tableextension.Table, Leaf):
                 # so the resulting object is safe for in-place conversion.
                 iflavor = flavor_of(column)
                 column = array_as_internal(column, iflavor)
-        except Exception, exc:  # XXX
+        except Exception as exc:  # XXX
             raise ValueError("column parameter cannot be converted into a "
                              "ndarray object compliant with specified column "
                              "'%s'. The error was: <%s>" % (str(column), exc))
@@ -2517,7 +2517,7 @@ class Table(tableextension.Table, Leaf):
                 recarray = numpy.rec.array(columns, dtype=descr)
             else:
                 recarray = numpy.rec.fromarrays(columns, dtype=descr)
-        except Exception, exc:  # XXX
+        except Exception as exc:  # XXX
             raise ValueError("columns parameter cannot be converted into a "
                              "recarray object compliant with table '%s'. "
                              "The error was: <%s>" % (str(self), exc))

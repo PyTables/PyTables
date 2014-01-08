@@ -269,7 +269,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     kind=self.kind, optlevel=self.optlevel,
                     _blocksizes=small_blocksizes, _testmode=True)
 
-        except TypeError, te:
+        except TypeError as te:
             if self.colNotIndexable_re.search(str(te)):
                 raise common.SkipTest(
                     "Columns of this type can not be indexed.")
@@ -418,7 +418,7 @@ def create_test_method(type_, op, extracond):
                 ptfvalues = [table.read_where(cond, condvars, field=acolname,
                                               **table_slice)
                                              for _ in range(2)]
-            except TypeError, te:
+            except TypeError as te:
                 if self.condNotBoolean_re.search(str(te)):
                     raise common.SkipTest("The condition is not boolean.")
                 raise

@@ -2555,7 +2555,7 @@ except tables.HDF5ExtError as e:
 
         try:
             self._raise_exterror()
-        except tables.HDF5ExtError, e:
+        except tables.HDF5ExtError as e:
             self.assertFalse(e.h5backtrace is None)
         else:
             self.fail("HDF5ExtError exception not raised")
@@ -2565,7 +2565,7 @@ except tables.HDF5ExtError as e:
 
         try:
             self._raise_exterror()
-        except tables.HDF5ExtError, e:
+        except tables.HDF5ExtError as e:
             self.assertFalse(e.h5backtrace is None)
             msg = str(e)
             self.assertTrue(e.h5backtrace[-1][-1] in msg)
@@ -2577,7 +2577,7 @@ except tables.HDF5ExtError as e:
 
         try:
             self._raise_exterror()
-        except tables.HDF5ExtError, e:
+        except tables.HDF5ExtError as e:
             self.assertTrue(e.h5backtrace is None)
         else:
             self.fail("HDF5ExtError exception not raised")

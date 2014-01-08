@@ -790,7 +790,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         try:
             super(Group, self).__delattr__(name)  # nothing particular
-        except AttributeError, ae:
+        except AttributeError as ae:
             hint = " (use ``node._f_remove()`` if you want to remove a node)"
             raise ae.__class__(str(ae) + hint)
 
@@ -1192,7 +1192,7 @@ class RootGroup(Group):
             # return ChildClass(self, childname)  # uncomment for debugging
             try:
                 return ChildClass(self, childname)
-            except Exception, exc:  # XXX
+            except Exception as exc:  # XXX
                 warnings.warn(
                     "problems loading leaf ``%s``::\n\n"
                     "  %s\n\n"

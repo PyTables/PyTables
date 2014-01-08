@@ -144,7 +144,7 @@ def flavor_to_flavor(array, src_flavor, dst_flavor):
 
     try:
         return array_of_flavor2(array, src_flavor, dst_flavor)
-    except FlavorError, fe:
+    except FlavorError as fe:
         warnings.warn("%s; returning an object of the ``%s`` flavor instead"
                       % (fe.args[0], src_flavor), FlavorWarning)
         return array

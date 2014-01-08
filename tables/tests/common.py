@@ -141,20 +141,20 @@ def pyTablesTest(oldmethod):
         try:
             try:
                 return oldmethod(self, *args, **kwargs)
-            except SkipTest, se:
+            except SkipTest as se:
                 if se.args:
                     msg = se.args[0]
                 else:
                     msg = "<skipped>"
                 verbosePrint("\nSkipped test: %s" % msg)
-            except self.failureException, fe:
+            except self.failureException as fe:
                 if fe.args:
                     msg = fe.args[0]
                 else:
                     msg = "<failed>"
                 verbosePrint("\nTest failed: %s" % msg)
                 raise
-            except Exception, exc:
+            except Exception as exc:
                 cname = exc.__class__.__name__
                 verbosePrint("\nError in test::\n\n  %s: %s" % (cname, exc))
                 raise
@@ -291,7 +291,7 @@ class PyTablesTestCase(unittest.TestCase):
 
         try:
             callableObj(*args, **kwargs)
-        except excClass, exc:
+        except excClass as exc:
             print (
                 "Great!  The following ``%s`` was caught::\n"
                 "\n"

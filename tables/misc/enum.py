@@ -224,7 +224,7 @@ sequences, mappings and other enumerations""")
 
         try:
             return self[name]
-        except KeyError, ke:
+        except KeyError as ke:
             raise AttributeError(*ke.args)
 
     def __setattr__(self, name, value):

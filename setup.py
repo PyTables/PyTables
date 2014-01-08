@@ -30,6 +30,7 @@ setuptools_kwargs = {}
 
 if sys.version_info >= (3,):
     exclude_fixers = [
+        'lib2to3.fixes.except',
         'lib2to3.fixes.fix_idioms',
         'lib2to3.fixes.fix_zip',
     ]
