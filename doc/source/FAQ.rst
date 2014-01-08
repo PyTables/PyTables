@@ -406,7 +406,7 @@ themselves and SQLObject_, and there have been quite longish discussions about
 adding the possibility of overloading logical operators to Python (see `PEP
 335`_ and `this thread`__ for more details).
 
-__ http://mail.python.org/pipermail/python-dev/2004-September/048763.html
+__ https://mail.python.org/pipermail/python-dev/2004-September/048763.html
 
 
 I can not select rows using in-kernel queries with a condition that involves an UInt64Col. Why?
