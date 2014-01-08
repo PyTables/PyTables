@@ -311,18 +311,21 @@ class Node(object):
             return  # the node is already closed or not initialized
 
         # If we get here, the `Node` is still open.
-        file_ = self._v_file
-        if self._v_pathname in file_._aliveNodes:
-            # If the node is alive, kill it (to save it).
-            file_._killnode(self)
-        elif file_._aliveNodes.hasdeadnodes:
-            # The node is already dead and there are no references to it,
-            # so follow the usual deletion procedure.
-            # This means closing the (still open) node.
-            # `self._v__deleting` is asserted so that the node
-            # does not try to unreference itself again from the file.
-            self._v__deleting = True
-            self._f_close()
+        try:  # self._v_file is a weak reference and might have disappeared
+            file_ = self._v_file
+            if self._v_pathname in file_._aliveNodes:
+                # If the node is alive, kill it (to save it).
+                file_._killnode(self)
+            elif file_._aliveNodes.hasdeadnodes:
+                # The node is already dead and there are no references to it,
+                # so follow the usual deletion procedure.
+                # This means closing the (still open) node.
+                # `self._v__deleting` is asserted so that the node
+                # does not try to unreference itself again from the file.
+                self._v__deleting = True
+                self._f_close()
+        except ReferenceError:
+            pass
 
     def _g_pre_kill_hook(self):
         """Code to be called before killing the node."""

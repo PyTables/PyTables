@@ -272,19 +272,22 @@ class Group(hdf5extension.Group, Node):
     _g_postInitHook = previous_api(_g_post_init_hook)
 
     def __del__(self):
-        if (self._v_isopen and
-            self._v_pathname in self._v_file._aliveNodes and
-                '_v_children' in self.__dict__):
-            # The group is going to be killed.  Rebuild weak references
-            # (that Python cancelled just before calling this method) so
-            # that they are still usable if the object is revived later.
-            selfref = weakref.ref(self)
-            self._v_children.containerref = selfref
-            self._v_groups.containerref = selfref
-            self._v_leaves.containerref = selfref
-            self._v_links.containerref = selfref
-            self._v_unknown.containerref = selfref
-            self._v_hidden.containerref = selfref
+        try:  # self._v_file is a weak reference and might have disappeared
+            if (self._v_isopen and
+                self._v_pathname in self._v_file._aliveNodes and
+                    '_v_children' in self.__dict__):
+                # The group is going to be killed.  Rebuild weak references
+                # (that Python cancelled just before calling this method) so
+                # that they are still usable if the object is revived later.
+                selfref = weakref.ref(self)
+                self._v_children.containerref = selfref
+                self._v_groups.containerref = selfref
+                self._v_leaves.containerref = selfref
+                self._v_links.containerref = selfref
+                self._v_unknown.containerref = selfref
+                self._v_hidden.containerref = selfref
+        except ReferenceError:
+            pass
 
         super(Group, self).__del__()
 
@@ -1130,7 +1133,7 @@ class RootGroup(Group):
             self._v_new_filters = None
 
         # Set node attributes.
-        self._v_file = ptfile
+        self._v_file = weakref.proxy(ptfile)
         self._v_isopen = True  # root is always open
         self._v_pathname = '/'
         self._v_name = '/'
@@ -1141,7 +1144,7 @@ class RootGroup(Group):
 
         # Only the root node has the file as a parent.
         # Bypass __setattr__ to avoid the ``Node._v_parent`` property.
-        mydict['_v_parent'] = ptfile
+        mydict['_v_parent'] = weakref.proxy(ptfile)
         ptfile._refnode(self, '/')
 
         # hdf5extension operations (do before setting an AttributeSet):

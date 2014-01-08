@@ -18,6 +18,7 @@ all the tests.
 
 """
 
+from collections import defaultdict
 import unittest
 import gc
 
@@ -36,14 +37,12 @@ class GarbageTestCase(common.PyTablesTestCase):
             return  # success
 
         if common.verbose:
-            classCount = {}
+            classCount = defaultdict(int)
             # Count uncollected objects for each class.
             for obj in gc.garbage:
                 objClass = obj.__class__.__name__
-                if objClass in classCount:
-                    classCount[objClass] += 1
-                else:
-                    classCount[objClass] = 1
+                classCount[objClass] += 1
+
             incidence = ['``%s``: %d' % (cls, cnt)
                          for (cls, cnt) in classCount.iteritems()]
             print "Class incidence:", ', '.join(incidence)

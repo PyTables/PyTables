@@ -1751,9 +1751,6 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
     def tearDown(self):
         if self.h5file:
             self.h5file.close()
-        elif self.h5fname in tables.file._open_files:
-            h5file = tables.file._open_files[self.h5fname]
-            h5file.close()
 
         self.h5file = None
         if os.path.isfile(self.h5fname):
@@ -1980,6 +1977,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
             else:
                 self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
+            self.h5file.close()
+
 
 class SplitDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_SPLIT"
@@ -2023,9 +2022,6 @@ class NotSpportedDriverTestCase(common.PyTablesTestCase):
         self.h5fname = tempfile.mktemp(suffix=".h5")
 
     def tearDown(self):
-        if self.h5fname in tables.file._open_files:
-            h5file = tables.file._open_files[self.h5fname]
-            h5file.close()
         if os.path.exists(self.h5fname):
             os.remove(self.h5fname)
 

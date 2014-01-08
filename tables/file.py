@@ -81,9 +81,6 @@ format_version = "2.1"  # Numeric and numarray flavors are gone.
 compatible_formats = []  # Old format versions we can read
                          # Empty means that we support all the old formats
 
-# Dict of opened files (keys are filenames and values filehandlers)
-_open_files = {}
-
 # Opcodes for do-undo actions
 _op_to_code = {
     "MARK": 0,
@@ -220,33 +217,6 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
         advices about the integrated node cache engine.
 
     """
-
-    # Get the list of already opened files
-    ofiles = [fname for fname in _open_files]
-    if filename in ofiles:
-        filehandle = _open_files[filename]
-        omode = filehandle.mode
-        # 'r' is incompatible with everything except 'r' itself
-        if mode == 'r' and omode != 'r':
-            raise ValueError(
-                "The file '%s' is already opened, but "
-                "not in read-only mode (as requested)." % filename)
-        # 'a' and 'r+' are compatible with everything except 'r'
-        elif mode in ('a', 'r+') and omode == 'r':
-            raise ValueError(
-                "The file '%s' is already opened, but "
-                "in read-only mode.  Please close it before "
-                "reopening in append mode." % filename)
-        # 'w' means that we want to destroy existing contents
-        elif mode == 'w':
-            raise ValueError(
-                "The file '%s' is already opened.  Please "
-                "close it before reopening in write mode." % filename)
-        else:
-            # The file is already open and modes are compatible
-            # Increase the number of openings for this file
-            filehandle._open_count += 1
-            return filehandle
     # Finally, create the File instance, and return it
     return File(filename, mode, title, root_uep, filters, **kwargs)
 
@@ -486,10 +456,6 @@ class File(hdf5extension.File, object):
         ("Default filter properties for the root group "
          "(see :ref:`FiltersClassDescr`)."))
 
-    open_count = property(
-        lambda self: self._open_count, None, None,
-        "The number of times this file has been opened currently.")
-
     ## </properties>
 
     def __init__(self, filename, mode="r", title="",
@@ -524,7 +490,7 @@ class File(hdf5extension.File, object):
         self.params = params
 
         # Now, it is time to initialize the File extension
-        self._g_new(filename, mode, **params)
+        super(File, self).__init__(filename, mode, **params)
 
         # Check filters and set PyTables format version for new files.
         new = self._v_new
@@ -552,12 +518,6 @@ class File(hdf5extension.File, object):
         # to allow some basic access to its attributes.
         self.isopen = 1
         """True if the underlying file os open, False otherwise."""
-
-        # Append the name of the file to the global dict of files opened.
-        _open_files[self.filename] = self
-
-        # Set the number of times this file has been opened to 1
-        self._open_count = 1
 
         # Get the root group from this file
         self.root = root = self.__get_root_group(root_uep, title, filters)
@@ -2469,12 +2429,6 @@ class File(hdf5extension.File, object):
         if not self.isopen:
             return
 
-        # If this file has been opened more than once, decrease the
-        # counter and return
-        if self._open_count > 1:
-            self._open_count -= 1
-            return
-
         filename = self.filename
 
         if self._undoEnabled and self._iswritable():
@@ -2503,8 +2457,6 @@ class File(hdf5extension.File, object):
         self.__dict__.clear()
         # Set the flag to indicate that the file is closed
         self.isopen = 0
-        # Delete the entry in the dictionary of opened files
-        del _open_files[filename]
 
     def __enter__(self):
         """Enter a context and return the same file."""
@@ -2680,24 +2632,6 @@ class File(hdf5extension.File, object):
                     descendentNode._g_update_location(newNodePPath)
 
     _updateNodeLocations = previous_api(_update_node_locations)
-
-
-# If a user hits ^C during a run, it is wise to gracefully close the
-# opened files.
-def close_open_files():
-    are_open_files = len(_open_files) > 0
-    if are_open_files:
-        print >> sys.stderr, "Closing remaining open files:",
-    for fname, fileh in _open_files.items():
-        print >> sys.stderr, "%s..." % (fname,),
-        fileh.close()
-        print >> sys.stderr, "done",
-    if are_open_files:
-        print >> sys.stderr
-
-import atexit
-atexit.register(close_open_files)
-
 
 ## Local Variables:
 ## mode: python

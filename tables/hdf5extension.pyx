@@ -299,7 +299,7 @@ cdef class File:
   cdef hid_t   access_plist
   cdef object  name
 
-  def _g_new(self, name, pymode, **params):
+  def __init__(self, name, pymode, **params):
     cdef herr_t err = 0
     cdef hid_t access_plist, create_plist = H5P_DEFAULT
     cdef hid_t meta_plist_id = H5P_DEFAULT, raw_plist_id = H5P_DEFAULT
@@ -602,7 +602,7 @@ cdef class File:
 
   def _close_file(self):
     # Close the file
-    H5Fclose( self.file_id )
+    H5Fclose(self.file_id)
     self.file_id = 0    # Means file closed
 
   _closeFile = previous_api(_close_file)
