@@ -109,6 +109,8 @@ VLArray methods
 
 .. automethod:: VLArray.read
 
+.. automethod:: VLArray.get_row_size
+
 
 VLArray special methods
 ~~~~~~~~~~~~~~~~~~~~~~~
