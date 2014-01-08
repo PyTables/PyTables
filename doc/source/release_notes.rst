@@ -17,6 +17,7 @@ PyTables
 .. toctree::
     :maxdepth: 1
 
+    release-notes/RELEASE_NOTES_v3.1.x
     release-notes/RELEASE_NOTES_v3.0.x
     release-notes/RELEASE_NOTES_v2.4.x
     release-notes/RELEASE_NOTES_v2.3.x
