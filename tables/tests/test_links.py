@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""Test module for diferent kind of links under PyTables"""
+"""Test module for diferent kind of links under PyTables."""
 
 from __future__ import print_function
 import os
@@ -42,7 +42,7 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(larr2 is not None)
 
     def test00_create(self):
-        """Creating hard links"""
+        """Creating hard links."""
         self._createFile()
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.lgroup1,
@@ -55,7 +55,7 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 hardlink=True)
 
     def test01_open(self):
-        """Opening a file with hard links"""
+        """Opening a file with hard links."""
 
         self._createFile()
         self._reopen()
@@ -70,7 +70,7 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 hardlink=True)
 
     def test02_removeLeaf(self):
-        """Removing a hard link to a Leaf"""
+        """Removing a hard link to a Leaf."""
 
         self._createFile()
         # First delete the initial link
@@ -85,7 +85,7 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue('/group1/larr1' not in self.h5file)
 
     def test03_removeGroup(self):
-        """Removing a hard link to a Group"""
+        """Removing a hard link to a Group."""
 
         self._createFile()
         if common.verbose:
@@ -123,7 +123,7 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(larr2 is not None)
 
     def test00_create(self):
-        """Creating soft links"""
+        """Creating soft links."""
         self._createFile()
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.lgroup1())
@@ -133,7 +133,7 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 self.h5file.root.larr2())
 
     def test01_open(self):
-        """Opening a file with soft links"""
+        """Opening a file with soft links."""
 
         self._createFile()
         self._reopen()
@@ -354,7 +354,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.exth5file = t.open_file(self.extfname, "r")
 
     def test00_create(self):
-        """Creating soft links"""
+        """Creating soft links."""
         self._createFile()
         self._checkEqualityGroup(self.exth5file.root.group1,
                                  self.h5file.root.lgroup1())
@@ -364,7 +364,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 self.h5file.root.larr2())
 
     def test01_open(self):
-        """Opening a file with soft links"""
+        """Opening a file with soft links."""
 
         self._createFile()
         self._reopen()

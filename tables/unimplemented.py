@@ -22,8 +22,8 @@ from tables._past import previous_api_property
 
 
 class UnImplemented(hdf5extension.UnImplemented, Leaf):
-    """This class represents datasets not supported by PyTables in an
-    HDF5 file.
+    """This class represents datasets not supported by PyTables in an HDF5
+    file.
 
     When reading a generic HDF5 file (i.e. one that has not been created with
     PyTables, but with some other HDF5 library based tool), chances are that

@@ -25,6 +25,7 @@ value is not used directly, and frequently it is entirely irrelevant.
 For the same reason, an enumerated variable is not usually compared with
 concrete values out of its enumerated type.  For that kind of use,
 standard variables and constants are more adequate.
+
 """
 
 from tables._past import previous_api
@@ -111,6 +112,7 @@ class Enum(object):
     (If you ask, the __getitem__() method is
     not used for this purpose to avoid ambiguity in the case of using
     strings as concrete values.)
+
     """
 
     def __init__(self, enum):
@@ -163,8 +165,7 @@ sequences, mappings and other enumerations""")
     _checkAndSetPair = previous_api(_check_and_set_pair)
 
     def __getitem__(self, name):
-        """
-        Get the concrete value of the enumerated value with that name.
+        """Get the concrete value of the enumerated value with that name.
 
         The name of the enumerated value must be a string. If there is no value
         with that name in the enumeration, a KeyError is raised.
@@ -184,6 +185,7 @@ sequences, mappings and other enumerations""")
         Traceback (most recent call last):
           ...
         KeyError: "no enumerated value with that name: 'foo'"
+
         """
 
         try:
@@ -200,8 +202,7 @@ sequences, mappings and other enumerations""")
         raise IndexError("operation not allowed")
 
     def __getattr__(self, name):
-        """
-        Get the concrete value of the enumerated value with that name.
+        """Get the concrete value of the enumerated value with that name.
 
         The name of the enumerated value must be a string. If there is no value
         with that name in the enumeration, an AttributeError is raised.
@@ -220,6 +221,7 @@ sequences, mappings and other enumerations""")
         Traceback (most recent call last):
           ...
         AttributeError: no enumerated value with that name: 'foo'
+
         """
 
         try:
@@ -236,8 +238,7 @@ sequences, mappings and other enumerations""")
         raise AttributeError("operation not allowed")
 
     def __contains__(self, name):
-        """
-        Is there an enumerated value with that name in the type?
+        """Is there an enumerated value with that name in the type?
 
         If the enumerated type has an enumerated value with that name, True is
         returned.  Otherwise, False is returned. The name must be a string.
@@ -265,6 +266,7 @@ sequences, mappings and other enumerations""")
         Traceback (most recent call last):
           ...
         TypeError: name of enumerated value is not a string: 2
+
         """
 
         if not isinstance(name, basestring):
@@ -273,8 +275,7 @@ sequences, mappings and other enumerations""")
         return name in self._names
 
     def __call__(self, value, *default):
-        """
-        Get the name of the enumerated value with that concrete value.
+        """Get the name of the enumerated value with that concrete value.
 
         If there is no value with that concrete value in the enumeration and a
         second argument is given as a default, this is returned. Else, a
@@ -299,6 +300,7 @@ sequences, mappings and other enumerations""")
         Traceback (most recent call last):
           ...
         ValueError: no enumerated value with that concrete value: 42
+
         """
 
         try:
@@ -310,20 +312,19 @@ sequences, mappings and other enumerations""")
                 "no enumerated value with that concrete value: %r" % (value,))
 
     def __len__(self):
-        """
-        Return the number of enumerated values in the enumerated type.
+        """Return the number of enumerated values in the enumerated type.
 
         Examples
         --------
         >>> len(Enum(['e%d' % i for i in range(10)]))
         10
+
         """
 
         return len(self._names)
 
     def __iter__(self):
-        """
-        Iterate over the enumerated values.
+        """Iterate over the enumerated values.
 
         Enumerated values are returned as (name, value) pairs *in no particular
         order*.
@@ -335,14 +336,14 @@ sequences, mappings and other enumerations""")
         >>> enumdict = dict([(name, value) for (name, value) in enum])
         >>> enumvals == enumdict
         True
+
         """
 
         for name_value in self._names.iteritems():
             yield name_value
 
     def __eq__(self, other):
-        """
-        Is the other enumerated type equivalent to this one?
+        """Is the other enumerated type equivalent to this one?
 
         Two enumerated types are equivalent if they have exactly the same
         enumerated values (i.e. with the same names and concrete values).
@@ -381,6 +382,7 @@ sequences, mappings and other enumerations""")
         False
         >>> enum1 == 2
         False
+
         """
 
         if not isinstance(other, Enum):
@@ -388,8 +390,7 @@ sequences, mappings and other enumerations""")
         return self._names == other._names
 
     def __ne__(self, other):
-        """
-        Is the `other` enumerated type different from this one?
+        """Is the `other` enumerated type different from this one?
 
         Two enumerated types are different if they don't have exactly
         the same enumerated values (i.e. with the same names and
@@ -419,6 +420,7 @@ sequences, mappings and other enumerations""")
         True
         >>> enum1 != enum6
         True
+
         """
 
         return not self.__eq__(other)
@@ -428,8 +430,7 @@ sequences, mappings and other enumerations""")
     # def __hash__(self):
     #    return hash((self.__class__, tuple(self._names.items())))
     def __repr__(self):
-        """
-        Return the canonical string representation of the enumeration. The
+        """Return the canonical string representation of the enumeration. The
         output of this method can be evaluated to give a new enumeration object
         that will compare equal to this one.
 
@@ -437,6 +438,7 @@ sequences, mappings and other enumerations""")
         --------
         >>> repr(Enum({'name': 10}))
         "Enum({'name': 10})"
+
         """
 
         return 'Enum(%s)' % self._names

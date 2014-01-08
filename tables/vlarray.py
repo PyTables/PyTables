@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""Here is defined the VLArray class"""
+"""Here is defined the VLArray class."""
 
 import sys
 
@@ -585,7 +585,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         return self
 
     def _init_loop(self):
-        """Initialization for the __iter__ iterator"""
+        """Initialization for the __iter__ iterator."""
 
         self._nrowsread = self._start
         self._startb = self._start
@@ -598,7 +598,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
     def next(self):
         """Get the next element of the array during an iteration.
 
-        The element is returned as a list of objects of the current flavor.
+        The element is returned as a list of objects of the current
+        flavor.
 
         """
 
@@ -814,7 +815,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
                            title, filters, chunkshape, _log, **kwargs):
-        """Private part of Leaf.copy() for each kind of leaf"""
+        """Private part of Leaf.copy() for each kind of leaf."""
 
         # Build the new VLArray object
         object = VLArray(

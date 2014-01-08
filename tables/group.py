@@ -348,9 +348,7 @@ class Group(hdf5extension.Group, Node):
 
     def _g_add_children_names(self):
         """Add children names to this group taking into account their
-        visibility and kind.
-
-        """
+        visibility and kind."""
 
         mydict = self.__dict__
 
@@ -485,8 +483,8 @@ class Group(hdf5extension.Group, Node):
     _f_walkNodes = previous_api(_f_walknodes)
 
     def _g_join(self, name):
-        """Helper method to correctly concatenate a name child object
-        with the pathname of this group."""
+        """Helper method to correctly concatenate a name child object with the
+        pathname of this group."""
 
         if name == "/":
             # This case can happen when doing copies
@@ -862,7 +860,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         super(Group, self).__setattr__(name, value)
 
     def _f_flush(self):
-        """Flush this Group"""
+        """Flush this Group."""
 
         self._g_check_open()
         self._g_flush_group()
@@ -1271,6 +1269,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         This method empties all action storage kept in this node: nodes
         and attributes.
+
         """
 
         # Remove action storage nodes.

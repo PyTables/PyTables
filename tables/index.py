@@ -656,7 +656,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         return idx
 
     def append(self, xarr, update=False):
-        """Append the array to the index objects"""
+        """Append the array to the index objects."""
 
         if profile:
             tref = time()
@@ -721,7 +721,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             show_stats("Exiting append", tref)
 
     def append_last_row(self, xarr, update=False):
-        """Append the array to the last row index objects"""
+        """Append the array to the last row index objects."""
 
         if profile:
             tref = time()
@@ -1828,7 +1828,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self.dirtycache = False
 
     def search(self, item):
-        """Do a binary search in this index for an item"""
+        """Do a binary search in this index for an item."""
 
         if profile:
             tref = time()
@@ -2013,7 +2013,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
     searchLastRow = previous_api(search_last_row)
 
     def get_chunkmap(self):
-        """Compute a map with the interesting chunks in index"""
+        """Compute a map with the interesting chunks in index."""
 
         if profile:
             tref = time()
@@ -2123,7 +2123,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
     getLookupRange = previous_api(get_lookup_range)
 
     def _f_remove(self, recursive=False):
-        """Remove this Index object"""
+        """Remove this Index object."""
 
         # Index removal is always recursive,
         # no matter what `recursive` says.

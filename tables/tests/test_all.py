@@ -153,6 +153,7 @@ def test(verbose=False, heavy=False):
     resources from your computer).
 
     Return 0 (os.EX_OK) if all tests pass, 1 in case of failure
+
     """
 
     print_versions()

@@ -23,7 +23,9 @@ warnings.resetwarnings()
 
 class BasicTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in numpy.
+
     All of them are included on pytables.
+
     """
     endiancheck = False
 
@@ -641,7 +643,9 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
 
 class UnalignedAndComplexTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in numpy.
+
     Most of them are included on PyTables.
+
     """
 
     def setUp(self):
@@ -1036,7 +1040,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 class CopyTestCase(unittest.TestCase):
 
     def test01_copy(self):
-        """Checking Array.copy() method """
+        """Checking Array.copy() method."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1257,7 +1261,7 @@ class OpenCopyTestCase(CopyTestCase):
 class CopyIndexTestCase(unittest.TestCase):
 
     def test01_index(self):
-        """Checking Array.copy() method with indexes"""
+        """Checking Array.copy() method with indexes."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2691,7 +2695,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class BroadcastTest(common.TempFileMixin, common.PyTablesTestCase):
 
     def test(self):
-        """Test correct broadcasting when the array atom is not scalar"""
+        """Test correct broadcasting when the array atom is not scalar."""
 
         array_shape = (2, 3)
         element_shape = (3,)

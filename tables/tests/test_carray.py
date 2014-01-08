@@ -111,7 +111,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(obj.atom.type, self.type)
 
     def test01_readCArray(self):
-        """Checking read() of chunked layout arrays"""
+        """Checking read() of chunked layout arrays."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -183,7 +183,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(allequal(data, object, self.flavor))
 
     def test01_readCArray_out_argument(self):
-        """Checking read() of chunked layout arrays"""
+        """Checking read() of chunked layout arrays."""
 
         # Create an instance of an HDF5 Table
         if self.reopen:
@@ -242,7 +242,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(allequal(data, object, self.flavor))
 
     def test02_getitemCArray(self):
-        """Checking chunked layout array __getitem__ special method"""
+        """Checking chunked layout array __getitem__ special method."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -302,7 +302,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertTrue(allequal(data, object, self.flavor))
 
     def test03_setitemCArray(self):
-        """Checking chunked layout array __setitem__ special method"""
+        """Checking chunked layout array __setitem__ special method."""
 
         if self.__class__.__name__ == "Ellipsis6CArrayTestCase":
             # see test_earray.py BasicTestCase.test03_setitemEArray
@@ -1066,7 +1066,7 @@ class OffsetStrideTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test01a_String(self):
-        """Checking carray with offseted NumPy strings appends"""
+        """Checking carray with offseted NumPy strings appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1101,7 +1101,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         self.assertEqual(len(data[1]), 2)
 
     def test01b_String(self):
-        """Checking carray with strided NumPy strings appends"""
+        """Checking carray with strided NumPy strings appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1136,7 +1136,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         self.assertEqual(len(data[1]), 2)
 
     def test02a_int(self):
-        """Checking carray with offseted NumPy ints appends"""
+        """Checking carray with offseted NumPy ints appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1171,7 +1171,7 @@ class OffsetStrideTestCase(unittest.TestCase):
                         2], numpy.array([-1, 0, 0], dtype='int32')))
 
     def test02b_int(self):
-        """Checking carray with strided NumPy ints appends"""
+        """Checking carray with strided NumPy ints appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1209,7 +1209,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 class CopyTestCase(unittest.TestCase):
 
     def test01a_copy(self):
-        """Checking CArray.copy() method """
+        """Checking CArray.copy() method."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1274,7 +1274,7 @@ class CopyTestCase(unittest.TestCase):
         os.remove(file)
 
     def test01b_copy(self):
-        """Checking CArray.copy() method """
+        """Checking CArray.copy() method."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1337,7 +1337,7 @@ class CopyTestCase(unittest.TestCase):
         os.remove(file)
 
     def test01c_copy(self):
-        """Checking CArray.copy() method """
+        """Checking CArray.copy() method."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1818,7 +1818,7 @@ class CopyIndexTestCase(unittest.TestCase):
     nrowsinbuf = 2
 
     def test01_index(self):
-        """Checking CArray.copy() method with indexes"""
+        """Checking CArray.copy() method with indexes."""
 
         if common.verbose:
             print('\n', '-=' * 30)

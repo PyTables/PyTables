@@ -75,14 +75,14 @@ class createTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test00_isClass(self):
-        """Testing table creation"""
+        """Testing table creation."""
         self.assertTrue(isinstance(self.table, Table))
         self.assertTrue(isinstance(self.array, Array))
         self.assertTrue(isinstance(self.array, Leaf))
         self.assertTrue(isinstance(self.group, Group))
 
     def test01_overwriteNode(self):
-        """Checking protection against node overwriting"""
+        """Checking protection against node overwriting."""
 
         try:
             self.array = self.fileh.create_array(self.root, 'anarray',
@@ -96,7 +96,7 @@ class createTestCase(unittest.TestCase):
             self.fail("expected a NodeError")
 
     def test02_syntaxname(self):
-        """Checking syntax in object tree names"""
+        """Checking syntax in object tree names."""
 
         # Now, try to attach an array to the object tree with
         # a not allowed Python variable name
@@ -139,7 +139,7 @@ class createTestCase(unittest.TestCase):
         warnings.filterwarnings("default", category=NaturalNameWarning)
 
     def test03a_titleAttr(self):
-        """Checking the self.title attr in nodes"""
+        """Checking the self.title attr in nodes."""
 
         # Close the opened file to destroy the object tree
         self.fileh.close()
@@ -1761,7 +1761,7 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
             os.remove(self.h5fname)
 
     def test_newFile(self):
-        """Ensure that nothing is written to file"""
+        """Ensure that nothing is written to file."""
 
         self.assertFalse(os.path.isfile(self.h5fname))
 
@@ -2435,7 +2435,7 @@ class QuantizeTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test00_quantizeData(self):
-        """Checking the quantize() function"""
+        """Checking the quantize() function."""
 
         quantized_0 = quantize(self.data, 0)
         quantized_1 = quantize(self.data, 1)
@@ -2447,7 +2447,7 @@ class QuantizeTestCase(unittest.TestCase):
         numpy.testing.assert_array_equal(quantized_m1, self.quantizeddata_m1)
 
     def test01_quantizeDataMaxError(self):
-        """Checking the maximum error introduced by the quantize() function"""
+        """Checking the maximum error introduced by the quantize() function."""
 
         quantized_0 = quantize(self.randomdata, 0)
         quantized_1 = quantize(self.randomdata, 1)
@@ -2466,7 +2466,7 @@ class QuantizeTestCase(unittest.TestCase):
 
 
     def test02_array(self):
-        """Checking quantized data as written to disk"""
+        """Checking quantized data as written to disk."""
 
         self.h5file = open_file(self.file, "r")
         numpy.testing.assert_array_equal(self.h5file.root.data1[:], self.data)

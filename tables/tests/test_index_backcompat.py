@@ -33,7 +33,7 @@ class IndexesTestCase(common.PyTablesTestCase):
             self.assertEqual(t1var1.index._v_version, "2.1")
 
     def test01_string(self):
-        """Checking string indexes"""
+        """Checking string indexes."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -65,7 +65,7 @@ class IndexesTestCase(common.PyTablesTestCase):
         self.assertEqual(results1, results2)
 
     def test02_bool(self):
-        """Checking bool indexes"""
+        """Checking bool indexes."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -89,7 +89,7 @@ class IndexesTestCase(common.PyTablesTestCase):
         self.assertEqual(results1, results2)
 
     def test03_int(self):
-        """Checking int indexes"""
+        """Checking int indexes."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -123,7 +123,7 @@ class IndexesTestCase(common.PyTablesTestCase):
         self.assertEqual(results1, results2)
 
     def test04_float(self):
-        """Checking float indexes"""
+        """Checking float indexes."""
 
         if common.verbose:
             print('\n', '-=' * 30)

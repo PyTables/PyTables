@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""Utility functions"""
+"""Utility functions."""
 
 from __future__ import print_function
 import os
@@ -75,7 +75,7 @@ def is_idx(index):
 
 
 def idx2long(index):
-    """Convert a possible index into a long int"""
+    """Convert a possible index into a long int."""
 
     try:
         return long(index)
@@ -442,7 +442,11 @@ class NailedDict(object):
 
 
 def detect_number_of_cores():
-    """Detects the number of cores on a system. Cribbed from pp."""
+    """Detects the number of cores on a system.
+
+    Cribbed from pp.
+
+    """
 
     # Linux, Unix and MacOS:
     if hasattr(os, "sysconf"):

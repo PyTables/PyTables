@@ -80,7 +80,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(obj.atom.type, 'int32')
 
     def test01_read(self):
-        """Checking vlarray read"""
+        """Checking vlarray read."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -199,7 +199,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertTrue(allequal(rows2[i], rows1[i], self.flavor))
 
     def test03_append(self):
-        """Checking vlarray append"""
+        """Checking vlarray append."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -457,8 +457,11 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test01c_StringAtom(self):
-        """Checking updating vlarray with NumPy string atoms
-        ('numpy' flavor)"""
+        """Checking updating vlarray with NumPy string atoms.
+
+        ('numpy' flavor)
+
+        """
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -534,7 +537,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test02_BoolAtom(self):
-        """Checking vlarray with boolean atoms"""
+        """Checking vlarray with boolean atoms."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -566,7 +569,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test02b_BoolAtom(self):
-        """Checking setting vlarray with boolean atoms"""
+        """Checking setting vlarray with boolean atoms."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -602,7 +605,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test03_IntAtom(self):
-        """Checking vlarray with integer atoms"""
+        """Checking vlarray with integer atoms."""
 
         ttypes = [
             "Int8",
@@ -698,7 +701,7 @@ class TypesTestCase(unittest.TestCase):
             self.assertEqual(len(row[1]), 2)
 
     def test03b_IntAtom(self):
-        """Checking updating vlarray with integer atoms"""
+        """Checking updating vlarray with integer atoms."""
 
         ttypes = [
             "Int8",
@@ -868,7 +871,7 @@ class TypesTestCase(unittest.TestCase):
             self.assertEqual(len(row[1]), 2)
 
     def test04_FloatAtom(self):
-        """Checking vlarray with floating point atoms"""
+        """Checking vlarray with floating point atoms."""
 
         ttypes = ["Float32",
                   "Float64",
@@ -963,7 +966,7 @@ class TypesTestCase(unittest.TestCase):
             self.assertEqual(len(row[1]), 2)
 
     def test04b_FloatAtom(self):
-        """Checking updating vlarray with floating point atoms"""
+        """Checking updating vlarray with floating point atoms."""
 
         ttypes = [
             "Float32",
@@ -1131,7 +1134,7 @@ class TypesTestCase(unittest.TestCase):
             self.assertEqual(len(row[1]), 2)
 
     def test04_ComplexAtom(self):
-        """Checking vlarray with numerical complex atoms"""
+        """Checking vlarray with numerical complex atoms."""
 
         ttypes = [
             "Complex32",
@@ -1179,7 +1182,7 @@ class TypesTestCase(unittest.TestCase):
             self.assertEqual(len(row[1]), 2)
 
     def test04b_ComplexAtom(self):
-        """Checking modifying vlarray with numerical complex atoms"""
+        """Checking modifying vlarray with numerical complex atoms."""
 
         ttypes = [
             "Complex32",
@@ -1231,7 +1234,7 @@ class TypesTestCase(unittest.TestCase):
             self.assertEqual(len(row[1]), 2)
 
     def test05_VLStringAtom(self):
-        """Checking vlarray with variable length strings"""
+        """Checking vlarray with variable length strings."""
 
         # Skip the test if the default encoding has been mangled.
         if sys.getdefaultencoding() != 'ascii':
@@ -1276,7 +1279,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[3]), 0)
 
     def test05b_VLStringAtom(self):
-        """Checking updating vlarray with variable length strings"""
+        """Checking updating vlarray with variable length strings."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1314,7 +1317,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 5)
 
     def test06a_Object(self):
-        """Checking vlarray with object atoms """
+        """Checking vlarray with object atoms."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1351,7 +1354,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertRaises(TypeError, len, row[2])
 
     def test06b_Object(self):
-        """Checking updating vlarray with object atoms """
+        """Checking updating vlarray with object atoms."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1462,7 +1465,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertTrue(allequal(row[2], numpy.array(22, 'i1')))
 
     def test07_VLUnicodeAtom(self):
-        """Checking vlarray with variable length Unicode strings"""
+        """Checking vlarray with variable length Unicode strings."""
 
         # Skip the test if the default encoding has been mangled.
         if sys.getdefaultencoding() != 'ascii':
@@ -1507,7 +1510,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[3]), 0)
 
     def test07b_VLUnicodeAtom(self):
-        """Checking updating vlarray with variable length Unicode strings"""
+        """Checking updating vlarray with variable length Unicode strings."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1575,7 +1578,7 @@ class MDTypesTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test01_StringAtom(self):
-        """Checking vlarray with MD NumPy string atoms"""
+        """Checking vlarray with MD NumPy string atoms."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1705,7 +1708,7 @@ class MDTypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test02_BoolAtom(self):
-        """Checking vlarray with MD boolean atoms"""
+        """Checking vlarray with MD boolean atoms."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1805,7 +1808,7 @@ class MDTypesTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test03_IntAtom(self):
-        """Checking vlarray with MD integer atoms"""
+        """Checking vlarray with MD integer atoms."""
 
         ttypes = ["Int8",
                   "UInt8",
@@ -1847,7 +1850,7 @@ class MDTypesTestCase(unittest.TestCase):
             self.assertEqual(len(row[1]), 1)
 
     def test04_FloatAtom(self):
-        """Checking vlarray with MD floating point atoms"""
+        """Checking vlarray with MD floating point atoms."""
 
         ttypes = [
             "Float32",
@@ -1919,7 +1922,7 @@ class AppendShapeTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test00_difinputs(self):
-        """Checking vlarray.append() with different inputs"""
+        """Checking vlarray.append() with different inputs."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1958,7 +1961,7 @@ class AppendShapeTestCase(unittest.TestCase):
         self.assertEqual(row[2], [1, 2, 3])
 
     def test01_toomanydims(self):
-        """Checking vlarray.append() with too many dimensions"""
+        """Checking vlarray.append() with too many dimensions."""
 
         root = self.rootgroup
         if common.verbose:
@@ -2758,8 +2761,11 @@ class ReadRangeTestCase(unittest.TestCase):
                 allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test04bnp_slices(self):
-        """Checking reads with start, stop & step values in slices
-        (numpy indices)"""
+        """Checking reads with start, stop & step values in slices.
+
+        (numpy indices)
+
+        """
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -3453,7 +3459,7 @@ class CopyTestCase(unittest.TestCase):
     close = True
 
     def test01a_copy(self):
-        """Checking VLArray.copy() method """
+        """Checking VLArray.copy() method."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -3515,7 +3521,11 @@ class CopyTestCase(unittest.TestCase):
         os.remove(file)
 
     def test01b_copy(self):
-        """Checking VLArray.copy() method. Pseudo-atom case."""
+        """Checking VLArray.copy() method.
+
+        Pseudo-atom case.
+
+        """
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -3857,7 +3867,7 @@ class OpenCopyTestCase(CopyTestCase):
 class CopyIndexTestCase(unittest.TestCase):
 
     def test01_index(self):
-        """Checking VLArray.copy() method with indexes"""
+        """Checking VLArray.copy() method with indexes."""
 
         if common.verbose:
             print('\n', '-=' * 30)

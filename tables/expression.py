@@ -314,11 +314,12 @@ class Expr(object):
     def set_inputs_range(self, start=None, stop=None, step=None):
         """Define a range for all inputs in expression.
 
-        The computation will only take place for the range defined by the
-        start, stop and step parameters in the main dimension of inputs (or the
-        leading one, if the object lacks the concept of main dimension, like a
-        NumPy container).  If not a common main dimension exists for all
-        inputs, the leading dimension will be used instead.
+        The computation will only take place for the range defined by
+        the start, stop and step parameters in the main dimension of
+        inputs (or the leading one, if the object lacks the concept of
+        main dimension, like a NumPy container).  If not a common main
+        dimension exists for all inputs, the leading dimension will be
+        used instead.
 
         """
 

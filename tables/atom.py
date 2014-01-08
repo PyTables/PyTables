@@ -69,6 +69,7 @@ def split_type(type):
         Traceback (most recent call last):
         ...
         ValueError: malformed type: 'foo bar'
+
     """
 
     match = _type_re.match(type)
@@ -183,6 +184,7 @@ class MetaAtom(type):
 
     This metaclass ensures that data about atom classes gets inserted
     into the suitable registries.
+
     """
 
     def __init__(class_, name, bases, dict_):
@@ -339,6 +341,7 @@ class Atom(object):
             ValueError: unknown NumPy scalar type: 'S5'
             >>> Atom.from_sctype('Float64')
             Float64Atom(shape=(), dflt=0.0)
+
         """
         if (not isinstance(sctype, type)
            or not issubclass(sctype, numpy.generic)):
@@ -360,6 +363,7 @@ class Atom(object):
             Int16Atom(shape=(2, 2), dflt=0)
             >>> Atom.from_dtype(numpy.dtype('Float64'))
             Float64Atom(shape=(), dflt=0.0)
+
         """
         basedtype = dtype.base
         if basedtype.names:
@@ -393,6 +397,7 @@ class Atom(object):
             Traceback (most recent call last):
             ...
             ValueError: unknown type: 'Float64'
+
         """
 
         if type not in all_types:
@@ -432,6 +437,7 @@ class Atom(object):
             Traceback (most recent call last):
             ...
             ValueError: the ``enum`` kind is not supported...
+
         """
 
         kwargs = {'shape': shape}
@@ -547,6 +553,7 @@ class Atom(object):
             Traceback (most recent call last):
             ...
             TypeError: __init__() got an unexpected keyword argument 'foobar'
+
         """
         newargs = self._get_init_args()
         newargs.update(override)
@@ -559,6 +566,7 @@ class Atom(object):
 
         This implementation works on classes which use the same names
         for both constructor arguments and instance attributes.
+
         """
 
         return dict((arg, getattr(self, arg))
@@ -577,6 +585,7 @@ class StringAtom(Atom):
     """Defines an atom of type string.
 
     The item size is the *maximum* length in characters of strings.
+
     """
 
     kind = 'string'
@@ -638,8 +647,7 @@ class FloatAtom(Atom):
 
 def _create_numeric_class(baseclass, itemsize):
     """Create a numeric atom class with the given `baseclass` and an
-    `itemsize`.
-    """
+    `itemsize`."""
 
     prefix = '%s%d' % (baseclass.prefix(), itemsize * 8)
     type_ = prefix.lower()
@@ -692,6 +700,7 @@ class ComplexAtom(Atom):
     Allowed item sizes are 8 (single precision) and 16 (double precision). This
     class must be used instead of more concrete ones to avoid confusions with
     numarray-like precision specifications used in PyTables 1.X.
+
     """
 
     # This definition is a little more complex (no pun intended)
@@ -751,6 +760,7 @@ class TimeAtom(Atom):
     a 64 bit floating point value. Both of them reflect the number of seconds
     since the Unix epoch. This atom has the property of being stored using the
     HDF5 time datatypes.
+
     """
 
     kind = 'time'
@@ -1056,6 +1066,7 @@ class VLStringAtom(_BufferedAtom):
     Variable-length string atoms do not accept parameters and they cause the
     reads of rows to always return Python strings.  You can regard vlstring
     atoms as an easy way to save generic variable length strings.
+
     """
 
     kind = 'vlstring'
@@ -1087,6 +1098,7 @@ class VLUnicodeAtom(_BufferedAtom):
     Variable-length Unicode atoms do not accept parameters and they cause the
     reads of rows to always return Python Unicode strings.  You can regard
     vlunicode atoms as an easy way to save variable length Unicode strings.
+
     """
 
     kind = 'vlunicode'
@@ -1137,6 +1149,7 @@ class ObjectAtom(_BufferedAtom):
     Object atoms do not accept parameters and they cause the reads of rows to
     always return Python objects. You can regard object atoms as an easy way to
     save an arbitrary number of generic Python objects in a VLArray dataset.
+
     """
 
     kind = 'object'

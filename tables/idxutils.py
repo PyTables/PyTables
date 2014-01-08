@@ -91,6 +91,7 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
 
     This is useful for computing the sizes of both blocks and
     superblocks (using the PyTables terminology for blocks in indexes).
+
     """
 
     nlowerblocks = (expectedrows // lowercompoundsize) + 1
@@ -108,10 +109,11 @@ def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
-    different chunksizes and compression flag. It is obvious that
-    using big chunks optimizes the I/O speed, but if they are too
-    large, the uncompressor takes too much time. This might (should)
-    be further optimized by doing more experiments.
+    different chunksizes and compression flag. It is obvious that using
+    big chunks optimizes the I/O speed, but if they are too large, the
+    uncompressor takes too much time. This might (should) be further
+    optimized by doing more experiments.
+
     """
 
     chunksize = computechunksize(expectedrows)
@@ -208,6 +210,7 @@ def calcoptlevels(nblocks, optlevel, indsize):
 
     The calculation is based on the number of blocks, optlevel and
     indexing mode.
+
     """
 
     if indsize == 2:  # light
@@ -371,7 +374,7 @@ infinityF = infinityf
 
 
 def inftype(dtype, itemsize, sign=+1):
-    """Return a superior limit for maximum representable data type"""
+    """Return a superior limit for maximum representable data type."""
 
     assert sign in [-1, +1]
 

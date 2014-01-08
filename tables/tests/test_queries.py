@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""Test module for queries on datasets"""
+"""Test module for queries on datasets."""
 
 import re
 import sys
@@ -94,11 +94,11 @@ enum = tables.Enum(dict(('n%d' % i, i) for i in range(_maxnvalue)))
 # Table description
 # -----------------
 def append_columns(classdict, shape=()):
-    """
-    Append a ``Col`` of each PyTables data type to the `classdict`.
+    """Append a ``Col`` of each PyTables data type to the `classdict`.
 
     A column of a certain TYPE gets called ``c_TYPE``.  The number of
     added columns is returned.
+
     """
     heavy = common.heavy
     for (itype, type_) in enumerate(sorted(type_info.iterkeys())):
@@ -119,11 +119,11 @@ def append_columns(classdict, shape=()):
 
 
 def nested_description(classname, pos, shape=()):
-    """
-    Return a nested column description with all PyTables data types.
+    """Return a nested column description with all PyTables data types.
 
     A column of a certain TYPE gets called ``c_TYPE``.  The nested
     column will be placed in the position indicated by `pos`.
+
     """
     classdict = {}
     append_columns(classdict, shape=shape)
@@ -132,8 +132,7 @@ def nested_description(classname, pos, shape=()):
 
 
 def table_description(classname, nclassname, shape=()):
-    """
-    Return a table description for testing queries.
+    """Return a table description for testing queries.
 
     The description consists of all PyTables data types, both in the
     top level and in the ``c_nested`` nested column.  A column of a
@@ -142,6 +141,7 @@ def table_description(classname, nclassname, shape=()):
     used for all columns.  Finally, an extra indexed column
     ``c_idxextra`` is added as well in order to provide some basic
     tests for multi-index queries.
+
     """
     classdict = {}
     colpos = append_columns(classdict, shape)
@@ -177,8 +177,7 @@ table_data = {}
 
 
 def fill_table(table, shape, nrows):
-    """
-    Fill the given `table` with `nrows` rows of data.
+    """Fill the given `table` with `nrows` rows of data.
 
     Values in the i-th row (where 0 <= i < `row_period`) for a
     multidimensional field with M elements span from i to i + M-1.  For
@@ -186,6 +185,7 @@ def fill_table(table, shape, nrows):
 
     The same goes for the ``c_extra`` column, but values range from
     -`row_period`/2 to +`row_period`/2.
+
     """
     # Reuse already computed data if possible.
     tdata = table_data.get((shape, nrows))
@@ -230,8 +230,7 @@ def fill_table(table, shape, nrows):
 # ---------------
 class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
-    """
-    Base test case for querying tables.
+    """Base test case for querying tables.
 
     Sub-classes must define the following attributes:
 
@@ -249,6 +248,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
         to index them.
     ``optlevel``
         The level of optimisation of column indexes.  Default is 0.
+
     """
 
     indexed = False
@@ -318,13 +318,13 @@ extra_conditions = [
 
 
 class TableDataTestCase(BaseTableQueryTestCase):
-    """
-    Base test case for querying table data.
+    """Base test case for querying table data.
 
     Automatically created test method names have the format
     ``test_XNNNN``, where ``NNNN`` is the zero-padded test number and
     ``X`` indicates whether the test belongs to the light (``l``) or
     heavy (``h``) set.
+
     """
     _testfmt_light = 'test_l%04d'
     _testfmt_heavy = 'test_h%04d'
@@ -591,10 +591,10 @@ _gvar = None
 
 class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
-    """
-    Test case for query usage on scalar tables.
+    """Test case for query usage on scalar tables.
 
     This also tests for most usage errors and situations.
+
     """
 
     def test_empty_condition(self):
@@ -723,11 +723,11 @@ class MDTableUsageTestCase(MDTableMixin, BaseTableUsageTestCase):
 
 class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
 
-    """
-    Test case for query usage on indexed tables.
+    """Test case for query usage on indexed tables.
 
-    Indexing could be used in more cases, but it is expected to kick
-    in at least in the cases tested here.
+    Indexing could be used in more cases, but it is expected to kick in
+    at least in the cases tested here.
+
     """
     nrows = 50
     indexed = True

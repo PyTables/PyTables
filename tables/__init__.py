@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""PyTables, hierarchical datasets in Python
+"""PyTables, hierarchical datasets in Python.
 
 :URL: http://www.pytables.org/
 
@@ -30,8 +30,8 @@ if os.name == 'nt':
     def _load_library(dllname, loadfunction, dllpaths=('', )):
         """Load a DLL via ctypes load function. Return None on failure.
 
-        By default, try to load the DLL from the current package directory
-        first, then from the Windows DLL search path.
+        By default, try to load the DLL from the current package
+        directory first, then from the Windows DLL search path.
 
         """
         try:

@@ -10,11 +10,11 @@
 #
 ########################################################################
 
-"""Unit tests for PyTables
+"""Unit tests for PyTables.
 
-This package contains some modules which provide a ``suite()``
-function (with no arguments) which returns a test suite for some
-PyTables functionality.
+This package contains some modules which provide a ``suite()`` function
+(with no arguments) which returns a test suite for some PyTables
+functionality.
 
 """
 

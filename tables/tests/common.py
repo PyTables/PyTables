@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""Utilities for PyTables' test suites"""
+"""Utilities for PyTables' test suites."""
 
 from __future__ import print_function
 import os
@@ -65,7 +65,7 @@ def cleanup(klass):
 
 
 def allequal(a, b, flavor="numpy"):
-    """Checks if two numerical objects are equal"""
+    """Checks if two numerical objects are equal."""
 
     # print "a-->", repr(a)
     # print "b-->", repr(b)
@@ -118,12 +118,12 @@ def allequal(a, b, flavor="numpy"):
 
 
 def areArraysEqual(arr1, arr2):
-    """
-    Are both `arr1` and `arr2` equal arrays?
+    """Are both `arr1` and `arr2` equal arrays?
 
     Arguments can be regular NumPy arrays, chararray arrays or
-    structured arrays (including structured record arrays).
-    They are checked for type and value equality.
+    structured arrays (including structured record arrays). They are
+    checked for type and value equality.
+
     """
 
     t1 = type(arr1)
@@ -212,10 +212,8 @@ class PyTablesTestCase(unittest.TestCase):
 
     @classmethod
     def _testFilename(class_, filename):
-        """
-        Returns an absolute version of the `filename`, taking care of
-        the location of the calling test case class.
-        """
+        """Returns an absolute version of the `filename`, taking care of the
+        location of the calling test case class."""
         modname = class_.__module__
         # When the definitive switch to ``setuptools`` is made,
         # this should definitely use the ``pkg_resouces`` API::
@@ -227,8 +225,7 @@ class PyTablesTestCase(unittest.TestCase):
         return os.path.join(dirname, filename)
 
     def failUnlessWarns(self, warnClass, callableObj, *args, **kwargs):
-        """
-        Fail unless a warning of class `warnClass` is issued.
+        """Fail unless a warning of class `warnClass` is issued.
 
         This method will fail if no warning belonging to the given
         `warnClass` is issued when invoking `callableObj` with arguments
@@ -237,6 +234,7 @@ class PyTablesTestCase(unittest.TestCase):
 
         This method returns the value returned by the call to
         `callableObj`.
+
         """
 
         issued = [False]  # let's avoid scoping problems ;)
@@ -333,11 +331,11 @@ class PyTablesTestCase(unittest.TestCase):
 
 class TempFileMixin:
     def setUp(self):
-        """
-        Set ``h5file`` and ``h5fname`` instance attributes.
+        """Set ``h5file`` and ``h5fname`` instance attributes.
 
         * ``h5fname``: the name of the temporary HDF5 file.
         * ``h5file``: the writable, empty, temporary HDF5 file.
+
         """
 
         self.h5fname = tempfile.mktemp(suffix='.h5')
@@ -356,6 +354,7 @@ class TempFileMixin:
 
         Returns a true or false value depending on whether the file was
         reopenend or not.  If not, nothing is changed.
+
         """
 
         self.h5file.close()

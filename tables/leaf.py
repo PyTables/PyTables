@@ -173,7 +173,7 @@ class Leaf(Node):
     # `````````````````````````
     @lazyattr
     def filters(self):
-        """Filter properties for this leaf
+        """Filter properties for this leaf.
 
         See Also
         --------
@@ -273,10 +273,8 @@ class Leaf(Node):
         return self.nrows
 
     def __str__(self):
-        """
-        The string representation for this object is its pathname in
-        the HDF5 object tree plus some additional metainfo.
-        """
+        """The string representation for this object is its pathname in the
+        HDF5 object tree plus some additional metainfo."""
 
         # Get this class name
         classname = self.__class__.__name__
@@ -300,6 +298,7 @@ class Leaf(Node):
         """Code to be run after node creation and before creation logging.
 
         This method gets or sets the flavor of the leaf.
+
         """
 
         super(Leaf, self)._g_post_init_hook()
@@ -725,10 +724,10 @@ very small/large chunksize, you may want to increase/decrease it."""
     def flush(self):
         """Flush pending data to disk.
 
-        Saves whatever remaining buffered data to disk. It also releases I/O
-        buffers, so if you are filling many datasets in the same PyTables
-        session, please call flush() extensively so as to help PyTables to keep
-        memory requirements low.
+        Saves whatever remaining buffered data to disk. It also releases
+        I/O buffers, so if you are filling many datasets in the same
+        PyTables session, please call flush() extensively so as to help
+        PyTables to keep memory requirements low.
 
         """
 

@@ -1156,7 +1156,11 @@ class Table(tableextension.Table, Leaf):
     _check_column = _get_column_instance
 
     def _disable_indexing_in_queries(self):
-        """Force queries not to use indexing.  *Use only for testing.*"""
+        """Force queries not to use indexing.
+
+        *Use only for testing.*
+
+        """
 
         if not self._enabled_indexing_in_queries:
             return  # already disabled
@@ -1168,7 +1172,11 @@ class Table(tableextension.Table, Leaf):
     _disableIndexingInQueries = previous_api(_disable_indexing_in_queries)
 
     def _enable_indexing_in_queries(self):
-        """Allow queries to use indexing.  *Use only for testing.*"""
+        """Allow queries to use indexing.
+
+        *Use only for testing.*
+
+        """
 
         if self._enabled_indexing_in_queries:
             return  # already enabled
@@ -2192,7 +2200,7 @@ class Table(tableextension.Table, Leaf):
             raise IndexError("Invalid index or slice: %r" % (key,))
 
     def _save_buffered_rows(self, wbufRA, lenrows):
-        """Update the indexes after a flushing of rows"""
+        """Update the indexes after a flushing of rows."""
 
         self._open_append(wbufRA)
         self._append_records(lenrows)
@@ -2296,7 +2304,7 @@ class Table(tableextension.Table, Leaf):
         return recarr
 
     def modify_coordinates(self, coords, rows):
-        """Modify a series of rows in positions specified in coords
+        """Modify a series of rows in positions specified in coords.
 
         The values in the selected rows will be modified with the data given in
         rows.  This method returns the number of rows modified.
@@ -2576,7 +2584,7 @@ class Table(tableextension.Table, Leaf):
     flushRowsToIndex = previous_api(flush_rows_to_index)
 
     def _add_rows_to_index(self, colname, start, nrows, lastrow, update):
-        """Add more elements to the existing index"""
+        """Add more elements to the existing index."""
 
         # This method really belongs to Column, but since it makes extensive
         # use of the table, it gets dangerous when closing the file, since the
@@ -2803,9 +2811,9 @@ class Table(tableextension.Table, Leaf):
     def reindex(self):
         """Recompute all the existing indexes in the table.
 
-        This can be useful when you suspect that, for any reason, the index
-        information for columns is no longer valid and want to rebuild the
-        indexes on it.
+        This can be useful when you suspect that, for any reason, the
+        index information for columns is no longer valid and want to
+        rebuild the indexes on it.
 
         """
 
@@ -2892,7 +2900,7 @@ class Table(tableextension.Table, Leaf):
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
                            title, filters, chunkshape, _log, **kwargs):
-        """Private part of Leaf.copy() for each kind of leaf"""
+        """Private part of Leaf.copy() for each kind of leaf."""
 
         # Get the private args for the Table flavor of copy()
         sortby = kwargs.pop('sortby', None)
@@ -3451,6 +3459,7 @@ class Column(object):
         """Get the number of elements in the column.
 
         This matches the length in rows of the parent table.
+
         """
 
         return self.table.nrows
@@ -3769,7 +3778,7 @@ class Column(object):
     removeIndex = previous_api(remove_index)
 
     def close(self):
-        """Close this column"""
+        """Close this column."""
 
         self.__dict__.clear()
 

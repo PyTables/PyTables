@@ -133,7 +133,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(obj.atom.type, self.type)
 
     def test01_iterEArray(self):
-        """Checking enlargeable array iterator"""
+        """Checking enlargeable array iterator."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -292,7 +292,7 @@ class BasicTestCase(unittest.TestCase):
                 self.assertEqual(len(shape), 1)
 
     def test03_readEArray(self):
-        """Checking read() of enlargeable arrays"""
+        """Checking read() of enlargeable arrays."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -405,7 +405,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(shape), 1)
 
     def test03_readEArray_out_argument(self):
-        """Checking read() of enlargeable arrays"""
+        """Checking read() of enlargeable arrays."""
 
         # This conversion made just in case indices are numpy scalars
         if self.start is not None:
@@ -514,7 +514,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(shape), 1)
 
     def test04_getitemEArray(self):
-        """Checking enlargeable array __getitem__ special method"""
+        """Checking enlargeable array __getitem__ special method."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -613,7 +613,7 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(len(self.shape), 1)
 
     def test05_setitemEArray(self):
-        """Checking enlargeable array __setitem__ special method"""
+        """Checking enlargeable array __setitem__ special method."""
 
         if self.__class__.__name__ == "Ellipsis6EArrayTestCase":
             # We have a problem with test design here, but I think
@@ -1293,7 +1293,7 @@ class OffsetStrideTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test01a_String(self):
-        """Checking earray with offseted numpy strings appends"""
+        """Checking earray with offseted numpy strings appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1325,7 +1325,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test01b_String(self):
-        """Checking earray with strided numpy strings appends"""
+        """Checking earray with strided numpy strings appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1357,7 +1357,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test02a_int(self):
-        """Checking earray with offseted NumPy ints appends"""
+        """Checking earray with offseted NumPy ints appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1390,7 +1390,7 @@ class OffsetStrideTestCase(unittest.TestCase):
                         2], numpy.array([-1, 0, 0], dtype='int32')))
 
     def test02b_int(self):
-        """Checking earray with strided NumPy ints appends"""
+        """Checking earray with strided NumPy ints appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1631,7 +1631,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 class CopyTestCase(unittest.TestCase):
 
     def test01_copy(self):
-        """Checking EArray.copy() method """
+        """Checking EArray.copy() method."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2088,7 +2088,7 @@ class CopyIndexTestCase(unittest.TestCase):
     nrowsinbuf = 2
 
     def test01_index(self):
-        """Checking EArray.copy() method with indexes"""
+        """Checking EArray.copy() method with indexes."""
 
         if common.verbose:
             print('\n', '-=' * 30)

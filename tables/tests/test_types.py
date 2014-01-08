@@ -61,7 +61,7 @@ class RangeTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test00_range(self):
-        """Testing the range check"""
+        """Testing the range check."""
         rec = self.table.row
         # Save a record
         i = self.maxshort
@@ -91,7 +91,7 @@ class RangeTestCase(unittest.TestCase):
                 print("\nNow, the range overflow no longer issues a ValueError")
 
     def test01_type(self):
-        """Testing the type check"""
+        """Testing the type check."""
         rec = self.table.row
         # Save a record
         i = self.maxshort
@@ -124,35 +124,35 @@ class RangeTestCase(unittest.TestCase):
 class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00a_table(self):
-        """Check dtype accessor for Table objects"""
+        """Check dtype accessor for Table objects."""
         a = self.h5file.create_table('/', 'table', Record)
         self.assertEqual(a.dtype, a.description._v_dtype)
 
     def test00b_column(self):
-        """Check dtype accessor for Column objects"""
+        """Check dtype accessor for Column objects."""
         a = self.h5file.create_table('/', 'table', Record)
         c = a.cols.var3
         self.assertEqual(c.dtype, a.description._v_dtype['var3'])
 
     def test01_array(self):
-        """Check dtype accessor for Array objects"""
+        """Check dtype accessor for Array objects."""
         a = self.h5file.create_array('/', 'array', [1, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test02_carray(self):
-        """Check dtype accessor for CArray objects"""
+        """Check dtype accessor for CArray objects."""
         a = self.h5file.create_carray(
             '/', 'array', atom=FloatAtom(), shape=[1, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test03_carray(self):
-        """Check dtype accessor for EArray objects"""
+        """Check dtype accessor for EArray objects."""
         a = self.h5file.create_earray(
             '/', 'array', atom=FloatAtom(), shape=[0, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test04_vlarray(self):
-        """Check dtype accessor for VLArray objects"""
+        """Check dtype accessor for VLArray objects."""
         a = self.h5file.create_vlarray('/', 'array', FloatAtom())
         self.assertEqual(a.dtype, a.atom.dtype)
 

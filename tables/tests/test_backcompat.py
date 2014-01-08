@@ -25,7 +25,7 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
     #----------------------------------------
 
     def test01_readTable(self):
-        """Checking backward compatibility of old formats of tables"""
+        """Checking backward compatibility of old formats of tables."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -75,7 +75,7 @@ class BackCompatAttrsTestCase(common.PyTablesTestCase):
     file = "zerodim-attrs-%s.h5"
 
     def test01_readAttr(self):
-        """Checking backward compatibility of old formats for attributes"""
+        """Checking backward compatibility of old formats for attributes."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -110,7 +110,7 @@ class Attrs_1_4(BackCompatAttrsTestCase):
 class VLArrayTestCase(common.PyTablesTestCase):
 
     def test01_backCompat(self):
-        """Checking backward compatibility with old flavors of VLArray"""
+        """Checking backward compatibility with old flavors of VLArray."""
 
         # Open a PYTABLES_FORMAT_VERSION=1.6 file
         filename = self._testFilename("flavored_vlarrays-format1.6.h5")

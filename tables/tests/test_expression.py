@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""Test module for evaluating expressions under PyTables"""
+"""Test module for evaluating expressions under PyTables."""
 
 from __future__ import print_function
 import unittest
@@ -114,7 +114,7 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.vars = {"a": self.a, "b": self.b, "c": self.c, }
 
     def test00_simple(self):
-        """Checking that expression is correctly evaluated"""
+        """Checking that expression is correctly evaluated."""
 
         expr = tb.Expr(self.expr, self.vars)
         r1 = expr.eval()
@@ -222,7 +222,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
                      "e": self.e, "f": self.f, "g": self.g, }
 
     def test00a_simple(self):
-        """Checking expressions with mixed objects"""
+        """Checking expressions with mixed objects."""
 
         expr = tb.Expr(self.expr, self.vars)
         r1 = expr.eval()
@@ -235,7 +235,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Evaluate is returning a wrong value.")
 
     def test00b_simple_scalars(self):
-        """Checking that scalars in expression evaluate correctly"""
+        """Checking that scalars in expression evaluate correctly."""
 
         expr_str = "2 * f + g"
         expr = tb.Expr(expr_str, self.vars)
@@ -333,7 +333,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Evaluate is returning a wrong value.")
 
     def test03_sss(self):
-        """Checking start, stop, step as numpy.int64"""
+        """Checking start, stop, step as numpy.int64."""
 
         start, stop, step = [np.int64(i) for i in
                                      (self.start, self.stop, self.step)]
@@ -373,7 +373,7 @@ class MixedContainers3(MixedContainersTestCase):
 class UnalignedObject(common.PyTablesTestCase):
 
     def test00_simple(self):
-        """Checking expressions with unaligned objects"""
+        """Checking expressions with unaligned objects."""
 
         # Build unaligned arrays
         a0 = np.empty(10, dtype="int8")
@@ -503,7 +503,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
         self.r1 = np.empty(N, dtype='int64').reshape(self.shape)
 
     def _test00_shape(self):
-        """Checking that inconsistent shapes are detected"""
+        """Checking that inconsistent shapes are detected."""
 
         self.b = self.b.reshape(self.shape+(1,))
         expr = "a * b + c"
@@ -512,7 +512,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ValueError, expr.eval)
 
     def test02_uint64(self):
-        """Checking that uint64 arrays in expression are detected"""
+        """Checking that uint64 arrays in expression are detected."""
 
         self.b = self.b.view('uint64')
         expr = "a * b + c"
@@ -520,7 +520,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(NotImplementedError, tb.Expr, expr, vars_)
 
     def test03_table(self):
-        """Checking that tables in expression are detected"""
+        """Checking that tables in expression are detected."""
 
         class Rec(tb.IsDescription):
             col1 = tb.Int32Col()
@@ -532,7 +532,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(TypeError, tb.Expr, expr, vars_)
 
     def test04_nestedcols(self):
-        """Checking that nested cols in expression are detected"""
+        """Checking that nested cols in expression are detected."""
 
         class Nested(tb.IsDescription):
             col1 = tb.Int32Col()
@@ -554,7 +554,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(TypeError, tb.Expr, expr, vars_)
 
     def test05_vlarray(self):
-        """Checking that VLArrays in expression are detected"""
+        """Checking that VLArrays in expression are detected."""
 
         vla = self.h5file.create_vlarray("/", "a", tb.Int32Col())
         expr = "a * b + c"
@@ -566,7 +566,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
 class BroadcastTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_simple(self):
-        """Checking broadcast in expression"""
+        """Checking broadcast in expression."""
 
         shapes = (self.shape1, self.shape2, self.shape3)
         # Build arrays with different shapes as inputs
@@ -636,7 +636,7 @@ class Broadcast5(BroadcastTestCase):
 class DiffLengthTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_simple(self):
-        """Checking different length inputs in expression"""
+        """Checking different length inputs in expression."""
 
         shapes = (list(self.shape1), list(self.shape2), list(self.shape3))
         # Build arrays with different shapes as inputs
@@ -703,7 +703,7 @@ class DiffLength4(DiffLengthTestCase):
 class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_bool(self):
-        """Checking booleans in expression"""
+        """Checking booleans in expression."""
 
         # Build arrays with different shapes as inputs
         a = np.array([True, False, True])
@@ -723,7 +723,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Evaluate is returning a wrong value.")
 
     def test01_shortint(self):
-        """Checking int8,uint8,int16,uint16 and int32 in expression"""
+        """Checking int8,uint8,int16,uint16 and int32 in expression."""
 
         for dtype in 'int8', 'uint8', 'int16', 'uint16', 'int32':
             if common.verbose:
@@ -751,7 +751,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             b1.remove()
 
     def test02_longint(self):
-        """Checking uint32 and int64 in expression"""
+        """Checking uint32 and int64 in expression."""
 
         for dtype in 'uint32', 'int64':
             if common.verbose:
@@ -778,7 +778,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             b1.remove()
 
     def test03_float(self):
-        """Checking float32 and float64 in expression"""
+        """Checking float32 and float64 in expression."""
 
         for dtype in 'float32', 'float64':
             if common.verbose:
@@ -805,7 +805,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             b1.remove()
 
     def test04_complex(self):
-        """Checking complex64 and complex128 in expression"""
+        """Checking complex64 and complex128 in expression."""
 
         for dtype in 'complex64', 'complex128':
             if common.verbose:
@@ -832,7 +832,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             b1.remove()
 
     def test05_string(self):
-        """Checking strings in expression"""
+        """Checking strings in expression."""
 
         # Build arrays with different shapes as inputs
         a = np.array(['a', 'bd', 'cd'], 'S')
@@ -856,7 +856,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class FunctionsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_simple(self):
-        """Checking some math functions in expression"""
+        """Checking some math functions in expression."""
 
         # Build arrays with different shapes as inputs
         a = np.array([.1, .2, .3])
@@ -881,7 +881,7 @@ class FunctionsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_simple(self):
-        """Checking other dimensions than 0 as main dimension"""
+        """Checking other dimensions than 0 as main dimension."""
 
         shape = list(self.shape)
         # Build input arrays
@@ -945,7 +945,7 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Evaluate is returning a wrong value.")
 
     def test02_diff_in_maindims(self):
-        """Checking different main dimensions in inputs"""
+        """Checking different main dimensions in inputs."""
 
         shape = list(self.shape)
         # Build input arrays
@@ -982,7 +982,7 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Evaluate is returning a wrong value.")
 
     def test03_diff_in_out_maindims(self):
-        """Checking different maindims in inputs and output"""
+        """Checking different maindims in inputs and output."""
 
         shape = list(self.shape)
         # Build input arrays
@@ -1020,7 +1020,7 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Evaluate is returning a wrong value.")
 
     def test04_diff_in_out_maindims_lengths(self):
-        """Checking different maindims and lengths in inputs and output"""
+        """Checking different maindims and lengths in inputs and output."""
 
         shape = list(self.shape)
         # Build input arrays
@@ -1149,7 +1149,7 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.sexpr = "2 * a + b-c"
 
     def test00_iter(self):
-        """Checking the __iter__ iterator"""
+        """Checking the __iter__ iterator."""
 
         expr = tb.Expr(self.sexpr, self.vars)
         r1 = np.array([row for row in expr])
@@ -1253,7 +1253,7 @@ class iter5(iterTestCase):
 class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_simple(self):
-        """Checking the range selection for output"""
+        """Checking the range selection for output."""
 
         shape = list(self.shape)
         start, stop, step = self.range_
@@ -1384,7 +1384,7 @@ class setOutputRange9(setOutputRangeTestCase):
 class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_simple(self):
-        """Checking very large inputs"""
+        """Checking very large inputs."""
 
         shape = self.shape
         # Use filters so as to not use too much space

@@ -78,7 +78,7 @@ class RawPyTablesIO(io.RawIOBase):
     # read only attribute
     @property
     def mode(self):
-        '''File mode'''
+        """File mode."""
 
         return self._mode
 
@@ -128,8 +128,8 @@ class RawPyTablesIO(io.RawIOBase):
     def seekable(self):
         """Return whether object supports random access.
 
-        If False, seek(), tell() and truncate() will raise IOError.
-        This method may need to do a test seek().
+        If False, seek(), tell() and truncate() will raise IOError. This
+        method may need to do a test seek().
 
         """
 
@@ -139,7 +139,8 @@ class RawPyTablesIO(io.RawIOBase):
     def fileno(self):
         """Returns underlying file descriptor if one exists.
 
-        An IOError is raised if the IO object does not use a file descriptor.
+        An IOError is raised if the IO object does not use a file
+        descriptor.
 
         """
 
@@ -343,7 +344,8 @@ class RawPyTablesIO(io.RawIOBase):
     def write(self, b):
         """Write the given buffer to the IO stream.
 
-        Returns the number of bytes written, which may be less than len(b).
+        Returns the number of bytes written, which may be less than
+        len(b).
 
         """
 
@@ -376,9 +378,9 @@ class RawPyTablesIO(io.RawIOBase):
     def _checkClosed(self):
         """Checks if file node is open.
 
-        Checks whether the file node is open or has been closed.
-        In the second case, a ValueError is raised.
-        If the host PyTables has been closed, ValueError is also raised.
+        Checks whether the file node is open or has been closed. In the
+        second case, a ValueError is raised. If the host PyTables has
+        been closed, ValueError is also raised.
 
         """
 
@@ -478,12 +480,12 @@ class RawPyTablesIO(io.RawIOBase):
 
 
 class FileNodeMixin(object):
-    """Mixin class for FileNode objects
+    """Mixin class for FileNode objects.
 
     It provides access to the attribute set of the node that becomes
-    available via the attrs property.
-    You can add attributes there, but try to avoid attribute names in all
-    caps or starting with '_', since they may clash with internal attributes.
+    available via the attrs property. You can add attributes there, but
+    try to avoid attribute names in all caps or starting with '_', since
+    they may clash with internal attributes.
 
     """
 
@@ -678,11 +680,11 @@ newNode = previous_api(new_node)
 def open_node(node, mode='r'):
     """Opens an existing file node.
 
-    Returns a file node object from the existing specified PyTables node.
-    If mode is not specified or it is 'r', the file can only be read,
-    and the pointer is positioned at the beginning of the file.
-    If mode is 'a+', the file can be read and appended, and the pointer
-    is positioned at the end of the file.
+    Returns a file node object from the existing specified PyTables
+    node. If mode is not specified or it is 'r', the file can only be
+    read, and the pointer is positioned at the beginning of the file. If
+    mode is 'a+', the file can be read and appended, and the pointer is
+    positioned at the end of the file.
 
     """
 

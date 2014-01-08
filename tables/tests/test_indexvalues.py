@@ -945,7 +945,8 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
     def test05b(self):
-        """Checking get_where_list & itersequence (numpy string lims & python flavor)"""
+        """Checking get_where_list & itersequence (numpy string lims & python
+        flavor)"""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -1075,7 +1076,8 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
     def test06b(self):
-        """Checking get_where_list & itersequence (numpy bool limits & flavor)"""
+        """Checking get_where_list & itersequence (numpy bool limits &
+        flavor)"""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -1207,7 +1209,8 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
     def test07b(self):
-        """Checking get_where_list & itersequence (numpy int limits & flavor)"""
+        """Checking get_where_list & itersequence (numpy int limits &
+        flavor)"""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -1412,7 +1415,8 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
     def test08b(self):
-        """Checking get_where_list & itersequence (numpy float limits & flavor)"""
+        """Checking get_where_list & itersequence (numpy float limits &
+        flavor)"""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -2140,7 +2144,8 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
     def test10c(self):
-        """Checking indexed where() with ranges, changing step (string flavor)"""
+        """Checking indexed where() with ranges, changing step (string
+        flavor)"""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -2614,7 +2619,7 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
     def test13c(self):
-        """Checking repeated queries, varying start, stop, step"""
+        """Checking repeated queries, varying start, stop, step."""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -2671,7 +2676,8 @@ class SelectValuesTestCase(unittest.TestCase):
         self.assertEqual(results1, results2)
 
     def test13d(self):
-        """Checking repeated queries, varying start, stop, step (another twist)"""
+        """Checking repeated queries, varying start, stop, step (another
+        twist)"""
 
         if verbose:
             print('\n', '-=' * 30)

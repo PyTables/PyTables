@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""Proxy dictionary for objects stored in a container"""
+"""Proxy dictionary for objects stored in a container."""
 
 import weakref
 

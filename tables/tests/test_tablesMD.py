@@ -183,7 +183,7 @@ class BasicTestCase(common.PyTablesTestCase):
     #----------------------------------------
 
     def test00_description(self):
-        """Checking table description and descriptive fields"""
+        """Checking table description and descriptive fields."""
 
         self.fileh = open_file(self.file)
 
@@ -249,7 +249,7 @@ class BasicTestCase(common.PyTablesTestCase):
             self.assertEqual(expectedCol.type, col.type)
 
     def test01_readTable(self):
-        """Checking table read and cuts"""
+        """Checking table read and cuts."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -347,7 +347,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(len(result), 20)
 
     def test01c_readTable(self):
-        """Checking shape of multidimensional columns"""
+        """Checking shape of multidimensional columns."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -363,7 +363,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(table.cols.var2.shape, table.cols.var2[:].shape)
 
     def test02_AppendRows(self):
-        """Checking whether appending record rows works or not"""
+        """Checking whether appending record rows works or not."""
 
         # Now, open it, but in "append" mode
         self.fileh = open_file(self.file, mode="a")
@@ -427,7 +427,7 @@ class BasicTestCase(common.PyTablesTestCase):
 
     # CAVEAT: The next test only works for tables with rows < 2**15
     def test03_endianess(self):
-        """Checking if table is endianess aware"""
+        """Checking if table is endianess aware."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1199,8 +1199,8 @@ class RecArrayIO(unittest.TestCase):
         os.remove(file)
 
     def test08b2(self):
-        """Checking modifying one column (single column version,
-        recarray, modify_column)"""
+        """Checking modifying one column (single column version, recarray,
+        modify_column)"""
 
         if common.verbose:
             print('\n', '-=' * 30)

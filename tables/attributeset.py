@@ -70,7 +70,7 @@ def issysattrname(name):
 
 
 class AttributeSet(hdf5extension.AttributeSet, object):
-    """Container for the HDF5 attributes of a Node
+    """Container for the HDF5 attributes of a Node.
 
     This class provides methods to create new HDF5 node attributes,
     and to get, rename or delete existing ones.
@@ -269,6 +269,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         'user' value returns only user attributes (this is the default).
         A 'sys' value returns only system attributes.  Finally, 'all'
         returns both system and user attributes.
+
         """
 
         if attrset == "user":
@@ -364,6 +365,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         replaced.
 
         It does not log the change.
+
         """
 
         # Save this attribute to disk
@@ -424,6 +426,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         the name is not a valid Python identifier.  A
         `PerformanceWarning` is issued when the recommended maximum
         number of attributes in a node is going to be exceeded.
+
         """
 
         nodeFile = self._v__nodefile
@@ -475,6 +478,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Deletes the specified existing PyTables attribute.
 
         It does not log the change.
+
         """
 
         # Delete the attribute from disk
@@ -497,6 +501,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Deletes the specified existing PyTables attribute from the
         attribute set.  If a nonexistent or system attribute is
         specified, an ``AttributeError`` is raised.
+
         """
 
         nodeFile = self._v__nodefile
@@ -547,6 +552,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         A true value is returned if the attribute set has an attribute
         with the given name, false otherwise.
+
         """
 
         return name in self._v_attrnames
@@ -617,6 +623,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Copies all user and certain system attributes to the given where
         node (a Node instance - see :ref:`NodeClassDescr`), replacing
         the existing ones.
+
         """
 
         # AttributeSet must be defined in order to define a Node.

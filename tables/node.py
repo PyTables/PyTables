@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""PyTables nodes"""
+"""PyTables nodes."""
 
 import warnings
 
@@ -903,7 +903,8 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
     def _f_getattr(self, name):
         """Get a PyTables attribute from this node.
 
-        If the named attribute does not exist, an AttributeError is raised.
+        If the named attribute does not exist, an AttributeError is
+        raised.
 
         """
 
@@ -926,7 +927,8 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
     def _f_delattr(self, name):
         """Delete a PyTables attribute from this node.
 
-        If the named attribute does not exist, an AttributeError is raised.
+        If the named attribute does not exist, an AttributeError is
+        raised.
 
         """
 

@@ -35,8 +35,8 @@ class CacheArray(NotLoggedMixin, EArray, indexesextension.CacheArray):
 
 
 class LastRowArray(NotLoggedMixin, CArray, indexesextension.LastRowArray):
-    """Container for keeping sorted and indices values of last row of
-    an index."""
+    """Container for keeping sorted and indices values of last row of an
+    index."""
 
     # Class identifier.
     _c_classid = 'LASTROWARRAY'
@@ -182,7 +182,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
         return "IndexArray(path=%s)" % self._v_pathname
 
     def __repr__(self):
-        """A verbose representation of this class"""
+        """A verbose representation of this class."""
 
         return """%s
   atom = %r

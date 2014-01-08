@@ -681,10 +681,10 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
 
 
 class MetaIsDescription(type):
-    """Helper metaclass to return the class variables as a dictionary"""
+    """Helper metaclass to return the class variables as a dictionary."""
 
     def __new__(cls, classname, bases, classdict):
-        """Return a new class with a "columns" attribute filled"""
+        """Return a new class with a "columns" attribute filled."""
 
         newdict = {"columns": {}, }
         if '__doc__' in classdict:
@@ -809,7 +809,7 @@ def dtype_from_descr(descr, byteorder=None):
 
 
 if __name__ == "__main__":
-    """Test code"""
+    """Test code."""
 
     class Info(IsDescription):
         _v_pos = 2
@@ -817,7 +817,7 @@ if __name__ == "__main__":
         Value = Float64Col()
 
     class Test(IsDescription):
-        """A description that has several columns"""
+        """A description that has several columns."""
 
         x = Col.from_type("int32", 2, 0, pos=0)
         y = Col.from_kind('float', dflt=1, shape=(2, 3))

@@ -10,8 +10,8 @@
 #
 ########################################################################
 
-"""A module with no PyTables dependencies that helps with deprecation warnings.
-"""
+"""A module with no PyTables dependencies that helps with deprecation
+warnings."""
 from inspect import getmembers, ismethod, isfunction
 from warnings import warn
 

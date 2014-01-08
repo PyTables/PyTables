@@ -133,7 +133,7 @@ class CreateTestCase(unittest.TestCase):
         self.assertEqual(self.root.anarray.attrs.attr1, "n" * attrlength)
 
     def test04_listAttributes(self):
-        """Checking listing attributes """
+        """Checking listing attributes."""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -201,7 +201,7 @@ class CreateTestCase(unittest.TestCase):
                          ['CLASS', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"])
 
     def test05_removeAttributes(self):
-        """Checking removing attributes """
+        """Checking removing attributes."""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -244,7 +244,7 @@ class CreateTestCase(unittest.TestCase):
                          ['CLASS', 'TITLE', 'VERSION', "rs"])
 
     def test05b_removeAttributes(self):
-        """Checking removing attributes (using File.del_node_attr()) """
+        """Checking removing attributes (using File.del_node_attr())"""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -287,7 +287,7 @@ class CreateTestCase(unittest.TestCase):
                          ['CLASS', 'TITLE', 'VERSION', "rs"])
 
     def test06_removeAttributes(self):
-        """Checking removing system attributes """
+        """Checking removing system attributes."""
 
         # remove a system attribute
         if common.verbose:
@@ -301,7 +301,7 @@ class CreateTestCase(unittest.TestCase):
             print("System attrs:", self.group._v_attrs._v_attrnamessys)
 
     def test07_renameAttributes(self):
-        """Checking renaming attributes """
+        """Checking renaming attributes."""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -330,7 +330,7 @@ class CreateTestCase(unittest.TestCase):
                          ['CLASS', 'TITLE', 'VERSION', "op", "qr", "rs"])
 
     def test08_renameAttributes(self):
-        """Checking renaming system attributes """
+        """Checking renaming system attributes."""
 
         if common.verbose:
             print("Before renaming CLASS attribute")
@@ -347,7 +347,7 @@ class CreateTestCase(unittest.TestCase):
                          ['TITLE', 'VERSION', "op"])
 
     def test09_overwriteAttributes(self):
-        """Checking overwriting attributes """
+        """Checking overwriting attributes."""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -381,7 +381,7 @@ class CreateTestCase(unittest.TestCase):
                          ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"])
 
     def test10a_copyAttributes(self):
-        """Checking copying attributes """
+        """Checking copying attributes."""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -455,7 +455,7 @@ class CreateTestCase(unittest.TestCase):
                           "pq", "qr", "rs"])
 
     def test10c_copyAttributes(self):
-        """Checking copying attributes during group copies"""
+        """Checking copying attributes during group copies."""
 
         # With a Group object
         self.group._v_attrs['CLASS'] = "GROUP2"
@@ -478,7 +478,7 @@ class CreateTestCase(unittest.TestCase):
         self.assertEqual(agroup2._v_attrs['VERSION'], "1.3")
 
     def test10d_copyAttributes(self):
-        """Checking copying attributes during leaf copies"""
+        """Checking copying attributes during leaf copies."""
 
         # With a Group object
         atable = self.root.atable
@@ -844,7 +844,7 @@ class TypesTestCase(unittest.TestCase):
                                numpy.array([[1, 2], [2, 3]], dtype=dtype))
 
     def test02a_setFloatAttributes(self):
-        """Checking setting Float (double) attributes"""
+        """Checking setting Float (double) attributes."""
 
         # Set some attrs
         self.array.attrs.pq = 1.0
@@ -978,7 +978,7 @@ class TypesTestCase(unittest.TestCase):
                                numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
 
     def test03_setObjectAttributes(self):
-        """Checking setting Object attributes"""
+        """Checking setting Object attributes."""
 
         # Set some attrs
         self.array.attrs.pq = [1.0, 2]
@@ -1136,7 +1136,7 @@ class TypesTestCase(unittest.TestCase):
                                         ['foo3', 'foo4']]))
 
     def test05a_setComplexAttributes(self):
-        """Checking setting Complex (python) attributes"""
+        """Checking setting Complex (python) attributes."""
 
         # Set some attrs
         self.array.attrs.pq = 1.0 + 2j
@@ -1383,7 +1383,7 @@ class TypesTestCase(unittest.TestCase):
                                         ['foo3', u'para\u0140lel4']]))
 
     def test07a_setRecArrayAttributes(self):
-        """Checking setting RecArray (NumPy) attributes"""
+        """Checking setting RecArray (NumPy) attributes."""
 
         dt = numpy.dtype('i4,f8')
         # Set some attrs
@@ -1413,7 +1413,7 @@ class TypesTestCase(unittest.TestCase):
         assert_array_equal(self.array.attrs.rs, numpy.array([(1, 2.)], dt))
 
     def test07b_setRecArrayAttributes(self):
-        """Checking setting nested RecArray (NumPy) attributes"""
+        """Checking setting nested RecArray (NumPy) attributes."""
 
         # Build a nested dtype
         dt = numpy.dtype([('f1', [('f1', 'i2'), ('f2', 'f8')])])
@@ -1444,7 +1444,7 @@ class TypesTestCase(unittest.TestCase):
         assert_array_equal(self.array.attrs.rs, numpy.array([((1, 2),)], dt))
 
     def test07c_setRecArrayAttributes(self):
-        """Checking setting multidim nested RecArray (NumPy) attributes"""
+        """Checking setting multidim nested RecArray (NumPy) attributes."""
 
         # Build a nested dtype
         dt = numpy.dtype([('f1', [('f1', 'i2', (2,)), ('f2', 'f8')])])

@@ -295,7 +295,7 @@ class BasicTestCase(common.PyTablesTestCase):
     #----------------------------------------
 
     def test00_description(self):
-        """Checking table description and descriptive fields"""
+        """Checking table description and descriptive fields."""
 
         self.fileh = open_file(self.file)
 
@@ -371,7 +371,7 @@ class BasicTestCase(common.PyTablesTestCase):
             self.assertEqual(expectedCol.type, col.type)
 
     def test01_readTable(self):
-        """Checking table read"""
+        """Checking table read."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -732,7 +732,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(len(result), 20)
 
     def test02_AppendRows(self):
-        """Checking whether appending record rows works or not"""
+        """Checking whether appending record rows works or not."""
 
         # Now, open it, but in "append" mode
         self.fileh = open_file(self.file, mode="a")
@@ -827,7 +827,7 @@ class BasicTestCase(common.PyTablesTestCase):
     # flushing them explicitely is being warned from now on.
     # F. Alted 2006-08-03
     def _test02a_AppendRows(self):
-        """Checking appending records without flushing explicitely"""
+        """Checking appending records without flushing explicitely."""
 
         # Now, open it, but in "append" mode
         self.fileh = open_file(self.file, mode="a")
@@ -1041,7 +1041,7 @@ class BasicTestCase(common.PyTablesTestCase):
     # the new policy of not doing a flush in the middle of a __del__
     # operation. F. Alted 2006-08-24
     def _test02c_AppendRows(self):
-        """Checking appending with evanescent table objects"""
+        """Checking appending with evanescent table objects."""
 
         # This test is kind of magic, but it is a good sanity check anyway.
 
@@ -1189,7 +1189,7 @@ class BasicTestCase(common.PyTablesTestCase):
 
     # CAVEAT: The next test only works for tables with rows < 2**15
     def test03_endianess(self):
-        """Checking if table is endianess aware"""
+        """Checking if table is endianess aware."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1215,7 +1215,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(len(result), 20)
 
     def test04_delete(self):
-        """Checking whether a single row can be deleted"""
+        """Checking whether a single row can be deleted."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1253,7 +1253,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(result[:-1], result2)
 
     def test04a_delete(self):
-        """Checking whether a single row can be deleted"""
+        """Checking whether a single row can be deleted."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1291,7 +1291,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(result[:-1], result2)
 
     def test04b_delete(self):
-        """Checking whether a range of rows can be deleted"""
+        """Checking whether a range of rows can be deleted."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1329,7 +1329,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(result[:10], result2)
 
     def test04c_delete(self):
-        """Checking whether removing a bad range of rows is detected"""
+        """Checking whether removing a bad range of rows is detected."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1362,7 +1362,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(result[:10], result2)
 
     def test04d_delete(self):
-        """Checking whether removing rows several times at once is working"""
+        """Checking whether removing rows several times at once is working."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1461,7 +1461,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(result[10:15], result2[10:15])
 
     def test05_filtersTable(self):
-        """Checking tablefilters"""
+        """Checking tablefilters."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2527,7 +2527,7 @@ class getItemTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test01a_singleItem(self):
-        """Checking __getitem__ method with single parameter (int) """
+        """Checking __getitem__ method with single parameter (int)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2543,7 +2543,11 @@ class getItemTestCase(unittest.TestCase):
         self.assertEqual(result["var2"], self.expectedrows - 1)
 
     def test01b_singleItem(self):
-        """Checking __getitem__ method with single parameter (neg. int)"""
+        """Checking __getitem__ method with single parameter (neg.
+
+        int)
+
+        """
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2575,7 +2579,11 @@ class getItemTestCase(unittest.TestCase):
         self.assertEqual(result["var2"], self.expectedrows - 1)
 
     def test01d_singleItem(self):
-        """Checking __getitem__ method with single parameter (neg. long)"""
+        """Checking __getitem__ method with single parameter (neg.
+
+        long)
+
+        """
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2607,7 +2615,7 @@ class getItemTestCase(unittest.TestCase):
         self.assertEqual(result["var2"], self.expectedrows - 1)
 
     def test02_twoItems(self):
-        """Checking __getitem__ method with start, stop parameters """
+        """Checking __getitem__ method with start, stop parameters."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2627,7 +2635,7 @@ class getItemTestCase(unittest.TestCase):
                          range(self.expectedrows-2, self.expectedrows))
 
     def test03_threeItems(self):
-        """Checking __getitem__ method with start, stop, step parameters """
+        """Checking __getitem__ method with start, stop, step parameters."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2647,7 +2655,7 @@ class getItemTestCase(unittest.TestCase):
             0, self.expectedrows, 1))
 
     def test04_negativeStep(self):
-        """Checking __getitem__ method with negative step parameter"""
+        """Checking __getitem__ method with negative step parameter."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2666,7 +2674,7 @@ class getItemTestCase(unittest.TestCase):
             self.fail("expected a ValueError")
 
     def test06a_singleItemCol(self):
-        """Checking __getitem__ method in Col with single parameter """
+        """Checking __getitem__ method in Col with single parameter."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2680,8 +2688,11 @@ class getItemTestCase(unittest.TestCase):
         self.assertEqual(colvar2[self.expectedrows-1], self.expectedrows - 1)
 
     def test06b_singleItemCol(self):
-        """Checking __getitem__ method in Col with single parameter
-        (negative)"""
+        """Checking __getitem__ method in Col with single parameter.
+
+        (negative)
+
+        """
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2695,7 +2706,7 @@ class getItemTestCase(unittest.TestCase):
         self.assertEqual(colvar2[-self.expectedrows], 0)
 
     def test07_twoItemsCol(self):
-        """Checking __getitem__ method in Col with start, stop parameters """
+        """Checking __getitem__ method in Col with start, stop parameters."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2712,7 +2723,7 @@ class getItemTestCase(unittest.TestCase):
 
     def test08_threeItemsCol(self):
         """Checking __getitem__ method in Col with start, stop, step
-        parameters"""
+        parameters."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2728,7 +2739,7 @@ class getItemTestCase(unittest.TestCase):
         self.assertEqual(colvar2[::].tolist(), range(0, self.expectedrows, 1))
 
     def test09_negativeStep(self):
-        """Checking __getitem__ method in Col with negative step parameter"""
+        """Checking __getitem__ method in Col with negative step parameter."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2748,7 +2759,7 @@ class getItemTestCase(unittest.TestCase):
             self.fail("expected a ValueError")
 
     def test10_list_integers(self):
-        """Checking accessing Table with a list of integers"""
+        """Checking accessing Table with a list of integers."""
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2761,7 +2772,7 @@ class getItemTestCase(unittest.TestCase):
         self.assertEqual(result["var2"].tolist(), idx)
 
     def test11_list_booleans(self):
-        """Checking accessing Table with a list of boolean values"""
+        """Checking accessing Table with a list of boolean values."""
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -4634,7 +4645,7 @@ class CopyTestCase(unittest.TestCase):
                 self.assertEqual(col1._v_colpathnames, col2._v_colpathnames)
 
     def test01_copy(self):
-        """Checking Table.copy() method """
+        """Checking Table.copy() method."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -5088,7 +5099,7 @@ class OpenCopyTestCase(CopyTestCase):
 
 class CopyIndexTestCase(unittest.TestCase):
     def test01_index(self):
-        """Checking Table.copy() method with indexes"""
+        """Checking Table.copy() method with indexes."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -5558,7 +5569,7 @@ class LengthTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test01_lengthrows(self):
-        """Checking __length__ in Table"""
+        """Checking __length__ in Table."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -5568,7 +5579,7 @@ class LengthTestCase(unittest.TestCase):
         len(self.table) == self.nrows
 
     def test02_lengthcols(self):
-        """Checking __length__ in Cols"""
+        """Checking __length__ in Cols."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -5581,7 +5592,7 @@ class LengthTestCase(unittest.TestCase):
             len(self.table.cols) == 4
 
     def test03_lengthcol(self):
-        """Checking __length__ in Column"""
+        """Checking __length__ in Column."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -6286,7 +6297,7 @@ class MDLargeColReopen(MDLargeColTestCase):
 # See ticket #264.
 class ExhaustedIter(common.PyTablesTestCase):
     def setUp(self):
-        """Create small database"""
+        """Create small database."""
         class Observations(IsDescription):
             market_id = IntCol(pos=0)
             scenario_id = IntCol(pos=1)
@@ -6333,7 +6344,11 @@ class ExhaustedIter(common.PyTablesTestCase):
         self.assertEqual(scenario_means, [112.0, 112.0, 112.0])
 
     def test01_groupby(self):
-        """Checking iterating an exhausted iterator (ticket #264). Reopen."""
+        """Checking iterating an exhausted iterator (ticket #264).
+
+        Reopen.
+
+        """
         from itertools import groupby
         self.fileh.close()
         self.fileh = open_file(self.file, 'r')

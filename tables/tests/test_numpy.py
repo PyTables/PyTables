@@ -37,7 +37,9 @@ byteorder = {'little': '<', 'big': '>'}[sys.byteorder]
 
 class BasicTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in NumPy.
+
     All of them are included on PyTables.
+
     """
     endiancheck = 0
 
@@ -218,7 +220,9 @@ class Basic10DTestCase(BasicTestCase):
 
 class GroupsArrayTestCase(unittest.TestCase):
     """This test class checks combinations of arrays with groups.
+
     It also uses arrays ranks which ranges until 10.
+
     """
 
     def test00_iterativeGroups(self):
@@ -437,7 +441,11 @@ class TableReadTestCase(common.PyTablesTestCase):
         common.cleanup(self)
 
     def test01_readTableChar(self):
-        """Checking column conversion into NumPy in read(). Char flavor"""
+        """Checking column conversion into NumPy in read().
+
+        Char flavor
+
+        """
 
         table = self.fileh.root.table
         table.flavor = "numpy"
@@ -462,7 +470,11 @@ class TableReadTestCase(common.PyTablesTestCase):
                 self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
     def test01_readTableNum(self):
-        """Checking column conversion into NumPy in read(). NumPy flavor"""
+        """Checking column conversion into NumPy in read().
+
+        NumPy flavor
+
+        """
 
         table = self.fileh.root.table
         table.flavor = "numpy"
@@ -479,7 +491,11 @@ class TableReadTestCase(common.PyTablesTestCase):
                 self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
     def test02_readCoordsChar(self):
-        """Column conversion into NumPy in readCoords(). Chars"""
+        """Column conversion into NumPy in readCoords().
+
+        Chars
+
+        """
 
         table = self.fileh.root.table
         table.flavor = "numpy"
@@ -506,7 +522,11 @@ class TableReadTestCase(common.PyTablesTestCase):
                 self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
     def test02_readCoordsNum(self):
-        """Column conversion into NumPy in read_coordinates(). NumPy."""
+        """Column conversion into NumPy in read_coordinates().
+
+        NumPy.
+
+        """
 
         table = self.fileh.root.table
         table.flavor = "numpy"
@@ -1110,7 +1130,11 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.assertEqual(idata, array("ab", dtype="|S4"))
 
     def test09b_getStrings(self):
-        """Checking the return of string columns with spaces. (modify)"""
+        """Checking the return of string columns with spaces.
+
+        (modify)
+
+        """
 
         if self.close:
             self.fileh.close()
@@ -1137,7 +1161,11 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
                 self.assertEqual(idata, array("a  ", dtype="|S4"))
 
     def test09c_getStrings(self):
-        """Checking the return of string columns with spaces. (append)"""
+        """Checking the return of string columns with spaces.
+
+        (append)
+
+        """
 
         if self.close:
             self.fileh.close()

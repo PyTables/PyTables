@@ -63,7 +63,7 @@ class BasicTestCase(unittest.TestCase):
         common.cleanup(self)
 
     def test00_simple(self):
-        """Checking simple do/undo"""
+        """Checking simple do/undo."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -123,7 +123,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.fileh._curmark, 0)
 
     def test02_twice2(self):
-        """Checking twice ops and two marks"""
+        """Checking twice ops and two marks."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -170,7 +170,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.fileh._curmark, 1)
 
     def test03_6times3marks(self):
-        """Checking with six ops and three marks"""
+        """Checking with six ops and three marks."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -253,7 +253,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray6.title, "Another array 6")
 
     def test04_6times3marksro(self):
-        """Checking with six operations, three marks and do/undo in random order"""
+        """Checking with six operations, three marks and do/undo in random
+        order."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -323,7 +324,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray6.title, "Another array 6")
 
     def test05_destructive(self):
-        """Checking with a destructive action during undo"""
+        """Checking with a destructive action during undo."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -547,7 +548,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray2.title, "Another array 2")
 
     def test08_marknames(self):
-        """Checking mark names"""
+        """Checking mark names."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -596,7 +597,7 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray4.read(), [6, 7])
 
     def test08_initialmark(self):
-        """Checking initial mark"""
+        """Checking initial mark."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -931,7 +932,7 @@ class createArrayTestCase(unittest.TestCase):
         common.cleanup(self)
 
     def test00(self):
-        """Checking one action"""
+        """Checking one action."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -953,7 +954,7 @@ class createArrayTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray1.read(), [1, 2])
 
     def test01(self):
-        """Checking two actions"""
+        """Checking two actions."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -980,7 +981,7 @@ class createArrayTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray2.read(), [2, 3])
 
     def test02(self):
-        """Checking three actions"""
+        """Checking three actions."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1012,7 +1013,7 @@ class createArrayTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.otherarray3.read(), [3, 4])
 
     def test03(self):
-        """Checking three actions in different depth levels"""
+        """Checking three actions in different depth levels."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1085,7 +1086,7 @@ class createGroupTestCase(unittest.TestCase):
         common.cleanup(self)
 
     def test00(self):
-        """Checking one action"""
+        """Checking one action."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1107,7 +1108,7 @@ class createGroupTestCase(unittest.TestCase):
                          "Another group 1")
 
     def test01(self):
-        """Checking two actions"""
+        """Checking two actions."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1134,7 +1135,7 @@ class createGroupTestCase(unittest.TestCase):
                          "Another group 2")
 
     def test02(self):
-        """Checking three actions"""
+        """Checking three actions."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1166,7 +1167,7 @@ class createGroupTestCase(unittest.TestCase):
                          "Another group 3")
 
     def test03(self):
-        """Checking three actions in different depth levels"""
+        """Checking three actions in different depth levels."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2032,8 +2033,8 @@ class ComplexTestCase(unittest.TestCase):
         common.cleanup(self)
 
     def test00(self):
-        """Mix of create_array, create_group, renameNone, move_node, remove_node,
-           copy_node and copy_children."""
+        """Mix of create_array, create_group, renameNone, move_node,
+        remove_node, copy_node and copy_children."""
 
         if common.verbose:
             print('\n', '-=' * 30)

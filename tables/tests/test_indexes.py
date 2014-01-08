@@ -344,7 +344,7 @@ class BasicTestCase(PyTablesTestCase):
         self.assertEqual(rowList1, rowList2)
 
     def test09a_removeIndex(self):
-        """Checking removing an index"""
+        """Checking removing an index."""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -420,7 +420,7 @@ class BasicTestCase(PyTablesTestCase):
         self.assertEqual(table.colindexed["var1"], 1)
 
     def test10a_moveIndex(self):
-        """Checking moving a table with an index"""
+        """Checking moving a table with an index."""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -578,7 +578,7 @@ class BasicTestCase(PyTablesTestCase):
         self.assertEqual(rowList1, rowList2)
 
     def test11a_removeTableWithIndex(self):
-        """Checking removing a table with indexes"""
+        """Checking removing a table with indexes."""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -1941,7 +1941,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.assertTrue(allequal(sortedtable, sortedtable2))
 
     def test04_itersorted5(self):
-        """Testing the Table.itersorted() method with a start, stop and step."""
+        """Testing the Table.itersorted() method with a start, stop and
+        step."""
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[15:45:4]
         sortedtable2 = numpy.array(
@@ -1953,7 +1954,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.assertTrue(allequal(sortedtable, sortedtable2))
 
     def test04_itersorted6(self):
-        """Testing the Table.itersorted() method with a start, stop and step."""
+        """Testing the Table.itersorted() method with a start, stop and
+        step."""
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[33:55:5]
         sortedtable2 = numpy.array(
@@ -2034,7 +2036,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.assertTrue(allequal(sortedtable, sortedtable2))
 
     def test05_readSorted4(self):
-        """Testing the Table.read_sorted() method with a start, stop and step."""
+        """Testing the Table.read_sorted() method with a start, stop and
+        step."""
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[33:55:5]
         sortedtable2 = table.read_sorted('icol', start=33, stop=55, step=5)
@@ -2412,7 +2415,7 @@ class Issue156TestCase02(Issue156TestBase):
 
 
 class Issue119Time32ColTestCase(PyTablesTestCase):
-    """ TimeCol not properly indexing """
+    """TimeCol not properly indexing."""
 
     col_typ = Time32Col
     values = [

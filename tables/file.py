@@ -14,9 +14,10 @@
 
 This module support importing generic HDF5 files, on top of which
 PyTables files are created, read or extended. If a file exists, an
-object tree mirroring their hierarchical structure is created in
-memory. File class offer methods to traverse the tree, as well as to
-create new nodes.
+object tree mirroring their hierarchical structure is created in memory.
+File class offer methods to traverse the tree, as well as to create new
+nodes.
+
 """
 
 from __future__ import print_function
@@ -308,8 +309,8 @@ class _NoDeadNodes(object):
 
 
 class _NodeDict(tables.misc.proxydict.ProxyDict):
-    """A proxy dictionary which is able to delegate access to missing items
-    to the container object (a `File`)."""
+    """A proxy dictionary which is able to delegate access to missing items to
+    the container object (a `File`)."""
 
     def _get_value_from_container(self, container, key):
         return container.get_node(key)
@@ -583,11 +584,14 @@ class File(hdf5extension.File, object):
         numexpr.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
 
     def __get_root_group(self, root_uep, title, filters):
-        """Returns a Group instance which will act as the root group
-        in the hierarchical tree. If file is opened in "r", "r+" or
-        "a" mode, and the file already exists, this method dynamically
-        builds a python object tree emulating the structure present on
-        file."""
+        """Returns a Group instance which will act as the root group in the
+        hierarchical tree.
+
+        If file is opened in "r", "r+" or "a" mode, and the file already
+        exists, this method dynamically builds a python object tree
+        emulating the structure present on file.
+
+        """
 
         self._v_objectid = self._get_file_id()
 
@@ -1206,7 +1210,7 @@ class File(hdf5extension.File, object):
     createVLArray = previous_api(create_vlarray)
 
     def create_hard_link(self, where, name, target, createparents=False):
-        """Create a hard link
+        """Create a hard link.
 
         Create a hard link to a `target` node with the given `name` in
         `where` location.  `target` can be a node object or a path
@@ -1229,11 +1233,11 @@ class File(hdf5extension.File, object):
     createHardLink = previous_api(create_hard_link)
 
     def create_soft_link(self, where, name, target, createparents=False):
-        """
-        Create a soft link (aka symbolic link) to a `target` node with
-        the given `name` in `where` location.  `target` can be a node
-        object or a path string.  If `createparents` is true, the
-        intermediate groups required for reaching `where` are created
+        """Create a soft link (aka symbolic link) to a `target` node with the
+        given `name` in `where` location.  `target` can be a node object or a
+        path string.  If `createparents` is true, the intermediate groups
+        required for reaching `where` are created.
+
         (the default is not doing so).
 
         The returned node is a SoftLink instance.  See the SoftLink class
@@ -1923,9 +1927,10 @@ class File(hdf5extension.File, object):
     def is_undo_enabled(self):
         """Is the Undo/Redo mechanism enabled?
 
-        Returns True if the Undo/Redo mechanism has been enabled for this file,
-        False otherwise. Please note that this mechanism is persistent, so a
-        newly opened PyTables file may already have Undo/Redo support enabled.
+        Returns True if the Undo/Redo mechanism has been enabled for
+        this file, False otherwise. Please note that this mechanism is
+        persistent, so a newly opened PyTables file may already have
+        Undo/Redo support enabled.
 
         """
 
@@ -2199,7 +2204,7 @@ class File(hdf5extension.File, object):
         self._curaction += 1
 
     def _get_mark_id(self, mark):
-        """Get an integer markid from a mark sequence number or name"""
+        """Get an integer markid from a mark sequence number or name."""
 
         if isinstance(mark, int):
             markid = mark
@@ -2219,8 +2224,11 @@ class File(hdf5extension.File, object):
     _getMarkID = previous_api(_get_mark_id)
 
     def _get_final_action(self, markid):
-        """Get the action to go. It does not touch the self private
-        attributes"""
+        """Get the action to go.
+
+        It does not touch the self private attributes
+
+        """
 
         if markid > self._nmarks - 1:
             # The required mark is beyond the end of the action log
@@ -2236,7 +2244,7 @@ class File(hdf5extension.File, object):
     _getFinalAction = previous_api(_get_final_action)
 
     def _doundo(self, finalaction, direction):
-        """Undo/Redo actions up to final action in the specificed direction"""
+        """Undo/Redo actions up to final action in the specificed direction."""
 
         if direction < 0:
             actionlog = \
@@ -2665,6 +2673,7 @@ class File(hdf5extension.File, object):
         """Update location information of nodes under `oldPath`.
 
         This only affects *already loaded* nodes.
+
         """
 
         oldPrefix = oldPath + '/'  # root node can not be renamed, anyway

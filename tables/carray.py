@@ -249,7 +249,7 @@ class CArray(Array):
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
                            title, filters, chunkshape, _log, **kwargs):
-        """Private part of Leaf.copy() for each kind of leaf"""
+        """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)
         maindim = self.maindim

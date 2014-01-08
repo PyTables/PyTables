@@ -37,7 +37,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
         self.open_files = tables.file._open_files
 
     def test01_openFile(self):
-        """Checking opening of a non existing file"""
+        """Checking opening of a non existing file."""
 
         filename = tempfile.mktemp(".h5")
         try:
@@ -49,7 +49,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
             self.fail("IOError exception not raised")
 
     def test02_openFile(self):
-        """Checking opening of an existing non HDF5 file"""
+        """Checking opening of an existing non HDF5 file."""
 
         # create a dummy file
         filename = tempfile.mktemp(".h5")
@@ -122,7 +122,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         common.cleanup(self)
 
     def test00_newFile(self):
-        """Checking creation of a new file"""
+        """Checking creation of a new file."""
 
         # Create an HDF5 file
         file = tempfile.mktemp(".h5")
@@ -161,7 +161,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         shutil.rmtree(temp_dir)
 
     def test01_openFile(self):
-        """Checking opening of an existing file"""
+        """Checking opening of an existing file."""
 
         # Open the old HDF5 file
         fileh = open_file(
@@ -173,7 +173,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test02_appendFile(self):
-        """Checking appending objects to an existing file"""
+        """Checking appending objects to an existing file."""
 
         # Append a new array to the existing file
         fileh = open_file(
@@ -213,7 +213,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
     # Begin to raise errors...
 
     def test03_appendErrorFile(self):
-        """Checking appending objects to an existing file in "w" mode"""
+        """Checking appending objects to an existing file in "w" mode."""
 
         # Append a new array to the existing file but in write mode
         # so, the existing file should be deleted!
@@ -254,7 +254,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.fail("expected an IOError")
 
     def test04b_alternateRootFile(self):
-        """Checking alternate root access to the object tree"""
+        """Checking alternate root access to the object tree."""
 
         # Open the existent HDF5 file
         fileh = open_file(self.file, mode="r", root_uep="/agroup",
@@ -287,7 +287,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.fail("expected an IOError")
 
     def test05a_removeGroupRecursively(self):
-        """Checking removing a group recursively"""
+        """Checking removing a group recursively."""
 
         # Delete a group with leafs
         fileh = open_file(
@@ -334,7 +334,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test05b_removeGroupRecursively(self):
-        """Checking removing a group recursively and access to it immediately"""
+        """Checking removing a group recursively and access to it
+        immediately."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -400,7 +401,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test06a_removeGroup(self):
-        """Checking removing a lonely group from an existing file"""
+        """Checking removing a lonely group from an existing file."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -423,7 +424,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test06b_removeLeaf(self):
-        """Checking removing Leaves from an existing file"""
+        """Checking removing Leaves from an existing file."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -446,7 +447,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test06c_removeLeaf(self):
-        """Checking removing Leaves and access it immediately"""
+        """Checking removing Leaves and access it immediately."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -483,7 +484,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test06e_removeTable(self):
-        """Checking removing Tables from an existing file"""
+        """Checking removing Tables from an existing file."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -506,7 +507,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test07_renameLeaf(self):
-        """Checking renaming a leave and access it after a close/open"""
+        """Checking renaming a leave and access it after a close/open."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -534,7 +535,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test07b_renameLeaf(self):
-        """Checking renaming Leaves and accesing them immediately"""
+        """Checking renaming Leaves and accesing them immediately."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -558,7 +559,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test07c_renameLeaf(self):
-        """Checking renaming Leaves and modify attributes after that"""
+        """Checking renaming Leaves and modify attributes after that."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -571,7 +572,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test07d_renameLeaf(self):
-        """Checking renaming a Group under a nested group"""
+        """Checking renaming a Group under a nested group."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -583,7 +584,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test08_renameToExistingLeaf(self):
-        """Checking renaming a node to an existing name"""
+        """Checking renaming a node to an existing name."""
 
         # Open this file
         fileh = open_file(
@@ -627,7 +628,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test09_renameGroup(self):
-        """Checking renaming a Group and access it after a close/open"""
+        """Checking renaming a Group and access it after a close/open."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -669,7 +670,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test09b_renameGroup(self):
-        """Checking renaming a Group and access it immediately"""
+        """Checking renaming a Group and access it immediately."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -707,7 +708,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test09c_renameGroup(self):
-        """Checking renaming a Group and modify attributes afterwards"""
+        """Checking renaming a Group and modify attributes afterwards."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -721,7 +722,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test09d_renameGroup(self):
-        """Checking renaming a Group under a nested group"""
+        """Checking renaming a Group under a nested group."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -733,7 +734,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test09e_renameGroup(self):
-        """Checking renaming a Group with nested groups in the LRU cache"""
+        """Checking renaming a Group with nested groups in the LRU cache."""
         # This checks for ticket #126.
 
         fileh = open_file(
@@ -751,7 +752,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test10_moveLeaf(self):
-        """Checking moving a leave and access it after a close/open"""
+        """Checking moving a leave and access it after a close/open."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -780,7 +781,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test10b_moveLeaf(self):
-        """Checking moving a leave and access it without a close/open"""
+        """Checking moving a leave and access it without a close/open."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -805,7 +806,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test10c_moveLeaf(self):
-        """Checking moving Leaves and modify attributes after that"""
+        """Checking moving Leaves and modify attributes after that."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -819,7 +820,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test10d_moveToExistingLeaf(self):
-        """Checking moving a leaf to an existing name"""
+        """Checking moving a leaf to an existing name."""
 
         # Open this file
         fileh = open_file(
@@ -837,7 +838,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test10_2_moveTable(self):
-        """Checking moving a table and access it after a close/open"""
+        """Checking moving a table and access it after a close/open."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -866,7 +867,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test10_2b_moveTable(self):
-        """Checking moving a table and access it without a close/open"""
+        """Checking moving a table and access it without a close/open."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -891,7 +892,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test10_2b_bis_moveTable(self):
-        """Checking moving a table and use cached row without a close/open"""
+        """Checking moving a table and use cached row without a close/open."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -916,7 +917,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test10_2c_moveTable(self):
-        """Checking moving tables and modify attributes after that"""
+        """Checking moving tables and modify attributes after that."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -930,7 +931,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test10_2d_moveToExistingTable(self):
-        """Checking moving a table to an existing name"""
+        """Checking moving a table to an existing name."""
 
         # Open this file
         fileh = open_file(
@@ -948,7 +949,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test10_2e_moveToExistingTableOverwrite(self):
-        """Checking moving a table to an existing name, overwriting it"""
+        """Checking moving a table to an existing name, overwriting it."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -961,7 +962,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test11_moveGroup(self):
-        """Checking moving a Group and access it after a close/open"""
+        """Checking moving a Group and access it after a close/open."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -1006,7 +1007,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test11b_moveGroup(self):
-        """Checking moving a Group and access it immediately"""
+        """Checking moving a Group and access it immediately."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -1046,7 +1047,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test11c_moveGroup(self):
-        """Checking moving a Group and modify attributes afterwards"""
+        """Checking moving a Group and modify attributes afterwards."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -1063,7 +1064,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test11d_moveToExistingGroup(self):
-        """Checking moving a group to an existing name"""
+        """Checking moving a group to an existing name."""
 
         # Open this file
         fileh = open_file(
@@ -1081,7 +1082,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test11e_moveToExistingGroupOverwrite(self):
-        """Checking moving a group to an existing name, overwriting it"""
+        """Checking moving a group to an existing name, overwriting it."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -1095,7 +1096,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test12a_moveNodeOverItself(self):
-        """Checking moving a node over itself"""
+        """Checking moving a node over itself."""
 
         fileh = open_file(
             self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
@@ -1109,7 +1110,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test12b_moveGroupIntoItself(self):
-        """Checking moving a group into itself"""
+        """Checking moving a group into itself."""
 
         # Open this file
         fileh = open_file(
@@ -1498,7 +1499,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test19_fileno(self):
-        """Checking that the 'fileno()' method works"""
+        """Checking that the 'fileno()' method works."""
 
         # Open the old HDF5 file
         fileh = open_file(
@@ -1624,7 +1625,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         os.remove(file)
 
     def test04_openGenericHDF5File(self):
-        """Checking opening of a generic HDF5 file"""
+        """Checking opening of a generic HDF5 file."""
 
         # Open an existing generic HDF5 file
         fileh = open_file(self._testFilename("ex-noattr.h5"), mode="r")
@@ -1655,7 +1656,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
     def test04b_UnImplementedOnLoading(self):
-        """Checking failure loading resulting in an ``UnImplemented`` node"""
+        """Checking failure loading resulting in an ``UnImplemented`` node."""
 
         ############### Note for developers ###############################
         # This test fails if you have the line:                           #
@@ -1673,7 +1674,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
 
     def test04c_UnImplementedScalar(self):
         """Checking opening of HDF5 files containing scalar dataset of
-        UnImlemented type"""
+        UnImlemented type."""
 
         h5file = open_file(self._testFilename("scalar.h5"))
         try:
@@ -1684,7 +1685,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
             h5file.close()
 
     def test05_copyUnimplemented(self):
-        """Checking that an UnImplemented object cannot be copied"""
+        """Checking that an UnImplemented object cannot be copied."""
 
         # Open an existing generic HDF5 file
         fileh = open_file(self._testFilename("smpl_unsupptype.h5"), mode="r")
@@ -1725,7 +1726,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
     # The next can be used to check the copy of Array objects with H5T_ARRAY
     # in the future
     def _test05_copyUnimplemented(self):
-        """Checking that an UnImplemented object cannot be copied"""
+        """Checking that an UnImplemented object cannot be copied."""
 
         # Open an existing generic HDF5 file
         # We don't need to wrap this in a try clause because
@@ -1868,10 +1869,8 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
-    """
-    Test that ``File`` and ``Node`` operations check their state (open
-    or closed, readable or writable) before proceeding.
-    """
+    """Test that ``File`` and ``Node`` operations check their state (open or
+    closed, readable or writable) before proceeding."""
 
     def test00_fileCopyFileClosed(self):
         """Test copying a closed file."""
@@ -2164,10 +2163,8 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
-    """
-    Test that setting, getting and changing the ``flavor`` attribute
-    of a leaf works as expected.
-    """
+    """Test that setting, getting and changing the ``flavor`` attribute of a
+    leaf works as expected."""
 
     array_data = numpy.arange(10)
     scalar_data = numpy.int32(10)

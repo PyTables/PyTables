@@ -506,8 +506,7 @@ class TreeTestCase(unittest.TestCase):
 
 
 class DeepTreeTestCase(unittest.TestCase):
-    """Checks for deep hierarchy levels in PyTables trees.
-    """
+    """Checks for deep hierarchy levels in PyTables trees."""
 
     def setUp(self):
         # Here we put a more conservative limit to deal with more platforms
@@ -627,17 +626,17 @@ class DeepTreeTestCase(unittest.TestCase):
 
 
 class WideTreeTestCase(unittest.TestCase):
-    """Checks for maximum number of children for a Group.
-    """
+    """Checks for maximum number of children for a Group."""
 
     def test00_Leafs(self):
-        """Checking creation of large number of leafs (1024) per group
+        """Checking creation of large number of leafs (1024) per group.
 
-        Variable 'maxchildren' controls this check. PyTables support
-        up to 4096 children per group, but this would take too much
-        memory (up to 64 MB) for testing purposes (may be we can add a
-        test for big platforms). A 1024 children run takes up to 30 MB.
-        A 512 children test takes around 25 MB.
+        Variable 'maxchildren' controls this check. PyTables support up
+        to 4096 children per group, but this would take too much memory
+        (up to 64 MB) for testing purposes (may be we can add a test for
+        big platforms). A 1024 children run takes up to 30 MB. A 512
+        children test takes around 25 MB.
+
         """
 
         import time
@@ -694,13 +693,14 @@ class WideTreeTestCase(unittest.TestCase):
         os.remove(file)
 
     def test01_wideTree(self):
-        """Checking creation of large number of groups (1024) per group
+        """Checking creation of large number of groups (1024) per group.
 
-        Variable 'maxchildren' controls this check. PyTables support
-        up to 4096 children per group, but this would take too much
-        memory (up to 64 MB) for testing purposes (may be we can add a
-        test for big platforms). A 1024 children run takes up to 30 MB.
-        A 512 children test takes around 25 MB.
+        Variable 'maxchildren' controls this check. PyTables support up
+        to 4096 children per group, but this would take too much memory
+        (up to 64 MB) for testing purposes (may be we can add a test for
+        big platforms). A 1024 children run takes up to 30 MB. A 512
+        children test takes around 25 MB.
+
         """
 
         import time
@@ -956,12 +956,11 @@ class HiddenTreeTestCase(unittest.TestCase):
 
 class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
-    """
-    Test the ``createparents`` flag.
+    """Test the ``createparents`` flag.
 
-    These are mainly for the user interface.  More thorough tests on
-    the workings of the flag can be found in the ``test_do_undo.py``
-    module.
+    These are mainly for the user interface.  More thorough tests on the
+    workings of the flag can be found in the ``test_do_undo.py`` module.
+
     """
 
     filters = Filters(complevel=4)  # simply non-default

@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""Test module for enumerated types under PyTables"""
+"""Test module for enumerated types under PyTables."""
 
 import unittest
 import operator
@@ -98,8 +98,11 @@ class CreateColTestCase(common.PyTablesTestCase):
                           base=tables.FloatAtom())
 
     def test99b_nonIntDtype(self):
-        """Describing an enumerated column encoded as floats
-        (not implemented)."""
+        """Describing an enumerated column encoded as floats.
+
+        (not implemented).
+
+        """
         colors = ['red', 'green', 'blue']
         self.assertRaises(
             NotImplementedError, self._createCol, colors, 'red', 'float64')
@@ -166,8 +169,11 @@ class CreateAtomTestCase(common.PyTablesTestCase):
                           base=tables.FloatAtom())
 
     def test99b_nonIntDtype(self):
-        """Describing an enumerated atom encoded as a float
-        (not implemented)."""
+        """Describing an enumerated atom encoded as a float.
+
+        (not implemented).
+
+        """
         colors = ['red', 'green', 'blue']
         self.assertRaises(
             NotImplementedError, self._createAtom, colors, 'red', 'float64')

@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""Test module for detecting uncollectable garbage in PyTables
+"""Test module for detecting uncollectable garbage in PyTables.
 
 This test module *must* be loaded in the last place.  It just checks for
 the existence of uncollectable garbage in ``gc.garbage`` after running

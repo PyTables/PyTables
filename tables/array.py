@@ -319,7 +319,7 @@ class Array(hdf5extension.Array, Leaf):
         return self
 
     def _init_loop(self):
-        """Initialization for the __iter__ iterator"""
+        """Initialization for the __iter__ iterator."""
 
         self._nrowsread = self._start
         self._startb = self._start
@@ -457,7 +457,7 @@ class Array(hdf5extension.Array, Leaf):
         # Internal functions
 
         def validate_number(num, length):
-            """Validate a list member for the given axis length"""
+            """Validate a list member for the given axis length."""
 
             try:
                 num = long(num)
@@ -772,7 +772,11 @@ class Array(hdf5extension.Array, Leaf):
     _readCoords = previous_api(_read_coords)
 
     def _read_selection(self, selection, reorder, shape):
-        """Read a `selection`.  Reorder if necessary."""
+        """Read a `selection`.
+
+        Reorder if necessary.
+
+        """
 
         # Create the container for the slice
         nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
@@ -812,7 +816,11 @@ class Array(hdf5extension.Array, Leaf):
     _writeCoords = previous_api(_write_coords)
 
     def _write_selection(self, selection, reorder, shape, nparr):
-        """Write `nparr` in `selection`.  Reorder if necessary."""
+        """Write `nparr` in `selection`.
+
+        Reorder if necessary.
+
+        """
 
         nparr = self._check_shape(nparr, tuple(shape))
         # Check whether we should reorder the array
@@ -897,7 +905,7 @@ class Array(hdf5extension.Array, Leaf):
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
                            title, filters, chunkshape, _log, **kwargs):
-        """Private part of Leaf.copy() for each kind of leaf"""
+        """Private part of Leaf.copy() for each kind of leaf."""
 
         # Compute the correct indices.
         (start, stop, step) = self._process_range_read(start, stop, step)
@@ -935,9 +943,9 @@ class Array(hdf5extension.Array, Leaf):
 class ImageArray(Array):
     """Array containing an image.
 
-    This class has no additional behaviour or functionality compared
-    to that of an ordinary array.  It simply enables the user to open
-    an ``IMAGE`` HDF5 node as a normal `Array` node in PyTables.
+    This class has no additional behaviour or functionality compared to
+    that of an ordinary array.  It simply enables the user to open an
+    ``IMAGE`` HDF5 node as a normal `Array` node in PyTables.
 
     """
 

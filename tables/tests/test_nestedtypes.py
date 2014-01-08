@@ -11,7 +11,7 @@
 #
 ########################################################################
 
-"""Test module for nested types under PyTables"""
+"""Test module for nested types under PyTables."""
 
 from __future__ import print_function
 import sys
@@ -130,11 +130,11 @@ testCondition = '(2 < col) & (col < 9)'
 
 
 def areDescriptionsEqual(desc1, desc2):
-    """
-    Are both `desc1` and `desc2` equivalent descriptions?
+    """Are both `desc1` and `desc2` equivalent descriptions?
 
     The arguments may be description objects (``IsDescription``,
     ``Description``) or dictionaries.
+
     """
 
     if isinstance(desc1, t.Col):
@@ -207,9 +207,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     _testAData = testAData
 
     def _checkColumns(self, cols, desc):
-        """
-        Check that `cols` has all the accessors for `self._TestTDescr`.
-        """
+        """Check that `cols` has all the accessors for `self._TestTDescr`."""
 
         # ``_desc`` is a leaf column and ``cols`` a ``Column``.
         if isinstance(desc, t.Col):
@@ -227,9 +225,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         return True
 
     def _checkDescription(self, table):
-        """
-        Check that description of `table` matches `self._TestTDescr`.
-        """
+        """Check that description of `table` matches `self._TestTDescr`."""
 
         # Compare descriptions.
         self.assertTrue(
@@ -239,9 +235,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._checkColumns(table.cols, table.description)
 
     def _checkColinstances(self, table):
-        """
-        Check that ``colinstances`` and ``cols`` of `table` match.
-        """
+        """Check that ``colinstances`` and ``cols`` of `table` match."""
         for colpathname in table.description._v_pathnames:
             self.assertTrue(table.colinstances[colpathname]
                             is table.cols._f_col(colpathname))
@@ -568,7 +562,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Written and read values differ.")
 
     def test07_index(self):
-        """Checking indexes of nested columns"""
+        """Checking indexes of nested columns."""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName(),
@@ -644,7 +638,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
     _testNestedCol = testNestedCol
 
     def test00a_repr(self):
-        """Checking representation of a nested Table"""
+        """Checking representation of a nested Table."""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title="test00")
@@ -1108,8 +1102,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Original array are retrieved doesn't match.")
 
     def test04c__getitem__(self):
-        """Checking cols.__getitem__() with subgroups with a range
-        index with step."""
+        """Checking cols.__getitem__() with subgroups with a range index with
+        step."""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
@@ -1169,8 +1163,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Original array are retrieved doesn't match.")
 
     def test05c__getitem__(self):
-        """Checking cols.__getitem__() with a column with a range index
-        with step."""
+        """Checking cols.__getitem__() with a column with a range index with
+        step."""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
