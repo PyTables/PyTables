@@ -29,19 +29,25 @@ cmdclass = {}
 setuptools_kwargs = {}
 
 if sys.version_info >= (3,):
-    exclude_fixers = [
-        'lib2to3.fixes.apply',
-        #'lib2to3.fixes.basestring',
-        'lib2to3.fixes.buffer',
-        'lib2to3.fixes.callable',
-        #'lib2to3.fixes.dict',  # XXX
-        'lib2to3.fixes.except',
-        'lib2to3.fixes.exec',
-        'lib2to3.fixes.fix_idioms',
-        'lib2to3.fixes.fix_zip',
+    fixer_names = [
+        'lib2to3.fixes.fix_basestring',
+        'lib2to3.fixes.fix_dict',
+        'lib2to3.fixes.fix_imports',
+        'lib2to3.fixes.fix_long',
+        'lib2to3.fixes.fix_metaclass',
+        'lib2to3.fixes.fix_next',
+        'lib2to3.fixes.fix_numliterals',
+        'lib2to3.fixes.fix_print',
+        'lib2to3.fixes.fix_unicode',
+        'lib2to3.fixes.fix_xrange',
     ]
 
     if has_setuptools:
+        from lib2to3.refactor import get_fixers_from_package
+
+        all_fixers = set(get_fixers_from_package('lib2to3.fixes'))
+        exclude_fixers = sorted(all_fixers.difference(fixer_names))
+
         setuptools_kwargs['use_2to3'] = True
         setuptools_kwargs['use_2to3_fixers'] = []
         setuptools_kwargs['use_2to3_exclude_fixers'] = exclude_fixers
@@ -49,11 +55,6 @@ if sys.version_info >= (3,):
         from distutils.command.build_py import build_py_2to3 as build_py
         from distutils.command.build_scripts \
             import build_scripts_2to3 as build_scripts
-
-        from lib2to3.refactor import get_fixers_from_package
-
-        all_fixers = set(get_fixers_from_package('lib2to3.fixes'))
-        fixer_names = sorted(all_fixers.difference(exclude_fixers))
 
         build_py.fixer_names = fixer_names
         build_scripts.fixer_names = fixer_names
