@@ -22,6 +22,9 @@ New features
   specified precision before writing to disk. This can significantly improve
   the performance of compressors (closes :issue:`261`).
   Thanks to Andreas Hilboll.
+- Added new :meth:`VLArray.get_row_size` method to :class:`VLArray` for
+  querying the number of atoms of a :class:`VLArray` row.
+  Closes :issue:`24` and :issue:`315`.
 
 Improvements
 ------------
