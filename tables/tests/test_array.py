@@ -2485,11 +2485,12 @@ class FancySelectionTestCase(common.PyTablesTestCase):
                 [-1, 2], 'i8'), 2, -1),  # array 64-bit instead of list
         ]
 
+        # Using booleans instead of ints is deprecated since numpy 1.8
         # Tests for keys that have to support the __index__ attribute
-        if (sys.version_info[0] >= 2 and sys.version_info[1] >= 5):
-            self.working_keyset.append(
-                (False, True),  # equivalent to (0,1) ;-)
-            )
+        #if (sys.version_info[0] >= 2 and sys.version_info[1] >= 5):
+        #    self.working_keyset.append(
+        #        (False, True),  # equivalent to (0,1) ;-)
+        #    )
 
         # Valid selections for NumPy, but not for PyTables (yet)
         # The next should raise an IndexError
@@ -2499,6 +2500,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             ([1, 2], 2, [1, 2]),  # several lists
             ([], 2, 1),         # empty selections
             (Ellipsis, [1, 2], Ellipsis),  # several ellipsis
+            # Using booleans instead of ints is deprecated since numpy 1.8
             ([False, True]),    # boolean values with incompatible shape
         ]
 
