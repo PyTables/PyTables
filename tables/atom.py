@@ -682,7 +682,7 @@ def _generate_floating_classes():
 # Create all numeric atom classes.
 for _classgen in [_generate_integral_classes, _generate_floating_classes]:
     for _newclass in _classgen():
-        exec '%s = _newclass' % _newclass.__name__
+        exec('%s = _newclass' % _newclass.__name__)
 del _classgen, _newclass
 
 

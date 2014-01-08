@@ -577,7 +577,7 @@ for cdatafunc in [niclassdata, iclassdata]:
     for (cname, cbasenames, cdict) in cdatafunc():
         cbases = tuple(eval(cbase) for cbase in cbasenames)
         class_ = type(cname, cbases, cdict)
-        exec '%s = class_' % cname
+        exec('%s = class_' % cname)
 
 
 # Test cases on query usage

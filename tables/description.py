@@ -269,7 +269,7 @@ def _generate_col_classes():
 
 # Create all column classes.
 for _newclass in _generate_col_classes():
-    exec '%s = _newclass' % _newclass.__name__
+    exec('%s = _newclass' % _newclass.__name__)
 del _newclass
 
 

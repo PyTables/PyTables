@@ -3375,7 +3375,7 @@ def iclassdata():
 for (cname, cbasenames, cdict) in iclassdata():
     cbases = tuple(eval(cbase) for cbase in cbasenames)
     class_ = type(cname, cbases, cdict)
-    exec '%s = class_' % cname
+    exec('%s = class_' % cname)
 
 
 # -----------------------------
