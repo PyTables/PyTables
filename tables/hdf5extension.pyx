@@ -2031,6 +2031,40 @@ cdef class VLArray(Leaf):
 
   _readArray = previous_api(_read_array)
 
+  def get_row_size(self, row):
+    """Return the total size in bytes of all the elements contained in a given row."""
+
+    cdef hid_t space_id
+    cdef hsize_t size
+    cdef herr_t ret
+
+    cdef hsize_t offset[1]
+    cdef hsize_t count[1]
+
+    if row >= self.nrows:
+      raise HDF5ExtError(
+        "Asking for a range of rows exceeding the available ones!.",
+        h5bt=False)
+
+    # Get the dataspace handle
+    space_id = H5Dget_space(self.dataset_id)
+
+    offset[0] = row
+    count[0] = 1
+
+    ret = H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+    if ret < 0:
+      size = -1
+
+    ret = H5Dvlen_get_buf_size(self.dataset_id, self.type_id, space_id, &size)
+    if ret < 0:
+      size = -1
+
+    # Terminate access to the dataspace
+    H5Sclose(space_id)
+
+    return size
+
 
 cdef class UnImplemented(Leaf):
 

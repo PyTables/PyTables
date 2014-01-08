@@ -239,6 +239,18 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(row3, [7, 8, 9, 10])
         self.assertEqual(len(row3), 4)
 
+    def test04_get_row_size(self):
+        """Checking get_row_size method."""
+
+        self.fileh = open_file(self.file, "a")
+        vlarray = self.fileh.get_node("/vlarray1")
+
+        self.assertEqual(vlarray.get_row_size(0), 2 * vlarray.atom.size)
+        self.assertEqual(vlarray.get_row_size(1), 3 * vlarray.atom.size)
+        self.assertEqual(vlarray.get_row_size(2), 0 * vlarray.atom.size)
+        self.assertEqual(vlarray.get_row_size(3), 4 * vlarray.atom.size)
+        self.assertEqual(vlarray.get_row_size(4), 5 * vlarray.atom.size)
+
 
 class BasicNumPyTestCase(BasicTestCase):
     flavor = "numpy"
