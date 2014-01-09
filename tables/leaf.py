@@ -372,7 +372,7 @@ class Leaf(Node):
         # equal to the chunksize.
         # See gh-206 and gh-238
         if self.chunkshape is not None:
-            chunksize = self.chunkshape[0]
+            chunksize = self.chunkshape[self.maindim]
             if nrowsinbuf < chunksize:
                 nrowsinbuf = chunksize
 
