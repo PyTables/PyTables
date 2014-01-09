@@ -45,6 +45,10 @@ Bugs fixed
   :class:`CArray`/:class:`EArray` objects (closes :issue:`308`,
   see also :issue:`309`).
   Many thanks to Alistair Muldal.
+- Fix computation of the buffer size for iterations on rows.
+  The buffes size was overestimated resulting in a :exc:`MemoryError`
+  in some cases.
+  Closes :issue:`316`. Thamks to bbudescu.
 
 .. _pip: http://www.pip-installer.org
 .. _Anaconda: https://store.continuum.io/cshop/anaconda
