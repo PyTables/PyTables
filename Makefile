@@ -25,6 +25,7 @@ dist:		all
 
 clean:
 	rm -rf MANIFEST build dist tmp tables/__pycache__
+	rm -rf examples/*.h5 examples/raw
 	rm -f $(GENERATED) tables/*.so a.out
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done

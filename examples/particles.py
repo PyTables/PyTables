@@ -47,7 +47,7 @@ print "Added %s entries --- Time: %s sec" % (table.nrows, round((time()-t1), 3))
 
 t1 = time()
 print "Creating index..."
-table.cols.event_id.create_index(optlevel=0, verbose=True)
+table.cols.event_id.create_index(optlevel=0, _verbose=True)
 print "Index created --- Time: %s sec" % (round((time()-t1), 3))
 # Add the number of events as an attribute
 table.attrs.nevents = NEVENTS

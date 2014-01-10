@@ -2317,7 +2317,8 @@ Finally, you may want to have a look at your resulting data file.
     [1] (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L)
     [2] (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)
 
-Most of the code in this section is also available in examples/nested-tut.py.
+Most of the code in this section is also available in
+:file:`examples/nested-tut.py`.
 
 All in all, PyTables provides a quite comprehensive toolset to cope with
 nested structures and address your classification needs.
