@@ -60,11 +60,11 @@ class BasicTestCase(unittest.TestCase):
                 # Compare them. They should be equal.
                 if common.verbose and not allequal(a, b):
                     print("Write and read arrays differ!")
-                    # print "Array written:", a
+                    # print("Array written:", a)
                     print("Array written shape:", a.shape)
                     print("Array written itemsize:", a.itemsize)
                     print("Array written type:", a.dtype.type)
-                    # print "Array read:", b
+                    # print("Array read:", b)
                     print("Array read shape:", b.shape)
                     print("Array read itemsize:", b.itemsize)
                     print("Array read type:", b.dtype.type)
@@ -205,11 +205,11 @@ class BasicTestCase(unittest.TestCase):
                 # Compare them. They should be equal.
                 if common.verbose and not allequal(a, b):
                     print("Write and read arrays differ!")
-                    # print "Array written:", a
+                    # print("Array written:", a)
                     print("Array written shape:", a.shape)
                     print("Array written itemsize:", a.itemsize)
                     print("Array written type:", a.dtype.type)
-                    # print "Array read:", b
+                    # print("Array read:", b)
                     print("Array read shape:", b.shape)
                     print("Array read itemsize:", b.itemsize)
                     print("Array read type:", b.dtype.type)
@@ -1024,7 +1024,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             self.assertEqual(a.dtype, b.dtype)
             self.assertTrue(allequal(a, b))
 
-            # print fileh
+            # print(fileh)
             # Iterate over the next group
             group = fileh.get_node(group, 'group' + str(rank))
 
@@ -1068,7 +1068,7 @@ class CopyTestCase(unittest.TestCase):
         if common.verbose:
             print("array1-->", array1.read())
             print("array2-->", array2.read())
-            # print "dirs-->", dir(array1), dir(array2)
+            # print("dirs-->", dir(array1), dir(array2))
             print("attrs array1-->", repr(array1.attrs))
             print("attrs array2-->", repr(array2.attrs))
 
@@ -1115,7 +1115,7 @@ class CopyTestCase(unittest.TestCase):
         if common.verbose:
             print("array1-->", array1.read())
             print("array2-->", array2.read())
-            # print "dirs-->", dir(array1), dir(array2)
+            # print("dirs-->", dir(array1), dir(array2))
             print("attrs array1-->", repr(array1.attrs))
             print("attrs array2-->", repr(array2.attrs))
 
@@ -2355,8 +2355,8 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             a = nparr[key]
             b = tbarr[key]
 #             if common.verbose:
-#                 print "NumPy selection:", a
-#                 print "PyTables selection:", b
+#                 print("NumPy selection:", a)
+#                 print("PyTables selection:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables selections does not match.")
@@ -2372,8 +2372,8 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             a = nparr[key]
             b = tbarr[key]
 #             if common.verbose:
-#                 print "NumPy selection:", a
-#                 print "PyTables selection:", b
+#                 print("NumPy selection:", a)
+#                 print("PyTables selection:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables selections does not match.")
@@ -2404,8 +2404,8 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             a = nparr[:]
             b = tbarr[:]
 #             if common.verbose:
-#                 print "NumPy modified array:", a
-#                 print "PyTables modifyied array:", b
+#                 print("NumPy modified array:", a)
+#                 print("PyTables modifyied array:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
@@ -2424,8 +2424,8 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             a = nparr[:]
             b = tbarr[:]
 #             if common.verbose:
-#                 print "NumPy modified array:", a
-#                 print "PyTables modifyied array:", b
+#                 print("NumPy modified array:", a)
+#                 print("PyTables modifyied array:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
@@ -2444,8 +2444,8 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             a = nparr[:]
             b = tbarr[:]
 #             if common.verbose:
-#                 print "NumPy modified array:", a
-#                 print "PyTables modifyied array:", b
+#                 print("NumPy modified array:", a)
+#                 print("PyTables modifyied array:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
@@ -2546,8 +2546,8 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             a = nparr[key]
             b = tbarr[key]
 #             if common.verbose:
-#                 print "NumPy selection:", a
-#                 print "PyTables selection:", b
+#                 print("NumPy selection:", a)
+#                 print("PyTables selection:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables selections does not match.")
@@ -2597,8 +2597,8 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             a = nparr[:]
             b = tbarr[:]
 #             if common.verbose:
-#                 print "NumPy modified array:", a
-#                 print "PyTables modifyied array:", b
+#                 print("NumPy modified array:", a)
+#                 print("PyTables modifyied array:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
@@ -2616,8 +2616,8 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             a = nparr[:]
             b = tbarr[:]
 #             if common.verbose:
-#                 print "NumPy modified array:", a
-#                 print "PyTables modifyied array:", b
+#                 print("NumPy modified array:", a)
+#                 print("PyTables modifyied array:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")

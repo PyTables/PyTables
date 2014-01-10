@@ -1451,7 +1451,7 @@ class Table(tableextension.Table, Leaf):
             >>> passvalues = [ row['col3'] for row in
             ...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
             ...                if your_function(row['col2']) ]
-            >>> print "Values that pass the cuts:", passvalues
+            >>> print("Values that pass the cuts:", passvalues)
 
         Note that, from PyTables 1.1 on, you can nest several
         iterators over the same table. For example::
@@ -1459,7 +1459,7 @@ class Table(tableextension.Table, Leaf):
             for p in rout.where('pressure < 16'):
                 for q in rout.where('pressure < 9'):
                     for n in rout.where('energy < 10'):
-                        print "pressure, energy:", p['pressure'], n['energy']
+                        print("pressure, energy:", p['pressure'], n['energy'])
 
         In this example, iterators returned by :meth:`Table.where` have been
         used, but you may as well use any of the other reading iterators that
@@ -3477,14 +3477,14 @@ class Column(object):
 
         ::
 
-            print "Column handlers:"
+            print("Column handlers:")
             for name in table.colnames:
-                print table.cols._f_col(name)
-                print "Select table.cols.name[1]-->", table.cols.name[1]
-                print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
-                print "Select table.cols.name[:]-->", table.cols.name[:]
-                print "Select table.cols._f_col('name')[:]-->",
-                                                table.cols._f_col('name')[:]
+                print(table.cols._f_col(name))
+                print("Select table.cols.name[1]-->", table.cols.name[1])
+                print("Select table.cols.name[1:2]-->", table.cols.name[1:2])
+                print("Select table.cols.name[:]-->", table.cols.name[:])
+                print("Select table.cols._f_col('name')[:]-->",
+                                                table.cols._f_col('name')[:])
 
         The output of this for a certain arbitrary table is::
 

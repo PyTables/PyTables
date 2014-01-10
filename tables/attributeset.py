@@ -126,13 +126,13 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         >>> h5fname = tempfile.mktemp(suffix='.h5')
         >>> h5f = tables.open_file(h5fname, 'w')
         >>> h5f.root._v_attrs.obj = myObject  # store the object
-        >>> print h5f.root._v_attrs.obj.foo  # retrieve it
+        >>> print(h5f.root._v_attrs.obj.foo)  # retrieve it
         bar
         >>> h5f.close()
         >>>
         >>> del MyClass, myObject  # delete class of object and reopen file
         >>> h5f = tables.open_file(h5fname, 'r')
-        >>> print repr(h5f.root._v_attrs.obj)
+        >>> print(repr(h5f.root._v_attrs.obj))
         'ccopy_reg\\n_reconstructor...
         >>> import pickle  # let's unpickle that to see what went wrong
         >>> pickle.loads(h5f.root._v_attrs.obj)
@@ -162,7 +162,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
     this::
 
         for name in :attr:`Node._v_attrs`._f_list():
-            print "name: %s, value: %s" % (name, :attr:`Node._v_attrs`[name])
+            print("name: %s, value: %s" % (name, :attr:`Node._v_attrs`[name]))
 
     Use whatever idiom you prefer to access the attributes.
 

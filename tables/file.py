@@ -1812,9 +1812,9 @@ class File(hdf5extension.File, object):
 
             # Recursively list all the nodes in the object tree.
             h5file = tables.open_file('vlarray1.h5')
-            print "All nodes in the object tree:"
+            print("All nodes in the object tree:")
             for node in h5file:
-                print node
+                print(node)
 
         """
 
@@ -1846,9 +1846,9 @@ class File(hdf5extension.File, object):
         ::
 
             # Recursively print all the nodes hanging from '/detector'.
-            print "Nodes hanging from group '/detector':"
+            print("Nodes hanging from group '/detector':")
             for node in h5file.walk_nodes('/detector', classname='EArray'):
-                print node
+                print(node)
 
         """
 
@@ -2200,7 +2200,7 @@ class File(hdf5extension.File, object):
                 or len(arg2) > maxundo):  # INTERNAL
             raise UndoRedoError("Parameter arg1 or arg2 is too long: "
                                 "(%r, %r)" % (arg1, arg2))
-        # print "Logging-->", (action, arg1, arg2)
+        # print("Logging-->", (action, arg1, arg2))
         self._actionlog.append([(_op_to_code[action],
                                  arg1.encode('utf-8'),
                                  arg2.encode('utf-8'))])
@@ -2221,7 +2221,7 @@ class File(hdf5extension.File, object):
         else:
             raise TypeError("Parameter mark can only be an integer or a "
                             "string, and you passed a type <%s>" % type(mark))
-        # print "markid, self._nmarks:", markid, self._nmarks
+        # print("markid, self._nmarks:", markid, self._nmarks)
         return markid
 
     _getMarkID = previous_api(_get_mark_id)
@@ -2256,17 +2256,17 @@ class File(hdf5extension.File, object):
             actionlog = self._actionlog[self._curaction:finalaction]
 
         # Uncomment this for debugging
-#         print "curaction, finalaction, direction", \
-#               self._curaction, finalaction, direction
+#         print("curaction, finalaction, direction", \
+#               self._curaction, finalaction, direction)
         for i in xrange(len(actionlog)):
             if actionlog['opcode'][i] != _op_to_code["MARK"]:
                 # undo/redo the action
                 if direction > 0:
                     # Uncomment this for debugging
-#                     print "redo-->", \
+#                     print("redo-->", \
 #                           _code_to_op[actionlog['opcode'][i]],\
 #                           actionlog['arg1'][i],\
-#                           actionlog['arg2'][i]
+#                           actionlog['arg2'][i])
                     undoredo.redo(self,
                                   # _code_to_op[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
@@ -2275,10 +2275,10 @@ class File(hdf5extension.File, object):
                                   actionlog['arg2'][i].decode('utf8'))
                 else:
                     # Uncomment this for debugging
-                    # print "undo-->", \
+                    # print("undo-->", \
                     #       _code_to_op[actionlog['opcode'][i]],\
                     #       actionlog['arg1'][i].decode('utf8'),\
-                    #       actionlog['arg2'][i].decode('utf8')
+                    #       actionlog['arg2'][i].decode('utf8'))
                     undoredo.undo(self,
                                   # _code_to_op[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
@@ -2313,8 +2313,8 @@ class File(hdf5extension.File, object):
         self._check_open()
         self._check_undo_enabled()
 
-#         print "(pre)UNDO: (curaction, curmark) = (%s,%s)" % \
-#               (self._curaction, self._curmark)
+#         print("(pre)UNDO: (curaction, curmark) = (%s,%s)" % \
+#               (self._curaction, self._curmark))
         if mark is None:
             markid = self._curmark
             # Correction if we are settled on top of a mark
@@ -2338,8 +2338,8 @@ class File(hdf5extension.File, object):
         if self._curaction < self._actionlog.nrows - 1:
             self._curaction += 1
         self._curmark = int(self._actionlog.cols.arg1[self._curaction])
-#         print "(post)UNDO: (curaction, curmark) = (%s,%s)" % \
-#               (self._curaction, self._curmark)
+#         print("(post)UNDO: (curaction, curmark) = (%s,%s)" % \
+#               (self._curaction, self._curmark))
 
     def redo(self, mark=None):
         """Go to a future state of the database.
@@ -2358,8 +2358,8 @@ class File(hdf5extension.File, object):
         self._check_open()
         self._check_undo_enabled()
 
-#         print "(pre)REDO: (curaction, curmark) = (%s, %s)" % \
-#               (self._curaction, self._curmark)
+#         print("(pre)REDO: (curaction, curmark) = (%s, %s)" % \
+#               (self._curaction, self._curmark))
         if self._curaction >= self._actionlog.nrows - 1:
             # We are at the end of log, so no action
             return
@@ -2388,8 +2388,8 @@ class File(hdf5extension.File, object):
             self._curmark += 1
         if self._curaction > self._actionlog.nrows - 1:
             self._curaction = self._actionlog.nrows - 1
-#         print "(post)REDO: (curaction, curmark) = (%s,%s)" % \
-#               (self._curaction, self._curmark)
+#         print("(post)REDO: (curaction, curmark) = (%s,%s)" % \
+#               (self._curaction, self._curmark))
 
     def goto(self, mark):
         """Go to a specific mark of the database.
@@ -2538,7 +2538,7 @@ class File(hdf5extension.File, object):
         ::
 
             >>> f = tables.open_file('data/test.h5')
-            >>> print f
+            >>> print(f)
             data/test.h5 (File) 'Table Benchmark'
             Last modif.: 'Mon Sep 20 12:40:47 2004'
             Object Tree:

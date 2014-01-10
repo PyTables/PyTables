@@ -431,29 +431,29 @@ class Description(object):
         for (name, descr) in classdict.iteritems():
             if name.startswith('_v_'):
                 if name in newdict:
-                    # print "Warning!"
+                    # print("Warning!")
                     # special methods &c: copy to newdict, warn about conflicts
                     warnings.warn("Can't set attr %r in description class %r"
                                   % (name, self))
                 else:
-                    # print "Special variable!-->", name, classdict[name]
+                    # print("Special variable!-->", name, classdict[name])
                     newdict[name] = descr
                 continue  # This variable is not needed anymore
 
             columns = None
             if (type(descr) == type(IsDescription) and
                     issubclass(descr, IsDescription)):
-                # print "Nested object (type I)-->", name
+                # print("Nested object (type I)-->", name)
                 columns = descr().columns
             elif (type(descr.__class__) == type(IsDescription) and
                   issubclass(descr.__class__, IsDescription)):
-                # print "Nested object (type II)-->", name
+                # print("Nested object (type II)-->", name)
                 columns = descr.columns
             elif isinstance(descr, dict):
-                # print "Nested object (type III)-->", name
+                # print("Nested object (type III)-->", name)
                 columns = descr
             else:
-                # print "Nested object (type IV)-->", name
+                # print("Nested object (type IV)-->", name)
                 descr = copy.copy(descr)
             # The copies above and below ensure that the structures
             # provided by the user will remain unchanged even if we
@@ -896,9 +896,9 @@ if __name__ == "__main__":
         if isinstance(object, Description):
             print("******begin object*************", end=' ')
             print("name -->", object._v_name)
-            # print "name -->", object._v_dtype.name
-            # print "object childs-->", object._v_names
-            # print "object nested childs-->", object._v_nested_names
+            # print("name -->", object._v_dtype.name)
+            # print("object childs-->", object._v_names)
+            # print("object nested childs-->", object._v_nested_names)
             print("totalsize-->", object._v_dtype.itemsize)
         else:
             # pass

@@ -418,9 +418,9 @@ class Group(hdf5extension.Group, Node):
         ::
 
             # Non-recursively list all the nodes hanging from '/detector'
-            print "Nodes in '/detector' group:"
+            print("Nodes in '/detector' group:")
             for node in h5file.root.detector:
-                print node
+                print(node)
 
         """
 
@@ -459,9 +459,9 @@ class Group(hdf5extension.Group, Node):
         ::
 
             # Recursively print all the arrays hanging from '/'
-            print "Arrays in the object tree '/':"
+            print("Arrays in the object tree '/':")
             for array in h5file.root._f_walknodes('Array', recursive=True):
-                print array
+                print(array)
 
         """
 
@@ -1077,7 +1077,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         ::
 
             >>> f=tables.open_file('data/test.h5')
-            >>> print f.root.group0
+            >>> print(f.root.group0)
             /group0 (Group) 'First Group'
 
         """

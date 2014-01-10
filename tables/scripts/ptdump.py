@@ -47,8 +47,8 @@ def dump_leaf(leaf):
         print("  "+repr(leaf.attrs))
     if options.dump and not isinstance(leaf, UnImplemented):
         print("  Data dump:")
-        # print (leaf.read(options.rng.start, options.rng.stop,
-        #        options.rng.step)
+        # print((leaf.read(options.rng.start, options.rng.stop,
+        #        options.rng.step))
         # This is better for large objects
         if options.rng.start is None:
             start = 0

@@ -1248,7 +1248,7 @@ class CopyTestCase(unittest.TestCase):
         if common.verbose:
             print("array1-->", array1.read())
             print("array2-->", array2.read())
-            # print "dirs-->", dir(array1), dir(array2)
+            # print("dirs-->", dir(array1), dir(array2))
             print("attrs array1-->", repr(array1.attrs))
             print("attrs array2-->", repr(array2.attrs))
 
@@ -1313,7 +1313,7 @@ class CopyTestCase(unittest.TestCase):
         if common.verbose:
             print("array1-->", array1.read())
             print("array2-->", array2.read())
-            # print "dirs-->", dir(array1), dir(array2)
+            # print("dirs-->", dir(array1), dir(array2))
             print("attrs array1-->", repr(array1.attrs))
             print("attrs array2-->", repr(array2.attrs))
 
@@ -1376,7 +1376,7 @@ class CopyTestCase(unittest.TestCase):
         if common.verbose:
             print("array1-->", array1.read())
             print("array2-->", array2.read())
-            # print "dirs-->", dir(array1), dir(array2)
+            # print("dirs-->", dir(array1), dir(array2))
             print("attrs array1-->", repr(array1.attrs))
             print("attrs array2-->", repr(array2.attrs))
 
@@ -1442,7 +1442,7 @@ class CopyTestCase(unittest.TestCase):
         if common.verbose:
             print("array1-->", array1.read())
             print("array2-->", array2.read())
-            # print "dirs-->", dir(array1), dir(array2)
+            # print("dirs-->", dir(array1), dir(array2))
             print("attrs array1-->", repr(array1.attrs))
             print("attrs array2-->", repr(array2.attrs))
 
@@ -2074,7 +2074,7 @@ class Rows64bitsTestCase(unittest.TestCase):
             if stop > 127:
                 stop -= 256
             start = stop - 10
-            # print "start, stop-->", start, stop
+            # print("start, stop-->", start, stop)
             print("Should look like:", numpy.arange(start, stop, dtype='int8'))
 
         nrows = self.narows * self.nanumber

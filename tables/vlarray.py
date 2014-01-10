@@ -117,9 +117,9 @@ class VLArray(hdf5extension.VLArray, Leaf):
         vlarray.append([5, 6, 9, 8])
 
         # Now, read it through an iterator:
-        print '-->', vlarray.title
+        print('-->', vlarray.title)
         for x in vlarray:
-            print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, x)
+            print('%s[%d]--> %s' % (vlarray.name, vlarray.nrow, x))
 
         # Now, do the same with native Python strings.
         vlarray2 = fileh.create_vlarray(fileh.root, 'vlarray2',
@@ -129,14 +129,14 @@ class VLArray(hdf5extension.VLArray, Leaf):
         vlarray2.flavor = 'python'
 
         # Append some (variable length) rows:
-        print '-->', vlarray2.title
+        print('-->', vlarray2.title)
         vlarray2.append(['5', '66'])
         vlarray2.append(['5', '6', '77'])
         vlarray2.append(['5', '6', '9', '88'])
 
         # Now, read it through an iterator:
         for x in vlarray2:
-            print '%s[%d]--> %s' % (vlarray2.name, vlarray2.nrow, x)
+            print('%s[%d]--> %s' % (vlarray2.name, vlarray2.nrow, x))
 
         # Close the file.
         fileh.close()
@@ -541,7 +541,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         ::
 
             for row in vlarray.iterrows(step=4):
-                print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, row)
+                print('%s[%d]--> %s' % (vlarray.name, vlarray.nrow, row))
 
         .. versionchanged:: 3.0
            If the *start* parameter is provided and *stop* is None then the

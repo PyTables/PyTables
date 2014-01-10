@@ -102,8 +102,8 @@ class CArray(Array):
 
         # Re-open a read another hyperslab
         h5f = tables.open_file(fileName)
-        print h5f
-        print h5f.root.carray[8:12, 18:22]
+        print(h5f)
+        print(h5f.root.carray[8:12, 18:22])
         h5f.close()
 
     The output for the previous script is something like::

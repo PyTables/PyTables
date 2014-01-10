@@ -1164,8 +1164,8 @@ class CopyFileTestCase(unittest.TestCase):
             print("The copied node list -->", nodelist2)
         self.assertEqual(srcgroup._v_nchildren, dstgroup._v_nchildren)
         self.assertEqual(nodelist1, nodelist2)
-        # print "_v_attrnames-->", self.h5file2.root._v_attrs._v_attrnames
-        # print "--> <%s,%s>" % (self.h5file2.title, self.title)
+        # print("_v_attrnames-->", self.h5file2.root._v_attrs._v_attrnames)
+        # print("--> <%s,%s>" % (self.h5file2.title, self.title))
         self.assertEqual(self.h5file2.title, self.title)
 
         # Check that user attributes has not been copied

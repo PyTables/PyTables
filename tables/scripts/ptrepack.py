@@ -99,8 +99,8 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
     # Get the destination node and its parent
     last_slash = dstnode.rindex('/')
     if last_slash == len(dstnode)-1:
-        # print "Detected a trailing slash in destination node. Interpreting it
-        # as a destination group."
+        # print("Detected a trailing slash in destination node. "
+        #       "Interpreting it as a destination group.")
         dstgroup = dstnode[:-1]
     elif last_slash > 0:
         dstgroup = dstnode[:last_slash]

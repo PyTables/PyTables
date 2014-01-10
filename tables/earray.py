@@ -113,7 +113,7 @@ class EArray(CArray):
 
         # Read the string ``EArray`` we have created on disk.
         for s in array_c:
-            print 'array_c[%s] => %r' % (array_c.nrow, s)
+            print('array_c[%s] => %r' % (array_c.nrow, s))
         # Close the file.
         fileh.close()
 

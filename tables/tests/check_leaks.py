@@ -113,7 +113,7 @@ def read_carray(filename, nchildren, niter):
             # flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
             assert data is not None
-            # print "data-->", data
+            # print("data-->", data)
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -140,7 +140,7 @@ def read_earray(filename, nchildren, niter):
             # flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
             assert data is not None
-            # print "data-->", data
+            # print("data-->", data)
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -166,7 +166,7 @@ def read_vlarray(filename, nchildren, niter):
             # flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
             assert data is not None
-            # print "data-->", data
+            # print("data-->", data)
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -198,7 +198,7 @@ def read_table(filename, nchildren, niter):
             # klass = node._v_attrs.CLASS
             data = node[:]  # Read data
             assert data is not None
-            # print "data-->", data
+            # print("data-->", data)
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -230,7 +230,7 @@ def read_xtable(filename, nchildren, niter):
             node = fileh.get_node(fileh.root, 'table' + str(child))
             # klass = node._v_attrs.CLASS
             # data = node[:]  # Read data
-            # print "data-->", data
+            # print("data-->", data)
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")

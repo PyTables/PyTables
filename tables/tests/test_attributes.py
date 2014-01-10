@@ -1256,7 +1256,7 @@ class TypesTestCase(unittest.TestCase):
                 # It seems that Windows cannot print this
                 print("pq -->", repr(self.array.attrs.pq))
                 # XXX: try to use repr instead
-                # print "pq -->", repr(self.array.attrs.pq)
+                # print("pq -->", repr(self.array.attrs.pq))
             print("qr -->", self.array.attrs.qr)
             print("rs -->", self.array.attrs.rs)
 

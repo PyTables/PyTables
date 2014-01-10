@@ -831,7 +831,7 @@ cdef class Row:
     self.step = step
     self.coords = coords
     self.startb = 0
-    if step > 0: 
+    if step > 0:
         self._row = -1  # a sentinel
         self.nrowsread = start
     elif step < 0:
@@ -1036,7 +1036,7 @@ cdef class Row:
         # All the elements have been read for this mode
         self._finish_riterator()
     elif 0 > self.step:
-      #print "self.nextelement = ", self.nextelement, self.start, self.nrowsread, self.nextelement <  self.start - self.nrowsread + 1
+      #print("self.nextelement = ", self.nextelement, self.start, self.nrowsread, self.nextelement <  self.start - self.nrowsread + 1)
       while self.nextelement - 1 > self.stop:
         if self.nextelement < self.start - (<long long> self.nrowsread) + 1:
           if 0 > self.nextelement - (<long long> self.nrowsinbuf) + 1:
@@ -1050,9 +1050,9 @@ cdef class Row:
           self._row = len(self.bufcoords) - 1
         else:
           self._row = (self._row + self.step) % len(self.bufcoords)
-            
+
         self._nrow = self.nextelement - self.step
-        self.nextelement = self.nextelement + self.step 
+        self.nextelement = self.nextelement + self.step
         # Return this value
         return self
       else:
@@ -1100,7 +1100,7 @@ cdef class Row:
               correct = (self.nextelement - self.start) % self.step
               self.nextelement = self.nextelement - correct
           continue
-      
+
       self._row = self._row + self.step
       self._nrow = self.nextelement
       if self._row + self.step >= self.stopb:
@@ -1151,15 +1151,15 @@ cdef class Row:
       while self.nextelement - 1 > self.stop:
         if self.nextelement < self.start - self.nrowsread + 1:
           # Read a chunk
-          recout = self.table._read_records(self.nextelement - self.nrowsinbuf + 1, 
+          recout = self.table._read_records(self.nextelement - self.nrowsinbuf + 1,
                                             self.nrowsinbuf, self.iobuf)
           self.nrowsread = self.nrowsread + self.nrowsinbuf
           self._row = self.nrowsinbuf - 1
         else:
           self._row = (self._row + self.step) % self.nrowsinbuf
-            
+
         self._nrow = self.nextelement - self.step
-        self.nextelement = self.nextelement + self.step 
+        self.nextelement = self.nextelement + self.step
         # Return this value
         return self
       else:
@@ -1223,13 +1223,13 @@ cdef class Row:
         i = i + inrowsinbuf
     elif 0 > istep:
       inrowsinbuf = self.nrowsinbuf
-      #istartb = self.startb 
+      #istartb = self.startb
       istartb = self.nrowsinbuf - 1
       #istopb = self.stopb - 1
       istopb = -1
       startr = 0
       i = istart
-      inextelement = istart  
+      inextelement = istart
       inrowsread = 0
       while i-1 > istop:
         #if (inextelement <= inrowsread + inrowsinbuf):
@@ -1240,7 +1240,7 @@ cdef class Row:
         # Compute the end for this iteration
         stopr = startr + ((istopb - istartb - 1) / istep)
         # Read a chunk
-        inrowsread = inrowsread + self.table._read_records(i - inrowsinbuf + 1, 
+        inrowsread = inrowsread + self.table._read_records(i - inrowsinbuf + 1,
                                                            inrowsinbuf, self.iobuf)
         # Assign the correct part to result
         fields = self.iobuf
@@ -1253,7 +1253,7 @@ cdef class Row:
 
         # Compute some indexes for the next iteration
         startr = stopr
-        istartb = (i - istartb)%inrowsinbuf 
+        istartb = (i - istartb)%inrowsinbuf
         inextelement = inextelement + istep
         i = i - inrowsinbuf
     self._riterator = 0  # out of iterator
