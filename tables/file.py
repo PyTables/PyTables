@@ -149,14 +149,14 @@ def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
     """
 
     # Open the source file.
-    srcFileh = open_file(srcfilename, mode="r")
+    srcfileh = open_file(srcfilename, mode="r")
 
     try:
         # Copy it to the destination file.
-        srcFileh.copy_file(dstfilename, overwrite=overwrite, **kwargs)
+        srcfileh.copy_file(dstfilename, overwrite=overwrite, **kwargs)
     finally:
         # Close the source file.
-        srcFileh.close()
+        srcfileh.close()
 
 copyFile = previous_api(copy_file)
 
@@ -539,10 +539,10 @@ class File(hdf5extension.File, object):
         # When they are no longer referenced, they move themselves
         # to `_deadNodes`, where they are kept until they are referenced again
         # or they are preempted from it by other unreferenced nodes.
-        nodeCacheSlots = params['NODE_CACHE_SLOTS']
-        self._aliveNodes = _AliveNodes(nodeCacheSlots)
-        if nodeCacheSlots > 0:
-            self._deadNodes = _DeadNodes(nodeCacheSlots)
+        node_cache_slots = params['NODE_CACHE_SLOTS']
+        self._aliveNodes = _AliveNodes(node_cache_slots)
+        if node_cache_slots > 0:
+            self._deadNodes = _DeadNodes(node_cache_slots)
         else:
             self._deadNodes = _NoDeadNodes()
 
@@ -1233,15 +1233,18 @@ class File(hdf5extension.File, object):
     createHardLink = previous_api(create_hard_link)
 
     def create_soft_link(self, where, name, target, createparents=False):
-        """Create a soft link (aka symbolic link) to a `target` node with the
-        given `name` in `where` location.  `target` can be a node object or a
-        path string.  If `createparents` is true, the intermediate groups
-        required for reaching `where` are created.
+        """Create a soft link (aka symbolic link) to a `target` node.
+
+        Create a soft link (aka symbolic link) to a `target` nodewith
+        the given `name` in `where` location.  `target` can be a node
+        object or a path string.  If `createparents` is true, the
+        intermediate groups required for reaching `where` are created.
 
         (the default is not doing so).
 
-        The returned node is a SoftLink instance.  See the SoftLink class
-        (in :ref:`SoftLinkClassDescr`) for more information on soft links.
+        The returned node is a SoftLink instance.  See the SoftLink
+        class (in :ref:`SoftLinkClassDescr`) for more information on
+        soft links.
 
         """
 
@@ -1292,28 +1295,28 @@ class File(hdf5extension.File, object):
     # There is another version of _get_node in cython space, but only
     # marginally faster (5% or less, but sometimes slower!) than this one.
     # So I think it is worth to use this one instead (much easier to debug).
-    def _get_node(self, nodePath):
+    def _get_node(self, nodepath):
         # The root node is always at hand.
-        if nodePath == '/':
+        if nodepath == '/':
             return self.root
 
         aliveNodes = self._aliveNodes
         deadNodes = self._deadNodes
 
-        if nodePath in aliveNodes:
+        if nodepath in aliveNodes:
             # The parent node is in memory and alive, so get it.
-            node = aliveNodes[nodePath]
+            node = aliveNodes[nodepath]
             assert node is not None, \
-                "stale weak reference to dead node ``%s``" % nodePath
+                "stale weak reference to dead node ``%s``" % nodepath
             return node
-        if nodePath in deadNodes:
+        if nodepath in deadNodes:
             # The parent node is in memory but dead, so revive it.
-            node = self._revivenode(nodePath)
+            node = self._revivenode(nodepath)
             return node
 
         # The node has not been found in alive or dead nodes.
         # Open it directly from disk.
-        node = self.root._g_load_child(nodePath)
+        node = self.root._g_load_child(nodepath)
         return node
 
     _getNode = previous_api(_get_node)
@@ -1351,11 +1354,11 @@ class File(hdf5extension.File, object):
         if isinstance(where, Node):
             node = where
             node._g_check_open()  # the node object must be open
-            nodePath = where._v_pathname
+            nodepath = where._v_pathname
         elif isinstance(where, (basestring, numpy.str_)):
             node = None
             if where.startswith('/'):
-                nodePath = where
+                nodepath = where
             else:
                 raise NameError(
                     "``where`` must start with a slash ('/')")
@@ -1366,27 +1369,27 @@ class File(hdf5extension.File, object):
         # Get the name of the child node.
         if name is not None:
             node = None
-            nodePath = join_path(nodePath, name)
+            nodepath = join_path(nodepath, name)
 
-        assert node is None or node._v_pathname == nodePath
+        assert node is None or node._v_pathname == nodepath
 
         # Now we have the definitive node path, let us try to get the node.
         if node is None:
-            node = self._get_node(nodePath)
+            node = self._get_node(nodepath)
 
         # Finally, check whether the desired node is an instance
         # of the expected class.
         if classname:
             class_ = get_class_by_name(classname)
             if not isinstance(node, class_):
-                nPathname = node._v_pathname
-                nClassname = node.__class__.__name__
+                npathname = node._v_pathname
+                nclassname = node.__class__.__name__
                 # This error message is right since it can never be shown
                 # for ``classname in [None, 'Node']``.
                 raise NoSuchNodeError(
                     "could not find a ``%s`` node at ``%s``; "
                     "instead, a ``%s`` node has been found there"
-                    % (classname, nPathname, nClassname))
+                    % (classname, npathname, nclassname))
 
         return node
 
@@ -1725,18 +1728,18 @@ class File(hdf5extension.File, object):
                            "argument") % dstfilename)
 
         # Create destination file, overwriting it.
-        dstFileh = open_file(
+        dstfileh = open_file(
             dstfilename, mode="w", title=title, filters=filters, **kwargs)
 
         try:
             # Maybe copy the user attributes of the root group.
             if copyuserattrs:
-                self.root._v_attrs._f_copy(dstFileh.root)
+                self.root._v_attrs._f_copy(dstfileh.root)
 
             # Copy the rest of the hierarchy.
-            self.root._f_copy_children(dstFileh.root, recursive=True, **kwargs)
+            self.root._f_copy_children(dstfileh.root, recursive=True, **kwargs)
         finally:
-            dstFileh.close()
+            dstfileh.close()
 
     copyFile = previous_api(copy_file)
 
@@ -2592,31 +2595,31 @@ class File(hdf5extension.File, object):
                     astring += repr(node) + '\n'
         return astring
 
-    def _refnode(self, node, nodePath):
+    def _refnode(self, node, nodepath):
         """Register `node` as alive and insert references to it."""
 
-        if nodePath != '/':
+        if nodepath != '/':
             # The root group does not participate in alive/dead stuff.
             aliveNodes = self._aliveNodes
-            assert nodePath not in aliveNodes, \
-                "file already has a node with path ``%s``" % nodePath
+            assert nodepath not in aliveNodes, \
+                "file already has a node with path ``%s``" % nodepath
 
             # Add the node to the set of referenced ones.
-            aliveNodes[nodePath] = node
+            aliveNodes[nodepath] = node
 
     _refNode = previous_api(_refnode)
 
-    def _unrefnode(self, nodePath):
+    def _unrefnode(self, nodepath):
         """Unregister `node` as alive and remove references to it."""
 
-        if nodePath != '/':
+        if nodepath != '/':
             # The root group does not participate in alive/dead stuff.
             aliveNodes = self._aliveNodes
-            assert nodePath in aliveNodes, \
-                "file does not have a node with path ``%s``" % nodePath
+            assert nodepath in aliveNodes, \
+                "file does not have a node with path ``%s``" % nodepath
 
             # Remove the node from the set of referenced ones.
-            del aliveNodes[nodePath]
+            del aliveNodes[nodepath]
 
     _unrefNode = previous_api(_unrefnode)
 
@@ -2628,17 +2631,17 @@ class File(hdf5extension.File, object):
 
         """
 
-        nodePath = node._v_pathname
-        assert nodePath in self._aliveNodes, \
-            "trying to kill non-alive node ``%s``" % nodePath
+        nodepath = node._v_pathname
+        assert nodepath in self._aliveNodes, \
+            "trying to kill non-alive node ``%s``" % nodepath
 
         node._g_pre_kill_hook()
 
         # Remove all references to the node.
-        self._unrefnode(nodePath)
+        self._unrefnode(nodepath)
         # Save the dead node in the limbo.
         if self._aliveNodes.hasdeadnodes:
-            self._deadNodes[nodePath] = node
+            self._deadNodes[nodepath] = node
         else:
             # We have not a cache for dead nodes,
             # so follow the usual deletion procedure.
@@ -2647,21 +2650,21 @@ class File(hdf5extension.File, object):
 
     _killNode = previous_api(_killnode)
 
-    def _revivenode(self, nodePath):
-        """Revive the node under `nodePath` and return it.
+    def _revivenode(self, nodepath):
+        """Revive the node under `nodepath` and return it.
 
-        Moves the node under `nodePath` from the set of dead,
+        Moves the node under `nodepath` from the set of dead,
         unreferenced nodes to the set of alive, referenced ones.
 
         """
 
-        assert nodePath in self._deadNodes, \
-            "trying to revive non-dead node ``%s``" % nodePath
+        assert nodepath in self._deadNodes, \
+            "trying to revive non-dead node ``%s``" % nodepath
 
         # Take the node out of the limbo.
-        node = self._deadNodes.pop(nodePath)
+        node = self._deadNodes.pop(nodepath)
         # Make references to the node.
-        self._refnode(node, nodePath)
+        self._refnode(node, nodepath)
 
         node._g_post_revive_hook()
 
@@ -2669,25 +2672,25 @@ class File(hdf5extension.File, object):
 
     _reviveNode = previous_api(_revivenode)
 
-    def _update_node_locations(self, oldPath, newPath):
-        """Update location information of nodes under `oldPath`.
+    def _update_node_locations(self, oldpath, newpath):
+        """Update location information of nodes under `oldpath`.
 
         This only affects *already loaded* nodes.
 
         """
 
-        oldPrefix = oldPath + '/'  # root node can not be renamed, anyway
-        oldPrefixLen = len(oldPrefix)
+        oldprefix = oldpath + '/'  # root node can not be renamed, anyway
+        oldprefix_len = len(oldprefix)
 
         # Update alive and dead descendents.
         for cache in [self._aliveNodes, self._deadNodes]:
-            for nodePath in cache:
-                if nodePath.startswith(oldPrefix) and nodePath != oldPrefix:
-                    nodeSuffix = nodePath[oldPrefixLen:]
-                    newNodePath = join_path(newPath, nodeSuffix)
-                    newNodePPath = split_path(newNodePath)[0]
-                    descendentNode = self._get_node(nodePath)
-                    descendentNode._g_update_location(newNodePPath)
+            for nodepath in cache:
+                if nodepath.startswith(oldprefix) and nodepath != oldprefix:
+                    nodesuffix = nodepath[oldprefix_len:]
+                    newnodepath = join_path(newpath, nodesuffix)
+                    newnodeppath = split_path(newnodepath)[0]
+                    descendent_node = self._get_node(nodepath)
+                    descendent_node._g_update_location(newnodeppath)
 
     _updateNodeLocations = previous_api(_update_node_locations)
 

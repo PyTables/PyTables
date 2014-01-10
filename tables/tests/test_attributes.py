@@ -35,7 +35,7 @@ class CreateTestCase(unittest.TestCase):
         # Create an instance of HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(
-            self.file, mode="w", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="w", node_cache_slots=self.node_cache_slots)
         self.root = self.fileh.root
 
         # Create a table object
@@ -73,7 +73,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         self.assertEqual(self.fileh.get_node_attr(self.root.agroup, 'attr1'),
@@ -100,7 +100,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         self.assertEqual(self.root.agroup._f_getattr(
@@ -124,7 +124,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         # This should work even when the node cache is disabled
@@ -161,7 +161,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -215,7 +215,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -258,7 +258,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -315,7 +315,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -363,7 +363,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -395,7 +395,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         atable = self.root.atable
@@ -432,7 +432,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         atable = self.root.atable
@@ -468,7 +468,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup2 = self.root.agroup2
@@ -492,7 +492,7 @@ class CreateTestCase(unittest.TestCase):
                 print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         atable2 = self.root.atable2
@@ -557,32 +557,32 @@ class CreateTestCase(unittest.TestCase):
 
 class NotCloseCreate(CreateTestCase):
     close = False
-    nodeCacheSlots = NODE_CACHE_SLOTS
+    node_cache_slots = NODE_CACHE_SLOTS
 
 
 class CloseCreate(CreateTestCase):
     close = True
-    nodeCacheSlots = NODE_CACHE_SLOTS
+    node_cache_slots = NODE_CACHE_SLOTS
 
 
 class NoCacheNotCloseCreate(CreateTestCase):
     close = False
-    nodeCacheSlots = 0
+    node_cache_slots = 0
 
 
 class NoCacheCloseCreate(CreateTestCase):
     close = True
-    nodeCacheSlots = 0
+    node_cache_slots = 0
 
 
 class DictCacheNotCloseCreate(CreateTestCase):
     close = False
-    nodeCacheSlots = -NODE_CACHE_SLOTS
+    node_cache_slots = -NODE_CACHE_SLOTS
 
 
 class DictCacheCloseCreate(CreateTestCase):
     close = True
-    nodeCacheSlots = -NODE_CACHE_SLOTS
+    node_cache_slots = -NODE_CACHE_SLOTS
 
 
 class TypesTestCase(unittest.TestCase):

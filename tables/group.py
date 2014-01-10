@@ -538,7 +538,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # Check group width limits.
         if (len(self._v_children) + len(self._v_hidden) >=
-                                                    self._v_max_group_width):
+                self._v_max_group_width):
             self._g_width_warning()
 
         # Update members information.
@@ -579,8 +579,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             if childname in self._v_children:
                 # Visible node.
                 members = self.__members__
-                memberIndex = members.index(childname)
-                del members[memberIndex]  # disables completion
+                member_index = members.index(childname)
+                del members[member_index]  # disables completion
 
                 del self._v_children[childname]  # remove node
                 self._v_unknown.pop(childname, None)
@@ -680,8 +680,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         self._g_check_has_child(childname)
 
-        childPath = join_path(self._v_pathname, childname)
-        return self._v_file._get_node(childPath)
+        childpath = join_path(self._v_pathname, childname)
+        return self._v_file._get_node(childpath)
 
     _f_getChild = previous_api(_f_get_child)
 
@@ -1049,22 +1049,22 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # `Node` objects when `createparents` is true.  Also, note that
         # there is no risk of creating parent nodes and failing later
         # because of destination nodes already existing.
-        dstParent = self._v_file._get_or_create_path(dstgroup, createparents)
-        self._g_check_group(dstParent)  # Is it a group?
+        dstparent = self._v_file._get_or_create_path(dstgroup, createparents)
+        self._g_check_group(dstparent)  # Is it a group?
 
         if not overwrite:
             # Abort as early as possible when destination nodes exist
             # and overwriting is not enabled.
             for childname in self._v_children:
-                if childname in dstParent:
+                if childname in dstparent:
                     raise NodeError(
                         "destination group ``%s`` already has "
                         "a node named ``%s``; "
                         "you may want to use the ``overwrite`` argument"
-                        % (dstParent._v_pathname, childname))
+                        % (dstparent._v_pathname, childname))
 
         for child in self._v_children.itervalues():
-            child._f_copy(dstParent, None, overwrite, recursive, **kwargs)
+            child._f_copy(dstparent, None, overwrite, recursive, **kwargs)
 
     _f_copyChildren = previous_api(_f_copy_children)
 
@@ -1102,8 +1102,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         """
 
-        rep = ['%r (%s)' % (childname, child.__class__.__name__)
-                    for (childname, child) in self._v_children.iteritems()]
+        rep = [
+            '%r (%s)' % (childname, child.__class__.__name__)
+            for (childname, child) in self._v_children.iteritems()
+        ]
         childlist = '[%s]' % (', '.join(rep))
 
         return "%s\n  children := %s" % (str(self), childlist)
