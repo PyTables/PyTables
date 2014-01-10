@@ -111,15 +111,6 @@ print repr(numpy.rec.array(None, shape=0,
                            dtype=table.description._v_nested_descr))
 print repr(numpy.rec.array(None, shape=0,
                            dtype=table.description.info2._v_nested_descr))
-# NumPy recarrays doesn't have the machinery to understand the idiom below,
-# please use the above form instead.
-###print repr(numpy.rec.array(None, shape=1,
-###           names=table.description._v_nested_names,
-###           formats=table.description._v_nested_formats))
-from tables import nra
-print repr(nra.array(None, descr=table.description._v_nested_descr))
-print repr(nra.array(None, names=table.description._v_nested_names,
-                     formats=table.description._v_nested_formats))
 print
 print "**** and some iteration over descriptions, too ****"
 for coldescr in table.description._f_walk():
