@@ -1,4 +1,3 @@
-import os, os.path
 from time import time
 import numpy
 import random
@@ -8,25 +7,29 @@ DSN = "dbname=test port = 5435"
 # in order to always generate the same random sequence
 random.seed(19)
 
+
 def flatten(l):
     """Flattens list of tuples l."""
     return [x[0] for x in l]
 
+
 def fill_arrays(start, stop):
     col_i = numpy.arange(start, stop, type=numpy.Int32)
     if userandom:
-        col_j = numpy.random.uniform(0, nrows, size=[stop-start])
+        col_j = numpy.random.uniform(0, nrows, size=[stop - start])
     else:
         col_j = numpy.array(col_i, type=numpy.Float64)
     return col_i, col_j
 
 # Generator for ensure pytables benchmark compatibility
+
+
 def int_generator(nrows):
-    step = 1000*100
+    step = 1000 * 100
     j = 0
     for i in xrange(nrows):
-        if i >= step*j:
-            stop = (j+1)*step
+        if i >= step * j:
+            stop = (j + 1) * step
             if stop > nrows:  # Seems unnecessary
                 stop = nrows
             col_i, col_j = fill_arrays(i, stop)
@@ -35,6 +38,7 @@ def int_generator(nrows):
         yield (col_i[k], col_j[k])
         k += 1
 
+
 def int_generator_slow(nrows):
     for i in xrange(nrows):
         if userandom:
@@ -42,7 +46,9 @@ def int_generator_slow(nrows):
         else:
             yield (i, float(i))
 
+
 class Stream32(object):
+
     "Object simulating a file for reading"
 
     def __init__(self):
@@ -55,7 +61,7 @@ class Stream32(object):
             sout = "%s\t%s\n" % tup
             if n is not None and len(sout) > n:
                 for i in xrange(0, len(sout), n):
-                    yield sout[i:i+n]
+                    yield sout[i:i + n]
             else:
                 yield sout
 
@@ -79,6 +85,7 @@ class Stream32(object):
             str = ""
         return str
 
+
 def open_db(filename, remove=0):
     if not filename:
         con = sqlite.connect(DSN)
@@ -86,6 +93,7 @@ def open_db(filename, remove=0):
         con = sqlite.connect(filename)
     cur = con.cursor()
     return con, cur
+
 
 def create_db(filename, nrows):
     con, cur = open_db(filename, remove=1)
@@ -97,7 +105,7 @@ def create_db(filename, nrows):
         cur.execute("create table ints(i integer, j double precision)")
     con.commit()
     con.set_isolation_level(2)
-    t1=time()
+    t1 = time()
     st = Stream32()
     cur.copy_from(st, "ints")
     # In case of postgres, the speeds of generator and loop are similar
@@ -105,49 +113,53 @@ def create_db(filename, nrows):
 #     for i in xrange(nrows):
 #         cur.execute("insert into ints values (%s,%s)", (i, float(i)))
     con.commit()
-    ctime = time()-t1
+    ctime = time() - t1
     if verbose:
         print "insert time:", round(ctime, 5)
-        print "Krows/s:", round((nrows/1000.)/ctime, 5)
+        print "Krows/s:", round((nrows / 1000.) / ctime, 5)
     close_db(con, cur)
+
 
 def index_db(filename):
     con, cur = open_db(filename)
-    t1=time()
+    t1 = time()
     cur.execute("create index ij on ints(j)")
     con.commit()
-    itime = time()-t1
+    itime = time() - t1
     if verbose:
         print "index time:", round(itime, 5)
-        print "Krows/s:", round(nrows/itime, 5)
+        print "Krows/s:", round(nrows / itime, 5)
     # Close the DB
     close_db(con, cur)
 
+
 def query_db(filename, rng):
     con, cur = open_db(filename)
-    t1=time()
+    t1 = time()
     ntimes = 10
     for i in range(ntimes):
         # between clause does not seem to take advantage of indexes
-        #cur.execute("select j from ints where j between %s and %s" % \
-        cur.execute("select i from ints where j >= %s and j <= %s" % \
-        #cur.execute("select i from ints where i >= %s and i <= %s" % \
-                    (rng[0]+i, rng[1]+i))
+        # cur.execute("select j from ints where j between %s and %s" % \
+        cur.execute("select i from ints where j >= %s and j <= %s" %
+                    # cur.execute("select i from ints where i >= %s and i <=
+                    # %s" %
+                    (rng[0] + i, rng[1] + i))
         results = cur.fetchall()
     con.commit()
-    qtime = (time()-t1)/ntimes
+    qtime = (time() - t1) / ntimes
     if verbose:
         print "query time:", round(qtime, 5)
-        print "Mrows/s:", round((nrows/1000.)/qtime, 5)
+        print "Mrows/s:", round((nrows / 1000.) / qtime, 5)
         results = sorted(flatten(results))
         print results
     close_db(con, cur)
+
 
 def close_db(con, cur):
     cur.close()
     con.close()
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import sys
     import getopt
     try:
@@ -216,7 +228,7 @@ if __name__=="__main__":
     import psycopg2 as sqlite
 
     if verbose:
-        #print "pysqlite version:", sqlite.version
+        # print "pysqlite version:", sqlite.version
         if userandom:
             print "using random values"
 

@@ -17,15 +17,15 @@ for group in filehsrc.walk_groups():
     else:
         pathname = group._v_parent._v_pathname
         groupdest = filehdest.create_group(pathname, group._v_name,
-                                          title=group._v_title)
+                                           title=group._v_title)
     for table in filehsrc.list_nodes(group, classname='Table'):
         print "copying table -->", table
         table.copy(groupdest, table.name)
         ntables += 1
         tsize += table.nrows * table.rowsize
-tsizeMB = tsize / (1024*1024)
+tsizeMB = tsize / (1024 * 1024)
 ttime = round(time.time() - t1, 3)
-speed = round(tsizeMB/ttime, 2)
+speed = round(tsizeMB / ttime, 2)
 print "Copied %s tables for a total of %s MB in %s seconds (%s MB/s)" % \
       (ntables, tsizeMB, ttime, speed)
 filehsrc.close()

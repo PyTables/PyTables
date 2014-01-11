@@ -1,38 +1,41 @@
 import tables
 from pylab import *
 
+
 def get_values(filename, complib=''):
     f = tables.open_file(filename)
     nrows = f.root.small.create_best.cols.nrows[:]
-    corrected_sizes = nrows/10.**6
+    corrected_sizes = nrows / 10. ** 6
     if mb_units:
-        corrected_sizes = 16*nrows/10.**6
+        corrected_sizes = 16 * nrows / 10. ** 6
     if insert:
-        values = corrected_sizes/f.root.small.create_best.cols.tfill[:]
+        values = corrected_sizes / f.root.small.create_best.cols.tfill[:]
     if table_size:
-        values = f.root.small.create_best.cols.fsize[:]/nrows
+        values = f.root.small.create_best.cols.fsize[:] / nrows
     if query:
-        values = corrected_sizes/f.root.small.search_best.inkernel.int.cols.time1[:]
+        values = corrected_sizes / \
+            f.root.small.search_best.inkernel.int.cols.time1[:]
     if query_cache:
-        values = corrected_sizes/f.root.small.search_best.inkernel.int.cols.time2[:]
+        values = corrected_sizes / \
+            f.root.small.search_best.inkernel.int.cols.time2[:]
 
     f.close()
     return nrows, values
 
+
 def show_plot(plots, yaxis, legends, gtitle):
     xlabel('Number of rows')
     ylabel(yaxis)
-    xlim(10**3, 10**8)
+    xlim(10 ** 3, 10 ** 8)
     title(gtitle)
     grid(True)
 
 #     legends = [f[f.find('-'):f.index('.out')] for f in filenames]
 #     legends = [l.replace('-', ' ') for l in legends]
     if table_size:
-        legend([p[0] for p in plots], legends, loc = "upper right")
+        legend([p[0] for p in plots], legends, loc="upper right")
     else:
-        legend([p[0] for p in plots], legends, loc = "upper left")
-
+        legend([p[0] for p in plots], legends, loc="upper left")
 
     #subplots_adjust(bottom=0.2, top=None, wspace=0.2, hspace=0.2)
     if outfile:
@@ -42,7 +45,8 @@ def show_plot(plots, yaxis, legends, gtitle):
 
 if __name__ == '__main__':
 
-    import sys, getopt
+    import sys
+    import getopt
 
     usage = """usage: %s [-o file] [-t title] [--insert] [--table-size] [--query] [--query-cache] [--MB-units] files
  -o filename for output (only .png and .jpg extensions supported)
@@ -98,15 +102,18 @@ if __name__ == '__main__':
         elif option[0] == '--table-size':
             table_size = 1
             yaxis = "Bytes/row"
-            gtitle = "Disk space taken by a record (original record size: 16 bytes)"
+            gtitle = ("Disk space taken by a record (original record size: "
+                      "16 bytes)")
         elif option[0] == '--query':
             query = 1
             yaxis = "MRows/s"
-            gtitle = "Selecting with small (16 bytes) record size (file not in cache)"
+            gtitle = ("Selecting with small (16 bytes) record size (file not "
+                      "in cache)")
         elif option[0] == '--query-cache':
             query_cache = 1
             yaxis = "MRows/s"
-            gtitle = "Selecting with small (16 bytes) record size (file in cache)"
+            gtitle = ("Selecting with small (16 bytes) record size (file in "
+                      "cache)")
         elif option[0] == '--MB-units':
             mb_units = 1
 
@@ -118,11 +125,10 @@ if __name__ == '__main__':
     if tit:
         gtitle = tit
 
-
     plots = []
     legends = []
     for filename in filenames:
-        plegend = filename[filename.find('cl-')+3:filename.index('.h5')]
+        plegend = filename[filename.find('cl-') + 3:filename.index('.h5')]
         plegend = plegend.replace('-', ' ')
         xval, yval = get_values(filename, '')
         print "Values for %s --> %s, %s" % (filename, xval, yval)

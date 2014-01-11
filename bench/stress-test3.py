@@ -1,20 +1,24 @@
 #!/usr/bin/env python
 
-""" This script allows to create arbitrarily large files with the desired
+"""This script allows to create arbitrarily large files with the desired
 combination of groups, tables per group and rows per table.
 
 Issue "python stress-test3.py" without parameters for a help on usage.
 
 """
 
-import sys, time, gc
+import gc
+import sys
+import time
 from tables import *
+
 
 class Test(IsDescription):
     ngroup = Int32Col(pos=1)
     ntable = Int32Col(pos=2)
     nrow = Int32Col(pos=3)
-    string = StringCol(length=500, pos = 4)
+    string = StringCol(length=500, pos=4)
+
 
 def createFileArr(filename, ngroups, ntables, nrows):
 
@@ -25,17 +29,18 @@ def createFileArr(filename, ngroups, ntables, nrows):
 
     for k in range(ngroups):
         # Create the group
-        fileh.create_group("/", 'group%04d'% k, "Group %d" % k)
+        fileh.create_group("/", 'group%04d' % k, "Group %d" % k)
 
     fileh.close()
 
     return (0, 4)
 
+
 def readFileArr(filename, ngroups, recsize, verbose):
 
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d'% ngroup)
+        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
         # Get the group
         group = fileh.root
         ntable = 0
@@ -56,6 +61,7 @@ def readFileArr(filename, ngroups, recsize, verbose):
 
     return (rowsread, 4, 0)
 
+
 def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
 
     # First, create the groups
@@ -65,21 +71,21 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
 
     for k in range(ngroups):
         # Create the group
-        group = fileh.create_group("/", 'group%04d'% k, "Group %d" % k)
+        group = fileh.create_group("/", 'group%04d' % k, "Group %d" % k)
 
     fileh.close()
 
     # Now, create the tables
     rowswritten = 0
     for k in range(ngroups):
-        fileh = open_file(filename, mode="a", root_uep='group%04d'% k)
+        fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
         # Get the group
         group = fileh.root
         for j in range(ntables):
             # Create a table
-            table = fileh.create_table(group, 'table%04d'% j, Test,
-                                      'Table%04d'%j,
-                                      Filters(complevel, complib), nrows)
+            table = fileh.create_table(group, 'table%04d' % j, Test,
+                                       'Table%04d' % j,
+                                       Filters(complevel, complib), nrows)
             rowsize = table.rowsize
             # Get the row object associated with the new table
             row = table.row
@@ -98,12 +104,13 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
 
     return (rowswritten, rowsize)
 
+
 def readFile(filename, ngroups, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d'% ngroup)
+        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
         # Get the group
         group = fileh.root
         ntable = 0
@@ -111,7 +118,7 @@ def readFile(filename, ngroups, recsize, verbose):
             print "Group ==>", group
         for table in fileh.list_nodes(group, 'Table'):
             rowsize = table.rowsize
-            buffersize=table.rowsize * table.nrowsinbuf
+            buffersize = table.rowsize * table.nrowsinbuf
             if verbose > 1:
                 print "Table ==>", table
                 print "Max rows in buf:", table.nrowsinbuf
@@ -140,10 +147,9 @@ def readFile(filename, ngroups, recsize, verbose):
 
     return (rowsread, rowsize, buffersize)
 
+
 def dump_garbage():
-    """
-    show us waht the garbage is about
-    """
+    """show us waht the garbage is about."""
     # Force collection
     print "\nGARBAGE:"
     gc.collect()
@@ -154,14 +160,13 @@ def dump_garbage():
         #if len(s) > 80: s = s[:77] + "..."
         print type(x), "\n   ", s
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import getopt
     try:
         import psyco
         psyco_imported = 1
     except:
         psyco_imported = 0
-
 
     usage = """usage: %s [-d debug] [-v level] [-p] [-r] [-w] [-l complib] [-c complevel] [-g ngroups] [-t ntables] [-i nrows] file
     -d debugging level
@@ -249,9 +254,9 @@ if __name__=="__main__":
                                         complevel, complib, recsize)
         t2 = time.time()
         cpu2 = time.clock()
-        tapprows = round(t2-t1, 3)
-        cpuapprows = round(cpu2-cpu1, 3)
-        tpercent = int(round(cpuapprows/tapprows, 2)*100)
+        tapprows = round(t2 - t1, 3)
+        cpuapprows = round(cpu2 - cpu1, 3)
+        tpercent = int(round(cpuapprows / tapprows, 2) * 100)
         print "Rows written:", rowsw, " Row size:", rowsz
         print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
               (tapprows, cpuapprows, tpercent)
@@ -264,14 +269,15 @@ if __name__=="__main__":
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
         if usearray:
-            (rowsr, rowsz, bufsz)=readFileArr(file, ngroups, recsize, verbose)
+            (rowsr, rowsz, bufsz) = readFileArr(file,
+                                                ngroups, recsize, verbose)
         else:
             (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
         t2 = time.time()
         cpu2 = time.clock()
-        treadrows = round(t2-t1, 3)
-        cpureadrows = round(cpu2-cpu1, 3)
-        tpercent = int(round(cpureadrows/treadrows, 2)*100)
+        treadrows = round(t2 - t1, 3)
+        cpureadrows = round(cpu2 - cpu1, 3)
+        tpercent = int(round(cpureadrows / treadrows, 2) * 100)
         print "Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz
         print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)

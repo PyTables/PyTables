@@ -1,10 +1,11 @@
 from pylab import *
 
-linewidth=2
+linewidth = 2
 #markers= ['+', ',', 'o', '.', 's', 'v', 'x', '>', '<', '^']
 #markers= [ 'x', '+', 'o', 's', 'v', '^', '>', '<', ]
-markers= [ 's', 'o', 'v', '^', '+', 'x', '>', '<', ]
+markers = ['s', 'o', 'v', '^', '+', 'x', '>', '<', ]
 markersize = 8
+
 
 def get_values(filename):
     f = open(filename)
@@ -24,7 +25,7 @@ def get_values(filename):
                     if size[-1] == "m":
                         isize *= 1000
                     elif size[-1] == "g":
-                        isize *= 1000*1000
+                        isize *= 1000 * 1000
         elif insert and line.startswith('Insert time'):
             tmp = line.split(':')[1]
             itime = float(tmp)
@@ -38,9 +39,9 @@ def get_values(filename):
                 values.pop()
             sizes.append(isize)
             if overlaps:
-                values.append(int(e1)+1)
+                values.append(int(e1) + 1)
             else:
-                values.append(float(e2)+1)
+                values.append(float(e2) + 1)
         elif (create_total or create_index) and line.startswith('Index time'):
             tmp = line.split(':')[1]
             xtime = float(tmp)
@@ -96,13 +97,14 @@ def get_values(filename):
     f.close()
     return sizes, values
 
+
 def show_plot(plots, yaxis, legends, gtitle):
     xlabel('Number of rows')
     ylabel(yaxis)
     title(gtitle)
     #xlim(10**3, 10**9)
-    xlim(10**3, 10**10)
-    #ylim(1.0e-5)
+    xlim(10 ** 3, 10 ** 10)
+    # ylim(1.0e-5)
     #ylim(-1e4, 1e5)
     #ylim(-1e3, 1e4)
     #ylim(-1e2, 1e3)
@@ -110,9 +112,8 @@ def show_plot(plots, yaxis, legends, gtitle):
 
 #     legends = [f[f.find('-'):f.index('.out')] for f in filenames]
 #     legends = [l.replace('-', ' ') for l in legends]
-    legend([p[0] for p in plots], legends, loc = "upper left")
+    legend([p[0] for p in plots], legends, loc="upper left")
     #legend([p[0] for p in plots], legends, loc = "center left")
-
 
     #subplots_adjust(bottom=0.2, top=None, wspace=0.2, hspace=0.2)
     if outfile:
@@ -122,7 +123,8 @@ def show_plot(plots, yaxis, legends, gtitle):
 
 if __name__ == '__main__':
 
-    import sys, getopt
+    import sys
+    import getopt
 
     usage = """usage: %s [-o file] [-t title] [--insert] [--create-index] [--create-total] [--overlaps] [--entropy] [--table-size] [--indexes-size] [--total-size] [--query=colname] [--query-cold=colname] [--query-warm=colname] [--query-repeated=colname] files
  -o filename for output (only .png and .jpg extensions supported)

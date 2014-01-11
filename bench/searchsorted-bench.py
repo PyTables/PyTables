@@ -3,6 +3,7 @@
 import time
 from tables import *
 
+
 class Small(IsDescription):
     var1 = StringCol(itemsize=4)
     var2 = Int32Col()
@@ -10,30 +11,33 @@ class Small(IsDescription):
     var4 = BoolCol()
 
 # Define a user record to characterize some kind of particles
+
+
 class Medium(IsDescription):
-    var1        = StringCol(itemsize=16)  # 16-character String
-    #float1      = Float64Col(dflt=2.3)
-    #float2      = Float64Col(dflt=2.3)
-    #zADCcount    = Int16Col()    # signed short integer
-    var2        = Int32Col()    # signed short integer
-    var3        = Float64Col()
-    grid_i      = Int32Col()    # integer
-    grid_j      = Int32Col()    # integer
-    pressure    = Float32Col()    # float  (single-precision)
-    energy      = Float64Col(shape=2)    # double (double-precision)
+    var1 = StringCol(itemsize=16)   # 16-character String
+    #float1 = Float64Col(dflt=2.3)
+    #float2 = Float64Col(dflt=2.3)
+    # zADCcount    = Int16Col()      # signed short integer
+    var2 = Int32Col()               # signed short integer
+    var3 = Float64Col()
+    grid_i = Int32Col()             # integer
+    grid_j = Int32Col()             # integer
+    pressure = Float32Col()         # float  (single-precision)
+    energy = Float64Col(shape=2)    # double (double-precision)
+
 
 def createFile(filename, nrows, filters, atom, recsize, index, verbose):
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode = "w", title="Searchsorted Benchmark",
-                     filters=filters)
+    fileh = open_file(filename, mode="w", title="Searchsorted Benchmark",
+                      filters=filters)
     title = "This is the IndexArray title"
     # Create an IndexArray instance
     rowswritten = 0
     # Create an entry
-    klass = {"small":Small, "medium":Medium}
+    klass = {"small": Small, "medium": Medium}
     table = fileh.create_table(fileh.root, 'table', klass[recsize], title,
-                              None, nrows)
+                               None, nrows)
     for i in xrange(nrows):
         #table.row['var1'] = str(i)
         #table.row['var2'] = random.randrange(nrows)
@@ -66,10 +70,11 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
 
     return (rowswritten, rowsize)
 
+
 def readFile(filename, atom, niter, verbose):
     # Open the HDF5 file in read-only mode
 
-    fileh = open_file(filename, mode = "r")
+    fileh = open_file(filename, mode="r")
     table = fileh.root.table
     print "reading", table
     if atom == "string":
@@ -94,32 +99,35 @@ def readFile(filename, atom, niter, verbose):
         for i in xrange(niter):
             #results = [table.row["var3"] for i in table.where(2+i<=table.cols.var2 < 10+i)]
 #             results = [table.row.nrow() for i in table.where(2<=table.cols.var2 < 10)]
-            results = [p["var1"] #p.nrow()
+            results = [p["var1"]  # p.nrow()
                        for p in table.where(table.cols.var1 == "1111")]
 #                      for p in table.where("1000"<=table.cols.var1<="1010")]
             rowselected += len(results)
     elif atom == "bool":
         for i in xrange(niter):
-            results = [p["var2"] #p.nrow()
-                       for p in table.where(table.cols.var4==0)]
+            results = [p["var2"]  # p.nrow()
+                       for p in table.where(table.cols.var4 == 0)]
             rowselected += len(results)
     elif atom == "int":
         for i in xrange(niter):
             #results = [table.row["var3"] for i in table.where(2+i<=table.cols.var2 < 10+i)]
 #             results = [table.row.nrow() for i in table.where(2<=table.cols.var2 < 10)]
-            results = [p["var2"] #p.nrow()
-#                        for p in table.where(110*i<=table.cols.var2<110*(i+1))]
-#                       for p in table.where(1000-30<table.cols.var2<1000+60)]
-                       for p in table.where(table.cols.var2<=400)]
+            results = [p["var2"]  # p.nrow()
+                       #                        for p in table.where(110*i<=table.cols.var2<110*(i+1))]
+                       # for p in table.where(1000-30<table.cols.var2<1000+60)]
+                       for p in table.where(table.cols.var2 <= 400)]
             rowselected += len(results)
     elif atom == "float":
         for i in xrange(niter):
 #         results = [(table.row.nrow(), table.row["var3"])
 #                    for i in table.where(3<=table.cols.var3 < 5.)]
 #             results = [(p.nrow(), p["var3"])
-#                        for p in table.where(1000.-i<=table.cols.var3<1000.+i)]
-            results = [p["var3"] # (p.nrow(), p["var3"])
-                       for p in table.where(100*i<=table.cols.var3<100*(i+1))]
+# for p in table.where(1000.-i<=table.cols.var3<1000.+i)]
+            results = [
+                p["var3"]  # (p.nrow(), p["var3"])
+                for p in table.where(
+                    100 * i <= table.cols.var3 < 100 * (i + 1))
+            ]
 #                        for p in table
 #                        if 100*i<=p["var3"]<100*(i+1)]
 #             results = [ (p.nrow(), p["var3"]) for p in table
@@ -143,7 +151,7 @@ def readFile(filename, atom, niter, verbose):
 def searchFile(filename, atom, verbose, item):
     # Open the HDF5 file in read-only mode
 
-    fileh = open_file(filename, mode = "r")
+    fileh = open_file(filename, mode="r")
     rowsread = 0
     uncomprBytes = 0
     table = fileh.root.table
@@ -179,7 +187,7 @@ def searchFile(filename, atom, verbose, item):
     return (rowsread, uncomprBytes, niter)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import sys
     import getopt
     try:
@@ -293,9 +301,9 @@ if __name__=="__main__":
                                     atom, recsize, index, verbose)
         t2 = time.time()
         cpu2 = time.clock()
-        tapprows = round(t2-t1, 3)
-        cpuapprows = round(cpu2-cpu1, 3)
-        tpercent = int(round(cpuapprows/tapprows, 2)*100)
+        tapprows = round(t2 - t1, 3)
+        cpuapprows = round(cpu2 - cpu1, 3)
+        tpercent = int(round(cpuapprows / tapprows, 2) * 100)
         print "Rows written:", rowsw, " Row size:", rowsz
         print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
               (tapprows, cpuapprows, tpercent)
@@ -315,17 +323,17 @@ if __name__=="__main__":
                 (rowsr, rowsel, rowsz) = readFile(file, atom, niter, verbose)
         t2 = time.time()
         cpu2 = time.clock()
-        treadrows = round(t2-t1, 3)
-        cpureadrows = round(cpu2-cpu1, 3)
-        tpercent = int(round(cpureadrows/treadrows, 2)*100)
-        tMrows = rowsr/(1000*1000.)
-        sKrows = rowsel/1000.
+        treadrows = round(t2 - t1, 3)
+        cpureadrows = round(cpu2 - cpu1, 3)
+        tpercent = int(round(cpureadrows / treadrows, 2) * 100)
+        tMrows = rowsr / (1000 * 1000.)
+        sKrows = rowsel / 1000.
         print "Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows"
         print "Rows selected:", rowsel, "Ksel:", round(sKrows, 3), "Krows"
         print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)
         print "Read Mrows/sec: ", round(tMrows / float(treadrows), 3)
-        #print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
+        # print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
 #       print "Uncompr MB :", int(uncomprB / (1024 * 1024))
 #       print "Uncompr MB/s :", int(uncomprB / (treadrows * 1024 * 1024))
 #       print "Total chunks uncompr :", int(niter)

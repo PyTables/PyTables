@@ -6,11 +6,13 @@ import tables
 N = 144000
 #N = 144
 
+
 def timed(func, *args, **kwargs):
     start = time.time()
     res = func(*args, **kwargs)
     print "%fs elapsed." % (time.time() - start)
     return res
+
 
 def create_table(output_path):
     print "creating array...",
@@ -19,13 +21,14 @@ def create_table(output_path):
     print "done."
 
     output_file = tables.open_file(output_path, mode="w")
-    table = output_file.create_table("/", "test", dt) #, filters=blosc4)
+    table = output_file.create_table("/", "test", dt)  # , filters=blosc4)
     print "appending data...",
     table.append(a)
     print "flushing...",
     table.flush()
     print "done."
     output_file.close()
+
 
 def copy1(input_path, output_path):
     print "copying data from %s to %s..." % (input_path, output_path)
@@ -37,11 +40,13 @@ def copy1(input_path, output_path):
     output_file.close()
     input_file.close()
 
+
 def copy2(input_path, output_path):
     print "copying data from %s to %s..." % (input_path, output_path)
     input_file = tables.open_file(input_path, mode="r")
     input_file.copy_file(output_path, overwrite=True)
     input_file.close()
+
 
 def copy3(input_path, output_path):
     print "copying data from %s to %s..." % (input_path, output_path)
@@ -51,6 +56,7 @@ def copy3(input_path, output_path):
     table.copy(output_file.root)
     output_file.close()
     input_file.close()
+
 
 def copy4(input_path, output_path, complib='zlib', complevel=0):
     print "copying data from %s to %s..." % (input_path, output_path)
@@ -64,7 +70,7 @@ def copy4(input_path, output_path, complib='zlib', complevel=0):
 
     filter = tables.Filters(complevel=complevel, complib=complib)
     output_table = output_file.create_table("/", "test", input_table.dtype,
-                                           filters=filter)
+                                            filters=filter)
     print "appending data...",
     output_table.append(data)
     print "flushing...",
@@ -84,7 +90,7 @@ def copy5(input_path, output_path, complib='zlib', complevel=0):
 
     filter = tables.Filters(complevel=complevel, complib=complib)
     output_table = output_file.create_table("/", "test", input_table.dtype,
-                                           filters=filter)
+                                            filters=filter)
     chunksize = 10000
     rowsleft = len(input_table)
     start = 0
@@ -98,7 +104,6 @@ def copy5(input_path, output_path, complib='zlib', complevel=0):
 
     input_file.close()
     output_file.close()
-
 
 
 if __name__ == '__main__':

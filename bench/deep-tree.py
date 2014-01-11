@@ -1,13 +1,15 @@
 # Small benchmark for compare creation times with parameter
 # PYTABLES_SYS_ATTRS active or not.
 
-import os, subprocess, gc
+import os
+import subprocess
 from time import time
 import random
 import numpy
 import tables
 
 random.seed(2)
+
 
 def show_stats(explain, tref):
     "Show the used memory (only works for Linux 2.6.x)."
@@ -55,7 +57,8 @@ def populate(f, nlevels):
 
 def getnode(f, nlevels, niter, range_):
     for i in range(niter):
-        nlevel = random.randrange((nlevels-range_)/2, (nlevels+range_)/2)
+        nlevel = random.randrange(
+            (nlevels - range_) / 2, (nlevels + range_) / 2)
         groupname = ""
         for i in range(nlevel):
             groupname += "/group"
@@ -63,7 +66,7 @@ def getnode(f, nlevels, niter, range_):
         n = f.get_node(groupname)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     nlevels = 1024
     niter = 256
     range_ = 128
@@ -77,11 +80,13 @@ if __name__=='__main__':
         import pstats
         import cProfile as prof
 
-    if profile: tref = time()
-    if profile: show_stats("Abans de crear...", tref)
+    if profile:
+        tref = time()
+    if profile:
+        show_stats("Abans de crear...", tref)
     f = tables.open_file("/tmp/PTdeep-tree.h5", 'w',
-                        node_cache_slots=nodeCacheSlots,
-                        pytables_sys_attrs=pytablesSysAttrs)
+                         node_cache_slots=nodeCacheSlots,
+                         pytables_sys_attrs=pytablesSysAttrs)
     if doprofile:
         prof.run('populate(f, nlevels)', 'populate.prof')
         stats = pstats.Stats('populate.prof')
@@ -94,14 +99,18 @@ if __name__=='__main__':
     else:
         populate(f, nlevels)
     f.close()
-    if profile: show_stats("Despres de crear", tref)
+    if profile:
+        show_stats("Despres de crear", tref)
 
-    if profile: tref = time()
-    if profile: show_stats("Abans d'obrir...", tref)
+    if profile:
+        tref = time()
+    if profile:
+        show_stats("Abans d'obrir...", tref)
     f = tables.open_file("/tmp/PTdeep-tree.h5", 'r',
-                        node_cache_slots=nodeCacheSlots,
-                        pytables_sys_attrs=pytablessysattrs)
-    if profile: show_stats("Abans d'accedir...", tref)
+                         node_cache_slots=nodeCacheSlots,
+                         pytables_sys_attrs=pytablessysattrs)
+    if profile:
+        show_stats("Abans d'accedir...", tref)
     if doprofile:
         prof.run('getnode(f, nlevels, niter, range_)', 'getnode.prof')
         stats = pstats.Stats('getnode.prof')
@@ -113,7 +122,8 @@ if __name__=='__main__':
             stats.print_stats(20)
     else:
         getnode(f, nlevels, niter, range_)
-    if profile: show_stats("Despres d'accedir", tref)
+    if profile:
+        show_stats("Despres d'accedir", tref)
     f.close()
-    if profile: show_stats("Despres de tancar", tref)
-
+    if profile:
+        show_stats("Despres de tancar", tref)

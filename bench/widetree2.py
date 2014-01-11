@@ -6,13 +6,16 @@ from tables import *
 
 verbose = 0
 
+
 class Test(IsDescription):
     ngroup = Int32Col(pos=1)
     ntable = Int32Col(pos=2)
     nrow = Int32Col(pos=3)
     #string = StringCol(itemsize=500, pos=4)
 
+
 class WideTreeTestCase(unittest.TestCase):
+
     def test00_Leafs(self):
 
         # Open a new empty HDF5 file
@@ -29,7 +32,7 @@ class WideTreeTestCase(unittest.TestCase):
 
         for k in range(ngroups):
             # Create the group
-            group = fileh.create_group("/", 'group%04d'% k, "Group %d" % k)
+            group = fileh.create_group("/", 'group%04d' % k, "Group %d" % k)
 
         fileh.close()
 
@@ -37,14 +40,14 @@ class WideTreeTestCase(unittest.TestCase):
         rowswritten = 0
         for k in range(ngroups):
             print "Filling tables in group:", k
-            fileh = open_file(filename, mode="a", root_uep='group%04d'% k)
+            fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
             # Get the group
             group = fileh.root
             for j in range(ntables):
                 # Create a table
-                table = fileh.create_table(group, 'table%04d'% j, Test,
-                                          'Table%04d'%j,
-                                          Filters(complevel, complib), nrows)
+                table = fileh.create_table(group, 'table%04d' % j, Test,
+                                           'Table%04d' % j,
+                                           Filters(complevel, complib), nrows)
                 # Get the row object associated with the new table
                 row = table.row
                 # Fill the table
@@ -60,12 +63,12 @@ class WideTreeTestCase(unittest.TestCase):
             # Close the file
             fileh.close()
 
-
         # read the file
         print "Reading..."
         rowsread = 0
         for ngroup in range(ngroups):
-            fileh = open_file(filename, mode="r", root_uep='group%04d'% ngroup)
+            fileh = open_file(filename, mode="r", root_uep='group%04d' %
+                              ngroup)
             # Get the group
             group = fileh.root
             ntable = 0
@@ -99,9 +102,7 @@ class WideTreeTestCase(unittest.TestCase):
             fileh.close()
 
 
-
 #----------------------------------------------------------------------
-
 def suite():
     theSuite = unittest.TestSuite()
     theSuite.addTest(unittest.makeSuite(WideTreeTestCase))

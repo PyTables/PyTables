@@ -4,43 +4,50 @@ import numpy as NP
 from tables import *
 
 # This class is accessible only for the examples
+
+
 class Small(IsDescription):
     var1 = StringCol(itemsize=4, pos=2)
     var2 = Int32Col(pos=1)
     var3 = Float64Col(pos=0)
 
 # Define a user record to characterize some kind of particles
+
+
 class Medium(IsDescription):
-    name        = StringCol(itemsize=16, pos=0)  # 16-character String
-    float1      = Float64Col(shape=2, dflt=NP.arange(2), pos=1)
-    #float1      = Float64Col(dflt=2.3)
-    #float2      = Float64Col(dflt=2.3)
-    #zADCcount    = Int16Col()    # signed short integer
-    ADCcount    = Int32Col(pos=6)    # signed short integer
-    grid_i      = Int32Col(pos=7)    # integer
-    grid_j      = Int32Col(pos=8)    # integer
-    pressure    = Float32Col(pos=9)    # float  (single-precision)
-    energy      = Float64Col(pos=2)    # double (double-precision)
-    #unalig      = Int8Col()          # just to unalign data
+    name = StringCol(itemsize=16, pos=0)    # 16-character String
+    float1 = Float64Col(shape=2, dflt=NP.arange(2), pos=1)
+    #float1 = Float64Col(dflt=2.3)
+    #float2 = Float64Col(dflt=2.3)
+    # zADCcount    = Int16Col()               # signed short integer
+    ADCcount = Int32Col(pos=6)              # signed short integer
+    grid_i = Int32Col(pos=7)                # integer
+    grid_j = Int32Col(pos=8)                # integer
+    pressure = Float32Col(pos=9)            # float  (single-precision)
+    energy = Float64Col(pos=2)              # double (double-precision)
+    # unalig      = Int8Col()                 # just to unalign data
 
 # Define a user record to characterize some kind of particles
+
+
 class Big(IsDescription):
-    name        = StringCol(itemsize=16)  # 16-character String
-    float1      = Float64Col(shape=32, dflt=NP.arange(32))
-    float2      = Float64Col(shape=32, dflt=2.2)
-    TDCcount    = Int8Col()    # signed short integer
+    name = StringCol(itemsize=16)           # 16-character String
+    float1 = Float64Col(shape=32, dflt=NP.arange(32))
+    float2 = Float64Col(shape=32, dflt=2.2)
+    TDCcount = Int8Col()                    # signed short integer
     #ADCcount    = Int32Col()
-    #ADCcount    = Int16Col()    # signed short integer
-    grid_i      = Int32Col()    # integer
-    grid_j      = Int32Col()    # integer
-    pressure    = Float32Col()    # float  (single-precision)
-    energy      = Float64Col()    # double (double-precision)
+    # ADCcount = Int16Col()                   # signed short integer
+    grid_i = Int32Col()                       # integer
+    grid_j = Int32Col()                       # integer
+    pressure = Float32Col()                   # float  (single-precision)
+    energy = Float64Col()                     # double (double-precision)
+
 
 def createFile(filename, totalrows, filters, recsize):
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode = "w", title="Table Benchmark",
-                     filters=filters)
+    fileh = open_file(filename, mode="w", title="Table Benchmark",
+                      filters=filters)
 
     # Table title
     title = "This is the table title"
@@ -51,17 +58,17 @@ def createFile(filename, totalrows, filters, recsize):
     for j in range(3):
         # Create a table
         if recsize == "big":
-            table = fileh.create_table(group, 'tuple'+str(j), Big, title,
-                                      None,
-                                      totalrows)
+            table = fileh.create_table(group, 'tuple' + str(j), Big, title,
+                                       None,
+                                       totalrows)
         elif recsize == "medium":
-            table = fileh.create_table(group, 'tuple'+str(j), Medium, title,
-                                      None,
-                                      totalrows)
+            table = fileh.create_table(group, 'tuple' + str(j), Medium, title,
+                                       None,
+                                       totalrows)
         elif recsize == "small":
-            table = fileh.create_table(group, 'tuple'+str(j), Small, title,
-                                      None,
-                                      totalrows)
+            table = fileh.create_table(group, 'tuple' + str(j), Small, title,
+                                       None,
+                                       totalrows)
         else:
             raise RuntimeError("This should never happen")
 
@@ -81,7 +88,7 @@ def createFile(filename, totalrows, filters, recsize):
                 # Common part with medium
                 d['grid_i'] = i
                 d['grid_j'] = 10 - i
-                d['pressure'] = float(i*i)
+                d['pressure'] = float(i * i)
                 # d['energy'] = float(d['pressure'] ** 4)
                 d['energy'] = d['pressure']
                 # d['idnumber'] = i * (2 ** 34)
@@ -96,11 +103,11 @@ def createFile(filename, totalrows, filters, recsize):
                 # Common part with big:
                 d['grid_i'] = i
                 d['grid_j'] = 10 - i
-                d['pressure'] = i*2
+                d['pressure'] = i * 2
                 # d['energy'] = float(d['pressure'] ** 4)
                 d['energy'] = d['pressure']
                 d.append()
-        else: # Small record
+        else:  # Small record
             for i in xrange(totalrows):
                 #d['var1'] = str(random.randrange(1000000))
                 #d['var3'] = random.randrange(10000000)
@@ -108,7 +115,7 @@ def createFile(filename, totalrows, filters, recsize):
                 #d['var2'] = random.randrange(totalrows)
                 d['var2'] = i
                 #d['var3'] = 12.1e10
-                d['var3'] = totalrows-i
+                d['var3'] = totalrows - i
                 d.append()  # This is a 10% faster than table.append()
         rowswritten += totalrows
 
@@ -117,10 +124,10 @@ def createFile(filename, totalrows, filters, recsize):
             pass
 #            table._createIndex("var3", Filters(1,"zlib",shuffle=1))
 
-        #table.flush()
+        # table.flush()
         group._v_attrs.test2 = "just a test"
         # Create a new group
-        group2 = fileh.create_group(group, 'group'+str(j))
+        group2 = fileh.create_group(group, 'group' + str(j))
         # Iterate over this new group (group2)
         group = group2
         table.flush()
@@ -129,13 +136,14 @@ def createFile(filename, totalrows, filters, recsize):
     fileh.close()
     return (rowswritten, rowsize)
 
+
 def readFile(filename, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
-    fileh = open_file(filename, mode = "r")
+    fileh = open_file(filename, mode="r")
     rowsread = 0
     for groupobj in fileh.walk_groups(fileh.root):
-        #print "Group pathname:", groupobj._v_pathname
+        # print "Group pathname:", groupobj._v_pathname
         row = 0
         for table in fileh.list_nodes(groupobj, 'Table'):
             rowsize = table.rowsize
@@ -147,7 +155,7 @@ def readFile(filename, recsize, verbose):
                 print "MaxTuples:", table.nrowsinbuf
 
             if recsize == "big" or recsize == "medium":
-                #e = [ p.float1 for p in table.iterrows()
+                # e = [ p.float1 for p in table.iterrows()
                 #      if p.grid_i < 2 ]
                 #e = [ str(p) for p in table.iterrows() ]
                 #      if p.grid_i < 2 ]
@@ -158,8 +166,8 @@ def readFile(filename, recsize, verbose):
 #                e = [ p['grid_i'] for p in table.where("grid_i<=20")]
 #                 e = [ p['grid_i'] for p in
 #                       table.where('grid_i <= 20')]
-                e = [ p['grid_i'] for p in
-                      table.where('(grid_i <= 20) & (grid_j == 20)')]
+                e = [p['grid_i'] for p in
+                     table.where('(grid_i <= 20) & (grid_j == 20)')]
 #                 e = [ p['grid_i'] for p in table.iterrows()
 #                       if p.nrow() == 20 ]
 #                 e = [ table.delrow(p.nrow()) for p in table.iterrows()
@@ -167,7 +175,7 @@ def readFile(filename, recsize, verbose):
                 # The version with a for loop is only 1% better than
                 # comprenhension list
                 #e = []
-                #for p in table.iterrows():
+                # for p in table.iterrows():
                 #    if p.grid_i < 20:
                 #        e.append(p.grid_j)
             else:  # small record case
@@ -177,11 +185,11 @@ def readFile(filename, recsize, verbose):
 #                      if p['var2'] < 20 ]
 #               e = [ p['var3'] for p in table.where("var3 <= 20")]
 # Cuts 1) and 2) issues the same results but 2) is about 10 times faster
-# ######## Cut 1)
+# Cut 1)
 #                e = [ p.nrow() for p in
 #                      table.where(table.cols.var2 > 5)
 #                      if p["var2"] < 10]
-# ######## Cut 2)
+# Cut 2)
 #                 e = [ p.nrow() for p in
 #                       table.where(table.cols.var2 < 10)
 #                       if p["var2"] > 5]
@@ -192,12 +200,13 @@ def readFile(filename, recsize, verbose):
 #                      table if p["var3"] <= 10]
 #               e = [ p['var3'] for p in table.where("var3 <= 20")]
 #                e = [ p['var3'] for p in
-#                      table.where(table.cols.var1 == "10")]  # More
+# table.where(table.cols.var1 == "10")]  # More
                      # than ten times faster than the next one
 #                e = [ p['var3'] for p in table
 #                      if p['var1'] == "10"]
 #                e = [ p['var3'] for p in table.where('var2 <= 20')]
-                e = [ p['var3'] for p in table.where('(var2 <= 20) & (var2 >= 3)')]
+                e = [p['var3']
+                     for p in table.where('(var2 <= 20) & (var2 >= 3)')]
                 # e = [ p[0] for p in table.where('var2 <= 20')]
                 #e = [ p['var3'] for p in table if p['var2'] <= 20 ]
                 # e = [ p[:] for p in table if p[1] <= 20 ]
@@ -207,14 +216,14 @@ def readFile(filename, recsize, verbose):
 #                       if p.nrow() <= 20 ]
                 #e = [ p['var3'] for p in table.iterrows(1,0,1000)]
                 #e = [ p['var3'] for p in table.iterrows(1,100)]
-                #e = [ p['var3'] for p in table.iterrows(step=2)
+                # e = [ p['var3'] for p in table.iterrows(step=2)
                 #      if p.nrow() < 20 ]
-                #e = [ p['var2'] for p in table.iterrows()
+                # e = [ p['var2'] for p in table.iterrows()
                 #      if p['var2'] < 20 ]
-                #for p in table.iterrows():
+                # for p in table.iterrows():
                 #      pass
             if verbose:
-                #print "Last record read:", p
+                # print "Last record read:", p
                 print "resulting selection list ==>", e
 
             rowsread += table.nrows
@@ -227,8 +236,9 @@ def readFile(filename, recsize, verbose):
 
     return (rowsread, rowsize)
 
+
 def readField(filename, field, rng, verbose):
-    fileh = open_file(filename, mode = "r")
+    fileh = open_file(filename, mode="r")
     rowsread = 0
     if rng is None:
         rng = [0, -1, 1]
@@ -237,13 +247,14 @@ def readField(filename, field, rng, verbose):
     for groupobj in fileh.walk_groups(fileh.root):
         for table in fileh.list_nodes(groupobj, 'Table'):
             rowsize = table.rowsize
-            #table.nrowsinbuf = 3 # For testing purposes
+            # table.nrowsinbuf = 3 # For testing purposes
             if verbose:
                 print "Max rows in buf:", table.nrowsinbuf
                 print "Rows in", table._v_pathname, ":", table.nrows
                 print "Buffersize:", table.rowsize * table.nrowsinbuf
                 print "MaxTuples:", table.nrowsinbuf
-                print "(field, start, stop, step) ==>", (field, rng[0], rng[1], rng[2])
+                print "(field, start, stop, step) ==>", (field, rng[0], rng[1],
+                                                         rng[2])
 
             e = table.read(rng[0], rng[1], rng[2], field)
 
@@ -256,7 +267,7 @@ def readField(filename, field, rng, verbose):
     fileh.close()
     return (rowsread, rowsize)
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import sys
     import getopt
 
@@ -366,7 +377,10 @@ if __name__=="__main__":
         if profile:
             import profile as prof
             import pstats
-            prof.run('(rowsw, rowsz) = createFile(file, iterations, filters, recsize)', 'table-bench.prof')
+            prof.run(
+                '(rowsw, rowsz) = createFile(file, iterations, filters, '
+                'recsize)',
+                'table-bench.prof')
             stats = pstats.Stats('table-bench.prof')
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
@@ -375,9 +389,9 @@ if __name__=="__main__":
             (rowsw, rowsz) = createFile(file, iterations, filters, recsize)
         t2 = time.time()
         cpu2 = time.clock()
-        tapprows = round(t2-t1, 3)
-        cpuapprows = round(cpu2-cpu1, 3)
-        tpercent = int(round(cpuapprows/tapprows, 2)*100)
+        tapprows = round(t2 - t1, 3)
+        cpuapprows = round(cpu2 - cpu1, 3)
+        tpercent = int(round(cpuapprows / tapprows, 2) * 100)
         print "Rows written:", rowsw, " Row size:", rowsz
         print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
               (tapprows, cpuapprows, tpercent)
@@ -389,7 +403,7 @@ if __name__=="__main__":
         cpu1 = time.clock()
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
-            #psyco.bind(readField)
+            # psyco.bind(readField)
             pass
         if rng or fieldName:
             (rowsr, rowsz) = readField(file, fieldName, rng, verbose)
@@ -399,9 +413,9 @@ if __name__=="__main__":
                 (rowsr, rowsz) = readFile(file, recsize, verbose)
         t2 = time.time()
         cpu2 = time.clock()
-        treadrows = round(t2-t1, 3)
-        cpureadrows = round(cpu2-cpu1, 3)
-        tpercent = int(round(cpureadrows/treadrows, 2)*100)
+        treadrows = round(t2 - t1, 3)
+        cpureadrows = round(cpu2 - cpu1, 3)
+        tpercent = int(round(cpureadrows / treadrows, 2) * 100)
         print "Rows read:", rowsr, " Row size:", rowsz
         print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
               (treadrows, cpureadrows, tpercent)

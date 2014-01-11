@@ -6,10 +6,11 @@ import tables as tb
 
 OUT_DIR = "/scratch2/faltet/"   # the directory for data output
 
-shape = (1000, 1000*1000)   # shape for input arrays
+shape = (1000, 1000 * 1000)   # shape for input arrays
 expr = "a*b+1"   # Expression to be computed
 
 nrows, ncols = shape
+
 
 def tables(docompute, dowrite, complib, verbose):
 
@@ -36,18 +37,20 @@ def tables(docompute, dowrite, complib, verbose):
         # Build input arrays
         t0 = time()
         root = f.root
-        a = f.create_carray(root, 'a', tb.Float32Atom(), shape, filters=filters)
-        b = f.create_carray(root, 'b', tb.Float32Atom(), shape, filters=filters)
+        a = f.create_carray(root, 'a', tb.Float32Atom(),
+                            shape, filters=filters)
+        b = f.create_carray(root, 'b', tb.Float32Atom(),
+                            shape, filters=filters)
         if verbose:
             print "chunkshape:", a.chunkshape
-            print "chunksize:", np.prod(a.chunkshape)*a.dtype.itemsize
+            print "chunksize:", np.prod(a.chunkshape) * a.dtype.itemsize
         #row = np.linspace(0, 1, ncols)
         row = np.arange(0, ncols, dtype='float32')
         for i in xrange(nrows):
-            a[i] = row*(i+1)
-            b[i] = row*(i+1)*2
+            a[i] = row * (i + 1)
+            b[i] = row * (i + 1) * 2
         f.close()
-        print "[tables.Expr] Time for creating inputs:", round(time()-t0, 3)
+        print "[tables.Expr] Time for creating inputs:", round(time() - t0, 3)
 
     if docompute:
         f = tb.open_file(ifilename, 'r')
@@ -55,7 +58,7 @@ def tables(docompute, dowrite, complib, verbose):
         a = f.root.a
         b = f.root.b
         r1 = f.create_carray(fr.root, 'r1', tb.Float32Atom(), shape,
-                            filters=filters)
+                             filters=filters)
         # The expression
         e = tb.Expr(expr)
         e.set_output(r1)
@@ -65,7 +68,7 @@ def tables(docompute, dowrite, complib, verbose):
             print "First ten values:", r1[0, :10]
         f.close()
         fr.close()
-        print "[tables.Expr] Time for computing & save:", round(time()-t0, 3)
+        print "[tables.Expr] Time for computing & save:", round(time() - t0, 3)
 
 
 def memmap(docompute, dowrite, verbose):
@@ -82,10 +85,10 @@ def memmap(docompute, dowrite, verbose):
         #row = np.linspace(0, 1, ncols)
         row = np.arange(0, ncols, dtype='float32')
         for i in xrange(nrows):
-            a[i] = row*(i+1)
-            b[i] = row*(i+1)*2
+            a[i] = row * (i + 1)
+            b[i] = row * (i + 1) * 2
         del a, b  # flush data
-        print "[numpy.memmap] Time for creating inputs:", round(time()-t0, 3)
+        print "[numpy.memmap] Time for creating inputs:", round(time() - t0, 3)
 
     if docompute:
         t0 = time()
@@ -96,12 +99,12 @@ def memmap(docompute, dowrite, verbose):
         r = np.memmap(rfilename, dtype='float32', mode='w+', shape=shape)
         # Do the computation row by row
         for i in xrange(nrows):
-            r[i] = eval(expr, {'a':a[i], 'b':b[i]})
+            r[i] = eval(expr, {'a': a[i], 'b': b[i]})
         if verbose:
             print "First ten values:", r[0, :10]
         del a, b
         del r  # flush output data
-        print "[numpy.memmap] Time for compute & save:", round(time()-t0, 3)
+        print "[numpy.memmap] Time for compute & save:", round(time() - t0, 3)
 
 
 def do_bench(what, documpute, dowrite, complib, verbose):
@@ -111,8 +114,9 @@ def do_bench(what, documpute, dowrite, complib, verbose):
         memmap(docompute, dowrite, verbose)
 
 
-if __name__=="__main__":
-    import sys, os
+if __name__ == "__main__":
+    import sys
+    import os
     import getopt
 
     usage = """usage: %s [-T] [-M] [-c] [-w] [-v] [-z complib]

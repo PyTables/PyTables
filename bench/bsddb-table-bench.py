@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 ###### WARNING #######
 ### This script is obsoleted ###
-### If you get it working again, please drop me a line
-### F. Alted 2004-01-27
+# If you get it working again, please drop me a line
+# F. Alted 2004-01-27
+import sys
+import struct
+import cPickle
+
 from tables import *
 import numarray as NA
-import struct, sys
-import cPickle
+
 try:
     # For Python 2.3
     from bsddb import db
@@ -18,40 +21,48 @@ import psyco
 
 # This class is accessible only for the examples
 class Small(IsDescription):
-    """ A record has several columns. They are represented here as
-    class attributes, whose names are the column names and their
-    values will become their types. The IsColDescr class will take care
-    the user will not add any new variables and that its type is
-    correct."""
+    """Record descriptor.
+
+    A record has several columns. They are represented here as class
+    attributes, whose names are the column names and their values will
+    become their types. The IsColDescr class will take care the user
+    will not add any new variables and that its type is correct.
+
+    """
 
     var1 = StringCol(itemsize=16)
     var2 = Int32Col()
     var3 = Float64Col()
 
 # Define a user record to characterize some kind of particles
+
+
 class Medium(IsDescription):
-    name        = StringCol(itemsize=16, pos=0)  # 16-character String
+    name = StringCol(itemsize=16, pos=0)  # 16-character String
     #float1      = Float64Col(shape=2, dflt=2.3)
-    float1      = Float64Col(dflt=1.3, pos=1)
-    float2      = Float64Col(dflt=2.3, pos=2)
-    ADCcount    = Int16Col(pos=3)    # signed short integer
-    grid_i      = Int32Col(pos=4)    # integer
-    grid_j      = Int32Col(pos=5)    # integer
-    pressure    = Float32Col(pos=6)    # float  (single-precision)
-    energy      = Float64Col(pos=7)    # double (double-precision)
+    float1 = Float64Col(dflt=1.3, pos=1)
+    float2 = Float64Col(dflt=2.3, pos=2)
+    ADCcount = Int16Col(pos=3)     # signed short integer
+    grid_i = Int32Col(pos=4)        # integer
+    grid_j = Int32Col(pos=5)        # integer
+    pressure = Float32Col(pos=6)    # float  (single-precision)
+    energy = Float64Col(pos=7)      # double (double-precision)
 
 # Define a user record to characterize some kind of particles
+
+
 class Big(IsDescription):
-    name        = StringCol(itemsize=16)  # 16-character String
-    #float1      = Float64Col(shape=32, dflt=NA.arange(32))
-    #float2      = Float64Col(shape=32, dflt=NA.arange(32))
-    float1      = Float64Col(shape=32, dflt=range(32))
-    float2      = Float64Col(shape=32, dflt=[2.2]*32)
-    ADCcount    = Int16Col()    # signed short integer
-    grid_i      = Int32Col()    # integer
-    grid_j      = Int32Col()    # integer
-    pressure    = Float32Col()    # float  (single-precision)
-    energy      = Float64Col()    # double (double-precision)
+    name = StringCol(itemsize=16)   # 16-character String
+    #float1 = Float64Col(shape=32, dflt=NA.arange(32))
+    #float2 = Float64Col(shape=32, dflt=NA.arange(32))
+    float1 = Float64Col(shape=32, dflt=range(32))
+    float2 = Float64Col(shape=32, dflt=[2.2] * 32)
+    ADCcount = Int16Col()           # signed short integer
+    grid_i = Int32Col()             # integer
+    grid_j = Int32Col()             # integer
+    pressure = Float32Col()         # float  (single-precision)
+    energy = Float64Col()           # double (double-precision)
+
 
 def createFile(filename, totalrows, recsize, verbose):
 
@@ -63,7 +74,7 @@ def createFile(filename, totalrows, recsize, verbose):
         isrec = Medium()
     else:
         isrec = Description(Small)
-    #dd.set_re_len(struct.calcsize(isrec._v_fmt))  # fixed length records
+    # dd.set_re_len(struct.calcsize(isrec._v_fmt))  # fixed length records
     dd.open(filename, db.DB_RECNO, db.DB_CREATE | db.DB_TRUNCATE)
 
     rowswritten = 0
@@ -77,7 +88,7 @@ def createFile(filename, totalrows, recsize, verbose):
         arr = NA.array(NA.arange(2), type=NA.Float64)
     else:
         isrec = Small()
-    #print d
+    # print d
     # Fill the table
     if recsize == "big" or recsize == "medium":
         d = {"name": " ",
@@ -106,7 +117,7 @@ def createFile(filename, totalrows, recsize, verbose):
                 d['float2'] = float(i)
             d['grid_i'] = i
             d['grid_j'] = 10 - i
-            d['pressure'] = float(i*i)
+            d['pressure'] = float(i * i)
             d['energy'] = d['pressure']
             dd.append(cPickle.dumps(d))
 #             dd.append(struct.pack(isrec._v_fmt,
@@ -121,14 +132,15 @@ def createFile(filename, totalrows, recsize, verbose):
             d['var2'] = i
             d['var3'] = 12.1e10
             dd.append(cPickle.dumps(d))
-            #dd.append(struct.pack(isrec._v_fmt, d['var1'], d['var2'], d['var3']))
+            #dd.append(
+            #    struct.pack(isrec._v_fmt, d['var1'], d['var2'], d['var3']))
 
     rowswritten += totalrows
-
 
     # Close the file
     dd.close()
     return (rowswritten, struct.calcsize(isrec._v_fmt))
+
 
 def readFile(filename, recsize, verbose):
     # Open the HDF5 file in read-only mode
@@ -140,9 +152,9 @@ def readFile(filename, recsize, verbose):
         isrec = Medium()
     else:
         isrec = Small()
-    #dd.set_re_len(struct.calcsize(isrec._v_fmt))  # fixed length records
-    #dd.set_re_pad('-') # sets the pad character...
-    #dd.set_re_pad(45)  # ...test both int and char
+    # dd.set_re_len(struct.calcsize(isrec._v_fmt))  # fixed length records
+    # dd.set_re_pad('-') # sets the pad character...
+    # dd.set_re_pad(45)  # ...test both int and char
     dd.open(filename, db.DB_RECNO)
     if recsize == "big" or recsize == "medium":
         print isrec._v_fmt
@@ -152,11 +164,11 @@ def readFile(filename, recsize, verbose):
         while rec:
             record = cPickle.loads(rec[1])
             #record = struct.unpack(isrec._v_fmt, rec[1])
-            #if verbose:
+            # if verbose:
             #    print record
             if record['grid_i'] < 20:
                 e.append(record['grid_j'])
-            #if record[4] < 20:
+            # if record[4] < 20:
             #    e.append(record[5])
             rec = c.next()
     else:
@@ -168,11 +180,11 @@ def readFile(filename, recsize, verbose):
         while rec:
             record = cPickle.loads(rec[1])
             #record = struct.unpack(isrec._v_fmt, rec[1])
-            #if verbose:
+            # if verbose:
             #    print record
             if record['var2'] < 20:
                 e.append(record['var1'])
-            #if record[1] < 20:
+            # if record[1] < 20:
             #    e.append(record[2])
             rec = c.next()
 
@@ -185,8 +197,7 @@ def readFile(filename, recsize, verbose):
 
 
 # Add code to test here
-if __name__=="__main__":
-    import sys
+if __name__ == "__main__":
     import getopt
     import time
 
@@ -230,13 +241,13 @@ if __name__=="__main__":
     psyco.bind(createFile)
     (rowsw, rowsz) = createFile(file, iterations, recsize, verbose)
     t2 = time.clock()
-    tapprows = round(t2-t1, 3)
+    tapprows = round(t2 - t1, 3)
 
     t1 = time.clock()
     psyco.bind(readFile)
     readFile(file, recsize, verbose)
     t2 = time.clock()
-    treadrows = round(t2-t1, 3)
+    treadrows = round(t2 - t1, 3)
 
     print "Rows written:", rowsw, " Row size:", rowsz
     print "Time appending rows:", tapprows

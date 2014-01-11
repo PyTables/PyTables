@@ -1,4 +1,5 @@
-import os, os.path
+import os
+import os.path
 from time import time
 import numpy
 import random
@@ -6,21 +7,24 @@ import random
 # in order to always generate the same random sequence
 random.seed(19)
 
+
 def fill_arrays(start, stop):
     col_i = numpy.arange(start, stop, dtype=numpy.int32)
     if userandom:
-        col_j = numpy.random.uniform(0, nrows, stop-start)
+        col_j = numpy.random.uniform(0, nrows, stop - start)
     else:
         col_j = numpy.array(col_i, dtype=numpy.float64)
     return col_i, col_j
 
 # Generator for ensure pytables benchmark compatibility
+
+
 def int_generator(nrows):
-    step = 1000*100
+    step = 1000 * 100
     j = 0
     for i in xrange(nrows):
-        if i >= step*j:
-            stop = (j+1)*step
+        if i >= step * j:
+            stop = (j + 1) * step
             if stop > nrows:  # Seems unnecessary
                 stop = nrows
             col_i, col_j = fill_arrays(i, stop)
@@ -29,12 +33,14 @@ def int_generator(nrows):
         yield (col_i[k], col_j[k])
         k += 1
 
+
 def int_generator_slow(nrows):
     for i in xrange(nrows):
         if userandom:
             yield (i, float(random.randint(0, nrows)))
         else:
             yield (i, float(i))
+
 
 def open_db(filename, remove=0):
     if remove and os.path.exists(filename):
@@ -43,55 +49,60 @@ def open_db(filename, remove=0):
     cur = con.cursor()
     return con, cur
 
+
 def create_db(filename, nrows):
     con, cur = open_db(filename, remove=1)
     cur.execute("create table ints(i integer, j real)")
-    t1=time()
+    t1 = time()
     # This is twice as fast as a plain loop
     cur.executemany("insert into ints(i,j) values (?,?)", int_generator(nrows))
     con.commit()
-    ctime = time()-t1
+    ctime = time() - t1
     if verbose:
         print "insert time:", round(ctime, 5)
-        print "Krows/s:", round((nrows/1000.)/ctime, 5)
+        print "Krows/s:", round((nrows / 1000.) / ctime, 5)
     close_db(con, cur)
+
 
 def index_db(filename):
     con, cur = open_db(filename)
-    t1=time()
+    t1 = time()
     cur.execute("create index ij on ints(j)")
     con.commit()
-    itime = time()-t1
+    itime = time() - t1
     if verbose:
         print "index time:", round(itime, 5)
-        print "Krows/s:", round(nrows/itime, 5)
+        print "Krows/s:", round(nrows / itime, 5)
     # Close the DB
     close_db(con, cur)
 
+
 def query_db(filename, rng):
     con, cur = open_db(filename)
-    t1=time()
+    t1 = time()
     ntimes = 10
     for i in range(ntimes):
         # between clause does not seem to take advantage of indexes
-        #cur.execute("select j from ints where j between %s and %s" % \
-        cur.execute("select i from ints where j >= %s and j <= %s" % \
-        #cur.execute("select i from ints where i >= %s and i <= %s" % \
-                    (rng[0]+i, rng[1]+i))
+        # cur.execute("select j from ints where j between %s and %s" % \
+        cur.execute("select i from ints where j >= %s and j <= %s" %
+                    # cur.execute("select i from ints where i >= %s and i <=
+                    # %s" %
+                    (rng[0] + i, rng[1] + i))
         results = cur.fetchall()
     con.commit()
-    qtime = (time()-t1)/ntimes
+    qtime = (time() - t1) / ntimes
     if verbose:
         print "query time:", round(qtime, 5)
-        print "Mrows/s:", round((nrows/1000.)/qtime, 5)
+        print "Mrows/s:", round((nrows / 1000.) / qtime, 5)
         print results
     close_db(con, cur)
+
 
 def close_db(con, cur):
     cur.close()
     con.close()
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import sys
     import getopt
     try:

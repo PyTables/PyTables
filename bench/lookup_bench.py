@@ -1,7 +1,5 @@
-"""
-Benchmark to help choosing the best chunksize so as to optimize the
-access time in random lookups.
-"""
+"""Benchmark to help choosing the best chunksize so as to optimize the access
+time in random lookups."""
 
 from time import time
 import os
@@ -14,15 +12,17 @@ NOISE = 1e-15    # standard deviation of the noise compared with actual values
 
 rdm_cod = ['lin', 'rnd']
 
+
 def get_nrows(nrows_str):
     if nrows_str.endswith("k"):
-        return int(float(nrows_str[:-1])*1000)
+        return int(float(nrows_str[:-1]) * 1000)
     elif nrows_str.endswith("m"):
-        return int(float(nrows_str[:-1])*1000*1000)
+        return int(float(nrows_str[:-1]) * 1000 * 1000)
     elif nrows_str.endswith("g"):
-        return int(float(nrows_str[:-1])*1000*1000*1000)
+        return int(float(nrows_str[:-1]) * 1000 * 1000 * 1000)
     else:
-        raise ValueError("value of nrows must end with either 'k', 'm' or 'g' suffixes.")
+        raise ValueError(
+            "value of nrows must end with either 'k', 'm' or 'g' suffixes.")
 
 
 class DB(object):
@@ -33,7 +33,7 @@ class DB(object):
         self.docompress = docompress
         self.complib = complib
         self.filename = '-'.join([rdm_cod[userandom],
-                                  "n"+nrows, "s"+chunksize, dtype])
+                                  "n" + nrows, "s" + chunksize, dtype])
         # Complete the filename
         self.filename = "lookup-" + self.filename
         if docompress:
@@ -53,12 +53,12 @@ class DB(object):
         return int(line.split()[0])
 
     def print_mtime(self, t1, explain):
-        mtime = time()-t1
+        mtime = time() - t1
         print "%s:" % explain, round(mtime, 6)
-        print "Krows/s:", round((self.nrows/1000.)/mtime, 6)
+        print "Krows/s:", round((self.nrows / 1000.) / mtime, 6)
 
     def print_db_sizes(self, init, filled):
-        array_size = (filled-init)/1024.
+        array_size = (filled - init) / 1024.
         print "Array size (MB):", round(array_size, 3)
 
     def open_db(self, remove=0):
@@ -71,7 +71,7 @@ class DB(object):
         self.con = self.open_db(remove=1)
         self.create_array()
         init_size = self.get_db_size()
-        t1=time()
+        t1 = time()
         self.fill_array()
         array_size = self.get_db_size()
         self.print_mtime(t1, 'Insert time')
@@ -84,9 +84,9 @@ class DB(object):
                                  complib=self.complib)
         atom = tables.Atom.from_kind(self.dtype)
         earray = self.con.create_earray(self.con.root, 'earray', atom, (0,),
-                                       filters=filters,
-                                       expectedrows=self.nrows,
-                                       chunkshape=(self.chunksize,))
+                                        filters=filters,
+                                        expectedrows=self.nrows,
+                                        chunkshape=(self.chunksize,))
 
     def fill_array(self):
         "Fills the array"
@@ -94,7 +94,7 @@ class DB(object):
         j = 0
         arr = self.get_array(0, self.step)
         for i in xrange(0, self.nrows, self.step):
-            stop = (j+1)*self.step
+            stop = (j + 1) * self.step
             if stop > self.nrows:
                 stop = self.nrows
             ###arr = self.get_array(i, stop, dtype)
@@ -105,7 +105,7 @@ class DB(object):
     def get_array(self, start, stop):
         arr = numpy.arange(start, stop, dtype='float')
         if self.userandom:
-            arr += numpy.random.normal(0, stop*self.scale, size=stop-start)
+            arr += numpy.random.normal(0, stop * self.scale, size=stop - start)
         arr = arr.astype(self.dtype)
         return arr
 
@@ -114,11 +114,11 @@ class DB(object):
         print "Raw query times:\n", ltimes
         print "Histogram times:\n", numpy.histogram(ltimes[1:])
         ntimes = len(ltimes)
-        qtime1 = ltimes[0] # First measured time
+        qtime1 = ltimes[0]  # First measured time
         if ntimes > 5:
             # Wait until the 5th iteration (in order to
             # ensure that the index is effectively cached) to take times
-            qtime2 = sum(ltimes[5:])/(ntimes-5)
+            qtime2 = sum(ltimes[5:]) / (ntimes - 5)
         else:
             qtime2 = ltimes[-1]  # Last measured time
         print "1st query time:", round(qtime1, 3)
@@ -135,9 +135,9 @@ class DB(object):
         base = numpy.random.randint(self.nrows)
         ltimes = []
         for i in range(niter):
-            t1=time()
+            t1 = time()
             results = self.do_query(earray, numpy.random.randint(self.nrows))
-            ltimes.append(time()-t1)
+            ltimes.append(time() - t1)
         self.print_qtime(ltimes)
         self.close_db()
 
@@ -148,7 +148,7 @@ class DB(object):
         self.con.close()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import sys
     import getopt
 

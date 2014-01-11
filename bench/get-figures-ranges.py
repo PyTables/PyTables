@@ -1,10 +1,11 @@
 from pylab import *
 
-linewidth=2
+linewidth = 2
 #markers= ['+', ',', 'o', '.', 's', 'v', 'x', '>', '<', '^']
 #markers= [ 'x', '+', 'o', 's', 'v', '^', '>', '<', ]
-markers= [ 's', 'o', 'v', '^', '+', 'x', '>', '<', ]
+markers = ['s', 'o', 'v', '^', '+', 'x', '>', '<', ]
 markersize = 8
+
 
 def get_values(filename):
     f = open(filename)
@@ -18,7 +19,7 @@ def get_values(filename):
             tmp = tmp[1:-1]
             lower, upper = int(tmp.split(',')[0]), int(tmp.split(',')[1])
             isize = upper - lower
-            #print "isize-->", isize
+            # print "isize-->", isize
         if isize is None or isize == 0:
             continue
         if insert and line.startswith('Insert time'):
@@ -71,6 +72,7 @@ def get_values(filename):
     f.close()
     return sizes, values
 
+
 def show_plot(plots, yaxis, legends, gtitle):
     xlabel('Number of hits')
     ylabel(yaxis)
@@ -81,8 +83,7 @@ def show_plot(plots, yaxis, legends, gtitle):
 #     legends = [f[f.find('-'):f.index('.out')] for f in filenames]
 #     legends = [l.replace('-', ' ') for l in legends]
     #legend([p[0] for p in plots], legends, loc = "upper left")
-    legend([p[0] for p in plots], legends, loc = "best")
-
+    legend([p[0] for p in plots], legends, loc="best")
 
     #subplots_adjust(bottom=0.2, top=None, wspace=0.2, hspace=0.2)
     if outfile:
@@ -92,7 +93,8 @@ def show_plot(plots, yaxis, legends, gtitle):
 
 if __name__ == '__main__':
 
-    import sys, getopt
+    import sys
+    import getopt
 
     usage = """usage: %s [-o file] [-t title] [--insert] [--create-index] [--create-total] [--table-size] [--indexes-size] [--total-size] [--query=colname]  [--query-cold=colname] [--query-warm=colname] files
  -o filename for output (only .png and .jpg extensions supported)
