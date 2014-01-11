@@ -1,4 +1,4 @@
-"""Small example of do/undo capability with PyTables"""
+"""Small example of do/undo capability with PyTables."""
 
 import tables
 

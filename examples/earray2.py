@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-""" Small example that shows how to work with extendeable arrays of
-different types, strings included. """
+"""Small example that shows how to work with extendeable arrays of different
+types, strings included."""
 
 from __future__ import print_function
 import numpy as np

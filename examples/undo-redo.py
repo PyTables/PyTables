@@ -23,7 +23,7 @@ def tearDown(fileh):
 
 
 def demo_6times3marks():
-    """Checking with six ops and three marks"""
+    """Checking with six ops and three marks."""
 
     # Initialize the data base with some nodes
     fileh = setUp("undo-redo-6times3marks.h5")
@@ -93,7 +93,7 @@ def demo_6times3marks():
 
 
 def demo_manyops():
-    """Checking many operations together """
+    """Checking many operations together."""
 
     # Initialize the data base with some nodes
     fileh = setUp("undo-redo-manyops.h5")

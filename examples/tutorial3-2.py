@@ -1,4 +1,4 @@
-"""A more complex example of do/undo capability with PyTables
+"""A more complex example of do/undo capability with PyTables.
 
 Here, names has been assigned to the marks, and jumps are done between
 marks.

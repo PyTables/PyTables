@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-"""Example that shows how to easily save a variable number of atoms
-with a VLArray."""
+"""Example that shows how to easily save a variable number of atoms with a
+VLArray."""
 
 from __future__ import print_function
 import numpy

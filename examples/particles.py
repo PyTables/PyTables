@@ -1,6 +1,4 @@
-"""
-Beware! you need PyTables >= 2.3 to run this script!
-"""
+"""Beware! you need PyTables >= 2.3 to run this script!"""
 
 from __future__ import print_function
 from time import time  # use clock for Win

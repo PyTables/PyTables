@@ -1,8 +1,8 @@
-"""
-Use the H5FD_SPLIT driver to store metadata and raw data in separate files.
+"""Use the H5FD_SPLIT driver to store metadata and raw data in separate files.
 
-In this example, we store the metadata file in the current directory
-and the raw data file in a subdirectory.
+In this example, we store the metadata file in the current directory and
+the raw data file in a subdirectory.
+
 """
 
 import os

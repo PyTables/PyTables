@@ -5,6 +5,7 @@ with ptdump or any HDF5 generic utility.
 
 :Author: F. Alted
 :Date: 2005/06/10
+
 """
 
 from __future__ import print_function
@@ -26,7 +27,7 @@ colors = tables.Enum(['red', 'green', 'blue'])
 
 
 class NestedDescr(tables.IsDescription):
-    """A description that has several nested columns"""
+    """A description that has several nested columns."""
 
     color = tables.EnumCol(colors, 'red', base='uint32')
     info1 = Info()

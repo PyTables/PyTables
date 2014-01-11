@@ -1,6 +1,5 @@
-"""Example showing how to access a PyTables file from multiple processes
-using queues.
-"""
+"""Example showing how to access a PyTables file from multiple processes using
+queues."""
 
 from __future__ import print_function
 import Queue as queue

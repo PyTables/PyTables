@@ -50,7 +50,7 @@ class Info(tables.IsDescription):
 
 
 class Test(tables.IsDescription):
-    """A description that has several columns"""
+    """A description that has several columns."""
 
     x = tables.Int32Col(shape=2, dflt=0, pos=0)
     y = tables.Float64Col(dflt=1.2, shape=(2, 3))

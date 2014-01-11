@@ -1,5 +1,5 @@
-"""This program shows the different protections that PyTables offer to
-the user in order to insure a correct data injection in tables.
+"""This program shows the different protections that PyTables offer to the user
+in order to insure a correct data injection in tables.
 
 Example to be used in the second tutorial in the User's Guide.
 
