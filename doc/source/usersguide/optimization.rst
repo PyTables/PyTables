@@ -902,7 +902,7 @@ by using the :meth:`Table.append` method and building your own buffers [4]_.
 As an example, imagine that you have a small script that reads and selects
 data over a series of datasets, like this::
 
-    def readFile(filename):
+    def read_file(filename):
         "Select data from all the tables in filename"
         fileh = open_file(filename, mode = "r")
         result = []
@@ -912,15 +912,15 @@ data over a series of datasets, like this::
         return result
 
     if __name__=="__main__":
-        print readFile("myfile.h5")
+        print(read_file("myfile.h5"))
 
 In order to accelerate this piece of code, you can rewrite your main program
 to look like::
 
     if __name__=="__main__":
         import psyco
-        psyco.bind(readFile)
-        print readFile("myfile.h5")
+        psyco.bind(read_file)
+        print(read_file("myfile.h5"))
 
 That's all!  From now on, each time that you execute your Python script,
 Psyco will deploy its sophisticated algorithms so as to accelerate your

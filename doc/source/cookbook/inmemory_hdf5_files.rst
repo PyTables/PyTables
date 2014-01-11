@@ -84,7 +84,7 @@ memory and contents can be actually modified by the user::
     >>> h5file.create_array(h5file.root, "new_array", numpy.arange(20),
                             title="New array")
     >>> array2 = h5file.root.array2
-    >>> print array2
+    >>> print(array2)
     /array2 (Array(20,)) 'New array'
     >>> h5file.close()
 
@@ -123,7 +123,7 @@ new HDF55 file descriptor::
     >>> import tables
     >>> h5file = tables.open_file("in-memory-sample.h5", driver="H5DF_CORE",
                                   driver_core_backing_store=0)
-    >>> print h5file.root.array
+    >>> print(h5file.root.array)
     /array (Array(300, 300)) 'Array'
     >>> h5file.setNodeAttr(h5file.root, "description", "In memory file example")
 

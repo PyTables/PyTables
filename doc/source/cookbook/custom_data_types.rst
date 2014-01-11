@@ -18,6 +18,7 @@ http://sourceforge.net/mailarchive/message.php?msg_id=200805250042.50653.pgmdevl
 
 ::
 
+    from __future__ import print_function
     import numpy as np
     import numpy.ma as ma
 
@@ -82,12 +83,12 @@ http://sourceforge.net/mailarchive/message.php?msg_id=200805250042.50653.pgmdevl
         mtab = h5file.createMaskedTable('/','random',x)
 
         h5file.flush()
-        print type(mtab)
-        print mtab.read()
+        print(type(mtab))
+        print(mtab.read())
         h5file.close()
         h5file = tables.openFile('tester.hdf5','r')
         mtab = h5file.root.random
 
-        print type(mtab)
-        print mtab.read()
+        print(type(mtab))
+        print(mtab.read())
 
