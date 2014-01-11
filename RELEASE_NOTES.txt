@@ -46,6 +46,8 @@ Improvements
   is detected (see also `Issues with H5T_NATIVE_LDOUBLE`_).
   See also :issue:`275`, :issue:`290` and :issue:`300`.
 - Improved compatibility with numpy_ >= 1.8 (see :issue:`259`)
+- The code of the benchmark programs (bench directory) has been updated.
+  Closes :issue:`114`.
 
 Bugs fixed
 ----------
