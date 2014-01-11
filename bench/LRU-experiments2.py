@@ -14,7 +14,7 @@ NOBJS = 1000
 def create_junk():
     fileh = tables.open_file(filename, mode="w")
     for i in range(NOBJS):
-        table = fileh.create_array(fileh.root, 'array' + str(i), [1])
+        fileh.create_array(fileh.root, 'array' + str(i), [1])
     fileh.close()
 
 
@@ -37,9 +37,9 @@ def modify_junk_LRU2():
     for j in range(5):
         t1 = time()
         for i in range(100):  # The number
-#              print "table-->", tt._v_name
+            #print("table-->", tt._v_name)
             tt = getattr(group, "array" + str(i))
-#                 d = tt.read()
+            #d = tt.read()
         print("iter and time -->", j + 1, round(time() - t1, 3))
     fileh.close()
 

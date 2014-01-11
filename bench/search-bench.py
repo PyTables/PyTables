@@ -115,7 +115,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     rowswritten += nrows
     time1 = time.time() - t1
     tcpu1 = time.clock() - cpu1
-    print("Time for filling:", round(time1, 3),\
+    print("Time for filling:", round(time1, 3),
           "Krows/s:", round(nrows / 1000. / time1, 3), end=' ')
     fileh.close()
     size1 = os.stat(filename)[6]
@@ -134,7 +134,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
             table.colinstances[colname].create_index(filters=filters)
         time2 = time.time() - t1
         tcpu2 = time.clock() - cpu1
-        print("Time for indexing:", round(time2, 3), \
+        print("Time for indexing:", round(time2, 3),
               "iKrows/s:", round(indexrows / 1000. / time2, 3), end=' ')
     else:
         indexrows = 0
@@ -184,19 +184,20 @@ def benchCreate(file, nrows, filters, index, bfile, heavy,
     cpuapprows = round(tcpu1, 3)
     tpercent = int(round(cpuapprows / tapprows, 2) * 100)
     print("Rows written:", rowsw, " Row size:", rowsz)
-    print("Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+    print("Time writing rows: %s s (real) %s s (cpu)  %s%%" %
           (tapprows, cpuapprows, tpercent))
     rowsecf = rowsw / tapprows
     table.row["rowsecf"] = rowsecf
     # print "Write rows/sec: ", rowsecf
-    print("Total file size:", round((size1 + size2) / (1024. * 1024.), 3), "MB", end=' ')
+    print("Total file size:",
+          round((size1 + size2) / (1024. * 1024.), 3), "MB", end=' ')
     print(", Write KB/s (pure data):", int(rowsw * rowsz / (tapprows * 1024)))
     # print "Write KB/s :", int((size1+size2) / ((time1+time2) * 1024))
     tidxrows = time2
     cpuidxrows = round(tcpu2, 3)
     tpercent = int(round(cpuidxrows / tidxrows, 2) * 100)
     print("Rows indexed:", irows, " (IMRows):", irows / float(10 ** 6))
-    print("Time indexing rows: %s s (real) %s s (cpu)  %s%%" % \
+    print("Time indexing rows: %s s (real) %s s (cpu)  %s%%" %
           (round(tidxrows, 3), cpuidxrows, tpercent))
     rowseci = irows / tidxrows
     table.row["rowseci"] = rowseci
@@ -359,10 +360,10 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
         if atom == "string":  # just to print once
             print("Rows read:", rowsr, "Mread:", round(tMrows, 6), "Mrows")
         print("Rows selected:", rowsel, "Ksel:", round(sKrows, 6), "Krows")
-        print("Time selecting (1st time): %s s (real) %s s (cpu)  %s%%" % \
+        print("Time selecting (1st time): %s s (real) %s s (cpu)  %s%%" %
               (treadrows, cpureadrows, tpercent))
         if riter > 1:
-            print("Time selecting (cached): %s s (real) %s s (cpu)  %s%%" % \
+            print("Time selecting (cached): %s s (real) %s s (cpu)  %s%%" %
                   (treadrows2, cpureadrows2, tpercent2))
         #rowsec1 = round(rowsr / float(treadrows), 6)/10**6
         rowsec1 = rowsr / treadrows
@@ -380,6 +381,7 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
         table.flush()
     # Close the benchmark file
     bf.close()
+
 
 if __name__ == "__main__":
     import getopt

@@ -151,7 +151,7 @@ def readFile(filename, ngroups, recsize, verbose):
                         assert row["ntable"] == ntable
                         assert row["nrow"] == nrow
                     except:
-                        print("Error in group: %d, table: %d, row: %d" % \
+                        print("Error in group: %d, table: %d, row: %d" %
                               (ngroup, ntable, nrow))
                         print("Record ==>", row)
                     nrow += 1
@@ -229,7 +229,8 @@ def dump_refs(preheat=10, iter1=10, iter2=10, *testargs):
     gc.collect()
     rc2 = sys.gettotalrefcount()
     track.update()
-    print("Inc refs in function testMethod --> %5d" % (rc2 - rc1), file=sys.stderr)
+    print("Inc refs in function testMethod --> %5d" % (rc2 - rc1),
+          file=sys.stderr)
     for i in range(iter2):
         testMethod(*testargs)
         track.update(verbose=1)
@@ -237,7 +238,8 @@ def dump_refs(preheat=10, iter1=10, iter2=10, *testargs):
     gc.collect()
     rc3 = sys.gettotalrefcount()
 
-    print("Inc refs in function testMethod --> %5d" % (rc3 - rc2), file=sys.stderr)
+    print("Inc refs in function testMethod --> %5d" % (rc3 - rc2),
+          file=sys.stderr)
 
 
 def dump_garbage():
@@ -275,7 +277,7 @@ def testMethod(file, usearray, testwrite, testread, complib, complevel,
         cpuapprows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpuapprows / tapprows, 2) * 100)
         print("Rows written:", rowsw, " Row size:", rowsz)
-        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" %
               (tapprows, cpuapprows, tpercent))
         print("Write rows/sec: ", int(rowsw / float(tapprows)))
         print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
@@ -294,7 +296,7 @@ def testMethod(file, usearray, testwrite, testread, complib, complevel,
         cpureadrows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpureadrows / treadrows, 2) * 100)
         print("Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz)
-        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" %
               (treadrows, cpureadrows, tpercent))
         print("Read rows/sec: ", int(rowsr / float(treadrows)))
         print("Read KB/s :", int(rowsr * rowsz / (treadrows * 1024)))

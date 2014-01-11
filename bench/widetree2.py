@@ -90,7 +90,7 @@ class WideTreeTestCase(unittest.TestCase):
                         assert row["ntable"] == ntable
                         assert row["nrow"] == nrow
                     except:
-                        print("Error in group: %d, table: %d, row: %d" % \
+                        print("Error in group: %d, table: %d, row: %d" %
                               (ngroup, ntable, nrow))
                         print("Record ==>", row)
                     nrow += 1

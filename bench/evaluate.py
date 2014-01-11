@@ -4,10 +4,8 @@ from time import time
 
 import numpy as np
 import tables as tb
-#import tables.numexpr as ne
-from tables.numexpr.necompiler import (
+from numexpr.necompiler import (
     getContext, getExprNames, getType, NumExpr)
-from tables.utilsextension import lrange
 
 
 shape = (1000, 160000)
@@ -37,7 +35,7 @@ def _compute(result, function, arguments,
         (start, stop, step) = (0, len(arg0), 1)
         nrowsinbuf = len(arg0)
     shape = list(arg0.shape)
-    shape[maindim] = lrange(start, stop, step).length
+    shape[maindim] = len(range(start, stop, step))
 
     # The slices parameter for arg0.__getitem__
     slices = [slice(0, dim, 1) for dim in arg0.shape]
@@ -49,7 +47,7 @@ def _compute(result, function, arguments,
             arg._v_convert = False
 
     # Start the computation itself
-    for start2 in lrange(start, stop, step * nrowsinbuf):
+    for start2 in range(start, stop, step * nrowsinbuf):
         # Save the records on disk
         stop2 = start2 + step * nrowsinbuf
         if stop2 > stop:

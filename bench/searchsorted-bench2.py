@@ -99,7 +99,7 @@ def readFile(filename, atom, niter, verbose):
     if atom == "string":
         for i in range(niter):
             #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
-#             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
+            #results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
             results = [p["var1"]  # p.nrow()
                        for p in table(where=table.cols.var1 == "1111")]
 #                      for p in table(where="1000"<=table.cols.var1<="1010")]
@@ -112,7 +112,7 @@ def readFile(filename, atom, niter, verbose):
     elif atom == "int":
         for i in range(niter):
             #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
-#             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
+            #results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
             results = [p["var2"]  # p.nrow()
                        #                        for p in table(where=110*i<=table.cols.var2<110*(i+1))]
                        # for p in table(where=1000-30<table.cols.var2<1000+60)]
@@ -306,7 +306,7 @@ if __name__ == "__main__":
         cpuapprows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpuapprows / tapprows, 2) * 100)
         print("Rows written:", rowsw, " Row size:", rowsz)
-        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" %
               (tapprows, cpuapprows, tpercent))
         print("Write rows/sec: ", int(rowsw / float(tapprows)))
         print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
@@ -331,7 +331,7 @@ if __name__ == "__main__":
         sKrows = rowsel / 1000.
         print("Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows")
         print("Rows selected:", rowsel, "Ksel:", round(sKrows, 3), "Krows")
-        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" %
               (treadrows, cpureadrows, tpercent))
         print("Read Mrows/sec: ", round(tMrows / float(treadrows), 3))
         # print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))

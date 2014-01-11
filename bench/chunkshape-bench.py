@@ -33,7 +33,8 @@ for i in rows_to_read:
     r1 = a[i, :]
 tr1 = round(time() - t1, 3)
 thr1 = round(dim2 * len(rows_to_read) * 8 / (tr1 * 1024 * 1024), 1)
-print("Time to read ten rows in original array: %s sec (%s MB/s)" % (tr1, thr1))
+print("Time to read ten rows in original array: %s sec (%s MB/s)" % (tr1,
+                                                                     thr1))
 
 print("=" * 32)
 # Copy the array to another with a row-wise chunkshape
@@ -52,7 +53,8 @@ for i in rows_to_read:
     r2 = b[i, :]
 tr2 = round(time() - t1, 3)
 thr2 = round(dim2 * len(rows_to_read) * 8 / (tr2 * 1024 * 1024), 1)
-print("Time to read with a row-wise chunkshape: %s sec (%s MB/s)" % (tr2, thr2))
+print("Time to read with a row-wise chunkshape: %s sec (%s MB/s)" % (tr2,
+                                                                     thr2))
 print("=" * 32)
 print("Speed-up with a row-wise chunkshape:", round(tr1 / tr2, 1))
 

@@ -2,14 +2,12 @@ from __future__ import print_function
 import os
 from time import time
 import random
-import numarray
-from numarray import random_array
-from numarray import records
+import numpy as np
 import tables
 
 # in order to always generate the same random sequence
 random.seed(19)
-random_array.seed(19, 20)
+np.random.seed((19, 20))
 
 
 def open_db(filename, remove=0):
@@ -39,12 +37,12 @@ def create_db(filename, nrows):
         stop = (j + 1) * step
         if stop > nrows:
             stop = nrows
-        arr_f8 = numarray.arange(i, stop, type=numarray.Float64)
-        arr_i4 = numarray.arange(i, stop, type=numarray.Int32)
+        arr_f8 = np.arange(i, stop, type=np.Float64)
+        arr_i4 = np.arange(i, stop, type=np.Int32)
         if userandom:
-            arr_f8 += random_array.normal(0, stop * scale, shape=[stop - i])
-            arr_i4 = numarray.array(arr_f8, type=numarray.Int32)
-        recarr = records.fromarrays([arr_i4, arr_i4, arr_f8, arr_f8])
+            arr_f8 += np.random.normal(0, stop * scale, shape=[stop - i])
+            arr_i4 = np.array(arr_f8, type=np.Int32)
+        recarr = np.rec.fromarrays([arr_i4, arr_i4, arr_f8, arr_f8])
         table.append(recarr)
         j += 1
     table.flush()

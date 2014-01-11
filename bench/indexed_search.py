@@ -94,13 +94,13 @@ class DB(object):
         if verbose:
             print("Times for cold cache:\n", ctimes)
             # print "Times for warm cache:\n", wtimes
-            print("Histogram for warm cache: %s\n%s" % \
+            print("Histogram for warm cache: %s\n%s" %
                   numpy.histogram(wtimes))
-        print("%s1st query time for %s:" % (r, colname), \
+        print("%s1st query time for %s:" % (r, colname),
               round(qtime1, prec))
-        print("%sQuery time for %s (cold cache):" % (r, colname), \
+        print("%sQuery time for %s (cold cache):" % (r, colname),
               round(cmean, prec), "+-", round(cstd, prec))
-        print("%sQuery time for %s (warm cache):" % (r, colname), \
+        print("%sQuery time for %s (warm cache):" % (r, colname),
               round(wmean, prec), "+-", round(wstd, prec))
 
     def print_db_sizes(self, init, filled, indexed):

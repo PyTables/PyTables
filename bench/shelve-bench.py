@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 from tables import *
-import numarray as NA
+import numpy as NA
 import struct
 import sys
 import shelve
@@ -38,7 +38,7 @@ class Medium(IsDescription):
     grid_i = Int32Col()             # integer
     grid_j = Int32Col()             # integer
     pressure = Float32Col()         # float  (single-precision)
-    energy = Flaot64Col()           # double (double-precision)
+    energy = Float64Col()           # double (double-precision)
 
 # Define a user record to characterize some kind of particles
 

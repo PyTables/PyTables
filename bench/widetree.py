@@ -29,8 +29,7 @@ class WideTreeTestCase(unittest.TestCase):
         maxchilds = 1000
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test00_wideTree..." % \
-                  self.__class__.__name__)
+            print("Running %s.test00_wideTree..." % self.__class__.__name__)
             print("Maximum number of childs tested :", maxchilds)
         # Open a new empty HDF5 file
         #file = tempfile.mktemp(".h5")
@@ -79,8 +78,7 @@ class WideTreeTestCase(unittest.TestCase):
         maxchilds = 1000
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test00_wideTree..." % \
-                  self.__class__.__name__)
+            print("Running %s.test00_wideTree..." % self.__class__.__name__)
             print("Maximum number of childs tested :", maxchilds)
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
@@ -102,7 +100,7 @@ class WideTreeTestCase(unittest.TestCase):
         t1 = time.time()
         # Open the previous HDF5 file in read-only mode
         fileh = open_file(file, mode="r")
-        print("\nTime spent opening a file with %d groups: %s s" % \
+        print("\nTime spent opening a file with %d groups: %s s" %
               (maxchilds, time.time() - t1))
         # Close the file
         fileh.close()

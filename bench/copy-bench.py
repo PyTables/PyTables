@@ -27,7 +27,7 @@ for group in filehsrc.walk_groups():
 tsizeMB = tsize / (1024 * 1024)
 ttime = round(time.time() - t1, 3)
 speed = round(tsizeMB / ttime, 2)
-print("Copied %s tables for a total of %s MB in %s seconds (%s MB/s)" % \
+print("Copied %s tables for a total of %s MB in %s seconds (%s MB/s)" %
       (ntables, tsizeMB, ttime, speed))
 filehsrc.close()
 filehdest.close()

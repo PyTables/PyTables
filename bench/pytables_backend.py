@@ -2,7 +2,6 @@ from __future__ import print_function
 import os
 import tables
 from indexed_search import DB
-from time import time
 
 
 class PyTables_DB(DB):
@@ -46,8 +45,8 @@ class PyTables_DB(DB):
             col3 = tables.Float64Col()
             col4 = tables.Float64Col()
 
-        table = con.create_table(con.root, 'table', Record,
-                                 filters=self.filters, expectedrows=self.nrows)
+        con.create_table(con.root, 'table', Record,
+                         filters=self.filters, expectedrows=self.nrows)
 
     def fill_table(self, con):
         "Fills the table"
@@ -163,10 +162,12 @@ class PyTables_DB(DB):
 #                       if (self.rng[0]+base <= r[column] <= self.rng[1]+base)]
 #             results = table.read_coordinates(coords)
             print("Performing regular query")
-            results = [r[column] for r in table if
-                       (((inf2 <= r['col4']) and (r['col4'] < sup2)) or
-                        ((inf1 < r['col2']) and (r['col2'] < sup1)) and
-                        ((r['col1'] + 3.1 * r['col2'] + r['col3'] * r['col4']) > 3))]
+            results = [
+                r[column] for r in table if ((
+                    (inf2 <= r['col4']) and (r['col4'] < sup2)) or
+                    ((inf1 < r['col2']) and (r['col2'] < sup1)) and
+                    ((r['col1'] + 3.1 * r['col2'] + r['col3'] * r['col4']) > 3)
+                )]
 
         ncoords = len(results)
 

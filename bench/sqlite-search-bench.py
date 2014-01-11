@@ -8,16 +8,14 @@ import sys
 import os
 import os.path
 from tables import *
-import numarray
-from numarray import strings
-from numarray import random_array
+import numpy as np
 
 randomvalues = 0
 standarddeviation = 10000
 # Initialize the random generator always with the same integer
 # in order to have reproductible results
 random.seed(19)
-random_array.seed(19, 20)
+np.random.seed((19, 20))
 
 # defaults
 psycon = 0
@@ -136,13 +134,13 @@ CREATE INDEX ivar3 ON small(var3);
             else:
                 j = i + nrowsbuf
             if randomvalues:
-                var3 = random_array.uniform(minimum, maximum, shape=[j - i])
+                var3 = np.random.uniform(minimum, maximum, shape=[j - i])
             else:
-                var3 = numarray.arange(i, j, type=numarray.Float64)
+                var3 = np.arange(i, j, type=np.Float64)
                 if noise:
-                    var3 += random_array.uniform(-3, 3, shape=[j - i])
-            var2 = numarray.array(var3, type=numarray.Int32)
-            var1 = strings.array(None, shape=[j - i], itemsize=4)
+                    var3 += np.random.uniform(-3, 3, shape=[j - i])
+            var2 = np.array(var3, type=np.Int32)
+            var1 = np.array(None, shape=[j - i], dtype='s4')
             if not heavy:
                 for n in range(j - i):
                     var1[n] = str("%.4s" % var2[n])

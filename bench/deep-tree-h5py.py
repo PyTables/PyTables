@@ -43,7 +43,7 @@ def populate(f, nlevels):
     for i in range(nlevels):
         g["DS1"] = arr
         g["DS2"] = arr
-        group2 = g.create_group('group2_')
+        g.create_group('group2_')
         g = g.create_group('group')
 
 
@@ -55,7 +55,7 @@ def getnode(f, nlevels, niter, range_):
         for i in range(nlevel):
             groupname += "/group"
         groupname += "/DS1"
-        n = f[groupname]
+        f[groupname]
 
 
 if __name__ == '__main__':

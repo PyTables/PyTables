@@ -2,7 +2,7 @@ from __future__ import print_function
 import os
 import sys
 import time
-import numarray as num
+import numpy as np
 import chararray
 import recarray
 import recarray2  # This is my modified version
@@ -20,9 +20,9 @@ except:
 delta = 0.000001
 
 # Creation of recarrays objects for test
-x1 = num.array(num.arange(reclen))
+x1 = np.array(np.arange(reclen))
 x2 = chararray.array(None, itemsize=7, shape=reclen)
-x3 = num.array(num.arange(reclen, reclen * 3, 2), num.Float64)
+x3 = np.array(np.arange(reclen, reclen * 3, 2), np.Float64)
 r1 = recarray.fromarrays([x1, x2, x3], names='a,b,c')
 r2 = recarray2.fromarrays([x1, x2, x3], names='a,b,c')
 
@@ -49,7 +49,8 @@ for row in range(reclen):
     rec.c = float(row ** 2)  # Change the "c" field
 t2 = time.clock()
 ttime = round(t2 - t1, 3)
-print("Assign time:", ttime, " Rows/s:", int(reclen / (ttime + delta)), end=' ')
+print("Assign time:", ttime, " Rows/s:", int(reclen / (ttime + delta)),
+      end=' ')
 print(" Speed-up:", round(origtime / ttime, 3))
 # print "Field b on row 2 after re-assign:", r2.field("c")[2]
 print()
@@ -75,7 +76,8 @@ for row in range(reclen):
         print("This record pass the cut ==>", rec.c, "(row", row, ")")
 t2 = time.clock()
 ttime = round(t2 - t1, 3)
-print("Select time:", ttime, " Rows/s:", int(reclen / (ttime + delta)), end=' ')
+print("Select time:", ttime, " Rows/s:", int(reclen / (ttime + delta)),
+      end=' ')
 print(" Speed-up:", round(origtime / ttime, 3))
 print()
 

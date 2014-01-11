@@ -18,7 +18,7 @@ class Test(IsDescription):
     ngroup = Int32Col(pos=1)
     ntable = Int32Col(pos=2)
     nrow = Int32Col(pos=3)
-    string = StringCol(length=500, pos=4)
+    string = StringCol(500, pos=4)
 
 
 def createFileArr(filename, ngroups, ntables, nrows):
@@ -134,7 +134,7 @@ def readFile(filename, ngroups, recsize, verbose):
                     assert row["ntable"] == ntable
                     assert row["nrow"] == nrow
                 except:
-                    print("Error in group: %d, table: %d, row: %d" % \
+                    print("Error in group: %d, table: %d, row: %d" %
                           (ngroup, ntable, nrow))
                     print("Record ==>", row)
                 nrow += 1
@@ -259,7 +259,7 @@ if __name__ == "__main__":
         cpuapprows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpuapprows / tapprows, 2) * 100)
         print("Rows written:", rowsw, " Row size:", rowsz)
-        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" %
               (tapprows, cpuapprows, tpercent))
         print("Write rows/sec: ", int(rowsw / float(tapprows)))
         print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
@@ -280,7 +280,7 @@ if __name__ == "__main__":
         cpureadrows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpureadrows / treadrows, 2) * 100)
         print("Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz)
-        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" %
               (treadrows, cpureadrows, tpercent))
         print("Read rows/sec: ", int(rowsr / float(treadrows)))
         print("Read KB/s :", int(rowsr * rowsz / (treadrows * 1024)))

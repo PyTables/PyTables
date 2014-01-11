@@ -46,7 +46,8 @@ def print_filesize(filename, clib=None, clevel=0):
     else:
         filesize_bytes = os.stat(filename)[6]
     filesize_MB = round(filesize_bytes / MB, 1)
-    print("\t\tTotal file sizes: %d -- (%s MB)" % (filesize_bytes, filesize_MB), end=' ')
+    print("\t\tTotal file sizes: %d -- (%s MB)" % (
+        filesize_bytes, filesize_MB), end=' ')
     if clevel > 0:
         print("(using %s lvl%s)" % (clib, clevel))
     else:
@@ -144,7 +145,8 @@ if __name__ == '__main__':
 
     tb.print_versions()
 
-    print("Total size for datasets:", round(2 * N * dtype.itemsize / MB, 1), "MB")
+    print("Total size for datasets:",
+          round(2 * N * dtype.itemsize / MB, 1), "MB")
 
     # Get the compression libraries supported
     # supported_clibs = [clib for clib in ("zlib", "lzo", "bzip2", "blosc")
@@ -171,7 +173,8 @@ if __name__ == '__main__':
         print("Computing: '%s' using %s" % (expr, what))
         t0 = time()
         compute()
-        print("**************** Time elapsed computing:", round(time() - t0, 3))
+        print("**************** Time elapsed computing:",
+              round(time() - t0, 3))
 
     for what in ["tables.Expr"]:
         t0 = time()
@@ -188,6 +191,6 @@ if __name__ == '__main__':
                 print("Computing: '%s' using %s" % (expr, what))
                 t0 = time()
                 compute_tables(clib, clevel)
-                print("**************** Time elapsed computing:", \
+                print("**************** Time elapsed computing:",
                       round(time() - t0, 3))
                 first = False

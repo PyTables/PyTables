@@ -37,7 +37,7 @@ def iternodes():
     g = f.get_node("/", "NodeContainer")
     for i in indices:
         a = f.get_node(g, "arr%d" % i)
-        # print "a-->", a
+        # print("a-->", a)
 
 print("reading nodes...")
 # First iteration (put in LRU cache)

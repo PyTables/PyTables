@@ -63,10 +63,10 @@ def modify_junk_LRU2():
     for j in range(20):
         t1 = time()
         for i in range(100):
-#              print "table-->", tt._v_name
+            #print("table-->", tt._v_name)
             tt = getattr(group, "table" + str(i))
-#             for row in tt:
-#                 pass
+            #for row in tt:
+            #    pass
         print("iter and time -->", j + 1, round(time() - t1, 3))
     fileh.close()
 
@@ -77,7 +77,7 @@ def modify_junk_LRU3():
     for j in range(3):
         t1 = time()
         for tt in fileh.walk_nodes(group, "Table"):
-            title = tt.attrs.TITLE
+            tt.attrs.TITLE
             for row in tt:
                 pass
         print("iter and time -->", j + 1, round(time() - t1, 3))

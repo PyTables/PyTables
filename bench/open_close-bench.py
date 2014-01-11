@@ -46,7 +46,8 @@ def show_stats(explain, tref):
 
 def check_open_close():
     for i in range(niter):
-        print("------------------ open_close #%s -------------------------" % i)
+        print(
+            "------------------ open_close #%s -------------------------" % i)
         tref = time.time()
         fileh = tables.open_file(filename)
         fileh.close()

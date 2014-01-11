@@ -10,7 +10,7 @@ import struct
 import cPickle
 
 from tables import *
-import numarray as NA
+import numpy as np
 
 try:
     # For Python 2.3
@@ -55,8 +55,8 @@ class Medium(IsDescription):
 
 class Big(IsDescription):
     name = StringCol(itemsize=16)   # 16-character String
-    #float1 = Float64Col(shape=32, dflt=NA.arange(32))
-    #float2 = Float64Col(shape=32, dflt=NA.arange(32))
+    #float1 = Float64Col(shape=32, dflt=np.arange(32))
+    #float2 = Float64Col(shape=32, dflt=np.arange(32))
     float1 = Float64Col(shape=32, dflt=range(32))
     float2 = Float64Col(shape=32, dflt=[2.2] * 32)
     ADCcount = Int16Col()           # signed short integer
@@ -83,11 +83,11 @@ def createFile(filename, totalrows, recsize, verbose):
     # Get the record object associated with the new table
     if recsize == "big":
         isrec = Big()
-        arr = NA.array(NA.arange(32), type=NA.Float64)
-        arr2 = NA.array(NA.arange(32), type=NA.Float64)
+        arr = np.array(np.arange(32), type=np.Float64)
+        arr2 = np.array(np.arange(32), type=np.Float64)
     elif recsize == "medium":
         isrec = Medium()
-        arr = NA.array(NA.arange(2), type=NA.Float64)
+        arr = np.array(np.arange(2), type=np.Float64)
     else:
         isrec = Small()
     # print d
@@ -107,8 +107,8 @@ def createFile(filename, totalrows, recsize, verbose):
             #d['TDCcount'] = i % 256
             d['ADCcount'] = (i * 256) % (1 << 16)
             if recsize == "big":
-                #d.float1 = NA.array([i]*32, NA.Float64)
-                #d.float2 = NA.array([i**2]*32, NA.Float64)
+                #d.float1 = np.array([i]*32, np.Float64)
+                #d.float2 = np.array([i**2]*32, np.Float64)
                 arr[0] = 1.1
                 d['float1'] = arr
                 arr2[0] = 2.2

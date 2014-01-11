@@ -69,7 +69,8 @@ def tables(docompute, dowrite, complib, verbose):
             print("First ten values:", r1[0, :10])
         f.close()
         fr.close()
-        print("[tables.Expr] Time for computing & save:", round(time() - t0, 3))
+        print("[tables.Expr] Time for computing & save:",
+              round(time() - t0, 3))
 
 
 def memmap(docompute, dowrite, verbose):
@@ -89,7 +90,8 @@ def memmap(docompute, dowrite, verbose):
             a[i] = row * (i + 1)
             b[i] = row * (i + 1) * 2
         del a, b  # flush data
-        print("[numpy.memmap] Time for creating inputs:", round(time() - t0, 3))
+        print("[numpy.memmap] Time for creating inputs:",
+              round(time() - t0, 3))
 
     if docompute:
         t0 = time()

@@ -84,10 +84,10 @@ class DB(object):
         filters = tables.Filters(complevel=self.docompress,
                                  complib=self.complib)
         atom = tables.Atom.from_kind(self.dtype)
-        earray = self.con.create_earray(self.con.root, 'earray', atom, (0,),
-                                        filters=filters,
-                                        expectedrows=self.nrows,
-                                        chunkshape=(self.chunksize,))
+        self.con.create_earray(self.con.root, 'earray', atom, (0,),
+                               filters=filters,
+                               expectedrows=self.nrows,
+                               chunkshape=(self.chunksize,))
 
     def fill_array(self):
         "Fills the array"
@@ -133,11 +133,11 @@ class DB(object):
         else:
             rseed = 19
         numpy.random.seed(rseed)
-        base = numpy.random.randint(self.nrows)
+        numpy.random.randint(self.nrows)
         ltimes = []
         for i in range(niter):
             t1 = time()
-            results = self.do_query(earray, numpy.random.randint(self.nrows))
+            self.do_query(earray, numpy.random.randint(self.nrows))
             ltimes.append(time() - t1)
         self.print_qtime(ltimes)
         self.close_db()
