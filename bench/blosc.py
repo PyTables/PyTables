@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 from time import time
@@ -124,7 +125,7 @@ def process_file(kind, prec, clevel, synth):
         a2, b2 = a_[:], b_[:]
         t0 = time()
         r = eval(expression, {'a': a2, 'b': b2})
-        print "%5.2f" % round(time() - t0, 3)
+        print("%5.2f" % round(time() - t0, 3))
     else:
         expr = tb.Expr(expression, {'a': a_, 'b': b_})
         expr.set_output(r)
@@ -144,7 +145,7 @@ if __name__ == '__main__':
         else:
             synth = False
     else:
-        print "3 parameters required"
+        print("3 parameters required")
         sys.exit(1)
 
     # print "kind, precision, synth:", kind, prec, synth
@@ -161,4 +162,4 @@ if __name__ == '__main__':
             ts.append(time() - t0)
             t0 = time()
         ratio = size_orig / size
-        print "%5.2f, %5.2f" % (round(min(ts), 3), ratio)
+        print("%5.2f, %5.2f" % (round(min(ts), 3), ratio))

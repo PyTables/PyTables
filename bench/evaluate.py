@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 from time import time
 
@@ -30,7 +31,7 @@ def _compute(result, function, arguments,
         maindim = arg0.maindim
         (start, stop, step) = arg0._process_range_read(start, stop, step)
         nrowsinbuf = arg0.nrowsinbuf
-        print "nrowsinbuf-->", nrowsinbuf
+        print("nrowsinbuf-->", nrowsinbuf)
     else:
         maindim = 0
         (start, stop, step) = (0, len(arg0), 1)
@@ -104,11 +105,11 @@ def evaluate(ex, out=None, local_dict=None, global_dict=None, **kwargs):
 
     # Create a signature
     signature = [(name, getType(type_)) for (name, type_) in zip(names, types)]
-    print "signature-->", signature
+    print("signature-->", signature)
 
     # Compile the expression
     compiled_ex = NumExpr(ex, signature, [], **kwargs)
-    print "fullsig-->", compiled_ex.fullsig
+    print("fullsig-->", compiled_ex.fullsig)
 
     _compute(out, compiled_ex, arguments)
 
@@ -167,7 +168,7 @@ if __name__ == "__main__":
         ofile.close()
     else:
         evaluate("a*b+c", out)
-    print "Time for evaluate-->", round(time() - t0, 3)
+    print("Time for evaluate-->", round(time() - t0, 3))
 
     # print "out-->", `out`
     # print `out[:]`

@@ -6,6 +6,7 @@
 # Date: 2010-02-24
 #######################################################################
 
+from __future__ import print_function
 import os
 from time import time
 import numpy as np
@@ -45,11 +46,11 @@ def print_filesize(filename, clib=None, clevel=0):
     else:
         filesize_bytes = os.stat(filename)[6]
     filesize_MB = round(filesize_bytes / MB, 1)
-    print "\t\tTotal file sizes: %d -- (%s MB)" % (filesize_bytes, filesize_MB),
+    print("\t\tTotal file sizes: %d -- (%s MB)" % (filesize_bytes, filesize_MB), end=' ')
     if clevel > 0:
-        print "(using %s lvl%s)" % (clib, clevel)
+        print("(using %s lvl%s)" % (clib, clevel))
     else:
-        print
+        print()
 
 
 def populate_x_numpy():
@@ -65,7 +66,7 @@ def populate_x_memmap():
     x = np.memmap(mpfnames[0], dtype=dtype, mode="w+", shape=(N,))
 
     # Populate x in range [-1, 1]
-    for i in xrange(0, N, step):
+    for i in range(0, N, step):
         chunk = np.linspace((2 * i - N) / float(N),
                             (2 * (i + step) - N) / float(N), step)
         x[i:i + step] = chunk
@@ -85,7 +86,7 @@ def populate_x_tables(clib, clevel):
                         )
 
     # Populate x in range [-1, 1]
-    for i in xrange(0, N, step):
+    for i in range(0, N, step):
         chunk = np.linspace((2 * i - N) / float(N),
                             (2 * (i + step) - N) / float(N), step)
         x[i:i + step] = chunk
@@ -143,7 +144,7 @@ if __name__ == '__main__':
 
     tb.print_versions()
 
-    print "Total size for datasets:", round(2 * N * dtype.itemsize / MB, 1), "MB"
+    print("Total size for datasets:", round(2 * N * dtype.itemsize / MB, 1), "MB")
 
     # Get the compression libraries supported
     # supported_clibs = [clib for clib in ("zlib", "lzo", "bzip2", "blosc")
@@ -155,7 +156,7 @@ if __name__ == '__main__':
     # for what in ["numpy", "numpy.memmap", "numexpr"]:
     for what in ["numpy", "numexpr"]:
         # break
-        print "Populating x using %s with %d points..." % (what, N)
+        print("Populating x using %s with %d points..." % (what, N))
         t0 = time()
         if what == "numpy":
             populate_x_numpy()
@@ -166,11 +167,11 @@ if __name__ == '__main__':
         elif what == "numpy.memmap":
             populate_x_memmap()
             compute = compute_memmap
-        print "*** Time elapsed populating:", round(time() - t0, 3)
-        print "Computing: '%s' using %s" % (expr, what)
+        print("*** Time elapsed populating:", round(time() - t0, 3))
+        print("Computing: '%s' using %s" % (expr, what))
         t0 = time()
         compute()
-        print "**************** Time elapsed computing:", round(time() - t0, 3)
+        print("**************** Time elapsed computing:", round(time() - t0, 3))
 
     for what in ["tables.Expr"]:
         t0 = time()
@@ -181,12 +182,12 @@ if __name__ == '__main__':
             # for clevel in (1,):
                 if not first and clevel == 0:
                     continue
-                print "Populating x using %s with %d points..." % (what, N)
+                print("Populating x using %s with %d points..." % (what, N))
                 populate_x_tables(clib, clevel)
-                print "*** Time elapsed populating:", round(time() - t0, 3)
-                print "Computing: '%s' using %s" % (expr, what)
+                print("*** Time elapsed populating:", round(time() - t0, 3))
+                print("Computing: '%s' using %s" % (expr, what))
                 t0 = time()
                 compute_tables(clib, clevel)
-                print "**************** Time elapsed computing:", \
-                      round(time() - t0, 3)
+                print("**************** Time elapsed computing:", \
+                      round(time() - t0, 3))
                 first = False

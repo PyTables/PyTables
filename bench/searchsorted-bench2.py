@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import time
 from tables import *
 
@@ -64,7 +65,7 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
         else:
             raise ValueError("Index type not supported yet")
         if verbose:
-            print "Number of indexed rows:", indexrows
+            print("Number of indexed rows:", indexrows)
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
@@ -76,7 +77,7 @@ def readFile(filename, atom, niter, verbose):
 
     fileh = open_file(filename, mode="r")
     table = fileh.root.table
-    print "reading", table
+    print("reading", table)
     if atom == "string":
         idxcol = table.cols.var1.index
     elif atom == "bool":
@@ -86,17 +87,17 @@ def readFile(filename, atom, niter, verbose):
     else:
         idxcol = table.cols.var3.index
     if verbose:
-        print "Max rows in buf:", table.nrowsinbuf
-        print "Rows in", table._v_pathname, ":", table.nrows
-        print "Buffersize:", table.rowsize * table.nrowsinbuf
-        print "MaxTuples:", table.nrowsinbuf
-        print "Chunk size:", idxcol.sorted.chunksize
-        print "Number of elements per slice:", idxcol.nelemslice
-        print "Slice number in", table._v_pathname, ":", idxcol.nrows
+        print("Max rows in buf:", table.nrowsinbuf)
+        print("Rows in", table._v_pathname, ":", table.nrows)
+        print("Buffersize:", table.rowsize * table.nrowsinbuf)
+        print("MaxTuples:", table.nrowsinbuf)
+        print("Chunk size:", idxcol.sorted.chunksize)
+        print("Number of elements per slice:", idxcol.nelemslice)
+        print("Slice number in", table._v_pathname, ":", idxcol.nrows)
 
     rowselected = 0
     if atom == "string":
-        for i in xrange(niter):
+        for i in range(niter):
             #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
 #             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
             results = [p["var1"]  # p.nrow()
@@ -104,12 +105,12 @@ def readFile(filename, atom, niter, verbose):
 #                      for p in table(where="1000"<=table.cols.var1<="1010")]
             rowselected += len(results)
     elif atom == "bool":
-        for i in xrange(niter):
+        for i in range(niter):
             results = [p["var2"]  # p.nrow()
                        for p in table(where=table.cols.var4 == 0)]
             rowselected += len(results)
     elif atom == "int":
-        for i in xrange(niter):
+        for i in range(niter):
             #results = [table.row["var3"] for i in table(where=2+i<=table.cols.var2 < 10+i)]
 #             results = [table.row.nrow() for i in table(where=2<=table.cols.var2 < 10)]
             results = [p["var2"]  # p.nrow()
@@ -118,7 +119,7 @@ def readFile(filename, atom, niter, verbose):
                        for p in table(where=table.cols.var2 <= 400)]
             rowselected += len(results)
     elif atom == "float":
-        for i in xrange(niter):
+        for i in range(niter):
 #         results = [(table.row.nrow(), table.row["var3"])
 #                    for i in table(where=3<=table.cols.var3 < 5.)]
 #             results = [(p.nrow(), p["var3"])
@@ -136,8 +137,8 @@ def readFile(filename, atom, niter, verbose):
         else:
             raise ValueError("Unsuported atom value")
     if verbose and 1:
-        print "Values that fullfill the conditions:"
-        print results
+        print("Values that fullfill the conditions:")
+        print(results)
 
     rowsread = table.nrows * niter
     rowsize = table.rowsize
@@ -161,25 +162,25 @@ def searchFile(filename, atom, verbose, item):
         idxcol = table.cols.var3.index
     else:
         raise ValueError("Unsuported atom value")
-    print "Searching", table, "..."
+    print("Searching", table, "...")
     if verbose:
-        print "Chunk size:", idxcol.sorted.chunksize
-        print "Number of elements per slice:", idxcol.sorted.nelemslice
-        print "Slice number in", table._v_pathname, ":", idxcol.sorted.nrows
+        print("Chunk size:", idxcol.sorted.chunksize)
+        print("Number of elements per slice:", idxcol.sorted.nelemslice)
+        print("Slice number in", table._v_pathname, ":", idxcol.sorted.nrows)
 
     (positions, niter) = idxcol.search(item)
     if verbose:
-        print "Positions for item", item, "==>", positions
-        print "Total iterations in search:", niter
+        print("Positions for item", item, "==>", positions)
+        print("Total iterations in search:", niter)
 
     rowsread += table.nrows
     uncomprBytes += idxcol.sorted.chunksize * niter * idxcol.sorted.itemsize
 
     results = table.read(coords=positions)
-    print "results length:", len(results)
+    print("results length:", len(results))
     if verbose:
-        print "Values that fullfill the conditions:"
-        print results
+        print("Values that fullfill the conditions:")
+        print(results)
 
     # Close the file (eventually destroy the extended type)
     fileh.close()
@@ -288,11 +289,11 @@ if __name__ == "__main__":
     file = pargs[0]
 
     if testwrite:
-        print "Compression level:", complevel
+        print("Compression level:", complevel)
         if complevel > 0:
-            print "Compression library:", complib
+            print("Compression library:", complib)
             if shuffle:
-                print "Suffling..."
+                print("Suffling...")
         t1 = time.time()
         cpu1 = time.clock()
         if psyco_imported and usepsyco:
@@ -304,11 +305,11 @@ if __name__ == "__main__":
         tapprows = round(t2 - t1, 3)
         cpuapprows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpuapprows / tapprows, 2) * 100)
-        print "Rows written:", rowsw, " Row size:", rowsz
-        print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
-              (tapprows, cpuapprows, tpercent)
-        print "Write rows/sec: ", int(rowsw / float(tapprows))
-        print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
+        print("Rows written:", rowsw, " Row size:", rowsz)
+        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+              (tapprows, cpuapprows, tpercent))
+        print("Write rows/sec: ", int(rowsw / float(tapprows)))
+        print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
 
     if testread:
         if psyco_imported and usepsyco:
@@ -328,11 +329,11 @@ if __name__ == "__main__":
         tpercent = int(round(cpureadrows / treadrows, 2) * 100)
         tMrows = rowsr / (1000 * 1000.)
         sKrows = rowsel / 1000.
-        print "Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows"
-        print "Rows selected:", rowsel, "Ksel:", round(sKrows, 3), "Krows"
-        print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
-              (treadrows, cpureadrows, tpercent)
-        print "Read Mrows/sec: ", round(tMrows / float(treadrows), 3)
+        print("Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows")
+        print("Rows selected:", rowsel, "Ksel:", round(sKrows, 3), "Krows")
+        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+              (treadrows, cpureadrows, tpercent))
+        print("Read Mrows/sec: ", round(tMrows / float(treadrows), 3))
         # print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
 #       print "Uncompr MB :", int(uncomprB / (1024 * 1024))
 #       print "Uncompr MB/s :", int(uncomprB / (treadrows * 1024 * 1024))

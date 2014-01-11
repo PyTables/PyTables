@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # a stacked bar plot with errorbars
+
+from __future__ import print_function
 from pylab import *
 
 checks = ['open_close', 'only_open',
@@ -111,7 +113,7 @@ if __name__ == '__main__':
     n = 0
     for filename in filenames:
         values = get_values(filename)
-        print "Values-->", values
+        print("Values-->", values)
         bars.append(plot_bar(values, n))
         n += 1
     show_plot(bars, filenames, tit)

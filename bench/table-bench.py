@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import numpy as NP
 from tables import *
 
@@ -78,7 +79,7 @@ def createFile(filename, totalrows, filters, recsize):
         d = table.row
         # Fill the table
         if recsize == "big":
-            for i in xrange(totalrows):
+            for i in range(totalrows):
                 # d['name']  = 'Part: %6d' % (i)
                 d['TDCcount'] = i % 256
                 #d['float1'] = NP.array([i]*32, NP.float64)
@@ -94,7 +95,7 @@ def createFile(filename, totalrows, filters, recsize):
                 # d['idnumber'] = i * (2 ** 34)
                 d.append()
         elif recsize == "medium":
-            for i in xrange(totalrows):
+            for i in range(totalrows):
                 #d['name']  = 'Part: %6d' % (i)
                 #d['float1'] = NP.array([i]*2, NP.float64)
                 #d['float1'] = arr
@@ -108,7 +109,7 @@ def createFile(filename, totalrows, filters, recsize):
                 d['energy'] = d['pressure']
                 d.append()
         else:  # Small record
-            for i in xrange(totalrows):
+            for i in range(totalrows):
                 #d['var1'] = str(random.randrange(1000000))
                 #d['var3'] = random.randrange(10000000)
                 d['var1'] = str(i)
@@ -147,12 +148,12 @@ def readFile(filename, recsize, verbose):
         row = 0
         for table in fileh.list_nodes(groupobj, 'Table'):
             rowsize = table.rowsize
-            print "reading", table
+            print("reading", table)
             if verbose:
-                print "Max rows in buf:", table.nrowsinbuf
-                print "Rows in", table._v_pathname, ":", table.nrows
-                print "Buffersize:", table.rowsize * table.nrowsinbuf
-                print "MaxTuples:", table.nrowsinbuf
+                print("Max rows in buf:", table.nrowsinbuf)
+                print("Rows in", table._v_pathname, ":", table.nrows)
+                print("Buffersize:", table.rowsize * table.nrowsinbuf)
+                print("MaxTuples:", table.nrowsinbuf)
 
             if recsize == "big" or recsize == "medium":
                 # e = [ p.float1 for p in table.iterrows()
@@ -224,12 +225,12 @@ def readFile(filename, recsize, verbose):
                 #      pass
             if verbose:
                 # print "Last record read:", p
-                print "resulting selection list ==>", e
+                print("resulting selection list ==>", e)
 
             rowsread += table.nrows
             row += 1
             if verbose:
-                print "Total selected records ==> ", len(e)
+                print("Total selected records ==> ", len(e))
 
     # Close the file (eventually destroy the extended type)
     fileh.close()
@@ -249,19 +250,19 @@ def readField(filename, field, rng, verbose):
             rowsize = table.rowsize
             # table.nrowsinbuf = 3 # For testing purposes
             if verbose:
-                print "Max rows in buf:", table.nrowsinbuf
-                print "Rows in", table._v_pathname, ":", table.nrows
-                print "Buffersize:", table.rowsize * table.nrowsinbuf
-                print "MaxTuples:", table.nrowsinbuf
-                print "(field, start, stop, step) ==>", (field, rng[0], rng[1],
-                                                         rng[2])
+                print("Max rows in buf:", table.nrowsinbuf)
+                print("Rows in", table._v_pathname, ":", table.nrows)
+                print("Buffersize:", table.rowsize * table.nrowsinbuf)
+                print("MaxTuples:", table.nrowsinbuf)
+                print("(field, start, stop, step) ==>", (field, rng[0], rng[1],
+                                                         rng[2]))
 
             e = table.read(rng[0], rng[1], rng[2], field)
 
             rowsread += table.nrows
             if verbose:
-                print "Selected rows ==> ", e
-                print "Total selected rows ==> ", len(e)
+                print("Selected rows ==> ", e)
+                print("Total selected rows ==> ", len(e))
 
     # Close the file (eventually destroy the extended type)
     fileh.close()
@@ -360,16 +361,16 @@ if __name__ == "__main__":
     file = pargs[0]
 
     if verbose:
-        print "numpy version:", NP.__version__
+        print("numpy version:", NP.__version__)
         if psyco_imported and usepsyco:
-            print "Using psyco version:", psyco.version_info
+            print("Using psyco version:", psyco.version_info)
 
     if testwrite:
-        print "Compression level:", complevel
+        print("Compression level:", complevel)
         if complevel > 0:
-            print "Compression library:", complib
+            print("Compression library:", complib)
             if shuffle:
-                print "Suffling..."
+                print("Suffling...")
         t1 = time.time()
         cpu1 = time.clock()
         if psyco_imported and usepsyco:
@@ -392,11 +393,11 @@ if __name__ == "__main__":
         tapprows = round(t2 - t1, 3)
         cpuapprows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpuapprows / tapprows, 2) * 100)
-        print "Rows written:", rowsw, " Row size:", rowsz
-        print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
-              (tapprows, cpuapprows, tpercent)
-        print "Write rows/sec: ", int(rowsw / float(tapprows))
-        print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
+        print("Rows written:", rowsw, " Row size:", rowsz)
+        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+              (tapprows, cpuapprows, tpercent))
+        print("Write rows/sec: ", int(rowsw / float(tapprows)))
+        print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
 
     if testread:
         t1 = time.time()
@@ -416,8 +417,8 @@ if __name__ == "__main__":
         treadrows = round(t2 - t1, 3)
         cpureadrows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpureadrows / treadrows, 2) * 100)
-        print "Rows read:", rowsr, " Row size:", rowsz
-        print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
-              (treadrows, cpureadrows, tpercent)
-        print "Read rows/sec: ", int(rowsr / float(treadrows))
-        print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
+        print("Rows read:", rowsr, " Row size:", rowsz)
+        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+              (treadrows, cpureadrows, tpercent))
+        print("Read rows/sec: ", int(rowsr / float(treadrows)))
+        print("Read KB/s :", int(rowsr * rowsz / (treadrows * 1024)))

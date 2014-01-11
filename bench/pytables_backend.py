@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import tables
 from indexed_search import DB
@@ -24,7 +25,7 @@ class PyTables_DB(DB):
         self.filters = tables.Filters(complevel=self.docompress,
                                       complib=self.complib,
                                       shuffle=1)
-        print "Processing database:", self.filename
+        print("Processing database:", self.filename)
 
     def open_db(self, remove=0):
         if remove and os.path.exists(self.filename):
@@ -52,7 +53,7 @@ class PyTables_DB(DB):
         "Fills the table"
         table = con.root.table
         j = 0
-        for i in xrange(0, self.nrows, self.step):
+        for i in range(0, self.nrows, self.step):
             stop = (j + 1) * self.step
             if stop > self.nrows:
                 stop = self.nrows
@@ -149,7 +150,7 @@ class PyTables_DB(DB):
 #            results = table.read_where(condition, self.condvars, field=column)
 
         elif inkernel:
-            print "Performing in-kernel query"
+            print("Performing in-kernel query")
             results = [r[column]
                        for r in table.where(condition, self.condvars)]
             #coords = [r.nrow for r in table.where(condition, self.condvars)]
@@ -161,7 +162,7 @@ class PyTables_DB(DB):
 #             coords = [r.nrow for r in table
 #                       if (self.rng[0]+base <= r[column] <= self.rng[1]+base)]
 #             results = table.read_coordinates(coords)
-            print "Performing regular query"
+            print("Performing regular query")
             results = [r[column] for r in table if
                        (((inf2 <= r['col4']) and (r['col4'] < sup2)) or
                         ((inf1 < r['col2']) and (r['col2'] < sup1)) and

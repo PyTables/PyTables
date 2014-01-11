@@ -1,9 +1,11 @@
 # Testbed to perform experiments in order to determine best values for
 # the node numbers in LRU cache. Arrays version.
 
+from __future__ import print_function
 from time import time
 import tables
-print "PyTables version-->", tables.__version__
+
+print("PyTables version-->", tables.__version__)
 
 filename = "/tmp/junk-array.h5"
 NOBJS = 1000
@@ -11,7 +13,7 @@ NOBJS = 1000
 
 def create_junk():
     fileh = tables.open_file(filename, mode="w")
-    for i in xrange(NOBJS):
+    for i in range(NOBJS):
         table = fileh.create_array(fileh.root, 'array' + str(i), [1])
     fileh.close()
 
@@ -20,7 +22,7 @@ def modify_junk_LRU():
     fileh = tables.open_file(filename, 'a')
     group = fileh.root
     for j in range(5):
-        print "iter -->", j
+        print("iter -->", j)
         for tt in fileh.walk_nodes(group):
             if isinstance(tt, tables.Array):
 #                 d = tt.read()
@@ -38,7 +40,7 @@ def modify_junk_LRU2():
 #              print "table-->", tt._v_name
             tt = getattr(group, "array" + str(i))
 #                 d = tt.read()
-        print "iter and time -->", j + 1, round(time() - t1, 3)
+        print("iter and time -->", j + 1, round(time() - t1, 3))
     fileh.close()
 
 if 1:

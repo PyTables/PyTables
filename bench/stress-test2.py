@@ -1,3 +1,4 @@
+from __future__ import print_function
 import gc
 import sys
 import time
@@ -40,7 +41,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
             # Get the row object associated with the new table
             row = table.row
             # Fill the table
-            for i in xrange(nrows):
+            for i in range(nrows):
                 row['time'] = time.time()
                 row['random'] = random.random() * 40 + 100
                 row['ngroup'] = k
@@ -67,16 +68,16 @@ def readFile(filename, ngroups, recsize, verbose):
         group = fileh.root
         ntable = 0
         if verbose:
-            print "Group ==>", group
+            print("Group ==>", group)
         for table in fileh.list_nodes(group, 'Table'):
             rowsize = table.rowsize
             buffersize = table.rowsize * table.nrowsinbuf
             if verbose > 1:
-                print "Table ==>", table
-                print "Max rows in buf:", table.nrowsinbuf
-                print "Rows in", table._v_pathname, ":", table.nrows
-                print "Buffersize:", table.rowsize * table.nrowsinbuf
-                print "MaxTuples:", table.nrowsinbuf
+                print("Table ==>", table)
+                print("Max rows in buf:", table.nrowsinbuf)
+                print("Rows in", table._v_pathname, ":", table.nrows)
+                print("Buffersize:", table.rowsize * table.nrowsinbuf)
+                print("MaxTuples:", table.nrowsinbuf)
 
             nrow = 0
             time_1 = 0.0
@@ -91,9 +92,9 @@ def readFile(filename, ngroups, recsize, verbose):
                     #assert 100 <= row["random"] <= 139.999
                     assert 100 <= row["random"] <= 140
                 except:
-                    print "Error in group: %d, table: %d, row: %d" % \
-                          (ngroup, ntable, nrow)
-                    print "Record ==>", row
+                    print("Error in group: %d, table: %d, row: %d" % \
+                          (ngroup, ntable, nrow))
+                    print("Record ==>", row)
                 time_1 = row["time"]
                 nrow += 1
 
@@ -110,14 +111,14 @@ def readFile(filename, ngroups, recsize, verbose):
 def dump_garbage():
     """show us waht the garbage is about."""
     # Force collection
-    print "\nGARBAGE:"
+    print("\nGARBAGE:")
     gc.collect()
 
-    print "\nGARBAGE OBJECTS:"
+    print("\nGARBAGE OBJECTS:")
     for x in gc.garbage:
         s = str(x)
         #if len(s) > 80: s = s[:77] + "..."
-        print type(x), "\n   ", s
+        print(type(x), "\n   ", s)
 
 if __name__ == "__main__":
     import getopt
@@ -194,9 +195,9 @@ if __name__ == "__main__":
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
-    print "Compression level:", complevel
+    print("Compression level:", complevel)
     if complevel > 0:
-        print "Compression library:", complib
+        print("Compression library:", complib)
     if testwrite:
         t1 = time.time()
         cpu1 = time.clock()
@@ -209,11 +210,11 @@ if __name__ == "__main__":
         tapprows = round(t2 - t1, 3)
         cpuapprows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpuapprows / tapprows, 2) * 100)
-        print "Rows written:", rowsw, " Row size:", rowsz
-        print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
-              (tapprows, cpuapprows, tpercent)
-        print "Write rows/sec: ", int(rowsw / float(tapprows))
-        print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
+        print("Rows written:", rowsw, " Row size:", rowsz)
+        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+              (tapprows, cpuapprows, tpercent))
+        print("Write rows/sec: ", int(rowsw / float(tapprows)))
+        print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
 
     if testread:
         t1 = time.time()
@@ -226,11 +227,11 @@ if __name__ == "__main__":
         treadrows = round(t2 - t1, 3)
         cpureadrows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpureadrows / treadrows, 2) * 100)
-        print "Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz
-        print "Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
-              (treadrows, cpureadrows, tpercent)
-        print "Read rows/sec: ", int(rowsr / float(treadrows))
-        print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
+        print("Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz)
+        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" % \
+              (treadrows, cpureadrows, tpercent))
+        print("Read rows/sec: ", int(rowsr / float(treadrows)))
+        print("Read KB/s :", int(rowsr * rowsz / (treadrows * 1024)))
 
     # Show the dirt
     if debug > 1:

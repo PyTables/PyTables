@@ -1,3 +1,4 @@
+from __future__ import print_function
 from time import time
 import subprocess
 import random
@@ -58,16 +59,16 @@ class DB(object):
 
     def print_mtime(self, t1, explain):
         mtime = time() - t1
-        print "%s:" % explain, round(mtime, 6)
-        print "Krows/s:", round((self.nrows / 1000.) / mtime, 6)
+        print("%s:" % explain, round(mtime, 6))
+        print("Krows/s:", round((self.nrows / 1000.) / mtime, 6))
 
     def print_qtime(self, colname, ltimes):
         qtime1 = ltimes[0]  # First measured time
         qtime2 = ltimes[-1]  # Last measured time
-        print "Query time for %s:" % colname, round(qtime1, 6)
-        print "Mrows/s:", round((self.nrows / (MROW)) / qtime1, 6)
-        print "Query time for %s (cached):" % colname, round(qtime2, 6)
-        print "Mrows/s (cached):", round((self.nrows / (MROW)) / qtime2, 6)
+        print("Query time for %s:" % colname, round(qtime1, 6))
+        print("Mrows/s:", round((self.nrows / (MROW)) / qtime1, 6))
+        print("Query time for %s (cached):" % colname, round(qtime2, 6))
+        print("Mrows/s (cached):", round((self.nrows / (MROW)) / qtime2, 6))
 
     def norm_times(self, ltimes):
         "Get the mean and stddev of ltimes, avoiding the extreme values."
@@ -91,23 +92,23 @@ class DB(object):
         wtimes = ltimes[WARMCACHE:]
         wmean, wstd = self.norm_times(wtimes)
         if verbose:
-            print "Times for cold cache:\n", ctimes
+            print("Times for cold cache:\n", ctimes)
             # print "Times for warm cache:\n", wtimes
-            print "Histogram for warm cache: %s\n%s" % \
-                  numpy.histogram(wtimes)
-        print "%s1st query time for %s:" % (r, colname), \
-              round(qtime1, prec)
-        print "%sQuery time for %s (cold cache):" % (r, colname), \
-              round(cmean, prec), "+-", round(cstd, prec)
-        print "%sQuery time for %s (warm cache):" % (r, colname), \
-              round(wmean, prec), "+-", round(wstd, prec)
+            print("Histogram for warm cache: %s\n%s" % \
+                  numpy.histogram(wtimes))
+        print("%s1st query time for %s:" % (r, colname), \
+              round(qtime1, prec))
+        print("%sQuery time for %s (cold cache):" % (r, colname), \
+              round(cmean, prec), "+-", round(cstd, prec))
+        print("%sQuery time for %s (warm cache):" % (r, colname), \
+              round(wmean, prec), "+-", round(wstd, prec))
 
     def print_db_sizes(self, init, filled, indexed):
         table_size = (filled - init) / 1024.
         indexes_size = (indexed - filled) / 1024.
-        print "Table size (MB):", round(table_size, 3)
-        print "Indexes size (MB):", round(indexes_size, 3)
-        print "Full size (MB):", round(table_size + indexes_size, 3)
+        print("Table size (MB):", round(table_size, 3))
+        print("Indexes size (MB):", round(indexes_size, 3))
+        print("Full size (MB):", round(table_size + indexes_size, 3))
 
     def fill_arrays(self, start, stop):
         arr_f8 = numpy.arange(start, stop, dtype='float64')
@@ -171,7 +172,7 @@ class DB(object):
                     results = self.do_query(self.con, colname, base, inkernel)
                     ltimes.append(time() - t1)
                 if verbose:
-                    print "Results len:", results
+                    print("Results len:", results)
                 self.print_qtime(colname, ltimes)
             # Always reopen the file after *every* query loop.
             # Necessary to make the benchmark to run correctly.
@@ -192,7 +193,7 @@ class DB(object):
                     #    self.con, colname, base, inkernel)
                     ltimes.append(time() - t1)
                 if verbose:
-                    print "Results len:", results
+                    print("Results len:", results)
                 self.print_qtime_idx(colname, ltimes, False, verbose)
                 # Always reopen the file after *every* query loop.
                 # Necessary to make the benchmark to run correctly.
@@ -354,7 +355,7 @@ if __name__ == "__main__":
             if option[1] in ('int', 'float'):
                 dtype = option[1]
             else:
-                print "column should be either 'int' or 'float'"
+                print("column should be either 'int' or 'float'")
                 sys.exit(1)
         elif option[0] == '-Q':
             repeatquery = 1
@@ -362,9 +363,9 @@ if __name__ == "__main__":
 
     # If not database backend selected, abort
     if not usepytables and not usepostgres:
-        print "Please select a backend:"
-        print "PyTables: -T"
-        print "Postgres: -P"
+        print("Please select a backend:")
+        print("PyTables: -T")
+        print("Postgres: -P")
         sys.exit(1)
 
     # Create the class for the database
@@ -382,9 +383,9 @@ if __name__ == "__main__":
 
     if verbose:
         if userandom:
-            print "using random values"
+            print("using random values")
         if onlyidxquery:
-            print "doing indexed queries only"
+            print("doing indexed queries only")
 
     if psyco_imported and usepsyco:
         psyco.bind(db.create_db)
@@ -392,11 +393,11 @@ if __name__ == "__main__":
 
     if docreate:
         if verbose:
-            print "writing %s rows" % krows
+            print("writing %s rows" % krows)
         db.create_db(dtype, kind, optlevel, verbose)
 
     if doquery:
-        print "Calling query_db() %s times" % niter
+        print("Calling query_db() %s times" % niter)
         if doprofile:
             import pstats
             import cProfile as prof
@@ -442,15 +443,15 @@ if __name__ == "__main__":
         # Start by a range which is almost None
         db.rng = [1, 1]
         if verbose:
-            print "range:", db.rng
+            print("range:", db.rng)
         db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
                     avoidfscache, verbose, inkernel)
-        for i in xrange(repeatvalue):
+        for i in range(repeatvalue):
             for j in (1, 2, 5):
                 rng = j * 10 ** i
                 db.rng = [-rng / 2, rng / 2]
                 if verbose:
-                    print "range:", db.rng
+                    print("range:", db.rng)
 #                 if usepostgres:
 #                     os.system(
 #                         "echo 1 > /proc/sys/vm/drop_caches;"

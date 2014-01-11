@@ -1,3 +1,4 @@
+from __future__ import print_function
 import subprocess  # Needs Python 2.4
 from indexed_search import DB
 import psycopg2 as db2
@@ -23,7 +24,7 @@ class StreamChar(object):
 
     def values_generator(self):
         j = 0
-        for i in xrange(self.nrows):
+        for i in range(self.nrows):
             if i >= j * self.step:
                 stop = (j + 1) * self.step
                 if stop > self.nrows:
@@ -40,7 +41,7 @@ class StreamChar(object):
         for tup in self.values_generator():
             sout += "%s\t%s\t%s\t%s\n" % tup
             if n is not None and len(sout) > n:
-                for i in xrange(n, len(sout), n):
+                for i in range(n, len(sout), n):
                     rout = sout[:n]
                     sout = sout[n:]
                     yield rout
@@ -49,7 +50,7 @@ class StreamChar(object):
     def read(self, n=None):
         self.nbytes = n
         try:
-            str = self.read_it.next()
+            str = next(self.read_it)
         except StopIteration:
             str = ""
         return str
@@ -83,13 +84,13 @@ class Postgres_DB(DB):
             sout = subprocess.Popen(DROP_DB % self.filename, shell=True,
                                     stdout=subprocess.PIPE).stdout
             for line in sout:
-                print line
+                print(line)
             sout = subprocess.Popen(CREATE_DB % self.filename, shell=True,
                                     stdout=subprocess.PIPE).stdout
             for line in sout:
-                print line
+                print(line)
 
-        print "Processing database:", self.filename
+        print("Processing database:", self.filename)
         con = db2.connect(DSN % (self.filename, self.port))
         self.cur = con.cursor()
         return con

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from tables import *
 import numarray as NA
 import struct
@@ -81,7 +82,7 @@ def createFile(filename, totalrows, recsize):
         table = []
         # Fill the table
         if recsize == "big" or recsize == "medium":
-            for i in xrange(totalrows):
+            for i in range(totalrows):
                 d.name = 'Particle: %6d' % (i)
                 #d.TDCcount = i % 256
                 d.ADCcount = (i * 256) % (1 << 16)
@@ -107,7 +108,7 @@ def createFile(filename, totalrows, recsize):
                 # table.append((d.ADCcount, d.energy, d.float1,
                 #              d.grid_i, d.grid_j, d.name, d.pressure))
         else:
-            for i in xrange(totalrows):
+            for i in range(totalrows):
                 d.var1 = str(i)
                 d.var2 = i
                 d.var3 = 12.1e10
@@ -133,8 +134,8 @@ def readFile(filename, recsize):
         else:
             e = [t[1] for t in fileh[table] if t[1] < 20]
 
-        print "resulting selection list ==>", e
-        print "Total selected records ==> ", len(e)
+        print("resulting selection list ==>", e)
+        print("Total selected records ==> ", len(e))
 
     # Close the file (eventually destroy the extended type)
     fileh.close()
@@ -189,10 +190,10 @@ if __name__ == "__main__":
     t2 = time.clock()
     treadrows = round(t2 - t1, 3)
 
-    print "Rows written:", rowsw, " Row size:", rowsz
-    print "Time appending rows:", tapprows
-    print "Write rows/sec: ", int(iterations * 3 / float(tapprows))
-    print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
-    print "Time reading rows:", treadrows
-    print "Read rows/sec: ", int(iterations * 3 / float(treadrows))
-    print "Read KB/s :", int(rowsw * rowsz / (treadrows * 1024))
+    print("Rows written:", rowsw, " Row size:", rowsz)
+    print("Time appending rows:", tapprows)
+    print("Write rows/sec: ", int(iterations * 3 / float(tapprows)))
+    print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
+    print("Time reading rows:", treadrows)
+    print("Read rows/sec: ", int(iterations * 3 / float(treadrows)))
+    print("Read KB/s :", int(rowsw * rowsz / (treadrows * 1024)))

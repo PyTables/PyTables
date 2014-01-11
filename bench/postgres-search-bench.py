@@ -1,3 +1,4 @@
+from __future__ import print_function
 from time import time
 import numpy
 import random
@@ -27,7 +28,7 @@ def fill_arrays(start, stop):
 def int_generator(nrows):
     step = 1000 * 100
     j = 0
-    for i in xrange(nrows):
+    for i in range(nrows):
         if i >= step * j:
             stop = (j + 1) * step
             if stop > nrows:  # Seems unnecessary
@@ -40,7 +41,7 @@ def int_generator(nrows):
 
 
 def int_generator_slow(nrows):
-    for i in xrange(nrows):
+    for i in range(nrows):
         if userandom:
             yield (i, float(random.randint(0, nrows)))
         else:
@@ -60,7 +61,7 @@ class Stream32(object):
         for tup in int_generator(nrows):
             sout = "%s\t%s\n" % tup
             if n is not None and len(sout) > n:
-                for i in xrange(0, len(sout), n):
+                for i in range(0, len(sout), n):
                     yield sout[i:i + n]
             else:
                 yield sout
@@ -71,7 +72,7 @@ class Stream32(object):
         for tup in int_generator(nrows):
             sout += "%s\t%s\n" % tup
             if n is not None and len(sout) > n:
-                for i in xrange(n, len(sout), n):
+                for i in range(n, len(sout), n):
                     rout = sout[:n]
                     sout = sout[n:]
                     yield rout
@@ -80,7 +81,7 @@ class Stream32(object):
     def read(self, n=None):
         self.n = n
         try:
-            str = self.read_it.next()
+            str = next(self.read_it)
         except StopIteration:
             str = ""
         return str
@@ -115,8 +116,8 @@ def create_db(filename, nrows):
     con.commit()
     ctime = time() - t1
     if verbose:
-        print "insert time:", round(ctime, 5)
-        print "Krows/s:", round((nrows / 1000.) / ctime, 5)
+        print("insert time:", round(ctime, 5))
+        print("Krows/s:", round((nrows / 1000.) / ctime, 5))
     close_db(con, cur)
 
 
@@ -127,8 +128,8 @@ def index_db(filename):
     con.commit()
     itime = time() - t1
     if verbose:
-        print "index time:", round(itime, 5)
-        print "Krows/s:", round(nrows / itime, 5)
+        print("index time:", round(itime, 5))
+        print("Krows/s:", round(nrows / itime, 5))
     # Close the DB
     close_db(con, cur)
 
@@ -148,10 +149,10 @@ def query_db(filename, rng):
     con.commit()
     qtime = (time() - t1) / ntimes
     if verbose:
-        print "query time:", round(qtime, 5)
-        print "Mrows/s:", round((nrows / 1000.) / qtime, 5)
+        print("query time:", round(qtime, 5))
+        print("Mrows/s:", round((nrows / 1000.) / qtime, 5))
         results = sorted(flatten(results))
-        print results
+        print(results)
     close_db(con, cur)
 
 
@@ -230,11 +231,11 @@ if __name__ == "__main__":
     if verbose:
         # print "pysqlite version:", sqlite.version
         if userandom:
-            print "using random values"
+            print("using random values")
 
     if docreate:
         if verbose:
-            print "writing %s krows" % nrows
+            print("writing %s krows" % nrows)
         if psyco_imported and usepsyco:
             psyco.bind(create_db)
         nrows *= 1000

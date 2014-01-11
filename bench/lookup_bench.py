@@ -1,6 +1,7 @@
 """Benchmark to help choosing the best chunksize so as to optimize the access
 time in random lookups."""
 
+from __future__ import print_function
 from time import time
 import os
 import subprocess
@@ -39,7 +40,7 @@ class DB(object):
         if docompress:
             self.filename += '-' + complib + str(docompress)
         self.filename = datadir + '/' + self.filename + '.h5'
-        print "Processing database:", self.filename
+        print("Processing database:", self.filename)
         self.userandom = userandom
         self.nrows = get_nrows(nrows)
         self.chunksize = get_nrows(chunksize)
@@ -54,12 +55,12 @@ class DB(object):
 
     def print_mtime(self, t1, explain):
         mtime = time() - t1
-        print "%s:" % explain, round(mtime, 6)
-        print "Krows/s:", round((self.nrows / 1000.) / mtime, 6)
+        print("%s:" % explain, round(mtime, 6))
+        print("Krows/s:", round((self.nrows / 1000.) / mtime, 6))
 
     def print_db_sizes(self, init, filled):
         array_size = (filled - init) / 1024.
-        print "Array size (MB):", round(array_size, 3)
+        print("Array size (MB):", round(array_size, 3))
 
     def open_db(self, remove=0):
         if remove and os.path.exists(self.filename):
@@ -93,7 +94,7 @@ class DB(object):
         earray = self.con.root.earray
         j = 0
         arr = self.get_array(0, self.step)
-        for i in xrange(0, self.nrows, self.step):
+        for i in range(0, self.nrows, self.step):
             stop = (j + 1) * self.step
             if stop > self.nrows:
                 stop = self.nrows
@@ -111,8 +112,8 @@ class DB(object):
 
     def print_qtime(self, ltimes):
         ltimes = numpy.array(ltimes)
-        print "Raw query times:\n", ltimes
-        print "Histogram times:\n", numpy.histogram(ltimes[1:])
+        print("Raw query times:\n", ltimes)
+        print("Histogram times:\n", numpy.histogram(ltimes[1:]))
         ntimes = len(ltimes)
         qtime1 = ltimes[0]  # First measured time
         if ntimes > 5:
@@ -121,8 +122,8 @@ class DB(object):
             qtime2 = sum(ltimes[5:]) / (ntimes - 5)
         else:
             qtime2 = ltimes[-1]  # Last measured time
-        print "1st query time:", round(qtime1, 3)
-        print "Mean (skipping the first 5 meas.):", round(qtime2, 3)
+        print("1st query time:", round(qtime1, 3))
+        print("Mean (skipping the first 5 meas.):", round(qtime2, 3))
 
     def query_db(self, niter, avoidfscache, verbose):
         self.con = self.open_db()
@@ -215,7 +216,7 @@ if __name__ == "__main__":
             if option[1] in ('int', 'float'):
                 dtype = option[1]
             else:
-                print "type should be either 'int' or 'float'"
+                print("type should be either 'int' or 'float'")
                 sys.exit(0)
         elif option[0] == '-s':
             chunksize = option[1]
@@ -226,15 +227,15 @@ if __name__ == "__main__":
 
     if verbose:
         if userandom:
-            print "using random values"
+            print("using random values")
 
     db = DB(krows, dtype, chunksize, userandom, datadir, docompress, complib)
 
     if docreate:
         if verbose:
-            print "writing %s rows" % krows
+            print("writing %s rows" % krows)
         db.create_db(verbose)
 
     if doquery:
-        print "Calling query_db() %s times" % niter
+        print("Calling query_db() %s times" % niter)
         db.query_db(niter, avoidfscache, verbose)

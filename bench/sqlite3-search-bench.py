@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import os.path
 from time import time
@@ -22,7 +23,7 @@ def fill_arrays(start, stop):
 def int_generator(nrows):
     step = 1000 * 100
     j = 0
-    for i in xrange(nrows):
+    for i in range(nrows):
         if i >= step * j:
             stop = (j + 1) * step
             if stop > nrows:  # Seems unnecessary
@@ -35,7 +36,7 @@ def int_generator(nrows):
 
 
 def int_generator_slow(nrows):
-    for i in xrange(nrows):
+    for i in range(nrows):
         if userandom:
             yield (i, float(random.randint(0, nrows)))
         else:
@@ -59,8 +60,8 @@ def create_db(filename, nrows):
     con.commit()
     ctime = time() - t1
     if verbose:
-        print "insert time:", round(ctime, 5)
-        print "Krows/s:", round((nrows / 1000.) / ctime, 5)
+        print("insert time:", round(ctime, 5))
+        print("Krows/s:", round((nrows / 1000.) / ctime, 5))
     close_db(con, cur)
 
 
@@ -71,8 +72,8 @@ def index_db(filename):
     con.commit()
     itime = time() - t1
     if verbose:
-        print "index time:", round(itime, 5)
-        print "Krows/s:", round(nrows / itime, 5)
+        print("index time:", round(itime, 5))
+        print("Krows/s:", round(nrows / itime, 5))
     # Close the DB
     close_db(con, cur)
 
@@ -92,9 +93,9 @@ def query_db(filename, rng):
     con.commit()
     qtime = (time() - t1) / ntimes
     if verbose:
-        print "query time:", round(qtime, 5)
-        print "Mrows/s:", round((nrows / 1000.) / qtime, 5)
-        print results
+        print("query time:", round(qtime, 5))
+        print("Mrows/s:", round((nrows / 1000.) / qtime, 5))
+        print(results)
     close_db(con, cur)
 
 
@@ -170,13 +171,13 @@ if __name__ == "__main__":
         from pysqlite2 import dbapi2 as sqlite
 
     if verbose:
-        print "pysqlite version:", sqlite.version
+        print("pysqlite version:", sqlite.version)
         if userandom:
-            print "using random values"
+            print("using random values")
 
     if docreate:
         if verbose:
-            print "writing %s krows" % nrows
+            print("writing %s krows" % nrows)
         if psyco_imported and usepsyco:
             psyco.bind(create_db)
         nrows *= 1000

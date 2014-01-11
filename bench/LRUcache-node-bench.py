@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 import numpy
 import tables
@@ -8,17 +10,17 @@ filename = "/tmp/LRU-bench.h5"
 nodespergroup = 250
 niter = 100
 
-print 'nodespergroup:', nodespergroup
-print 'niter:', niter
+print('nodespergroup:', nodespergroup)
+print('niter:', niter)
 
 if len(sys.argv) > 1:
     NODE_CACHE_SLOTS = int(sys.argv[1])
-    print 'NODE_CACHE_SLOTS:', NODE_CACHE_SLOTS
+    print('NODE_CACHE_SLOTS:', NODE_CACHE_SLOTS)
 else:
     NODE_CACHE_SLOTS = tables.parameters.NODE_CACHE_SLOTS
 f = tables.open_file(filename, "w", node_cache_slots=NODE_CACHE_SLOTS)
 g = f.create_group("/", "NodeContainer")
-print "Creating nodes"
+print("Creating nodes")
 for i in range(nodespergroup):
     f.create_array(g, "arr%d" % i, [i])
 f.close()
@@ -37,12 +39,12 @@ def iternodes():
         a = f.get_node(g, "arr%d" % i)
         # print "a-->", a
 
-print "reading nodes..."
+print("reading nodes...")
 # First iteration (put in LRU cache)
 t1 = time()
 for a in f.root.NodeContainer:
     pass
-print "time (init cache)-->", round(time() - t1, 3)
+print("time (init cache)-->", round(time() - t1, 3))
 
 
 def timeLRU():
@@ -51,7 +53,7 @@ def timeLRU():
 #     for i in range(niter):
 #         iternodes()
     iternodes()
-    print "time (from cache)-->", round((time() - t1) / niter, 3)
+    print("time (from cache)-->", round((time() - t1) / niter, 3))
 
 
 def profile(verbose=False):

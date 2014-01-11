@@ -3,6 +3,8 @@
 ### This script is obsoleted ###
 # If you get it working again, please drop me a line
 # F. Alted 2004-01-27
+
+from __future__ import print_function
 import sys
 import struct
 import cPickle
@@ -100,7 +102,7 @@ def createFile(filename, totalrows, recsize, verbose):
              "pressure": 1.9,
              "energy": 1.8,
              }
-        for i in xrange(totalrows):
+        for i in range(totalrows):
             #d['name']  = 'Particle: %6d' % (i)
             #d['TDCcount'] = i % 256
             d['ADCcount'] = (i * 256) % (1 << 16)
@@ -127,7 +129,7 @@ def createFile(filename, totalrows, recsize, verbose):
 #                                   d['pressure'],  d['energy']))
     else:
         d = {"var1": " ", "var2": 1, "var3": 12.1e10}
-        for i in xrange(totalrows):
+        for i in range(totalrows):
             d['var1'] = str(i)
             d['var2'] = i
             d['var3'] = 12.1e10
@@ -157,7 +159,7 @@ def readFile(filename, recsize, verbose):
     # dd.set_re_pad(45)  # ...test both int and char
     dd.open(filename, db.DB_RECNO)
     if recsize == "big" or recsize == "medium":
-        print isrec._v_fmt
+        print(isrec._v_fmt)
         c = dd.cursor()
         rec = c.first()
         e = []
@@ -170,9 +172,9 @@ def readFile(filename, recsize, verbose):
                 e.append(record['grid_j'])
             # if record[4] < 20:
             #    e.append(record[5])
-            rec = c.next()
+            rec = next(c)
     else:
-        print isrec._v_fmt
+        print(isrec._v_fmt)
         #e = [ t[1] for t in fileh[table] if t[1] < 20 ]
         c = dd.cursor()
         rec = c.first()
@@ -186,11 +188,11 @@ def readFile(filename, recsize, verbose):
                 e.append(record['var1'])
             # if record[1] < 20:
             #    e.append(record[2])
-            rec = c.next()
+            rec = next(c)
 
-    print "resulting selection list ==>", e
-    print "last record read ==>", record
-    print "Total selected records ==> ", len(e)
+    print("resulting selection list ==>", e)
+    print("last record read ==>", record)
+    print("Total selected records ==> ", len(e))
 
     # Close the file (eventually destroy the extended type)
     dd.close()
@@ -249,12 +251,12 @@ if __name__ == "__main__":
     t2 = time.clock()
     treadrows = round(t2 - t1, 3)
 
-    print "Rows written:", rowsw, " Row size:", rowsz
-    print "Time appending rows:", tapprows
+    print("Rows written:", rowsw, " Row size:", rowsz)
+    print("Time appending rows:", tapprows)
     if tapprows > 0.:
-        print "Write rows/sec: ", int(iterations / float(tapprows))
-        print "Write KB/s :", int(rowsw * rowsz / (tapprows * 1024))
-    print "Time reading rows:", treadrows
+        print("Write rows/sec: ", int(iterations / float(tapprows)))
+        print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
+    print("Time reading rows:", treadrows)
     if treadrows > 0.:
-        print "Read rows/sec: ", int(iterations / float(treadrows))
-        print "Read KB/s :", int(rowsw * rowsz / (treadrows * 1024))
+        print("Read rows/sec: ", int(iterations / float(treadrows)))
+        print("Read KB/s :", int(rowsw * rowsz / (treadrows * 1024)))

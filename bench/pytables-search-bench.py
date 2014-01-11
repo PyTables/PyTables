@@ -1,10 +1,11 @@
-import tables
+from __future__ import print_function
 import os
 from time import time
 import random
 import numarray
 from numarray import random_array
 from numarray import records
+import tables
 
 # in order to always generate the same random sequence
 random.seed(19)
@@ -34,7 +35,7 @@ def create_db(filename, nrows):
     scale = 0.1
     t1 = time()
     j = 0
-    for i in xrange(0, nrows, step):
+    for i in range(0, nrows, step):
         stop = (j + 1) * step
         if stop > nrows:
             stop = nrows
@@ -49,8 +50,8 @@ def create_db(filename, nrows):
     table.flush()
     ctime = time() - t1
     if verbose:
-        print "insert time:", round(ctime, 5)
-        print "Krows/s:", round((nrows / 1000.) / ctime, 5)
+        print("insert time:", round(ctime, 5))
+        print("Krows/s:", round((nrows / 1000.) / ctime, 5))
     index_db(table)
     close_db(con)
 
@@ -60,14 +61,14 @@ def index_db(table):
     table.cols.col2.create_index()
     itime = time() - t1
     if verbose:
-        print "index time (int):", round(itime, 5)
-        print "Krows/s:", round((nrows / 1000.) / itime, 5)
+        print("index time (int):", round(itime, 5))
+        print("Krows/s:", round((nrows / 1000.) / itime, 5))
     t1 = time()
     table.cols.col4.create_index()
     itime = time() - t1
     if verbose:
-        print "index time (float):", round(itime, 5)
-        print "Krows/s:", round((nrows / 1000.) / itime, 5)
+        print("index time (float):", round(itime, 5))
+        print("Krows/s:", round((nrows / 1000.) / itime, 5))
 
 
 def query_db(filename, rng):
@@ -85,9 +86,9 @@ def query_db(filename, rng):
             ]
         qtime = (time() - t1) / ntimes
         if verbose:
-            print "query time (int, not indexed):", round(qtime, 5)
-            print "Mrows/s:", round((nrows / 1000.) / qtime, 5)
-            print results
+            print("query time (int, not indexed):", round(qtime, 5))
+            print("Mrows/s:", round((nrows / 1000.) / qtime, 5))
+            print(results)
     # Query for indexed column
     t1 = time()
     ntimes = 10
@@ -98,9 +99,9 @@ def query_db(filename, rng):
         ]
     qtime = (time() - t1) / ntimes
     if verbose:
-        print "query time (int, indexed):", round(qtime, 5)
-        print "Mrows/s:", round((nrows / 1000.) / qtime, 5)
-        print results
+        print("query time (int, indexed):", round(qtime, 5))
+        print("Mrows/s:", round((nrows / 1000.) / qtime, 5))
+        print(results)
     # Query for floating columns
     # Query for non-indexed column
     if not doqueryidx:
@@ -113,9 +114,9 @@ def query_db(filename, rng):
             ]
         qtime = (time() - t1) / ntimes
         if verbose:
-            print "query time (float, not indexed):", round(qtime, 5)
-            print "Mrows/s:", round((nrows / 1000.) / qtime, 5)
-            print results
+            print("query time (float, not indexed):", round(qtime, 5))
+            print("Mrows/s:", round((nrows / 1000.) / qtime, 5))
+            print(results)
     # Query for indexed column
     t1 = time()
     ntimes = 10
@@ -124,9 +125,9 @@ def query_db(filename, rng):
                    table.where(rng[0] + i <= table.cols.col4 <= rng[1] + i)]
     qtime = (time() - t1) / ntimes
     if verbose:
-        print "query time (float, indexed):", round(qtime, 5)
-        print "Mrows/s:", round((nrows / 1000.) / qtime, 5)
-        print results
+        print("query time (float, indexed):", round(qtime, 5))
+        print("Mrows/s:", round((nrows / 1000.) / qtime, 5))
+        print(results)
     close_db(con)
 
 
@@ -204,15 +205,15 @@ if __name__ == "__main__":
     filters = tables.Filters(complevel=docompress, complib=complib)
 
     if verbose:
-        print "pytables version:", tables.__version__
+        print("pytables version:", tables.__version__)
         if userandom:
-            print "using random values"
+            print("using random values")
         if doqueryidx:
-            print "doing indexed queries only"
+            print("doing indexed queries only")
 
     if docreate:
         if verbose:
-            print "writing %s krows" % nrows
+            print("writing %s krows" % nrows)
         if psyco_imported and usepsyco:
             psyco.bind(create_db)
         nrows *= 1000

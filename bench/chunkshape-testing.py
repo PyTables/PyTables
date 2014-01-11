@@ -2,6 +2,7 @@
 
 """Simple benchmark for testing chunkshapes and nrowsinbuf."""
 
+from __future__ import print_function
 import numpy
 import tables
 from time import time
@@ -34,7 +35,7 @@ c1 = f.create_carray(f1.root, 'cfield1',
 
 t1 = time()
 c1[:] = numpy.empty(shape=(L, 1, 1), dtype="int32")
-print "carray1 populate time:", time() - t1
+print("carray1 populate time:", time() - t1)
 f1.close()
 
 
@@ -45,7 +46,7 @@ c2 = f.create_carray(f2.root, 'cfield2',
 
 t1 = time()
 c2[:] = numpy.empty(shape=(L, 1, 1), dtype="int32")
-print "carray2 populate time:", time() - t1
+print("carray2 populate time:", time() - t1)
 f2.close()
 
 f0 = tables.open_file("chunkshape0.h5", mode="w")
@@ -56,7 +57,7 @@ e0 = f.create_earray(f0.root, 'efield0',
 
 t1 = time()
 e0.append(numpy.empty(shape=(N, L, M), dtype="int32"))
-print "earray0 populate time:", time() - t1
+print("earray0 populate time:", time() - t1)
 f0.close()
 
 f1 = tables.open_file("chunkshape1.h5", mode="w")
@@ -67,7 +68,7 @@ e1 = f.create_earray(f1.root, 'efield1',
 
 t1 = time()
 e1.append(numpy.empty(shape=(L, N, M), dtype="int32"))
-print "earray1 populate time:", time() - t1
+print("earray1 populate time:", time() - t1)
 f1.close()
 
 
@@ -79,7 +80,7 @@ e2 = f.create_earray(f2.root, 'efield2',
 
 t1 = time()
 e2.append(numpy.empty(shape=(L, M, N), dtype="int32"))
-print "earray2 populate time:", time() - t1
+print("earray2 populate time:", time() - t1)
 f2.close()
 
 # t1=time()

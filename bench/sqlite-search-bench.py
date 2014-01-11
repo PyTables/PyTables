@@ -1,4 +1,6 @@
 #!/usr/bin/python
+
+from __future__ import print_function
 import sqlite
 import random
 import time
@@ -49,7 +51,7 @@ def createNewBenchFile(bfile, verbose):
         psyco = BoolCol(pos=8)
 
     if verbose:
-        print "Creating a new benchfile:", bfile
+        print("Creating a new benchfile:", bfile)
     # Open the benchmarking file
     bf = open_file(bfile, "w")
     # Create groups
@@ -87,7 +89,7 @@ def createFile(filename, nrows, filters, indexmode, heavy, noise, bfile,
     size2 = 0.
 
     if indexmode == "standard":
-        print "Creating a new database:", dbfile
+        print("Creating a new database:", dbfile)
         instd = os.popen("/usr/local/bin/sqlite " + dbfile, "w")
         CREATESTD = """
 CREATE TABLE small (
@@ -128,7 +130,7 @@ CREATE INDEX ivar3 ON small(var3);
         nrowsbuf = 1000
         minimum = 0
         maximum = nrows
-        for i in xrange(0, nrows, nrowsbuf):
+        for i in range(0, nrows, nrowsbuf):
             if i + nrowsbuf > nrows:
                 j = nrows
             else:
@@ -142,9 +144,9 @@ CREATE INDEX ivar3 ON small(var3);
             var2 = numarray.array(var3, type=numarray.Int32)
             var1 = strings.array(None, shape=[j - i], itemsize=4)
             if not heavy:
-                for n in xrange(j - i):
+                for n in range(j - i):
                     var1[n] = str("%.4s" % var2[n])
-            for n in xrange(j - i):
+            for n in range(j - i):
                 fields = (var1[n], var2[n], var3[n])
                 cursor.execute(SQL, fields)
             conn.commit()
@@ -152,10 +154,10 @@ CREATE INDEX ivar3 ON small(var3);
         tcpu1 = round(time.clock() - cpu1, 5)
         rowsecf = nrows / t1
         size1 = os.stat(dbfile)[6]
-        print "******** Results for writing nrows = %s" % (nrows), "*********"
-        print("Insert time:", t1, ", KRows/s:",
-              round((nrows / 10. ** 3) / t1, 3),)
-        print ", File size:", round(size1 / (1024. * 1024.), 3), "MB"
+        print("******** Results for writing nrows = %s" % (nrows), "*********")
+        print(("Insert time:", t1, ", KRows/s:",
+              round((nrows / 10. ** 3) / t1, 3),))
+        print(", File size:", round(size1 / (1024. * 1024.), 3), "MB")
 
     # Indexem
     if indexmode == "indexed":
@@ -171,11 +173,11 @@ CREATE INDEX ivar3 ON small(var3);
         t2 = round(time.time() - time1, 5)
         tcpu2 = round(time.clock() - cpu1, 5)
         rowseci = nrows / t2
-        print("Index time:", t2, ", IKRows/s:",
-              round((nrows / 10. ** 3) / t2, 3),)
+        print(("Index time:", t2, ", IKRows/s:",
+              round((nrows / 10. ** 3) / t2, 3),))
         size2 = os.stat(dbfile)[6] - size1
-        print(", Final size with index:",
-              round(size2 / (1024. * 1024), 3), "MB")
+        print((", Final size with index:",
+              round(size2 / (1024. * 1024), 3), "MB"))
 
     conn.close()
 
@@ -281,7 +283,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         time2 = 0
         cpu2 = 0
         rowsel = 0
-        for i in xrange(riter):
+        for i in range(riter):
             rnd = random.randrange(nrows)
             time1 = time.time()
             cpu1 = time.clock()
@@ -319,14 +321,14 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
             t2 = time2 / (riter - correction)
             tcpu2 = cpu2 / (riter - correction)
 
-        print("*** Query results for atom = %s, nrows = %s, "
-              "indexmode = %s ***" % (atom, nrows, indexmode))
-        print "Query time:", round(t1, 5), ", cached time:", round(t2, 5)
-        print "MRows/s:", round((nrows / 10. ** 6) / t1, 3),
+        print(("*** Query results for atom = %s, nrows = %s, "
+              "indexmode = %s ***" % (atom, nrows, indexmode)))
+        print("Query time:", round(t1, 5), ", cached time:", round(t2, 5))
+        print("MRows/s:", round((nrows / 10. ** 6) / t1, 3), end=' ')
         if t2 > 0:
-            print ", cached MRows/s:", round((nrows / 10. ** 6) / t2, 3)
+            print(", cached MRows/s:", round((nrows / 10. ** 6) / t2, 3))
         else:
-            print
+            print()
 
         # Collect benchmark data
         recsize = "sqlite_small"

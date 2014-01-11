@@ -6,6 +6,7 @@
 # 2005-03-09
 ###########################################################################
 
+from __future__ import print_function
 import numpy
 from time import time
 import tables
@@ -55,21 +56,21 @@ class BasicBenchmark(object):
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
-                    print "u",
+                    print("u", end=' ')
             if verbose:
-                print
+                print()
             undo = time() - t1
             # Rewind all marks sequentially
             t1 = time()
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
-                    print "r",
+                    print("r", end=' ')
             if verbose:
-                print
+                print()
             redo = time() - t1
 
-            print "Time for Undo, Redo (createNode):", undo, "s, ", redo, "s"
+            print("Time for Undo, Redo (createNode):", undo, "s, ", redo, "s")
 
     def copy_children(self):
         """Checking a undo/redo copy_children."""
@@ -94,22 +95,22 @@ class BasicBenchmark(object):
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
-                    print "u",
+                    print("u", end=' ')
             if verbose:
-                print
+                print()
             undo = time() - t1
             # Rewind all marks sequentially
             t1 = time()
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
-                    print "r",
+                    print("r", end=' ')
             if verbose:
-                print
+                print()
             redo = time() - t1
 
-            print("Time for Undo, Redo (copy_children):", undo, "s, ",
-                  redo, "s")
+            print(("Time for Undo, Redo (copy_children):", undo, "s, ",
+                  redo, "s"))
 
     def set_attr(self):
         """Checking a undo/redo for setting attributes."""
@@ -127,21 +128,21 @@ class BasicBenchmark(object):
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
-                    print "u",
+                    print("u", end=' ')
             if verbose:
-                print
+                print()
             undo = time() - t1
             # Rewind all marks sequentially
             t1 = time()
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
-                    print "r",
+                    print("r", end=' ')
             if verbose:
-                print
+                print()
             redo = time() - t1
 
-            print "Time for Undo, Redo (set_attr):", undo, "s, ", redo, "s"
+            print("Time for Undo, Redo (set_attr):", undo, "s, ", redo, "s")
 
     def runall(self):
 

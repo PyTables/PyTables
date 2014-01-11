@@ -1,3 +1,4 @@
+from __future__ import print_function
 from time import time
 import os.path
 
@@ -29,7 +30,7 @@ def tables(docompute, dowrite, complib, verbose):
     else:
         filters = tb.Filters(complevel=0, shuffle=False)
     if verbose:
-        print "Will use filters:", filters
+        print("Will use filters:", filters)
 
     if dowrite:
         f = tb.open_file(ifilename, 'w')
@@ -42,15 +43,15 @@ def tables(docompute, dowrite, complib, verbose):
         b = f.create_carray(root, 'b', tb.Float32Atom(),
                             shape, filters=filters)
         if verbose:
-            print "chunkshape:", a.chunkshape
-            print "chunksize:", np.prod(a.chunkshape) * a.dtype.itemsize
+            print("chunkshape:", a.chunkshape)
+            print("chunksize:", np.prod(a.chunkshape) * a.dtype.itemsize)
         #row = np.linspace(0, 1, ncols)
         row = np.arange(0, ncols, dtype='float32')
-        for i in xrange(nrows):
+        for i in range(nrows):
             a[i] = row * (i + 1)
             b[i] = row * (i + 1) * 2
         f.close()
-        print "[tables.Expr] Time for creating inputs:", round(time() - t0, 3)
+        print("[tables.Expr] Time for creating inputs:", round(time() - t0, 3))
 
     if docompute:
         f = tb.open_file(ifilename, 'r')
@@ -65,10 +66,10 @@ def tables(docompute, dowrite, complib, verbose):
         t0 = time()
         e.eval()
         if verbose:
-            print "First ten values:", r1[0, :10]
+            print("First ten values:", r1[0, :10])
         f.close()
         fr.close()
-        print "[tables.Expr] Time for computing & save:", round(time() - t0, 3)
+        print("[tables.Expr] Time for computing & save:", round(time() - t0, 3))
 
 
 def memmap(docompute, dowrite, verbose):
@@ -84,11 +85,11 @@ def memmap(docompute, dowrite, verbose):
         # Fill arrays a and b
         #row = np.linspace(0, 1, ncols)
         row = np.arange(0, ncols, dtype='float32')
-        for i in xrange(nrows):
+        for i in range(nrows):
             a[i] = row * (i + 1)
             b[i] = row * (i + 1) * 2
         del a, b  # flush data
-        print "[numpy.memmap] Time for creating inputs:", round(time() - t0, 3)
+        print("[numpy.memmap] Time for creating inputs:", round(time() - t0, 3))
 
     if docompute:
         t0 = time()
@@ -98,13 +99,13 @@ def memmap(docompute, dowrite, verbose):
         # Create the array output
         r = np.memmap(rfilename, dtype='float32', mode='w+', shape=shape)
         # Do the computation row by row
-        for i in xrange(nrows):
+        for i in range(nrows):
             r[i] = eval(expr, {'a': a[i], 'b': b[i]})
         if verbose:
-            print "First ten values:", r[0, :10]
+            print("First ten values:", r[0, :10])
         del a, b
         del r  # flush output data
-        print "[numpy.memmap] Time for compute & save:", round(time() - t0, 3)
+        print("[numpy.memmap] Time for compute & save:", round(time() - t0, 3))
 
 
 def do_bench(what, documpute, dowrite, complib, verbose):
@@ -157,15 +158,15 @@ if __name__ == "__main__":
         elif option[0] == '-z':
             complib = option[1]
             if complib not in ('blosc', 'lzo', 'zlib'):
-                print ("complib must be 'lzo' or 'zlib' "
-                       "and you passed: '%s'" % complib)
+                print(("complib must be 'lzo' or 'zlib' "
+                       "and you passed: '%s'" % complib))
                 sys.exit(1)
 
     # If not a backend selected, abort
     if not usepytables and not usememmap:
-        print "Please select a backend:"
-        print "PyTables.Expr: -T"
-        print "NumPy.memmap: -M"
+        print("Please select a backend:")
+        print("PyTables.Expr: -T")
+        print("NumPy.memmap: -M")
         sys.exit(1)
 
     # Select backend and do the benchmark

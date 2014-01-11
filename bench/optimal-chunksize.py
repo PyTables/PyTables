@@ -5,6 +5,7 @@ Francesc Alted
 
 """
 
+from __future__ import print_function
 import os
 import math
 import subprocess
@@ -52,7 +53,7 @@ def get_db_size(filename):
 def bench(chunkshape, filters):
     numpy.random.seed(1)   # to have reproductible results
     filename = tempfile.mktemp(suffix='.h5')
-    print "Doing test on the file system represented by:", filename
+    print("Doing test on the file system represented by:", filename)
 
     f = tables.open_file(filename, 'w')
     e = f.create_earray(f.root, 'earray', datom, shape=(0, M),
@@ -60,14 +61,14 @@ def bench(chunkshape, filters):
                         chunkshape = chunkshape)
     # Fill the array
     t1 = time()
-    for i in xrange(N):
+    for i in range(N):
         # e.append([numpy.random.rand(M)])  # use this for less compressibility
         e.append([quantize(numpy.random.rand(M), 6)])
     # os.system("sync")
-    print "Creation time:", round(time() - t1, 3),
+    print("Creation time:", round(time() - t1, 3), end=' ')
     filesize = get_db_size(filename)
     filesize_bytes = os.stat(filename)[6]
-    print "\t\tFile size: %d -- (%s)" % (filesize_bytes, filesize)
+    print("\t\tFile size: %d -- (%s)" % (filesize_bytes, filesize))
 
     # Read in sequential mode:
     e = f.root.earray
@@ -76,7 +77,7 @@ def bench(chunkshape, filters):
     #os.system("sync; echo 1 > /proc/sys/vm/drop_caches")
     for row in e:
         t = row
-    print "Sequential read time:", round(time() - t1, 3),
+    print("Sequential read time:", round(time() - t1, 3), end=' ')
 
     # f.close()
     # return
@@ -97,7 +98,7 @@ def bench(chunkshape, filters):
     for i in i_index:
         for j in j_index:
             t = e[i, j]
-    print "\tRandom read time:", round(time() - t1, 3)
+    print("\tRandom read time:", round(time() - t1, 3))
 
     f.close()
 
@@ -109,7 +110,7 @@ for complib in (None, 'zlib', 'lzo', 'blosc'):
         filters = tables.Filters(complevel=5, complib=complib)
     else:
         filters = tables.Filters(complevel=0)
-    print "8<--" * 20, "\nFilters:", filters, "\n" + "-" * 80
+    print("8<--" * 20, "\nFilters:", filters, "\n" + "-" * 80)
     # for ecs in (11, 14, 17, 20, 21, 22):
     for ecs in range(10, 24):
     # for ecs in (19,):
@@ -121,5 +122,5 @@ for complib in (None, 'zlib', 'lzo', 'blosc'):
             chunk2 = M
         chunkshape = (chunk1, chunk2)
         cs_str = str(chunksize / 1024) + " KB"
-        print "***** Chunksize:", cs_str, "/ Chunkshape:", chunkshape, "*****"
+        print("***** Chunksize:", cs_str, "/ Chunkshape:", chunkshape, "*****")
         bench(chunkshape, filters)

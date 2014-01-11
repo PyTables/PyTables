@@ -1,11 +1,12 @@
 # Testbed to perform experiments in order to determine best values for
 # the node numbers in LRU cache. Tables version.
 
+from __future__ import print_function
 from time import time
 from tables import *
 import tables
 
-print "PyTables version-->", tables.__version__
+print("PyTables version-->", tables.__version__)
 
 filename = "/tmp/junk-tables-100.h5"
 NLEAVES = 2000
@@ -26,15 +27,15 @@ def create_junk():
     # Create a new group
     group = fileh.create_group(fileh.root, "newgroup")
 
-    for i in xrange(NLEAVES):
+    for i in range(NLEAVES):
         # Create a new table in newgroup group
         table = fileh.create_table(group, 'table' + str(i), Particle,
                                    "A table", Filters(1))
         particle = table.row
-        print "Creating table-->", table._v_name
+        print("Creating table-->", table._v_name)
 
         # Fill the table with particles
-        for i in xrange(NROWS):
+        for i in range(NROWS):
             # This injects the row values.
             particle.append()
         table.flush()
@@ -47,7 +48,7 @@ def modify_junk_LRU():
     fileh = open_file(filename, 'a')
     group = fileh.root.newgroup
     for j in range(5):
-        print "iter -->", j
+        print("iter -->", j)
         for tt in fileh.walk_nodes(group):
             if isinstance(tt, Table):
                 pass
@@ -66,7 +67,7 @@ def modify_junk_LRU2():
             tt = getattr(group, "table" + str(i))
 #             for row in tt:
 #                 pass
-        print "iter and time -->", j + 1, round(time() - t1, 3)
+        print("iter and time -->", j + 1, round(time() - t1, 3))
     fileh.close()
 
 
@@ -79,7 +80,7 @@ def modify_junk_LRU3():
             title = tt.attrs.TITLE
             for row in tt:
                 pass
-        print "iter and time -->", j + 1, round(time() - t1, 3)
+        print("iter and time -->", j + 1, round(time() - t1, 3))
     fileh.close()
 
 if 1:

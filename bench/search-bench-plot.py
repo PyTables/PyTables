@@ -1,3 +1,4 @@
+from __future__ import print_function
 import tables
 from pylab import *
 
@@ -131,7 +132,7 @@ if __name__ == '__main__':
         plegend = filename[filename.find('cl-') + 3:filename.index('.h5')]
         plegend = plegend.replace('-', ' ')
         xval, yval = get_values(filename, '')
-        print "Values for %s --> %s, %s" % (filename, xval, yval)
+        print("Values for %s --> %s, %s" % (filename, xval, yval))
         #plots.append(loglog(xval, yval, linewidth=5))
         plots.append(semilogx(xval, yval, linewidth=4))
         legends.append(plegend)

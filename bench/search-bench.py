@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import math
 import time
@@ -53,7 +54,7 @@ def createNewBenchFile(bfile, verbose):
         psyco = BoolCol(pos=8)
 
     if verbose:
-        print "Creating a new benchfile:", bfile
+        print("Creating a new benchfile:", bfile)
     # Open the benchmarking file
     bf = open_file(bfile, "w")
     # Create groups
@@ -94,7 +95,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     nrowsbuf = table.nrowsinbuf
     minimum = 0
     maximum = nrows
-    for i in xrange(0, nrows, nrowsbuf):
+    for i in range(0, nrows, nrowsbuf):
         if i + nrowsbuf > nrows:
             j = nrows
         else:
@@ -114,11 +115,11 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     rowswritten += nrows
     time1 = time.time() - t1
     tcpu1 = time.clock() - cpu1
-    print "Time for filling:", round(time1, 3),\
-          "Krows/s:", round(nrows / 1000. / time1, 3),
+    print("Time for filling:", round(time1, 3),\
+          "Krows/s:", round(nrows / 1000. / time1, 3), end=' ')
     fileh.close()
     size1 = os.stat(filename)[6]
-    print ", File size:", round(size1 / (1024. * 1024.), 3), "MB"
+    print(", File size:", round(size1 / (1024. * 1024.), 3), "MB")
     fileh = open_file(filename, mode="a", title="Searchsorted Benchmark",
                       filters=filters)
     table = fileh.root.table
@@ -133,8 +134,8 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
             table.colinstances[colname].create_index(filters=filters)
         time2 = time.time() - t1
         tcpu2 = time.clock() - cpu1
-        print "Time for indexing:", round(time2, 3), \
-              "iKrows/s:", round(indexrows / 1000. / time2, 3),
+        print("Time for indexing:", round(time2, 3), \
+              "iKrows/s:", round(indexrows / 1000. / time2, 3), end=' ')
     else:
         indexrows = 0
         time2 = 0.0000000001  # an ugly hack
@@ -143,15 +144,15 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     if verbose:
         if index:
             idx = table.cols.var1.index
-            print "Index parameters:", repr(idx)
+            print("Index parameters:", repr(idx))
         else:
-            print "NOT indexing rows"
+            print("NOT indexing rows")
     # Close the file
     fileh.close()
 
     size2 = os.stat(filename)[6] - size1
     if index:
-        print ", Index size:", round(size2 / (1024. * 1024.), 3), "MB"
+        print(", Index size:", round(size2 / (1024. * 1024.), 3), "MB")
     return (rowswritten, indexrows, rowsize, time1, time2,
             tcpu1, tcpu2, size1, size2)
 
@@ -182,21 +183,21 @@ def benchCreate(file, nrows, filters, index, bfile, heavy,
     tapprows = round(time1, 3)
     cpuapprows = round(tcpu1, 3)
     tpercent = int(round(cpuapprows / tapprows, 2) * 100)
-    print "Rows written:", rowsw, " Row size:", rowsz
-    print "Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
-          (tapprows, cpuapprows, tpercent)
+    print("Rows written:", rowsw, " Row size:", rowsz)
+    print("Time writing rows: %s s (real) %s s (cpu)  %s%%" % \
+          (tapprows, cpuapprows, tpercent))
     rowsecf = rowsw / tapprows
     table.row["rowsecf"] = rowsecf
     # print "Write rows/sec: ", rowsecf
-    print "Total file size:", round((size1 + size2) / (1024. * 1024.), 3), "MB",
-    print ", Write KB/s (pure data):", int(rowsw * rowsz / (tapprows * 1024))
+    print("Total file size:", round((size1 + size2) / (1024. * 1024.), 3), "MB", end=' ')
+    print(", Write KB/s (pure data):", int(rowsw * rowsz / (tapprows * 1024)))
     # print "Write KB/s :", int((size1+size2) / ((time1+time2) * 1024))
     tidxrows = time2
     cpuidxrows = round(tcpu2, 3)
     tpercent = int(round(cpuidxrows / tidxrows, 2) * 100)
-    print "Rows indexed:", irows, " (IMRows):", irows / float(10 ** 6)
-    print "Time indexing rows: %s s (real) %s s (cpu)  %s%%" % \
-          (round(tidxrows, 3), cpuidxrows, tpercent)
+    print("Rows indexed:", irows, " (IMRows):", irows / float(10 ** 6))
+    print("Time indexing rows: %s s (real) %s s (cpu)  %s%%" % \
+          (round(tidxrows, 3), cpuidxrows, tpercent))
     rowseci = irows / tidxrows
     table.row["rowseci"] = rowseci
     table.row.append()
@@ -223,14 +224,14 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
     elif indexmode == "inkernel":
         where = table.where
     if verbose:
-        print "Max rows in buf:", table.nrowsinbuf
-        print "Rows in", table._v_pathname, ":", table.nrows
-        print "Buffersize:", table.rowsize * table.nrowsinbuf
-        print "MaxTuples:", table.nrowsinbuf
+        print("Max rows in buf:", table.nrowsinbuf)
+        print("Rows in", table._v_pathname, ":", table.nrows)
+        print("Buffersize:", table.rowsize * table.nrowsinbuf)
+        print("MaxTuples:", table.nrowsinbuf)
         if indexmode == "indexed":
-            print "Chunk size:", var2.index.sorted.chunksize
-            print "Number of elements per slice:", var2.index.nelemslice
-            print "Slice number in", table._v_pathname, ":", var2.index.nrows
+            print("Chunk size:", var2.index.sorted.chunksize)
+            print("Number of elements per slice:", var2.index.nelemslice)
+            print("Slice number in", table._v_pathname, ":", var2.index.nrows)
 
     #table.nrowsinbuf = 10
     # print "nrowsinbuf-->", table.nrowsinbuf
@@ -238,12 +239,12 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
     time2 = 0.
     tcpu2 = 0.
     results = []
-    print "Select mode:", indexmode, ". Selecting for type:", atom
+    print("Select mode:", indexmode, ". Selecting for type:", atom)
     # Initialize the random generator always with the same integer
     # in order to have reproductible results on each read iteration
     random.seed(19)
     numpy.random.seed(19)
-    for i in xrange(riter):
+    for i in range(riter):
         # The interval for look values at. This is aproximately equivalent to
         # the number of elements to select
         rnd = numpy.random.randint(table.nrows)
@@ -301,8 +302,8 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
         time2 = time2 / (riter - correction)
         tcpu2 = tcpu2 / (riter - correction)
     if verbose and 1:
-        print "Values that fullfill the conditions:"
-        print results
+        print("Values that fullfill the conditions:")
+        print(results)
 
     #rowsread = table.nrows * riter
     rowsread = table.nrows
@@ -356,24 +357,24 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
         tMrows = rowsr / (1000 * 1000.)
         sKrows = rowsel / 1000.
         if atom == "string":  # just to print once
-            print "Rows read:", rowsr, "Mread:", round(tMrows, 6), "Mrows"
-        print "Rows selected:", rowsel, "Ksel:", round(sKrows, 6), "Krows"
-        print "Time selecting (1st time): %s s (real) %s s (cpu)  %s%%" % \
-              (treadrows, cpureadrows, tpercent)
+            print("Rows read:", rowsr, "Mread:", round(tMrows, 6), "Mrows")
+        print("Rows selected:", rowsel, "Ksel:", round(sKrows, 6), "Krows")
+        print("Time selecting (1st time): %s s (real) %s s (cpu)  %s%%" % \
+              (treadrows, cpureadrows, tpercent))
         if riter > 1:
-            print "Time selecting (cached): %s s (real) %s s (cpu)  %s%%" % \
-                  (treadrows2, cpureadrows2, tpercent2)
+            print("Time selecting (cached): %s s (real) %s s (cpu)  %s%%" % \
+                  (treadrows2, cpureadrows2, tpercent2))
         #rowsec1 = round(rowsr / float(treadrows), 6)/10**6
         rowsec1 = rowsr / treadrows
         row["rowsec1"] = rowsec1
-        print "Read Mrows/sec: ",
-        print round(rowsec1 / 10. ** 6, 6), "(first time)",
+        print("Read Mrows/sec: ", end=' ')
+        print(round(rowsec1 / 10. ** 6, 6), "(first time)", end=' ')
         if riter > 1:
             rowsec2 = rowsr / treadrows2
             row["rowsec2"] = rowsec2
-            print round(rowsec2 / 10. ** 6, 6), "(cache time)"
+            print(round(rowsec2 / 10. ** 6, 6), "(cache time)")
         else:
-            print
+            print()
         # Append the info to the table
         row.append()
         table.flush()
@@ -504,11 +505,11 @@ if __name__ == "__main__":
 
     if testwrite:
         if verbose:
-            print "Compression level:", complevel
+            print("Compression level:", complevel)
             if complevel > 0:
-                print "Compression library:", complib
+                print("Compression library:", complib)
                 if shuffle:
-                    print "Suffling..."
+                    print("Suffling...")
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
         benchCreate(file, nrows, filters, index, bfile, heavy,

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import time
@@ -13,7 +14,7 @@ usage = """usage: %s recordlength
 try:
     reclen = int(sys.argv[1])
 except:
-    print usage
+    print(usage)
     sys.exit()
 
 delta = 0.000001
@@ -25,61 +26,61 @@ x3 = num.array(num.arange(reclen, reclen * 3, 2), num.Float64)
 r1 = recarray.fromarrays([x1, x2, x3], names='a,b,c')
 r2 = recarray2.fromarrays([x1, x2, x3], names='a,b,c')
 
-print "recarray shape in test ==>", r2.shape
+print("recarray shape in test ==>", r2.shape)
 
-print "Assignment in recarray original"
-print "-------------------------------"
+print("Assignment in recarray original")
+print("-------------------------------")
 t1 = time.clock()
-for row in xrange(reclen):
+for row in range(reclen):
     #r1.field("b")[row] = "changed"
     r1.field("c")[row] = float(row ** 2)
 t2 = time.clock()
 origtime = round(t2 - t1, 3)
-print "Assign time:", origtime, " Rows/s:", int(reclen / (origtime + delta))
+print("Assign time:", origtime, " Rows/s:", int(reclen / (origtime + delta)))
 # print "Field b on row 2 after re-assign:", r1.field("c")[2]
-print
+print()
 
-print "Assignment in recarray modified"
-print "-------------------------------"
+print("Assignment in recarray modified")
+print("-------------------------------")
 t1 = time.clock()
-for row in xrange(reclen):
+for row in range(reclen):
     rec = r2._row(row)  # select the row to be changed
     # rec.b = "changed"      # change the "b" field
     rec.c = float(row ** 2)  # Change the "c" field
 t2 = time.clock()
 ttime = round(t2 - t1, 3)
-print "Assign time:", ttime, " Rows/s:", int(reclen / (ttime + delta)),
-print " Speed-up:", round(origtime / ttime, 3)
+print("Assign time:", ttime, " Rows/s:", int(reclen / (ttime + delta)), end=' ')
+print(" Speed-up:", round(origtime / ttime, 3))
 # print "Field b on row 2 after re-assign:", r2.field("c")[2]
-print
+print()
 
-print "Selection in recarray original"
-print "------------------------------"
+print("Selection in recarray original")
+print("------------------------------")
 t1 = time.clock()
-for row in xrange(reclen):
+for row in range(reclen):
     rec = r1[row]
     if rec.field("a") < 3:
-        print "This record pass the cut ==>", rec.field("c"), "(row", row, ")"
+        print("This record pass the cut ==>", rec.field("c"), "(row", row, ")")
 t2 = time.clock()
 origtime = round(t2 - t1, 3)
-print "Select time:", origtime, " Rows/s:", int(reclen / (origtime + delta))
-print
+print("Select time:", origtime, " Rows/s:", int(reclen / (origtime + delta)))
+print()
 
-print "Selection in recarray modified"
-print "------------------------------"
+print("Selection in recarray modified")
+print("------------------------------")
 t1 = time.clock()
-for row in xrange(reclen):
+for row in range(reclen):
     rec = r2._row(row)
     if rec.a < 3:
-        print "This record pass the cut ==>", rec.c, "(row", row, ")"
+        print("This record pass the cut ==>", rec.c, "(row", row, ")")
 t2 = time.clock()
 ttime = round(t2 - t1, 3)
-print "Select time:", ttime, " Rows/s:", int(reclen / (ttime + delta)),
-print " Speed-up:", round(origtime / ttime, 3)
-print
+print("Select time:", ttime, " Rows/s:", int(reclen / (ttime + delta)), end=' ')
+print(" Speed-up:", round(origtime / ttime, 3))
+print()
 
-print "Printing in recarray original"
-print "------------------------------"
+print("Printing in recarray original")
+print("------------------------------")
 f = open("test.out", "w")
 t1 = time.clock()
 f.write(str(r1))
@@ -87,10 +88,10 @@ t2 = time.clock()
 origtime = round(t2 - t1, 3)
 f.close()
 os.unlink("test.out")
-print "Print time:", origtime, " Rows/s:", int(reclen / (origtime + delta))
-print
-print "Printing in recarray modified"
-print "------------------------------"
+print("Print time:", origtime, " Rows/s:", int(reclen / (origtime + delta)))
+print()
+print("Printing in recarray modified")
+print("------------------------------")
 f = open("test2.out", "w")
 t1 = time.clock()
 f.write(str(r2))
@@ -98,6 +99,6 @@ t2 = time.clock()
 ttime = round(t2 - t1, 3)
 f.close()
 os.unlink("test2.out")
-print "Print time:", ttime, " Rows/s:", int(reclen / (ttime + delta)),
-print " Speed-up:", round(origtime / ttime, 3)
-print
+print("Print time:", ttime, " Rows/s:", int(reclen / (ttime + delta)), end=' ')
+print(" Speed-up:", round(origtime / ttime, 3))
+print()
