@@ -36,7 +36,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
         self.N = len(tables.file._open_files)
         self.open_files = tables.file._open_files
 
-    def test01_openFile(self):
+    def test01_open_file(self):
         """Checking opening of a non existing file."""
 
         filename = tempfile.mktemp(".h5")
@@ -48,7 +48,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
         else:
             self.fail("IOError exception not raised")
 
-    def test02_openFile(self):
+    def test02_open_file(self):
         """Checking opening of an existing non HDF5 file."""
 
         # create a dummy file
@@ -66,6 +66,21 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
                 self.fail("HDF5ExtError exception not raised")
         finally:
             os.remove(filename)
+
+    def test03_open_file(self):
+        """Checking opening of an existing file with invalid mode."""
+
+        # See gh-318
+
+        # create a dummy file
+        filename = tempfile.mktemp(".h5")
+        fileh = tables.open_file(filename, "w")
+        fileh.close()
+
+        # Try to open the dummy file
+        self.assertRaises(ValueError, tables.open_file, filename, "ab")
+
+        os.remove(filename)
 
 
 class OpenFileTestCase(common.PyTablesTestCase):
@@ -2781,6 +2796,7 @@ def suite():
     blosc_avail = which_lib_version("blosc") is not None
 
     for i in range(niter):
+        theSuite.addTest(unittest.makeSuite(OpenFileFailureTestCase))
         theSuite.addTest(unittest.makeSuite(NodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(NoNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(DictNodeCacheOpenFile))

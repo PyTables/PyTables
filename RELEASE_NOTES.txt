@@ -64,6 +64,7 @@ Bugs fixed
   The buffes size was overestimated resulting in a :exc:`MemoryError`
   in some cases.
   Closes :issue:`316`. Thamks to bbudescu.
+- Better check of file open mode. Closes :issue:`318`.
 
 .. _pip: http://www.pip-installer.org
 .. _Anaconda: https://store.continuum.io/cshop/anaconda

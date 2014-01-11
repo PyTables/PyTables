@@ -503,6 +503,10 @@ class File(hdf5extension.File, object):
         self.mode = mode
         """The mode in which the file was opened."""
 
+        if mode not in ('r', 'r+', 'a', 'w'):
+            raise ValueError("invalid mode string ``%s``. Allowed modes are: "
+                             "'r', 'r+', 'a' and 'w'" % mode)
+
         # Get all the parameters in parameter file(s)
         params = dict([(k, v) for k, v in parameters.__dict__.iteritems()
                        if k.isupper() and not k.startswith('_')])
