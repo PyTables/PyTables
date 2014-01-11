@@ -5,6 +5,7 @@ Example to be used in the second tutorial in the User's Guide.
 
 """
 
+from __future__ import print_function
 from tables import *
 from numpy import *
 
@@ -51,7 +52,7 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Get the record object associated with the table:
     particle = table.row
     # Fill the table with 257 particles
-    for i in xrange(257):
+    for i in range(257):
         # First, assign the values to the Particle record
         particle['name'] = 'Particle: %6d' % (i)
         particle['lati'] = i
@@ -74,7 +75,7 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     # Get the record object associated with the table:
     event = table.row
     # Fill the table with 257 events
-    for i in xrange(257):
+    for i in range(257):
         # First, assign the values to the Event record
         event['name']  = 'Event: %6d' % (i)
         event['TDCcount'] = i % (1<<8)   # Correct range
@@ -94,8 +95,8 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
 table = root.Events.TEvent3
 e = [ p['TDCcount'] for p in table
       if p['ADCcount'] < 20 and 4 <= p['TDCcount'] < 15 ]
-print "Last record ==>", p
-print "Selected values ==>", e
-print "Total selected records ==> ", len(e)
+print("Last record ==>", p)
+print("Selected values ==>", e)
+print("Total selected records ==> ", len(e))
 # Finally, close the file (this also will flush all the remaining buffers!)
 fileh.close()

@@ -1,5 +1,6 @@
 "Example showing how to add a column on a existing column"
 
+from __future__ import print_function
 from tables import *
 
 class Particle(IsDescription):
@@ -22,7 +23,7 @@ table.append([("Particle:     10", 10, 0, 10*10, 10**2),
               ("Particle:     11", 11, -1, 11*11, 11**2),
               ("Particle:     12", 12, -2, 12*12, 12**2)])
 
-print "Contents of the original table:", fileh.root.newgroup.table[:]
+print("Contents of the original table:", fileh.root.newgroup.table[:])
 
 # close the file
 fileh.close()
@@ -46,7 +47,7 @@ table2 = fileh.create_table(group, 'table2', descr2, "A table", Filters(1))
 table.attrs._f_copy(table2)
 
 # Fill the rows of new table with default values
-for i in xrange(table.nrows):
+for i in range(table.nrows):
     table2.row.append()
 # Flush the rows to disk
 table2.flush()
@@ -65,7 +66,7 @@ table.remove()
 table2.move('/newgroup', 'table')
 
 # Print the new table
-print "Contents of the table with column added:", fileh.root.newgroup.table[:]
+print("Contents of the table with column added:", fileh.root.newgroup.table[:])
 
 # Finally, close the file
 fileh.close()

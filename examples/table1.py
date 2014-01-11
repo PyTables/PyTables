@@ -1,3 +1,4 @@
+from __future__ import print_function
 from tables import *
 
 class Particle(IsDescription):
@@ -17,7 +18,7 @@ table = fileh.create_table(group, 'table', Particle, "A table", Filters(1))
 particle = table.row
 
 # Fill the table with 10 particles
-for i in xrange(10):
+for i in range(10):
     # First, assign the values to the Particle record
     particle['name']  = 'Particle: %6d' % (i)
     particle['lati'] = i
@@ -41,30 +42,30 @@ table.append([("Particle:     10", 10, 0, 10*10, 10**2),
               ("Particle:     12", 12, -2, 12*12, 12**2)])
 
 group = fileh.root.newgroup
-print "Nodes under group", group, ":"
+print("Nodes under group", group, ":")
 for node in fileh.list_nodes(group):
-    print node
-print
+    print(node)
+print()
 
-print "Leaves everywhere in file", fileh.filename, ":"
+print("Leaves everywhere in file", fileh.filename, ":")
 for leaf in fileh.walk_nodes(classname="Leaf"):
-    print leaf
-print
+    print(leaf)
+print()
 
 table = fileh.root.newgroup.table
-print "Object:", table
-print "Table name: %s. Table title: %s" % (table.name, table.title)
-print "Rows saved on table: %d" % (table.nrows)
+print("Object:", table)
+print("Table name: %s. Table title: %s" % (table.name, table.title))
+print("Rows saved on table: %d" % (table.nrows))
 
-print "Variable names on table with their type:"
+print("Variable names on table with their type:")
 for name in table.colnames:
-    print "  ", name, ':=', table.coldtypes[name]
+    print("  ", name, ':=', table.coldtypes[name])
 
-print "Table contents:"
+print("Table contents:")
 for row in table:
-    print row[:]
-print "Associated recarray:"
-print table.read()
+    print(row[:])
+print("Associated recarray:")
+print(table.read())
 
 # Finally, close the file
 fileh.close()

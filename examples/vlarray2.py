@@ -3,9 +3,10 @@
 """ Small example that shows how to work with variable length arrays of
 different types, UNICODE strings and general Python objects included. """
 
+from __future__ import print_function
 from numpy import *
 from tables import *
-import cPickle
+import pickle
 
 # Open a new empty HDF5 file
 fileh = open_file("vlarray2.h5", mode = "w")
@@ -50,7 +51,7 @@ vlarray.append(["456", "3"])
 # Binary strings
 vlarray = fileh.create_vlarray(root, 'vlarray4', UInt8Atom(),
                               "pickled bytes")
-data = cPickle.dumps((["123", "456"], "3"))
+data = pickle.dumps((["123", "456"], "3"))
 vlarray.append(ndarray(buffer=data, dtype=uint8, shape=len(data)))
 
 # The next is a way of doing the same than before
@@ -76,10 +77,10 @@ vlarray.append("aaana")
 # Unicode variable length strings
 vlarray = fileh.create_vlarray(root, 'vlarray8', VLUnicodeAtom(),
                                "Variable Length Unicode String")
-vlarray.append(u"aaana")
-vlarray.append(u"")   # The empty string
-vlarray.append(u"asd")
-vlarray.append(u"para\u0140lel")
+vlarray.append("aaana")
+vlarray.append("")   # The empty string
+vlarray.append("asd")
+vlarray.append("para\u0140lel")
 
 # Close the file
 fileh.close()
@@ -91,8 +92,8 @@ root = fileh.root
 
 for object in fileh.list_nodes(root, "Leaf"):
     arr = object.read()
-    print object.name, "-->", arr
-    print "number of objects in this row:", len(arr)
+    print(object.name, "-->", arr)
+    print("number of objects in this row:", len(arr))
 
 # Close the file
 fileh.close()

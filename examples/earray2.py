@@ -3,6 +3,7 @@
 """ Small example that shows how to work with extendeable arrays of
 different types, strings included. """
 
+from __future__ import print_function
 from numpy import *
 from tables import *
 
@@ -49,29 +50,29 @@ fileh = open_file(filename, mode = "r")
 root = fileh.root
 
 a = root.array_c.read()
-print "Character array -->", repr(a), a.shape
+print("Character array -->", repr(a), a.shape)
 a = root.array_e.read()
-print "Empty array (yes, this is suported) -->", repr(a), a.shape
+print("Empty array (yes, this is suported) -->", repr(a), a.shape)
 a = root.array_b.read(step=2)
-print "Int8 array, even rows (step = 2) -->", repr(a), a.shape
+print("Int8 array, even rows (step = 2) -->", repr(a), a.shape)
 
-print "Testing iterator:",
+print("Testing iterator:", end=' ')
 #for x in root.array_b.iterrows(step=2):
 for x in root.array_b:
-    print "nrow-->", root.array_b.nrow
-    print "Element-->", x
+    print("nrow-->", root.array_b.nrow)
+    print("Element-->", x)
 
-print "Testing getitem:"
+print("Testing getitem:")
 for i in range(root.array_b.shape[0]):
-    print "array_b["+str(i)+"]", "-->", root.array_b[i]
+    print("array_b["+str(i)+"]", "-->", root.array_b[i])
 # The nrows counts the growing dimension, which is different from the
 # first index
 for i in range(root.array_b.nrows):
-    print "array_b[:,"+str(i)+",:]", "-->", root.array_b[:, i,:]
-print "array_c[1:2]", repr(root.array_c[1:2])
-print "array_c[1:3]", repr(root.array_c[1:3])
-print "array_b[:]", root.array_b[:]
+    print("array_b[:,"+str(i)+",:]", "-->", root.array_b[:, i,:])
+print("array_c[1:2]", repr(root.array_c[1:2]))
+print("array_c[1:3]", repr(root.array_c[1:3]))
+print("array_b[:]", root.array_b[:])
 
-print repr(root.array_c)
+print(repr(root.array_c))
 # Close the file
 fileh.close()

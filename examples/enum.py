@@ -3,6 +3,7 @@
 # since it contains some statements that raise exceptions.
 # To run it, paste it as the input of ``python``.
 
+from __future__ import print_function
 
 def COMMENT(string):
     pass
@@ -16,19 +17,19 @@ colorList = ['red', 'green', 'blue', 'white', 'black']
 colors = tables.Enum(colorList)
 
 COMMENT("Take a look at the name-value pairs.")
-print "Colors:", [v for v in colors]
+print("Colors:", [v for v in colors])
 
 COMMENT("Access values as attributes.")
-print "Value of 'red' and 'white':", (colors.red, colors.white)
-print "Value of 'yellow':", colors.yellow
+print("Value of 'red' and 'white':", (colors.red, colors.white))
+print("Value of 'yellow':", colors.yellow)
 
 COMMENT("Access values as items.")
-print "Value of 'red' and 'white':", (colors['red'], colors['white'])
-print "Value of 'yellow':", colors['yellow']
+print("Value of 'red' and 'white':", (colors['red'], colors['white']))
+print("Value of 'yellow':", colors['yellow'])
 
 COMMENT("Access names.")
-print "Name of value %s:" % colors.red, colors(colors.red)
-print "Name of value 1234:", colors(1234)
+print("Name of value %s:" % colors.red, colors(colors.red))
+print("Name of value 1234:", colors(1234))
 
 
 COMMENT("**** Enumerated columns. ****")
@@ -65,7 +66,7 @@ COMMENT("Now print them!")
 for r in tbl:
     ballTime = r['ballTime']
     ballColor = colors(r['ballColor'])  # notice this
-    print "Ball extracted on %d is of color %s." % (ballTime, ballColor)
+    print("Ball extracted on %d is of color %s." % (ballTime, ballColor))
 
 
 COMMENT("**** Enumerated arrays. ****")
@@ -87,7 +88,7 @@ earr.append([(wdays.Mon, 1234)])
 
 COMMENT("Print the values.")
 for (d1, d2) in earr:
-    print "From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2-d1+1)
+    print("From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2-d1+1))
 
 COMMENT("Close the PyTables file and remove it.")
 import os

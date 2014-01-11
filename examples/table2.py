@@ -1,4 +1,5 @@
 # This shows how to use the cols accessors for table columns
+from __future__ import print_function
 from tables import *
 class Particle(IsDescription):
     name        = StringCol(16, pos=1)   # 16-character String
@@ -17,19 +18,19 @@ table.append([("Particle:     10", 10, 0, (10*9, 1), [[10**2, 11*3]]*2),
               ("Particle:     13", 13, -3, (13*11, 4), [[13**2, 8*3]]*2),
               ("Particle:     14", 14, -4, (14*11, 5), [[14**2, 7*3]]*2)])
 
-print "str(Cols)-->", table.cols
-print "repr(Cols)-->", repr(table.cols)
-print "Column handlers:"
+print("str(Cols)-->", table.cols)
+print("repr(Cols)-->", repr(table.cols))
+print("Column handlers:")
 for name in table.colnames:
-    print table.cols._f_col(name)
+    print(table.cols._f_col(name))
 
-print "Select table.cols.name[1]-->", table.cols.name[1]
-print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
-print "Select table.cols.name[:]-->", table.cols.name[:]
-print "Select table.cols._f_col('name')[:]-->", table.cols._f_col('name')[:]
-print "Select table.cols.lati[1]-->", table.cols.lati[1]
-print "Select table.cols.lati[1:2]-->", table.cols.lati[1:2]
-print "Select table.cols.vector[:]-->", table.cols.vector[:]
-print "Select table.cols['matrix2D'][:]-->", table.cols.matrix2D[:]
+print("Select table.cols.name[1]-->", table.cols.name[1])
+print("Select table.cols.name[1:2]-->", table.cols.name[1:2])
+print("Select table.cols.name[:]-->", table.cols.name[:])
+print("Select table.cols._f_col('name')[:]-->", table.cols._f_col('name')[:])
+print("Select table.cols.lati[1]-->", table.cols.lati[1])
+print("Select table.cols.lati[1:2]-->", table.cols.lati[1:2])
+print("Select table.cols.vector[:]-->", table.cols.vector[:])
+print("Select table.cols['matrix2D'][:]-->", table.cols.matrix2D[:])
 
 fileh.close()

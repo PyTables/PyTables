@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy
 import tables
 
@@ -14,6 +15,6 @@ h5f.close()
 
 # Re-open and read another hyperslab
 h5f = tables.open_file(fileName)
-print h5f
-print h5f.root.carray[8:12, 18:22]
+print(h5f)
+print(h5f.root.carray[8:12, 18:22])
 h5f.close()

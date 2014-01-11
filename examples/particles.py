@@ -2,6 +2,7 @@
 Beware! you need PyTables >= 2.3 to run this script!
 """
 
+from __future__ import print_function
 from time import time  # use clock for Win
 import numpy
 from tables import *
@@ -22,8 +23,8 @@ class Particle(IsDescription):
 
 # # Create a new table for events
 t1 = time()
-print "Creating a table with %s entries aprox.. Wait please..." % \
-      (int(NEVENTS*(MAX_PARTICLES_PER_EVENT/2.)))
+print("Creating a table with %s entries aprox.. Wait please..." % \
+      (int(NEVENTS*(MAX_PARTICLES_PER_EVENT/2.))))
 fileh = open_file("particles-pro.h5", mode = "w")
 group = fileh.create_group(fileh.root, "events")
 table = fileh.create_table(group, 'table', Particle, "A table", Filters(0))
@@ -33,8 +34,8 @@ table = fileh.create_table(group, 'table', Particle, "A table", Filters(0))
 # Fill the table with events
 numpy.random.seed(1)  # In order to have reproducible results
 particle = table.row
-for i in xrange(NEVENTS):
-    for j in xrange(numpy.random.randint(0, MAX_PARTICLES_PER_EVENT)):
+for i in range(NEVENTS):
+    for j in range(numpy.random.randint(0, MAX_PARTICLES_PER_EVENT)):
         particle['event_id']  = i
         particle['particle_id'] = j
         particle['parent_id'] = j - 10     # 10 root particles (max)
@@ -43,70 +44,70 @@ for i in xrange(NEVENTS):
         # This injects the row values.
         particle.append()
 table.flush()
-print "Added %s entries --- Time: %s sec" % (table.nrows, round((time()-t1), 3))
+print("Added %s entries --- Time: %s sec" % (table.nrows, round((time()-t1), 3)))
 
 t1 = time()
-print "Creating index..."
+print("Creating index...")
 table.cols.event_id.create_index(optlevel=0, _verbose=True)
-print "Index created --- Time: %s sec" % (round((time()-t1), 3))
+print("Index created --- Time: %s sec" % (round((time()-t1), 3)))
 # Add the number of events as an attribute
 table.attrs.nevents = NEVENTS
 
 fileh.close()
 
 # Open the file en read only mode and start selections
-print "Selecting events..."
+print("Selecting events...")
 fileh = open_file("particles-pro.h5", mode = "r")
 table = fileh.root.events.table
 
-print "Particles in event 34:",
+print("Particles in event 34:", end=' ')
 nrows = 0; t1 = time()
 for row in table.where("event_id == 34"):
         nrows += 1
-print nrows
-print "Done --- Time:", round((time()-t1), 3), "sec"
+print(nrows)
+print("Done --- Time:", round((time()-t1), 3), "sec")
 
-print "Root particles in event 34:",
+print("Root particles in event 34:", end=' ')
 nrows = 0; t1 = time()
 for row in table.where("event_id == 34"):
     if row['parent_id'] < 0:
         nrows += 1
-print nrows
-print "Done --- Time:", round((time()-t1), 3), "sec"
+print(nrows)
+print("Done --- Time:", round((time()-t1), 3), "sec")
 
-print "Sum of masses of root particles in event 34:",
+print("Sum of masses of root particles in event 34:", end=' ')
 smass = 0.0; t1 = time()
 for row in table.where("event_id == 34"):
     if row['parent_id'] < 0:
         smass += row['mass']
-print smass
-print "Done --- Time:", round((time()-t1), 3), "sec"
+print(smass)
+print("Done --- Time:", round((time()-t1), 3), "sec")
 
-print "Sum of masses of daughter particles for particle 3 in event 34:",
+print("Sum of masses of daughter particles for particle 3 in event 34:", end=' ')
 smass = 0.0; t1 = time()
 for row in table.where("event_id == 34"):
     if row['parent_id'] == 3:
         smass += row['mass']
-print smass
-print "Done --- Time:", round((time()-t1), 3), "sec"
+print(smass)
+print("Done --- Time:", round((time()-t1), 3), "sec")
 
-print "Sum of module of momentum for particle 3 in event 34:",
+print("Sum of module of momentum for particle 3 in event 34:", end=' ')
 smomentum = 0.0; t1 = time()
 #for row in table.where("(event_id == 34) & ((parent_id) == 3)"):
 for row in table.where("event_id == 34"):
     if row['parent_id'] == 3:
         smomentum += numpy.sqrt(numpy.add.reduce(row['momentum']**2))
-print smomentum
-print "Done --- Time:", round((time()-t1), 3), "sec"
+print(smomentum)
+print("Done --- Time:", round((time()-t1), 3), "sec")
 
 # This is the same than above, but using generator expressions
 # Python >= 2.4 needed here!
-print "Sum of module of momentum for particle 3 in event 34 (2):",
+print("Sum of module of momentum for particle 3 in event 34 (2):", end=' ')
 t1 = time()
-print sum(numpy.sqrt(numpy.add.reduce(row['momentum']**2))
+print(sum(numpy.sqrt(numpy.add.reduce(row['momentum']**2))
           for row in table.where("event_id == 34")
-          if row['parent_id'] == 3)
-print "Done --- Time:", round((time()-t1), 3), "sec"
+          if row['parent_id'] == 3))
+print("Done --- Time:", round((time()-t1), 3), "sec")
 
 
 fileh.close()

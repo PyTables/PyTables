@@ -1,3 +1,4 @@
+from __future__ import print_function
 from numpy import *
 from tables import *
 
@@ -30,21 +31,21 @@ fileh = open_file("array1.h5", mode = "r")
 root = fileh.root
 
 a = root.array_1.read()
-print "Signed byte array -->", repr(a), a.shape
+print("Signed byte array -->", repr(a), a.shape)
 
-print "Testing iterator (works even over scalar arrays):",
+print("Testing iterator (works even over scalar arrays):", end=' ')
 arr = root.array_s
 for x in arr:
-    print "nrow-->", arr.nrow
-    print "Element-->", repr(x)
+    print("nrow-->", arr.nrow)
+    print("Element-->", repr(x))
 
 # print "Testing getitem:"
 # for i in range(root.array_1.nrows):
 #     print "array_1["+str(i)+"]", "-->", root.array_1[i]
 
-print "array_f[:,2:3,2::2]", repr(root.array_f[:, 2:3, 2::2])
-print "array_f[1,2:]", repr(root.array_f[1, 2:])
-print "array_f[1]", repr(root.array_f[1])
+print("array_f[:,2:3,2::2]", repr(root.array_f[:, 2:3, 2::2]))
+print("array_f[1,2:]", repr(root.array_f[1, 2:]))
+print("array_f[1]", repr(root.array_f[1]))
 
 # Close the file
 fileh.close()

@@ -1,6 +1,7 @@
 # Example to show how nested types can be dealed with PyTables
 # F. Alted 2005/05/27
 
+from __future__ import print_function
 import random
 from tables import *
 
@@ -12,9 +13,9 @@ colors = Enum(['red', 'green', 'blue'])
 def read(file):
     fileh = open_file(file, "r")
 
-    print "table (short)-->", fileh.root.table
-    print "table (long)-->", repr(fileh.root.table)
-    print "table (contents)-->", repr(fileh.root.table[:])
+    print("table (short)-->", fileh.root.table)
+    print("table (long)-->", repr(fileh.root.table))
+    print("table (contents)-->", repr(fileh.root.table[:]))
 
     fileh.close()
 
@@ -71,4 +72,4 @@ class Test(IsDescription):
 # Write the file and read it
 write(fileout, Test, ['info/info2/z3'])
 read(fileout)
-print "You can have a look at '%s' output file now." % fileout
+print("You can have a look at '%s' output file now." % fileout)

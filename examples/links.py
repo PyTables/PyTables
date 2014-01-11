@@ -1,3 +1,4 @@
+from __future__ import print_function
 import tables as tb
 
 # Create a new file with some structural groups
@@ -12,27 +13,27 @@ t1 = f1.create_table(g2, 't1', {'f1': tb.IntCol(), 'f2': tb.FloatCol()})
 # Create new group and a first hard link
 gl = f1.create_group('/', 'gl')
 ht = f1.create_hard_link(gl, 'ht', '/g1/g2/t1')  # ht points to t1
-print "``%s`` is a hard link to: ``%s``" % (ht, t1)
+print("``%s`` is a hard link to: ``%s``" % (ht, t1))
 
 # Remove the orginal link to the t1 table
 t1.remove()
-print "table continues to be accessible in: ``%s``" % f1.get_node('/gl/ht')
+print("table continues to be accessible in: ``%s``" % f1.get_node('/gl/ht'))
 
 # Let's continue with soft links
 la1 = f1.create_soft_link(gl, 'la1', '/g1/a1')  # la1 points to a1
-print "``%s`` is a soft link to: ``%s``" % (la1, la1.target)
+print("``%s`` is a soft link to: ``%s``" % (la1, la1.target))
 lt = f1.create_soft_link(gl, 'lt', '/g1/g2/t1')  # lt points to t1 (dangling)
-print "``%s`` is a soft link to: ``%s``" % (lt, lt.target)
+print("``%s`` is a soft link to: ``%s``" % (lt, lt.target))
 
 # Recreate the '/g1/g2/t1' path
 t1 = f1.create_hard_link('/g1/g2', 't1', '/gl/ht')
-print "``%s`` is not dangling anymore" % (lt,)
+print("``%s`` is not dangling anymore" % (lt,))
 
 # Dereferrencing
 plt = lt()
-print "dereferred lt node: ``%s``" % plt
+print("dereferred lt node: ``%s``" % plt)
 pla1 = la1()
-print "dereferred la1 node: ``%s``" % pla1
+print("dereferred la1 node: ``%s``" % pla1)
 
 # Copy the array a1 into another file
 f2 = tb.open_file('links2.h5', 'w')
@@ -42,9 +43,9 @@ f2.close()  # close the other file
 # Remove the original soft link and create an external link
 la1.remove()
 la1 = f1.create_external_link(gl, 'la1', 'links2.h5:/a1')
-print "``%s`` is an external link to: ``%s``" % (la1, la1.target)
+print("``%s`` is an external link to: ``%s``" % (la1, la1.target))
 new_a1 = la1()  # dereferrencing la1 returns a1 in links2.h5
-print "dereferred la1 node:  ``%s``" % new_a1
-print "new_a1 file:", new_a1._v_file.filename
+print("dereferred la1 node:  ``%s``" % new_a1)
+print("new_a1 file:", new_a1._v_file.filename)
 
 f1.close()

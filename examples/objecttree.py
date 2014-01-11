@@ -1,3 +1,4 @@
+from __future__ import print_function
 from tables import *
 
 class Particle(IsDescription):
@@ -27,7 +28,7 @@ for table in (table1, table2):
     # Get the record object associated with the table:
     row = table.row
     # Fill the table with 10 records
-    for i in xrange(10):
+    for i in range(10):
         # First, assign the values to the Particle record
         row['identity']  = 'This is particle: %2d' % (i)
         row['idnumber'] = i

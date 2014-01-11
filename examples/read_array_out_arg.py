@@ -27,7 +27,7 @@ def standard_read(array_size):
     with tables.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
         start = time.time()
-        for i in xrange(N):
+        for i in range(N):
             output = array.read(0, array_size, 1)
         end = time.time()
         assert(np.all(output == 1))
@@ -40,7 +40,7 @@ def pre_allocated_read(array_size):
         array = fobj.get_node('/', 'test')
         start = time.time()
         output = np.empty(array_size, 'i8')
-        for i in xrange(N):
+        for i in range(N):
             array.read(0, array_size, 1, out=output)
         end = time.time()
         assert(np.all(output == 1))
