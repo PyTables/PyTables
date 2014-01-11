@@ -1,14 +1,14 @@
 from __future__ import print_function
-from numpy import *
-from tables import *
+import numpy as np
+import tables
 
 # Open a new empty HDF5 file
-fileh = open_file("array2.h5", mode = "w")
+fileh = tables.open_file("array2.h5", mode="w")
 # Shortcut to the root group
 root = fileh.root
 
 # Create an array
-a = array([1, 2.7182818284590451, 3.141592], float)
+a = np.array([1, 2.7182818284590451, 3.141592], float)
 print("About to write array:", a)
 print("  with shape: ==>", a.shape)
 print("  and dtype ==>", a.dtype)
@@ -24,7 +24,7 @@ print("Info on the object:", repr(root.carray))
 fileh.close()
 
 # Open the previous HDF5 file in read-only mode
-fileh = open_file("array2.h5", mode = "r")
+fileh = tables.open_file("array2.h5", mode="r")
 # Get the root group
 root = fileh.root
 

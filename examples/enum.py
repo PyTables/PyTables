@@ -5,6 +5,7 @@
 
 from __future__ import print_function
 
+
 def COMMENT(string):
     pass
 
@@ -38,6 +39,8 @@ COMMENT("Create a new PyTables file.")
 h5f = tables.open_file('enum.h5', 'w')
 
 COMMENT("This describes a ball extraction.")
+
+
 class BallExt(tables.IsDescription):
     ballTime = tables.Time32Col()
     ballColor = tables.EnumCol(colors, 'black', base='uint8')
@@ -88,7 +91,7 @@ earr.append([(wdays.Mon, 1234)])
 
 COMMENT("Print the values.")
 for (d1, d2) in earr:
-    print("From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2-d1+1))
+    print("From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2 - d1 + 1))
 
 COMMENT("Close the PyTables file and remove it.")
 import os

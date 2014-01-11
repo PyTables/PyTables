@@ -53,7 +53,8 @@ class FileAccess(multiprocessing.Process):
 
             # Check for any data requests in the read_queue.
             try:
-                row_num, proc_num = self.read_queue.get(True, self.block_period)
+                row_num, proc_num = self.read_queue.get(
+                    True, self.block_period)
                 # look up the appropriate result_queue for this data processor
                 # instance
                 result_queue = self.result_queues[proc_num]

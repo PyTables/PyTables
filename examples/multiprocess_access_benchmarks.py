@@ -79,8 +79,8 @@ def read_and_send_pipe(send_type, array_size):
 
 
 # process to receive an array using a shared memory mapped file
-# for real use, this would require creating some protocol to specify the array's
-# data type and shape
+# for real use, this would require creating some protocol to specify the
+# array's data type and shape
 class MemmapReceive(multiprocessing.Process):
 
     def __init__(self, path_recv, result_send):
@@ -131,8 +131,8 @@ def read_and_send_memmap(send_type, array_size):
 
 
 # process to receive an array using a socket
-# for real use, this would require creating some protocol to specify the array's
-# data type and shape
+# for real use, this would require creating some protocol to specify the
+# array's data type and shape
 class SocketReceive(multiprocessing.Process):
 
     def __init__(self, socket_family, address, result_send, array_nbytes):
@@ -207,7 +207,8 @@ def read_and_send_socket(send_type, array_size, array_bytes, address_func,
     recv_process.join()
 
 
-def print_results(send_type, start_timestamp, recv_timestamp, finish_timestamp):
+def print_results(send_type, start_timestamp, recv_timestamp,
+                  finish_timestamp):
     msg = 'type: {0}\t receive: {1:5.5f}, add:{2:5.5f}, total: {3:5.5f}'
     print(msg.format(send_type,
                      recv_timestamp - start_timestamp,

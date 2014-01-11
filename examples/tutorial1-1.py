@@ -6,22 +6,22 @@ with any HDF5 generic utility.
 """
 
 from __future__ import print_function
-from numpy import *
-from tables import *
+import numpy as np
+import tables
 
 
         #'-**-**-**-**-**-**- user record definition  -**-**-**-**-**-**-**-'
 
 # Define a user record to characterize some kind of particles
-class Particle(IsDescription):
-    name      = StringCol(16)   # 16-character String
-    idnumber  = Int64Col()      # Signed 64-bit integer
-    ADCcount  = UInt16Col()     # Unsigned short integer
-    TDCcount  = UInt8Col()      # unsigned byte
-    grid_i    = Int32Col()      # integer
-    grid_j    = Int32Col()      # integer
-    pressure  = Float32Col()    # float  (single-precision)
-    energy    = Float64Col()    # double (double-precision)
+class Particle(tables.IsDescription):
+    name = tables.StringCol(16)     # 16-character String
+    idnumber = tables.Int64Col()    # Signed 64-bit integer
+    ADCcount = tables.UInt16Col()   # Unsigned short integer
+    TDCcount = tables.UInt8Col()    # unsigned byte
+    grid_i = tables.Int32Col()      # integer
+    grid_j = tables.Int32Col()      # integer
+    pressure = tables.Float32Col()  # float  (single-precision)
+    energy = tables.Float64Col()    # double (double-precision)
 
 print()
 print('-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-')
@@ -32,7 +32,7 @@ filename = "tutorial1.h5"
 print("Creating file:", filename)
 
 # Open a file in "w"rite mode
-h5file = open_file(filename, mode = "w", title = "Test file")
+h5file = tables.open_file(filename, mode="w", title="Test file")
 
 print()
 print('-**-**-**-**-**- group and table creation  -**-**-**-**-**-**-**-')
@@ -55,12 +55,12 @@ particle = table.row
 
 # Fill the table with 10 particles
 for i in range(10):
-    particle['name']  = 'Particle: %6d' % (i)
+    particle['name'] = 'Particle: %6d' % (i)
     particle['TDCcount'] = i % 256
     particle['ADCcount'] = (i * 256) % (1 << 16)
     particle['grid_i'] = i
     particle['grid_j'] = 10 - i
-    particle['pressure'] = float(i*i)
+    particle['pressure'] = float(i * i)
     particle['energy'] = float(particle['pressure'] ** 4)
     particle['idnumber'] = i * (2 ** 34)
     particle.append()
@@ -73,16 +73,18 @@ print('-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-')
 
 # Read actual data from table. We are interested in collecting pressure values
 # on entries where TDCcount field is greater than 3 and pressure less than 50
-pressure = [ x['pressure'] for x in table.iterrows()
-             if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50 ]
+pressure = [x['pressure'] for x in table.iterrows()
+            if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50]
 print("Last record read:")
 print(repr(x))
 print("Field pressure elements satisfying the cuts:")
 print(repr(pressure))
 
 # Read also the names with the same cuts
-names = [ x['name'] for x in table.where(
-    """(TDCcount > 3) & (20 <= pressure) & (pressure < 50)""" ) ]
+names = [
+    x['name'] for x in table.where(
+        """(TDCcount > 3) & (20 <= pressure) & (pressure < 50)""")
+]
 print("Field names elements satisfying the cuts:")
 print(repr(names))
 
@@ -93,8 +95,8 @@ print("Creating a new group called '/columns' to hold new arrays")
 gcolumns = h5file.create_group(h5file.root, "columns", "Pressure and Name")
 
 print("Creating an array called 'pressure' under '/columns' group")
-h5file.create_array(gcolumns, 'pressure', array(pressure),
-                   "Pressure column selection")
+h5file.create_array(gcolumns, 'pressure', np.array(pressure),
+                    "Pressure column selection")
 print(repr(h5file.root.columns.pressure))
 
 print("Creating another array called 'name' under '/columns' group")
@@ -106,4 +108,4 @@ print(h5file)
 
 # Close the file
 h5file.close()
-print("File '"+filename+"' created")
+print("File '" + filename + "' created")

@@ -10,29 +10,35 @@ with ptdump or any HDF5 generic utility.
 from __future__ import print_function
 import numpy
 
-from tables import *
+import tables
 
-        #'-**-**-**-**- The sample nested class description  -**-**-**-**-**-'
+#'-**-**-**-**- The sample nested class description  -**-**-**-**-**-'
 
-class Info(IsDescription):
+
+class Info(tables.IsDescription):
     """A sub-structure of Test"""
+
     _v_pos = 2   # The position in the whole structure
-    name = StringCol(10)
-    value = Float64Col(pos=0)
+    name = tables.StringCol(10)
+    value = tables.Float64Col(pos=0)
 
-colors = Enum(['red', 'green', 'blue'])
+colors = tables.Enum(['red', 'green', 'blue'])
 
-class NestedDescr(IsDescription):
+
+class NestedDescr(tables.IsDescription):
     """A description that has several nested columns"""
-    color = EnumCol(colors, 'red', base='uint32')
+
+    color = tables.EnumCol(colors, 'red', base='uint32')
     info1 = Info()
-    class info2(IsDescription):
+
+    class info2(tables.IsDescription):
         _v_pos = 1
-        name = StringCol(10)
-        value = Float64Col(pos=0)
-        class info3(IsDescription):
-            x = Float64Col(dflt=1)
-            y = UInt8Col(dflt=1)
+        name = tables.StringCol(10)
+        value = tables.Float64Col(pos=0)
+
+        class info3(tables.IsDescription):
+            x = tables.Float64Col(dflt=1)
+            y = tables.UInt8Col(dflt=1)
 
 print()
 print('-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-')
@@ -40,7 +46,7 @@ print('-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-')
 filename = "nested-tut.h5"
 
 print("Creating file:", filename)
-fileh = open_file(filename, "w")
+fileh = tables.open_file(filename, "w")
 
 print()
 print('-**-**-**-**-**- nested table creation  -**-**-**-**-**-')
@@ -50,10 +56,10 @@ table = fileh.create_table(fileh.root, 'table', NestedDescr)
 # Fill the table with some rows
 row = table.row
 for i in range(10):
-    row['color'] = colors[['red', 'green', 'blue'][i%3]]
+    row['color'] = colors[['red', 'green', 'blue'][i % 3]]
     row['info1/name'] = "name1-%s" % i
     row['info2/name'] = "name2-%s" % i
-    row['info2/info3/y'] =  i
+    row['info2/info3/y'] = i
     # All the rest will be filled with defaults
     row.append()
 
@@ -71,7 +77,7 @@ table2 = fileh.create_table(fileh.root, 'table2', nra)
 print(repr(table2[:]))
 
 # Read also the info2/name values with color == colors.red
-names = [ x['info2/name'] for x in table if x['color'] == colors.red ]
+names = [x['info2/name'] for x in table if x['color'] == colors.red]
 
 print()
 print("**** info2/name elements satisfying color == 'red':", repr(names))
@@ -87,7 +93,8 @@ print()
 print("**** table.info2 data contents:\n", repr(table.cols.info2[1:5]))
 
 print()
-print("**** table.info2.info3 data contents:\n", repr(table.cols.info2.info3[1:5]))
+print("**** table.info2.info3 data contents:\n",
+      repr(table.cols.info2.info3[1:5]))
 
 print("**** _f_col() ****")
 print(repr(table.cols._f_col('info2')))

@@ -6,13 +6,13 @@ that create the tutorial1.h5 file needed here.
 """
 
 from __future__ import print_function
-from tables import *
+import tables
 
 print()
 print('-**-**-**-**- open the previous tutorial file -**-**-**-**-**-')
 
 # Reopen the file in append mode
-h5file = open_file("tutorial1.h5", "a")
+h5file = tables.open_file("tutorial1.h5", "a")
 
 # Print the object tree created from this filename
 print("Object tree from filename:", h5file.filename)
@@ -58,7 +58,6 @@ for leaf in h5file.root.detector._f_walknodes('Leaf'):
     print(leaf)
 
 
-
 print()
 print('-**-**-**-**-**-**- setting/getting object attributes -**-**--**-**-')
 
@@ -93,7 +92,8 @@ print("AttributeSet instance in /detector/table:", repr(table.attrs))
 print("List of user attributes in /detector/table:", table.attrs._f_list())
 
 # Get the (sys) attributes of /detector/table
-print("List of user attributes in /detector/table:", table.attrs._f_list("sys"))
+print("List of user attributes in /detector/table:",
+      table.attrs._f_list("sys"))
 print()
 # Rename an attribute
 print("renaming 'temp_scale' attribute to 'tempScale'")
@@ -176,12 +176,12 @@ particle = table.row
 
 # Append 5 new particles to table
 for i in range(10, 15):
-    particle['name']  = 'Particle: %6d' % (i)
+    particle['name'] = 'Particle: %6d' % (i)
     particle['TDCcount'] = i % 256
     particle['ADCcount'] = (i * 256) % (1 << 16)
     particle['grid_i'] = i
     particle['grid_j'] = 10 - i
-    particle['pressure'] = float(i*i)
+    particle['pressure'] = float(i * i)
     particle['energy'] = float(particle['pressure'] ** 4)
     particle['idnumber'] = i * (2 ** 34)  # This exceeds long integer range
     particle.append()
@@ -191,7 +191,7 @@ table.flush()
 
 # Print the data using the table iterator:
 for r in table:
-    print("%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
+    print("%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" %
           (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
            r['TDCcount']))
 
@@ -217,13 +217,13 @@ print("After modifying slice [1:9:3] of energy-->", table[0:9])
 
 # Modifying complete Rows
 table.modify_rows(start=1, step=3,
-                 rows=[(1, 2, 3.0, 4, 5, 6, 'Particle:   None', 8.0),
-                       (2, 4, 6.0, 8, 10, 12, 'Particle: None*2', 16.0)])
+                  rows=[(1, 2, 3.0, 4, 5, 6, 'Particle:   None', 8.0),
+                        (2, 4, 6.0, 8, 10, 12, 'Particle: None*2', 16.0)])
 print("After modifying the complete third row-->", table[0:5])
 
 # Modifying columns inside table iterators
 for row in table.where('TDCcount <= 2'):
-    row['energy'] = row['TDCcount']*2
+    row['energy'] = row['TDCcount'] * 2
     row.update()
 print("After modifying energy column (where TDCcount <=2)-->", table[0:4])
 
@@ -260,15 +260,15 @@ table.remove_rows(5, 10)
 print("Some columns in final table:")
 print()
 # Print the headers
-print("%-16s | %11s | %11s | %6s | %6s | %8s |" % \
-       ('name', 'pressure', 'energy', 'grid_i', 'grid_j',
-        'TDCcount'))
+print("%-16s | %11s | %11s | %6s | %6s | %8s |" %
+     ('name', 'pressure', 'energy', 'grid_i', 'grid_j',
+      'TDCcount'))
 
-print("%-16s + %11s + %11s + %6s + %6s + %8s +" % \
+print("%-16s + %11s + %11s + %6s + %6s + %8s +" %
       ('-' * 16, '-' * 11, '-' * 11, '-' * 6, '-' * 6, '-' * 8))
 # Print the data using the table iterator:
 for r in table.iterrows():
-    print("%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
+    print("%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" %
           (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
            r['TDCcount']))
 
