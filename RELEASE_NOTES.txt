@@ -68,6 +68,8 @@ Bugs fixed
   in some cases.
   Closes :issue:`316`. Thamks to bbudescu.
 - Better check of file open mode. Closes :issue:`318`.
+- The Blosc filter now works correctly together with fletcher32.
+  Closes :issue:`21`.
 
 .. _pip: http://www.pip-installer.org
 .. _Anaconda: https://store.continuum.io/cshop/anaconda

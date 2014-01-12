@@ -239,13 +239,24 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
 
     /* We're decompressing */
     } else {
-
+        /* declare dummy variables */
+        size_t cbytes, blocksize;
 
 #ifdef BLOSC_DEBUG
         fprintf(stderr, "Blosc: Decompress %zd chunk w/buffer %zd\n", nbytes, outbuf_size);
 #endif
 
         free(outbuf);
+
+        /* Extract the exact outbuf_size from the buffer header.
+         *
+         * NOTE: the guess value got from "cd_values" corresponds to the
+         * uncompressed chunk size but it should not be used in a general
+         * cases since other filters in the pipeline can modify the buffere
+         *  size.
+         */
+        blosc_cbuffer_sizes(*buf, &outbuf_size, &cbytes, &blocksize);
+
         outbuf = malloc(outbuf_size);
 
         if(outbuf == NULL){

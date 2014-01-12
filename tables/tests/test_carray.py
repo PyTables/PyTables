@@ -667,6 +667,19 @@ class BloscShuffleTestCase(BasicTestCase):
     step = 7
 
 
+class BloscFletcherTestCase(BasicTestCase):
+    # see gh-21
+    shape = (200, 300)
+    compress = 1
+    shuffle = 1
+    fletcher32 = 1
+    complib = "blosc"
+    chunkshape = (100, 100)
+    start = 3
+    stop = 10
+    step = 7
+
+
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
@@ -2747,6 +2760,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ZlibShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(BloscComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscShuffleTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscFletcherTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))
