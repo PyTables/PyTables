@@ -9,7 +9,8 @@ cdef extern from "H5Zbzip2.h":
 
 
 def register_():
-    cdef char *version, *date
+    cdef char *version
+    cdef char *date
 
     if not register_bzip2(&version, &date):
         return None

@@ -9,7 +9,8 @@ cdef extern from "H5Zlzo.h":
 
 
 def register_():
-    cdef char *version, *date
+    cdef char *version
+    cdef char *date
 
     if not register_lzo(&version, &date):
         return None

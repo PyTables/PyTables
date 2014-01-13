@@ -162,7 +162,8 @@ cdef class Table(Leaf):
     cdef ndarray recarr
     cdef object  name
     cdef bytes encoded_title, encoded_complib, encoded_obversion
-    cdef char *ctitle = NULL, *cobversion = NULL
+    cdef char *ctitle = NULL
+    cdef char *cobversion = NULL
     cdef bytes encoded_name
     cdef char fieldname[128]
     cdef int i
@@ -264,7 +265,8 @@ cdef class Table(Leaf):
     """Open a nested type and return a nested dictionary as description."""
 
     cdef hid_t   member_type_id, native_member_type_id
-    cdef hsize_t nfields, dims[1]
+    cdef hsize_t nfields
+    cdef hsize_t dims[1]
     cdef size_t  itemsize
     cdef int     i
     cdef char    *c_colname
@@ -365,7 +367,8 @@ cdef class Table(Leaf):
 
     cdef hid_t   space_id, plist
     cdef size_t  type_size, size2
-    cdef hsize_t dims[1], chunksize[1]  # enough for unidimensional tables
+    cdef hsize_t dims[1]        # enough for unidimensional tables
+    cdef hsize_t chunksize[1]
     cdef H5D_layout_t layout
     cdef bytes encoded_name
 
@@ -531,7 +534,8 @@ cdef class Table(Leaf):
   def _update_elements(self, hsize_t nrecords, ndarray coords,
                        ndarray recarr):
     cdef herr_t ret
-    cdef void *rbuf, *rcoords
+    cdef void *rbuf
+    cdef void *rcoords
 
     # Get the chunk of the coords that correspond to a buffer
     rcoords = coords.data
@@ -609,7 +613,8 @@ cdef class Table(Leaf):
 
   def _read_elements(self, ndarray coords, ndarray recarr):
     cdef long nrecords
-    cdef void *rbuf, *rbuf2
+    cdef void *rbuf
+    cdef void *rbuf2
     cdef int ret
 
     # Get the chunk of the coords that correspond to a buffer
@@ -709,8 +714,10 @@ cdef class Row:
   cdef int     _bufferinfo_done, sss_on
   cdef int     iterseq_max_elements
   cdef ndarray bufcoords, indexvalid, indexvalues, chunkmap
-  cdef hsize_t *bufcoords_data, *index_values_data
-  cdef char    *chunkmap_data, *index_valid_data
+  cdef hsize_t *bufcoords_data
+  cdef hsize_t *index_values_data
+  cdef char    *chunkmap_data
+  cdef char    *index_valid_data
   cdef object  dtype
   cdef object  iobuf, iobufcpy
   cdef object  wrec, wreccpy

@@ -236,7 +236,9 @@ cdef class ExternalLink(Link):
     cdef herr_t ret
     cdef H5L_info_t link_buff
     cdef size_t val_size
-    cdef char *clinkval, *cfilename, *c_obj_path
+    cdef char *clinkval
+    cdef char *cfilename
+    cdef char *c_obj_path
     cdef unsigned flags
     cdef bytes encoded_name
     cdef str filename, obj_path

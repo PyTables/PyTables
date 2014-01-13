@@ -721,7 +721,8 @@ cdef class AttributeSet:
     cdef hid_t mem_type, dset_id, type_id, native_type
     cdef int rank, ret, enumtype
     cdef void *rbuf
-    cdef char *str_value, **str_values = NULL
+    cdef char *str_value
+    cdef char **str_values = NULL
     cdef ndarray ndvalue
     cdef object shape, stype_atom, shape_atom, retvalue
     cdef int i, nelements
@@ -1463,7 +1464,9 @@ cdef class Array(Leaf):
   def _g_read_slice(self, ndarray startl, ndarray stopl, ndarray stepl,
                    ndarray nparr):
     cdef herr_t ret
-    cdef hsize_t *start, *stop, *step
+    cdef hsize_t *start
+    cdef hsize_t *stop
+    cdef hsize_t *step
     cdef void *rbuf
 
     # Get the pointer to the buffer data area of startl, stopl and stepl arrays
@@ -1555,7 +1558,9 @@ cdef class Array(Leaf):
 
     cdef int select_mode
     cdef ndarray start_, count_, step_
-    cdef hsize_t *startp, *countp, *stepp
+    cdef hsize_t *startp
+    cdef hsize_t *countp
+    cdef hsize_t *stepp
 
     # Build arrays for the selection parameters
     startl, countl, stepl = [], [], []
@@ -1641,8 +1646,11 @@ cdef class Array(Leaf):
     """Write a slice in an already created NumPy array."""
 
     cdef int ret
-    cdef void *rbuf, *temp
-    cdef hsize_t *start, *step, *count
+    cdef void *rbuf
+    cdef void *temp
+    cdef hsize_t *start
+    cdef hsize_t *step
+    cdef hsize_t *count
 
     # Get the pointer to the buffer data area
     rbuf = nparr.data

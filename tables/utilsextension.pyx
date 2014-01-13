@@ -212,7 +212,8 @@ cdef str cstr_to_pystr(const_char* cstring):
 import_array()
 
 cdef register_blosc_():
-  cdef char *version, *date
+  cdef char *version
+  cdef char *date
 
   register_blosc(&version, &date)
   compinfo = (version, date)
@@ -705,12 +706,14 @@ def which_class(hid_t loc_id, object name):
   cdef H5T_class_t  class_id
   cdef H5D_layout_t layout
   cdef hsize_t      nfields
-  cdef char         *field_name1, *field_name2
+  cdef char         *field_name1
+  cdef char         *field_name2
   cdef int          i
   cdef hid_t        type_id, dataset_id
   cdef object       classId
   cdef int          rank
-  cdef hsize_t      *dims, *maxdims
+  cdef hsize_t      *dims
+  cdef hsize_t      *maxdims
   cdef char         byteorder[11]  # "irrelevant" fits easily here
   cdef bytes        encoded_name
 
@@ -1007,7 +1010,8 @@ def enum_to_hdf5(object enum_atom, str byteorder):
   cdef bytes   name
   cdef hid_t   base_id, enum_id
   cdef long    bytestride, i
-  cdef void    *rbuffer, *rbuf
+  cdef void    *rbuffer
+  cdef void    *rbuf
   cdef ndarray values
   cdef object  base_atom
 
