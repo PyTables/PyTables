@@ -81,10 +81,10 @@ Following the plan for the complete transition to the new (PEP8_ compliant)
 API, all calls to the old API will raise a :exc:`DeprecationWarning`.
 
 The new API has been introduced in PyTables 3.0 and is backward incompatible.
-In order to guarantee a smother transition the old API is still usable even
+In order to guarantee a smoother transition the old API is still usable even
 if it is now deprecated.
 
-The coplete plan for the complete transition to the new API is outlined in
+The plan for the complete transition to the new API is outlined in
 :issue:`224`.
 
 
