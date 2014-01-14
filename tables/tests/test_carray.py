@@ -1221,6 +1221,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
 class CopyTestCase(unittest.TestCase):
 
+    defonly = False
+
     def test01a_copy(self):
         """Checking CArray.copy() method."""
 
@@ -1248,7 +1250,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy('/', 'array2', defonly = self.defonly)
 
         if self.close:
             if common.verbose:
@@ -1266,7 +1268,10 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
-        self.assertTrue(allequal(array1.read(), array2.read()))
+        if self.defonly:
+            self.assertTrue(allequal(numpy.zeros_like(array1), array2.read()))
+        else:
+            self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
@@ -1313,7 +1318,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy('/', 'array2', defonly = self.defonly)
 
         if self.close:
             if common.verbose:
@@ -1331,7 +1336,10 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
-        self.assertTrue(allequal(array1.read(), array2.read()))
+        if self.defonly:
+            self.assertTrue(numpy.zeros_like(array1), array2.read()))
+        else:
+            self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
@@ -1376,7 +1384,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy('/', 'array2', defonly = self.defonly)
 
         if self.close:
             if common.verbose:
@@ -1394,7 +1402,10 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
-        self.assertTrue(allequal(array1.read(), array2.read()))
+        if self.defonly:
+            self.assertTrue(numpy.zeros_like(array1), array2.read()))
+        else:
+            self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
@@ -1442,7 +1453,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Copy to another location
         group1 = fileh.create_group("/", "group1")
-        array2 = array1.copy(group1, 'array2')
+        array2 = array1.copy(group1, 'array2', defonly = self.defonly)
 
         if self.close:
             if common.verbose:
@@ -1460,7 +1471,10 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
-        self.assertTrue(allequal(array1.read(), array2.read()))
+        if self.defonly:
+            self.assertTrue(numpy.zeros_like(array1), array2.read()))
+        else:
+            self.assertTrue(allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
@@ -1507,7 +1521,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy('/', 'array2', defonly = self.defonly)
 
         if self.close:
             if common.verbose:
@@ -1522,7 +1536,10 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all elements are equal
-        self.assertEqual(array1.read(), array2.read())
+        if self.defonly:
+            self.assertEqual(numpy.zeros_like(array1), array2.read())
+        else:
+            self.assertEqual(array1.read(), array2.read())
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
         self.assertEqual(array1.shape, array2.shape)
@@ -1585,7 +1602,10 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all elements are equal
-        self.assertEqual(array1.read(), array2.read())
+        if self.defonly:
+            self.assertEqual(numpy.zeros_like(array1), array2.read())
+        else:
+            self.assertEqual(array1.read(), array2.read())
 
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
@@ -1631,7 +1651,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy('/', 'array2', defonly = self.defonly)
 
         if self.close:
             if common.verbose:
@@ -1646,7 +1666,10 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all elements are equal
-        self.assertTrue(allequal(array1.read(), array2.read()))
+        if self.defonly:
+            self.assertTrue(numpy.zeros_like(array1), array2.read()))
+        else:
+            self.assertTrue(allequal(array1.read(), array2.read()))
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
         self.assertEqual(array1.shape, array2.shape)
@@ -1695,7 +1718,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another Array
-        array2 = array1.copy('/', 'array2', title="title array2")
+        array2 = array1.copy('/', 'array2', title="title array2", defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -1744,7 +1767,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another Array
-        array2 = array1.copy('/', 'array2', copyuserattrs=1)
+        array2 = array1.copy('/', 'array2', copyuserattrs=1, defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -1796,7 +1819,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another Array
-        array2 = array1.copy('/', 'array2', copyuserattrs=0)
+        array2 = array1.copy('/', 'array2', copyuserattrs=0, defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -1826,9 +1849,20 @@ class CloseCopyTestCase(CopyTestCase):
 class OpenCopyTestCase(CopyTestCase):
     close = 0
 
+    
+class CloseCopyTestCaseDefonly(CopyTestCase):
+    close = 1
+    self.defonly = True
 
+
+class OpenCopyTestCaseDefonly(CopyTestCase):
+    close = 0
+    self.defonly = True
+    
+    
 class CopyIndexTestCase(unittest.TestCase):
     nrowsinbuf = 2
+    defonly = False
 
     def test01_index(self):
         """Checking CArray.copy() method with indexes."""
@@ -1858,7 +1892,8 @@ class CopyIndexTestCase(unittest.TestCase):
         array2 = array1.copy("/", 'array2',
                              start=self.start,
                              stop=self.stop,
-                             step=self.step)
+                             step=self.step,
+                             defonly=self.defonly)
         if common.verbose:
             print("array1-->", array1.read())
             print("array2-->", array2.read())
@@ -1867,7 +1902,10 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        self.assertTrue(allequal(r2, array2.read()))
+        if self.defonly:
+            self.assertTrue(allequal(numpy.zeros_like(r2), array2.read()))
+        else:
+            self.assertTrue(allequal(r2, array2.read()))
 
         # Assert the number of rows in array
         if common.verbose:
@@ -1912,7 +1950,8 @@ class CopyIndexTestCase(unittest.TestCase):
         array2 = array1.copy("/", 'array2',
                              start=self.start,
                              stop=self.stop,
-                             step=self.step)
+                             step=self.step,
+                             defonly=self.defonly)
         # Close and reopen the file
         fileh.close()
         fileh = open_file(file, mode="r")
@@ -1928,7 +1967,10 @@ class CopyIndexTestCase(unittest.TestCase):
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
         self.assertEqual(array1.chunkshape, array2.chunkshape)
-        self.assertTrue(allequal(r2, array2.read()))
+        if self.defonly:
+            self.assertTrue(allequal(numpy.zeros_like(r2), array2.read()))
+        else:
+            self.assertTrue(allequal(r2, array2.read()))
 
         # Assert the number of rows in array
         if common.verbose:
@@ -2018,7 +2060,99 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     start = -1   # Should point to the last element
     stop = None  # None should mean the last element (including it)
     step = 1
+    
 
+class CopyIndex1TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 1
+    start = 0
+    stop = 7
+    step = 1
+    defonly = True
+
+
+class CopyIndex2TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    start = 0
+    stop = -1
+    step = 1
+    defonly = True
+
+
+class CopyIndex3TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 3
+    start = 1
+    stop = 7
+    step = 1
+    defonly = True
+
+
+class CopyIndex4TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 4
+    start = 0
+    stop = 6
+    step = 1
+    defonly = True
+
+
+class CopyIndex5TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    start = 3
+    stop = 7
+    step = 1
+    defonly = True
+
+
+class CopyIndex6TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    start = 3
+    stop = 6
+    step = 2
+    defonly = True
+
+
+class CopyIndex7TestCaseDefonly(CopyIndexTestCase):
+    start = 0
+    stop = 7
+    step = 10
+    defonly = True
+
+
+class CopyIndex8TestCaseDefonly(CopyIndexTestCase):
+    start = 6
+    stop = -1  # Negative values means starting from the end
+    step = 1
+    defonly = True
+
+
+class CopyIndex9TestCaseDefonly(CopyIndexTestCase):
+    start = 3
+    stop = 4
+    step = 1
+    defonly = True
+
+
+class CopyIndex10TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 1
+    start = 3
+    stop = 4
+    step = 2
+    defonly = True
+
+
+class CopyIndex11TestCaseDefonly(CopyIndexTestCase):
+    start = -3
+    stop = -1
+    step = 2
+    defonly = True
+
+
+class CopyIndex12TestCaseDefonly(CopyIndexTestCase):
+    start = -1   # Should point to the last element
+    stop = None  # None should mean the last element (including it)
+    step = 1
+    defonly = True
+    
+    
 # The next test should be run only in **heavy** mode
 
 
@@ -2796,11 +2930,18 @@ def suite():
             SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(CloseCopyTestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(OpenCopyTestCaseDefonly))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex1TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex2TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex3TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex4TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex5TestCaseDefonly))
         theSuite.addTest(unittest.makeSuite(BigArrayTestCase))
         theSuite.addTest(unittest.makeSuite(DfltAtomNoReopen))
         theSuite.addTest(unittest.makeSuite(DfltAtomReopen))
@@ -2832,6 +2973,13 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex6TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex7TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex8TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex9TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex10TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex11TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex12TestCaseDefonly))
         theSuite.addTest(unittest.makeSuite(Rows64bitsTestCase1))
         theSuite.addTest(unittest.makeSuite(Rows64bitsTestCase2))
 

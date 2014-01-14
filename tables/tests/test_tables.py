@@ -4627,6 +4627,9 @@ class RecArrayIO2(RecArrayIO):
 
 
 class CopyTestCase(unittest.TestCase):
+
+    defonly = False
+    
     def assertEqualColinstances(self, table1, table2):
         """Assert that column instance maps of both tables are equal."""
         cinst1, cinst2 = table1.colinstances, table2.colinstances
@@ -4669,7 +4672,7 @@ class CopyTestCase(unittest.TestCase):
             table1 = fileh.root.table1
 
         # Copy to another table
-        table2 = table1.copy('/', 'table2')
+        table2 = table1.copy('/', 'table2', defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -4685,21 +4688,24 @@ class CopyTestCase(unittest.TestCase):
             # print "dirs-->", dir(table1), dir(table2)
             print("attrs table1-->", repr(table1.attrs))
             print("attrs table2-->", repr(table2.attrs))
-
-        # Check that all the elements are equal
-        for row1 in table1:
-            nrow = row1.nrow   # current row
-            # row1 is a Row instance, while table2[] is a
-            # RecArray.Record instance
-            # print "reprs-->", repr(row1), repr(table2.read(nrow))
-            for colname in table1.colnames:
-                # Both ways to compare works well
-                # self.assertEqual(row1[colname], table2[nrow][colname))
-                self.assertEqual(row1[colname],
-                                 table2.read(nrow, field=colname)[0])
+        
+        if self.defonly:
+            self.assertEqual(table2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            for row1 in table1:
+                nrow = row1.nrow   # current row
+                # row1 is a Row instance, while table2[] is a
+                # RecArray.Record instance
+                # print "reprs-->", repr(row1), repr(table2.read(nrow))
+                for colname in table1.colnames:
+                    # Both ways to compare works well
+                    # self.assertEqual(row1[colname], table2[nrow][colname))
+                    self.assertEqual(row1[colname],
+                                     table2.read(nrow, field=colname)[0])
+            self.assertEqual(table1.nrows, table2.nrows)
 
         # Assert other properties in table
-        self.assertEqual(table1.nrows, table2.nrows)
         self.assertEqual(table1.shape, table2.shape)
         self.assertEqual(table1.colnames, table2.colnames)
         self.assertEqual(table1.coldtypes, table2.coldtypes)
@@ -4746,7 +4752,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Copy to another table in another group
         group1 = fileh.create_group("/", "group1")
-        table2 = table1.copy(group1, 'table2')
+        table2 = table1.copy(group1, 'table2', defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -4761,18 +4767,21 @@ class CopyTestCase(unittest.TestCase):
             print("table2-->", table2.read())
             print("attrs table1-->", repr(table1.attrs))
             print("attrs table2-->", repr(table2.attrs))
-
-        # Check that all the elements are equal
-        for row1 in table1:
-            nrow = row1.nrow   # current row
-            for colname in table1.colnames:
-                # Both ways to compare works well
-                # self.assertEqual(row1[colname], table2[nrow][colname))
-                self.assertEqual(row1[colname],
-                                 table2.read(nrow, field=colname)[0])
-
+        
+        if self.defonly:
+            self.assertEqual(table2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            for row1 in table1:
+                nrow = row1.nrow   # current row
+                for colname in table1.colnames:
+                    # Both ways to compare works well
+                    # self.assertEqual(row1[colname], table2[nrow][colname))
+                    self.assertEqual(row1[colname],
+                                     table2.read(nrow, field=colname)[0])
+            self.assertEqual(table1.nrows, table2.nrows)
+            
         # Assert other properties in table
-        self.assertEqual(table1.nrows, table2.nrows)
         self.assertEqual(table1.shape, table2.shape)
         self.assertEqual(table1.colnames, table2.colnames)
         self.assertEqual(table1.coldtypes, table2.coldtypes)
@@ -4821,7 +4830,7 @@ class CopyTestCase(unittest.TestCase):
         # Copy to another table in another group and other title
         group1 = fileh.create_group("/", "group1")
         table1.nrowsinbuf = 2  # small value of buffer
-        table2 = table1.copy(group1, 'table2', title="title table2")
+        table2 = table1.copy(group1, 'table2', title="title table2", defonly=self.defonly)
         if self.close:
             if common.verbose:
                 print("(closing file version)")
@@ -4836,17 +4845,20 @@ class CopyTestCase(unittest.TestCase):
             print("attrs table1-->", repr(table1.attrs))
             print("attrs table2-->", repr(table2.attrs))
 
-        # Check that all the elements are equal
-        for row1 in table1:
-            nrow = row1.nrow   # current row
-            for colname in table1.colnames:
-                # self.assertTrue(allequal(row1[colname],
-                # table2[nrow][colname]))
-                self.assertTrue(allequal(row1[colname],
-                                         table2.read(nrow, field=colname)[0]))
+        if self.defonly:
+            self.assertEqual(table2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            for row1 in table1:
+                nrow = row1.nrow   # current row
+                for colname in table1.colnames:
+                    # self.assertTrue(allequal(row1[colname],
+                    # table2[nrow][colname]))
+                    self.assertTrue(allequal(row1[colname],
+                                             table2.read(nrow, field=colname)[0]))
+            self.assertEqual(table1.nrows, table2.nrows)
 
         # Assert other properties in table
-        self.assertEqual(table1.nrows, table2.nrows)
         self.assertEqual(table1.shape, table2.shape)
         self.assertEqual(table1.colnames, table2.colnames)
         self.assertEqual(table1.coldtypes, table2.coldtypes)
@@ -4891,7 +4903,8 @@ class CopyTestCase(unittest.TestCase):
         # Copy to another table in another group
         group1 = fileh.create_group("/", "group1")
         table2 = table1.copy(group1, 'table2',
-                             filters=Filters(complevel=6))
+                             filters=Filters(complevel=6),
+                             defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -4906,18 +4919,21 @@ class CopyTestCase(unittest.TestCase):
             print("table2-->", table2.read())
             print("attrs table1-->", repr(table1.attrs))
             print("attrs table2-->", repr(table2.attrs))
-
-        # Check that all the elements are equal
-        for row1 in table1:
-            nrow = row1.nrow   # current row
-            for colname in table1.colnames:
-                # Both ways to compare works well
-                # self.assertEqual(row1[colname], table2[nrow][colname))
-                self.assertEqual(row1[colname],
-                                 table2.read(nrow, field=colname)[0])
-
+        
+        if self.defonly:
+            self.assertEqual(table2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            for row1 in table1:
+                nrow = row1.nrow   # current row
+                for colname in table1.colnames:
+                    # Both ways to compare works well
+                    # self.assertEqual(row1[colname], table2[nrow][colname))
+                    self.assertEqual(row1[colname],
+                                     table2.read(nrow, field=colname)[0])
+            self.assertEqual(table1.nrows, table2.nrows)
+        
         # Assert other properties in table
-        self.assertEqual(table1.nrows, table2.nrows)
         self.assertEqual(table1.shape, table2.shape)
         self.assertEqual(table1.colnames, table2.colnames)
         self.assertEqual(table1.coldtypes, table2.coldtypes)
@@ -4965,7 +4981,8 @@ class CopyTestCase(unittest.TestCase):
         group1 = fileh.create_group("/", "group1")
         table2 = table1.copy(group1, 'table2',
                              copyuserattrs=1,
-                             filters=Filters(complevel=6))
+                             filters=Filters(complevel=6),
+                             defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -4980,17 +4997,20 @@ class CopyTestCase(unittest.TestCase):
             print("table2-->", table2.read())
             print("attrs table1-->", repr(table1.attrs))
             print("attrs table2-->", repr(table2.attrs))
-
-        # Check that all the elements are equal
-        for row1 in table1:
-            nrow = row1.nrow   # current row
-            for colname in table1.colnames:
-                # self.assertEqual(row1[colname], table2[nrow][colname))
-                self.assertEqual(row1[colname],
-                                 table2.read(nrow, field=colname)[0])
+        
+        if self.defonly:
+            self.assertEqual(table2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            for row1 in table1:
+                nrow = row1.nrow   # current row
+                for colname in table1.colnames:
+                    # self.assertEqual(row1[colname], table2[nrow][colname))
+                    self.assertEqual(row1[colname],
+                                     table2.read(nrow, field=colname)[0])
+            self.assertEqual(table1.nrows, table2.nrows)
 
         # Assert other properties in table
-        self.assertEqual(table1.nrows, table2.nrows)
         self.assertEqual(table1.shape, table2.shape)
         self.assertEqual(table1.colnames, table2.colnames)
         self.assertEqual(table1.coldtypes, table2.coldtypes)
@@ -5041,7 +5061,8 @@ class CopyTestCase(unittest.TestCase):
         group1 = fileh.create_group("/", "group1")
         table2 = table1.copy(group1, 'table2',
                              copyuserattrs=0,
-                             filters=Filters(complevel=6))
+                             filters=Filters(complevel=6),
+                             defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -5057,16 +5078,19 @@ class CopyTestCase(unittest.TestCase):
             print("attrs table1-->", repr(table1.attrs))
             print("attrs table2-->", repr(table2.attrs))
 
-        # Check that all the elements are equal
-        for row1 in table1:
-            nrow = row1.nrow   # current row
-            for colname in table1.colnames:
-                # self.assertEqual(row1[colname], table2[nrow][colname))
-                self.assertEqual(row1[colname],
-                                 table2.read(nrow, field=colname)[0])
+        if self.defonly:
+            self.assertEqual(table2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            for row1 in table1:
+                nrow = row1.nrow   # current row
+                for colname in table1.colnames:
+                    # self.assertEqual(row1[colname], table2[nrow][colname))
+                    self.assertEqual(row1[colname],
+                                     table2.read(nrow, field=colname)[0])
 
+            self.assertEqual(table1.nrows, table2.nrows)
         # Assert other properties in table
-        self.assertEqual(table1.nrows, table2.nrows)
         self.assertEqual(table1.shape, table2.shape)
         self.assertEqual(table1.colnames, table2.colnames)
         self.assertEqual(table1.coldtypes, table2.coldtypes)
@@ -5097,6 +5121,16 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
+class CloseCopyTestCaseDefonly(CopyTestCase):
+    close = 1
+    defonly = True
+
+
+class OpenCopyTestCaseDefonly(CopyTestCase):
+    close = 0
+    defonly = True
+
+    
 class CopyIndexTestCase(unittest.TestCase):
     def test01_index(self):
         """Checking Table.copy() method with indexes."""
@@ -5130,25 +5164,29 @@ class CopyIndexTestCase(unittest.TestCase):
         table2 = table1.copy("/", 'table2',
                              start=self.start,
                              stop=self.stop,
-                             step=self.step)
+                             step=self.step,
+                             defonly=self.defonly)
         if common.verbose:
             print("table1-->", table1.read())
             print("table2-->", table2.read())
             print("attrs table1-->", repr(table1.attrs))
             print("attrs table2-->", repr(table2.attrs))
 
-        # Check that all the elements are equal
-        r2 = r[self.start:self.stop:self.step]
-        for nrow in range(r2.shape[0]):
-            for colname in table1.colnames:
-                self.assertTrue(allequal(r2[nrow][colname],
-                                         table2[nrow][colname]))
+        if self.defonly:
+            self.assertEqual(table2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            r2 = r[self.start:self.stop:self.step]
+            for nrow in range(r2.shape[0]):
+                for colname in table1.colnames:
+                    self.assertTrue(allequal(r2[nrow][colname],
+                                             table2[nrow][colname]))
 
-        # Assert the number of rows in table
-        if common.verbose:
-            print("nrows in table2-->", table2.nrows)
-            print("and it should be-->", r2.shape[0])
-        self.assertEqual(r2.shape[0], table2.nrows)
+            # Assert the number of rows in table
+            if common.verbose:
+                print("nrows in table2-->", table2.nrows)
+                print("and it should be-->", r2.shape[0])
+            self.assertEqual(r2.shape[0], table2.nrows)
 
         # Close the file
         fileh.close()
@@ -5183,7 +5221,8 @@ class CopyIndexTestCase(unittest.TestCase):
         table2 = table1.copy("/", 'table2',
                              start=self.start,
                              stop=self.stop,
-                             step=self.step)
+                             step=self.step,
+                             defonly=self.defonly)
 
         fileh.close()
         fileh = open_file(file, mode="r")
@@ -5195,19 +5234,22 @@ class CopyIndexTestCase(unittest.TestCase):
             print("table2-->", table2.read())
             print("attrs table1-->", repr(table1.attrs))
             print("attrs table2-->", repr(table2.attrs))
+        
+        if self.defonly:
+            self.assertEqual(table2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            r2 = r[self.start:self.stop:self.step]
+            for nrow in range(r2.shape[0]):
+                for colname in table1.colnames:
+                    self.assertTrue(allequal(r2[nrow][colname],
+                                             table2[nrow][colname]))
 
-        # Check that all the elements are equal
-        r2 = r[self.start:self.stop:self.step]
-        for nrow in range(r2.shape[0]):
-            for colname in table1.colnames:
-                self.assertTrue(allequal(r2[nrow][colname],
-                                         table2[nrow][colname]))
-
-        # Assert the number of rows in table
-        if common.verbose:
-            print("nrows in table2-->", table2.nrows)
-            print("and it should be-->", r2.shape[0])
-        self.assertEqual(r2.shape[0], table2.nrows)
+            # Assert the number of rows in table
+            if common.verbose:
+                print("nrows in table2-->", table2.nrows)
+                print("and it should be-->", r2.shape[0])
+            self.assertEqual(r2.shape[0], table2.nrows)
 
         # Close the file
         fileh.close()
@@ -5308,6 +5350,113 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     start = -1   # Should point to the last element
     stop = None  # None should mean the last element (including it)
     step = 1
+    
+class CopyIndex1TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    close = 1
+    start = 0
+    stop = 7
+    step = 1
+    defonly = True
+
+
+class CopyIndex2TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    close = 0
+    start = 0
+    stop = -1
+    step = 1
+    defonly = True
+
+
+class CopyIndex3TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 3
+    close = 1
+    start = 1
+    stop = 7
+    step = 1
+    defonly = True
+
+
+class CopyIndex4TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 4
+    close = 0
+    start = 0
+    stop = 6
+    step = 1
+    defonly = True
+
+
+class CopyIndex5TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    close = 1
+    start = 3
+    stop = 7
+    step = 1
+    defonly = True
+
+
+class CopyIndex6TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    close = 0
+    start = 3
+    stop = 6
+    step = 2
+    defonly = True
+
+
+class CopyIndex7TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    close = 1
+    start = 0
+    stop = 7
+    step = 10
+    defonly = True
+
+
+class CopyIndex8TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    close = 0
+    start = 6
+    stop = 3
+    step = 1
+    defonly = True
+
+
+class CopyIndex9TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    close = 1
+    start = 3
+    stop = 4
+    step = 1
+    defonly = True
+
+
+class CopyIndex10TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 1
+    close = 0
+    start = 3
+    stop = 4
+    step = 2
+    defonly = True
+
+
+class CopyIndex11TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 2
+    close = 1
+    start = -3
+    stop = -1
+    step = 2
+    defonly = True
+
+
+class CopyIndex12TestCaseDefonly(CopyIndexTestCase):
+    nrowsinbuf = 3
+    close = 0
+    start = -1   # Should point to the last element
+    stop = None  # None should mean the last element (including it)
+    step = 1
+    defonly = True
 
 
 class LargeRowSize(unittest.TestCase):
@@ -6706,6 +6855,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayIO2))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(OpenCopyTestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CloseCopyTestCaseDefonly))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
@@ -6715,6 +6866,15 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex7TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex8TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex9TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex1TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex2TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex3TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex4TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex5TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex6TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex7TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex8TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex9TestCaseDefonly))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
         theSuite.addTest(unittest.makeSuite(OldRecordDefaultValues))
         theSuite.addTest(unittest.makeSuite(Length1TestCase))
@@ -6746,6 +6906,9 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex10TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex11TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex12TestCaseDefonly))
         theSuite.addTest(unittest.makeSuite(LargeRowSize))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
 
