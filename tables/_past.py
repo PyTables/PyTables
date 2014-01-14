@@ -31,7 +31,7 @@ def previous_api(obj):
     warnmsg = warnmsg.format(oldname, newname)
 
     def oldfunc(*args, **kwargs):
-        warn(warnmsg, PendingDeprecationWarning, stacklevel=2)
+        warn(warnmsg, DeprecationWarning, stacklevel=2)
         return obj(*args, **kwargs)
     oldfunc.__doc__ = (
         obj.__doc__ or '') + "\n\n.. warning::\n\n    " + warnmsg + "\n"
@@ -46,11 +46,11 @@ def previous_api_property(newname):
     warnmsg = warnmsg.format(oldname, newname)
 
     def _getter(self):
-        warn(warnmsg, PendingDeprecationWarning, stacklevel=1)
+        warn(warnmsg, DeprecationWarning, stacklevel=1)
         return getattr(self, newname)
 
     def _setter(self, value):
-        warn(warnmsg, PendingDeprecationWarning, stacklevel=1)
+        warn(warnmsg, DeprecationWarning, stacklevel=1)
         return setattr(self, newname, value)
 
     _getter.__name__ = _setter.__name__ = oldname
