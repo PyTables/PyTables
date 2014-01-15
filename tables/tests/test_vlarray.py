@@ -3889,6 +3889,8 @@ class OpenCopyTestCaseDefonly(CopyTestCase):
 
 class CopyIndexTestCase(unittest.TestCase):
 
+    defonly = False
+
     def test01_index(self):
         """Checking VLArray.copy() method with indexes."""
 
