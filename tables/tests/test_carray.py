@@ -1852,12 +1852,12 @@ class OpenCopyTestCase(CopyTestCase):
     
 class CloseCopyTestCaseDefonly(CopyTestCase):
     close = 1
-    self.defonly = True
+    defonly = True
 
 
 class OpenCopyTestCaseDefonly(CopyTestCase):
     close = 0
-    self.defonly = True
+    defonly = True
     
     
 class CopyIndexTestCase(unittest.TestCase):
