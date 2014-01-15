@@ -49,7 +49,7 @@ Improvements
 - Improved compatibility with numpy_ >= 1.8 (see :issue:`259`)
 - The code of the benchmark programs (bench directory) has been updated.
   Closes :issue:`114`.
-- The internal Blosc_ library has been updated to version 1.3.0
+- The internal Blosc_ library has been updated to version 1.3.1
 
 
 Bugs fixed
