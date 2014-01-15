@@ -4115,7 +4115,7 @@ class CopyIndex11TestCaseDefonly(CopyIndexTestCase):
     defonly = True
 
 
-class CopyIndex12TestCase(CopyIndexTestCase):
+class CopyIndex12TestCaseDefonly(CopyIndexTestCase):
     close = 1
     start = -1   # Should point to the last element
     stop = None  # None should mean the last element (including it)
