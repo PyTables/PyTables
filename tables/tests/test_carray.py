@@ -1337,7 +1337,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         if self.defonly:
-            self.assertTrue(numpy.zeros_like(array1), array2.read())
+            self.assertTrue(allequal(numpy.zeros_like(array1), array2.read()))
         else:
             self.assertTrue(allequal(array1.read(), array2.read()))
 
@@ -1403,7 +1403,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         if self.defonly:
-            self.assertTrue(numpy.zeros_like(array1), array2.read()))
+            self.assertTrue(allequal(numpy.zeros_like(array1), array2.read()))
         else:
             self.assertTrue(allequal(array1.read(), array2.read()))
 
@@ -1472,7 +1472,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         if self.defonly:
-            self.assertTrue(numpy.zeros_like(array1), array2.read()))
+            self.assertTrue(allequal(numpy.zeros_like(array1), array2.read()))
         else:
             self.assertTrue(allequal(array1.read(), array2.read()))
 
@@ -1607,7 +1607,7 @@ class CopyTestCase(unittest.TestCase):
         else:
             self.assertEqual(array1.read(), array2.read())
 
-        # Assert other properties in array
+        # Assert other properties in array  
         self.assertEqual(array1.nrows, array2.nrows)
         self.assertEqual(array1.shape, array2.shape)
         self.assertEqual(array1.extdim, array2.extdim)
@@ -1667,7 +1667,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Check that all elements are equal
         if self.defonly:
-            self.assertTrue(numpy.zeros_like(array1), array2.read()))
+            self.assertTrue(allequal(numpy.zeros_like(array1), array2.read()))
         else:
             self.assertTrue(allequal(array1.read(), array2.read()))
         # Assert other properties in array
