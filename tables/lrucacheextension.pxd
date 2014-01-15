@@ -15,7 +15,8 @@ from numpy cimport ndarray
 # Declaration of instance variables for shared classes
 # The NodeCache class is useful for caching general objects (like Nodes).
 cdef class NodeCache:
-  cdef long nextslot, nslots
+  cdef readonly long nslots
+  cdef long nextslot
   cdef object nodes, paths
   cdef object setitem(self, object path, object node)
   cdef long getslot(self, object path)

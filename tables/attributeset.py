@@ -62,8 +62,8 @@ def issysattrname(name):
     "Check if a name is a system attribute or not"
 
     if (name in SYS_ATTRS or
-        numpy.prod([name.startswith(prefix)
-       for prefix in SYS_ATTRS_PREFIXES])):
+            numpy.prod([name.startswith(prefix)
+                        for prefix in SYS_ATTRS_PREFIXES])):
         return True
     else:
         return False

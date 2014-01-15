@@ -1173,7 +1173,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(newnrows, oldnrows + 1,
                          "Append to alive table failed.")
 
-        if self.fileh._aliveNodes.nodeCacheSlots == 0:
+        if self.fileh._node_manager.cache.nslots == 0:
             # Skip this test from here on because the second case
             # won't work when thereis not a node cache.
             return

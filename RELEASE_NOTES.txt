@@ -50,6 +50,10 @@ Improvements
 - The code of the benchmark programs (bench directory) has been updated.
   Closes :issue:`114`.
 - The internal Blosc_ library has been updated to version 1.3.1
+- The node caching mechanism has been completely redesigned to be simpler and
+  less dependent from specific behaviours of the ``__del__`` method.
+  Now PyTables is compatible with the forthcoming Python 3.4.
+  Closes :issue:`306`.
 
 
 Bugs fixed

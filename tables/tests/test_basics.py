@@ -92,8 +92,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
                           node_cache_slots=self.node_cache_slots)
         root = fileh.root
         # Create an array
-        fileh.create_array(root, 'array', [1, 2],
-                           title="Array example")
+        fileh.create_array(root, 'array', [1, 2], title="Array example")
         fileh.create_table(root, 'table', {'var1': IntCol()}, "Table example")
         root._v_attrs.testattr = 41
 
@@ -143,8 +142,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         file = tempfile.mktemp(".h5")
         fileh = open_file(
             file, mode="w", node_cache_slots=self.node_cache_slots)
-        fileh.create_array(fileh.root, 'array', [
-                           1, 2], title="Array example")
+        fileh.create_array(fileh.root, 'array', [1, 2],
+                           title="Array example")
         # Get the CLASS attribute of the arr object
         class_ = fileh.root.array.attrs.CLASS
 
@@ -354,7 +353,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05b_removeGroupRecursively..." % self.__class__.__name__)
+            print("Running %s.test05b_removeGroupRecursively..." % 
+                  self.__class__.__name__)
 
         # Delete a group with leafs
         fileh = open_file(
