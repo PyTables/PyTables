@@ -35,7 +35,8 @@ from tables import hdf5extension
 from tables import utilsextension
 from tables import parameters
 from tables.exceptions import (ClosedFileError, FileModeError, NodeError,
-                               NoSuchNodeError, UndoRedoError)
+                               NoSuchNodeError, UndoRedoError, ClosedNodeError,
+                               PerformanceWarning)
 from tables.registry import get_class_by_name
 from tables.path import join_path, split_path
 from tables import undoredo
@@ -286,11 +287,11 @@ class _DictCache(dict):
     def __setitem__(self, key, value):
         # Check if we are running out of space
         if len(self) > self.nslots:
-            warnings.warn("the dictionary of node cache is exceeding "
-                          "the recommended maximum number (%d); "
-                          "be ready to see PyTables asking for *lots* "
-                          "of memory and possibly slow I/O." % (
-                          self.nslots), PerformanceWarning)
+            warnings.warn(
+                "the dictionary of node cache is exceeding the recommended "
+                "maximum number (%d); be ready to see PyTables asking for "
+                "*lots* of memory and possibly slow I/O." % (
+                    self.nslots), PerformanceWarning)
         super(_DictCache, self).__setitem__(key, value)
 
 
@@ -441,14 +442,25 @@ class NodeManager(object):
                 if not node._v_isopen or node._v__deleting:
                     continue
 
-                # Avoid descendent nodes to also iterate over
-                # their descendents, which are already to be
-                # closed by this loop.
-                if hasattr(node, '_f_get_child'):
-                    node._g_close()
-                else:
-                    node._f_close()
-                del node
+                try:
+                    # Avoid descendent nodes to also iterate over
+                    # their descendents, which are already to be
+                    # closed by this loop.
+                    if hasattr(node, '_f_get_child'):
+                        node._g_close()
+                    else:
+                        node._f_close()
+                    del node
+                except ClosedNodeError:
+                    #import traceback
+                    #type_, value, tb = sys.exc_info()
+                    #exception_dump = ''.join(
+                    #    traceback.format_exception(type_, value, tb))
+                    #warnings.warn(
+                    #    "A '%s' exception occurred trying to close a node "
+                    #    "that was supposed to be open.\n"
+                    #    "%s" % (type_.__name__, exception_dump))
+                    pass
 
     def close_subtree(self, prefix='/'):
         if not prefix.endswith('/'):
