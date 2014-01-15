@@ -1038,6 +1038,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 
 
 class CopyTestCase(unittest.TestCase):
+
     defonly = False
 
     def test01_copy(self):
@@ -1074,7 +1075,7 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array2-->", repr(array2.attrs))
         
         # when using defonly, data is filled with a numpy.empty array, which is random data from memory 
-        if not defonly:
+        if not self.defonly:
             # Check that all the elements are equal
             self.assertTrue(allequal(array1.read(), array2.read()))
 
@@ -1122,7 +1123,7 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array1-->", repr(array1.attrs))
             print("attrs array2-->", repr(array2.attrs))
 
-        if not defonly:
+        if not self.defonly:
             # Check that all the elements are equal
             self.assertTrue(allequal(array1.read(), array2.read()))
             

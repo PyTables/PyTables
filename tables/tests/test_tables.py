@@ -5132,6 +5132,9 @@ class OpenCopyTestCaseDefonly(CopyTestCase):
 
     
 class CopyIndexTestCase(unittest.TestCase):
+    
+    defonly = False
+    
     def test01_index(self):
         """Checking Table.copy() method with indexes."""
 
