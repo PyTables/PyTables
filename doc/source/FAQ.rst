@@ -3,6 +3,8 @@
 :date: 2011-06-13 08:40:20
 :author: FrancescAlted
 
+.. py:currentmodule:: tables
+
 ===
 FAQ
 ===
@@ -184,26 +186,29 @@ What kind of containers does PyTables implement?
 PyTables does support a series of data containers that address specific needs
 of the user. Below is a brief description of them:
 
-:Table:
+::class:`Table`:
     Lets you deal with heterogeneous datasets. Allows compression. Enlargeable.
     Supports nested types. Good performance for read/writing data.
-:Array:
+::class:`Array`:
     Provides quick and dirty array handling. Not compression allowed.
     Not enlargeable. Can be used only with relatively small datasets (i.e.
     those that fit in memory). It provides the fastest I/O speed.
-:CArray:
+::class:`CArray`:
     Provides compressed array support. Not enlargeable. Good speed when
     reading/writing.
-:EArray:
+::class:`EArray`:
     Most general array support. Compressible and enlargeable. It is pretty
     fast at extending, and very good at reading.
-:VLArray:
+::class:`VLArray`:
     Supports collections of homogeneous data with a variable number of entries.
     Compressible and enlargeable. I/O is not very fast.
-:Group:
+::class:`Group`:
     The structural component.
+    A hierarchically-addressable container for HDF5 nodes (each of these
+    containers, including Group, are nodes), similar to a directory in a
+    UNIX filesystem.
 
-Please refer to the documentation for more specific information.
+Please refer to the  :doc:`usersguide/libref` for more specific information.
 
 
 Cool! I'd like to see some examples of use.
