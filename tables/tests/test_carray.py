@@ -1337,7 +1337,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         if self.defonly:
-            self.assertTrue(numpy.zeros_like(array1), array2.read()))
+            self.assertTrue(numpy.zeros_like(array1), array2.read())
         else:
             self.assertTrue(allequal(array1.read(), array2.read()))
 
