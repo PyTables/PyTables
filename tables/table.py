@@ -1266,7 +1266,7 @@ class Table(tableextension.Table, Leaf):
                         "a multidimensional column, "
                         "not yet supported in conditions, sorry" % var)
                 if (val._table_file is not tblfile or
-                    val._table_path != tblpath):
+                        val._table_path != tblpath):
                     raise ValueError("variable ``%s`` refers to a column "
                                      "which is not part of table ``%s``"
                                      % (var, tblpath))
@@ -1358,7 +1358,7 @@ class Table(tableextension.Table, Leaf):
 
             # Get the set of columns with usable indexes.
             if (self._enabled_indexing_in_queries  # not test in-kernel searches
-               and self.colindexed[col.pathname] and not col.index.dirty):
+                    and self.colindexed[col.pathname] and not col.index.dirty):
                 indexedcols.append(colname)
 
         indexedcols = frozenset(indexedcols)
@@ -3113,8 +3113,9 @@ class Cols(object):
     def _g_gettable(self):
         return self._v__tableFile._get_node(self._v__tablePath)
 
-    _v_table = property(_g_gettable, None, None,
-                    "The parent Table instance (see :ref:`TableClassDescr`).")
+    _v_table = property(
+        _g_gettable, None, None,
+        "The parent Table instance (see :ref:`TableClassDescr`).")
 
     def __init__(self, table, desc):
 
@@ -3655,7 +3656,7 @@ class Column(object):
         if kind not in kinds:
             raise ValueError("Kind must have any of these values: %s" % kinds)
         if (not isinstance(optlevel, (int, long)) or
-            (optlevel < 0 or optlevel > 9)):
+                (optlevel < 0 or optlevel > 9)):
             raise ValueError("Optimization level must be an integer in the "
                              "range 0-9")
         if filters is None:
@@ -3665,13 +3666,13 @@ class Column(object):
         else:
             if not os.path.isdir(tmp_dir):
                 raise ValueError("Temporary directory '%s' does not exist" %
-                                                                    tmp_dir)
+                                 tmp_dir)
         if (_blocksizes is not None and
-            (not isinstance(_blocksizes, tuple) or len(_blocksizes) != 4)):
+                (not isinstance(_blocksizes, tuple) or len(_blocksizes) != 4)):
             raise ValueError("_blocksizes must be a tuple with exactly 4 "
                              "elements")
         idxrows = _column__create_index(self, optlevel, kind, filters,
-                                       tmp_dir, _blocksizes, _verbose)
+                                        tmp_dir, _blocksizes, _verbose)
         return SizeType(idxrows)
 
     createIndex = previous_api(create_index)

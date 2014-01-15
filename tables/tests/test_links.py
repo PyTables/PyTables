@@ -16,7 +16,6 @@ from __future__ import print_function
 import os
 import unittest
 import tempfile
-import shutil
 
 import tables as t
 from tables.tests import common

@@ -415,9 +415,11 @@ def create_test_method(type_, op, extracond):
                 ptrownos = [table.get_where_list(cond, condvars, sort=True,
                                                  **table_slice)
                             for _ in range(2)]
-                ptfvalues = [table.read_where(cond, condvars, field=acolname,
-                                              **table_slice)
-                                             for _ in range(2)]
+                ptfvalues = [
+                    table.read_where(cond, condvars, field=acolname,
+                                     **table_slice)
+                    for _ in range(2)
+                ]
             except TypeError as te:
                 if self.condNotBoolean_re.search(str(te)):
                     raise common.SkipTest("The condition is not boolean.")
@@ -1070,8 +1072,9 @@ class IndexedTableUsage25(IndexedTableUsage):
         '~~~c_bool',
         '~~(~c_bool) & (c_extra != 2)',
     ]
-    idx_expr = [('c_bool', ('eq',), (False,)),
-                 ]
+    idx_expr = [
+        ('c_bool', ('eq',), (False,)),
+    ]
     str_expr = 'e0'
 
 
@@ -1092,10 +1095,11 @@ class IndexedTableUsage27(IndexedTableUsage):
         '(((c_int32 == 3) | (c_bool == True)) | (c_int32 == 5))' +
         ' & (c_extra > 0)',
         ]
-    idx_expr = [('c_int32', ('eq',), (3,)),
-                 ('c_bool', ('eq',), (True,)),
-                 ('c_int32', ('eq',), (5,)),
-                 ]
+    idx_expr = [
+        ('c_int32', ('eq',), (3,)),
+        ('c_bool', ('eq',), (True,)),
+        ('c_int32', ('eq',), (5,)),
+    ]
     str_expr = '((e0 | e1) | e2)'
 
 
@@ -1105,10 +1109,11 @@ class IndexedTableUsage28(IndexedTableUsage):
         '(((c_int32 == 3) | (c_bool == True)) & (c_int32 == 5))' +
         ' & (c_extra > 0)',
         ]
-    idx_expr = [('c_int32', ('eq',), (3,)),
-                 ('c_bool', ('eq',), (True,)),
-                 ('c_int32', ('eq',), (5,)),
-                 ]
+    idx_expr = [
+        ('c_int32', ('eq',), (3,)),
+        ('c_bool', ('eq',), (True,)),
+        ('c_int32', ('eq',), (5,)),
+    ]
     str_expr = '((e0 | e1) & e2)'
 
 
@@ -1118,10 +1123,11 @@ class IndexedTableUsage29(IndexedTableUsage):
         '((c_int32 == 3) | ((c_int32 == 4) & (c_int32 == 5)))' +
         ' & (c_extra > 0)',
         ]
-    idx_expr = [('c_int32', ('eq',), (4,)),
-                 ('c_int32', ('eq',), (5,)),
-                 ('c_int32', ('eq',), (3,)),
-                 ]
+    idx_expr = [
+        ('c_int32', ('eq',), (4,)),
+        ('c_int32', ('eq',), (5,)),
+        ('c_int32', ('eq',), (3,)),
+    ]
     str_expr = '((e0 & e1) | e2)'
 
 
@@ -1131,10 +1137,11 @@ class IndexedTableUsage30(IndexedTableUsage):
         '((c_int32 == 3) | (c_int32 == 4)) & (c_int32 == 5)' +
         ' & (c_extra > 0)',
         ]
-    idx_expr = [('c_int32', ('eq',), (3,)),
-                 ('c_int32', ('eq',), (4,)),
-                 ('c_int32', ('eq',), (5,)),
-                 ]
+    idx_expr = [
+        ('c_int32', ('eq',), (3,)),
+        ('c_int32', ('eq',), (4,)),
+        ('c_int32', ('eq',), (5,)),
+    ]
     str_expr = '((e0 | e1) & e2)'
 
 
@@ -1144,8 +1151,9 @@ class IndexedTableUsage31(IndexedTableUsage):
         '(c_extra > 0) & ((c_bool == True) & (c_extra < 5))',
         '((c_int32 > 0) | (c_extra > 0)) & (c_bool == True)',
         ]
-    idx_expr = [('c_bool', ('eq',), (True,)),
-                 ]
+    idx_expr = [
+        ('c_bool', ('eq',), (True,)),
+    ]
     str_expr = 'e0'
 
 

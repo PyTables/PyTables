@@ -96,7 +96,8 @@ def print_versions():
         vml_avail = "not using Intel's VML/MKL"
     print("Numexpr version:   %s (%s)" % (numexpr.__version__, vml_avail))
     if tinfo is not None:
-        print("Zlib version:      %s (%s)" % (tinfo[1], "in Python interpreter"))
+        print("Zlib version:      %s (%s)" % (tinfo[1],
+                                              "in Python interpreter"))
     tinfo = tables.which_lib_version("lzo")
     if tinfo is not None:
         print("LZO version:       %s (%s)" % (tinfo[1], tinfo[2]))
@@ -177,11 +178,11 @@ if __name__ == '__main__':
 
     hdf5_version = get_tuple_version(tables.which_lib_version("hdf5")[0])
     if hdf5_version < min_hdf5_version:
-        print("*Warning*: HDF5 version is lower than recommended: %s < %s" % \
+        print("*Warning*: HDF5 version is lower than recommended: %s < %s" %
               (hdf5_version, min_hdf5_version))
 
     if numpy.__version__ < min_numpy_version:
-        print("*Warning*: NumPy version is lower than recommended: %s < %s" % \
+        print("*Warning*: NumPy version is lower than recommended: %s < %s" %
               (numpy.__version__, min_numpy_version))
 
     # Handle some global flags (i.e. only useful for test_all.py)

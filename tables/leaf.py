@@ -405,7 +405,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         # The next function is a substitute for slice().indices in order to
         # support full 64-bit integer for slices even in 32-bit machines.
         # F. Alted 2005-05-08
-        start, stop, step = utilsextension.get_indices(start, stop, step, long(nrows))
+        start, stop, step = utilsextension.get_indices(start, stop, step,
+                                                       long(nrows))
         return (start, stop, step)
 
     _processRange = previous_api(_process_range)
@@ -430,7 +431,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:
                 stop = start + 1
         # Finally, get the correct values (over the main dimension)
-        start, stop, step = self._process_range(start, stop, step, 
+        start, stop, step = self._process_range(start, stop, step,
                                                 warn_negstep=warn_negstep)
         return (start, stop, step)
 

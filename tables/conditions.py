@@ -153,10 +153,10 @@ def _equiv_expr_node(x, y):
     """
     if not isinstance(x, ExpressionNode) and not isinstance(y, ExpressionNode):
         return x == y
-    elif type(x) is not type(y) or not isinstance(x, ExpressionNode) \
-                                or not isinstance(y, ExpressionNode) \
-                                or x.value != y.value or x.astKind != y.astKind \
-                                or len(x.children) != len(y.children):
+    elif (type(x) is not type(y) or not isinstance(x, ExpressionNode)
+            or not isinstance(y, ExpressionNode)
+            or x.value != y.value or x.astKind != y.astKind
+            or len(x.children) != len(y.children)):
         return False
     for xchild, ychild in zip(x.children, y.children):
         if not _equiv_expr_node(xchild, ychild):
@@ -238,8 +238,8 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     # ``(a <[=] x) & (x <[=] b)`` or ``(a >[=] x) & (x >[=] b)``
     # as ``a <[=] x <[=] b``, for the moment.
     op = exprnode.value
-    if lcolvar is not None and rcolvar is not None \
-      and _equiv_expr_node(lcolvar, rcolvar) and op == 'and':
+    if (lcolvar is not None and rcolvar is not None
+            and _equiv_expr_node(lcolvar, rcolvar) and op == 'and'):
         if lop in ['gt', 'ge'] and rop in ['lt', 'le']:  # l <= x <= r
             expr = (lcolvar, (lop, rop), (llim, rlim))
             return [expr]

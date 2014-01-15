@@ -214,7 +214,8 @@ class BasicTestCase(unittest.TestCase):
             self.assertEqual(self.shuffle, earray.filters.shuffle)
             if self.fletcher32 != earray.filters.fletcher32 and common.verbose:
                 print("Error in fletcher32. Class:", self.__class__.__name__)
-                print("self, earray:", self.fletcher32, earray.filters.fletcher32)
+                print("self, earray:", self.fletcher32,
+                      earray.filters.fletcher32)
             self.assertEqual(self.fletcher32, earray.filters.fletcher32)
 
     def test02_sssEArray(self):
@@ -518,7 +519,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04_getitemEArray..." % self.__class__.__name__)
+            print("Running %s.test04_getitemEArray..." %
+                  self.__class__.__name__)
 
         if not hasattr(self, "slices"):
             # If there is not a slices attribute, create it
@@ -623,7 +625,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05_setitemEArray..." % self.__class__.__name__)
+            print("Running %s.test05_setitemEArray..." %
+                  self.__class__.__name__)
 
         if not hasattr(self, "slices"):
             # If there is not a slices attribute, create it
@@ -902,17 +905,19 @@ class Slices3EArrayTestCase(BasicTestCase):
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
-    slices = (slice(1, 2, 1), slice(
-        0, None, None), slice(1, 4, 2))  # Don't work
-    # slices = (slice(None, None, None), slice(0, None, None), slice(1,4,1)) # W
-    # slices = (slice(None, None, None), slice(None, None, None), slice(1,4,2)) # N
+    slices = (slice(1, 2, 1), slice(0, None, None),
+              slice(1, 4, 2))  # Don't work
+    # slices = (slice(None, None, None), slice(0, None, None),
+    #           slice(1,4,1)) # W
+    # slices = (slice(None, None, None), slice(None, None, None),
+    #           slice(1,4,2)) # N
     # slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2)) # N
     # Disable the failing test temporarily with a working test case
     slices = (slice(1, 2, 1), slice(1, 4, None), slice(1, 4, 2))  # Y
     # slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,1)) # Y
     slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2))  # N
-    # slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), slice(0,100,1))
-    # # N
+    # slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2),
+    #           slice(0,100,1))  # N
 
 
 class Slices4EArrayTestCase(BasicTestCase):
@@ -2347,9 +2352,9 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print("array1-->", array1.read())
 
-        self.assertTrue(allequal(array1.read(),
-                                 numpy.array([[456, 2], [3, 457]],
-                                 dtype='Int16')))
+        self.assertTrue(
+            allequal(array1.read(),
+                     numpy.array([[456, 2], [3, 457]], dtype='Int16')))
 
     def test03_truncate(self):
         """Checking EArray.truncate() method (truncating to > self.nrows)"""

@@ -80,7 +80,8 @@ class NumericTestCase(HDF5CompatibilityTestCase):
 
     """Test for several numeric datatypes.
 
-    See ftp://ftp.ncsa.uiuc.edu/HDF/files/hdf5/samples/[fiu]l?{8,16,32,64}{be,le}.c
+    See
+    ftp://ftp.ncsa.uiuc.edu/HDF/files/hdf5/samples/[fiu]l?{8,16,32,64}{be,le}.c
     (they seem to be no longer available).
 
     """

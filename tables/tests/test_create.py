@@ -379,7 +379,8 @@ class FiltersTreeTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test00_checkFilters..." % self.__class__.__name__)
+            print("Running %s.test00_checkFilters..." %
+                  self.__class__.__name__)
 
         # First level check
         if common.verbose:
@@ -472,7 +473,8 @@ class FiltersTreeTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_checkFilters..." % self.__class__.__name__)
+            print("Running %s.test01_checkFilters..." %
+                  self.__class__.__name__)
 
         # Close the file
         self.h5file.close()
@@ -707,7 +709,8 @@ class CopyGroupTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test00_nonRecursive..." % self.__class__.__name__)
+            print("Running %s.test00_nonRecursive..." %
+                  self.__class__.__name__)
 
         # Copy a group non-recursively
         srcgroup = self.h5file.root.group0.group1
@@ -1092,7 +1095,8 @@ class CopyFileTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test00a_srcdstequal..." % self.__class__.__name__)
+            print("Running %s.test00a_srcdstequal..." %
+                  self.__class__.__name__)
 
         # Copy the file to the destination
         self.assertRaises(IOError, self.h5file.copy_file, self.h5file.filename)
@@ -1309,7 +1313,8 @@ class CopyFileCase10(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_notoverwrite..." % self.__class__.__name__)
+            print("Running %s.test01_notoverwrite..." %
+                  self.__class__.__name__)
 
         # Create two empty files:
         file = tempfile.mktemp(".h5")
@@ -2381,47 +2386,47 @@ class QuantizeTestCase(unittest.TestCase):
     def setUp(self):
         self.data = numpy.linspace(-5., 5., 41)
         self.randomdata = numpy.random.random_sample(1000000)
-        self.randomints = numpy.random.random_integers(-1000000, 1000000,
-                1000000).astype('int64')
+        self.randomints = numpy.random.random_integers(
+            -1000000, 1000000, 1000000).astype('int64')
         # Create a temporary file
         self.file = tempfile.mktemp(".h5")
         # Create an instance of HDF5 Table
         self.h5file = open_file(self.file, self.mode, self.title)
         self.populateFile()
         self.h5file.close()
-        self.quantizeddata_0 = numpy.asarray([-5.] * 2 + [-4.] * 5 +
-                [-3.] * 3 + [-2.] * 5 + [-1.] * 3 + [0.] * 5 + [1.] * 3
-                + [2.] * 5 + [3.] * 3 + [4.] * 5 + [5.] * 2)
-        self.quantizeddata_m1 = numpy.asarray([-8.] * 4 + [0.] * 33 +
-                [8.] * 4)
+        self.quantizeddata_0 = numpy.asarray(
+            [-5.] * 2 + [-4.] * 5 + [-3.] * 3 + [-2.] * 5 + [-1.] * 3 +
+            [0.] * 5 + [1.] * 3 + [2.] * 5 + [3.] * 3 + [4.] * 5 + [5.] * 2)
+        self.quantizeddata_m1 = numpy.asarray(
+            [-8.] * 4 + [0.] * 33 + [8.] * 4)
 
     def populateFile(self):
         root = self.h5file.root
         filters = Filters(complevel=1, complib="blosc",
-                least_significant_digit=1)
+                          least_significant_digit=1)
         ints = self.h5file.create_carray(root, "integers", Int64Atom(),
-                (1000000, ), filters=filters)
+                                         (1000000,), filters=filters)
         ints[:] = self.randomints
         floats = self.h5file.create_carray(root, "floats", Float32Atom(),
-                (1000000, ), filters=filters)
+                                           (1000000,), filters=filters)
         floats[:] = self.randomdata
         data1 = self.h5file.create_carray(root, "data1", Float64Atom(),
-                (41, ), filters=filters)
+                                          (41,), filters=filters)
         data1[:] = self.data
         filters = Filters(complevel=1, complib="blosc",
-                least_significant_digit=0)
+                          least_significant_digit=0)
         data0 = self.h5file.create_carray(root, "data0", Float64Atom(),
-                (41, ), filters=filters)
+                                          (41,), filters=filters)
         data0[:] = self.data
         filters = Filters(complevel=1, complib="blosc",
-                least_significant_digit=2)
+                          least_significant_digit=2)
         data2 = self.h5file.create_carray(root, "data2", Float64Atom(),
-                (41, ), filters=filters)
+                                          (41,), filters=filters)
         data2[:] = self.data
         filters = Filters(complevel=1, complib="blosc",
-                least_significant_digit=-1)
+                          least_significant_digit=-1)
         datam1 = self.h5file.create_carray(root, "datam1", Float64Atom(),
-                (41, ), filters=filters)
+                                           (41,), filters=filters)
         datam1[:] = self.data
 
     def tearDown(self):
@@ -2463,7 +2468,6 @@ class QuantizeTestCase(unittest.TestCase):
         self.assertTrue(numpy.abs(quantized_1 - self.randomdata).max() < 0.05)
         self.assertTrue(numpy.abs(quantized_2 - self.randomdata).max() < 0.005)
         self.assertTrue(numpy.abs(quantized_m1 - self.randomdata).max() < 1.)
-
 
     def test02_array(self):
         """Checking quantized data as written to disk."""

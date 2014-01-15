@@ -220,6 +220,7 @@ class OldFlavorsTestCase02(common.PyTablesTestCase):
 
 #----------------------------------------------------------------------
 
+
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1

@@ -246,7 +246,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02_getitemCArray..." % self.__class__.__name__)
+            print("Running %s.test02_getitemCArray..." %
+                  self.__class__.__name__)
 
         if not hasattr(self, "slices"):
             # If there is not a slices attribute, create it
@@ -309,7 +310,8 @@ class BasicTestCase(unittest.TestCase):
             return
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_setitemCArray..." % self.__class__.__name__)
+            print("Running %s.test03_setitemCArray..." %
+                  self.__class__.__name__)
 
         if not hasattr(self, "slices"):
             # If there is not a slices attribute, create it
@@ -514,15 +516,17 @@ class Slices3CArrayTestCase(BasicTestCase):
     chunkshape = (5, 5, 5, 5)
     slices = (slice(1, 2, 1), slice(
         0, None, None), slice(1, 4, 2))  # Don't work
-    # slices = (slice(None, None, None), slice(0, None, None), slice(1,4,1)) # W
-    # slices = (slice(None, None, None), slice(None, None, None), slice(1,4,2)) # N
-    # slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2)) # N
+    # slices = (slice(None, None, None), slice(0, None, None),
+    #           slice(1,4,1))  # W
+    # slices = (slice(None, None, None), slice(None, None, None),
+    #           slice(1,4,2))  # N
+    # slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2))  # N
     # Disable the failing test temporarily with a working test case
     slices = (slice(1, 2, 1), slice(1, 4, None), slice(1, 4, 2))  # Y
-    # slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,1)) # Y
+    # slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,1))  # Y
     slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2))  # N
-    # slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), slice(0,100,1))
-    # # N
+    # slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2),
+    #           slice(0,100,1))  # N
 
 
 class Slices4CArrayTestCase(BasicTestCase):

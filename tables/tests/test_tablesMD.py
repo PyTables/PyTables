@@ -36,10 +36,11 @@ class Record(IsDescription):
 
 #  Dictionary definition
 RecordDescriptionDict = {
-    'var0': StringCol(itemsize=4, dflt=b"", shape=2),  # 4-character string array
+    'var0': StringCol(itemsize=4, dflt=b"", shape=2),  # 4-character string
+                                                       # array
     'var1': StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2)),
-#     'var0': StringCol(itemsize=4, shape=2),       # 4-character String
-#     'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
+    #'var0': StringCol(itemsize=4, shape=2),       # 4-character String
+    #'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
     'var1_': IntCol(shape=2),                      # integer array
     'var2': IntCol(shape=(2, 2)),                  # integer array
     'var3': Int16Col(),                           # short integer
@@ -637,7 +638,8 @@ class BasicRangeTestCase(unittest.TestCase):
             for nrec in range(len(recarray)):
                 if recarray['var2'][nrec][0][0] < self.nrows and 0 < self.step:
                     result.append(recarray['var2'][nrec][0][0])
-                elif recarray['var2'][nrec][0][0] > self.nrows and 0 > self.step:
+                elif (recarray['var2'][nrec][0][0] > self.nrows and
+                        0 > self.step):
                     result.append(recarray['var2'][nrec][0][0])
         elif self.checkgetCol:
             column = table.read(self.start, self.stop, self.step, 'var2')
@@ -649,11 +651,19 @@ class BasicRangeTestCase(unittest.TestCase):
                     result.append(column[nrec][0][0])  # *-*
         else:
             if 0 < self.step:
-                result = [r['var2'][0][0] for r in table.iterrows(self.start, 
-                          self.stop, self.step) if r['var2'][0][0] < self.nrows]
+                result = [
+                    r['var2'][0][0] for r in table.iterrows(self.start,
+                                                            self.stop,
+                                                            self.step)
+                    if r['var2'][0][0] < self.nrows
+                ]
             elif 0 > self.step:
-                result = [r['var2'][0][0] for r in table.iterrows(self.start, 
-                          self.stop, self.step) if r['var2'][0][0] > self.nrows]
+                result = [
+                    r['var2'][0][0] for r in table.iterrows(self.start,
+                                                            self.stop,
+                                                            self.step)
+                    if r['var2'][0][0] > self.nrows
+                ]
 
         if self.start < 0:
             startr = self.expectedrows + self.start
@@ -686,30 +696,35 @@ class BasicRangeTestCase(unittest.TestCase):
                     print("Last record *read* in table range ==>", rec)
             print("Total number of selected records ==>", len(result))
             print("Selected records:\n", result)
-            print("Selected records should look like:\n", \
+            print("Selected records should look like:\n",
                   range(startr, stopr, self.step))
             print("start, stop, step ==>", startr, stopr, self.step)
 
         self.assertEqual(result, range(startr, stopr, self.step))
         if not (self.checkrecarray or self.checkgetCol):
             if startr < stopr and 0 < self.step:
-                r = [r['var2'] for r in table.iterrows(self.start, self.stop, self.step)
+                r = [r['var2'] for r in table.iterrows(self.start, self.stop,
+                                                       self.step)
                      if r['var2'][0][0] < self.nrows][-1]
                 if self.nrows > self.expectedrows:
-                    self.assertEqual(r[0][0],
-                                     range(self.start, self.stop, self.step)[-1])
+                    self.assertEqual(
+                        r[0][0],
+                        range(self.start, self.stop, self.step)[-1])
                 else:
                     self.assertEqual(r[0][0],
                                      range(startr, stopr, self.step)[-1])
             elif startr > stopr and 0 > self.step:
-                r = [r['var2'] for r in table.iterrows(self.start, self.stop, self.step)
+                r = [r['var2'] for r in table.iterrows(self.start, self.stop,
+                                                       self.step)
                      if r['var2'][0][0] > self.nrows][0]
                 if self.nrows < self.expectedrows:
-                    self.assertEqual(r[0][0],
-                                     range(self.start, self.stop or -1, self.step)[0])
+                    self.assertEqual(
+                        r[0][0],
+                        range(self.start, self.stop or -1, self.step)[0])
                 else:
-                    self.assertEqual(r[0][0],
-                                     range(startr, stopr or -1 , self.step)[0])
+                    self.assertEqual(
+                        r[0][0],
+                        range(startr, stopr or -1, self.step)[0])
 
         # Close the file
         self.fileh.close()
@@ -976,7 +991,8 @@ class getColRangeTestCase(BasicRangeTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_nonexistentField..." % self.__class__.__name__)
+            print("Running %s.test01_nonexistentField..." %
+                  self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")

@@ -61,8 +61,10 @@ RecordDescriptionDict = {
     'var6': UInt16Col(dflt=5, pos=5),           # unsigned short integer
     'var7': StringCol(itemsize=1, dflt=b"e", pos=6),  # 1-character String
     'var8': BoolCol(dflt=True, pos=7),          # boolean
-    'var9': ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8),   # Complex single precision
-    'var10': ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9),  # Complex double precision
+    'var9': ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8),
+                                                # Complex single precision
+    'var10': ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9),
+                                                # Complex double precision
 }
 
 if 'Float16Col' in globals():
@@ -355,7 +357,8 @@ class BasicTestCase(common.PyTablesTestCase):
             if common.verbose:
                 print("dflt-->", columns[v].dflt, type(columns[v].dflt))
                 print("coldflts-->", tbl.coldflts[v], type(tbl.coldflts[v]))
-                print("desc.dflts-->", desc._v_dflts[v], type(desc._v_dflts[v]))
+                print("desc.dflts-->", desc._v_dflts[v],
+                      type(desc._v_dflts[v]))
             self.assertTrue(areArraysEqual(tbl.coldflts[v], columns[v].dflt))
             self.assertTrue(areArraysEqual(desc._v_dflts[v], columns[v].dflt))
 
@@ -412,7 +415,8 @@ class BasicTestCase(common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a_fetch_all_fields..." % self.__class__.__name__)
+            print("Running %s.test01a_fetch_all_fields..." %
+                  self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -540,7 +544,8 @@ class BasicTestCase(common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a_badtypefield..." % self.__class__.__name__)
+            print("Running %s.test01a_badtypefield..." %
+                  self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -1465,7 +1470,8 @@ class BasicTestCase(common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05_filtersTable..." % self.__class__.__name__)
+            print("Running %s.test05_filtersTable..." %
+                  self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -2084,11 +2090,19 @@ class BasicRangeTestCase(unittest.TestCase):
                     result.append(column[nrec])
         else:
             if 0 < self.step:
-                result = [rec['var2'] for rec in table.iterrows(self.start,
-                            self.stop, self.step) if rec['var2'] < self.nrows]
+                result = [
+                    rec['var2'] for rec in table.iterrows(self.start,
+                                                          self.stop,
+                                                          self.step)
+                    if rec['var2'] < self.nrows
+                ]
             elif 0 > self.step:
-                result = [rec['var2'] for rec in table.iterrows(self.start,
-                            self.stop, self.step) if rec['var2'] > self.nrows]
+                result = [
+                    rec['var2'] for rec in table.iterrows(self.start,
+                                                          self.stop,
+                                                          self.step)
+                    if rec['var2'] > self.nrows
+                ]
 
         if self.start < 0:
             startr = self.expectedrows + self.start
@@ -2121,7 +2135,7 @@ class BasicRangeTestCase(unittest.TestCase):
                     print("Last record *read* in table range ==>", rec)
             print("Total number of selected records ==>", len(result))
             print("Selected records:\n", result)
-            print("Selected records should look like:\n", \
+            print("Selected records should look like:\n",
                   range(startr, stopr, self.step))
             print("start, stop, step ==>", self.start, self.stop, self.step)
             print("startr, stopr, step ==>", startr, stopr, self.step)
@@ -2129,23 +2143,29 @@ class BasicRangeTestCase(unittest.TestCase):
         self.assertEqual(result, range(startr, stopr, self.step))
         if not (self.checkrecarray or self.checkgetCol):
             if startr < stopr and 0 < self.step:
-                rec = [r for r in table.iterrows(self.start, self.stop, self.step)
+                rec = [r for r in table.iterrows(self.start, self.stop,
+                                                 self.step)
                        if r['var2'] < self.nrows][-1]
                 if self.nrows < self.expectedrows:
-                    self.assertEqual(rec['var2'],
-                                     range(self.start, self.stop, self.step)[-1])
+                    self.assertEqual(
+                        rec['var2'],
+                        range(self.start, self.stop, self.step)[-1])
                 else:
-                    self.assertEqual(rec['var2'],
-                                     range(startr, stopr, self.step)[-1])
+                    self.assertEqual(
+                        rec['var2'],
+                        range(startr, stopr, self.step)[-1])
             elif startr > stopr and 0 > self.step:
-                rec = [r['var2'] for r in table.iterrows(self.start, self.stop, self.step)
+                rec = [r['var2'] for r in table.iterrows(self.start, self.stop,
+                                                         self.step)
                        if r['var2'] > self.nrows][0]
                 if self.nrows < self.expectedrows:
-                    self.assertEqual(rec,
-                                     range(self.start, self.stop or -1, self.step)[0])
+                    self.assertEqual(
+                        rec,
+                        range(self.start, self.stop or -1, self.step)[0])
                 else:
-                    self.assertEqual(rec,
-                                     range(startr, stopr or -1, self.step)[0])
+                    self.assertEqual(
+                        rec,
+                        range(startr, stopr or -1, self.step)[0])
 
         # Close the file
         self.fileh.close()
@@ -2434,7 +2454,8 @@ class getColRangeTestCase(BasicRangeTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_nonexistentField..." % self.__class__.__name__)
+            print("Running %s.test01_nonexistentField..." %
+                  self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         self.fileh = open_file(self.file, "r")
@@ -2659,7 +2680,8 @@ class getItemTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04_negativeStep..." % self.__class__.__name__)
+            print("Running %s.test04_negativeStep..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2678,7 +2700,8 @@ class getItemTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test06a_singleItemCol..." % self.__class__.__name__)
+            print("Running %s.test06a_singleItemCol..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2727,7 +2750,8 @@ class getItemTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08_threeItemCol..." % self.__class__.__name__)
+            print("Running %s.test08_threeItemCol..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0
@@ -2743,7 +2767,8 @@ class getItemTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09_negativeStep..." % self.__class__.__name__)
+            print("Running %s.test09_negativeStep..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         table = self.fileh.root.table0

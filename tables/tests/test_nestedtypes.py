@@ -503,13 +503,14 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Get the nested column data and swap the first and last rows.
         colnames = ['x', 'color']  # Get the first two columns
-        raCols = numpy.rec.fromarrays([self._testAData['x'].copy(),
-                                self._testAData['color'].copy()],
-                                dtype=[('x', '(2,)i4'), ('color', '1a2')])
-                               # descr=tbl.description._v_nested_descr[0:2])
-                               # or...
-                               # names=tbl.description._v_nested_names[0:2],
-                               # formats=tbl.description._v_nested_formats[0:2])
+        raCols = numpy.rec.fromarrays([
+            self._testAData['x'].copy(),
+            self._testAData['color'].copy()],
+            dtype=[('x', '(2,)i4'), ('color', '1a2')])
+            # descr=tbl.description._v_nested_descr[0:2])
+            # or...
+            # names=tbl.description._v_nested_names[0:2],
+            # formats=tbl.description._v_nested_formats[0:2])
         (raCols[0], raCols[-1]) = (raCols[-1].copy(), raCols[0].copy())
 
         # Write the resulting columns
@@ -714,11 +715,15 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         #
         # Also in this case it is genereted a representation string for each
         # of the possible default values.
-        enums = [', '.join(items) for items in
-                        itertools.permutations(("'r': 4", "'b': 1", "'g': 2"))]
+        enums = [
+            ', '.join(items) for items in itertools.permutations(
+                ("'r': 4", "'b': 1", "'g': 2"))
+        ]
         defaults = ('r', 'b', 'g')
-        values = [template % {'value': v, 'default': d}
-                                for v, d in itertools.product(enums, defaults)]
+        values = [
+            template % {'value': v, 'default': d}
+            for v, d in itertools.product(enums, defaults)
+        ]
         self.assertTrue(tblrepr in values)
 
     def test00b_repr(self):
@@ -897,8 +902,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
   info (Cols(), Description)
   y (Column(0, 2, 2), ('%s', (2, 2)))
   z (Column(0,), uint8)
-""" % (numpy.int32(0).dtype.str, numpy.float64(0).dtype.str)
-                             )
+""" % (numpy.int32(0).dtype.str, numpy.float64(0).dtype.str))
 
     def test00b_repr(self):
         """Checking string representation of nested Cols."""
@@ -1365,8 +1369,10 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         desc = {
             'nested': {
-            'i1': t.Int32Col(),
-            'i2': t.Int32Col()}}
+                'i1': t.Int32Col(),
+                'i2': t.Int32Col()
+            }
+        }
 
         i1 = 'nested/i1'
         i2 = 'nested/i2'
@@ -1411,10 +1417,14 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         desc = {
             'nested1': {
-            'nested2': {
-            'nested3': {
-            'i1': t.Int32Col(),
-            'i2': t.Int32Col()}}}}
+                'nested2': {
+                    'nested3': {
+                        'i1': t.Int32Col(),
+                        'i2': t.Int32Col()
+                    }
+                }
+            }
+        }
 
         i1 = 'nested1/nested2/nested3/i1'
         i2 = 'nested1/nested2/nested3/i2'

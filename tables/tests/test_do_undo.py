@@ -174,7 +174,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_6times3marks..." % self.__class__.__name__)
+            print("Running %s.test03_6times3marks..." %
+                  self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -258,7 +259,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04_6times3marksro..." % self.__class__.__name__)
+            print("Running %s.test04_6times3marksro..." %
+                  self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -357,7 +359,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05b_destructive..." % self.__class__.__name__)
+            print("Running %s.test05b_destructive..." %
+                  self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -393,7 +396,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05c_destructive..." % self.__class__.__name__)
+            print("Running %s.test05c_destructive..." %
+                  self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -427,7 +431,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05d_destructive..." % self.__class__.__name__)
+            print("Running %s.test05d_destructive..." %
+                  self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -459,7 +464,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05e_destructive..." % self.__class__.__name__)
+            print("Running %s.test05e_destructive..." %
+                  self.__class__.__name__)
 
         # open the do/undo
         self.fileh.enable_undo()
@@ -486,7 +492,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05f_destructive..." % self.__class__.__name__)
+            print("Running %s.test05f_destructive..." %
+                  self.__class__.__name__)
 
         self.fileh.enable_undo()
         self.fileh.create_array('/', 'newarray', [1])
@@ -834,7 +841,8 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test13_severalEnableDisable..." % self.__class__.__name__)
+            print("Running %s.test13_severalEnableDisable..." %
+                  self.__class__.__name__)
 
         self.fileh.enable_undo()
         self.fileh.create_array('/', 'newarray1', [1])
@@ -1949,7 +1957,8 @@ class copyNodeTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02_copyLeafOverwrite..." % self.__class__.__name__)
+            print("Running %s.test02_copyLeafOverwrite..." %
+                  self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -1975,7 +1984,8 @@ class copyNodeTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_copyChildren..." % self.__class__.__name__)
+            print("Running %s.test03_copyChildren..." %
+                  self.__class__.__name__)
 
         # Enable undo/redo.
         self.fileh.enable_undo()
@@ -2263,7 +2273,8 @@ class AttributesTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_setAttrExisting..." % self.__class__.__name__)
+            print("Running %s.test01_setAttrExisting..." %
+                  self.__class__.__name__)
 
         array = self.fileh.root.array
         attrs = array.attrs
@@ -2303,7 +2314,8 @@ class AttributesTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_copyNodeAttrs..." % self.__class__.__name__)
+            print("Running %s.test03_copyNodeAttrs..." %
+                  self.__class__.__name__)
 
         rattrs = self.fileh.root._v_attrs
         rattrs.attr_0 = 0

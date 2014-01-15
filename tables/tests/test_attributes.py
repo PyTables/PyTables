@@ -195,10 +195,12 @@ class CreateTestCase(unittest.TestCase):
 
         anarray = self.root.anarray
         self.assertEqual(anarray.attrs._f_list(), ["i", "j", "k"])
-        self.assertEqual(anarray.attrs._f_list("sys"),
-                         ['CLASS', 'FLAVOR', 'TITLE', 'VERSION'])
-        self.assertEqual(anarray.attrs._f_list("all"),
-                         ['CLASS', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"])
+        self.assertEqual(
+            anarray.attrs._f_list("sys"),
+            ['CLASS', 'FLAVOR', 'TITLE', 'VERSION'])
+        self.assertEqual(
+            anarray.attrs._f_list("all"),
+            ['CLASS', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"])
 
     def test05_removeAttributes(self):
         """Checking removing attributes."""
@@ -224,8 +226,7 @@ class CreateTestCase(unittest.TestCase):
         # Check the local attributes names
         self.assertEqual(agroup._v_attrs._f_list(), ["qr", "rs"])
         if common.verbose:
-            print("Attribute list in disk:", \
-                  agroup._v_attrs._f_list("all"))
+            print("Attribute list in disk:", agroup._v_attrs._f_list("all"))
         # Check the disk attribute names
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "qr", "rs"])
@@ -237,8 +238,7 @@ class CreateTestCase(unittest.TestCase):
         # Check the local attributes names
         self.assertEqual(agroup._v_attrs._f_list(), ["rs"])
         if common.verbose:
-            print("Attribute list in disk:", \
-                  agroup._v_attrs._f_list())
+            print("Attribute list in disk:", agroup._v_attrs._f_list())
         # Check the disk attribute names
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "rs"])
@@ -267,8 +267,7 @@ class CreateTestCase(unittest.TestCase):
         # Check the local attributes names
         self.assertEqual(agroup._v_attrs._f_list(), ["qr", "rs"])
         if common.verbose:
-            print("Attribute list in disk:", \
-                  agroup._v_attrs._f_list("all"))
+            print("Attribute list in disk:", agroup._v_attrs._f_list("all"))
         # Check the disk attribute names
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "qr", "rs"])
@@ -280,8 +279,7 @@ class CreateTestCase(unittest.TestCase):
         # Check the local attributes names
         self.assertEqual(agroup._v_attrs._f_list(), ["rs"])
         if common.verbose:
-            print("Attribute list in disk:", \
-                  agroup._v_attrs._f_list())
+            print("Attribute list in disk:", agroup._v_attrs._f_list())
         # Check the disk attribute names
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "rs"])
@@ -374,8 +372,7 @@ class CreateTestCase(unittest.TestCase):
         self.assertEqual(agroup._v_attrs.qr, 2)
         self.assertEqual(agroup._v_attrs.rs, [1, 2, 3])
         if common.verbose:
-            print("Attribute list in disk:", \
-                  agroup._v_attrs._f_list("all"))
+            print("Attribute list in disk:", agroup._v_attrs._f_list("all"))
         # Check the disk attribute names (not sorted)
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"])
@@ -752,7 +749,8 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
@@ -787,7 +785,8 @@ class TypesTestCase(unittest.TestCase):
 
         for dtype in checktypes:
             if common.verbose:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
             assert_array_equal(getattr(self.array.attrs, dtype),
                                numpy.array([1, 2], dtype=dtype))
 
@@ -814,7 +813,8 @@ class TypesTestCase(unittest.TestCase):
         for dtype in checktypes:
             arr = numpy.array([1, 2, 3, 4], dtype=dtype)[::2]
             if common.verbose:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
             assert_array_equal(getattr(self.array.attrs, dtype), arr)
 
     def test01e_setIntAttributes(self):
@@ -839,7 +839,8 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         for dtype in checktypes:
             if common.verbose:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
             assert_array_equal(getattr(self.array.attrs, dtype),
                                numpy.array([[1, 2], [2, 3]], dtype=dtype))
 
@@ -884,7 +885,8 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
@@ -911,7 +913,8 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
@@ -926,7 +929,8 @@ class TypesTestCase(unittest.TestCase):
                                numpy.array([1.1, 2.1], dtype=dtype))
 
     def test02d_setFloatAttributes(self):
-        """Checking setting Float attributes (unidimensional, non-contiguous)"""
+        """Checking setting Float attributes (unidimensional,
+        non-contiguous)"""
 
         checktypes = ['Float32', 'Float64']
 
@@ -937,7 +941,8 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
@@ -963,7 +968,8 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
@@ -974,8 +980,9 @@ class TypesTestCase(unittest.TestCase):
             self.array = self.fileh.root.anarray
 
         for dtype in checktypes:
-            assert_array_equal(getattr(self.array.attrs, dtype),
-                               numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
+            assert_array_equal(
+                getattr(self.array.attrs, dtype),
+                numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
 
     def test03_setObjectAttributes(self):
         """Checking setting Object attributes."""
@@ -1052,7 +1059,8 @@ class TypesTestCase(unittest.TestCase):
                            numpy.array(['foo']))
 
     def test04c_setStringAttributes(self):
-        """Checking setting string attributes (empty unidimensional 1-elem case)"""
+        """Checking setting string attributes (empty unidimensional
+        1-elem case)"""
 
         self.array.attrs.pq = numpy.array([''])
 
@@ -1094,7 +1102,8 @@ class TypesTestCase(unittest.TestCase):
                            numpy.array(['foo', 'bar3']))
 
     def test04e_setStringAttributes(self):
-        """Checking setting string attributes (empty unidimensional 2-elem case)"""
+        """Checking setting string attributes (empty unidimensional
+        2-elem case)"""
 
         self.array.attrs.pq = numpy.array(['', ''])
 
@@ -1176,7 +1185,8 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
@@ -1203,7 +1213,8 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
@@ -1229,7 +1240,8 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print("type, value-->", dtype, getattr(self.array.attrs, dtype))
+                print("type, value-->",
+                      dtype, getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
@@ -1240,8 +1252,9 @@ class TypesTestCase(unittest.TestCase):
             self.array = self.fileh.root.anarray
 
         for dtype in checktypes:
-            assert_array_equal(getattr(self.array.attrs, dtype),
-                               numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
+            assert_array_equal(
+                getattr(self.array.attrs, dtype),
+                numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
 
     def test06a_setUnicodeAttributes(self):
         """Checking setting unicode attributes (scalar case)"""
@@ -1296,7 +1309,8 @@ class TypesTestCase(unittest.TestCase):
                            numpy.array([u'para\u0140lel']))
 
     def test06c_setUnicodeAttributes(self):
-        """Checking setting unicode attributes (empty unidimensional 1-elem case)"""
+        """Checking setting unicode attributes (empty unidimensional
+        1-elem case)"""
 
         # The next raises a `TypeError` when unpickled. See:
         # http://projects.scipy.org/numpy/ticket/1037
@@ -1341,7 +1355,8 @@ class TypesTestCase(unittest.TestCase):
                            numpy.array([u'para\u0140lel', u'bar3']))
 
     def test06e_setUnicodeAttributes(self):
-        """Checking setting unicode attributes (empty unidimensional 2-elem case)"""
+        """Checking setting unicode attributes (empty unidimensional
+        2-elem case)"""
 
         self.array.attrs.pq = numpy.array(['', ''], dtype="U1")
 

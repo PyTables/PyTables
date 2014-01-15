@@ -16,8 +16,7 @@ unittest.TestCase.tearDown = common.cleanup
 def WriteRead(filename, testTuple):
     if common.verbose:
         print('\n', '-=' * 30)
-        print("Running test for object %s" % \
-            (type(testTuple)))
+        print("Running test for object %s" % type(testTuple))
 
     # Create an instance of HDF5 Table
     fileh = open_file(filename, mode="w")
@@ -128,8 +127,7 @@ class ExceptionTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running test for %s" % \
-                  (self.title))
+            print("Running test for %s" % (self.title))
         a = self.charList
         try:
             fname = tempfile.mktemp(".h5")
@@ -391,13 +389,14 @@ class GI2ListTestCase(GetItemTestCase):
                        [3, 2, 1, 0, 4, 5, 6]]
 
     charList = [b"a", b"b"]
-    charListME = [[b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
-                  [b"21", b"21", b"11", b"02", b"42", b"21", b"61"],
-                  [b"31", b"21", b"12", b"21", b"41", b"51", b"621"],
-                  [b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
-                  [b"3241", b"2321", b"13216",
-                      b"0621", b"4421", b"5421", b"a621"],
-                  [b"a321", b"s221", b"d121", b"g021", b"b421", b"5vvv21", b"6zxzxs21"]]
+    charListME = [
+        [b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
+        [b"21", b"21", b"11", b"02", b"42", b"21", b"61"],
+        [b"31", b"21", b"12", b"21", b"41", b"51", b"621"],
+        [b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
+        [b"3241", b"2321", b"13216", b"0621", b"4421", b"5421", b"a621"],
+        [b"a321", b"s221", b"d121", b"g021", b"b421", b"5vvv21", b"6zxzxs21"],
+    ]
 
 
 class GeneratorTestCase(unittest.TestCase):
@@ -516,13 +515,14 @@ class GE2ListTestCase(GeneratorTestCase):
                        [3, 2, 1, 0, 4, 5, 6]]
 
     charList = [b"a", b"b"]
-    charListME = [[b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
-                  [b"21", b"21", b"11", b"02", b"42", b"21", b"61"],
-                  [b"31", b"21", b"12", b"21", b"41", b"51", b"621"],
-                  [b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
-                  [b"3241", b"2321", b"13216",
-                      b"0621", b"4421", b"5421", b"a621"],
-                  [b"a321", b"s221", b"d121", b"g021", b"b421", b"5vvv21", b"6zxzxs21"]]
+    charListME = [
+        [b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
+        [b"21", b"21", b"11", b"02", b"42", b"21", b"61"],
+        [b"31", b"21", b"12", b"21", b"41", b"51", b"621"],
+        [b"321", b"221", b"121", b"021", b"421", b"521", b"621"],
+        [b"3241", b"2321", b"13216", b"0621", b"4421", b"5421", b"a621"],
+        [b"a321", b"s221", b"d121", b"g021", b"b421", b"5vvv21", b"6zxzxs21"],
+    ]
 
 
 def suite():

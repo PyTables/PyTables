@@ -353,7 +353,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05b_removeGroupRecursively..." % 
+            print("Running %s.test05b_removeGroupRecursively..." %
                   self.__class__.__name__)
 
         # Delete a group with leafs
@@ -1611,8 +1611,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # greater
         if common.verbose:
             print()
-            print("\nPyTables format version number ==> %s" % \
-                version)
+            print("\nPyTables format version number ==> %s" % version)
         self.assertTrue(version >= "1.0")
 
         # Then, delete the file
@@ -1632,8 +1631,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # negative value
         if common.verbose:
             print()
-            print("\nPyTables format version number ==> %s" % \
-                version)
+            print("\nPyTables format version number ==> %s" % version)
         self.assertTrue(version is None)
 
         # Then, delete the file

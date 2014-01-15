@@ -164,7 +164,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         "The kind of this index.")
 
     filters = property(
-        lambda self: self._v_filters, None, None, 
+        lambda self: self._v_filters, None, None,
         """Filter properties for this index - see Filters in
         :ref:`FiltersClassDescr`.""")
 
@@ -194,12 +194,13 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         """)
 
     def _getcolumn(self):
-        tablepath, columnpath = _table_column_pathname_of_index(self._v_pathname)
+        tablepath, columnpath = _table_column_pathname_of_index(
+            self._v_pathname)
         table = self._v_file._get_node(tablepath)
         column = table.cols._g_col(columnpath)
         return column
 
-    column = property(_getcolumn, None, None, 
+    column = property(_getcolumn, None, None,
         """The Column (see :ref:`ColumnClassDescr`) instance for the indexed
         column.""")
 
@@ -210,7 +211,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         return table
 
     table = property(_gettable, None, None,
-        "Accessor for the `Table` object of this index.")
+                     "Accessor for the `Table` object of this index.")
 
     nblockssuperblock = property(
         lambda self: self.superblocksize // self.blocksize, None, None,
@@ -451,8 +452,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                 nboundsLR = 0  # correction for -1 bounds
             nboundsLR += 2  # bounds + begin + end
             # All bounds values (+begin + end) are at the end of sortedLR
-            self.bebounds = self.sortedLR[nelementsSLR:nelementsSLR +
-                                                                nboundsLR]
+            self.bebounds = self.sortedLR[
+                nelementsSLR:nelementsSLR + nboundsLR]
             return
 
         # The index is new. Initialize the values

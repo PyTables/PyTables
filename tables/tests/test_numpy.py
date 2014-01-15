@@ -46,7 +46,7 @@ class BasicTestCase(unittest.TestCase):
     def WriteRead(self, testArray):
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running test for array with typecode '%s'" % \
+            print("Running test for array with typecode '%s'" %
                   testArray.dtype.char, end=' ')
             print("for class check:", self.title)
 
@@ -232,7 +232,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test00_iterativeGroups..." % \
+            print("Running %s.test00_iterativeGroups..." %
                   self.__class__.__name__)
 
         # Open a new empty HDF5 file
@@ -330,7 +330,7 @@ class GroupsArrayTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_largeRankArrays..." % \
+            print("Running %s.test01_largeRankArrays..." %
                   self.__class__.__name__)
             print("Maximum rank for tested arrays:", maxrank)
         # Open a new empty HDF5 file

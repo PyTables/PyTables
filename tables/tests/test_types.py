@@ -88,7 +88,8 @@ class RangeTestCase(unittest.TestCase):
             pass
         else:
             if common.verbose:
-                print("\nNow, the range overflow no longer issues a ValueError")
+                print(
+                    "\nNow, the range overflow no longer issues a ValueError")
 
     def test01_type(self):
         """Testing the type check."""

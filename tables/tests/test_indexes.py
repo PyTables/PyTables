@@ -88,7 +88,8 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test00_flushLastRow..." % self.__class__.__name__)
+            print("Running %s.test00_flushLastRow..." %
+                  self.__class__.__name__)
 
         # Open the HDF5 file in append mode
         self.fileh = open_file(self.file, mode="a")
@@ -241,7 +242,8 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05_getWhereList..." % self.__class__.__name__)
+            print("Running %s.test05_getWhereList..." %
+                  self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
         self.fileh = open_file(self.file, mode="a")
@@ -267,7 +269,8 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test06_getWhereList..." % self.__class__.__name__)
+            print("Running %s.test06_getWhereList..." %
+                  self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
         self.fileh = open_file(self.file, mode="a")
@@ -282,7 +285,7 @@ class BasicTestCase(PyTablesTestCase):
         # Do a selection
         table.flavor = "numpy"
         rowList1 = table.get_where_list('var2 == False', sort=True)
-        rowList2 = [p.nrow for p in table if p['var2'] == False]
+        rowList2 = [p.nrow for p in table if p['var2'] is False]
         # Convert to a NumPy object
         rowList2 = numpy.array(rowList2, numpy.int64)
         if verbose:
@@ -296,7 +299,8 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test07_getWhereList..." % self.__class__.__name__)
+            print("Running %s.test07_getWhereList..." %
+                  self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
         self.fileh = open_file(self.file, mode="a")
@@ -322,7 +326,8 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08_getWhereList..." % self.__class__.__name__)
+            print("Running %s.test08_getWhereList..." %
+                  self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
         self.fileh = open_file(self.file, mode="a")
@@ -348,7 +353,8 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09a_removeIndex..." % self.__class__.__name__)
+            print("Running %s.test09a_removeIndex..." %
+                  self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
         self.fileh = open_file(self.file, mode="a")
@@ -383,7 +389,8 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09b_removeIndex..." % self.__class__.__name__)
+            print("Running %s.test09b_removeIndex..." %
+                  self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
         self.fileh = open_file(self.file, mode="a")
@@ -582,7 +589,8 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test11a_removeTableWithIndex..." % self.__class__.__name__)
+            print("Running %s.test11a_removeTableWithIndex..." %
+                  self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
         self.fileh = open_file(self.file, mode="a")
@@ -626,7 +634,8 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test11b_removeTableWithIndex..." % self.__class__.__name__)
+            print("Running %s.test11b_removeTableWithIndex..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, mode="a")
         table = self.fileh.root.table
@@ -674,7 +683,8 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test11c_removeTableWithIndex..." % self.__class__.__name__)
+            print("Running %s.test11c_removeTableWithIndex..." %
+                  self.__class__.__name__)
 
         class Distance(IsDescription):
             frame = Int32Col(pos=0)
@@ -1158,7 +1168,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print("auto flag:", table.autoindex)
             for colname in table.colnames:
                 if table.cols._f_col(colname).index:
-                    print("dirty flag col %s: %s" % \
+                    print("dirty flag col %s: %s" %
                           (colname, table.cols._f_col(colname).index.dirty))
         # Check the flags
         for colname in table.colnames:
@@ -1209,7 +1219,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if verbose:
             for colname in table.colnames:
                 if table.cols._f_col(colname).index:
-                    print("dirty flag col %s: %s" % \
+                    print("dirty flag col %s: %s" %
                           (colname, table.cols._f_col(colname).index.dirty))
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
@@ -1315,7 +1325,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if verbose:
             for colname in table.colnames:
                 if table.cols._f_col(colname).index:
-                    print("dirty flag col %s: %s" % \
+                    print("dirty flag col %s: %s" %
                           (colname, table.cols._f_col(colname).index.dirty))
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
@@ -1377,7 +1387,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if verbose:
             for colname in table2.colnames:
                 if table2.cols._f_col(colname).index:
-                    print("dirty flag col %s: %s" % \
+                    print("dirty flag col %s: %s" %
                           (colname, table2.cols._f_col(colname).index.dirty))
         for colname in table2.colnames:
             if table2.cols._f_col(colname).index:
@@ -1492,7 +1502,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if verbose:
             for colname in table2.colnames:
                 if table2.cols._f_col(colname).index:
-                    print("dirty flag col %s: %s" % \
+                    print("dirty flag col %s: %s" %
                           (colname, table2.cols._f_col(colname).index.dirty))
         for colname in table2.colnames:
             if table2.cols._f_col(colname).index:
@@ -2290,7 +2300,8 @@ class ReadSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
                                  numpy.sort(sortedtable2, order="icol")))
 
     def test01_readSorted2(self):
-        """Testing the Table.read_sorted() method with no arguments (re-open)."""
+        """Testing the Table.read_sorted() method with no arguments (re-open).
+        """
         self._reopen()
         table = self.h5file.root.table
         sortedtable = numpy.sort(table[:], order='icol')
@@ -2397,7 +2408,8 @@ class Issue156TestBase(PyTablesTestCase):
 
         # check column is sorted
         self.assertTrue(numpy.all(
-            new_node.col(self.sort_field) == sorted(oldNode.col(self.sort_field))))
+            new_node.col(self.sort_field) ==
+            sorted(oldNode.col(self.sort_field))))
         # check index is available
         self.assertTrue(self.sort_field in new_node.colindexes)
         # check CSI was propagated
@@ -2431,15 +2443,14 @@ class Issue119Time32ColTestCase(PyTablesTestCase):
         0.75127635627046820,
     ]
 
-
     def setUp(self):
         # create hdf5 file
         self.filename = tempfile.mktemp(".hdf5")
         self.file = open_file(self.filename, mode="w")
 
         class Descr(IsDescription):
-            when = self.col_typ(pos = 1)
-            value = Float32Col(pos = 2)
+            when = self.col_typ(pos=1)
+            value = Float32Col(pos=2)
 
         self.table = self.file.create_table('/', 'test', Descr)
 
@@ -2456,11 +2467,11 @@ class Issue119Time32ColTestCase(PyTablesTestCase):
         tbl = self.table
         t = self.t
 
-        wherestr = '(when >= %d) & (when < %d)'%(t, t+5)
+        wherestr = '(when >= %d) & (when < %d)' % (t, t + 5)
 
         no_index = tbl.read_where(wherestr)
 
-        tbl.cols.when.create_index(_verbose = False)
+        tbl.cols.when.create_index(_verbose=False)
         with_index = tbl.read_where(wherestr)
 
         self.assertTrue((no_index == with_index).all())

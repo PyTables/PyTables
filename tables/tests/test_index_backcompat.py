@@ -78,8 +78,7 @@ class IndexesTestCase(common.PyTablesTestCase):
         t1var2 = table1.cols.var2
         self.assertTrue(t1var2 is not None)
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
-        results2 = [p["var2"] for p in table2
-                    if p["var2"] == True]
+        results2 = [p["var2"] for p in table2 if p["var2"] is True]
         if verbose:
             print("Selection results (index):", results1)
             print("Should look like:", results2)

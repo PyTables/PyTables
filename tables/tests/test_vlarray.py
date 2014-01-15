@@ -126,7 +126,8 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(self.shuffle, vlarray.filters.shuffle)
         if self.fletcher32 != vlarray.filters.fletcher32 and common.verbose:
             print("Error in fletcher32. Class:", self.__class__.__name__)
-            print("self, vlarray:", self.fletcher32, vlarray.filters.fletcher32)
+            print("self, vlarray:", self.fletcher32,
+                  vlarray.filters.fletcher32)
         self.assertEqual(self.fletcher32, vlarray.filters.fletcher32)
 
     def test02a_getitem(self):
@@ -393,7 +394,8 @@ class TypesTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a_2_StringAtom..." % self.__class__.__name__)
+            print("Running %s.test01a_2_StringAtom..." %
+                  self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray('/', 'stringAtom',
                                             atom=StringAtom(itemsize=3),
@@ -1196,7 +1198,8 @@ class TypesTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04b_ComplexAtom..." % self.__class__.__name__)
+            print("Running %s.test04b_ComplexAtom..." %
+                  self.__class__.__name__)
 
         for atype in ttypes:
             vlarray = self.fileh.create_vlarray(
@@ -1242,7 +1245,8 @@ class TypesTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05_VLStringAtom..." % self.__class__.__name__)
+            print("Running %s.test05_VLStringAtom..." %
+                  self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray(
             '/', "VLStringAtom", atom=VLStringAtom())
@@ -1283,7 +1287,8 @@ class TypesTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05b_VLStringAtom..." % self.__class__.__name__)
+            print("Running %s.test05b_VLStringAtom..." %
+                  self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray(
             '/', "VLStringAtom", atom=VLStringAtom())
@@ -1473,7 +1478,8 @@ class TypesTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test07_VLUnicodeAtom..." % self.__class__.__name__)
+            print("Running %s.test07_VLUnicodeAtom..." %
+                  self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray(
             '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
@@ -1514,7 +1520,8 @@ class TypesTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test07b_VLUnicodeAtom..." % self.__class__.__name__)
+            print("Running %s.test07b_VLUnicodeAtom..." %
+                  self.__class__.__name__)
 
         vlarray = self.fileh.create_vlarray(
             '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
@@ -2130,7 +2137,8 @@ class FlavorTestCase(unittest.TestCase):
         root = self.rootgroup
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_EmptyVLArray..." % self.__class__.__name__)
+            print("Running %s.test01_EmptyVLArray..." %
+                  self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, "vlarray",
@@ -2155,7 +2163,8 @@ class FlavorTestCase(unittest.TestCase):
         root = self.rootgroup
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_EmptyVLArray..." % self.__class__.__name__)
+            print("Running %s.test01_EmptyVLArray..." %
+                  self.__class__.__name__)
 
         # Create an string atom
         vlarray = self.fileh.create_vlarray(root, "vlarray",
@@ -2661,7 +2670,8 @@ class ReadRangeTestCase(unittest.TestCase):
         "Checking reads with a start, stop & step values"
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04_startstopstep..." % self.__class__.__name__)
+            print("Running %s.test04_startstopstep..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2695,7 +2705,8 @@ class ReadRangeTestCase(unittest.TestCase):
         "Checking reads with a start, stop & step values (numpy indices)"
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04np_startstopstep..." % self.__class__.__name__)
+            print("Running %s.test04np_startstopstep..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2803,7 +2814,8 @@ class ReadRangeTestCase(unittest.TestCase):
         "Checking out of range reads"
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05_out_of_range..." % self.__class__.__name__)
+            print("Running %s.test05_out_of_range..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -3122,7 +3134,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         "Checking out of range reads"
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05_out_of_range..." % self.__class__.__name__)
+            print("Running %s.test05_out_of_range..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -3147,7 +3160,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         "Checking out of range reads (numpy indexes)"
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05np_out_of_range..." % self.__class__.__name__)
+            print("Running %s.test05np_out_of_range..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -3310,7 +3324,8 @@ class SetRangeTestCase(unittest.TestCase):
         "Checking updating several rows at once (slice style)"
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03a_several_rows..." % self.__class__.__name__)
+            print("Running %s.test03a_several_rows..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3341,7 +3356,8 @@ class SetRangeTestCase(unittest.TestCase):
         "Checking updating several rows at once (list style)"
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03b_several_rows..." % self.__class__.__name__)
+            print("Running %s.test03b_several_rows..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3375,7 +3391,8 @@ class SetRangeTestCase(unittest.TestCase):
         "Checking updating several rows at once (NumPy's where style)"
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03c_several_rows..." % self.__class__.__name__)
+            print("Running %s.test03c_several_rows..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3409,7 +3426,8 @@ class SetRangeTestCase(unittest.TestCase):
         "Checking out of range updates (first index)"
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04_out_of_range..." % self.__class__.__name__)
+            print("Running %s.test04_out_of_range..." %
+                  self.__class__.__name__)
 
         self.fileh = open_file(self.file, "a")
         vlarray = self.fileh.root.vlarray

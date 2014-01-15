@@ -172,7 +172,8 @@ class TreeTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_getNodeClass..." % self.__class__.__name__)
+            print("Running %s.test01_getNodeClass..." %
+                  self.__class__.__name__)
 
         self.h5file = open_file(self.file, "r")
         # This tree ways of get_node usage should return a table instance
@@ -391,7 +392,8 @@ class TreeTestCase(unittest.TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_TraverseTree..." % self.__class__.__name__)
+            print("Running %s.test03_TraverseTree..." %
+                  self.__class__.__name__)
 
         self.h5file = open_file(self.file, "r")
         groups = []
@@ -408,8 +410,9 @@ class TreeTestCase(unittest.TestCase):
                          ["/", "/group0", "/group0/group1",
                           "/group0/group1/group2"])
 
-        self.assertEqual(tables,
-                         ["/table0", "/group0/table1", "/group0/group1/table2"])
+        self.assertEqual(
+            tables,
+            ["/table0", "/group0/table1", "/group0/group1/table2"])
 
         self.assertEqual(arrays,
                          ['/var1', '/var4',
@@ -486,7 +489,8 @@ class TreeTestCase(unittest.TestCase):
         groups = []
         tables = []
         arrays = []
-        for group in self.h5file.walk_nodes("/group0/group1", classname="Group"):
+        for group in self.h5file.walk_nodes("/group0/group1",
+                                            classname="Group"):
             groups.append(group._v_pathname)
             for table in group._f_walknodes('Table'):
                 tables.append(table._v_pathname)
@@ -646,7 +650,7 @@ class WideTreeTestCase(unittest.TestCase):
             maxchildren = 256
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test00_wideTree..." % \
+            print("Running %s.test00_wideTree..." %
                   self.__class__.__name__)
             print("Maximum number of children tested :", maxchildren)
         # Open a new empty HDF5 file
@@ -672,7 +676,7 @@ class WideTreeTestCase(unittest.TestCase):
         # Open the previous HDF5 file in read-only mode
         fileh = open_file(file, mode="r")
         if common.verbose:
-            print("\nTime spent opening a file with %d arrays: %s s" % \
+            print("\nTime spent opening a file with %d arrays: %s s" %
                   (maxchildren, time.time()-t1))
             print("\nChildren reading progress: ", end=' ')
         # Get the metadata on the previosly saved arrays
@@ -712,7 +716,7 @@ class WideTreeTestCase(unittest.TestCase):
             maxchildren = 256
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test00_wideTree..." % \
+            print("Running %s.test00_wideTree..." %
                   self.__class__.__name__)
             print("Maximum number of children tested :", maxchildren)
         # Open a new empty HDF5 file
@@ -736,7 +740,7 @@ class WideTreeTestCase(unittest.TestCase):
         # Open the previous HDF5 file in read-only mode
         fileh = open_file(file, mode="r")
         if common.verbose:
-            print("\nTime spent opening a file with %d groups: %s s" % \
+            print("\nTime spent opening a file with %d groups: %s s" %
                   (maxchildren, time.time()-t1))
             print("\nChildren reading progress: ", end=' ')
         # Get the metadata on the previosly saved arrays
@@ -803,11 +807,13 @@ class HiddenTreeTestCase(unittest.TestCase):
         warnings.filterwarnings('ignore', category=DeprecationWarning)
 
         for vpath in self.visible:
-            self.assertTrue(vpath in objects,
-                            "Missing visible node ``%s`` from ``File.objects``." % vpath)
+            self.assertTrue(
+                vpath in objects,
+                "Missing visible node ``%s`` from ``File.objects``." % vpath)
         for hpath in self.hidden:
-            self.assertTrue(hpath not in objects,
-                            "Found hidden node ``%s`` in ``File.objects``." % hpath)
+            self.assertTrue(
+                hpath not in objects,
+                "Found hidden node ``%s`` in ``File.objects``." % hpath)
 
         warnings.filterwarnings('default', category=DeprecationWarning)
 

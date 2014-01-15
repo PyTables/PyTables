@@ -317,16 +317,18 @@ def get_reduction_level(indsize, optlevel, slicesize, chunksize):
 #
 # Thanks to Shack Toms shack@livedata.com for NextAfter and NextAfterF
 # implementations in Python. 2004-10-01
-# epsilon  = math.ldexp(1.0, -53) # smallest double such that 0.5 + epsilon != 0.5
+# epsilon  = math.ldexp(1.0, -53) # smallest double such that
+#                                 # 0.5 + epsilon != 0.5
 # epsilonF = math.ldexp(1.0, -24) # smallest float such that 0.5 + epsilonF
 # != 0.5
 # maxFloat = float(2**1024 - 2**971)  # From the IEEE 754 standard
 # maxFloatF = float(2**128 - 2**104)  # From the IEEE 754 standard
 # minFloat  = math.ldexp(1.0, -1022) # min positive normalized double
 # minFloatF = math.ldexp(1.0, -126)  # min positive normalized float
-# smallEpsilon  = math.ldexp(1.0, -1074) # smallest increment for doubles < minFloat
-# smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for floats <
-# minFloatF
+# smallEpsilon  = math.ldexp(1.0, -1074) # smallest increment for
+#                                        # doubles < minFloat
+# smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for
+#                                        # floats < minFloatF
 infinity = math.ldexp(1.0, 1023) * 2
 infinityf = math.ldexp(1.0, 128)
 # Finf = float("inf")  # Infinite in the IEEE 754 standard (not avail in Win)
