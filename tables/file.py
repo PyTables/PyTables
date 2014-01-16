@@ -83,7 +83,7 @@ compatible_formats = []  # Old format versions we can read
                          # Empty means that we support all the old formats
 
 
-class _FileRegistry():
+class _FileRegistry(object):
     def __init__(self):
         self._name_mapping = collections.defaultdict(set)
         self._handlers = set()
