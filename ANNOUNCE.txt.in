@@ -4,13 +4,40 @@
 
 We are happy to announce PyTables @VERSION@.
 
-#XXX some general blurb XXX#
+This is a feature release.  The upgrading is recommended for users that
+are running PyTables in production environments.
 
 
 What's new
 ==========
 
-#XXX version-specific blurb XXX#
+Probably the most relevant changes in this release are internal improvements
+like the new node cache that is now compatible with the upcoming Python 3.4
+and the registry for open files has been deeply reworked. The caching feature
+of file handlers has been completely dropped so now PyTables is a little bit
+more "thread friendly".
+
+New, user visible, features include:
+
+- a new lossy filter for HDF5 datasets (EArray, CArray, VLArray and Table
+  objects). The *quantization* filter truncates floating point data to a
+  specified precision before writing to disk.
+  This can significantly improve the performance of compressors
+  (many thanks to Andreas Hilboll).
+- support for the H5FD_SPLIT HDF5 driver (thanks to simleo)
+- the ability to save/restore the default value of :class:`EnumAtom` types
+
+Also, installations of the HDF5 library that have a broken support for the
+*long double* data type (see the `Issues with H5T_NATIVE_LDOUBLE`_ thread on
+the HFG5 forum) are detected by PyTables @VERSION@ and the corresponding
+features are automatically disabled.
+
+Users that need support for the *long double* data type should ensure to build
+PyTables against an installation of the HDF5 library that is not affected by the
+bug.
+
+.. _`Issues with H5T_NATIVE_LDOUBLE`:
+    http://hdf-forum.184993.n3.nabble.com/Issues-with-H5T-NATIVE-LDOUBLE-tt4026450.html
 
 As always, a large amount of bugs have been addressed and squashed as well.
 
