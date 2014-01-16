@@ -1085,10 +1085,10 @@ fine-tune the :data:`parameters.NODE_CACHE_SLOTS` parameter.
 .. note::
 
     Numerical results reported in :ref:`table <optimization_table_1>` have been
-	obtained with PyTables < 3.1. In PyTables 3.1 the node cahe mechanism has
-	been completely rediesiged so while all commenst above are still valid,
-	numerical values could be a little bit different from the ones reported in
-	:ref:`table <optimization_table_1>`.
+    obtained with PyTables < 3.1. In PyTables 3.1 the node cache mechanism has
+    been completely redesigned so while all comments above are still valid,
+    numerical values could be a little bit different from the ones reported in
+    :ref:`table <optimization_table_1>`.
 
 
 Compacting your PyTables files
