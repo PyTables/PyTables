@@ -1692,13 +1692,10 @@ int blosc_get_complib_info(char *compname, char **complib, char **version)
 #endif /*  HAVE_LZ4 */
 #if defined(HAVE_SNAPPY)
   else if (clibcode == BLOSC_SNAPPY_LIB) {
-#if defined(SNAPPY_VERSION_STRING)
-    clibversion = SNAPPY_VERSION_STRING;
-#endif /* SNAPPY_VERSION_STRING */
 #if defined(SNAPPY_VERSION)
     sprintf(sbuffer, "%d.%d.%d", SNAPPY_MAJOR, SNAPPY_MINOR, SNAPPY_PATCHLEVEL);
     clibversion = sbuffer;
-#endif /* SNAPPY_VERSION */
+#endif /*  SNAPPY_VERSION */
   }
 #endif /*  HAVE_SNAPPY */
 #if defined(HAVE_ZLIB)
