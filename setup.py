@@ -520,8 +520,13 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
                 "by setting the ``%(tag)s_DIR`` environment variable "
                 "or by using the ``--%(ltag)s`` command-line option."
                 % dict(name=pname, tag=ptag, ltag=ptag.lower()))
-        print("* Could not find %s headers and library; "
-              "disabling support for it." % package.name)
+        if package.tag == 'BLOSC':
+            print("* Could not find %s headers and library; "
+                  "using internal sources." % package.name)
+        else:
+            print("* Could not find %s headers and library; "
+                  "disabling support for it." % package.name)
+
         continue  # look for the next library
 
     if libdir in ("", True):
@@ -729,10 +734,11 @@ if 'BLOSC' not in optional_libs:
     inc_dirs += glob.glob('c-blosc/internal-complibs/*')
     # ...and the macros for all the compressors supported
     def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1)]
-    ADDLIBS += ['blosc']
     # Add -msse2 flag for optimizing shuffle in include Blosc
     if os.name == 'posix':
         CFLAGS.append("-msse2")
+else:
+    ADDLIBS += ['blosc']
 
 
 utilsExtension_libs = LIBS + ADDLIBS
