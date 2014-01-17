@@ -53,8 +53,8 @@ First, make sure that you have
 * Cython_ >= 0.13
 * argparse_ (only Python 2.6, it is used by the :program:`pt2to3` utility)
 
-installed (for testing purposes, we are using HDF5_ 1.8.9, NumPy_ 1.7.1
-and Numexpr_ 2.1 currently). If you don't, fetch and install them before
+installed (for testing purposes, we are using HDF5_ 1.8.12, NumPy_ 1.8.0
+and Numexpr_ 2.2.2 currently). If you don't, fetch and install them before
 proceeding.
 
 .. _Python: http://www.python.org
@@ -100,7 +100,7 @@ PyTables, so you don't need to install it separately.
     locations of the resource root directories on the setup.py command line.
     For example::
 
-        --hdf5=/stuff/hdf5-1.8.9
+        --hdf5=/stuff/hdf5-1.8.12
         --lzo=/stuff/lzo-2.02
         --bzip2=/stuff/bzip2-1.0.5
 
@@ -108,7 +108,7 @@ PyTables, so you don't need to install it separately.
     path, then you can specify the additional linker flags needed to find the
     shared library on the command line as well. For example::
 
-        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.9/lib"
+        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.12/lib"
 
     You may also want to try setting the :envvar:`LD_LIBRARY_PATH`
     environment variable to point to the directory where the shared libraries
@@ -118,7 +118,7 @@ PyTables, so you don't need to install it separately.
     It is also possible to link with specific libraries by setting the
     :envvar:`LIBS` environment variable::
 
-        LIBS="hdf5-1.8.9 nsl"
+        LIBS="hdf5-1.8.12 nsl"
 
     Finally, you can give additional flags to your compiler by passing them to
     the :option:`--cflags` flag::
