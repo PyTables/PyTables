@@ -54,6 +54,10 @@ Improvements
   less dependent from specific behaviours of the ``__del__`` method.
   Now PyTables is compatible with the forthcoming Python 3.4.
   Closes :issue:`306`.
+- PyTables no longer uses shared/cached file handlers. This change somewhat
+  improves support for concurrent reading allowing the user to safely open the
+  same file in different threads for reading.
+  See also :issue:`130`, :issue:`129` :issue:`292` and :issue:`216`.
 
 
 Bugs fixed

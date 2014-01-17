@@ -20,8 +20,6 @@ import tempfile
 import tables as t
 from tables.tests import common
 
-from tables.link import ExternalLink
-
 
 # Test for hard links
 class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
