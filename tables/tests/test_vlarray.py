@@ -10,6 +10,7 @@ import tempfile
 import numpy
 import numpy.testing as npt
 
+import tables
 from tables import *
 from tables.tests import common
 from tables.tests.common import allequal
@@ -277,6 +278,36 @@ class BloscShuffleComprTestCase(BasicTestCase):
     compress = 6
     shuffle = 1
     complib = "blosc"
+
+
+class BloscBloscLZComprTestCase(BasicTestCase):
+    compress = 9
+    shuffle = 1
+    complib = "blosc:blosclz"
+
+
+class BloscLZ4ComprTestCase(BasicTestCase):
+    compress = 9
+    shuffle = 1
+    complib = "blosc:lz4"
+
+
+class BloscLZ4HCComprTestCase(BasicTestCase):
+    compress = 9
+    shuffle = 1
+    complib = "blosc:lz4hc"
+
+
+class BloscSnappyComprTestCase(BasicTestCase):
+    compress = 9
+    shuffle = 1
+    complib = "blosc:snappy"
+
+
+class BloscZlibComprTestCase(BasicTestCase):
+    compress = 9
+    shuffle = 1
+    complib = "blosc:zlib"
 
 
 class LZOComprTestCase(BasicTestCase):
@@ -4539,6 +4570,14 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscShuffleComprTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscBloscLZComprTestCase))
+        if 'lz4' in tables.blosc_compressor_list():
+            theSuite.addTest(unittest.makeSuite(BloscLZ4ComprTestCase))
+            theSuite.addTest(unittest.makeSuite(BloscLZ4HCComprTestCase))
+        if 'snappy' in tables.blosc_compressor_list():
+            theSuite.addTest(unittest.makeSuite(BloscSnappyComprTestCase))
+        if 'zlib' in tables.blosc_compressor_list():
+            theSuite.addTest(unittest.makeSuite(BloscZlibComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))
         theSuite.addTest(unittest.makeSuite(TypesReopenTestCase))

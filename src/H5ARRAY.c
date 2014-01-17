@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "H5Zlzo.h"                    /* Import FILTER_LZO */
 #include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
-#include "../blosc/blosc_filter.h"     /* Import FILTER_BLOSC */
+#include "blosc_filter.h"              /* Import FILTER_BLOSC */
 
 #include <string.h>
 #include <stdlib.h>
@@ -50,7 +50,9 @@ herr_t H5ARRAYmake( hid_t loc_id,
  hid_t   dataset_id, space_id;
  hsize_t *maxdims = NULL;
  hid_t   plist_id = 0;
- unsigned int cd_values[6];
+ unsigned int cd_values[7];
+ int     blosc_compcode;
+ char    *blosc_compname = NULL;
  int     chunked = 0;
  int     i;
 
@@ -102,8 +104,8 @@ herr_t H5ARRAYmake( hid_t loc_id,
      if ( H5Pset_fletcher32( plist_id) < 0 )
        return -1;
    }
-   /* Then shuffle (not if blosc is activated) */
-   if ((shuffle) && (strcmp(complib, "blosc") != 0)) {
+   /* Then shuffle (blosc shuffles inplace) */
+   if ((shuffle) && (strncmp(complib, "blosc", 5) != 0)) {
      if ( H5Pset_shuffle( plist_id) < 0 )
        return -1;
    }
@@ -127,6 +129,16 @@ herr_t H5ARRAYmake( hid_t loc_id,
        cd_values[5] = shuffle;
        if ( H5Pset_filter( plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
          return -1;
+     }
+     /* The Blosc compressor can use other compressors */
+     else if (strncmp(complib, "blosc:", 6) == 0) {
+       cd_values[4] = compress;
+       cd_values[5] = shuffle;
+       blosc_compname = complib + 6;
+       blosc_compcode = blosc_compname_to_compcode(blosc_compname);
+       cd_values[6] = blosc_compcode;
+       if ( H5Pset_filter( plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0 )
+	 return -1;
      }
      /* The LZO compressor does accept parameters */
      else if (strcmp(complib, "lzo") == 0) {

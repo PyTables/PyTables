@@ -7,6 +7,7 @@ import tempfile
 
 import numpy
 
+import tables
 from tables import *
 from tables.tests import common
 from tables.tests.common import allequal
@@ -678,6 +679,61 @@ class BloscFletcherTestCase(BasicTestCase):
     shuffle = 1
     fletcher32 = 1
     complib = "blosc"
+    chunkshape = (100, 100)
+    start = 3
+    stop = 10
+    step = 7
+
+
+class BloscBloscLZTestCase(BasicTestCase):
+    shape = (20, 30)
+    compress = 1
+    shuffle = 1
+    complib = "blosc:blosclz"
+    chunkshape = (200, 100)
+    start = 2
+    stop = 11
+    step = 7
+
+
+class BloscLZ4TestCase(BasicTestCase):
+    shape = (20, 30)
+    compress = 1
+    shuffle = 1
+    complib = "blosc:lz4"
+    chunkshape = (100, 100)
+    start = 3
+    stop = 10
+    step = 7
+
+
+class BloscLZ4HCTestCase(BasicTestCase):
+    shape = (20, 30)
+    compress = 1
+    shuffle = 1
+    complib = "blosc:lz4hc"
+    chunkshape = (100, 100)
+    start = 3
+    stop = 10
+    step = 7
+
+
+class BloscSnappyTestCase(BasicTestCase):
+    shape = (20, 30)
+    compress = 1
+    shuffle = 1
+    complib = "blosc:snappy"
+    chunkshape = (100, 100)
+    start = 3
+    stop = 10
+    step = 7
+
+
+class BloscZlibTestCase(BasicTestCase):
+    shape = (20, 30)
+    compress = 1
+    shuffle = 1
+    complib = "blosc:zlib"
     chunkshape = (100, 100)
     start = 3
     stop = 10
@@ -2765,6 +2821,14 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BloscComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(BloscFletcherTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscBloscLZTestCase))
+        if 'lz4' in tables.blosc_compressor_list():
+            theSuite.addTest(unittest.makeSuite(BloscLZ4TestCase))
+            theSuite.addTest(unittest.makeSuite(BloscLZ4HCTestCase))
+        if 'snappy' in tables.blosc_compressor_list():
+            theSuite.addTest(unittest.makeSuite(BloscSnappyTestCase))
+        if 'zlib' in tables.blosc_compressor_list():
+            theSuite.addTest(unittest.makeSuite(BloscZlibTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))

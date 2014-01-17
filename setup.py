@@ -10,7 +10,7 @@ import ctypes
 import textwrap
 import subprocess
 from os.path import exists, expanduser
-
+import glob
 
 # Using ``setuptools`` enables lots of goodies, such as building eggs.
 if 'FORCE_SETUPTOOLS' in os.environ:
@@ -145,7 +145,7 @@ debug = '--debug' in sys.argv
 
 # Global variables
 lib_dirs = []
-inc_dirs = ['blosc']
+inc_dirs = ['c-blosc/hdf5']
 optional_libs = []
 data_files = []    # list of data files to add to packages (mainly for DLL's)
 
@@ -353,6 +353,7 @@ if os.name == 'posix':
         'LZO2': ['lzo2'],
         'LZO': ['lzo'],
         'BZ2': ['bz2'],
+        'BLOSC': ['blosc'],
     }
 elif os.name == 'nt':
     _Package = WindowsPackage
@@ -361,6 +362,7 @@ elif os.name == 'nt':
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'],
+        'BLOSC': ['blosc', 'blosc'],
     }
 
     # Copy the next DLL's to binaries by default.
@@ -379,6 +381,8 @@ lzo1_package = _Package("LZO 1", 'LZO', 'lzo1x', *_platdep['LZO'])
 lzo1_package.target_function = 'lzo_version_date'
 bzip2_package = _Package("bzip2", 'BZ2', 'bzlib', *_platdep['BZ2'])
 bzip2_package.target_function = 'BZ2_bzlibVersion'
+blosc_package = _Package("blosc", 'BLOSC', 'blosc', *_platdep['BLOSC'])
+blosc_package.target_function = 'blosc_list_compressors'  # Blosc >= 1.3
 
 
 #-----------------------------------------------------------------
@@ -395,6 +399,7 @@ if os.name == 'nt':
 HDF5_DIR = os.environ.get('HDF5_DIR', '')
 LZO_DIR = os.environ.get('LZO_DIR', '')
 BZIP2_DIR = os.environ.get('BZIP2_DIR', '')
+BLOSC_DIR = os.environ.get('BLOSC_DIR', '')
 LFLAGS = os.environ.get('LFLAGS', '').split()
 # in GCC-style compilers, -w in extra flags will get rid of copious
 # 'uninitialized variable' Cython warnings. However, this shouldn't be
@@ -404,7 +409,7 @@ CFLAGS = os.environ.get('CFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
 
 # ...then the command line.
-# Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH]
+# Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH] --blosc=[PATH]
 # --lflags=[FLAGS] --cflags=[FLAGS] and --debug
 args = sys.argv[:]
 for arg in args:
@@ -416,6 +421,9 @@ for arg in args:
         sys.argv.remove(arg)
     elif arg.find('--bzip2=') == 0:
         BZIP2_DIR = expanduser(arg.split('=')[1])
+        sys.argv.remove(arg)
+    elif arg.find('--blosc=') == 0:
+        BLOSC_DIR = expanduser(arg.split('=')[1])
         sys.argv.remove(arg)
     elif arg.find('--lflags=') == 0:
         LFLAGS = arg.split('=')[1].split()
@@ -487,7 +495,8 @@ compiler = new_compiler()
 for (package, location) in [(hdf5_package, HDF5_DIR),
                             (lzo2_package, LZO_DIR),
                             (lzo1_package, LZO_DIR),
-                            (bzip2_package, BZIP2_DIR)]:
+                            (bzip2_package, BZIP2_DIR),
+                            (blosc_package, BLOSC_DIR)]:
 
     if package.tag == 'LZO' and lzo2_enabled:
         print("* Skipping detection of %s since %s has already been found."
@@ -511,8 +520,13 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
                 "by setting the ``%(tag)s_DIR`` environment variable "
                 "or by using the ``--%(ltag)s`` command-line option."
                 % dict(name=pname, tag=ptag, ltag=ptag.lower()))
-        print("* Could not find %s headers and library; "
-              "disabling support for it." % package.name)
+        if package.tag == 'BLOSC':  # this is optional, but comes with sources
+            print("* Could not find %s headers and library; "
+                  "using internal sources." % package.name)
+        else:
+            print("* Could not find %s headers and library; "
+                  "disabling support for it." % package.name)
+
         continue  # look for the next library
 
     if libdir in ("", True):
@@ -529,7 +543,7 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
             exit_with_error(
                 "Unsupported HDF5 version! HDF5 v%s+ required. "
                 "Found version v%s" % (
-                    '.'.join(map(str, min_hdf5_version)), 
+                    '.'.join(map(str, min_hdf5_version)),
                     '.'.join(map(str, hdf5_version))))
 
     if hdrdir not in default_header_dirs:
@@ -701,7 +715,32 @@ if os.name == "nt":
         ('Lib/site-packages/%s' % name, dll_files),
     ])
 
-ADDLIBS = [hdf5_package.library_name, ]
+ADDLIBS = [hdf5_package.library_name]
+
+# List of Blosc file dependencies
+blosc_files = ["c-blosc/hdf5/blosc_filter.c"]
+if 'BLOSC' not in optional_libs:
+    # Compiling everything from sources
+    # Blosc + BloscLZ sources
+    blosc_files += glob.glob('c-blosc/blosc/*.c')
+    # LZ4 sources
+    blosc_files += glob.glob('c-blosc/internal-complibs/lz4*/*.c')
+    # Snappy sources
+    blosc_files += glob.glob('c-blosc/internal-complibs/snappy*/*.cc')
+    # Zlib sources
+    blosc_files += glob.glob('c-blosc/internal-complibs/zlib*/*.c')
+    # Finally, add all the include dirs...
+    inc_dirs += [os.path.join('c-blosc', 'blosc')]
+    inc_dirs += glob.glob('c-blosc/internal-complibs/*')
+    # ...and the macros for all the compressors supported
+    def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1)]
+    # Add -msse2 flag for optimizing shuffle in include Blosc
+    if os.name == 'posix':
+        CFLAGS.append("-msse2")
+else:
+    ADDLIBS += ['blosc']
+
+
 utilsExtension_libs = LIBS + ADDLIBS
 hdf5Extension_libs = LIBS + ADDLIBS
 tableExtension_libs = LIBS + ADDLIBS
@@ -718,9 +757,6 @@ for (package, complibs) in [(lzo_package, _comp_lzo_libs),
     if package.tag in optional_libs:
         complibs.extend([hdf5_package.library_name, package.library_name])
 
-# List of Blosc file dependencies
-blosc_files = ["blosc/blosc.c", "blosc/blosclz.c", "blosc/shuffle.c",
-               "blosc/blosc_filter.c"]
 
 extensions = [
     Extension("tables.utilsextension",

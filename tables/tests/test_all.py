@@ -108,6 +108,8 @@ def print_versions():
     if tinfo is not None:
         blosc_date = tinfo[2].split()[1]
         print("Blosc version:     %s (%s)" % (tinfo[1], blosc_date))
+        blosc_cnames = tables.blosc_compressor_list()
+        print("Blosc compressors: %s" % (blosc_cnames,))
     try:
         from Cython.Compiler.Main import Version as Cython_Version
         print('Cython version:    %s' % Cython_Version.version)
