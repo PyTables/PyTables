@@ -1647,6 +1647,7 @@ class CompressBloscShuffleTablesTestCase(BasicTestCase):
     shuffle = 1
     complib = "blosc"
 
+
 class CompressBloscBloscLZTablesTestCase(BasicTestCase):
     title = "CompressBloscLZTables"
     compress = 1
@@ -1660,11 +1661,13 @@ class CompressBloscLZ4TablesTestCase(BasicTestCase):
     shuffle = 1
     complib = "blosc:lz4"
 
+
 class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
     title = "CompressLZ4HCTables"
     compress = 1
     shuffle = 1
     complib = "blosc:lz4hc"
+
 
 class CompressBloscSnappyTablesTestCase(BasicTestCase):
     title = "CompressSnappyTables"
@@ -1672,11 +1675,13 @@ class CompressBloscSnappyTablesTestCase(BasicTestCase):
     shuffle = 1
     complib = "blosc:snappy"
 
+
 class CompressBloscZlibTablesTestCase(BasicTestCase):
     title = "CompressZlibTables"
     compress = 1
     shuffle = 1
     complib = "blosc:zlib"
+
 
 class CompressLZOTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"

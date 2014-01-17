@@ -70,12 +70,12 @@ def recreate_indexes(table, dstfileh, dsttable):
     if listoldindexes != []:
         if not regoldindexes:
             if verbose:
-                print("[I]Not regenerating indexes for table: '%s:%s'" % \
+                print("[I]Not regenerating indexes for table: '%s:%s'" %
                       (dstfileh.filename, dsttable._v_pathname))
             return
         # Now, recreate the indexed columns
         if verbose:
-            print("[I]Regenerating indexes for table: '%s:%s'" % \
+            print("[I]Regenerating indexes for table: '%s:%s'" %
                   (dstfileh.filename, dsttable._v_pathname))
         for colname in listoldindexes:
             if verbose:
@@ -150,7 +150,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
             sortby=sortby, checkCSI=checkCSI, propindexes=propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
-        print("Problems doing the copy from '%s:%s' to '%s:%s'" % \
+        print("Problems doing the copy from '%s:%s' to '%s:%s'" %
               (srcfile, srcnode, dstfile, dstnode))
         print("The error was --> %s: %s" % (type, value))
         print("The destination file looks like:\n", dstfileh)
@@ -240,7 +240,7 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
             sortby=sortby, checkCSI=checkCSI, propindexes=propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
-        print("Problems doing the copy from '%s:%s' to '%s:%s'" % \
+        print("Problems doing the copy from '%s:%s' to '%s:%s'" %
               (srcfile, srcgroup, dstfile, dstgroup))
         print("The error was --> %s: %s" % (type, value))
         print("The destination file looks like:\n", dstfileh)
@@ -336,8 +336,8 @@ def _get_parser():
     parser.add_argument(
         '--complib', choices=(
             "zlib", "lzo", "bzip2", "blosc", "blosc:blosclz",
-             "blosc:lz4", "blosc:lz4hc", "blosc:snappy",
-             "blosc:zlib"), default='zlib',
+            "blosc:lz4", "blosc:lz4hc", "blosc:snappy",
+            "blosc:zlib"), default='zlib',
         help='''set the compression library to be used during the copy.
         Defaults to %(default)s''',
     )

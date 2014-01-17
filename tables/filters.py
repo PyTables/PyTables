@@ -28,7 +28,7 @@ __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc']
-all_complibs += ['blosc:%s'%cname for cname in blosc_compressor_list()]
+all_complibs += ['blosc:%s' % cname for cname in blosc_compressor_list()]
 
 
 """List of all compression libraries."""
@@ -182,7 +182,7 @@ class Filters(object):
                     # In Blosc 1.3 another parameter is used for the compressor
                     if len(values) > 6:
                         cname = blosc_compcode_to_compname(values[6])
-                        kwargs['complib'] = "blosc:%s"%cname
+                        kwargs['complib'] = "blosc:%s" % cname
                 else:
                     kwargs['complevel'] = values[0]
             elif name in foreign_complibs:
@@ -274,7 +274,7 @@ class Filters(object):
 
     def __init__(self, complevel=0, complib=default_complib,
                  shuffle=True, fletcher32=False,
-                 least_significant_digit=None,_new=True):
+                 least_significant_digit=None, _new=True):
 
         if not (0 <= complevel <= 9):
             raise ValueError("compression level must be between 0 and 9")

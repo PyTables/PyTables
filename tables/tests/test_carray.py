@@ -695,6 +695,7 @@ class BloscBloscLZTestCase(BasicTestCase):
     stop = 11
     step = 7
 
+
 class BloscLZ4TestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -704,6 +705,7 @@ class BloscLZ4TestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 7
+
 
 class BloscLZ4HCTestCase(BasicTestCase):
     shape = (20, 30)
@@ -726,6 +728,7 @@ class BloscSnappyTestCase(BasicTestCase):
     stop = 10
     step = 7
 
+
 class BloscZlibTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -735,6 +738,7 @@ class BloscZlibTestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 7
+
 
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
