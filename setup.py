@@ -382,7 +382,7 @@ lzo1_package.target_function = 'lzo_version_date'
 bzip2_package = _Package("bzip2", 'BZ2', 'bzlib', *_platdep['BZ2'])
 bzip2_package.target_function = 'BZ2_bzlibVersion'
 blosc_package = _Package("blosc", 'BLOSC', 'blosc', *_platdep['BLOSC'])
-blosc_package.target_function = 'blosc_init'
+blosc_package.target_function = 'blosc_list_compressors'  # Blosc >= 1.3
 
 
 #-----------------------------------------------------------------
