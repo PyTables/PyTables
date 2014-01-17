@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "H5Zlzo.h"                    /* Import FILTER_LZO */
 #include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
-#include "../c-blosc/hdf5/blosc_filter.h"     /* Import FILTER_BLOSC */
+#include "blosc_filter.h"              /* Import FILTER_BLOSC */
 
 #include <string.h>
 #include <stdlib.h>

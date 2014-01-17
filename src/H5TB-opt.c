@@ -35,7 +35,7 @@
 #include "tables.h"
 #include "H5Zlzo.h"                    /* Import FILTER_LZO */
 #include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
-#include "../c-blosc/hdf5/blosc_filter.h"     /* Import FILTER_BLOSC */
+#include "blosc_filter.h"              /* Import FILTER_BLOSC */
 
 /* Define this in order to shrink datasets after deleting */
 #if 1
