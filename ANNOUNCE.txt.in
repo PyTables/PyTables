@@ -25,6 +25,9 @@ New, user visible, features include:
   This can significantly improve the performance of compressors
   (many thanks to Andreas Hilboll).
 - support for the H5FD_SPLIT HDF5 driver (thanks to simleo)
+- all new features introduced in the Blosc_ 1.3.x series, and in particular
+  the ability to leverage different compressors within Blosc_ are now available
+  in PyTables via the blosc filter (a big thank you to Francesc)
 - the ability to save/restore the default value of :class:`EnumAtom` types
 
 Also, installations of the HDF5 library that have a broken support for the
