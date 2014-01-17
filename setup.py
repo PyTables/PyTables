@@ -362,7 +362,7 @@ elif os.name == 'nt':
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'],
-        'BZ2': ['blosc', 'blosc'],
+        'BLOSC': ['blosc', 'blosc'],
     }
 
     # Copy the next DLL's to binaries by default.
@@ -520,7 +520,7 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
                 "by setting the ``%(tag)s_DIR`` environment variable "
                 "or by using the ``--%(ltag)s`` command-line option."
                 % dict(name=pname, tag=ptag, ltag=ptag.lower()))
-        if package.tag == 'BLOSC':
+        if package.tag == 'BLOSC':  # this is optional, but comes with sources
             print("* Could not find %s headers and library; "
                   "using internal sources." % package.name)
         else:
