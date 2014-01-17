@@ -83,8 +83,11 @@ You may also optionally install the excellent LZO compression library (see
 :ref:`[LZO] <LZO>` and :ref:`compressionIssues`). The high-performance bzip2
 compression library can also be used with PyTables (see
 :ref:`[BZIP2] <BZIP2>`).
-The Blosc (see :ref:`[BLOSC] <BLOSC>`) compression library is embedded in
-PyTables, so you don't need to install it separately.
+
+The Blosc (see :ref:`[BLOSC] <BLOSC>`) compression library is embedded
+in PyTables, so this will be used in case it is not found in the
+system.  So, in case the installer warns about not finding it, do not
+worry too much ;)
 
 **Unix**
 
@@ -95,14 +98,15 @@ PyTables, so you don't need to install it separately.
     may wish to use) or if you have several versions of a library installed
     and want to use a particular one, then you can set the path to the
     resource in the environment, by setting the values of the
-    :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`, or :envvar:`BZIP2_DIR` environment
-    variables to the path to the particular resource. You may also specify the
-    locations of the resource root directories on the setup.py command line.
-    For example::
+    :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`, :envvar:`BZIP2_DIR` or
+    :envvar:`BLOSC_DIR` environment variables to the path to the particular
+    resource. You may also specify the locations of the resource root
+    directories on the setup.py command line.  For example::
 
         --hdf5=/stuff/hdf5-1.8.12
         --lzo=/stuff/lzo-2.02
         --bzip2=/stuff/bzip2-1.0.5
+        --blosc=/stuff/blosc-1.3.2
 
     If your HDF5 library was built as a shared library not in the runtime load
     path, then you can specify the additional linker flags needed to find the
@@ -151,14 +155,15 @@ PyTables, so you don't need to install it separately.
     Once you have installed the prerequisites, setup.py needs to know where
     the necessary library *stub* (.lib) and *header* (.h) files are installed.
     You can set the path to the include and dll directories for the HDF5
-    (mandatory) and LZO or BZIP2 (optional) libraries in the environment, by
-    setting the values of the :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`, or
-    :envvar:`BZIP2_DIR` environment variables to the path to the particular
-    resource.  For example::
+    (mandatory) and LZO, BZIP2, BLOSC (optional) libraries in the environment,
+    by setting the values of the :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`,
+    :envvar:`BZIP2_DIR` or :envvar:`BLOSC_DIR` environment variables to the
+    path to the particular resource.  For example::
 
         set HDF5_DIR=c:\\stuff\\hdf5-1.8.5-32bit-VS2008-IVF101\\release
         set LZO_DIR=c:\\Program Files (x86)\\GnuWin32
         set BZIP2_DIR=c:\\Program Files (x86)\\GnuWin32
+        set BLOSC_DIR=c:\\Program Files (x86)\\Blosc
 
     You may also specify the locations of the resource root directories on the
     setup.py command line.
@@ -167,6 +172,7 @@ PyTables, so you don't need to install it separately.
         --hdf5=c:\\stuff\\hdf5-1.8.5-32bit-VS2008-IVF101\\release
         --lzo=c:\\Program Files (x86)\\GnuWin32
         --bzip2=c:\\Program Files (x86)\\GnuWin32
+        --blosc=c:\\Program Files (x86)\\Blosc
 
 **Development version (Unix)**
 
@@ -292,10 +298,11 @@ you can proceed with the PyTables package itself.
 
    **Windows**
 
-      Put the DLL libraries (hdf5dll.dll and, optionally, lzo1.dll and
-      bzip2.dll) in a directory listed in your :envvar:`PATH` environment
-      variable. The setup.py installation program will print out a warning to
-      that effect if the libraries can not be found.
+      Put the DLL libraries (hdf5dll.dll and, optionally, lzo1.dll,
+      bzip2.dll or blosc.dll) in a directory listed in your
+      :envvar:`PATH` environment variable. The setup.py installation
+      program will print out a warning to that effect if the libraries
+      can not be found.
 
 #. To install the entire PyTables Python package, change back to the root
    distribution directory and run the following command (make sure you have

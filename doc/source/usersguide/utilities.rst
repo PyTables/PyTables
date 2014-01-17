@@ -211,8 +211,10 @@ to see the message usage:
         --complevel=(0-9) -- Set a compression level (0 for no compression, which
             is the default).
         --complib=lib -- Set the compression library to be used during the copy.
-            lib can be set to "zlib", "lzo", "bzip2" or "blosc".  Defaults to
-            "zlib".
+            lib can be set to "zlib", "lzo", "bzip2" or "blosc".
+            Additional compressors for Blosc like "blosc:blosclz",
+            "blosc:lz4", "blosc:lz4hc", "blosc:snappy" and
+            "blosc:zlib", are supported too.  Defaults to "zlib".
         --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
             if complevel>0).
         --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter
