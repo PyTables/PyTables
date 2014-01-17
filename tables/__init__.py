@@ -59,7 +59,7 @@ if os.name == 'nt':
 
     # In order to improve diagnosis of a common Windows dependency
     # issue, we explicitly test that we can load the HDF5 dll before
-    # loading tables.utilsExtensions.
+    # loading tables.utilsextensions.
     if not _load_library('hdf5dll.dll', ctypes.cdll.LoadLibrary):
         raise ImportError(
             'Could not load "hdf5dll.dll", please ensure'
@@ -79,7 +79,9 @@ if os.name == 'nt':
 
 
 # Necessary imports to get versions stored on the cython extension
-from tables.utilsextension import (get_pytables_version, get_hdf5_version,
+from tables.utilsextension import (
+    get_pytables_version, get_hdf5_version, blosc_compressor_list,
+    blosc_compcode_to_compname_ as blosc_compcode_to_compname,
     getPyTablesVersion, getHDF5Version)  # Pending Deprecation!
 
 

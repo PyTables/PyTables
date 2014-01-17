@@ -17,7 +17,8 @@
 import warnings
 import numpy
 
-from tables import utilsextension
+from tables import (
+    utilsextension, blosc_compressor_list, blosc_compcode_to_compname)
 from tables.exceptions import FiltersWarning
 
 
@@ -27,6 +28,9 @@ __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc']
+all_complibs += ['blosc:%s'%cname for cname in blosc_compressor_list()]
+
+
 """List of all compression libraries."""
 
 foreign_complibs = ['szip']
@@ -61,11 +65,14 @@ class Filters(object):
         range is 0-9. A value of 0 (the default) disables
         compression.
     complib : str
-        Specifies the compression library to be used. Right
-        now, 'zlib' (the default), 'lzo', 'bzip2'
-        and 'blosc' are supported.  Specifying a
-        compression library which is not available in the system
-        issues a FiltersWarning and sets the library to the default one.
+        Specifies the compression library to be used. Right now, 'zlib' (the
+        default), 'lzo', 'bzip2' and 'blosc' are supported.  Additional
+        compressors for Blosc like 'blosc:blosclz' ('blosclz' is the default
+        in case the additional compressor is not specified), 'blosc:lz4',
+        'blosc:lz4hc', 'blosc:snappy' and 'blosc:zlib' are supported too.
+        Specifying a compression library which is not available in the
+        system issues a FiltersWarning and sets the library to the default
+        one.
     shuffle : bool
         Whether or not to use the *Shuffle*
         filter in the HDF5 library. This is normally used to improve
@@ -172,6 +179,10 @@ class Filters(object):
                     # Shuffle filter is internal to blosc
                     if values[5]:
                         kwargs['shuffle'] = True
+                    # In Blosc 1.3 another parameter is used for the compressor
+                    if len(values) > 6:
+                        cname = blosc_compcode_to_compname(values[6])
+                        kwargs['complib'] = "blosc:%s"%cname
                 else:
                     kwargs['complevel'] = values[0]
             elif name in foreign_complibs:
@@ -263,7 +274,8 @@ class Filters(object):
 
     def __init__(self, complevel=0, complib=default_complib,
                  shuffle=True, fletcher32=False,
-                 least_significant_digit=None, _new=True):
+                 least_significant_digit=None,_new=True):
+
         if not (0 <= complevel <= 9):
             raise ValueError("compression level must be between 0 and 9")
 

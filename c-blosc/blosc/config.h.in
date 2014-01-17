@@ -1,0 +1,9 @@
+#ifndef _CONFIGURATION_HEADER_GUARD_H_
+#define _CONFIGURATION_HEADER_GUARD_H_
+
+#cmakedefine HAVE_LZ4 @HAVE_LZ4@
+#cmakedefine HAVE_SNAPPY @HAVE_SNAPPY@
+#cmakedefine HAVE_ZLIB @HAVE_ZLIB@
+
+
+#endif

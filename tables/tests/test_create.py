@@ -352,6 +352,15 @@ class FiltersTreeTestCase(unittest.TestCase):
             ea1.append(var1List)
             ea2.append(var3List)
 
+            # Finally a couple of VLArrays too
+            vla1 = self.h5file.create_vlarray(group, 'vlarray1',
+                                              StringAtom(itemsize=4), "col 1")
+            vla2 = self.h5file.create_vlarray(group, 'vlarray2',
+                                              Int16Atom(), "col 3")
+            # And fill them with some values
+            vla1.append(var1List)
+            vla2.append(var3List)
+
             # Create a new group (descendant of group)
             if j == 1:  # The second level
                 group2 = self.h5file.create_group(group, 'group' + str(j),
@@ -394,7 +403,7 @@ class FiltersTreeTestCase(unittest.TestCase):
         self.assertEqual(repr(filters), repr(self.h5file.filters))
         # The next nodes have to have the same filter properties as
         # self.filters
-        nodelist = ['/table1', '/group0/earray1', '/group0']
+        nodelist = ['/table1', '/group0/earray1', '/group0/vlarray1', '/group0']
         for node in nodelist:
             object = self.h5file.get_node(node)
             if isinstance(object, Group):
@@ -419,6 +428,7 @@ class FiltersTreeTestCase(unittest.TestCase):
         # The next nodes have to have the same filter properties as
         # gfilters
         nodelist = ['/group0/group1', '/group0/group1/earray1',
+                     '/group0/group1/vlarray1',
                     '/group0/group1/table1', '/group0/group1/group2/table1']
         for node in nodelist:
             object = self.h5file.get_node(node)
@@ -446,6 +456,7 @@ class FiltersTreeTestCase(unittest.TestCase):
         # self.filter
         nodelist = ['/group0/group1/group2/group3',
                     '/group0/group1/group2/group3/earray1',
+                    '/group0/group1/group2/group3/vlarray1',
                     '/group0/group1/group2/group3/table1',
                     '/group0/group1/group2/group3/group4']
         for node in nodelist:
@@ -493,7 +504,7 @@ class FiltersTreeTestCase(unittest.TestCase):
         self.assertEqual(repr(filters), repr(self.h5file.filters))
         # The next nodes have to have the same filter properties as
         # self.filters
-        nodelist = ['/table1', '/group0/earray1', '/group0']
+        nodelist = ['/table1', '/group0/earray1', '/group0/vlarray1', '/group0']
         for node in nodelist:
             object_ = self.h5file.get_node(node)
             if isinstance(object_, Group):
@@ -518,6 +529,7 @@ class FiltersTreeTestCase(unittest.TestCase):
         # The next nodes have to have the same filter properties as
         # gfilters
         nodelist = ['/group0/group1', '/group0/group1/earray1',
+                     '/group0/group1/vlarray1',
                     '/group0/group1/table1', '/group0/group1/group2/table1']
         for node in nodelist:
             object_ = self.h5file.get_node(node)
@@ -544,6 +556,7 @@ class FiltersTreeTestCase(unittest.TestCase):
         # self.filters
         nodelist = ['/group0/group1/group2/group3',
                     '/group0/group1/group2/group3/earray1',
+                    '/group0/group1/group2/group3/vlarray1',
                     '/group0/group1/group2/group3/table1',
                     '/group0/group1/group2/group3/group4']
         for node in nodelist:
@@ -615,6 +628,26 @@ class FiltersCase9(FiltersTreeTestCase):
 class FiltersCase10(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc")
+
+class FiltersCaseBloscBloscLZ(FiltersTreeTestCase):
+    filters = Filters(shuffle=False, complevel=1, complib="blosc:blosclz")
+    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:blosclz")
+
+class FiltersCaseBloscLZ4(FiltersTreeTestCase):
+    filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4")
+    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4")
+
+class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
+    filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4hc")
+    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4hc")
+
+class FiltersCaseBloscSnappy(FiltersTreeTestCase):
+    filters = Filters(shuffle=False, complevel=1, complib="blosc:snappy")
+    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:snappy")
+
+class FiltersCaseBloscZlib(FiltersTreeTestCase):
+    filters = Filters(shuffle=False, complevel=1, complib="blosc:zlib")
+    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zlib")
 
 
 class CopyGroupTestCase(unittest.TestCase):
@@ -2509,6 +2542,14 @@ def suite():
         theSuite.addTest(unittest.makeSuite(FiltersCase1))
         theSuite.addTest(unittest.makeSuite(FiltersCase2))
         theSuite.addTest(unittest.makeSuite(FiltersCase10))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscBloscLZ))
+        if 'lz4' in tables.blosc_compressor_list():
+            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4))
+            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4HC))
+        if 'snappy' in tables.blosc_compressor_list():
+            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscSnappy))
+        if 'zlib' in tables.blosc_compressor_list():
+            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscZlib))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
         theSuite.addTest(unittest.makeSuite(CopyFileCase1))
