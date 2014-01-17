@@ -64,10 +64,12 @@ if sys.version_info >= (3,):
 
 
 # The minimum required versions
-# (keep these in sync with tables.req_versions and user's guide and README)
-min_numpy_version = '1.4.1'
-min_numexpr_version = '2.0.0'
-min_cython_version = '0.13'
+min_numpy_version = None
+min_numexpr_version = None
+min_cython_version = None
+min_hdf5_version = None
+min_python_version = (2, 6)
+exec(open(os.path.join('tables', 'req_versions.py')).read())
 
 
 # Some functions for showing errors and warnings.
@@ -89,7 +91,7 @@ def print_warning(head, body=''):
 
 
 # Check for Python
-if sys.version_info < (2, 6):
+if sys.version_info < min_python_version:
     exit_with_error("You need Python 2.6 or greater to install PyTables!")
 print("* Using Python %s" % sys.version.splitlines()[0])
 
@@ -523,9 +525,12 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
     if package.tag in ['HDF5']:
         hdf5_header = os.path.join(hdrdir, "H5public.h")
         hdf5_version = get_hdf5_version(hdf5_header)
-        if hdf5_version < (1, 8, 4):
-            exit_with_error("Unsupported HDF5 version! HDF5 v1.8.5+ required. "
-                            "Found version v" + '.'.join(map(str, hdf5_version)))
+        if hdf5_version < min_hdf5_version:
+            exit_with_error(
+                "Unsupported HDF5 version! HDF5 v%s+ required. "
+                "Found version v%s" % (
+                    '.'.join(map(str, min_hdf5_version)), 
+                    '.'.join(map(str, hdf5_version))))
 
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
