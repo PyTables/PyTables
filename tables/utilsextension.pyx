@@ -721,7 +721,7 @@ def blosc_compressor_list():
       The list of names.
   """
   list_compr = blosc_list_compressors().decode()
-  clist = [s.encode() for s in list_compr.split(',')]
+  clist = [str(cname) for cname in list_compr.split(',')]
   return clist
 
 

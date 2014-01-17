@@ -28,7 +28,7 @@ __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc']
-all_complibs += ['blosc:%s'%cname.decode() for cname in blosc_compressor_list()]
+all_complibs += ['blosc:%s'%cname for cname in blosc_compressor_list()]
 
 
 """List of all compression libraries."""
@@ -182,7 +182,7 @@ class Filters(object):
                     # In Blosc 1.3 another parameter is used for the compressor
                     if len(values) > 6:
                         cname = blosc_compcode_to_compname(values[6])
-                        kwargs['complib'] = "blosc:%s"%cname.decode()
+                        kwargs['complib'] = "blosc:%s"%cname
                 else:
                     kwargs['complevel'] = values[0]
             elif name in foreign_complibs:
