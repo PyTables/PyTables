@@ -43,7 +43,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
     homogeneous elements, called *atoms*. Like Table datasets (see
     :ref:`TableClassDescr`), variable length arrays can have only one
     dimension, and the elements (atoms) of their rows can be fully
-    multidimensional.  VLArray objects do also support compression.
+    multidimensional.
 
     When reading a range of rows from a VLArray, you will *always* get
     a Python list of objects of the current flavor (each of them for a
@@ -54,6 +54,18 @@ class VLArray(hdf5extension.VLArray, Leaf):
     inherits all the public attributes and methods that Leaf (see
     :ref:`LeafClassDescr`) already provides.
 
+    .. note::
+    
+          VLArray objects also support compression although compression
+          is only performed on the data structures used internally by
+          the HDF5 to take references of the location of the variable
+          length data. Data itself (the raw data) are not compressed
+          or filtered.
+          
+          Please refer to the `VLTypes Technical Note
+          <http://www.hdfgroup.org/HDF5/doc/TechNotes/VLTypes.html>`_
+          for more details on the topic.
+          
     Parameters
     ----------
     parentnode
