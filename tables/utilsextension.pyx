@@ -34,7 +34,7 @@ from tables._past import previous_api
 from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
-from libc.string cimport strchr, strcmp, strlen
+from libc.string cimport strchr, strcmp, strncmp, strlen
 from cpython.bytes cimport PyBytes_Check
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 
@@ -190,7 +190,10 @@ cdef extern from "utils.h":
 
 # Functions from Blosc
 cdef extern from "blosc.h" nogil:
+  void blosc_init()
   int blosc_set_nthreads(int nthreads)
+  char* blosc_list_compressors()
+  int blosc_compcode_to_compname(int compcode, char **compname)
 
 
 # @TODO: use the c_string_type and c_string_encoding global directives
@@ -243,6 +246,7 @@ if _arch_without_blosc():
     blosc_version = None
 else:
     blosc_version = register_blosc_()
+    blosc_init()  # from 1.2 on, Blosc library must be initialized
 
 
 # Important: Blosc calls that modifies global variables in Blosc must be
@@ -685,7 +689,7 @@ def which_lib_version(str name):
     if bzip2_version:
       (bzip2_version_string, bzip2_version_date) = bzip2_version
       return (bzip2_version, bzip2_version_string, bzip2_version_date)
-  elif strcmp(cname, "blosc") == 0:
+  elif strncmp(cname, "blosc", 5) == 0:
     if blosc_version:
       (blosc_version_string, blosc_version_date) = blosc_version
       return (blosc_version, blosc_version_string, blosc_version_date)
@@ -698,6 +702,52 @@ def which_lib_version(str name):
 
 
 whichLibVersion = previous_api(which_lib_version)
+
+
+# A function returning all the compressors supported by local Blosc
+def blosc_compressor_list():
+  """
+  blosc_compressor_list()
+
+  Returns a list of compressors available in the Blosc build.
+
+  Parameters
+  ----------
+  None
+
+  Returns
+  -------
+  out : list
+      The list of names.
+  """
+  list_compr = blosc_list_compressors().decode()
+  clist = [s.encode() for s in list_compr.split(',')]
+  return clist
+
+
+# Convert compressor code to compressor name
+def blosc_compcode_to_compname_(compcode):
+  """
+  blosc_compcode_to_compname()
+
+  Returns the compressor name associated with compressor code.
+
+  Parameters
+  ----------
+  None
+
+  Returns
+  -------
+  out : string
+      The name of the compressor.
+  """
+  cdef char *cname
+  cdef object compname
+
+  compname = b"unknown (report this to developers)"
+  if blosc_compcode_to_compname(compcode, &cname) >= 0:
+    compname = cname
+  return compname.decode()
 
 
 def which_class(hid_t loc_id, object name):
