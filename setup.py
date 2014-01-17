@@ -524,7 +524,8 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
         hdf5_header = os.path.join(hdrdir, "H5public.h")
         hdf5_version = get_hdf5_version(hdf5_header)
         if hdf5_version < (1, 8, 4):
-            exit_with_error("Unsupported HDF5 version! HDF5 v1.8.5+ required.")
+            exit_with_error("Unsupported HDF5 version! HDF5 v1.8.5+ required. "
+                            "Found version v" + '.'.join(map(str, hdf5_version)))
 
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
