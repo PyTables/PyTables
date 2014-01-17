@@ -711,7 +711,6 @@ if os.name == "nt":
     ])
 
 ADDLIBS = [hdf5_package.library_name]
-print "ADDLIBS", ADDLIBS, optional_libs
 
 # List of Blosc file dependencies
 blosc_files = ["c-blosc/hdf5/blosc_filter.c"]
