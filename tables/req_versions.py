@@ -21,5 +21,4 @@ min_cython_version = '0.13'
 
 # The THG team has decided to fix an API inconsistency in the definition
 # of the H5Z_class_t structure in version 1.8.3
-# 2014/01/19: 1.8.4 --> 1.8.5, see gh-323 and gh-326
-min_hdf5_version = (1, 8, 5)  # necessary for allowing 1.8.10 > 1.8.5
+min_hdf5_version = (1, 8, 4)  # necessary for allowing 1.8.10 > 1.8.5
