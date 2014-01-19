@@ -110,7 +110,11 @@ class _FileRegistry(object):
         self._handlers.add(handler)
 
     def remove(self, handler):
-        self._name_mapping[handler.filename].remove(handler)
+        filename = handler.filename
+        self._name_mapping[filename].remove(handler)
+        # remove enpty keys
+        if not self._name_mapping[filename]:
+            del self._name_mapping[filename]
         self._handlers.remove(handler)
 
     def get_handlers_by_name(self, filename):
