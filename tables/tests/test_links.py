@@ -17,7 +17,7 @@ import os
 import unittest
 import tempfile
 
-import tables as t
+import tables
 from tables.tests import common
 
 
@@ -303,7 +303,7 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking copying a link to another file."""
         self._createFile()
         fname = tempfile.mktemp(".h5")
-        h5f = t.open_file(fname, "a")
+        h5f = tables.open_file(fname, "a")
         h5f.create_array('/', 'arr1', [1, 2])
         h5f.create_group('/', 'group1')
         lgroup1 = self.h5file.root.lgroup1
@@ -332,7 +332,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.create_array(group1, 'arr2', [1, 2, 3])
         # The external file
         self.extfname = tempfile.mktemp(".h5")
-        self.exth5file = t.open_file(self.extfname, "w")
+        self.exth5file = tables.open_file(self.extfname, "w")
         extarr1 = self.exth5file.create_array('/', 'arr1', [1, 2])
         self.assertTrue(extarr1 is not None)
         extgroup1 = self.exth5file.create_group('/', 'group1')
@@ -348,7 +348,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(larr2 is not None)
         # Re-open the external file in 'r'ead-only mode
         self.exth5file.close()
-        self.exth5file = t.open_file(self.extfname, "r")
+        self.exth5file = tables.open_file(self.extfname, "r")
 
     def test00_create(self):
         """Creating soft links."""
@@ -378,7 +378,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._createFile()
         # Re-open the external file in 'a'ppend mode
         self.exth5file.close()
-        self.exth5file = t.open_file(self.extfname, "a")
+        self.exth5file = tables.open_file(self.extfname, "a")
         # First delete the referred link
         self.exth5file.root.arr1.remove()
         self.assertTrue('/arr1' not in self.exth5file)
@@ -508,7 +508,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking copying a link to another file."""
         self._createFile()
         fname = tempfile.mktemp(".h5")
-        h5f = t.open_file(fname, "a")
+        h5f = tables.open_file(fname, "a")
         h5f.create_array('/', 'arr1', [1, 2])
         h5f.create_group('/', 'group1')
         lgroup1 = self.h5file.root.lgroup1
