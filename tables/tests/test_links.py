@@ -323,8 +323,15 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def tearDown(self):
         """Remove ``extfname``."""
         self.exth5file.close()
-        os.remove(self.extfname)   # comment this for debugging purposes only
         super(ExternalLinkTestCase, self).tearDown()
+
+        #open_files = tables.file._open_files
+        #if self.extfname in open_files:
+        #    #assert False
+        #    for handler in open_files.get_handlers_by_name(self.extfname):
+        #        handler.close()
+
+        os.remove(self.extfname)   # comment this for debugging purposes only
 
     def _createFile(self):
         self.h5file.create_array('/', 'arr1', [1, 2])
