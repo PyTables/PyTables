@@ -621,7 +621,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 out.append(rout)
             else:
                 # Compute the slice to be filled in output
-                start3 = o_start + (start2 - start) / step
+                start3 = o_start + (start2 - start) // step
                 stop3 = start3 + nrowsinbuf * o_step
                 if stop3 > o_stop:
                     stop3 = o_stop
