@@ -1547,8 +1547,8 @@ class CheckFileTestCase(common.PyTablesTestCase):
         """Checking is_hdf5_file function (TRUE case)"""
 
         # Create a PyTables file (and by so, an HDF5 file)
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
+        filename = tempfile.mktemp(".h5")
+        fileh = open_file(filename, mode="w")
         fileh.create_array(fileh.root, 'array', [
                            1, 2], title="Title example")
 
@@ -1557,11 +1557,12 @@ class CheckFileTestCase(common.PyTablesTestCase):
 
         # When file has an HDF5 format, always returns 1
         if common.verbose:
-            print("\nisHDF5File(%s) ==> %d" % (file, is_hdf5_file(file)))
-        self.assertEqual(is_hdf5_file(file), 1)
+            print("\nisHDF5File(%s) ==> %d" % (filename,
+                                               is_hdf5_file(filename)))
+        self.assertEqual(is_hdf5_file(filename), 1)
 
         # Then, delete the file
-        os.remove(file)
+        os.remove(filename)
 
     def test01_isHDF5File(self):
         """Checking is_hdf5_file function (FALSE case)"""

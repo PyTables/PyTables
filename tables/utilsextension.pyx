@@ -583,11 +583,11 @@ def is_hdf5_file(object filename):
 
   """
 
+  # Check that the file exists and is readable.
+  check_file_access(filename)
+
   # Encode the filename in case it is unicode
   encname = encode_filename(filename)
-
-  # Check that the file exists and is readable.
-  check_file_access(encname)
 
   ret = H5Fis_hdf5(encname)
   if ret < 0:
