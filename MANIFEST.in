@@ -9,7 +9,7 @@ recursive-include src *.c *.h Makefile
 
 include c-blosc/hdf5/blosc_filter.?
 recursive-include c-blosc/blosc *.c *.h
-recursive-include c-blosc/internal-complibs *.c *.h
+recursive-include c-blosc/internal-complibs *.c *.cc *.h
 
 recursive-include LICENSES *
 recursive-include utils *
