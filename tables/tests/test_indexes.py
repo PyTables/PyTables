@@ -2481,9 +2481,8 @@ class Issue119Time64ColTestCase(Issue119Time32ColTestCase):
     col_typ = Time64Col
 
 
-class Issue282IndexingNans(TempFileMixin, PyTablesTestCase):
-    def test_indexing_nans(self):
-
+class TestIndexingNans(TempFileMixin, PyTablesTestCase):
+    def test_issue_282(self):
         trMap = {'index': Int64Col(), 'values': FloatCol()}
         table = self.h5file.create_table('/', 'table', trMap)
 
@@ -2500,6 +2499,29 @@ class Issue282IndexingNans(TempFileMixin, PyTablesTestCase):
         result = table.read_where('(values >= 0)')
         self.assertTrue(len(result) == 4)
 
+    def test_issue_327(self):
+        table = self.h5file.createTable('/', 'table', dict(
+            index=Int64Col(),
+            values=FloatCol(shape=()),
+            values2=FloatCol(shape=()),
+        ))
+
+        r = table.row
+        for i in range(5):
+            r['index'] = i
+            r['values'] = numpy.nan if i == 2 or i == 3 else i
+            r['values2'] = i
+            r.append()
+        table.flush()
+
+        table.cols.values.createIndex()
+        table.cols.values2.create_index()
+
+        results2 = table.readWhere('(values2 > 0)')
+        self.assertTrue(len(results2) == 4)
+
+        results = table.readWhere('(values > 0)')
+        self.assertTrue(len(results) == 2)
 
 #----------------------------------------------------------------------
 
