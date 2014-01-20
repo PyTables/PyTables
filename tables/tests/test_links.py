@@ -28,14 +28,11 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.create_array('/', 'arr1', [1, 2])
         group1 = self.h5file.create_group('/', 'group1')
         arr2 = self.h5file.create_array(group1, 'arr2', [1, 2, 3])
-        lgroup1 = self.h5file.create_hard_link(
-            '/', 'lgroup1', '/group1')
+        lgroup1 = self.h5file.create_hard_link('/', 'lgroup1', '/group1')
         self.assertTrue(lgroup1 is not None)
-        larr1 = self.h5file.create_hard_link(
-            group1, 'larr1', '/arr1')
+        larr1 = self.h5file.create_hard_link(group1, 'larr1', '/arr1')
         self.assertTrue(larr1 is not None)
-        larr2 = self.h5file.create_hard_link(
-            '/', 'larr2', arr2)
+        larr2 = self.h5file.create_hard_link('/', 'larr2', arr2)
         self.assertTrue(larr2 is not None)
 
     def test00_create(self):
@@ -109,14 +106,11 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.create_array('/', 'arr1', [1, 2])
         group1 = self.h5file.create_group('/', 'group1')
         arr2 = self.h5file.create_array(group1, 'arr2', [1, 2, 3])
-        lgroup1 = self.h5file.create_soft_link(
-            '/', 'lgroup1', '/group1')
+        lgroup1 = self.h5file.create_soft_link('/', 'lgroup1', '/group1')
         self.assertTrue(lgroup1 is not None)
-        larr1 = self.h5file.create_soft_link(
-            group1, 'larr1', '/arr1')
+        larr1 = self.h5file.create_soft_link(group1, 'larr1', '/arr1')
         self.assertTrue(larr1 is not None)
-        larr2 = self.h5file.create_soft_link(
-            '/', 'larr2', arr2)
+        larr2 = self.h5file.create_soft_link('/', 'larr2', arr2)
         self.assertTrue(larr2 is not None)
 
     def test00_create(self):

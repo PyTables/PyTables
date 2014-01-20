@@ -28,7 +28,7 @@ Misc variables:
 """
 
 import os
-import tables as t
+import tables
 from tables import linkextension
 from tables.node import Node
 from tables.utils import lazyattr
@@ -271,7 +271,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
             filename = os.path.join(base_directory, filename)
 
         if self.extfile is None or not self.extfile.isopen:
-            self.extfile = t.open_file(filename, **kwargs)
+            self.extfile = tables.open_file(filename, **kwargs)
         else:
             # XXX: implement better consistency checks
             assert self.extfile.filename == filename
