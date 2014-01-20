@@ -212,7 +212,7 @@ def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
 copyFile = previous_api(copy_file)
 
 
-if utilsextension.get_hdf5_version() < (1, 8, 7):
+if tuple(map(int, utilsextension.get_hdf5_version().split('.'))) < (1, 8, 7):
     _FILE_OPEN_POLICY = 'strict'
 else:
     _FILE_OPEN_POLICY = 'default'
