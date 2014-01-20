@@ -47,7 +47,7 @@ Prerequisites
 First, make sure that you have
 
 * Python_ >= 2.6 including Python 3.x
-* HDF5_ >= 1.8.4,
+* HDF5_ >= 1.8.4 (>=1.8.7 is strongly recommended),
 * NumPy_ >= 1.4.1,
 * Numexpr_ >= 2.0 and
 * Cython_ >= 0.13
@@ -63,6 +63,12 @@ proceeding.
 .. _Numexpr: http://code.google.com/p/numexpr
 .. _Cython: http://www.cython.org
 .. _argparse: http://code.google.com/p/argparse
+
+.. note::
+
+    HDF5 versions < 1.8.7 are supported with some limitations.
+    It is not possible to open the same file multiple times (simultaneously),
+    even in read-only mode.
 
 .. note::
 
