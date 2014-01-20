@@ -212,6 +212,12 @@ def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
 copyFile = previous_api(copy_file)
 
 
+if utilsextension.get_hdf5_version() < (1, 8, 7):
+    _FILE_OPEN_POLICY = 'strict'
+else:
+    _FILE_OPEN_POLICY = 'default'
+
+
 def open_file(filename, mode="r", title="", root_uep="/", filters=None,
               **kwargs):
     """Open a PyTables (or generic HDF5) file and return a File object.
@@ -274,25 +280,38 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
 
     """
 
-    # Get the list of already opened files
-    for filehandle in _open_files.get_handlers_by_name(filename):
-        omode = filehandle.mode
-        # 'r' is incompatible with everything except 'r' itself
-        if mode == 'r' and omode != 'r':
+    # XXX filename normalization ??
+
+    # Check already opened files
+    if _FILE_OPEN_POLICY == 'strict':
+        # This policy do not allows to open the same file multiple times
+        # even in read-only mode
+        if filename in _open_files:
             raise ValueError(
-                "The file '%s' is already opened, but "
-                "not in read-only mode (as requested)." % filename)
-        # 'a' and 'r+' are compatible with everything except 'r'
-        elif mode in ('a', 'r+') and omode == 'r':
-            raise ValueError(
-                "The file '%s' is already opened, but "
-                "in read-only mode.  Please close it before "
-                "reopening in append mode." % filename)
-        # 'w' means that we want to destroy existing contents
-        elif mode == 'w':
-            raise ValueError(
-                "The file '%s' is already opened.  Please "
-                "close it before reopening in write mode." % filename)
+                "The file '%s' is already opened.  "
+                "Please close it before reopening.  "
+                "HDF5 v.%s, FILE_OPEN_POLICY = '%s'" % (
+                    filename, utilsextension.get_hdf5_version(),
+                    _FILE_OPEN_POLICY))
+    else:
+        for filehandle in _open_files.get_handlers_by_name(filename):
+            omode = filehandle.mode
+            # 'r' is incompatible with everything except 'r' itself
+            if mode == 'r' and omode != 'r':
+                raise ValueError(
+                    "The file '%s' is already opened, but "
+                    "not in read-only mode (as requested)." % filename)
+            # 'a' and 'r+' are compatible with everything except 'r'
+            elif mode in ('a', 'r+') and omode == 'r':
+                raise ValueError(
+                    "The file '%s' is already opened, but "
+                    "in read-only mode.  Please close it before "
+                    "reopening in append mode." % filename)
+            # 'w' means that we want to destroy existing contents
+            elif mode == 'w':
+                raise ValueError(
+                    "The file '%s' is already opened.  Please "
+                    "close it before reopening in write mode." % filename)
 
     # Finally, create the File instance, and return it
     return File(filename, mode, title, root_uep, filters, **kwargs)
