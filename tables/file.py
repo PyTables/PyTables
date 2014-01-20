@@ -719,7 +719,16 @@ class File(hdf5extension.File, object):
 
     open_count = property(
         lambda self: self._open_count, None, None,
-        "The number of times this file has been opened currently.")
+        """The number of times this file handle has been opened.
+
+        .. versionchanged:: 3.1
+           The mechanism for caching and sharing file handles has been
+           removed in PyTables 3.1.  Now this property should always
+           be 1 (or 0 for closed files).
+
+        .. deprecated:: 3.1
+
+        """)
 
     ## </properties>
 
