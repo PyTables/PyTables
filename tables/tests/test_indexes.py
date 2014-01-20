@@ -2560,7 +2560,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Issue156TestCase02))
         theSuite.addTest(unittest.makeSuite(Issue119Time32ColTestCase))
         theSuite.addTest(unittest.makeSuite(Issue119Time64ColTestCase))
-        theSuite.addTest(unittest.makeSuite(Issue282IndexingNans))
+        theSuite.addTest(unittest.makeSuite(TestIndexingNans))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))
