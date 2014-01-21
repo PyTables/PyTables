@@ -2500,7 +2500,7 @@ class TestIndexingNans(TempFileMixin, PyTablesTestCase):
         self.assertTrue(len(result) == 4)
 
     def test_issue_327(self):
-        table = self.h5file.createTable('/', 'table', dict(
+        table = self.h5file.create_table('/', 'table', dict(
             index=Int64Col(),
             values=FloatCol(shape=()),
             values2=FloatCol(shape=()),
@@ -2514,13 +2514,13 @@ class TestIndexingNans(TempFileMixin, PyTablesTestCase):
             r.append()
         table.flush()
 
-        table.cols.values.createIndex()
+        table.cols.values.create_index()
         table.cols.values2.create_index()
 
-        results2 = table.readWhere('(values2 > 0)')
+        results2 = table.read_where('(values2 > 0)')
         self.assertTrue(len(results2) == 4)
 
-        results = table.readWhere('(values > 0)')
+        results = table.read_where('(values > 0)')
         self.assertTrue(len(results) == 2)
 
 #----------------------------------------------------------------------
