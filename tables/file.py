@@ -110,7 +110,11 @@ class _FileRegistry(object):
         self._handlers.add(handler)
 
     def remove(self, handler):
-        self._name_mapping[handler.filename].remove(handler)
+        filename = handler.filename
+        self._name_mapping[filename].remove(handler)
+        # remove enpty keys
+        if not self._name_mapping[filename]:
+            del self._name_mapping[filename]
         self._handlers.remove(handler)
 
     def get_handlers_by_name(self, filename):
@@ -208,6 +212,12 @@ def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
 copyFile = previous_api(copy_file)
 
 
+if tuple(utilsextension.get_hdf5_version().split('.')) < ('1', '8', '7'):
+    _FILE_OPEN_POLICY = 'strict'
+else:
+    _FILE_OPEN_POLICY = 'default'
+
+
 def open_file(filename, mode="r", title="", root_uep="/", filters=None,
               **kwargs):
     """Open a PyTables (or generic HDF5) file and return a File object.
@@ -270,25 +280,38 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
 
     """
 
-    # Get the list of already opened files
-    for filehandle in _open_files.get_handlers_by_name(filename):
-        omode = filehandle.mode
-        # 'r' is incompatible with everything except 'r' itself
-        if mode == 'r' and omode != 'r':
+    # XXX filename normalization ??
+
+    # Check already opened files
+    if _FILE_OPEN_POLICY == 'strict':
+        # This policy do not allows to open the same file multiple times
+        # even in read-only mode
+        if filename in _open_files:
             raise ValueError(
-                "The file '%s' is already opened, but "
-                "not in read-only mode (as requested)." % filename)
-        # 'a' and 'r+' are compatible with everything except 'r'
-        elif mode in ('a', 'r+') and omode == 'r':
-            raise ValueError(
-                "The file '%s' is already opened, but "
-                "in read-only mode.  Please close it before "
-                "reopening in append mode." % filename)
-        # 'w' means that we want to destroy existing contents
-        elif mode == 'w':
-            raise ValueError(
-                "The file '%s' is already opened.  Please "
-                "close it before reopening in write mode." % filename)
+                "The file '%s' is already opened.  "
+                "Please close it before reopening.  "
+                "HDF5 v.%s, FILE_OPEN_POLICY = '%s'" % (
+                    filename, utilsextension.get_hdf5_version(),
+                    _FILE_OPEN_POLICY))
+    else:
+        for filehandle in _open_files.get_handlers_by_name(filename):
+            omode = filehandle.mode
+            # 'r' is incompatible with everything except 'r' itself
+            if mode == 'r' and omode != 'r':
+                raise ValueError(
+                    "The file '%s' is already opened, but "
+                    "not in read-only mode (as requested)." % filename)
+            # 'a' and 'r+' are compatible with everything except 'r'
+            elif mode in ('a', 'r+') and omode == 'r':
+                raise ValueError(
+                    "The file '%s' is already opened, but "
+                    "in read-only mode.  Please close it before "
+                    "reopening in append mode." % filename)
+            # 'w' means that we want to destroy existing contents
+            elif mode == 'w':
+                raise ValueError(
+                    "The file '%s' is already opened.  Please "
+                    "close it before reopening in write mode." % filename)
 
     # Finally, create the File instance, and return it
     return File(filename, mode, title, root_uep, filters, **kwargs)
@@ -715,7 +738,16 @@ class File(hdf5extension.File, object):
 
     open_count = property(
         lambda self: self._open_count, None, None,
-        "The number of times this file has been opened currently.")
+        """The number of times this file handle has been opened.
+
+        .. versionchanged:: 3.1
+           The mechanism for caching and sharing file handles has been
+           removed in PyTables 3.1.  Now this property should always
+           be 1 (or 0 for closed files).
+
+        .. deprecated:: 3.1
+
+        """)
 
     ## </properties>
 

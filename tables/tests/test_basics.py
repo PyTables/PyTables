@@ -1547,8 +1547,8 @@ class CheckFileTestCase(common.PyTablesTestCase):
         """Checking is_hdf5_file function (TRUE case)"""
 
         # Create a PyTables file (and by so, an HDF5 file)
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
+        filename = tempfile.mktemp(".h5")
+        fileh = open_file(filename, mode="w")
         fileh.create_array(fileh.root, 'array', [
                            1, 2], title="Title example")
 
@@ -1557,11 +1557,12 @@ class CheckFileTestCase(common.PyTablesTestCase):
 
         # When file has an HDF5 format, always returns 1
         if common.verbose:
-            print("\nisHDF5File(%s) ==> %d" % (file, is_hdf5_file(file)))
-        self.assertEqual(is_hdf5_file(file), 1)
+            print("\nisHDF5File(%s) ==> %d" % (filename,
+                                               is_hdf5_file(filename)))
+        self.assertEqual(is_hdf5_file(filename), 1)
 
         # Then, delete the file
-        os.remove(file)
+        os.remove(filename)
 
     def test01_isHDF5File(self):
         """Checking is_hdf5_file function (FALSE case)"""
@@ -2195,20 +2196,24 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         file1 = open_file(self.h5fname, "r")
         self.assertEqual(file1.open_count, 1)
-        file2 = open_file(self.h5fname, "r")
-        self.assertEqual(file1.open_count, 1)
-        self.assertEqual(file2.open_count, 1)
-        if common.verbose:
-            print("(file1) open_count:", file1.open_count)
-            print("(file1) test[1]:", file1.root.test[1])
-        self.assertEqual(file1.root.test[1], 2)
-        file1.close()
-        self.assertEqual(file2.open_count, 1)
-        if common.verbose:
-            print("(file2) open_count:", file2.open_count)
-            print("(file2) test[1]:", file2.root.test[1])
-        self.assertEqual(file2.root.test[1], 2)
-        file2.close()
+        if tables.file._FILE_OPEN_POLICY == 'strict':
+            self.assertRaises(ValueError, tables.open_file, self.h5fname, "r")
+            file1.close()
+        else:
+            file2 = open_file(self.h5fname, "r")
+            self.assertEqual(file1.open_count, 1)
+            self.assertEqual(file2.open_count, 1)
+            if common.verbose:
+                print("(file1) open_count:", file1.open_count)
+                print("(file1) test[1]:", file1.root.test[1])
+            self.assertEqual(file1.root.test[1], 2)
+            file1.close()
+            self.assertEqual(file2.open_count, 1)
+            if common.verbose:
+                print("(file2) open_count:", file2.open_count)
+                print("(file2) test[1]:", file2.root.test[1])
+            self.assertEqual(file2.root.test[1], 2)
+            file2.close()
 
 
 class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -2836,7 +2841,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(NoNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(DictNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(CheckFileTestCase))
-        theSuite.addTest(unittest.makeSuite(ThreadingTestCase))
+        if tables.file._FILE_OPEN_POLICY != 'strict':
+            theSuite.addTest(unittest.makeSuite(ThreadingTestCase))
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
