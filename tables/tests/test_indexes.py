@@ -2525,6 +2525,7 @@ class TestIndexingNans(TempFileMixin, PyTablesTestCase):
 
 #----------------------------------------------------------------------
 
+
 def suite():
     theSuite = unittest.TestSuite()
 

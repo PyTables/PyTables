@@ -81,6 +81,8 @@ Bugs fixed
   see also :issue:`309`).
   Many thanks to Alistair Muldal.
 - Make NaN types sort to the end. Closes :issue:`282` and :issue:`313`
+- Fixed selection on float columns when NaNs are present (closes :issue:`327`
+  and :issue:`330`)
 - Fix computation of the buffer size for iterations on rows.
   The buffes size was overestimated resulting in a :exc:`MemoryError`
   in some cases.
