@@ -2196,20 +2196,24 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         file1 = open_file(self.h5fname, "r")
         self.assertEqual(file1.open_count, 1)
-        file2 = open_file(self.h5fname, "r")
-        self.assertEqual(file1.open_count, 1)
-        self.assertEqual(file2.open_count, 1)
-        if common.verbose:
-            print("(file1) open_count:", file1.open_count)
-            print("(file1) test[1]:", file1.root.test[1])
-        self.assertEqual(file1.root.test[1], 2)
-        file1.close()
-        self.assertEqual(file2.open_count, 1)
-        if common.verbose:
-            print("(file2) open_count:", file2.open_count)
-            print("(file2) test[1]:", file2.root.test[1])
-        self.assertEqual(file2.root.test[1], 2)
-        file2.close()
+        if tables.file._FILE_OPEN_POLICY == 'strict':
+            self.assertRaises(ValueError, tables.open_file, self.h5fname, "r")
+            file1.close()
+        else:
+            file2 = open_file(self.h5fname, "r")
+            self.assertEqual(file1.open_count, 1)
+            self.assertEqual(file2.open_count, 1)
+            if common.verbose:
+                print("(file1) open_count:", file1.open_count)
+                print("(file1) test[1]:", file1.root.test[1])
+            self.assertEqual(file1.root.test[1], 2)
+            file1.close()
+            self.assertEqual(file2.open_count, 1)
+            if common.verbose:
+                print("(file2) open_count:", file2.open_count)
+                print("(file2) test[1]:", file2.root.test[1])
+            self.assertEqual(file2.root.test[1], 2)
+            file2.close()
 
 
 class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -2837,7 +2841,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(NoNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(DictNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(CheckFileTestCase))
-        theSuite.addTest(unittest.makeSuite(ThreadingTestCase))
+        if tables.file._FILE_OPEN_POLICY != 'strict':
+            theSuite.addTest(unittest.makeSuite(ThreadingTestCase))
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))

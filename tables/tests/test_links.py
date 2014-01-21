@@ -535,7 +535,8 @@ def suite():
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(HardLinkTestCase))
         theSuite.addTest(unittest.makeSuite(SoftLinkTestCase))
-        theSuite.addTest(unittest.makeSuite(ExternalLinkTestCase))
+        if tables.file._FILE_OPEN_POLICY != 'strict':
+            theSuite.addTest(unittest.makeSuite(ExternalLinkTestCase))
 
     return theSuite
 
