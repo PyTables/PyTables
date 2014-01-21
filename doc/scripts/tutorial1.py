@@ -6,25 +6,30 @@ with any HDF5 generic utility.
 """
 
 
-import os, traceback
+from __future__ import print_function
+import os
+import traceback
 
 SECTION = "I HAVE NO TITLE"
 
+
 def tutsep():
-    print '----8<----', SECTION, '----8<----'
+    print('----8<----', SECTION, '----8<----')
+
 
 def tutprint(obj):
     tutsep()
-    print obj
+    print(obj)
+
 
 def tutrepr(obj):
     tutsep()
-    print repr(obj)
+    print(repr(obj))
+
 
 def tutexc():
     tutsep()
     traceback.print_exc(file=sys.stdout)
-
 
 
 SECTION = "Importing tables objects"
@@ -47,17 +52,17 @@ class Particle(IsDescription):
 
 SECTION = "Creating a PyTables file from scratch"
 # Open a file in "w"rite mode
-h5file = openFile('tutorial1.h5', mode = "w", title = "Test file")
+h5file = open_file('tutorial1.h5', mode="w", title="Test file")
 
 
 SECTION = "Creating a new group"
 # Create a new group under "/" (root)
-group = h5file.createGroup("/", 'detector', 'Detector information')
+group = h5file.create_group("/", 'detector', 'Detector information')
 
 
 SECTION = "Creating a new table"
 # Create one table on it
-table = h5file.createTable(group, 'readout', Particle, "Readout example")
+table = h5file.create_table(group, 'readout', Particle, "Readout example")
 
 tutprint(h5file)
 tutrepr(h5file)
@@ -66,8 +71,8 @@ tutrepr(h5file)
 particle = table.row
 
 # Fill the table with 10 particles
-for i in xrange(10):
-    particle['name']  = 'Particle: %6d' % (i)
+for i in range(10):
+    particle['name'] = 'Particle: %6d' % (i)
     particle['TDCcount'] = i % 256
     particle['ADCcount'] = (i * 256) % (1 << 16)
     particle['grid_i'] = i
@@ -86,28 +91,32 @@ SECTION = "Reading (and selecting) data in a table"
 # Read actual data from table. We are interested in collecting pressure values
 # on entries where TDCcount field is greater than 3 and pressure less than 50
 table = h5file.root.detector.readout
-pressure = [ x['pressure'] for x in table
-             if x['TDCcount']>3 and 20<=x['pressure']<50 ]
+pressure = [
+    x['pressure'] for x in table
+    if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50
+]
 
 tutrepr(pressure)
 
 # Read also the names with the same cuts
-names = [ x['name'] for x in table
-          if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50 ]
+names = [
+    x['name'] for x in table
+    if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50
+]
 
 tutrepr(names)
 
 
 SECTION = "Creating new array objects"
-gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
+gcolumns = h5file.create_group(h5file.root, "columns", "Pressure and Name")
 
 tutrepr(
-h5file.createArray(gcolumns, 'pressure', array(pressure),
-                   "Pressure column selection")
+    h5file.create_array(gcolumns, 'pressure', array(pressure),
+                       "Pressure column selection")
 )
 
 tutrepr(
-h5file.createArray('/columns', 'name', names, "Name column selection")
+    h5file.create_array('/columns', 'name', names, "Name column selection")
 )
 
 tutprint(h5file)
@@ -123,7 +132,6 @@ tutsep()
 os.system('ptdump tutorial1.h5')
 
 
-
 """This example shows how to browse the object tree and enlarge tables.
 
 Before to run this program you need to execute first tutorial1-1.py
@@ -134,7 +142,7 @@ that create the tutorial1.h5 file needed here.
 
 SECTION = "Traversing the object tree"
 # Reopen the file in append mode
-h5file = openFile("tutorial1.h5", "a")
+h5file = open_file("tutorial1.h5", "a")
 
 # Print the object tree created from this filename
 # List all the nodes (Group and Leaf objects) on tree
@@ -143,29 +151,29 @@ tutprint(h5file)
 # List all the nodes (using File iterator) on tree
 tutsep()
 for node in h5file:
-    print node
+    print(node)
 
 # Now, only list all the groups on tree
 tutsep()
-for group in h5file.walkGroups("/"):
-    print group
+for group in h5file.walk_groups("/"):
+    print(group)
 
 # List only the arrays hanging from /
 tutsep()
-for group in h5file.walkGroups("/"):
-    for array in h5file.listNodes(group, classname = 'Array'):
-        print array
+for group in h5file.walk_groups("/"):
+    for array in h5file.list_nodes(group, classname='Array'):
+        print(array)
 
 # This gives the same result
 tutsep()
-for array in h5file.walkNodes("/", "Array"):
-    print array
+for array in h5file.walk_nodes("/", "Array"):
+    print(array)
 
 # And finally, list only leafs on /detector group (there should be one!)
 # Other way using iterators and natural naming
 tutsep()
 for leaf in h5file.root.detector('Leaf'):
-    print leaf
+    print(leaf)
 
 
 SECTION = "Setting and getting user attributes"
@@ -220,33 +228,33 @@ os.system('h5ls -vr tutorial1.h5/detector/readout')
 SECTION = "Getting object metadata"
 # Get metadata from table
 tutsep()
-print "Object:", table
+print("Object:", table)
 tutsep()
-print "Table name:", table.name
+print("Table name:", table.name)
 tutsep()
-print "Table title:", table.title
+print("Table title:", table.title)
 tutsep()
-print "Number of rows in table:", table.nrows
+print("Number of rows in table:", table.nrows)
 tutsep()
-print "Table variable names with their type and shape:"
+print("Table variable names with their type and shape:")
 tutsep()
 for name in table.colnames:
-    print name, ':= %s, %s' % (table.coltypes[name], table.colshapes[name])
+    print(name, ':= %s, %s' % (table.coltypes[name], table.colshapes[name]))
 
 tutprint(table.__doc__)
 
 # Get the object in "/columns pressure"
-pressureObject = h5file.getNode("/columns", "pressure")
+pressureObject = h5file.get_node("/columns", "pressure")
 
 # Get some metadata on this object
 tutsep()
-print "Info on the object:", repr(pressureObject)
+print("Info on the object:", repr(pressureObject))
 tutsep()
-print " shape: ==>", pressureObject.shape
+print(" shape: ==>", pressureObject.shape)
 tutsep()
-print " title: ==>", pressureObject.title
+print(" title: ==>", pressureObject.title)
 tutsep()
-print " type: ==>", pressureObject.type
+print(" type: ==>", pressureObject.type)
 
 
 SECTION = "Reading data from Array objects"
@@ -254,18 +262,18 @@ SECTION = "Reading data from Array objects"
 pressureArray = pressureObject.read()
 tutrepr(pressureArray)
 tutsep()
-print "pressureArray is an object of type:", type(pressureArray)
+print("pressureArray is an object of type:", type(pressureArray))
 
 # Read the 'name' Array actual data
 nameArray = h5file.root.columns.name.read()
 tutrepr(nameArray)
-print "nameArray is an object of type:", type(nameArray)
+print("nameArray is an object of type:", type(nameArray))
 
 # Print the data for both arrays
 tutprint("Data on arrays nameArray and pressureArray:")
 tutsep()
 for i in range(pressureObject.shape[0]):
-    print nameArray[i], "-->", pressureArray[i]
+    print(nameArray[i], "-->", pressureArray[i])
 tutrepr(pressureObject.name)
 
 
@@ -276,8 +284,8 @@ table = h5file.root.detector.readout
 particle = table.row
 
 # Append 5 new particles to table
-for i in xrange(10, 15):
-    particle['name']  = 'Particle: %6d' % (i)
+for i in range(10, 15):
+    particle['name'] = 'Particle: %6d' % (i)
     particle['TDCcount'] = i % 256
     particle['ADCcount'] = (i * 256) % (1 << 16)
     particle['grid_i'] = i
@@ -293,12 +301,12 @@ table.flush()
 # Print the data using the table iterator:
 tutsep()
 for r in table:
-    print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
+    print("%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
           (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
-           r['TDCcount'])
+           r['TDCcount']))
 
 # Delete some rows on the Table (yes, rows can be removed!)
-tutrepr(table.removeRows(5, 10))
+tutrepr(table.remove_rows(5, 10))
 
 # Close the file
 h5file.close()
