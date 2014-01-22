@@ -68,6 +68,8 @@ Improvements
 - Improved compatibility with numpy_ >= 1.8 (see :issue:`259`)
 - The code of the benchmark programs (bench directory) has been updated.
   Closes :issue:`114`.
+- Fixed some warning related to non-unicode file names (the Windows bytes API
+  has been deprecated in Python 3.4)
 
 
 Bugs fixed
@@ -92,6 +94,9 @@ Bugs fixed
 - Better check of file open mode. Closes :issue:`318`.
 - The Blosc filter now works correctly together with fletcher32.
   Closes :issue:`21`.
+- Close the file handle before trying to delete the corresponding file.
+  Fixes a test failure on Windows.
+- Use integer division for computing indices (fixes some warning on Windows)
 
 
 Deprecations
