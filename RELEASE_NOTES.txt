@@ -78,7 +78,7 @@ Bugs fixed
   an :class:`Atom` (closes :issue:`209` and :issue:`296`)
 - Prevent creation of a table with no columns (closes :issue:`18` and
   :issue:`299`)
-- Fixed a memory leak that occurs when iterating over
+- Fixed a memory leak that occured when iterating over
   :class:`CArray`/:class:`EArray` objects (closes :issue:`308`,
   see also :issue:`309`).
   Many thanks to Alistair Muldal.
@@ -86,7 +86,7 @@ Bugs fixed
 - Fixed selection on float columns when NaNs are present (closes :issue:`327`
   and :issue:`330`)
 - Fix computation of the buffer size for iterations on rows.
-  The buffes size was overestimated resulting in a :exc:`MemoryError`
+  The buffers size was overestimated resulting in a :exc:`MemoryError`
   in some cases.
   Closes :issue:`316`. Thamks to bbudescu.
 - Better check of file open mode. Closes :issue:`318`.
@@ -112,7 +112,7 @@ Backward incompatible changes
 -----------------------------
 
 In PyTables <= 3.0 file handles (objects that are returned by the
-:func:`open_file` function) was stored in an internal registry and re-used
+:func:`open_file` function) were stored in an internal registry and re-used
 when possible.
 
 Two subsequent attempts to open the same file (with compatible open mode)
@@ -127,10 +127,10 @@ returned the same file handle in PyTables <= 3.0::
     Out[5]: True
 
 All this is an implementation detail, it happened under the hood and the user
-have no control over the process.
+had no control over the process.
 
 This kind of behaviour was considered a feature since it can speed up opening
-of files in case of repeated opens and also it avoids any potential problem
+of files in case of repeated opens and it also avoids any potential problem
 related to multiple opens, a practice that the HDF5 developers recommend to
 avoid (see also H5Fopen_ reference page).
 
@@ -139,12 +139,12 @@ level, rather an open file is referenced several times.
 
 The big drawback of this approach is that there are really few chances to use
 PyTables safely in a multi thread program.  Several bug reports have been
-filled regarding this topic.
+filed regarding this topic.
 
 After long discussions about the possibility to actually achieve concurrent I/O
 and about patterns that should be used for the I/O in concurrent programs
 PyTables developers decided to remove the *black magic under the hood* and
-allow the users to implement patters they want.
+allow the users to implement the patterns they want.
 
 Starting from PyTables 3.1 file handles are no more re-used (*shared*) and
 each call to the :func:`open_file` function returns a new file handle::
@@ -164,13 +164,13 @@ muti-thread program without too much headaches.
 
 The new implementation behaves differently from the previous one, although the
 API has not been changed.  Now users should pay more attention when they open a
-file multiple times (has recommended in the `HDF5 reference`__ ) and they
+file multiple times (as recommended in the `HDF5 reference`__ ) and they
 should take care of using them in an appropriate way.
 
 __ H5Fopen_
 
 Please note that the :attr:`File.open_count` property was originally intended
-to take track of the number of references to the same file handle.
+to keep track of the number of references to the same file handle.
 In PyTables >= 3.1, despite of the name, it maintains the same semantics, just
 now its value should never be higher that 1.
 
