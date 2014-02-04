@@ -8,8 +8,8 @@
 .. py:currentmodule:: tables
 
 
-Changes from 3.0 to 3.1.0rc2
-============================
+Changes from 3.0 to 3.1.0
+=========================
 
 New features
 ------------
@@ -156,7 +156,7 @@ each call to the :func:`open_file` function returns a new file handle::
 
     In [1]: import tables
     In [2]: print tables.__version__
-    3.1.0dev
+    3.1.0
     In [3]: a = tables.open_file('test.h5', 'a')
     In [4]: b = tables.open_file('test.h5', 'a')
     In [5]: a is b
