@@ -2481,9 +2481,8 @@ class Issue119Time64ColTestCase(Issue119Time32ColTestCase):
     col_typ = Time64Col
 
 
-class Issue282IndexingNans(TempFileMixin, PyTablesTestCase):
-    def test_indexing_nans(self):
-
+class TestIndexingNans(TempFileMixin, PyTablesTestCase):
+    def test_issue_282(self):
         trMap = {'index': Int64Col(), 'values': FloatCol()}
         table = self.h5file.create_table('/', 'table', trMap)
 
@@ -2500,8 +2499,32 @@ class Issue282IndexingNans(TempFileMixin, PyTablesTestCase):
         result = table.read_where('(values >= 0)')
         self.assertTrue(len(result) == 4)
 
+    def test_issue_327(self):
+        table = self.h5file.create_table('/', 'table', dict(
+            index=Int64Col(),
+            values=FloatCol(shape=()),
+            values2=FloatCol(shape=()),
+        ))
+
+        r = table.row
+        for i in range(5):
+            r['index'] = i
+            r['values'] = numpy.nan if i == 2 or i == 3 else i
+            r['values2'] = i
+            r.append()
+        table.flush()
+
+        table.cols.values.create_index()
+        table.cols.values2.create_index()
+
+        results2 = table.read_where('(values2 > 0)')
+        self.assertTrue(len(results2) == 4)
+
+        results = table.read_where('(values > 0)')
+        self.assertTrue(len(results) == 2)
 
 #----------------------------------------------------------------------
+
 
 def suite():
     theSuite = unittest.TestSuite()
@@ -2538,7 +2561,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Issue156TestCase02))
         theSuite.addTest(unittest.makeSuite(Issue119Time32ColTestCase))
         theSuite.addTest(unittest.makeSuite(Issue119Time64ColTestCase))
-        theSuite.addTest(unittest.makeSuite(Issue282IndexingNans))
+        theSuite.addTest(unittest.makeSuite(TestIndexingNans))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))

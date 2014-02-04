@@ -58,6 +58,9 @@ Release timeline
 ----------------
 
 =============== =========== ==========
+PyTables        3.1.0       2014-02-05
+PyTables        3.1.0rc2    2014-01-22
+PyTables        3.1.0rc1    2014-01-17
 PyTables        3.0         2013-06-01
 PyTables        3.0rc3      2013-05-29
 PyTables        3.0rc2      2013-05-17

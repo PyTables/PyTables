@@ -8,8 +8,8 @@
 .. py:currentmodule:: tables
 
 
-Changes from 3.0 to 3.1.0 (in development)
-==========================================
+Changes from 3.0 to 3.1.0
+=========================
 
 New features
 ------------
@@ -68,6 +68,8 @@ Improvements
 - Improved compatibility with numpy_ >= 1.8 (see :issue:`259`)
 - The code of the benchmark programs (bench directory) has been updated.
   Closes :issue:`114`.
+- Fixed some warning related to non-unicode file names (the Windows bytes API
+  has been deprecated in Python 3.4)
 
 
 Bugs fixed
@@ -78,18 +80,23 @@ Bugs fixed
   an :class:`Atom` (closes :issue:`209` and :issue:`296`)
 - Prevent creation of a table with no columns (closes :issue:`18` and
   :issue:`299`)
-- Fixed a memory leak that occurs when iterating over
+- Fixed a memory leak that occured when iterating over
   :class:`CArray`/:class:`EArray` objects (closes :issue:`308`,
   see also :issue:`309`).
   Many thanks to Alistair Muldal.
 - Make NaN types sort to the end. Closes :issue:`282` and :issue:`313`
+- Fixed selection on float columns when NaNs are present (closes :issue:`327`
+  and :issue:`330`)
 - Fix computation of the buffer size for iterations on rows.
-  The buffes size was overestimated resulting in a :exc:`MemoryError`
+  The buffers size was overestimated resulting in a :exc:`MemoryError`
   in some cases.
   Closes :issue:`316`. Thamks to bbudescu.
 - Better check of file open mode. Closes :issue:`318`.
 - The Blosc filter now works correctly together with fletcher32.
   Closes :issue:`21`.
+- Close the file handle before trying to delete the corresponding file.
+  Fixes a test failure on Windows.
+- Use integer division for computing indices (fixes some warning on Windows)
 
 
 Deprecations
@@ -110,7 +117,7 @@ Backward incompatible changes
 -----------------------------
 
 In PyTables <= 3.0 file handles (objects that are returned by the
-:func:`open_file` function) was stored in an internal registry and re-used
+:func:`open_file` function) were stored in an internal registry and re-used
 when possible.
 
 Two subsequent attempts to open the same file (with compatible open mode)
@@ -125,10 +132,10 @@ returned the same file handle in PyTables <= 3.0::
     Out[5]: True
 
 All this is an implementation detail, it happened under the hood and the user
-have no control over the process.
+had no control over the process.
 
 This kind of behaviour was considered a feature since it can speed up opening
-of files in case of repeated opens and also it avoids any potential problem
+of files in case of repeated opens and it also avoids any potential problem
 related to multiple opens, a practice that the HDF5 developers recommend to
 avoid (see also H5Fopen_ reference page).
 
@@ -137,19 +144,19 @@ level, rather an open file is referenced several times.
 
 The big drawback of this approach is that there are really few chances to use
 PyTables safely in a multi thread program.  Several bug reports have been
-filled regarding this topic.
+filed regarding this topic.
 
 After long discussions about the possibility to actually achieve concurrent I/O
 and about patterns that should be used for the I/O in concurrent programs
 PyTables developers decided to remove the *black magic under the hood* and
-allow the users to implement patters they want.
+allow the users to implement the patterns they want.
 
 Starting from PyTables 3.1 file handles are no more re-used (*shared*) and
 each call to the :func:`open_file` function returns a new file handle::
 
     In [1]: import tables
     In [2]: print tables.__version__
-    3.1.0dev
+    3.1.0
     In [3]: a = tables.open_file('test.h5', 'a')
     In [4]: b = tables.open_file('test.h5', 'a')
     In [5]: a is b
@@ -162,13 +169,13 @@ muti-thread program without too much headaches.
 
 The new implementation behaves differently from the previous one, although the
 API has not been changed.  Now users should pay more attention when they open a
-file multiple times (has recommended in the `HDF5 reference`__ ) and they
+file multiple times (as recommended in the `HDF5 reference`__ ) and they
 should take care of using them in an appropriate way.
 
 __ H5Fopen_
 
 Please note that the :attr:`File.open_count` property was originally intended
-to take track of the number of references to the same file handle.
+to keep track of the number of references to the same file handle.
 In PyTables >= 3.1, despite of the name, it maintains the same semantics, just
 now its value should never be higher that 1.
 
