@@ -159,13 +159,14 @@ METADATA_CACHE_SIZE = 1 * _MB  # 1 MB is the default for HDF5
 # number of leaves, try increasing this value and see if it fits better
 # for you. Please report back your feedback.
 NODE_CACHE_SLOTS = 64
-"""Maximum number of unreferenced nodes to be kept in memory.
+"""Maximum number of nodes to be kept in the metadata cache.
 
-If positive, this is the number of *unreferenced* nodes to be kept in
-the metadata cache. Least recently used nodes are unloaded from memory
-when this number of loaded nodes is reached. To load a node again,
-simply access it as usual. Nodes referenced by user variables are not
-taken into account nor unloaded.
+It is the number of nodes to be kept in the metadata cache. Least recently
+used nodes are unloaded from memory when this number of loaded nodes is
+reached. To load a node again, simply access it as usual.
+Nodes referenced by user variables and, in general, all nodes that are still
+open are registered in the node manager and can be quickly accessed even
+if they are not in the cache.
 
 Negative value means that all the touched nodes will be kept in an
 internal dictionary.  This is the faster way to load/retrieve nodes.
@@ -267,6 +268,11 @@ Following drivers are supported:
       memory until the file is closed. At closing, the memory version
       of the file can be written back to disk or abandoned.
 
+    * H5FD_SPLIT: this file driver splits a file into two parts.
+      One part stores metadata, and the other part stores raw data.
+      This splitting a file into two parts is a limited case of the
+      Multi driver.
+
 The following drivers are not currently supported:
 
     * H5FD_LOG: this is the H5FD_SEC2 driver with logging capabilities.
@@ -281,11 +287,6 @@ The following drivers are not currently supported:
       files according to the type of the data. I/O might work better if
       data is stored in separate files based on the type of data.
       The Split driver is a special case of this driver.
-
-    * H5FD_SPLIT: this file driver splits a file into two parts.
-      One part stores metadata, and the other part stores raw data.
-      This splitting a file into two parts is a limited case of the
-      Multi driver.
 
     * H5FD_MPIO: this is the standard HDF5 file driver for parallel
       file systems. This driver uses the MPI standard for both
@@ -408,6 +409,32 @@ using the :meth:`tables.File.get_file_image` method.
 .. note:: requires HDF5 >= 1.8.9.
 
 .. versionadded:: 3.0
+
+"""
+
+DRIVER_SPLIT_META_EXT = '-m.h5'
+"""The extension for the metadata file used by the H5FD_SPLIT driver.
+
+If this option is passed to the :func:`tables.openFile` function along
+with driver='H5FD_SPLIT', the extension is appended to the name passed
+as the first parameter to form the name of the metadata file. If the
+string '%s' is used in the extension, the metadata file name is formed
+by replacing '%s' with the name passed as the first parameter instead.
+
+.. versionadded:: 3.1
+
+"""
+
+DRIVER_SPLIT_RAW_EXT = '-r.h5'
+"""The extension for the raw data file used by the H5FD_SPLIT driver.
+
+If this option is passed to the :func:`tables.openFile` function along
+with driver='H5FD_SPLIT', the extension is appended to the name passed
+as the first parameter to form the name of the raw data file. If the
+string '%s' is used in the extension, the raw data file name is formed
+by replacing '%s' with the name passed as the first parameter instead.
+
+.. versionadded:: 3.1
 
 """
 

@@ -38,10 +38,10 @@ A usual syntax is::
 
 In PyTables, each database goes to a different HDF5_ file (much like
 SQLite_ or MS Access).
-To create a new HDF5_ file, you use the :func:`tables.openFile` function with
+To create a new HDF5_ file, you use the :func:`tables.open_file` function with
 the `'w'` mode (which deletes the database if it already exists), like this::
 
-    h5f = tables.openFile('database_name.h5', 'w')
+    h5f = tables.open_file('database_name.h5', 'w')
 
 In this way you get the `h5f` PyTables *file handleé (an instance of the
 :class:`tables.File` class), which is a concept similar to a *database
@@ -56,7 +56,7 @@ In case you forget to do it, PyTables closes all open database handles for
 you when you exit your program or interactive session, but it is always safer
 to close your files explicitly.
 If you want to use the database after closing it, you just call
-:func:`openFile` again, but using the `'r+'` or `'r'` modes, depending on
+:func:`open_file` again, but using the `'r+'` or `'r'` modes, depending on
 whether you do or don't need to modify the database, respectively.
 
 You may use several PyTables databases simultaneously in a program, so you
@@ -174,20 +174,20 @@ like this::
 Once you have a table description `description_name` and a writeable file
 handle `h5f`, creating a table with that description is as easy as::
 
-    tbl = h5f.createTable('/', 'table_name', description_name)
+    tbl = h5f.create_table('/', 'table_name', description_name)
 
 PyTables is very object-oriented, and database is usually done through
 methods of :class:`tables.File`.
 The first argument indicates the *path* where the table will be created,
 i.e. the root path (HDF5 uses Unix-like paths).
-The :meth:`tables.File.createTable` method has many options e.g. for setting
+The :meth:`tables.File.create_table` method has many options e.g. for setting
 a table title or compression properties. What you get back is an instance of
 :class:`tables.Table`, a handle for accessing the data in that table.
 
 As with files, table handles can also be closed with `tbl.close()`.
-If you want to acces an already created table, you can use::
+If you want to access an already created table, you can use::
 
-    tbl = h5f.getNode('/', 'table_name')
+    tbl = h5f.get_node('/', 'table_name')
 
 (PyTables uses the concept of *node* for datasets -tables and others- and
 groups in the object tree) or, using *natural naming*::
@@ -211,18 +211,18 @@ and
 
     DROP INDEX index_name
 
-Indexing is supported in the commercial version of PyTables (PyTablesPro).
+Indexing is supported in the versions of PyTables >= 2.3 (and in PyTablesPro).
 However, indexes don't have names and they are bound to single columns.
 Following the object-oriented philosophy of PyTables, index creation is a
-method (:meth:`tables.Column.createIndex`) of a :class:`tables.Column` object
+method (:meth:`tables.Column.create_index`) of a :class:`tables.Column` object
 of a table, which you can access trough its `cols` accessor.
 
 ::
-    tbl.cols.colum_name.createIndex()
+    tbl.cols.colum_name.create_index()
 
 For dropping an index on a column::
 
-    tbl.cols.colum_name.removeIndex()
+    tbl.cols.colum_name.remove_index()
 
 
 Altering a table
@@ -234,7 +234,7 @@ The first case of table alteration is renaming::
 
 This is accomplished in !PyTables with::
 
-    h5f.renameNode('/', name='old_name', newname='new_name')
+    h5f.rename_node('/', name='old_name', newname='new_name')
 
 or through the table handle::
 
@@ -253,9 +253,9 @@ In SQL you can remove a table using::
     DROP TABLE table_name
 
 In PyTables, tables are removed as other nodes, using the
-:meth:`tables.File.removeNode` method::
+:meth:`tables.File.remove_node` method::
 
-    h5f.removeNode('/', 'table_name')
+    h5f.remove_node('/', 'table_name')
 
 or through the table handle::
 
@@ -374,7 +374,7 @@ quite decoupled operations, so we will have a look at querying later and
 assume that you already know the set of rows you want to update.
 
 If the set happens to be a slice of the table, you may use the
-:`meth:`tables.Table.modifyRows` method or its equivalent
+:`meth:`tables.Table.modify_rows` method or its equivalent
 :meth:`tables.Table.__setitem__` notation::
 
     rows = [
@@ -386,15 +386,15 @@ If the set happens to be a slice of the table, you may use the
     tbl[6:13:3] = rows  # this is the same
 
 If you just want to update some columns in the slice, use the
-:meth:`tables.Table.modifyColumns` or :meth:`tables.Table.modifyColumn`
+:meth:`tables.Table.modify_columns` or :meth:`tables.Table.modify_column`
 methods::
 
     cols = [
         [150.0, 100.0, 25.0]
     ]
     # These are all equivalent.
-    tbl.modifyColumns(start=6, stop=13, step=3, columns=cols, names=['temperature'])
-    tbl.modifyColumn(start=6, stop=13, step=3, column=cols[0], colname='temperature')
+    tbl.modify_columns(start=6, stop=13, step=3, columns=cols, names=['temperature'])
+    tbl.modify_column(start=6, stop=13, step=3, column=cols[0], colname='temperature')
     tbl.cols.temperature[6:13:3] = cols[0]
 
 The last line shows an example of using the `cols` accessor to get to the
@@ -430,7 +430,7 @@ Rows are deleted from a table with the following SQL syntax::
     DELETE FROM table_name
     [WHERE condition]
 
-:meth:`tables.Table.removeRows` is the method used for deleting rows in
+:meth:`tables.Table.remove_rows` is the method used for deleting rows in
 PyTables.
 However, it is very simple (only contiguous blocks of rows can be deleted) and
 quite inefficient, and one should consider whether *dumping filtered data from
@@ -438,12 +438,12 @@ one table into another* isn't a much more convenient approach.
 This is a far more optimized operation under PyTables which will be covered
 later.
 
-Anyway, using `removeRows()` is quite straightforward::
+Anyway, using `remove_row()` or `remove_rows()` is quite straightforward::
 
-    tbl.removeRows(12)  # delete one single row (12)
-    tbl.removeRows(12, 20)  # delete all rows from 12 to 19 (included)
-    tbl.removeRows(0, tbl.nrows)  # delete all rows unconditionally
-    tbl.removeRows(-4, tbl.nrows)  # delete the last 4 rows
+    tbl.remove_row(12)  # delete one single row (12)
+    tbl.remove_rows(12, 20)  # delete all rows from 12 to 19 (included)
+    tbl.remove_rows(0, tbl.nrows)  # delete all rows unconditionally
+    tbl.remove_rows(-4, tbl.nrows)  # delete the last 4 rows
 
 
 Reading data
@@ -529,10 +529,10 @@ For reading a *slice* of rows, use `[slice]` or the
     rows = tbl.read(start=6, stop=13, step=3)
     rows = tbl[6:13:3]  # equivalent
 
-For reading a *sequence* of rows, use the :meth:`tables.Table.readCoordinates`
+For reading a *sequence* of rows, use the :meth:`tables.Table.read_coordinates`
 method::
 
-    rows = tbl.readCoordinates([6, 7, 9, 11])
+    rows = tbl.read_coordinates([6, 7, 9, 11])
 
 Please note that you can add a `field='column_name'` argument to `read*()`
 methods in order to get only the given column instead of them all.
@@ -593,31 +593,32 @@ Here is an example of using `where()` with the previous example condition::
         do something with row['name'], row['x']...
 
 
-Reading seleted rows at once
-----------------------------
+Reading selected rows at once
+-----------------------------
 
 Like the aforementioned :meth:`tables.Table.read`,
-:meth:`tables.Table.readWhere` gets all the rows fulfilling the given condition
-and packs them in a single container (a la DBAPI `fetchmany()`).
+:meth:`tables.Table.read_where` gets all the rows fulfilling the given
+condition and packs them in a single container (a la DBAPI `fetchmany()`).
 The same warning applies: be careful on how many rows you expect to retrieve,
 or you may run out of memory!
 
-Here is an example of using `readWhere()` with the previous example condition::
+Here is an example of using `read_where()` with the previous example
+condition::
 
-    rows = tbl.readWhere('(sqrt(x**2 + y**2) <= 1) & (temperature < 100)')
+    rows = tbl.read_where('(sqrt(x**2 + y**2) <= 1) & (temperature < 100)')
 
 Please note that both :meth:`tables.Table.where` and
-:meth:`tables.Table.readWhere` can also take slicing arguments.
+:meth:`tables.Table.read_where` can also take slicing arguments.
 
 
 Getting the coordinates of selected rows
 ----------------------------------------
 
 There is yet another method for querying tables:
-:meth:`tables.Table.getWhereList`.
-It returns just a sequence of the numbers of the rows which fulfill the given
+:meth:`tables.Table.get_where_list`.
+It returns just a sequence of the numbers of the rows which fulfil the given
 condition.
-You may pass that sequence to :meth:tables.Table.readCoordinates`, e.g. to
+You may pass that sequence to :meth:tables.Table.read_coordinates`, e.g. to
 retrieve data from a different table where rows with the same number as the
 queried one refer to the same first-class object or entity.
 
@@ -678,7 +679,7 @@ Summary of row selection methods
 | **Iterative access** | ``__iter__()``, | ``iterrows(range)`` | ``itersequence()``    | ``where(condition)``    |
 |                      | ``iterrows()``  |                     |                       |                         |
 +----------------------+-----------------+---------------------+-----------------------+-------------------------+
-| **Block access**     | ``[:]``,        | ``[range]``,        | ``readCoordinates()`` |``readWhere(condition)`` |
+| **Block access**     | ``[:]``,        | ``[range]``,        | ``readCoordinates()`` |``read_where(condition)``|
 |                      | ``read()``      | ``read(range)``     |                       |                         |
 +----------------------+-----------------+---------------------+-----------------------+-------------------------+
 

@@ -902,7 +902,7 @@ by using the :meth:`Table.append` method and building your own buffers [4]_.
 As an example, imagine that you have a small script that reads and selects
 data over a series of datasets, like this::
 
-    def readFile(filename):
+    def read_file(filename):
         "Select data from all the tables in filename"
         fileh = open_file(filename, mode = "r")
         result = []
@@ -912,15 +912,15 @@ data over a series of datasets, like this::
         return result
 
     if __name__=="__main__":
-        print readFile("myfile.h5")
+        print(read_file("myfile.h5"))
 
 In order to accelerate this piece of code, you can rewrite your main program
 to look like::
 
     if __name__=="__main__":
         import psyco
-        psyco.bind(readFile)
-        print readFile("myfile.h5")
+        psyco.bind(read_file)
+        print(read_file("myfile.h5"))
 
 That's all!  From now on, each time that you execute your Python script,
 Psyco will deploy its sophisticated algorithms so as to accelerate your
@@ -981,12 +981,12 @@ One thing that deserves some discussion is the election of the parameter that
 sets the maximum amount of nodes to be kept in memory at any time.
 As PyTables is meant to be deployed in machines that can have potentially low
 memory, the default for it is quite conservative (you can look at its actual
-value in the NODE_CACHE_SLOTS parameter in module
+value in the :data:`parameters.NODE_CACHE_SLOTS` parameter in module
 :file:`tables/parameters.py`). However, if you usually need to deal with
 files that have many more nodes than the maximum default, and you have a lot
 of free memory in your system, then you may want to experiment in order to
-see which is the appropriate value of NODE_CACHE_SLOTS that fits better your
-needs.
+see which is the appropriate value of :data:`parameters.NODE_CACHE_SLOTS` that
+fits better your needs.
 
 As an example, look at the next code::
 
@@ -1001,7 +1001,7 @@ As an example, look at the next code::
         fileh.close()
 
 We will be running the code above against a couple of files having a
-/newgroup containing 100 tables and 1000 tables respectively.  In addition,
+``/newgroup`` containing 100 tables and 1000 tables respectively.  In addition,
 this benchmark is run twice for two different values of the LRU cache size,
 specifically 256 and 1024. You can see the results in
 :ref:`table <optimization_table_1>`.
@@ -1061,25 +1061,34 @@ memory used.
 
 Also worth noting is that if you have a lot of memory available and
 performance is absolutely critical, you may want to try out a negative value
-for NODE_CACHE_SLOTS.  This will cause that all the touched nodes will be
-kept in an internal dictionary and this is the faster way to load/retrieve
-nodes.
+for :data:`parameters.NODE_CACHE_SLOTS`.  This will cause that all the touched
+nodes will be kept in an internal dictionary and this is the faster way to
+load/retrieve nodes.
 However, and in order to avoid a large memory consumption, the user will be
-warned when the number of loaded nodes will reach the -NODE_CACHE_SLOTS
+warned when the number of loaded nodes will reach the ``-NODE_CACHE_SLOTS``
 value.
 
-Finally, a value of zero in NODE_CACHE_SLOTS means that any cache mechanism
-is disabled.
+Finally, a value of zero in :data:`parameters.NODE_CACHE_SLOTS` means that
+any cache mechanism is disabled.
 
 At any rate, if you feel that this issue is important for you, there is no
 replacement for setting your own experiments up in order to proceed to
-fine-tune the NODE_CACHE_SLOTS parameter.
+fine-tune the :data:`parameters.NODE_CACHE_SLOTS` parameter.
 
 .. note::
 
     PyTables >= 2.3 sports an optimized LRU cache node written in C, so
     you should expect significantly faster LRU cache operations when
     working with it.
+
+
+.. note::
+
+    Numerical results reported in :ref:`table <optimization_table_1>` have been
+    obtained with PyTables < 3.1. In PyTables 3.1 the node cache mechanism has
+    been completely redesigned so while all comments above are still valid,
+    numerical values could be a little bit different from the ones reported in
+    :ref:`table <optimization_table_1>`.
 
 
 Compacting your PyTables files

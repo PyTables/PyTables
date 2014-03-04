@@ -12,25 +12,34 @@ outputs::
 
     Closing remaining open files: /tmp/prova.h5... done
 
-The responsible of this behaviour is the :meth:`tables.file.close_open_files`
+The responsible of this behaviour is the :func:`tables.file.close_open_files`
 function that is being registered via :func:`atexit.register` Python function.
 Although you can't de-register already registered cleanup functions, you can
 register new ones to tailor the existing behaviour.
 For example, if you  register this function::
 
     def my_close_open_files(verbose):
-        open_files = tb.file._open_files
+        open_files = tables.file._open_files
+
         are_open_files = len(open_files) > 0
+
         if verbose and are_open_files:
-            print >> sys.stderr, "Closing remaining open files:",
-        for fileh in open_files.keys():
+            sys.stderr.write("Closing remaining open files:")
+
+        # make a copy of the open_files.handlers container for the iteration
+        handlers = list(open_files.handlers)
+
+        for fileh in handlers:
             if verbose:
-                print >> sys.stderr, "%s..." % (open_files[fileh].filename,),
-            open_files[fileh].close()
+                sys.stderr.write("%s..." % fileh.filename)
+
+            fileh.close()
+
             if verbose:
-                print >> sys.stderr, "done",
+                sys.stderr.write("done")
+
         if verbose and are_open_files:
-            print >> sys.stderr
+            sys.stderr.write("\n")
 
     import sys, atexit
     atexit.register(my_close_open_files, False)

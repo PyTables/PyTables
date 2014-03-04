@@ -12,6 +12,7 @@
 
 """Here is defined the Expr class."""
 
+from __future__ import print_function
 import sys
 import warnings
 
@@ -313,11 +314,12 @@ class Expr(object):
     def set_inputs_range(self, start=None, stop=None, step=None):
         """Define a range for all inputs in expression.
 
-        The computation will only take place for the range defined by the
-        start, stop and step parameters in the main dimension of inputs (or the
-        leading one, if the object lacks the concept of main dimension, like a
-        NumPy container).  If not a common main dimension exists for all
-        inputs, the leading dimension will be used instead.
+        The computation will only take place for the range defined by
+        the start, stop and step parameters in the main dimension of
+        inputs (or the leading one, if the object lacks the concept of
+        main dimension, like a NumPy container).  If not a common main
+        dimension exists for all inputs, the leading dimension will be
+        used instead.
 
         """
 
@@ -619,7 +621,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 out.append(rout)
             else:
                 # Compute the slice to be filled in output
-                start3 = o_start + (start2 - start) / step
+                start3 = o_start + (start2 - start) // step
                 stop3 = start3 + nrowsinbuf * o_step
                 if stop3 > o_stop:
                     stop3 = o_stop
@@ -708,8 +710,8 @@ if __name__ == "__main__":
     expr.set_output(out)
     d = expr.eval()
 
-    print "returned-->", repr(d)
-    # print `d[:]`
+    print("returned-->", repr(d))
+    # print(`d[:]`)
 
     f.close()
 

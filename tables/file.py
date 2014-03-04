@@ -14,16 +14,19 @@
 
 This module support importing generic HDF5 files, on top of which
 PyTables files are created, read or extended. If a file exists, an
-object tree mirroring their hierarchical structure is created in
-memory. File class offer methods to traverse the tree, as well as to
-create new nodes.
+object tree mirroring their hierarchical structure is created in memory.
+File class offer methods to traverse the tree, as well as to create new
+nodes.
+
 """
 
+from __future__ import print_function
 import os
 import sys
 import time
 import weakref
 import warnings
+import collections
 
 import numexpr
 import numpy
@@ -33,7 +36,7 @@ from tables import hdf5extension
 from tables import utilsextension
 from tables import parameters
 from tables.exceptions import (ClosedFileError, FileModeError, NodeError,
-                               NoSuchNodeError, UndoRedoError,
+                               NoSuchNodeError, UndoRedoError, ClosedNodeError,
                                PerformanceWarning)
 from tables.registry import get_class_by_name
 from tables.path import join_path, split_path
@@ -74,15 +77,65 @@ from tables._past import previous_api, previous_api_property
 # format_version = "1.6"  # Support for NumPy objects and new flavors for
 #                         # objects.
 #                         # 1.6 was introduced in pytables 1.3
-#format_version = "2.0"  # Pickles are not used anymore in system attrs
-#                        # 2.0 was introduced in PyTables 2.0
+#format_version = "2.0"   # Pickles are not used anymore in system attrs
+#                         # 2.0 was introduced in PyTables 2.0
 format_version = "2.1"  # Numeric and numarray flavors are gone.
 
 compatible_formats = []  # Old format versions we can read
                          # Empty means that we support all the old formats
 
+
+class _FileRegistry(object):
+    def __init__(self):
+        self._name_mapping = collections.defaultdict(set)
+        self._handlers = set()
+
+    @property
+    def filenames(self):
+        return self._name_mapping.keys()
+
+    @property
+    def handlers(self):
+        #return set(self._handlers)  # return a copy
+        return self._handlers
+
+    def __len__(self):
+        return len(self._handlers)
+
+    def __contains__(self, filename):
+        return filename in self.filenames
+
+    def add(self, handler):
+        self._name_mapping[handler.filename].add(handler)
+        self._handlers.add(handler)
+
+    def remove(self, handler):
+        filename = handler.filename
+        self._name_mapping[filename].remove(handler)
+        # remove enpty keys
+        if not self._name_mapping[filename]:
+            del self._name_mapping[filename]
+        self._handlers.remove(handler)
+
+    def get_handlers_by_name(self, filename):
+        #return set(self._name_mapping[filename])  # return a copy
+        return self._name_mapping[filename]
+
+    def close_all(self):
+        are_open_files = len(self._handlers) > 0
+        if are_open_files:
+            sys.stderr.write("Closing remaining open files:")
+        handlers = list(self._handlers)  # make a copy
+        for fileh in handlers:
+            sys.stderr.write("%s..." % fileh.filename)
+            fileh.close()
+            sys.stderr.write("done")
+        if are_open_files:
+            sys.stderr.write("\n")
+
+
 # Dict of opened files (keys are filenames and values filehandlers)
-_open_files = {}
+_open_files = _FileRegistry()
 
 # Opcodes for do-undo actions
 _op_to_code = {
@@ -147,16 +200,23 @@ def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
     """
 
     # Open the source file.
-    srcFileh = open_file(srcfilename, mode="r")
+    srcfileh = open_file(srcfilename, mode="r")
 
     try:
         # Copy it to the destination file.
-        srcFileh.copy_file(dstfilename, overwrite=overwrite, **kwargs)
+        srcfileh.copy_file(dstfilename, overwrite=overwrite, **kwargs)
     finally:
         # Close the source file.
-        srcFileh.close()
+        srcfileh.close()
 
 copyFile = previous_api(copy_file)
+
+
+if tuple(map(int, utilsextension.get_hdf5_version().split('-')[0].split('.'))) \
+                                                                        < (1, 8, 7):
+    _FILE_OPEN_POLICY = 'strict'
+else:
+    _FILE_OPEN_POLICY = 'default'
 
 
 def open_file(filename, mode="r", title="", root_uep="/", filters=None,
@@ -221,81 +281,47 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
 
     """
 
-    # Get the list of already opened files
-    ofiles = [fname for fname in _open_files]
-    if filename in ofiles:
-        filehandle = _open_files[filename]
-        omode = filehandle.mode
-        # 'r' is incompatible with everything except 'r' itself
-        if mode == 'r' and omode != 'r':
+    # XXX filename normalization ??
+
+    # Check already opened files
+    if _FILE_OPEN_POLICY == 'strict':
+        # This policy do not allows to open the same file multiple times
+        # even in read-only mode
+        if filename in _open_files:
             raise ValueError(
-                "The file '%s' is already opened, but "
-                "not in read-only mode (as requested)." % filename)
-        # 'a' and 'r+' are compatible with everything except 'r'
-        elif mode in ('a', 'r+') and omode == 'r':
-            raise ValueError(
-                "The file '%s' is already opened, but "
-                "in read-only mode.  Please close it before "
-                "reopening in append mode." % filename)
-        # 'w' means that we want to destroy existing contents
-        elif mode == 'w':
-            raise ValueError(
-                "The file '%s' is already opened.  Please "
-                "close it before reopening in write mode." % filename)
-        else:
-            # The file is already open and modes are compatible
-            # Increase the number of openings for this file
-            filehandle._open_count += 1
-            return filehandle
+                "The file '%s' is already opened.  "
+                "Please close it before reopening.  "
+                "HDF5 v.%s, FILE_OPEN_POLICY = '%s'" % (
+                    filename, utilsextension.get_hdf5_version(),
+                    _FILE_OPEN_POLICY))
+    else:
+        for filehandle in _open_files.get_handlers_by_name(filename):
+            omode = filehandle.mode
+            # 'r' is incompatible with everything except 'r' itself
+            if mode == 'r' and omode != 'r':
+                raise ValueError(
+                    "The file '%s' is already opened, but "
+                    "not in read-only mode (as requested)." % filename)
+            # 'a' and 'r+' are compatible with everything except 'r'
+            elif mode in ('a', 'r+') and omode == 'r':
+                raise ValueError(
+                    "The file '%s' is already opened, but "
+                    "in read-only mode.  Please close it before "
+                    "reopening in append mode." % filename)
+            # 'w' means that we want to destroy existing contents
+            elif mode == 'w':
+                raise ValueError(
+                    "The file '%s' is already opened.  Please "
+                    "close it before reopening in write mode." % filename)
+
     # Finally, create the File instance, and return it
     return File(filename, mode, title, root_uep, filters, **kwargs)
 
 openFile = previous_api(open_file)
 
 
-class _AliveNodes(dict):
-    """Stores strong or weak references to nodes in a transparent way."""
-
-    def __init__(self, nodeCacheSlots):
-        if nodeCacheSlots > 0:
-            self.hasdeadnodes = True
-        else:
-            self.hasdeadnodes = False
-        if nodeCacheSlots >= 0:
-            self.hassoftlinks = True
-        else:
-            self.hassoftlinks = False
-        self.nodeCacheSlots = nodeCacheSlots
-        super(_AliveNodes, self).__init__()
-
-    def __getitem__(self, key):
-        if self.hassoftlinks:
-            ref = super(_AliveNodes, self).__getitem__(key)()
-        else:
-            ref = super(_AliveNodes, self).__getitem__(key)
-        return ref
-
-    def __setitem__(self, key, value):
-        if self.hassoftlinks:
-            ref = weakref.ref(value)
-        else:
-            ref = value
-            # Check if we are running out of space
-            if self.nodeCacheSlots < 0 and len(self) > -self.nodeCacheSlots:
-                warnings.warn("the dictionary of alive nodes is exceeding "
-                              "the recommended maximum number (%d); "
-                              "be ready to see PyTables asking for *lots* "
-                              "of memory and possibly slow I/O." % (
-                              -self.nodeCacheSlots), PerformanceWarning)
-        super(_AliveNodes, self).__setitem__(key, ref)
-
-
-class _DeadNodes(lrucacheextension.NodeCache):
-    pass
-
-
 # A dumb class that doesn't keep nothing at all
-class _NoDeadNodes(object):
+class _NoCache(object):
     def __len__(self):
         return 0
 
@@ -305,30 +331,255 @@ class _NoDeadNodes(object):
     def __iter__(self):
         return iter([])
 
+    def __setitem__(self, key, value):
+        pass
 
-class _NodeDict(tables.misc.proxydict.ProxyDict):
-    """A proxy dictionary which is able to delegate access to missing items
-    to the container object (a `File`)."""
+    __marker = object()
 
-    def _get_value_from_container(self, container, key):
-        return container.get_node(key)
-
-    _getValueFromContainer = previous_api(_get_value_from_container)
-
-    def _condition(self, node):
-        """Nodes fulfilling the condition are considered to belong here."""
-        raise NotImplementedError
+    def pop(self, key, d=__marker):
+        if d is not self.__marker:
+            return d
+        raise KeyError(key)
 
 
-    # def __len__(self):
-    #    return len(list(self.iterkeys()))
+class _DictCache(dict):
+    def __init__(self, nslots):
+        if nslots < 1:
+            raise ValueError("Invalid number of slots: %d" % nslots)
+        self.nslots = nslots
+        super(_DictCache, self).__init__()
+
+    def __setitem__(self, key, value):
+        # Check if we are running out of space
+        if len(self) > self.nslots:
+            warnings.warn(
+                "the dictionary of node cache is exceeding the recommended "
+                "maximum number (%d); be ready to see PyTables asking for "
+                "*lots* of memory and possibly slow I/O." % (
+                    self.nslots), PerformanceWarning)
+        super(_DictCache, self).__setitem__(key, value)
+
+
+class NodeManager(object):
+    def __init__(self, nslots=64, node_factory=None):
+        super(NodeManager, self).__init__()
+
+        self.registry = weakref.WeakValueDictionary()
+
+        if nslots > 0:
+            cache = lrucacheextension.NodeCache(nslots)
+        elif nslots == 0:
+            cache = _NoCache()
+        else:
+            # nslots < 0
+            cache = _DictCache(-nslots)
+
+        self.cache = cache
+
+        # node_factory(node_path)
+        self.node_factory = node_factory
+
+    def register_node(self, node, key):
+        if key is None:
+            key = node._v_pathname
+
+        if key in self.registry:
+            if not self.registry[key]._v_isopen:
+                del self.registry[key]
+            elif self.registry[key] is not node:
+                raise RuntimeError('trying to ragister a node with an '
+                                   'existing key: ``%s``' % key)
+        else:
+            self.registry[key] = node
+
+    def cache_node(self, node, key=None):
+        if key is None:
+            key = node._v_pathname
+
+        self.register_node(node, key)
+        if key in self.cache:
+            oldnode = self.cache.pop(key)
+            if oldnode is not node and oldnode._v_isopen:
+                raise RuntimeError('trying to cache a node with an '
+                                   'existing key: ``%s``' % key)
+
+        self.cache[key] = node
+
+    def get_node(self, key):
+        node = self.cache.pop(key, None)
+        if node is not None:
+            if node._v_isopen:
+                self.cache_node(node, key)
+                return node
+            else:
+                # this should not happen
+                warnings.warn("a closed node found in the cache: ``%s``" % key)
+
+        if key in self.registry:
+            node = self.registry[key]
+            if node is None:
+                # this should not happen since WeakValueDictionary drops all
+                # dead weakrefs
+                warnings.warn("None is stored in the registry for key: "
+                              "``%s``" % key)
+            elif node._v_isopen:
+                self.cache_node(node, key)
+                return node
+            else:
+                # this should not happen
+                warnings.warn("a closed node found in the registry: "
+                              "``%s``" % key)
+                del self.registry[key]
+                node = None
+
+        if self.node_factory:
+            node = self.node_factory(key)
+            self.cache_node(node, key)
+
+        return node
+
+    def rename_node(self, oldkey, newkey):
+        for cache in (self.cache, self.registry):
+            if oldkey in cache:
+                node = cache.pop(oldkey)
+                cache[newkey] = node
+
+    def drop_from_cache(self, nodepath):
+        '''Remove the node from cache'''
+
+        # Remove the node from the cache.
+        self.cache.pop(nodepath, None)
+
+    def drop_node(self, node, check_unregistered=True):
+        """Drop the `node`.
+
+        Remove the node from the cache and, if it has no more references,
+        close it.
+
+        """
+
+        # Remove all references to the node.
+        nodepath = node._v_pathname
+
+        self.drop_from_cache(nodepath)
+
+        if nodepath in self.registry:
+            if not node._v_isopen:
+                del self.registry[nodepath]
+        elif check_unregistered:
+            # If the node is not in the registry (this should never happen)
+            # we close it forcibly since it is not ensured that the __del__
+            # method is called for object that are still alive when the
+            # interpreter is shut down
+            if node._v_isopen:
+                warnings.warn("dropping a node that is not in the registry: "
+                              "``%s``" % nodepath)
+
+                node._g_pre_kill_hook()
+                node._f_close()
+
+    def flush_nodes(self):
+        # Only iter on the nodes in the registry since nodes in the cahce
+        # should always have an entry in the registry
+        closed_keys = []
+        for path, node in self.registry.items():
+            if not node._v_isopen:
+                closed_keys.append(path)
+            elif '/_i_' not in path:  # Indexes are not necessary to be flushed
+                if isinstance(node, Leaf):
+                    node.flush()
+
+        for path in closed_keys:
+            # self.cache.pop(path, None)
+            if path in self.cache:
+                warnings.warn("closed node the cache: ``%s``" % path)
+                self.cache.pop(path, None)
+            self.registry.pop(path)
+
+    @staticmethod
+    def _close_nodes(nodepaths, get_node):
+        for nodepath in nodepaths:
+            try:
+                node = get_node(nodepath)
+            except KeyError:
+                pass
+            else:
+                if not node._v_isopen or node._v__deleting:
+                    continue
+
+                try:
+                    # Avoid descendent nodes to also iterate over
+                    # their descendents, which are already to be
+                    # closed by this loop.
+                    if hasattr(node, '_f_get_child'):
+                        node._g_close()
+                    else:
+                        node._f_close()
+                    del node
+                except ClosedNodeError:
+                    #import traceback
+                    #type_, value, tb = sys.exc_info()
+                    #exception_dump = ''.join(
+                    #    traceback.format_exception(type_, value, tb))
+                    #warnings.warn(
+                    #    "A '%s' exception occurred trying to close a node "
+                    #    "that was supposed to be open.\n"
+                    #    "%s" % (type_.__name__, exception_dump))
+                    pass
+
+    def close_subtree(self, prefix='/'):
+        if not prefix.endswith('/'):
+            prefix = prefix + '/'
+
+        cache = self.cache
+        registry = self.registry
+
+        # Ensure tables are closed before their indices
+        paths = [
+            path for path in cache
+            if path.startswith(prefix) and '/_i_' not in path
+        ]
+        self._close_nodes(paths, cache.pop)
+
+        # Close everything else (i.e. indices)
+        paths = [path for path in cache if path.startswith(prefix)]
+        self._close_nodes(paths, cache.pop)
+
+        # Ensure tables are closed before their indices
+        paths = [
+            path for path in registry
+            if path.startswith(prefix) and '/_i_' not in path
+        ]
+        self._close_nodes(paths, registry.pop)
+
+        # Close everything else (i.e. indices)
+        paths = [path for path in registry if path.startswith(prefix)]
+        self._close_nodes(paths, registry.pop)
+
+    def shutdown(self):
+        registry = self.registry
+        cache = self.cache
+
+        #self.close_subtree('/')
+
+        keys = list(cache)  # copy
+        for key in keys:
+            node = cache.pop(key)
+            if node._v_isopen:
+                registry.pop(node._v_pathname, None)
+                node._f_close()
+
+        while registry:
+            key, node = registry.popitem()
+            if node._v_isopen:
+                node._f_close()
 
 
 class File(hdf5extension.File, object):
     """The in-memory representation of a PyTables file.
 
     An instance of this class is returned when a PyTables file is
-    opened with the :func`tables.open_file` function. It offers methods
+    opened with the :func:`tables.open_file` function. It offers methods
     to manipulate (create, rename, delete...) nodes and handle their
     attributes, as well as methods to traverse the object tree.
     The *user entry point* to the object tree attached to the HDF5 file
@@ -488,7 +739,16 @@ class File(hdf5extension.File, object):
 
     open_count = property(
         lambda self: self._open_count, None, None,
-        "The number of times this file has been opened currently.")
+        """The number of times this file handle has been opened.
+
+        .. versionchanged:: 3.1
+           The mechanism for caching and sharing file handles has been
+           removed in PyTables 3.1.  Now this property should always
+           be 1 (or 0 for closed files).
+
+        .. deprecated:: 3.1
+
+        """)
 
     ## </properties>
 
@@ -500,6 +760,10 @@ class File(hdf5extension.File, object):
 
         self.mode = mode
         """The mode in which the file was opened."""
+
+        if mode not in ('r', 'r+', 'a', 'w'):
+            raise ValueError("invalid mode string ``%s``. Allowed modes are: "
+                             "'r', 'r+', 'a' and 'w'" % mode)
 
         # Get all the parameters in parameter file(s)
         params = dict([(k, v) for k, v in parameters.__dict__.iteritems()
@@ -533,16 +797,11 @@ class File(hdf5extension.File, object):
             self.format_version = format_version
             """The PyTables version number of this file."""
 
-        # Nodes referenced by a variable are kept in `_aliveNodes`.
-        # When they are no longer referenced, they move themselves
-        # to `_deadNodes`, where they are kept until they are referenced again
-        # or they are preempted from it by other unreferenced nodes.
-        nodeCacheSlots = params['NODE_CACHE_SLOTS']
-        self._aliveNodes = _AliveNodes(nodeCacheSlots)
-        if nodeCacheSlots > 0:
-            self._deadNodes = _DeadNodes(nodeCacheSlots)
-        else:
-            self._deadNodes = _NoDeadNodes()
+        # The node manager must be initialized before the root group
+        # initialization but the node_factory attribute is set onl later
+        # because it is a bount method of the root grop itself.
+        node_cache_slots = params['NODE_CACHE_SLOTS']
+        self._node_manager = NodeManager(nslots=node_cache_slots)
 
         # For the moment Undo/Redo is not enabled.
         self._undoEnabled = False
@@ -554,7 +813,7 @@ class File(hdf5extension.File, object):
         """True if the underlying file os open, False otherwise."""
 
         # Append the name of the file to the global dict of files opened.
-        _open_files[self.filename] = self
+        _open_files.add(self)
 
         # Set the number of times this file has been opened to 1
         self._open_count = 1
@@ -565,6 +824,7 @@ class File(hdf5extension.File, object):
         # Complete the creation of the root node
         # (see the explanation in ``RootGroup.__init__()``.
         root._g_post_init_hook()
+        self._node_manager.node_factory = self.root._g_load_child
 
         # Save the PyTables format version for this file.
         if new:
@@ -582,11 +842,14 @@ class File(hdf5extension.File, object):
         numexpr.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
 
     def __get_root_group(self, root_uep, title, filters):
-        """Returns a Group instance which will act as the root group
-        in the hierarchical tree. If file is opened in "r", "r+" or
-        "a" mode, and the file already exists, this method dynamically
-        builds a python object tree emulating the structure present on
-        file."""
+        """Returns a Group instance which will act as the root group in the
+        hierarchical tree.
+
+        If file is opened in "r", "r+" or "a" mode, and the file already
+        exists, this method dynamically builds a python object tree
+        emulating the structure present on file.
+
+        """
 
         self._v_objectid = self._get_file_id()
 
@@ -1205,7 +1468,7 @@ class File(hdf5extension.File, object):
     createVLArray = previous_api(create_vlarray)
 
     def create_hard_link(self, where, name, target, createparents=False):
-        """Create a hard link
+        """Create a hard link.
 
         Create a hard link to a `target` node with the given `name` in
         `where` location.  `target` can be a node object or a path
@@ -1228,15 +1491,18 @@ class File(hdf5extension.File, object):
     createHardLink = previous_api(create_hard_link)
 
     def create_soft_link(self, where, name, target, createparents=False):
-        """
-        Create a soft link (aka symbolic link) to a `target` node with
+        """Create a soft link (aka symbolic link) to a `target` node.
+
+        Create a soft link (aka symbolic link) to a `target` nodewith
         the given `name` in `where` location.  `target` can be a node
         object or a path string.  If `createparents` is true, the
-        intermediate groups required for reaching `where` are created
+        intermediate groups required for reaching `where` are created.
+
         (the default is not doing so).
 
-        The returned node is a SoftLink instance.  See the SoftLink class
-        (in :ref:`SoftLinkClassDescr`) for more information on soft links.
+        The returned node is a SoftLink instance.  See the SoftLink
+        class (in :ref:`SoftLinkClassDescr`) for more information on
+        soft links.
 
         """
 
@@ -1284,31 +1550,14 @@ class File(hdf5extension.File, object):
 
     createExternalLink = previous_api(create_external_link)
 
-    # There is another version of _get_node in cython space, but only
-    # marginally faster (5% or less, but sometimes slower!) than this one.
-    # So I think it is worth to use this one instead (much easier to debug).
-    def _get_node(self, nodePath):
+    def _get_node(self, nodepath):
         # The root node is always at hand.
-        if nodePath == '/':
+        if nodepath == '/':
             return self.root
 
-        aliveNodes = self._aliveNodes
-        deadNodes = self._deadNodes
+        node = self._node_manager.get_node(nodepath)
+        assert node is not None, "unable to instantiate node ``%s``" % nodepath
 
-        if nodePath in aliveNodes:
-            # The parent node is in memory and alive, so get it.
-            node = aliveNodes[nodePath]
-            assert node is not None, \
-                "stale weak reference to dead node ``%s``" % nodePath
-            return node
-        if nodePath in deadNodes:
-            # The parent node is in memory but dead, so revive it.
-            node = self._revivenode(nodePath)
-            return node
-
-        # The node has not been found in alive or dead nodes.
-        # Open it directly from disk.
-        node = self.root._g_load_child(nodePath)
         return node
 
     _getNode = previous_api(_get_node)
@@ -1346,11 +1595,11 @@ class File(hdf5extension.File, object):
         if isinstance(where, Node):
             node = where
             node._g_check_open()  # the node object must be open
-            nodePath = where._v_pathname
+            nodepath = where._v_pathname
         elif isinstance(where, (basestring, numpy.str_)):
             node = None
             if where.startswith('/'):
-                nodePath = where
+                nodepath = where
             else:
                 raise NameError(
                     "``where`` must start with a slash ('/')")
@@ -1361,27 +1610,27 @@ class File(hdf5extension.File, object):
         # Get the name of the child node.
         if name is not None:
             node = None
-            nodePath = join_path(nodePath, name)
+            nodepath = join_path(nodepath, name)
 
-        assert node is None or node._v_pathname == nodePath
+        assert node is None or node._v_pathname == nodepath
 
         # Now we have the definitive node path, let us try to get the node.
         if node is None:
-            node = self._get_node(nodePath)
+            node = self._get_node(nodepath)
 
         # Finally, check whether the desired node is an instance
         # of the expected class.
         if classname:
             class_ = get_class_by_name(classname)
             if not isinstance(node, class_):
-                nPathname = node._v_pathname
-                nClassname = node.__class__.__name__
+                npathname = node._v_pathname
+                nclassname = node.__class__.__name__
                 # This error message is right since it can never be shown
                 # for ``classname in [None, 'Node']``.
                 raise NoSuchNodeError(
                     "could not find a ``%s`` node at ``%s``; "
                     "instead, a ``%s`` node has been found there"
-                    % (classname, nPathname, nClassname))
+                    % (classname, npathname, nclassname))
 
         return node
 
@@ -1720,18 +1969,18 @@ class File(hdf5extension.File, object):
                            "argument") % dstfilename)
 
         # Create destination file, overwriting it.
-        dstFileh = open_file(
+        dstfileh = open_file(
             dstfilename, mode="w", title=title, filters=filters, **kwargs)
 
         try:
             # Maybe copy the user attributes of the root group.
             if copyuserattrs:
-                self.root._v_attrs._f_copy(dstFileh.root)
+                self.root._v_attrs._f_copy(dstfileh.root)
 
             # Copy the rest of the hierarchy.
-            self.root._f_copy_children(dstFileh.root, recursive=True, **kwargs)
+            self.root._f_copy_children(dstfileh.root, recursive=True, **kwargs)
         finally:
-            dstFileh.close()
+            dstfileh.close()
 
     copyFile = previous_api(copy_file)
 
@@ -1804,9 +2053,9 @@ class File(hdf5extension.File, object):
 
             # Recursively list all the nodes in the object tree.
             h5file = tables.open_file('vlarray1.h5')
-            print "All nodes in the object tree:"
+            print("All nodes in the object tree:")
             for node in h5file:
-                print node
+                print(node)
 
         """
 
@@ -1838,9 +2087,9 @@ class File(hdf5extension.File, object):
         ::
 
             # Recursively print all the nodes hanging from '/detector'.
-            print "Nodes hanging from group '/detector':"
+            print("Nodes hanging from group '/detector':")
             for node in h5file.walk_nodes('/detector', classname='EArray'):
-                print node
+                print(node)
 
         """
 
@@ -1922,9 +2171,10 @@ class File(hdf5extension.File, object):
     def is_undo_enabled(self):
         """Is the Undo/Redo mechanism enabled?
 
-        Returns True if the Undo/Redo mechanism has been enabled for this file,
-        False otherwise. Please note that this mechanism is persistent, so a
-        newly opened PyTables file may already have Undo/Redo support enabled.
+        Returns True if the Undo/Redo mechanism has been enabled for
+        this file, False otherwise. Please note that this mechanism is
+        persistent, so a newly opened PyTables file may already have
+        Undo/Redo support enabled.
 
         """
 
@@ -2191,14 +2441,14 @@ class File(hdf5extension.File, object):
                 or len(arg2) > maxundo):  # INTERNAL
             raise UndoRedoError("Parameter arg1 or arg2 is too long: "
                                 "(%r, %r)" % (arg1, arg2))
-        # print "Logging-->", (action, arg1, arg2)
+        # print("Logging-->", (action, arg1, arg2))
         self._actionlog.append([(_op_to_code[action],
                                  arg1.encode('utf-8'),
                                  arg2.encode('utf-8'))])
         self._curaction += 1
 
     def _get_mark_id(self, mark):
-        """Get an integer markid from a mark sequence number or name"""
+        """Get an integer markid from a mark sequence number or name."""
 
         if isinstance(mark, int):
             markid = mark
@@ -2212,14 +2462,17 @@ class File(hdf5extension.File, object):
         else:
             raise TypeError("Parameter mark can only be an integer or a "
                             "string, and you passed a type <%s>" % type(mark))
-        # print "markid, self._nmarks:", markid, self._nmarks
+        # print("markid, self._nmarks:", markid, self._nmarks)
         return markid
 
     _getMarkID = previous_api(_get_mark_id)
 
     def _get_final_action(self, markid):
-        """Get the action to go. It does not touch the self private
-        attributes"""
+        """Get the action to go.
+
+        It does not touch the self private attributes
+
+        """
 
         if markid > self._nmarks - 1:
             # The required mark is beyond the end of the action log
@@ -2235,7 +2488,7 @@ class File(hdf5extension.File, object):
     _getFinalAction = previous_api(_get_final_action)
 
     def _doundo(self, finalaction, direction):
-        """Undo/Redo actions up to final action in the specificed direction"""
+        """Undo/Redo actions up to final action in the specificed direction."""
 
         if direction < 0:
             actionlog = \
@@ -2244,17 +2497,17 @@ class File(hdf5extension.File, object):
             actionlog = self._actionlog[self._curaction:finalaction]
 
         # Uncomment this for debugging
-#         print "curaction, finalaction, direction", \
-#               self._curaction, finalaction, direction
+#         print("curaction, finalaction, direction", \
+#               self._curaction, finalaction, direction)
         for i in xrange(len(actionlog)):
             if actionlog['opcode'][i] != _op_to_code["MARK"]:
                 # undo/redo the action
                 if direction > 0:
                     # Uncomment this for debugging
-#                     print "redo-->", \
+#                     print("redo-->", \
 #                           _code_to_op[actionlog['opcode'][i]],\
 #                           actionlog['arg1'][i],\
-#                           actionlog['arg2'][i]
+#                           actionlog['arg2'][i])
                     undoredo.redo(self,
                                   # _code_to_op[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
@@ -2263,10 +2516,10 @@ class File(hdf5extension.File, object):
                                   actionlog['arg2'][i].decode('utf8'))
                 else:
                     # Uncomment this for debugging
-                    # print "undo-->", \
+                    # print("undo-->", \
                     #       _code_to_op[actionlog['opcode'][i]],\
                     #       actionlog['arg1'][i].decode('utf8'),\
-                    #       actionlog['arg2'][i].decode('utf8')
+                    #       actionlog['arg2'][i].decode('utf8'))
                     undoredo.undo(self,
                                   # _code_to_op[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
@@ -2301,8 +2554,8 @@ class File(hdf5extension.File, object):
         self._check_open()
         self._check_undo_enabled()
 
-#         print "(pre)UNDO: (curaction, curmark) = (%s,%s)" % \
-#               (self._curaction, self._curmark)
+#         print("(pre)UNDO: (curaction, curmark) = (%s,%s)" % \
+#               (self._curaction, self._curmark))
         if mark is None:
             markid = self._curmark
             # Correction if we are settled on top of a mark
@@ -2326,8 +2579,8 @@ class File(hdf5extension.File, object):
         if self._curaction < self._actionlog.nrows - 1:
             self._curaction += 1
         self._curmark = int(self._actionlog.cols.arg1[self._curaction])
-#         print "(post)UNDO: (curaction, curmark) = (%s,%s)" % \
-#               (self._curaction, self._curmark)
+#         print("(post)UNDO: (curaction, curmark) = (%s,%s)" % \
+#               (self._curaction, self._curmark))
 
     def redo(self, mark=None):
         """Go to a future state of the database.
@@ -2346,8 +2599,8 @@ class File(hdf5extension.File, object):
         self._check_open()
         self._check_undo_enabled()
 
-#         print "(pre)REDO: (curaction, curmark) = (%s, %s)" % \
-#               (self._curaction, self._curmark)
+#         print("(pre)REDO: (curaction, curmark) = (%s, %s)" % \
+#               (self._curaction, self._curmark))
         if self._curaction >= self._actionlog.nrows - 1:
             # We are at the end of log, so no action
             return
@@ -2376,8 +2629,8 @@ class File(hdf5extension.File, object):
             self._curmark += 1
         if self._curaction > self._actionlog.nrows - 1:
             self._curaction = self._actionlog.nrows - 1
-#         print "(post)REDO: (curaction, curmark) = (%s,%s)" % \
-#               (self._curaction, self._curmark)
+#         print("(post)REDO: (curaction, curmark) = (%s,%s)" % \
+#               (self._curaction, self._curmark))
 
     def goto(self, mark):
         """Go to a specific mark of the database.
@@ -2447,19 +2700,8 @@ class File(hdf5extension.File, object):
 
         self._check_open()
 
-        # First, flush PyTables buffers on alive leaves.
-        # Leaves that are dead should have been flushed already (at least,
-        # users are directed to do this through a PerformanceWarning!)
-        for path, refnode in self._aliveNodes.iteritems():
-            if '/_i_' not in path:  # Indexes are not necessary to be flushed
-                if (self._aliveNodes.hassoftlinks):
-                    node = refnode()
-                else:
-                    node = refnode
-                if isinstance(node, Leaf):
-                    node.flush()
-
         # Flush the cache to disk
+        self._node_manager.flush_nodes()
         self._flush_file(0)  # 0 means local scope, 1 global (virtual) scope
 
     def close(self):
@@ -2485,26 +2727,34 @@ class File(hdf5extension.File, object):
         # Close all loaded nodes.
         self.root._f_close()
 
+        self._node_manager.shutdown()
+
         # Post-conditions
-        assert len(self._deadNodes) == 0, \
-            ("dead nodes remain after closing dead nodes: %s"
-                % [path for path in self._deadNodes])
+        assert len(self._node_manager.cache) == 0, \
+            ("cached nodes remain after closing: %s"
+                % list(self._node_manager.cache))
 
         # No other nodes should have been revived.
-        assert len(self._aliveNodes) == 0, \
-            ("alive nodes remain after closing dead nodes: %s"
-                % [path for path in self._aliveNodes])
+        assert len(self._node_manager.registry) == 0, \
+            ("alive nodes remain after closing: %s"
+                % list(self._node_manager.registry))
 
         # Close the file
         self._close_file()
+
         # After the objects are disconnected, destroy the
         # object dictionary using the brute force ;-)
         # This should help to the garbage collector
         self.__dict__.clear()
+
         # Set the flag to indicate that the file is closed
         self.isopen = 0
-        # Delete the entry in the dictionary of opened files
-        del _open_files[filename]
+
+        # Restore the filename attribute that is used by _FileRegistry
+        self.filename = filename
+
+        # Delete the entry from he registry of opened files
+        _open_files.remove(self)
 
     def __enter__(self):
         """Enter a context and return the same file."""
@@ -2526,7 +2776,7 @@ class File(hdf5extension.File, object):
         ::
 
             >>> f = tables.open_file('data/test.h5')
-            >>> print f
+            >>> print(f)
             data/test.h5 (File) 'Table Benchmark'
             Last modif.: 'Mon Sep 20 12:40:47 2004'
             Object Tree:
@@ -2583,120 +2833,33 @@ class File(hdf5extension.File, object):
                     astring += repr(node) + '\n'
         return astring
 
-    def _refnode(self, node, nodePath):
-        """Register `node` as alive and insert references to it."""
-
-        if nodePath != '/':
-            # The root group does not participate in alive/dead stuff.
-            aliveNodes = self._aliveNodes
-            assert nodePath not in aliveNodes, \
-                "file already has a node with path ``%s``" % nodePath
-
-            # Add the node to the set of referenced ones.
-            aliveNodes[nodePath] = node
-
-    _refNode = previous_api(_refnode)
-
-    def _unrefnode(self, nodePath):
-        """Unregister `node` as alive and remove references to it."""
-
-        if nodePath != '/':
-            # The root group does not participate in alive/dead stuff.
-            aliveNodes = self._aliveNodes
-            assert nodePath in aliveNodes, \
-                "file does not have a node with path ``%s``" % nodePath
-
-            # Remove the node from the set of referenced ones.
-            del aliveNodes[nodePath]
-
-    _unrefNode = previous_api(_unrefnode)
-
-    def _killnode(self, node):
-        """Kill the `node`.
-
-        Moves the `node` from the set of alive, referenced nodes to the
-        set of dead, unreferenced ones.
-
-        """
-
-        nodePath = node._v_pathname
-        assert nodePath in self._aliveNodes, \
-            "trying to kill non-alive node ``%s``" % nodePath
-
-        node._g_pre_kill_hook()
-
-        # Remove all references to the node.
-        self._unrefnode(nodePath)
-        # Save the dead node in the limbo.
-        if self._aliveNodes.hasdeadnodes:
-            self._deadNodes[nodePath] = node
-        else:
-            # We have not a cache for dead nodes,
-            # so follow the usual deletion procedure.
-            node._v__deleting = True
-            node._f_close()
-
-    _killNode = previous_api(_killnode)
-
-    def _revivenode(self, nodePath):
-        """Revive the node under `nodePath` and return it.
-
-        Moves the node under `nodePath` from the set of dead,
-        unreferenced nodes to the set of alive, referenced ones.
-
-        """
-
-        assert nodePath in self._deadNodes, \
-            "trying to revive non-dead node ``%s``" % nodePath
-
-        # Take the node out of the limbo.
-        node = self._deadNodes.pop(nodePath)
-        # Make references to the node.
-        self._refnode(node, nodePath)
-
-        node._g_post_revive_hook()
-
-        return node
-
-    _reviveNode = previous_api(_revivenode)
-
-    def _update_node_locations(self, oldPath, newPath):
-        """Update location information of nodes under `oldPath`.
+    def _update_node_locations(self, oldpath, newpath):
+        """Update location information of nodes under `oldpath`.
 
         This only affects *already loaded* nodes.
+
         """
 
-        oldPrefix = oldPath + '/'  # root node can not be renamed, anyway
-        oldPrefixLen = len(oldPrefix)
+        oldprefix = oldpath + '/'  # root node can not be renamed, anyway
+        oldprefix_len = len(oldprefix)
 
         # Update alive and dead descendents.
-        for cache in [self._aliveNodes, self._deadNodes]:
-            for nodePath in cache:
-                if nodePath.startswith(oldPrefix) and nodePath != oldPrefix:
-                    nodeSuffix = nodePath[oldPrefixLen:]
-                    newNodePath = join_path(newPath, nodeSuffix)
-                    newNodePPath = split_path(newNodePath)[0]
-                    descendentNode = self._get_node(nodePath)
-                    descendentNode._g_update_location(newNodePPath)
+        for cache in [self._node_manager.cache, self._node_manager.registry]:
+            for nodepath in cache:
+                if nodepath.startswith(oldprefix) and nodepath != oldprefix:
+                    nodesuffix = nodepath[oldprefix_len:]
+                    newnodepath = join_path(newpath, nodesuffix)
+                    newnodeppath = split_path(newnodepath)[0]
+                    descendent_node = self._get_node(nodepath)
+                    descendent_node._g_update_location(newnodeppath)
 
     _updateNodeLocations = previous_api(_update_node_locations)
 
 
 # If a user hits ^C during a run, it is wise to gracefully close the
 # opened files.
-def close_open_files():
-    are_open_files = len(_open_files) > 0
-    if are_open_files:
-        print >> sys.stderr, "Closing remaining open files:",
-    for fname, fileh in _open_files.items():
-        print >> sys.stderr, "%s..." % (fname,),
-        fileh.close()
-        print >> sys.stderr, "done",
-    if are_open_files:
-        print >> sys.stderr
-
 import atexit
-atexit.register(close_open_files)
+atexit.register(_open_files.close_all)
 
 
 ## Local Variables:

@@ -150,3 +150,6 @@ HDF5 driver management
 
 .. autodata:: DRIVER_CORE_IMAGE
 
+.. autodata:: DRIVER_SPLIT_META_EXT
+
+.. autodata:: DRIVER_SPLIT_RAW_EXT

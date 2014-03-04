@@ -72,6 +72,7 @@ def check_name_validity(name):
     If the name is not valid, a ``ValueError`` is raised.  If it is
     valid but it can not be used with natural naming, a
     `NaturalNameWarning` is issued.
+
     """
 
     warnInfo = (

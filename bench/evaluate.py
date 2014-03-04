@@ -1,12 +1,11 @@
+from __future__ import print_function
 import sys
 from time import time
 
 import numpy as np
 import tables as tb
-import tables.numexpr as ne
-from tables.numexpr.necompiler import (
+from numexpr.necompiler import (
     getContext, getExprNames, getType, NumExpr)
-from tables.utilsextension import lrange
 
 
 shape = (1000, 160000)
@@ -20,21 +19,23 @@ ofilters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
 typecode_to_dtype = {'b': 'bool', 'i': 'int32', 'l': 'int64', 'f': 'float32',
                      'd': 'float64', 'c': 'complex128'}
 
+
 def _compute(result, function, arguments,
              start=None, stop=None, step=None):
-    """Compute the `function` over the `arguments` and put the outcome in `result`"""
+    """Compute the `function` over the `arguments` and put the outcome in
+    `result`"""
     arg0 = arguments[0]
     if hasattr(arg0, 'maindim'):
         maindim = arg0.maindim
         (start, stop, step) = arg0._process_range_read(start, stop, step)
         nrowsinbuf = arg0.nrowsinbuf
-        print "nrowsinbuf-->", nrowsinbuf
+        print("nrowsinbuf-->", nrowsinbuf)
     else:
         maindim = 0
         (start, stop, step) = (0, len(arg0), 1)
         nrowsinbuf = len(arg0)
     shape = list(arg0.shape)
-    shape[maindim] = lrange(start, stop, step).length
+    shape[maindim] = len(range(start, stop, step))
 
     # The slices parameter for arg0.__getitem__
     slices = [slice(0, dim, 1) for dim in arg0.shape]
@@ -46,14 +47,14 @@ def _compute(result, function, arguments,
             arg._v_convert = False
 
     # Start the computation itself
-    for start2 in lrange(start, stop, step*nrowsinbuf):
+    for start2 in range(start, stop, step * nrowsinbuf):
         # Save the records on disk
         stop2 = start2 + step * nrowsinbuf
         if stop2 > stop:
             stop2 = stop
         # Set the proper slice in the main dimension
         slices[maindim] = slice(start2, stop2, step)
-        start3 = (start2-start)/step
+        start3 = (start2 - start) / step
         stop3 = start3 + nrowsinbuf
         if stop3 > shape[maindim]:
             stop3 = shape[maindim]
@@ -102,18 +103,18 @@ def evaluate(ex, out=None, local_dict=None, global_dict=None, **kwargs):
 
     # Create a signature
     signature = [(name, getType(type_)) for (name, type_) in zip(names, types)]
-    print "signature-->", signature
+    print("signature-->", signature)
 
     # Compile the expression
     compiled_ex = NumExpr(ex, signature, [], **kwargs)
-    print "fullsig-->", compiled_ex.fullsig
+    print("fullsig-->", compiled_ex.fullsig)
 
     _compute(out, compiled_ex, arguments)
 
     return
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     iarrays = 0
     oarrays = 0
     doprofile = 1
@@ -124,28 +125,28 @@ if __name__=="__main__":
     # Create some arrays
     if iarrays:
         a = np.ones(shape, dtype='float32')
-        b = np.ones(shape, dtype='float32')*2
-        c = np.ones(shape, dtype='float32')*3
+        b = np.ones(shape, dtype='float32') * 2
+        c = np.ones(shape, dtype='float32') * 3
     else:
         a = f.create_carray(f.root, 'a', tb.Float32Atom(dflt=1.),
-                           shape=shape, filters=filters)
+                            shape=shape, filters=filters)
         a[:] = 1.
         b = f.create_carray(f.root, 'b', tb.Float32Atom(dflt=2.),
-                           shape=shape, filters=filters)
+                            shape=shape, filters=filters)
         b[:] = 2.
         c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3.),
-                           shape=shape, filters=filters)
+                            shape=shape, filters=filters)
         c[:] = 3.
     if oarrays:
         out = np.empty(shape, dtype='float32')
     else:
         out = f.create_carray(f.root, 'out', tb.Float32Atom(),
-                             shape=shape, filters=ofilters)
+                              shape=shape, filters=ofilters)
 
     t0 = time()
     if iarrays and oarrays:
         #out = ne.evaluate("a*b+c")
-        out = a*b+c
+        out = a * b + c
     elif doprofile:
         import cProfile as prof
         import pstats
@@ -165,9 +166,9 @@ if __name__=="__main__":
         ofile.close()
     else:
         evaluate("a*b+c", out)
-    print "Time for evaluate-->", round(time()-t0, 3)
+    print("Time for evaluate-->", round(time() - t0, 3))
 
-    #print "out-->", `out`
-    #print `out[:]`
+    # print "out-->", `out`
+    # print `out[:]`
 
     f.close()

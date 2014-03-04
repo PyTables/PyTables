@@ -27,6 +27,7 @@ Functions:
     Compile a condition and extract usable index conditions.
 `call_on_recarr`
     Evaluate a function over a structured array.
+
 """
 
 import re
@@ -45,6 +46,7 @@ def _unsupported_operation_error(exception):
     """Make the \"no matching opcode\" Numexpr `exception` more clear.
 
     A new exception of the same kind is returned.
+
     """
 
     message = exception.args[0]
@@ -59,6 +61,7 @@ def _check_indexable_cmp(getidxcmp):
 
     This does some extra checking that Numexpr would perform later on
     the comparison if it was compiled within a complete condition.
+
     """
 
     def newfunc(exprnode, indexedcols):
@@ -66,7 +69,7 @@ def _check_indexable_cmp(getidxcmp):
         if result[0] is not None:
             try:
                 typeCompileAst(expressionToAST(exprnode))
-            except NotImplementedError, nie:
+            except NotImplementedError as nie:
                 # Try to make this Numexpr error less cryptic.
                 raise _unsupported_operation_error(nie)
         return result
@@ -142,15 +145,18 @@ def _get_indexable_cmp(exprnode, indexedcols):
 
 
 def _equiv_expr_node(x, y):
-    """Returns whether two ExpressionNodes are equivalent.  This is needed
-    because '==' is overridden on ExpressionNode to return a new ExpressionNode.
+    """Returns whether two ExpressionNodes are equivalent.
+
+    This is needed because '==' is overridden on ExpressionNode to
+    return a new ExpressionNode.
+
     """
     if not isinstance(x, ExpressionNode) and not isinstance(y, ExpressionNode):
         return x == y
-    elif type(x) is not type(y) or not isinstance(x, ExpressionNode) \
-                                or not isinstance(y, ExpressionNode) \
-                                or x.value != y.value or x.astKind != y.astKind \
-                                or len(x.children) != len(y.children):
+    elif (type(x) is not type(y) or not isinstance(x, ExpressionNode)
+            or not isinstance(y, ExpressionNode)
+            or x.value != y.value or x.astKind != y.astKind
+            or len(x.children) != len(y.children)):
         return False
     for xchild, ychild in zip(x.children, y.children):
         if not _equiv_expr_node(xchild, ychild):
@@ -162,12 +168,13 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     """Here lives the actual implementation of the get_idx_expr() wrapper.
 
     'idxexprs' is a list of expressions in the form ``(var, (ops),
-    (limits))``. 'strexpr' is the indexable expression in string
-    format.  These parameters will be received empty (i.e. [], [''])
-    for the first time and populated during the different recursive
-    calls.  Finally, they are returned in the last level to the
-    original wrapper.  If 'exprnode' is not indexable, it will return
-    the tuple ([], ['']) so as to signal this.
+    (limits))``. 'strexpr' is the indexable expression in string format.
+    These parameters will be received empty (i.e. [], ['']) for the
+    first time and populated during the different recursive calls.
+    Finally, they are returned in the last level to the original
+    wrapper.  If 'exprnode' is not indexable, it will return the tuple
+    ([], ['']) so as to signal this.
+
     """
 
     not_indexable = ([], [''])
@@ -231,8 +238,8 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     # ``(a <[=] x) & (x <[=] b)`` or ``(a >[=] x) & (x >[=] b)``
     # as ``a <[=] x <[=] b``, for the moment.
     op = exprnode.value
-    if lcolvar is not None and rcolvar is not None \
-      and _equiv_expr_node(lcolvar, rcolvar) and op == 'and':
+    if (lcolvar is not None and rcolvar is not None
+            and _equiv_expr_node(lcolvar, rcolvar) and op == 'and'):
         if lop in ['gt', 'ge'] and rop in ['lt', 'le']:  # l <= x <= r
             expr = (lcolvar, (lop, rop), (llim, rlim))
             return [expr]
@@ -299,6 +306,7 @@ def _get_idx_expr(expr, indexedcols):
 
     * ``a != 1`` and  ``c_bool != False``
     * ``~((a > 0) & (c_bool))``
+
     """
 
     return _get_idx_expr_recurse(expr, indexedcols, [], [''])
@@ -417,7 +425,7 @@ def compile_condition(condition, typemap, indexedcols):
         # reasons of inserting copy operators for unaligned,
         # *unidimensional* arrays.
         func = NumExpr(expr, signature)
-    except NotImplementedError, nie:
+    except NotImplementedError as nie:
         # Try to make this Numexpr error less cryptic.
         raise _unsupported_operation_error(nie)
     params = varnames
@@ -429,10 +437,11 @@ def compile_condition(condition, typemap, indexedcols):
 def call_on_recarr(func, params, recarr, param2arg=None):
     """Call `func` with `params` over `recarr`.
 
-    The `param2arg` function, when specified, is used to get an
-    argument given a parameter name; otherwise, the parameter itself
-    is used as an argument.  When the argument is a `Column` object,
-    the proper column from `recarr` is used as its value.
+    The `param2arg` function, when specified, is used to get an argument
+    given a parameter name; otherwise, the parameter itself is used as
+    an argument.  When the argument is a `Column` object, the proper
+    column from `recarr` is used as its value.
+
     """
 
     args = []

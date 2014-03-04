@@ -28,7 +28,7 @@ Misc variables:
 """
 
 import os
-import tables as t
+import tables
 from tables import linkextension
 from tables.node import Node
 from tables.utils import lazyattr
@@ -162,9 +162,9 @@ class SoftLink(linkextension.SoftLink, Link):
         ::
 
             >>> f=tables.open_file('data/test.h5')
-            >>> print f.root.link0
+            >>> print(f.root.link0)
             /link0 (SoftLink) -> /another/path
-            >>> print f.root.link0()
+            >>> print(f.root.link0())
             /another/path (Group) ''
 
         """
@@ -184,7 +184,7 @@ class SoftLink(linkextension.SoftLink, Link):
         ::
 
             >>> f=tables.open_file('data/test.h5')
-            >>> print f.root.link0
+            >>> print(f.root.link0)
             /link0 (SoftLink) -> /path/to/node
 
         """
@@ -252,12 +252,12 @@ class ExternalLink(linkextension.ExternalLink, Link):
         ::
 
             >>> f=tables.open_file('data1/test1.h5')
-            >>> print f.root.link2
+            >>> print(f.root.link2)
             /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
             >>> plink2 = f.root.link2('a')  # open in 'a'ppend mode
-            >>> print plink2
+            >>> print(plink2)
             /path/to/node (Group) ''
-            >>> print plink2._v_filename
+            >>> print(plink2._v_filename)
             'data2/test2.h5'        # belongs to referenced file
 
         """
@@ -270,13 +270,13 @@ class ExternalLink(linkextension.ExternalLink, Link):
             base_directory = os.path.dirname(self._v_file.filename)
             filename = os.path.join(base_directory, filename)
 
-        # Fetch the external file and save a reference to it.
-        # Check first in already opened files.
-        open_files = tables.file._open_files
-        if filename in open_files:
-            self.extfile = open_files[filename]
+        if self.extfile is None or not self.extfile.isopen:
+            self.extfile = tables.open_file(filename, **kwargs)
         else:
-            self.extfile = t.open_file(filename, **kwargs)
+            # XXX: implement better consistency checks
+            assert self.extfile.filename == filename
+            assert self.extfile.mode == kwargs.get('mode', 'r')
+
         return self.extfile._get_node(target)
 
     def umount(self):
@@ -303,7 +303,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
         ::
 
             >>> f=tables.open_file('data1/test1.h5')
-            >>> print f.root.link2
+            >>> print(f.root.link2)
             /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
 
         """

@@ -83,6 +83,8 @@ Table methods - writing
 
 .. automethod:: Table.remove_rows
 
+.. automethod:: Table.remove_row
+
 .. automethod:: Table.__setitem__
 
 

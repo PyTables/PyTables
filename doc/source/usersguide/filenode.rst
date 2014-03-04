@@ -116,7 +116,7 @@ so that the PyTables library would be able to optimize the data access.
 new_node() creates a PyTables node where it is told to. To prove it, we will
 try to get the NODE_TYPE attribute from the newly created node::
 
-    >>> print h5file.get_node_attr('/fnode_test', 'NODE_TYPE')
+    >>> print(h5file.get_node_attr('/fnode_test', 'NODE_TYPE'))
     file
 
 
@@ -125,15 +125,15 @@ Using a file node
 As stated above, you can use the new node file as any other opened file. Let
 us try to write some text in and read it::
 
-    >>> print >> fnode, "This is a test text line."
-    >>> print >> fnode, "And this is another one."
-    >>> print >> fnode
+    >>> print("This is a test text line.", file=fnode)
+    >>> print("And this is another one.", file=fnode)
+    >>> print(file=fnode)
     >>> fnode.write("Of course, file methods can also be used.")
     >>>
     >>> fnode.seek(0)  # Go back to the beginning of file.
     >>>
     >>> for line in fnode:
-    ...     print repr(line)
+    ...     print(repr(line))
     'This is a test text line.\\n'
     'And this is another one.\\n'
     '\\n'
@@ -151,7 +151,7 @@ ValueError. To close a file node, simply delete it or call its close()
 method::
 
     >>> fnode.close()
-    >>> print fnode.closed
+    >>> print(fnode.closed)
     True
 
 
@@ -173,12 +173,12 @@ example::
 
     >>> node = h5file.root.fnode_test
     >>> fnode = filenode.open_node(node, 'a+')
-    >>> print repr(fnode.readline())
+    >>> print(repr(fnode.readline()))
     'This is a test text line.\\n'
-    >>> print fnode.tell()
+    >>> print(fnode.tell())
     26
-    >>> print >> fnode, "This is a new line."
-    >>> print repr(fnode.readline())
+    >>> print("This is a new line.", file=fnode)
+    >>> print(repr(fnode.readline()))
     ''
 
 Of course, the data append process places the pointer at the end of the file,
@@ -187,7 +187,7 @@ to see the whole contents of our file::
 
     >>> fnode.seek(0)
     >>> for line in fnode:
-    ...   print repr(line)
+    ...   print(repr(line))
     'This is a test text line.\\n'
     'And this is another one.\\n'
     '\\n'

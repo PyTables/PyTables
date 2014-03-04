@@ -273,7 +273,7 @@ class Group(hdf5extension.Group, Node):
 
     def __del__(self):
         if (self._v_isopen and
-            self._v_pathname in self._v_file._aliveNodes and
+            self._v_pathname in self._v_file._node_manager.registry and
                 '_v_children' in self.__dict__):
             # The group is going to be killed.  Rebuild weak references
             # (that Python cancelled just before calling this method) so
@@ -348,9 +348,7 @@ class Group(hdf5extension.Group, Node):
 
     def _g_add_children_names(self):
         """Add children names to this group taking into account their
-        visibility and kind.
-
-        """
+        visibility and kind."""
 
         mydict = self.__dict__
 
@@ -420,9 +418,9 @@ class Group(hdf5extension.Group, Node):
         ::
 
             # Non-recursively list all the nodes hanging from '/detector'
-            print "Nodes in '/detector' group:"
+            print("Nodes in '/detector' group:")
             for node in h5file.root.detector:
-                print node
+                print(node)
 
         """
 
@@ -461,9 +459,9 @@ class Group(hdf5extension.Group, Node):
         ::
 
             # Recursively print all the arrays hanging from '/'
-            print "Arrays in the object tree '/':"
+            print("Arrays in the object tree '/':")
             for array in h5file.root._f_walknodes('Array', recursive=True):
-                print array
+                print(array)
 
         """
 
@@ -485,8 +483,8 @@ class Group(hdf5extension.Group, Node):
     _f_walkNodes = previous_api(_f_walknodes)
 
     def _g_join(self, name):
-        """Helper method to correctly concatenate a name child object
-        with the pathname of this group."""
+        """Helper method to correctly concatenate a name child object with the
+        pathname of this group."""
 
         if name == "/":
             # This case can happen when doing copies
@@ -540,7 +538,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # Check group width limits.
         if (len(self._v_children) + len(self._v_hidden) >=
-                                                    self._v_max_group_width):
+                self._v_max_group_width):
             self._g_width_warning()
 
         # Update members information.
@@ -581,8 +579,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             if childname in self._v_children:
                 # Visible node.
                 members = self.__members__
-                memberIndex = members.index(childname)
-                del members[memberIndex]  # disables completion
+                member_index = members.index(childname)
+                del members[member_index]  # disables completion
 
                 del self._v_children[childname]  # remove node
                 self._v_unknown.pop(childname, None)
@@ -682,8 +680,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         self._g_check_has_child(childname)
 
-        childPath = join_path(self._v_pathname, childname)
-        return self._v_file._get_node(childPath)
+        childpath = join_path(self._v_pathname, childname)
+        return self._v_file._get_node(childpath)
 
     _f_getChild = previous_api(_f_get_child)
 
@@ -790,7 +788,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         try:
             super(Group, self).__delattr__(name)  # nothing particular
-        except AttributeError, ae:
+        except AttributeError as ae:
             hint = " (use ``node._f_remove()`` if you want to remove a node)"
             raise ae.__class__(str(ae) + hint)
 
@@ -862,7 +860,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         super(Group, self).__setattr__(name, value)
 
     def _f_flush(self):
-        """Flush this Group"""
+        """Flush this Group."""
 
         self._g_check_open()
         self._g_flush_group()
@@ -870,62 +868,18 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
     def _g_close_descendents(self):
         """Close all the *loaded* descendent nodes of this group."""
 
-        def closenodes(prefix, nodepaths, get_node):
-            for nodepath in nodepaths:
-                if nodepath.startswith(prefix):
-                    try:
-                        node = get_node(nodepath)
-                        # Avoid descendent nodes to also iterate over
-                        # their descendents, which are already to be
-                        # closed by this loop.
-                        if hasattr(node, '_f_get_child'):
-                            node._g_close()
-                        else:
-                            node._f_close()
-                        del node
-                    except KeyError:
-                        pass
-
-        prefix = self._v_pathname + '/'
-        if prefix == '//':
-            prefix = '/'
-
-        # Close all loaded nodes.
-        alivenodes = self._v_file._aliveNodes
-        deadnodes = self._v_file._deadNodes
-        revivenode = self._v_file._revivenode
-        # First, close the alive nodes and delete them
-        # so they are not placed in the limbo again.
-        # These two steps ensure tables are closed *before* their indices.
-        closenodes(prefix,
-                   [path for path in alivenodes
-                        if '/_i_' not in path],  # not indices
-                   lambda path: alivenodes[path])
-        # Close everything else (i.e. indices)
-        closenodes(prefix,
-                   [path for path in alivenodes],
-                   lambda path: alivenodes[path])
-
-        # Next, revive the dead nodes, close and delete them
-        # so they are not placed in the limbo again.
-        # These two steps ensure tables are closed *before* their indices.
-        closenodes(prefix,
-                   [path for path in deadnodes
-                        if '/_i_' not in path],  # not indices
-                   lambda path: revivenode(path))
-        # Close everything else (i.e. indices)
-        closenodes(prefix,
-                   [path for path in deadnodes],
-                   lambda path: revivenode(path))
+        node_manager = self._v_file._node_manager
+        node_manager.close_subtree(self._v_pathname)
 
     _g_closeDescendents = previous_api(_g_close_descendents)
 
     def _g_close(self):
         """Close this (open) group."""
 
-        # hdf5extension operations:
-        #   Close HDF5 group.
-        self._g_close_group()
+        if self._v_isopen:
+            # hdf5extension operations:
+            #   Close HDF5 group.
+            self._g_close_group()
 
         # Close myself as a node.
         super(Group, self)._f_close()
@@ -1051,22 +1005,22 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # `Node` objects when `createparents` is true.  Also, note that
         # there is no risk of creating parent nodes and failing later
         # because of destination nodes already existing.
-        dstParent = self._v_file._get_or_create_path(dstgroup, createparents)
-        self._g_check_group(dstParent)  # Is it a group?
+        dstparent = self._v_file._get_or_create_path(dstgroup, createparents)
+        self._g_check_group(dstparent)  # Is it a group?
 
         if not overwrite:
             # Abort as early as possible when destination nodes exist
             # and overwriting is not enabled.
             for childname in self._v_children:
-                if childname in dstParent:
+                if childname in dstparent:
                     raise NodeError(
                         "destination group ``%s`` already has "
                         "a node named ``%s``; "
                         "you may want to use the ``overwrite`` argument"
-                        % (dstParent._v_pathname, childname))
+                        % (dstparent._v_pathname, childname))
 
         for child in self._v_children.itervalues():
-            child._f_copy(dstParent, None, overwrite, recursive, **kwargs)
+            child._f_copy(dstparent, None, overwrite, recursive, **kwargs)
 
     _f_copyChildren = previous_api(_f_copy_children)
 
@@ -1079,7 +1033,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         ::
 
             >>> f=tables.open_file('data/test.h5')
-            >>> print f.root.group0
+            >>> print(f.root.group0)
             /group0 (Group) 'First Group'
 
         """
@@ -1104,8 +1058,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         """
 
-        rep = ['%r (%s)' % (childname, child.__class__.__name__)
-                    for (childname, child) in self._v_children.iteritems()]
+        rep = [
+            '%r (%s)' % (childname, child.__class__.__name__)
+            for (childname, child) in self._v_children.iteritems()
+        ]
         childlist = '[%s]' % (', '.join(rep))
 
         return "%s\n  children := %s" % (str(self), childlist)
@@ -1142,7 +1098,7 @@ class RootGroup(Group):
         # Only the root node has the file as a parent.
         # Bypass __setattr__ to avoid the ``Node._v_parent`` property.
         mydict['_v_parent'] = ptfile
-        ptfile._refnode(self, '/')
+        ptfile._node_manager.register_node(self, '/')
 
         # hdf5extension operations (do before setting an AttributeSet):
         #   Update node attributes.
@@ -1192,7 +1148,7 @@ class RootGroup(Group):
             # return ChildClass(self, childname)  # uncomment for debugging
             try:
                 return ChildClass(self, childname)
-            except Exception, exc:  # XXX
+            except Exception as exc:  # XXX
                 warnings.warn(
                     "problems loading leaf ``%s``::\n\n"
                     "  %s\n\n"
@@ -1271,6 +1227,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         This method empties all action storage kept in this node: nodes
         and attributes.
+
         """
 
         # Remove action storage nodes.

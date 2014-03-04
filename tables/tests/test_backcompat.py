@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import os
 import shutil
 import tempfile
@@ -24,11 +25,11 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
     #----------------------------------------
 
     def test01_readTable(self):
-        """Checking backward compatibility of old formats of tables"""
+        """Checking backward compatibility of old formats of tables."""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_readTable..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
         warnings.filterwarnings("ignore", category=UserWarning)
@@ -40,9 +41,9 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
         # Read the 100 records
         result = [rec['var2'] for rec in table]
         if common.verbose:
-            print "Nrows in", table._v_pathname, ":", table.nrows
-            print "Last record in table ==>", rec
-            print "Total selected records in table ==> ", len(result)
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last record in table ==>", rec)
+            print("Total selected records in table ==> ", len(result))
 
         self.assertEqual(len(result), 100)
         self.fileh.close()
@@ -74,11 +75,11 @@ class BackCompatAttrsTestCase(common.PyTablesTestCase):
     file = "zerodim-attrs-%s.h5"
 
     def test01_readAttr(self):
-        """Checking backward compatibility of old formats for attributes"""
+        """Checking backward compatibility of old formats for attributes."""
 
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_readAttr..." % self.__class__.__name__
+            print('\n', '-=' * 30)
+            print("Running %s.test01_readAttr..." % self.__class__.__name__)
 
         # Read old formats
         filename = self._testFilename(self.file)
@@ -109,7 +110,7 @@ class Attrs_1_4(BackCompatAttrsTestCase):
 class VLArrayTestCase(common.PyTablesTestCase):
 
     def test01_backCompat(self):
-        """Checking backward compatibility with old flavors of VLArray"""
+        """Checking backward compatibility with old flavors of VLArray."""
 
         # Open a PYTABLES_FORMAT_VERSION=1.6 file
         filename = self._testFilename("flavored_vlarrays-format1.6.h5")
@@ -218,6 +219,7 @@ class OldFlavorsTestCase02(common.PyTablesTestCase):
     close = True
 
 #----------------------------------------------------------------------
+
 
 def suite():
     theSuite = unittest.TestSuite()

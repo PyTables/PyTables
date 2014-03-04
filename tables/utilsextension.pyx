@@ -34,7 +34,7 @@ from tables._past import previous_api
 from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
-from libc.string cimport strchr, strcmp, strlen
+from libc.string cimport strchr, strcmp, strncmp, strlen
 from cpython.bytes cimport PyBytes_Check
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 
@@ -52,7 +52,8 @@ from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   H5Fopen, H5Gclose, H5Gopen, H5P_DEFAULT, H5T_ARRAY, H5T_BITFIELD,
   H5T_COMPOUND, H5T_CSET_ASCII, H5T_CSET_UTF8, H5T_C_S1, H5T_DIR_DEFAULT,
   H5T_ENUM, H5T_FLOAT, H5T_IEEE_F32BE, H5T_IEEE_F32LE, H5T_IEEE_F64BE,
-  H5T_IEEE_F64LE, H5T_INTEGER, H5T_NATIVE_LDOUBLE, H5T_NO_CLASS, H5T_OPAQUE,
+  H5T_IEEE_F64LE, H5T_INTEGER, H5T_NATIVE_DOUBLE, H5T_NATIVE_LDOUBLE,
+  H5T_NO_CLASS, H5T_OPAQUE,
   H5T_ORDER_BE, H5T_ORDER_LE, H5T_REFERENCE, H5T_STD_B8BE, H5T_STD_B8LE,
   H5T_STD_I16BE, H5T_STD_I16LE, H5T_STD_I32BE, H5T_STD_I32LE, H5T_STD_I64BE,
   H5T_STD_I64LE, H5T_STD_I8BE, H5T_STD_I8LE, H5T_STD_U16BE, H5T_STD_U16LE,
@@ -189,7 +190,10 @@ cdef extern from "utils.h":
 
 # Functions from Blosc
 cdef extern from "blosc.h" nogil:
+  void blosc_init()
   int blosc_set_nthreads(int nthreads)
+  char* blosc_list_compressors()
+  int blosc_compcode_to_compname(int compcode, char **compname)
 
 
 # @TODO: use the c_string_type and c_string_encoding global directives
@@ -211,7 +215,8 @@ cdef str cstr_to_pystr(const_char* cstring):
 import_array()
 
 cdef register_blosc_():
-  cdef char *version, *date
+  cdef char *version
+  cdef char *date
 
   register_blosc(&version, &date)
   compinfo = (version, date)
@@ -234,13 +239,14 @@ def _arch_without_blosc():
     for a in ["arm", "sparc", "mips"]:
         if a in arch:
             return True
-        return False
+    return False
 
 # Only register bloc compressor on platforms that actually support it.
 if _arch_without_blosc():
     blosc_version = None
 else:
     blosc_version = register_blosc_()
+    blosc_init()  # from 1.2 on, Blosc library must be initialized
 
 
 # Important: Blosc calls that modifies global variables in Blosc must be
@@ -380,6 +386,14 @@ silenceHDF5Messages = previous_api(silence_hdf5_messages)
 
 # Disable automatic HDF5 error logging
 silence_hdf5_messages()
+
+
+def _broken_hdf5_long_double():
+    # HDF5 < 1.8.12 has a bug that prevents correct identification of the
+    # long double data type when the code is built with gcc 4.8.
+    # See also: http://hdf-forum.184993.n3.nabble.com/Issues-with-H5T-NATIVE-LDOUBLE-tt4026450.html
+
+    return H5Tget_order(H5T_NATIVE_DOUBLE) != H5Tget_order(H5T_NATIVE_LDOUBLE)
 
 
 # Helper functions
@@ -569,11 +583,11 @@ def is_hdf5_file(object filename):
 
   """
 
+  # Check that the file exists and is readable.
+  check_file_access(filename)
+
   # Encode the filename in case it is unicode
   encname = encode_filename(filename)
-
-  # Check that the file exists and is readable.
-  check_file_access(encname)
 
   ret = H5Fis_hdf5(encname)
   if ret < 0:
@@ -675,7 +689,7 @@ def which_lib_version(str name):
     if bzip2_version:
       (bzip2_version_string, bzip2_version_date) = bzip2_version
       return (bzip2_version, bzip2_version_string, bzip2_version_date)
-  elif strcmp(cname, "blosc") == 0:
+  elif strncmp(cname, "blosc", 5) == 0:
     if blosc_version:
       (blosc_version_string, blosc_version_date) = blosc_version
       return (blosc_version, blosc_version_string, blosc_version_date)
@@ -690,18 +704,66 @@ def which_lib_version(str name):
 whichLibVersion = previous_api(which_lib_version)
 
 
+# A function returning all the compressors supported by local Blosc
+def blosc_compressor_list():
+  """
+  blosc_compressor_list()
+
+  Returns a list of compressors available in the Blosc build.
+
+  Parameters
+  ----------
+  None
+
+  Returns
+  -------
+  out : list
+      The list of names.
+  """
+  list_compr = blosc_list_compressors().decode()
+  clist = [str(cname) for cname in list_compr.split(',')]
+  return clist
+
+
+# Convert compressor code to compressor name
+def blosc_compcode_to_compname_(compcode):
+  """
+  blosc_compcode_to_compname()
+
+  Returns the compressor name associated with compressor code.
+
+  Parameters
+  ----------
+  None
+
+  Returns
+  -------
+  out : string
+      The name of the compressor.
+  """
+  cdef char *cname
+  cdef object compname
+
+  compname = b"unknown (report this to developers)"
+  if blosc_compcode_to_compname(compcode, &cname) >= 0:
+    compname = cname
+  return compname.decode()
+
+
 def which_class(hid_t loc_id, object name):
   """Detects a class ID using heuristics."""
 
   cdef H5T_class_t  class_id
   cdef H5D_layout_t layout
   cdef hsize_t      nfields
-  cdef char         *field_name1, *field_name2
+  cdef char         *field_name1
+  cdef char         *field_name2
   cdef int          i
   cdef hid_t        type_id, dataset_id
   cdef object       classId
   cdef int          rank
-  cdef hsize_t      *dims, *maxdims
+  cdef hsize_t      *dims
+  cdef hsize_t      *maxdims
   cdef char         byteorder[11]  # "irrelevant" fits easily here
   cdef bytes        encoded_name
 
@@ -985,10 +1047,8 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
 enumFromHDF5 = previous_api(enum_from_hdf5)
 
 
-def enum_to_hdf5(object enumAtom, str byteorder):
-  """enum_to_hdf5(enumAtom, byteorder) -> hid_t
-
-  Convert a PyTables enumerated type to an HDF5 one.
+def enum_to_hdf5(object enum_atom, str byteorder):
+  """Convert a PyTables enumerated type to an HDF5 one.
 
   This function creates an HDF5 enumerated type from the information
   contained in `enumAtom` (an ``Atom`` object), with the specified
@@ -997,41 +1057,48 @@ def enum_to_hdf5(object enumAtom, str byteorder):
 
   """
 
-  cdef bytes  name
-  cdef hid_t  baseId, enumId
-  cdef long   bytestride, i
-  cdef void  *rbuffer, *rbuf
-  cdef ndarray npValues
-  cdef object baseAtom
+  cdef bytes   name
+  cdef hid_t   base_id, enum_id
+  cdef long    bytestride, i
+  cdef void    *rbuffer
+  cdef void    *rbuf
+  cdef ndarray values
+  cdef object  base_atom
 
   # Get the base HDF5 type and create the enumerated type.
-  baseAtom = Atom.from_dtype(enumAtom.dtype.base)
-  baseId = atom_to_hdf5_type(baseAtom, byteorder)
+  base_atom = Atom.from_dtype(enum_atom.dtype.base)
+  base_id = atom_to_hdf5_type(base_atom, byteorder)
 
   try:
-    enumId = H5Tenum_create(baseId)
-    if enumId < 0:
+    enum_id = H5Tenum_create(base_id)
+    if enum_id < 0:
       raise HDF5ExtError("failed to create HDF5 enumerated type")
   finally:
-    if H5Tclose(baseId) < 0:
+    if H5Tclose(base_id) < 0:
       raise HDF5ExtError("failed to close HDF5 base type")
 
   # Set the name and value of each of the members.
-  npNames = enumAtom._names
-  npValues = enumAtom._values
-  bytestride = npValues.strides[0]
-  rbuffer = npValues.data
-  for i from 0 <= i < len(npNames):
-    name = npNames[i].encode('utf-8')
+  names = enum_atom._names
+  values = enum_atom._values
+  bytestride = values.strides[0]
+  rbuffer = values.data
+
+  i = names.index(enum_atom._defname)
+  idx = list(range(len(names)))
+  idx.pop(i)
+  idx.insert(0, i)
+
+  for i in idx:
+    name = names[i].encode('utf-8')
     rbuf = <void *>(<char *>rbuffer + bytestride * i)
-    if H5Tenum_insert(enumId, name, rbuf) < 0:
+    if H5Tenum_insert(enum_id, name, rbuf) < 0:
       e = HDF5ExtError("failed to insert value into HDF5 enumerated type")
-      if H5Tclose(enumId) < 0:
+      if H5Tclose(enum_id) < 0:
         raise HDF5ExtError("failed to close HDF5 enumerated type")
       raise e
 
   # Return the new, open HDF5 enumerated type.
-  return enumId
+  return enum_id
 
 
 enumToHDF5 = previous_api(enum_to_hdf5)
@@ -1276,16 +1343,16 @@ def atom_from_hdf5_type(hid_t type_id, pure_numpy_types=False):
   """
 
   cdef object stype, shape, atom_, sctype, tsize, kind
-  cdef object dflt, base, enum, nptype
+  cdef object dflt, base, enum_, nptype
 
   stype, shape = hdf5_to_np_ext_type(type_id, pure_numpy_types, atom=True)
   # Create the Atom
   if stype == 'e':
-    (enum, nptype) = load_enum(type_id)
+    (enum_, nptype) = load_enum(type_id)
     # Take one of the names as the default in the enumeration.
-    dflt = next(iter(enum))[0]
+    dflt = next(iter(enum_))[0]
     base = Atom.from_dtype(nptype)
-    atom_ = EnumAtom(enum, dflt, base, shape=shape)
+    atom_ = EnumAtom(enum_, dflt, base, shape=shape)
   else:
     kind = npext_prefixes_to_ptkinds[stype[0]]
     tsize = int(stype[1:])

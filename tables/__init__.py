@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""PyTables, hierarchical datasets in Python
+"""PyTables, hierarchical datasets in Python.
 
 :URL: http://www.pytables.org/
 
@@ -30,8 +30,8 @@ if os.name == 'nt':
     def _load_library(dllname, loadfunction, dllpaths=('', )):
         """Load a DLL via ctypes load function. Return None on failure.
 
-        By default, try to load the DLL from the current package directory
-        first, then from the Windows DLL search path.
+        By default, try to load the DLL from the current package
+        directory first, then from the Windows DLL search path.
 
         """
         try:
@@ -59,7 +59,7 @@ if os.name == 'nt':
 
     # In order to improve diagnosis of a common Windows dependency
     # issue, we explicitly test that we can load the HDF5 dll before
-    # loading tables.utilsExtensions.
+    # loading tables.utilsextensions.
     if not _load_library('hdf5dll.dll', ctypes.cdll.LoadLibrary):
         raise ImportError(
             'Could not load "hdf5dll.dll", please ensure'
@@ -79,7 +79,9 @@ if os.name == 'nt':
 
 
 # Necessary imports to get versions stored on the cython extension
-from tables.utilsextension import (get_pytables_version, get_hdf5_version,
+from tables.utilsextension import (
+    get_pytables_version, get_hdf5_version, blosc_compressor_list,
+    blosc_compcode_to_compname_ as blosc_compcode_to_compname,
     getPyTablesVersion, getHDF5Version)  # Pending Deprecation!
 
 
@@ -187,10 +189,30 @@ if 'Float16Atom' in locals():
     # float16 is new in numpy 1.6.0
     __all__.extend(('Float16Atom', 'Float16Col'))
 
-if 'Float96Atom' in locals():
-    __all__.extend(('Float96Atom', 'Float96Col'))
-    __all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
 
-if 'Float128Atom' in locals():
-    __all__.extend(('Float128Atom', 'Float128Col'))
-    __all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check
+from tables.utilsextension import _broken_hdf5_long_double
+if not _broken_hdf5_long_double():
+    if 'Float96Atom' in locals():
+        __all__.extend(('Float96Atom', 'Float96Col'))
+        __all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
+
+    if 'Float128Atom' in locals():
+        __all__.extend(('Float128Atom', 'Float128Col'))
+        __all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check
+
+else:
+
+    from tables import atom as _atom
+    from tables import description as _description
+    try:
+        del _atom.Float96Atom, _atom.Complex192Col
+        del _description.Float96Col, _description.Complex192Col
+        _atom.all_types.discard('complex192')
+        _atom.ComplexAtom._isizes.remove(24)
+    except AttributeError:
+        del _atom.Float128Atom, _atom.Complex256Atom
+        del _description.Float128Col, _description.Complex256Col
+        _atom.all_types.discard('complex256')
+        _atom.ComplexAtom._isizes.remove(32)
+    del _atom, _description
+del _broken_hdf5_long_double

@@ -1,0 +1,14 @@
+diff --git a/internal-complibs/lz4-r110/lz4.h b/internal-complibs/lz4-r110/lz4.h
+index af05dbc..33fcbe4 100644
+--- a/internal-complibs/lz4-r110/lz4.h
++++ b/internal-complibs/lz4-r110/lz4.h
+@@ -37,6 +37,9 @@
+ extern "C" {
+ #endif
+ 
++// The next is for getting the LZ4 version.
++// Please note that this is only defined in the Blosc sources of LZ4.
++#define LZ4_VERSION_STRING "r110"
+ 
+ //**************************************
+ // Compiler Options

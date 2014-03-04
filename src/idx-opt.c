@@ -8,6 +8,8 @@
  *-------------------------------------------------------------------------
  */
 
+#define NAN_AWARE_LT(a, b) (a < b || (b != b && a == a))
+
 /*-------------------------------------------------------------------------
  * Function: bisect_{left,right}_optim_*
  *
@@ -500,16 +502,16 @@ int keysort_f96(npy_float96 *start1, char *start2, npy_intp num, int ts)
     while ((pr - pl) > SMALL_QUICKSORT) {
       /* quicksort partition */
       pm = pl + ((pr - pl) >> 1); ipm = ipl + (((ipr - ipl)/ts) >> 1)*ts;
-      if (*pm < *pl) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
-      if (*pr < *pm) { SWAP(*pr, *pm); iSWAP(ipr, ipm); }
-      if (*pm < *pl) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
+      if (NAN_AWARE_LT(*pm, *pl)) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
+      if (NAN_AWARE_LT(*pr, *pm)) { SWAP(*pr, *pm); iSWAP(ipr, ipm); }
+      if (NAN_AWARE_LT(*pm, *pl)) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
       vp = *pm;
       pi = pl; ipi = ipl;
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-        do { ++pi; ipi += ts; } while (*pi < vp);
-        do { --pj; ipj -= ts; } while (vp < *pj);
+        do { ++pi; ipi += ts; } while (NAN_AWARE_LT(*pi, vp));
+        do { --pj; ipj -= ts; } while (NAN_AWARE_LT(vp, *pj));
         if (pi >= pj)  break;
         SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
@@ -529,7 +531,7 @@ int keysort_f96(npy_float96 *start1, char *start2, npy_intp num, int ts)
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-          pj > pl && vp < *pt;) {
+          pj > pl && NAN_AWARE_LT(vp, *pt);) {
         *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
@@ -568,16 +570,16 @@ int keysort_f128(npy_float128 *start1, char *start2, npy_intp num, int ts)
     while ((pr - pl) > SMALL_QUICKSORT) {
       /* quicksort partition */
       pm = pl + ((pr - pl) >> 1); ipm = ipl + (((ipr - ipl)/ts) >> 1)*ts;
-      if (*pm < *pl) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
-      if (*pr < *pm) { SWAP(*pr, *pm); iSWAP(ipr, ipm); }
-      if (*pm < *pl) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
+      if (NAN_AWARE_LT(*pm, *pl)) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
+      if (NAN_AWARE_LT(*pr, *pm)) { SWAP(*pr, *pm); iSWAP(ipr, ipm); }
+      if (NAN_AWARE_LT(*pm, *pl)) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
       vp = *pm;
       pi = pl; ipi = ipl;
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-        do { ++pi; ipi += ts; } while (*pi < vp);
-        do { --pj; ipj -= ts; } while (vp < *pj);
+        do { ++pi; ipi += ts; } while (NAN_AWARE_LT(*pi, vp));
+        do { --pj; ipj -= ts; } while (NAN_AWARE_LT(vp, *pj));
         if (pi >= pj)  break;
         SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
@@ -597,7 +599,7 @@ int keysort_f128(npy_float128 *start1, char *start2, npy_intp num, int ts)
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-          pj > pl && vp < *pt;) {
+          pj > pl && NAN_AWARE_LT(vp, *pt);) {
         *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
@@ -636,16 +638,16 @@ int keysort_f64(npy_float64 *start1, char *start2, npy_intp num, int ts)
     while ((pr - pl) > SMALL_QUICKSORT) {
       /* quicksort partition */
       pm = pl + ((pr - pl) >> 1); ipm = ipl + (((ipr - ipl)/ts) >> 1)*ts;
-      if (*pm < *pl) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
-      if (*pr < *pm) { SWAP(*pr, *pm); iSWAP(ipr, ipm); }
-      if (*pm < *pl) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
+      if (NAN_AWARE_LT(*pm, *pl)) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
+      if (NAN_AWARE_LT(*pr, *pm)) { SWAP(*pr, *pm); iSWAP(ipr, ipm); }
+      if (NAN_AWARE_LT(*pm, *pl)) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
       vp = *pm;
       pi = pl; ipi = ipl;
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-        do { ++pi; ipi += ts; } while (*pi < vp);
-        do { --pj; ipj -= ts; } while (vp < *pj);
+        do { ++pi; ipi += ts; } while (NAN_AWARE_LT(*pi, vp));
+        do { --pj; ipj -= ts; } while (NAN_AWARE_LT(vp, *pj));
         if (pi >= pj)  break;
         SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
@@ -665,7 +667,7 @@ int keysort_f64(npy_float64 *start1, char *start2, npy_intp num, int ts)
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-          pj > pl && vp < *pt;) {
+          pj > pl && NAN_AWARE_LT(vp, *pt);) {
         *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);
@@ -704,16 +706,16 @@ int keysort_f32(npy_float32 *start1, char *start2, npy_intp num, int ts)
     while ((pr - pl) > SMALL_QUICKSORT) {
       /* quicksort partition */
       pm = pl + ((pr - pl) >> 1); ipm = ipl + (((ipr - ipl)/ts) >> 1)*ts;
-      if (*pm < *pl) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
-      if (*pr < *pm) { SWAP(*pr, *pm); iSWAP(ipr, ipm); }
-      if (*pm < *pl) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
+      if (NAN_AWARE_LT(*pm, *pl)) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
+      if (NAN_AWARE_LT(*pr, *pm)) { SWAP(*pr, *pm); iSWAP(ipr, ipm); }
+      if (NAN_AWARE_LT(*pm, *pl)) { SWAP(*pm, *pl); iSWAP(ipm, ipl); }
       vp = *pm;
       pi = pl; ipi = ipl;
       pj = pr - 1; ipj = ipr - ts;
       SWAP(*pm, *pj); iSWAP(ipm, ipj);
       for(;;) {
-        do { ++pi; ipi += ts; } while (*pi < vp);
-        do { --pj; ipj -= ts; } while (vp < *pj);
+        do { ++pi; ipi += ts; } while (NAN_AWARE_LT(*pi, vp));
+        do { --pj; ipj -= ts; } while (NAN_AWARE_LT(vp, *pj));
         if (pi >= pj)  break;
         SWAP(*pi, *pj); iSWAP(ipi, ipj);
       }
@@ -733,7 +735,7 @@ int keysort_f32(npy_float32 *start1, char *start2, npy_intp num, int ts)
     for(pi = pl + 1, ipi = ipl + ts; pi <= pr; ++pi, ipi += ts) {
       vp = *pi; opt_memcpy(ivp, ipi, ts);
       for(pj = pi, pt = pi - 1, ipj = ipi, ipt = ipi - ts; \
-          pj > pl && vp < *pt;) {
+          pj > pl && NAN_AWARE_LT(vp, *pt);) {
         *pj-- = *pt--; opt_memcpy(ipj, ipt, ts); ipj -= ts; ipt -= ts;
       }
       *pj = vp; opt_memcpy(ipj, ivp, ts);

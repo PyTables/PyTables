@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""PyTables nodes"""
+"""PyTables nodes."""
 
 import warnings
 
@@ -310,31 +310,25 @@ class Node(object):
         if not self._v_isopen:
             return  # the node is already closed or not initialized
 
+        self._v__deleting = True
+
         # If we get here, the `Node` is still open.
-        file_ = self._v_file
-        if self._v_pathname in file_._aliveNodes:
-            # If the node is alive, kill it (to save it).
-            file_._killnode(self)
-        elif file_._aliveNodes.hasdeadnodes:
-            # The node is already dead and there are no references to it,
-            # so follow the usual deletion procedure.
-            # This means closing the (still open) node.
-            # `self._v__deleting` is asserted so that the node
-            # does not try to unreference itself again from the file.
-            self._v__deleting = True
-            self._f_close()
+        try:
+            node_manager = self._v_file._node_manager
+            node_manager.drop_node(self, check_unregistered=False)
+        finally:
+            # At this point the node can still be open if there is still some
+            # alive reference around (e.g. if the __del__ method is called
+            # explicitly by the user).
+            if self._v_isopen:
+                self._v__deleting = True
+                self._f_close()
 
     def _g_pre_kill_hook(self):
         """Code to be called before killing the node."""
         pass
 
     _g_preKillHook = previous_api(_g_pre_kill_hook)
-
-    def _g_post_revive_hook(self):
-        """Code to be called after reviving the node."""
-        pass
-
-    _g_postReviveHook = previous_api(_g_post_revive_hook)
 
     def _g_create(self):
         """Create a new HDF5 node and return its object identifier."""
@@ -400,7 +394,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                           % (self._v_pathname, self._v_maxtreedepth),
                           PerformanceWarning)
 
-        file_._refnode(self, self._v_pathname)
+        if self._v_pathname != '/':
+            file_._node_manager.cache_node(self, self._v_pathname)
 
     _g_setLocation = previous_api(_g_set_location)
 
@@ -432,9 +427,8 @@ moved descendent node is exceeding the recommended maximum depth (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                           % (self._v_maxtreedepth,), PerformanceWarning)
 
-        file_ = self._v_file
-        file_._unrefnode(oldpath)
-        file_._refnode(self, newpath)
+        node_manager = self._v_file._node_manager
+        node_manager.rename_node(oldpath, newpath)
 
         # Tell dependent objects about the new location of this node.
         self._g_update_dependent()
@@ -448,19 +442,20 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         """
 
-        file_ = self._v_file
+        node_manager = self._v_file._node_manager
         pathname = self._v_pathname
+
+        if not self._v__deleting:
+            node_manager.drop_from_cache(pathname)
+            # Note: node_manager.drop_node do not removes the node form the
+            # registry if it is still open
+            node_manager.registry.pop(pathname, None)
 
         self._v_file = None
         self._v_isopen = False
         self._v_pathname = None
         self._v_name = None
         self._v_depth = None
-
-        # If the node object is being deleted,
-        # it has already been unreferenced from the file.
-        if not self._v__deleting:
-            file_._unrefnode(pathname)
 
     _g_delLocation = previous_api(_g_del_location)
 
@@ -903,7 +898,8 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
     def _f_getattr(self, name):
         """Get a PyTables attribute from this node.
 
-        If the named attribute does not exist, an AttributeError is raised.
+        If the named attribute does not exist, an AttributeError is
+        raised.
 
         """
 
@@ -926,7 +922,8 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
     def _f_delattr(self, name):
         """Delete a PyTables attribute from this node.
 
-        If the named attribute does not exist, an AttributeError is raised.
+        If the named attribute does not exist, an AttributeError is
+        raised.
 
         """
 

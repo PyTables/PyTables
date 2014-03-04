@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import os
-import popen2
 import time
+
 import tables
 
 tref = time.time()
@@ -12,35 +13,34 @@ trel = tref
 def show_mem(explain):
     global tref, trel
 
-    cmd = "cat /proc/%s/status" % os.getpid()
-    sout, sin = popen2.popen2(cmd)
-    for line in sout:
-        if line.startswith("VmSize:"):
-            vmsize = int(line.split()[1])
-        elif line.startswith("VmRSS:"):
-            vmrss = int(line.split()[1])
-        elif line.startswith("VmData:"):
-            vmdata = int(line.split()[1])
-        elif line.startswith("VmStk:"):
-            vmstk = int(line.split()[1])
-        elif line.startswith("VmExe:"):
-            vmexe = int(line.split()[1])
-        elif line.startswith("VmLib:"):
-            vmlib = int(line.split()[1])
-    sout.close()
-    sin.close()
-    print "\nMemory usage: ******* %s *******" % explain
-    print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
-    print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
-    print "VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib)
-    print "WallClock time:", time.time() - tref,
-    print "  Delta time:", time.time() - trel
+    filename = "/proc/%s/status" % os.getpid()
+    with open(filename) as fd:
+        for line in fd:
+            if line.startswith("VmSize:"):
+                vmsize = int(line.split()[1])
+            elif line.startswith("VmRSS:"):
+                vmrss = int(line.split()[1])
+            elif line.startswith("VmData:"):
+                vmdata = int(line.split()[1])
+            elif line.startswith("VmStk:"):
+                vmstk = int(line.split()[1])
+            elif line.startswith("VmExe:"):
+                vmexe = int(line.split()[1])
+            elif line.startswith("VmLib:"):
+                vmlib = int(line.split()[1])
+
+    print("\nMemory usage: ******* %s *******" % explain)
+    print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
+    print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
+    print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
+    print("WallClock time:", time.time() - tref, end=' ')
+    print("  Delta time:", time.time() - trel)
     trel = time.time()
 
 
-def write_group(file, nchildren, niter):
+def write_group(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="w")
+        fileh = tables.open_file(filename, mode="w")
         for child in range(nchildren):
             fileh.create_group(fileh.root, 'group' + str(child),
                                "child: %d" % child)
@@ -49,9 +49,9 @@ def write_group(file, nchildren, niter):
         show_mem("After close")
 
 
-def read_group(file, nchildren, niter):
+def read_group(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="r")
+        fileh = tables.open_file(filename, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'group' + str(child))
             assert node is not None
@@ -63,9 +63,9 @@ def read_group(file, nchildren, niter):
         show_mem("After close")
 
 
-def write_array(file, nchildren, niter):
+def write_array(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="w")
+        fileh = tables.open_file(filename, mode="w")
         for child in range(nchildren):
             fileh.create_array(fileh.root, 'array' + str(child),
                                [1, 1], "child: %d" % child)
@@ -74,9 +74,9 @@ def write_array(file, nchildren, niter):
         show_mem("After close")
 
 
-def read_array(file, nchildren, niter):
+def read_array(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="r")
+        fileh = tables.open_file(filename, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'array' + str(child))
             # flavor = node._v_attrs.FLAVOR
@@ -94,9 +94,9 @@ def read_array(file, nchildren, niter):
         show_mem("After close")
 
 
-def write_carray(file, nchildren, niter):
+def write_carray(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="w")
+        fileh = tables.open_file(filename, mode="w")
         for child in range(nchildren):
             fileh.create_carray(fileh.root, 'array' + str(child),
                                 tables.IntAtom(), (2,), "child: %d" % child)
@@ -105,23 +105,23 @@ def write_carray(file, nchildren, niter):
         show_mem("After close")
 
 
-def read_carray(file, nchildren, niter):
+def read_carray(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="r")
+        fileh = tables.open_file(filename, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'array' + str(child))
             # flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
             assert data is not None
-            # print "data-->", data
+            # print("data-->", data)
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
 
 
-def write_earray(file, nchildren, niter):
+def write_earray(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="w")
+        fileh = tables.open_file(filename, mode="w")
         for child in range(nchildren):
             ea = fileh.create_earray(fileh.root, 'array' + str(child),
                                      tables.IntAtom(), shape=(0,),
@@ -132,23 +132,23 @@ def write_earray(file, nchildren, niter):
         show_mem("After close")
 
 
-def read_earray(file, nchildren, niter):
+def read_earray(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="r")
+        fileh = tables.open_file(filename, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'array' + str(child))
             # flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
             assert data is not None
-            # print "data-->", data
+            # print("data-->", data)
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
 
 
-def write_vlarray(file, nchildren, niter):
+def write_vlarray(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="w")
+        fileh = tables.open_file(filename, mode="w")
         for child in range(nchildren):
             vl = fileh.create_vlarray(fileh.root, 'array' + str(child),
                                       tables.IntAtom(), "child: %d" % child)
@@ -158,21 +158,21 @@ def write_vlarray(file, nchildren, niter):
         show_mem("After close")
 
 
-def read_vlarray(file, nchildren, niter):
+def read_vlarray(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="r")
+        fileh = tables.open_file(filename, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'array' + str(child))
             # flavor = node._v_attrs.FLAVOR
             data = node[:]  # Read data
             assert data is not None
-            # print "data-->", data
+            # print("data-->", data)
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
 
 
-def write_table(file, nchildren, niter):
+def write_table(filename, nchildren, niter):
 
     class Record(tables.IsDescription):
         var1 = tables.IntCol(pos=1)
@@ -180,7 +180,7 @@ def write_table(file, nchildren, niter):
         var3 = tables.FloatCol(pos=3)
 
     for i in range(niter):
-        fileh = tables.open_file(file, mode="w")
+        fileh = tables.open_file(filename, mode="w")
         for child in range(nchildren):
             t = fileh.create_table(fileh.root, 'table' + str(child),
                                    Record, "child: %d" % child)
@@ -190,21 +190,21 @@ def write_table(file, nchildren, niter):
         show_mem("After close")
 
 
-def read_table(file, nchildren, niter):
+def read_table(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="r")
+        fileh = tables.open_file(filename, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'table' + str(child))
             # klass = node._v_attrs.CLASS
             data = node[:]  # Read data
             assert data is not None
-            # print "data-->", data
+            # print("data-->", data)
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
 
 
-def write_xtable(file, nchildren, niter):
+def write_xtable(filename, nchildren, niter):
 
     class Record(tables.IsDescription):
         var1 = tables.IntCol(pos=1)
@@ -212,7 +212,7 @@ def write_xtable(file, nchildren, niter):
         var3 = tables.FloatCol(pos=3)
 
     for i in range(niter):
-        fileh = tables.open_file(file, mode="w")
+        fileh = tables.open_file(filename, mode="w")
         for child in range(nchildren):
             t = fileh.create_table(fileh.root, 'table' + str(child),
                                    Record, "child: %d" % child)
@@ -223,14 +223,14 @@ def write_xtable(file, nchildren, niter):
         show_mem("After close")
 
 
-def read_xtable(file, nchildren, niter):
+def read_xtable(filename, nchildren, niter):
     for i in range(niter):
-        fileh = tables.open_file(file, mode="r")
+        fileh = tables.open_file(filename, mode="r")
         for child in range(nchildren):
             node = fileh.get_node(fileh.root, 'table' + str(child))
             # klass = node._v_attrs.CLASS
             # data = node[:]  # Read data
-            # print "data-->", data
+            # print("data-->", data)
         show_mem("After reading data. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -238,134 +238,105 @@ def read_xtable(file, nchildren, niter):
 
 
 if __name__ == '__main__':
-    import sys
-    import getopt
     import pstats
+    import argparse
     import profile as prof
 
-    usage = """usage: %s [-v] [-p] [-a] [-c] [-e] [-l] [-t] [-x] [-g] [-r] [-w] [-c nchildren] [-n iter] file
-            -v verbose
-            -p profile
-            -a create/read arrays  (default)
-            -c create/read carrays
-            -e create/read earrays
-            -l create/read vlrrays
-            -t create/read tables
-            -x create/read indexed tables
-            -g create/read groups
-            -r only read test
-            -w only write test
-            -n number of children (4000 is the default)
-            -i number of iterations (default is 3)
-            \n"""
-    try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpaceltxgrwn:i:')
-    except:
-        sys.stderr.write(usage)
-        sys.exit(0)
+    def _get_parser():
+        parser = argparse.ArgumentParser(
+            description='Check for PyTables memory leaks.')
+        parser.add_argument('-v', '--verbose', action='store_true',
+                            help='enable verbose mode')
+        parser.add_argument('-p', '--profile', action='store_true',
+                            help='profile')
+        parser.add_argument('-a', '--array', action='store_true',
+                            help='create/read arrays (default)')
+        parser.add_argument('-c', '--carray', action='store_true',
+                            help='create/read carrays')
+        parser.add_argument('-e', '--earray', action='store_true',
+                            help='create/read earrays')
+        parser.add_argument('-l', '--vlarray', action='store_true',
+                            help='create/read vlarrays')
+        parser.add_argument('-t', '--table', action='store_true',
+                            help='create/read tables')
+        parser.add_argument('-x', '--indexed-table', action='store_true',
+                            dest='xtable', help='create/read indexed-tables')
+        parser.add_argument('-g', '--group', action='store_true',
+                            help='create/read groups')
+        parser.add_argument('-r', '--read', action='store_true',
+                            help='only read test')
+        parser.add_argument('-w', '--write', action='store_true',
+                            help='only write test')
+        parser.add_argument('-n', '--nchildren', type=int, default=1000,
+                            help='number of children (%(default)d is the '
+                                 'default)')
+        parser.add_argument('-i', '--niter', type=int, default=3,
+                            help='number of iterations (default: %(default)d)')
 
-    # if we pass too much parameters, abort
-    if len(pargs) != 1:
-        sys.stderr.write(usage)
-        sys.exit(0)
+        parser.add_argument('filename', help='HDF5 file name')
 
-    # default options
-    verbose = 0
-    profile = 0
-    array = 1
-    carray = 0
-    earray = 0
-    vlarray = 0
-    table = 0
-    xtable = 0
-    group = 0
-    write = 0
-    read = 0
-    nchildren = 1000
-    niter = 5
+        return parser
 
-    # Get the options
-    for option in opts:
-        if option[0] == '-v':
-            verbose = 1
-        elif option[0] == '-p':
-            profile = 1
-        elif option[0] == '-a':
-            carray = 1
-        elif option[0] == '-c':
-            array = 0
-            carray = 1
-        elif option[0] == '-e':
-            array = 0
-            earray = 1
-        elif option[0] == '-l':
-            array = 0
-            vlarray = 1
-        elif option[0] == '-t':
-            array = 0
-            table = 1
-        elif option[0] == '-x':
-            array = 0
-            xtable = 1
-        elif option[0] == '-g':
-            array = 0
-            cgroup = 1
-        elif option[0] == '-w':
-            write = 1
-        elif option[0] == '-r':
-            read = 1
-        elif option[0] == '-n':
-            nchildren = int(option[1])
-        elif option[0] == '-i':
-            niter = int(option[1])
+    parser = _get_parser()
+    args = parser.parse_args()
 
-    # Catch the hdf5 file passed as the last argument
-    file = pargs[0]
+    # set 'array' as default value if no ather option has been specified
+    for name in ('carray', 'earray', 'vlarray', 'table', 'xtable', 'group'):
+        if getattr(args, name):
+            break
+    else:
+        args.array = True
 
-    if array:
+    filename = args.filename
+    nchildren = args.nchildren
+    niter = args.niter
+
+    if args.array:
         fwrite = 'write_array'
         fread = 'read_array'
-    elif carray:
+    elif args.carray:
         fwrite = 'write_carray'
         fread = 'read_carray'
-    elif earray:
+    elif args.earray:
         fwrite = 'write_earray'
         fread = 'read_earray'
-    elif vlarray:
+    elif args.vlarray:
         fwrite = 'write_vlarray'
         fread = 'read_vlarray'
-    elif table:
+    elif args.table:
         fwrite = 'write_table'
         fread = 'read_table'
-    elif xtable:
+    elif args.xtable:
         fwrite = 'write_xtable'
         fread = 'read_xtable'
-    elif group:
+    elif args.group:
         fwrite = 'write_group'
         fread = 'read_group'
 
     show_mem("Before open")
-    if write:
-        if profile:
-            prof.run(str(fwrite)+'(file, nchildren, niter)', 'write_file.prof')
+    if args.write:
+        if args.profile:
+            prof.run(str(fwrite)+'(filename, nchildren, niter)',
+                     'write_file.prof')
             stats = pstats.Stats('write_file.prof')
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
-            if verbose:
+            if args.verbose:
                 stats.print_stats()
             else:
                 stats.print_stats(20)
         else:
-            eval(fwrite+'(file, nchildren, niter)')
-    if read:
-        if profile:
-            prof.run(fread+'(file, nchildren, niter)', 'read_file.prof')
+            eval(fwrite+'(filename, nchildren, niter)')
+    if args.read:
+        if args.profile:
+            prof.run(fread+'(filename, nchildren, niter)', 'read_file.prof')
             stats = pstats.Stats('read_file.prof')
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
-            if verbose:
+            if args.verbose:
+                print('profile -verbose')
                 stats.print_stats()
             else:
                 stats.print_stats(20)
         else:
-            eval(fread+'(file, nchildren, niter)')
+            eval(fread+'(filename, nchildren, niter)')

@@ -21,7 +21,7 @@ from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 
 from tables.utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
-                          byteorders)
+                          byteorders, quantize)
 from tables.leaf import Leaf
 
 from tables._past import previous_api, previous_api_property
@@ -319,7 +319,7 @@ class Array(hdf5extension.Array, Leaf):
         return self
 
     def _init_loop(self):
-        """Initialization for the __iter__ iterator"""
+        """Initialization for the __iter__ iterator."""
 
         self._nrowsread = self._start
         self._startb = self._start
@@ -340,6 +340,7 @@ class Array(hdf5extension.Array, Leaf):
         # listarr buffer
         if self._nrowsread >= self._stop:
             self._init = False
+            self.listarr = None        # fixes issue #308
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
@@ -456,7 +457,7 @@ class Array(hdf5extension.Array, Leaf):
         # Internal functions
 
         def validate_number(num, length):
-            """Validate a list member for the given axis length"""
+            """Validate a list member for the given axis length."""
 
             try:
                 num = long(num)
@@ -704,6 +705,12 @@ class Array(hdf5extension.Array, Leaf):
         if nparr.size == 0:
             return
 
+        # truncate data if least_significant_digit filter is set
+        # TODO: add the least_significant_digit attribute to the array on disk
+        if (self.filters.least_significant_digit is not None and
+                not numpy.issubdtype(nparr.dtype, int)):
+            nparr = quantize(nparr, self.filters.least_significant_digit)
+
         try:
             startl, stopl, stepl, shape = self._interpret_indexing(key)
             self._write_slice(startl, stopl, stepl, shape, nparr)
@@ -724,19 +731,16 @@ class Array(hdf5extension.Array, Leaf):
 
         """
 
-        if nparr.shape != slice_shape:
+        if nparr.shape != (slice_shape + self.atom.dtype.shape):
             # Create an array compliant with the specified shape
             narr = numpy.empty(shape=slice_shape, dtype=self.atom.dtype)
-            # Assign the value to it
-            try:
-                narr[...] = nparr
-            except Exception, exc:  # XXX
-                raise ValueError("value parameter '%s' cannot be converted "
-                                 "into an array object compliant with %s: "
-                                 "'%r' The error was: <%s>" % (
-                                 nparr, self.__class__.__name__, self, exc))
+
+            # Assign the value to it. It will raise a ValueError exception
+            # if the objects cannot be broadcast to a single shape.
+            narr[...] = nparr
             return narr
-        return nparr
+        else:
+            return nparr
 
     _checkShape = previous_api(_check_shape)
 
@@ -769,7 +773,11 @@ class Array(hdf5extension.Array, Leaf):
     _readCoords = previous_api(_read_coords)
 
     def _read_selection(self, selection, reorder, shape):
-        """Read a `selection`.  Reorder if necessary."""
+        """Read a `selection`.
+
+        Reorder if necessary.
+
+        """
 
         # Create the container for the slice
         nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
@@ -809,7 +817,11 @@ class Array(hdf5extension.Array, Leaf):
     _writeCoords = previous_api(_write_coords)
 
     def _write_selection(self, selection, reorder, shape, nparr):
-        """Write `nparr` in `selection`.  Reorder if necessary."""
+        """Write `nparr` in `selection`.
+
+        Reorder if necessary.
+
+        """
 
         nparr = self._check_shape(nparr, tuple(shape))
         # Check whether we should reorder the array
@@ -894,7 +906,7 @@ class Array(hdf5extension.Array, Leaf):
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
                            title, filters, chunkshape, _log, **kwargs):
-        """Private part of Leaf.copy() for each kind of leaf"""
+        """Private part of Leaf.copy() for each kind of leaf."""
 
         # Compute the correct indices.
         (start, stop, step) = self._process_range_read(start, stop, step)
@@ -932,9 +944,9 @@ class Array(hdf5extension.Array, Leaf):
 class ImageArray(Array):
     """Array containing an image.
 
-    This class has no additional behaviour or functionality compared
-    to that of an ordinary array.  It simply enables the user to open
-    an ``IMAGE`` HDF5 node as a normal `Array` node in PyTables.
+    This class has no additional behaviour or functionality compared to
+    that of an ordinary array.  It simply enables the user to open an
+    ``IMAGE`` HDF5 node as a normal `Array` node in PyTables.
 
     """
 

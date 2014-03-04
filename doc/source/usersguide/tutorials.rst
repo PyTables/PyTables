@@ -18,10 +18,8 @@ reference in :ref:`library_reference`. If you are reading this in PDF or HTML
 formats, follow the corresponding hyperlink near each newly introduced
 entity.
 
-Please note that throughout this document the terms
-*column* and *field* will be used
-interchangeably, as will the terms *row* and
-*record*.
+Please note that throughout this document the terms *column* and *field*
+will be used interchangeably, as will the terms *row* and *record*.
 
 .. currentmodule:: tables
 
@@ -158,7 +156,7 @@ Table instance is created and assigned to the variable *table*.
 If you are curious about how the object tree looks right now, simply print
 the File instance variable *h5file*, and examine the output::
 
-    >>> print h5file
+    >>> print(h5file)
     tutorial1.h5 (File) 'Test file'
     Last modif.: 'Wed Mar  7 11:06:12 2007'
     Object Tree:
@@ -260,9 +258,8 @@ data in table is exhausted. These rows are filtered using the expression::
 
     x['TDCcount'] > 3 and 20 <= x['pressure'] < 50
 
-So, we are selecting the values of the pressure
-column from filtered records to create the final list and assign it to
-pressure variable.
+So, we are selecting the values of the pressure column from filtered records
+to create the final list and assign it to pressure variable.
 
 We could have used a normal for loop to accomplish the same purpose, but I
 find comprehension syntax to be more compact and elegant.
@@ -283,6 +280,38 @@ In-kernel and indexed queries are not only much faster, but as you can see,
 they also look more compact, and are among the greatests features for
 PyTables, so be sure that you use them a lot. See :ref:`condition_syntax` and
 :ref:`searchOptim` for more information on in-kernel and indexed selections.
+
+.. note::
+
+    A special care should be taken when the query condition includes
+    string literals.  Indeed Python 2 string literals are string of
+    bytes while Python 3 strings are unicode objects.
+
+    With reference to the above definition of :class:`Particle` it has to be
+    noted that the type of the "name" column do not change depending on the
+    Python version used (of course).
+    It always corresponds to strings of bytes.
+
+    Any condition involving the "name" column should be written using the
+    appropriate type for string literals in order to avoid
+    :exc:`TypeError`\ s.
+
+    Suppose one wants to get rows corresponding to specific particle names.
+
+    The code below will work fine in Python 2 but will fail with a
+    :exc:`TypeError` in Python 3::
+
+        >>> condition = '(name == "Particle:      5") | (name == "Particle:      7")'
+        >>> for record in table.where(condition):  # TypeError in Python3
+        ...     # do something with "record"
+
+    The reason is that in Python 3 "condition" implies a comparison
+    between a string of bytes ("name" column contents) and an unicode
+    literals.
+
+    The correct way to write the condition is::
+
+        >>> condition = '(name == b"Particle:      5") | (name == b"Particle:      7")'
 
 That's enough about selections for now. The next section will show you how to
 save these selected results to a file.
@@ -342,7 +371,7 @@ show the kind of object we have created by displaying its representation. The
 Array objects have been attached to the object tree and saved to disk, as you
 can see if you print the complete object tree::
 
-    >>> print h5file
+    >>> print(h5file)
     tutorial1.h5 (File) 'Test file'
     Last modif.: 'Wed Mar  7 19:40:44 2007'
     Object Tree:
@@ -446,7 +475,7 @@ object tree as well as search the tree.
 To start with, you can get a preliminary overview of the object tree by
 simply printing the existing File instance::
 
-    >>> print h5file
+    >>> print(h5file)
     tutorial1.h5 (File) 'Test file'
     Last modif.: 'Wed Mar  7 19:50:57 2007'
     Object Tree:
@@ -461,7 +490,7 @@ It looks like all of our objects are there. Now let's make use of the File
 iterator to see how to list all the nodes in the object tree::
 
     >>> for node in h5file:
-    ...     print node
+    ...     print(node)
     / (RootGroup) 'Test file'
     /columns (Group) 'Pressure and Name'
     /detector (Group) 'Detector information'
@@ -473,7 +502,7 @@ We can use the :meth:`File.walk_groups` method of the File class to list only
 the *groups* on tree::
 
     >>> for group in h5file.walk_groups():
-    ...     print group
+    ...     print(group)
     / (RootGroup) 'Test file'
     /columns (Group) 'Pressure and Name'
     /detector (Group) 'Detector information'
@@ -484,7 +513,7 @@ combination. Let's see an example listing of all the arrays in the tree::
 
     >>> for group in h5file.walk_groups("/"):
     ...     for array in h5file.list_nodes(group, classname='Array'):
-    ...         print array
+    ...         print(array)
     /columns/name (Array(3,)) 'Name column selection'
     /columns/pressure (Array(3,)) 'Pressure column selection'
 
@@ -499,7 +528,7 @@ We can combine both calls by using the :meth:`File.walk_nodes` special method
 of the File object. For example::
 
     >>> for array in h5file.walk_nodes("/", "Array"):
-    ...     print array
+    ...     print(array)
     /columns/name (Array(3,)) 'Name column selection'
     /columns/pressure (Array(3,)) 'Pressure column selection'
 
@@ -511,7 +540,7 @@ Finally, we will list all the Leaf, i.e. Table and Array instances (see
 readout) will be selected in this group (as should be the case)::
 
     >>> for leaf in h5file.root.detector._f_walknodes('Leaf'):
-    ...     print leaf
+    ...     print(leaf)
     /detector/readout (Table(10,)) 'Readout example'
 
 We have used a call to the :meth:`Group._f_walknodes` method, using the
@@ -598,15 +627,15 @@ We've got all the attributes (including the *system* attributes). You can get
 a list of *all* attributes or only the *user* or *system* attributes with the
 _f_list() method::
 
-    >>> print table.attrs._f_list("all")
+    >>> print(table.attrs._f_list("all"))
     ['CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL', 'FIELD_1_NAME',
     'FIELD_2_FILL', 'FIELD_2_NAME', 'FIELD_3_FILL', 'FIELD_3_NAME', 'FIELD_4_FILL',
     'FIELD_4_NAME', 'FIELD_5_FILL', 'FIELD_5_NAME', 'FIELD_6_FILL', 'FIELD_6_NAME',
     'FIELD_7_FILL', 'FIELD_7_NAME', 'FLAVOR', 'NROWS', 'TITLE', 'VERSION',
     'temp_scale', 'temperature']
-    >>> print table.attrs._f_list("user")
+    >>> print(table.attrs._f_list("user"))
     ['temp_scale', 'temperature']
-    >>> print table.attrs._f_list("sys")
+    >>> print(table.attrs._f_list("sys"))
     ['CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL', 'FIELD_1_NAME',
     'FIELD_2_FILL', 'FIELD_2_NAME', 'FIELD_3_FILL', 'FIELD_3_NAME', 'FIELD_4_FILL',
     'FIELD_4_NAME', 'FIELD_5_FILL', 'FIELD_5_NAME', 'FIELD_6_FILL', 'FIELD_6_NAME',
@@ -615,7 +644,7 @@ _f_list() method::
 You can also rename attributes::
 
     >>> table.attrs._f_rename("temp_scale","tempScale")
-    >>> print table.attrs._f_list()
+    >>> print(table.attrs._f_list())
     ['tempScale', 'temperature']
 
 And, from PyTables 2.0 on, you are allowed also to set, delete or rename
@@ -722,18 +751,18 @@ Each object in PyTables has *metadata* information about the data in the
 file. Normally this *meta-information* is accessible through the node
 instance variables. Let's take a look at some examples::
 
-    >>> print "Object:", table
+    >>> print("Object:", table)
     Object: /detector/readout (Table(10,)) 'Readout example'
-    >>> print "Table name:", table.name
+    >>> print("Table name:", table.name)
     Table name: readout
-    >>> print "Table title:", table.title
+    >>> print("Table title:", table.title)
     Table title: Readout example
-    >>> print "Number of rows in table:", table.nrows
+    >>> print("Number of rows in table:", table.nrows)
     Number of rows in table: 10
-    >>> print "Table variable names with their type and shape:"
+    >>> print("Table variable names with their type and shape:")
     Table variable names with their type and shape:
     >>> for name in table.colnames:
-    ...     print name, ':= %s, %s' % (table.coldtypes[name], table.coldtypes[name].shape)
+    ...     print(name, ':= %s, %s' % (table.coldtypes[name], table.coldtypes[name].shape))
     ADCcount := uint16, ()
     TDCcount := uint8, ()
     energy := float64, ()
@@ -810,18 +839,18 @@ Try getting help with other object docs by yourself::
 To examine metadata in the */columns/pressure* Array object::
 
     >>> pressureObject = h5file.get_node("/columns", "pressure")
-    >>> print "Info on the object:", repr(pressureObject)
+    >>> print("Info on the object:", repr(pressureObject))
     Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
       atom := Float64Atom(shape=(), dflt=0.0)
       maindim := 0
       flavor := 'numpy'
       byteorder := 'little'
       chunkshape := None
-    >>> print "  shape: ==>", pressureObject.shape
+    >>> print("  shape: ==>", pressureObject.shape)
       shape: ==> (3,)
-    >>> print "  title: ==>", pressureObject.title
+    >>> print("  title: ==>", pressureObject.title)
       title: ==> Pressure column selection
-    >>> print "  atom: ==>", pressureObject.atom
+    >>> print("  atom: ==>", pressureObject.atom)
       atom: ==> Float64Atom(shape=(), dflt=0.0)
 
 Observe that we have used the :meth:`File.get_node` method of the File class
@@ -852,16 +881,16 @@ object to retrieve its data::
     >>> pressureArray = pressureObject.read()
     >>> pressureArray
     array([ 25.,  36.,  49.])
-    >>> print "pressureArray is an object of type:", type(pressureArray)
+    >>> print("pressureArray is an object of type:", type(pressureArray))
     pressureArray is an object of type: <type 'numpy.ndarray'>
     >>> nameArray = h5file.root.columns.name.read()
-    >>> print "nameArray is an object of type:", type(nameArray)
+    >>> print("nameArray is an object of type:", type(nameArray))
     nameArray is an object of type: <type 'list'>
     >>>
-    >>> print "Data on arrays nameArray and pressureArray:"
+    >>> print("Data on arrays nameArray and pressureArray:")
     Data on arrays nameArray and pressureArray:
     >>> for i in range(pressureObject.shape[0]):
-    ...     print nameArray[i], "-->", pressureArray[i]
+    ...     print(nameArray[i], "-->", pressureArray[i])
     Particle:      5 --> 25.0
     Particle:      6 --> 36.0
     Particle:      7 --> 49.0
@@ -925,9 +954,9 @@ Let's have a look at some rows in the modified table and verify that our new
 data has been appended::
 
     >>> for r in table.iterrows():
-    ...     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d \|" % \\
+    ...     print("%-16s | %11.1f | %11.4g | %6d | %6d | %8d \|" % \\
     ...         (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
-    ...         r['TDCcount'])
+    ...         r['TDCcount']))
     Particle:      0 |         0.0 |           0 |      0 |     10 |        0 |
     Particle:      1 |         1.0 |           1 |      1 |      9 |        1 |
     Particle:      2 |         4.0 |         256 |      2 |      8 |        2 |
@@ -954,19 +983,19 @@ world data to adapt your goals ;).
 Let's see how we can modify the values that were saved in our existing tables.
 We will start modifying single cells in the first row of the Particle table::
 
-    >>> print "Before modif-->", table[0]
+    >>> print("Before modif-->", table[0])
     Before modif--> (0, 0, 0.0, 0, 10, 0L, 'Particle:      0', 0.0)
     >>> table.cols.TDCcount[0] = 1
-    >>> print "After modifying first row of ADCcount-->", table[0]
+    >>> print("After modifying first row of ADCcount-->", table[0])
     After modifying first row of ADCcount--> (0, 1, 0.0, 0, 10, 0L, 'Particle:      0', 0.0)
     >>> table.cols.energy[0] = 2
-    >>> print "After modifying first row of energy-->", table[0]
+    >>> print("After modifying first row of energy-->", table[0])
     After modifying first row of energy--> (0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
 
 We can modify complete ranges of columns as well::
 
     >>> table.cols.TDCcount[2:5] = [2,3,4]
-    >>> print "After modifying slice [2:5] of TDCcount-->", table[0:5]
+    >>> print("After modifying slice [2:5] of TDCcount-->", table[0:5])
     After modifying slice [2:5] of TDCcount-->
     [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
      (256, 1, 1.0, 1, 9, 17179869184L, 'Particle:      1', 1.0)
@@ -974,7 +1003,7 @@ We can modify complete ranges of columns as well::
      (768, 3, 6561.0, 3, 7, 51539607552L, 'Particle:      3', 9.0)
      (1024, 4, 65536.0, 4, 6, 68719476736L, 'Particle:      4', 16.0)]
     >>> table.cols.energy[1:9:3] = [2,3,4]
-    >>> print "After modifying slice [1:9:3] of energy-->", table[0:9]
+    >>> print("After modifying slice [1:9:3] of energy-->", table[0:9])
     After modifying slice [1:9:3] of energy-->
     [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
      (256, 1, 2.0, 1, 9, 17179869184L, 'Particle:      1', 1.0)
@@ -1001,7 +1030,7 @@ demonstration of these capability, see the next example::
     ...                 rows=[(1, 2, 3.0, 4, 5, 6L, 'Particle:   None', 8.0),
     ...                       (2, 4, 6.0, 8, 10, 12L, 'Particle: None*2', 16.0)])
     2
-    >>> print "After modifying the complete third row-->", table[0:5]
+    >>> print("After modifying the complete third row-->", table[0:5])
     After modifying the complete third row-->
     [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
      (1, 2, 3.0, 4, 5, 6L, 'Particle:   None', 8.0)
@@ -1023,7 +1052,7 @@ is meant to be used in table iterators. Look at the next example::
     >>> for row in table.where('TDCcount <= 2'):
     ...     row['energy'] = row['TDCcount']*2
     ...     row.update()
-    >>> print "After modifying energy column (where TDCcount <=2)-->", table[0:4]
+    >>> print("After modifying energy column (where TDCcount <=2)-->", table[0:4])
     After modifying energy column (where TDCcount <=2)-->
     [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
      (1, 2, 4.0, 4, 5, 6L, 'Particle:   None', 8.0)
@@ -1045,16 +1074,16 @@ The basic way to do this is through the use of :meth:`Array.__setitem__`
 special method. Let's see at how modify data on the pressureObject array::
 
     >>> pressureObject = h5file.root.columns.pressure
-    >>> print "Before modif-->", pressureObject[:]
+    >>> print("Before modif-->", pressureObject[:])
     Before modif--> [ 25.  36.  49.]
     >>> pressureObject[0] = 2
-    >>> print "First modif-->", pressureObject[:]
+    >>> print("First modif-->", pressureObject[:])
     First modif--> [  2.  36.  49.]
     >>> pressureObject[1:3] = [2.1, 3.5]
-    >>> print "Second modif-->", pressureObject[:]
+    >>> print("Second modif-->", pressureObject[:])
     Second modif--> [ 2.   2.1  3.5]
     >>> pressureObject[::2] = [1,2]
-    >>> print "Third modif-->", pressureObject[:]
+    >>> print("Third modif-->", pressureObject[:])
     Third modif--> [ 1.   2.1  2. ]
 
 So, in general, you can use any combination of (multidimensional) extended
@@ -1064,26 +1093,26 @@ With the sole exception that you cannot use negative values for step to refer
 to indexes that you want to modify. See :meth:`Array.__getitem__` for more
 examples on how to use extended slicing in PyTables objects.
 
-Similarly, with and array of strings::
+Similarly, with an array of strings::
 
     >>> nameObject = h5file.root.columns.name
-    >>> print "Before modif-->", nameObject[:]
+    >>> print("Before modif-->", nameObject[:])
     Before modif--> ['Particle:      5', 'Particle:      6', 'Particle:      7']
     >>> nameObject[0] = 'Particle:   None'
-    >>> print "First modif-->", nameObject[:]
+    >>> print("First modif-->", nameObject[:])
     First modif--> ['Particle:   None', 'Particle:      6', 'Particle:      7']
     >>> nameObject[1:3] = ['Particle:      0', 'Particle:      1']
-    >>> print "Second modif-->", nameObject[:]
+    >>> print("Second modif-->", nameObject[:])
     Second modif--> ['Particle:   None', 'Particle:      0', 'Particle:      1']
     >>> nameObject[::2] = ['Particle:     -3', 'Particle:     -5']
-    >>> print "Third modif-->", nameObject[:]
+    >>> print("Third modif-->", nameObject[:])
     Third modif--> ['Particle:     -3', 'Particle:      0', 'Particle:     -5']
 
 
 And finally... how to delete rows from a table
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 We'll finish this tutorial by deleting some rows from the table we have.
-Suppose that we want to delete the the 5th to 9th rows (inclusive)::
+Suppose that we want to delete the 5th to 9th rows (inclusive)::
 
     >>> table.remove_rows(5,10)
     5
@@ -1246,9 +1275,9 @@ can be passed to this method::
     # Read the records from table "/Events/TEvent3" and select some
     table = root.Events.TEvent3
     e = [ p['TDCcount'] for p in table if p['ADCcount'] < 20 and 4 <= p['TDCcount'] < 15 ]
-    print "Last record ==>", p
-    print "Selected values ==>", e
-    print "Total selected records ==> ", len(e)
+    print("Last record ==>", p)
+    print("Selected values ==>", e)
+    print("Total selected records ==> ", len(e))
 
     # Finally, close the file (this also will flush all the remaining buffers!)
     fileh.close()
@@ -1393,7 +1422,7 @@ where we will put our links and will start creating one hard link too::
 
     >>> gl = f1.create_group('/', 'gl')
     >>> ht = f1.create_hard_link(gl, 'ht', '/g1/g2/t1')  # ht points to t1
-    >>> print "``%s`` is a hard link to: ``%s``" % (ht, t1)
+    >>> print("``%s`` is a hard link to: ``%s``" % (ht, t1))
     ``/gl/ht (Table(0,)) `` is a hard link to: ``/g1/g2/t1 (Table(0,)) ``
 
 You can see how we've created a hard link in /gl/ht which is pointing to the
@@ -1404,16 +1433,16 @@ different paths to access that table, the original /g1/g2/t1 and the new one
 the new path::
 
     >>> t1.remove()
-    >>> print "table continues to be accessible in: ``%s``" % f1.get_node('/gl/ht')
+    >>> print("table continues to be accessible in: ``%s``" % f1.get_node('/gl/ht'))
     table continues to be accessible in: ``/gl/ht (Table(0,)) ``
 
 So far so good. Now, let's create a couple of soft links::
 
     >>> la1 = f1.create_soft_link(gl, 'la1', '/g1/a1')  # la1 points to a1
-    >>> print "``%s`` is a soft link to: ``%s``" % (la1, la1.target)
+    >>> print("``%s`` is a soft link to: ``%s``" % (la1, la1.target))
     ``/gl/la1 (SoftLink) -> /g1/a1`` is a soft link to: ``/g1/a1``
     >>> lt = f1.create_soft_link(gl, 'lt', '/g1/g2/t1')  # lt points to t1
-    >>> print "``%s`` is a soft link to: ``%s``" % (lt, lt.target)
+    >>> print("``%s`` is a soft link to: ``%s``" % (lt, lt.target))
     ``/gl/lt (SoftLink) -> /g1/g2/t1 (dangling)`` is a soft link to: ``/g1/g2/t1``
 
 Okay, we see how the first link /gl/la1 points to the array /g1/a1.  Notice
@@ -1430,7 +1459,7 @@ node or not.
 So, let's re-create the removed path to t1 table::
 
     >>> t1 = f1.create_hard_link('/g1/g2', 't1', '/gl/ht')
-    >>> print "``%s`` is not dangling anymore" % (lt,)
+    >>> print("``%s`` is not dangling anymore" % (lt,))
     ``/gl/lt (SoftLink) -> /g1/g2/t1`` is not dangling anymore
 
 and the soft link is pointing to an existing node now.
@@ -1440,10 +1469,10 @@ the pointed node.  It happens that soft links are callable, and that's the
 way to get the referred nodes back::
 
     >>> plt = lt()
-    >>> print "dereferred lt node: ``%s``" % plt
+    >>> print("dereferred lt node: ``%s``" % plt)
     dereferred lt node: ``/g1/g2/t1 (Table(0,)) ``
     >>> pla1 = la1()
-    >>> print "dereferred la1 node: ``%s``" % pla1
+    >>> print("dereferred la1 node: ``%s``" % pla1)
     dereferred la1 node: ``/g1/a1 (CArray(10000,)) ``
 
 Now, plt is a Python reference to the t1 table while pla1 refers to the a1
@@ -1471,19 +1500,19 @@ its place::
 
     >>> la1.remove()
     >>> la1 = f1.create_external_link(gl, 'la1', 'links2.h5:/a1')
-    >>> print "``%s`` is an external link to: ``%s``" % (la1, la1.target)
+    >>> print("``%s`` is an external link to: ``%s``" % (la1, la1.target))
     ``/gl/la1 (ExternalLink) -> links2.h5:/a1`` is an external link to: ``links2.h5:/a1``
 
 Let's try dereferring it::
 
     >>> new_a1 = la1()  # dereferrencing la1 returns a1 in links2.h5
-    >>> print "dereferred la1 node:  ``%s``" % new_a1
+    >>> print("dereferred la1 node:  ``%s``" % new_a1)
     dereferred la1 node:  ``/a1 (CArray(10000,)) ``
 
 Well, it seems like we can access the external node.  But just to make sure
 that the node is in the other file::
 
-    >>> print "new_a1 file:", new_a1._v_file.filename
+    >>> print("new_a1 file:", new_a1._v_file.filename)
     new_a1 file: links2.h5
 
 Okay, the node is definitely in the external file.  So, you won't have to
@@ -1586,7 +1615,7 @@ introduce the undo() method (see :meth:`File.undo`)::
 Fine, what do you think it happened? Well, let's have a look at the object
 tree::
 
-    >>> print fileh
+    >>> print(fileh)
     tutorial3-1.h5 (File) 'Undo/Redo demo 1'
     Last modif.: 'Tue Mar 13 11:43:55 2007'
     Object Tree:
@@ -1602,7 +1631,7 @@ PyTables that renders it invisible and waiting for a chance to be reborn.
 Now, unwind once more, and look at the object tree::
 
     >>> fileh.undo()
-    >>> print fileh
+    >>> print(fileh)
     tutorial3-1.h5 (File) 'Undo/Redo demo 1'
     Last modif.: 'Tue Mar 13 11:43:55 2007'
     Object Tree:
@@ -1613,7 +1642,7 @@ Don't worry, it will revisit us very shortly. So, you might be somewhat lost
 right now; in which mark are we?. Let's ask the :meth:`File.get_current_mark`
 method in the file handler::
 
-    >>> print fileh.get_current_mark()
+    >>> print(fileh.get_current_mark())
     0
 
 So we are at mark #0, remember? Mark #0 is an implicit mark that is created
@@ -1622,7 +1651,7 @@ you are missing your too-young-to-die arrays. What can we do about that?
 :meth:`File.redo` to the rescue::
 
     >>> fileh.redo()
-    >>> print fileh
+    >>> print(fileh)
     tutorial3-1.h5 (File) 'Undo/Redo demo 1'
     Last modif.: 'Tue Mar 13 11:43:55 2007'
     Object Tree:
@@ -1647,7 +1676,7 @@ It just was moved to the the hidden group and back again, but that's all!
 That's kind of fun, so we are going to do the same with /anotherarray::
 
     >>> fileh.redo()
-    >>> print fileh
+    >>> print(fileh)
     tutorial3-1.h5 (File) 'Undo/Redo demo 1'
     Last modif.: 'Tue Mar 13 11:43:55 2007'
     Object Tree:
@@ -1819,7 +1848,7 @@ Here we used a simple list giving the names of enumerated values, but we left
 the choice of concrete values up to the Enum class. Let us see the enumerated
 pairs to check those values::
 
-    >>> print "Colors:", [v for v in colors]
+    >>> print("Colors:", [v for v in colors])
     Colors: [('blue', 2), ('black', 4), ('white', 3), ('green', 1), ('red', 0)]
 
 Names have been given automatic integer concrete values. We can iterate over
@@ -1828,9 +1857,9 @@ accessing single values. We can get the concrete value associated with a name
 by accessing it as an attribute or as an item (the later can be useful for
 names not resembling Python identifiers)::
 
-    >>> print "Value of 'red' and 'white':", (colors.red, colors.white)
+    >>> print("Value of 'red' and 'white':", (colors.red, colors.white))
     Value of 'red' and 'white': (0, 3)
-    >>> print "Value of 'yellow':", colors.yellow
+    >>> print("Value of 'yellow':", colors.yellow)
     Value of 'yellow':
     Traceback (most recent call last):
       File "<stdin>", line 1, in ?
@@ -1838,9 +1867,9 @@ names not resembling Python identifiers)::
         raise AttributeError(\*ke.args)
     AttributeError: no enumerated value with that name: 'yellow'
     >>>
-    >>> print "Value of 'red' and 'white':", (colors['red'], colors['white'])
+    >>> print("Value of 'red' and 'white':", (colors['red'], colors['white']))
     Value of 'red' and 'white': (0, 3)
-    >>> print "Value of 'yellow':", colors['yellow']
+    >>> print("Value of 'yellow':", colors['yellow'])
     Value of 'yellow':
     Traceback (most recent call last):
       File "<stdin>", line 1, in ?
@@ -1852,9 +1881,9 @@ See how accessing a value that is not in the enumeration raises the
 appropriate exception. We can also do the opposite action and get the name
 that matches a concrete value by using the __call__() method of Enum::
 
-    >>> print "Name of value %s:" % colors.red, colors(colors.red)
+    >>> print("Name of value %s:" % colors.red, colors(colors.red))
     Name of value 0: red
-    >>> print "Name of value 1234:", colors(1234)
+    >>> print("Name of value 1234:", colors(1234))
     Name of value 1234:
     Traceback (most recent call last):
       File "<stdin>", line 1, in ?
@@ -1920,7 +1949,7 @@ table we can see the results of the insertions::
     >>> for r in tbl:
     ...     ballTime = r['ballTime']
     ...     ballColor = colors(r['ballColor'])  # notice this
-    ...     print "Ball extracted on %d is of color %s." % (ballTime, ballColor)
+    ...     print("Ball extracted on %d is of color %s." % (ballTime, ballColor))
     Ball extracted on 1173785568 is of color green.
     Ball extracted on 1173785569 is of color black.
     Ball extracted on 1173785570 is of color white.
@@ -1975,7 +2004,7 @@ enumerated values.
 Finally, we will print the contents of the array::
 
     >>> for (d1, d2) in earr:
-    ...     print "From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2-d1+1)
+    ...     print("From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2-d1+1))
     From Mon to Fri (5 days).
     From Wed to Fri (3 days).
     Traceback (most recent call last):
@@ -2235,7 +2264,7 @@ Finally, there is a special iterator of the Description class, called _f_walk
 that is able to return you the different columns of the table::
 
     >>> for coldescr in table.description._f_walk():
-    ...     print "column-->",coldescr
+    ...     print("column-->",coldescr)
     column--> Description([('info2', [('info3', [('x', '()f8'), ('y', '()u1')]),
                            ('name', '()S10'), ('value', '()f8')]),
                            ('info1', [('name', '()S10'), ('value', '()f8')]),
@@ -2288,7 +2317,8 @@ Finally, you may want to have a look at your resulting data file.
     [1] (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L)
     [2] (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)
 
-Most of the code in this section is also available in examples/nested-tut.py.
+Most of the code in this section is also available in
+:file:`examples/nested-tut.py`.
 
 All in all, PyTables provides a quite comprehensive toolset to cope with
 nested structures and address your classification needs.

@@ -1,4 +1,6 @@
-import sys, os
+from __future__ import print_function
+import os
+import sys
 from time import time
 import numpy as np
 import tables as tb
@@ -16,7 +18,7 @@ shuffle = True
 
 def create_file(kind, prec, synth):
     prefix_orig = 'cellzome/cellzome-'
-    iname = dirname+prefix_orig+'none-'+prec+'.h5'
+    iname = dirname + prefix_orig + 'none-' + prec + '.h5'
     f = tb.open_file(iname, "r")
 
     if prec == "single":
@@ -31,13 +33,14 @@ def create_file(kind, prec, synth):
 
     for clevel in range(10):
         oname = '%s/%s-%s%d-%s.h5' % (dirname, prefix, kind, clevel, prec)
-        #print "creating...", iname
+        # print "creating...", iname
         f2 = tb.open_file(oname, "w")
 
         if kind in ["none", "numpy"]:
             filters = None
         else:
-            filters = tb.Filters(complib=kind, complevel=clevel, shuffle=shuffle)
+            filters = tb.Filters(
+                complib=kind, complevel=clevel, shuffle=shuffle)
 
         for name in ['maxarea', 'mascotscore']:
             col = f.get_node('/', name)
@@ -48,7 +51,7 @@ def create_file(kind, prec, synth):
                 r[:] = col[:]
         f2.close()
         if clevel == 0:
-            size = 1.5*float(os.stat(oname)[6])
+            size = 1.5 * float(os.stat(oname)[6])
     f.close()
     return size
 
@@ -56,7 +59,7 @@ def create_file(kind, prec, synth):
 def create_synth(kind, prec):
 
     prefix_orig = 'cellzome/cellzome-'
-    iname = dirname+prefix_orig+'none-'+prec+'.h5'
+    iname = dirname + prefix_orig + 'none-' + prec + '.h5'
     f = tb.open_file(iname, "r")
 
     if prec == "single":
@@ -67,13 +70,14 @@ def create_synth(kind, prec):
     prefix = 'synth/synth-'
     for clevel in range(10):
         oname = '%s/%s-%s%d-%s.h5' % (dirname, prefix, kind, clevel, prec)
-        #print "creating...", iname
+        # print "creating...", iname
         f2 = tb.open_file(oname, "w")
 
         if kind in ["none", "numpy"]:
             filters = None
         else:
-            filters = tb.Filters(complib=kind, complevel=clevel, shuffle=shuffle)
+            filters = tb.Filters(
+                complib=kind, complevel=clevel, shuffle=shuffle)
 
         for name in ['maxarea', 'mascotscore']:
             col = f.get_node('/', name)
@@ -85,7 +89,7 @@ def create_synth(kind, prec):
 
         f2.close()
         if clevel == 0:
-            size = 1.5*float(os.stat(oname)[6])
+            size = 1.5 * float(os.stat(oname)[6])
     f.close()
     return size
 
@@ -120,10 +124,10 @@ def process_file(kind, prec, clevel, synth):
     if kind == "numpy":
         a2, b2 = a_[:], b_[:]
         t0 = time()
-        r = eval(expression, {'a':a2, 'b':b2})
-        print "%5.2f" % round(time()-t0, 3)
+        r = eval(expression, {'a': a2, 'b': b2})
+        print("%5.2f" % round(time() - t0, 3))
     else:
-        expr = tb.Expr(expression, {'a':a_, 'b':b_})
+        expr = tb.Expr(expression, {'a': a_, 'b': b_})
         expr.set_output(r)
         expr.eval()
     f.close()
@@ -141,21 +145,21 @@ if __name__ == '__main__':
         else:
             synth = False
     else:
-        print "3 parameters required"
+        print("3 parameters required")
         sys.exit(1)
 
-    #print "kind, precision, synth:", kind, prec, synth
+    # print "kind, precision, synth:", kind, prec, synth
 
-    #print "Creating input files..."
+    # print "Creating input files..."
     size_orig = create_file(kind, prec, synth)
 
-    #print "Processing files for compression levels in range(10)..."
+    # print "Processing files for compression levels in range(10)..."
     for clevel in range(10):
         t0 = time()
         ts = []
         for i in range(niter):
             size = process_file(kind, prec, clevel, synth)
-            ts.append(time()-t0)
+            ts.append(time() - t0)
             t0 = time()
         ratio = size_orig / size
-        print "%5.2f, %5.2f" % (round(min(ts), 3), ratio)
+        print("%5.2f, %5.2f" % (round(min(ts), 3), ratio))

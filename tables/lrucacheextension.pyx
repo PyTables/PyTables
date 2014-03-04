@@ -67,9 +67,6 @@ import_array()
 cdef class NodeCache:
   """Least-Recently-Used (LRU) cache for PyTables nodes."""
 
-  # This class variables are declared in utilsextension.pxd
-
-
   def __init__(self, nslots):
     """Maximum nslots of the cache.
 
@@ -143,16 +140,30 @@ cdef class NodeCache:
 
     return nslot
 
-  def pop(self, path):
-    return self.cpop(path)
+  __marker = object()
+
+  def pop(self, path, d=__marker):
+    try:
+      node = self.cpop(path)
+    except KeyError:
+      if d is not self.__marker:
+        return d
+      else:
+        raise
+    else:
+      return node
 
   cdef object cpop(self, object path):
     cdef long nslot
 
     nslot = self.getslot(path)
-    node = self.nodes[nslot]
-    del self.nodes[nslot];  del self.paths[nslot]
-    self.nextslot = self.nextslot - 1
+    if nslot == -1:
+        raise KeyError(path)
+    else:
+        node = self.nodes[nslot]
+        del self.nodes[nslot]
+        del self.paths[nslot]
+        self.nextslot = self.nextslot - 1
     return node
 
   def __iter__(self):

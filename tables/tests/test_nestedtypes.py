@@ -11,8 +11,9 @@
 #
 ########################################################################
 
-"""Test module for nested types under PyTables"""
+"""Test module for nested types under PyTables."""
 
+from __future__ import print_function
 import sys
 import unittest
 import itertools
@@ -129,11 +130,11 @@ testCondition = '(2 < col) & (col < 9)'
 
 
 def areDescriptionsEqual(desc1, desc2):
-    """
-    Are both `desc1` and `desc2` equivalent descriptions?
+    """Are both `desc1` and `desc2` equivalent descriptions?
 
     The arguments may be description objects (``IsDescription``,
     ``Description``) or dictionaries.
+
     """
 
     if isinstance(desc1, t.Col):
@@ -192,8 +193,8 @@ class DescriptionTestCase(common.PyTablesTestCase):
 
         descr = Description(self._TestTDescr().columns)
         if common.verbose:
-            print "Generated description:", descr._v_nested_descr
-            print "Should look like:", self._testADescr2
+            print("Generated description:", descr._v_nested_descr)
+            print("Should look like:", self._testADescr2)
         self.assertEqual(self._testADescr2, descr._v_nested_descr,
                          "Description._v_nested_descr does not match.")
 
@@ -206,9 +207,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     _testAData = testAData
 
     def _checkColumns(self, cols, desc):
-        """
-        Check that `cols` has all the accessors for `self._TestTDescr`.
-        """
+        """Check that `cols` has all the accessors for `self._TestTDescr`."""
 
         # ``_desc`` is a leaf column and ``cols`` a ``Column``.
         if isinstance(desc, t.Col):
@@ -226,9 +225,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         return True
 
     def _checkDescription(self, table):
-        """
-        Check that description of `table` matches `self._TestTDescr`.
-        """
+        """Check that description of `table` matches `self._TestTDescr`."""
 
         # Compare descriptions.
         self.assertTrue(
@@ -238,9 +235,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._checkColumns(table.cols, table.description)
 
     def _checkColinstances(self, table):
-        """
-        Check that ``colinstances`` and ``cols`` of `table` match.
-        """
+        """Check that ``colinstances`` and ``cols`` of `table` match."""
         for colpathname in table.description._v_pathnames:
             self.assertTrue(table.colinstances[colpathname]
                             is table.cols._f_col(colpathname))
@@ -281,8 +276,8 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.flush()
         readAData = tbl.read()
         if common.verbose:
-            print "Read data:", readAData
-            print "Should look like:", self._testAData
+            print("Read data:", readAData)
+            print("Should look like:", self._testAData)
         self.assertTrue(common.areArraysEqual(self._testAData, readAData),
                         "Written and read values differ.")
 
@@ -458,8 +453,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         raReadTable = tbl.read()
         if common.verbose:
-            print "Table read:", raReadTable
-            print "Should look like:", raTable
+            print("Table read:", raReadTable)
+            print("Should look like:", raTable)
 
         # Compare it to the written one.
         self.assertTrue(common.areArraysEqual(raTable, raReadTable),
@@ -491,8 +486,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         raReadTable = tbl.read()
         if common.verbose:
-            print "Table read:", raReadTable
-            print "Should look like:", raTable
+            print("Table read:", raReadTable)
+            print("Should look like:", raTable)
 
         # Compare it to the written one.
         self.assertTrue(common.areArraysEqual(raTable, raReadTable),
@@ -508,13 +503,14 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Get the nested column data and swap the first and last rows.
         colnames = ['x', 'color']  # Get the first two columns
-        raCols = numpy.rec.fromarrays([self._testAData['x'].copy(),
-                                self._testAData['color'].copy()],
-                                dtype=[('x', '(2,)i4'), ('color', '1a2')])
-                               # descr=tbl.description._v_nested_descr[0:2])
-                               # or...
-                               # names=tbl.description._v_nested_names[0:2],
-                               # formats=tbl.description._v_nested_formats[0:2])
+        raCols = numpy.rec.fromarrays([
+            self._testAData['x'].copy(),
+            self._testAData['color'].copy()],
+            dtype=[('x', '(2,)i4'), ('color', '1a2')])
+            # descr=tbl.description._v_nested_descr[0:2])
+            # or...
+            # names=tbl.description._v_nested_names[0:2],
+            # formats=tbl.description._v_nested_formats[0:2])
         (raCols[0], raCols[-1]) = (raCols[-1].copy(), raCols[0].copy())
 
         # Write the resulting columns
@@ -530,8 +526,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                         tbl.cols._f_col('color')],
                                        dtype=raCols.dtype)
         if common.verbose:
-            print "Table read:", raCols2
-            print "Should look like:", raCols
+            print("Table read:", raCols2)
+            print("Should look like:", raCols)
 
         # Compare it to the written one.
         self.assertTrue(common.areArraysEqual(raCols, raCols2),
@@ -559,15 +555,15 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         raReadTable = tbl.read()
         if common.verbose:
-            print "Table read:", raReadTable
-            print "Should look like:", raTable
+            print("Table read:", raReadTable)
+            print("Should look like:", raTable)
 
         # Compare it to the written one.
         self.assertTrue(common.areArraysEqual(raTable, raReadTable),
                         "Written and read values differ.")
 
     def test07_index(self):
-        """Checking indexes of nested columns"""
+        """Checking indexes of nested columns."""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName(),
@@ -585,8 +581,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             coltoindex = tbl.cols._f_col(self._testCondCol)
 
         if common.verbose:
-            print "Number of written rows:", tbl.nrows
-            print "Number of indexed rows:", coltoindex.index.nelements
+            print("Number of written rows:", tbl.nrows)
+            print("Number of indexed rows:", coltoindex.index.nelements)
 
         # Check indexing flags:
         self.assertEqual(tbl.indexed, True, "Table not indexed")
@@ -600,8 +596,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         expectedCoords = numpy.arange(0, minRowIndex * 2, 2, SizeType)
         if common.verbose:
-            print "Searched coords:", searchedCoords
-            print "Expected coords:", expectedCoords
+            print("Searched coords:", searchedCoords)
+            print("Expected coords:", expectedCoords)
         # All even rows match the condition.
         self.assertEqual(searchedCoords.tolist(), expectedCoords.tolist(),
                          "Search returned incorrect results.")
@@ -643,7 +639,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
     _testNestedCol = testNestedCol
 
     def test00a_repr(self):
-        """Checking representation of a nested Table"""
+        """Checking representation of a nested Table."""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title="test00")
@@ -654,8 +650,8 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         if common.verbose:
-            print "str(tbl)-->", str(tbl)
-            print "repr(tbl)-->", repr(tbl)
+            print("str(tbl)-->", str(tbl))
+            print("repr(tbl)-->", repr(tbl))
 
         self.assertEqual(str(tbl), "/test (Table(2,)) 'test00'")
         tblrepr = repr(tbl)
@@ -719,11 +715,15 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         #
         # Also in this case it is genereted a representation string for each
         # of the possible default values.
-        enums = [', '.join(items) for items in
-                        itertools.permutations(("'r': 4", "'b': 1", "'g': 2"))]
+        enums = [
+            ', '.join(items) for items in itertools.permutations(
+                ("'r': 4", "'b': 1", "'g': 2"))
+        ]
         defaults = ('r', 'b', 'g')
-        values = [template % {'value': v, 'default': d}
-                                for v, d in itertools.product(enums, defaults)]
+        values = [
+            template % {'value': v, 'default': d}
+            for v, d in itertools.product(enums, defaults)
+        ]
         self.assertTrue(tblrepr in values)
 
     def test00b_repr(self):
@@ -738,8 +738,8 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         if common.verbose:
-            print "str(tbl.cols.y)-->'%s'" % str(tbl.cols.y)
-            print "repr(tbl.cols.y)-->'%s'" % repr(tbl.cols.y)
+            print("str(tbl.cols.y)-->'%s'" % str(tbl.cols.y))
+            print("repr(tbl.cols.y)-->'%s'" % repr(tbl.cols.y))
 
         self.assertEqual(str(tbl.cols.y),
                          "/test.cols.y (Column(2, 2, 2), float64, idx=None)")
@@ -758,8 +758,8 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         if common.verbose:
-            print "str(tbl.cols.Info.z2)-->'%s'" % str(tbl.cols.Info.z2)
-            print "repr(tbl.cols.Info.z2)-->'%s'" % repr(tbl.cols.Info.z2)
+            print("str(tbl.cols.Info.z2)-->'%s'" % str(tbl.cols.Info.z2))
+            print("repr(tbl.cols.Info.z2)-->'%s'" % repr(tbl.cols.Info.z2))
 
         self.assertEqual(str(tbl.cols.Info.z2),
                          "/test.cols.Info.z2 (Column(2,), uint8, idx=None)")
@@ -782,8 +782,8 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.read(start=0, step=2, field='Info')
         nrarrcols = nrarr['Info'][0::2]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
@@ -806,8 +806,8 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.read(start=0, step=2, field='Info', out=all_cols)
         nrarrcols = nrarr['Info'][0::2]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
         self.assertTrue(common.areArraysEqual(nrarr[0::2], all_cols),
@@ -878,8 +878,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         if common.verbose:
-            print "str(tbl.cols)-->", str(tbl.cols)
-            print "repr(tbl.cols)-->", repr(tbl.cols)
+            print("str(tbl.cols)-->", str(tbl.cols))
+            print("repr(tbl.cols)-->", repr(tbl.cols))
 
         self.assertEqual(str(tbl.cols), "/test.cols (Cols), 6 columns")
         try:
@@ -902,8 +902,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
   info (Cols(), Description)
   y (Column(0, 2, 2), ('%s', (2, 2)))
   z (Column(0,), uint8)
-""" % (numpy.int32(0).dtype.str, numpy.float64(0).dtype.str)
-                             )
+""" % (numpy.int32(0).dtype.str, numpy.float64(0).dtype.str))
 
     def test00b_repr(self):
         """Checking string representation of nested Cols."""
@@ -916,8 +915,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         if common.verbose:
-            print "str(tbl.cols.Info)-->", str(tbl.cols.Info)
-            print "repr(tbl.cols.Info)-->", repr(tbl.cols.Info)
+            print("str(tbl.cols.Info)-->", str(tbl.cols.Info))
+            print("repr(tbl.cols.Info)-->", repr(tbl.cols.Info))
 
         self.assertEqual(str(
             tbl.cols.Info), "/test.cols.Info (Cols), 5 columns")
@@ -942,7 +941,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tblcol = tbl.cols._f_col(self._testNestedCol)
         if common.verbose:
-            print "Column group name:", tblcol._v_desc._v_pathname
+            print("Column group name:", tblcol._v_desc._v_pathname)
         self.assertEqual(tblcol._v_desc._v_pathname, self._testNestedCol,
                          "Column group name doesn't match.")
 
@@ -958,7 +957,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tblcol = tbl.cols._f_col(self._testNestedCol + "/name")
         if common.verbose:
-            print "Column name:", tblcol.name
+            print("Column name:", tblcol.name)
         self.assertEqual(tblcol.name, "name", "Column name doesn't match.")
 
     def test01c_f_col(self):
@@ -969,7 +968,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tblcol = tbl.cols._f_col(self._testNestedCol + "/Info2")
         if common.verbose:
-            print "Column group name:", tblcol._v_desc._v_pathname
+            print("Column group name:", tblcol._v_desc._v_pathname)
         self.assertEqual(tblcol._v_desc._v_pathname,
                          self._testNestedCol + "/Info2",
                          "Column group name doesn't match.")
@@ -986,7 +985,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         length = len(tbl.cols)
         if common.verbose:
-            print "Column group length:", length
+            print("Column group length:", length)
         self.assertEqual(length, len(tbl.colnames),
                          "Column group length doesn't match.")
 
@@ -1002,7 +1001,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         length = len(tbl.cols.Info)
         if common.verbose:
-            print "Column group length:", length
+            print("Column group length:", length)
         self.assertEqual(length, len(tbl.cols.Info._v_colnames),
                          "Column group length doesn't match.")
 
@@ -1021,8 +1020,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.cols[1]
         nrarrcols = nrarr[1]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
@@ -1041,8 +1040,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.cols[0:2]
         nrarrcols = nrarr[0:2]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
@@ -1061,8 +1060,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.cols[0::2]
         nrarrcols = nrarr[0::2]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
@@ -1081,8 +1080,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.cols._f_col('Info')[1]
         nrarrcols = nrarr['Info'][1]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
@@ -1101,14 +1100,14 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.cols._f_col('Info')[0:2]
         nrarrcols = nrarr['Info'][0:2]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
     def test04c__getitem__(self):
-        """Checking cols.__getitem__() with subgroups with a range
-        index with step."""
+        """Checking cols.__getitem__() with subgroups with a range index with
+        step."""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
@@ -1122,8 +1121,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.cols._f_col('Info')[0::2]
         nrarrcols = nrarr['Info'][0::2]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
@@ -1142,8 +1141,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.cols._f_col('Info/value')[1]
         nrarrcols = nrarr['Info']['value'][1]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertEqual(nrarrcols, tblcols,
                          "Original array are retrieved doesn't match.")
 
@@ -1162,14 +1161,14 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.cols._f_col('Info/value')[0:2]
         nrarrcols = nrarr['Info']['value'][0:2]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
     def test05c__getitem__(self):
-        """Checking cols.__getitem__() with a column with a range index
-        with step."""
+        """Checking cols.__getitem__() with a column with a range index with
+        step."""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
@@ -1183,8 +1182,8 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tblcols = tbl.cols._f_col('Info/value')[0::2]
         nrarrcols = nrarr['Info']['value'][0::2]
         if common.verbose:
-            print "Read cols:", tblcols
-            print "Should look like:", nrarrcols
+            print("Read cols:", tblcols)
+            print("Should look like:", nrarrcols)
         self.assertTrue(common.areArraysEqual(nrarrcols, tblcols),
                         "Original array are retrieved doesn't match.")
 
@@ -1270,8 +1269,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         names = [col._v_pathname for col in tbl.description._f_walk(
             type="All")]
         if common.verbose:
-            print "Pathnames of columns:", names
-            print "Should look like:", self.correct_names
+            print("Pathnames of columns:", names)
+            print("Should look like:", self.correct_names)
         self.assertEqual(names, self.correct_names,
                          "Column nested names doesn't match.")
 
@@ -1288,8 +1287,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         names = [col._v_pathname for col in tbl.description._f_walk(
             type="All")]
         if common.verbose:
-            print "Pathnames of columns:", names
-            print "Should look like:", self.correct_names
+            print("Pathnames of columns:", names)
+            print("Should look like:", self.correct_names)
         self.assertEqual(names, self.correct_names,
                          "Column nested names doesn't match.")
 
@@ -1306,8 +1305,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         names = [col._v_pathname for col in tbl.description._f_walk(
             type="All")]
         if common.verbose:
-            print "Pathnames of columns:", names
-            print "Should look like:", self.correct_names
+            print("Pathnames of columns:", names)
+            print("Should look like:", self.correct_names)
         self.assertEqual(names, self.correct_names,
                          "Column nested names doesn't match.")
 
@@ -1324,8 +1323,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         names = [col._v_pathname for col in tbl.description._f_walk(
             type="All")]
         if common.verbose:
-            print "Pathnames of columns:", names
-            print "Should look like:", self.correct_names
+            print("Pathnames of columns:", names)
+            print("Should look like:", self.correct_names)
         self.assertEqual(names, self.correct_names,
                          "Column nested names doesn't match.")
 
@@ -1342,8 +1341,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         names = [col._v_pathname for col in tbl.description._f_walk(
             type="All")]
         if common.verbose:
-            print "Pathnames of columns:", names
-            print "Should look like:", self.correct_names
+            print("Pathnames of columns:", names)
+            print("Should look like:", self.correct_names)
         self.assertEqual(names, self.correct_names,
                          "Column nested names doesn't match.")
 
@@ -1360,8 +1359,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         names = [col._v_pathname for col in tbl.description._f_walk(
             type="All")]
         if common.verbose:
-            print "Pathnames of columns:", names
-            print "Should look like:", self.correct_names
+            print("Pathnames of columns:", names)
+            print("Should look like:", self.correct_names)
         self.assertEqual(names, self.correct_names,
                          "Column nested names doesn't match.")
 
@@ -1370,8 +1369,10 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         desc = {
             'nested': {
-            'i1': t.Int32Col(),
-            'i2': t.Int32Col()}}
+                'i1': t.Int32Col(),
+                'i2': t.Int32Col()
+            }
+        }
 
         i1 = 'nested/i1'
         i2 = 'nested/i2'
@@ -1401,10 +1402,10 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
 
         if common.verbose:
-            print "Retrieved values (i1):", i1res
-            print "Should look like:", range(10)
-            print "Retrieved values (i2):", i2res
-            print "Should look like:", range(0, 10, 2)
+            print("Retrieved values (i1):", i1res)
+            print("Should look like:", range(10))
+            print("Retrieved values (i2):", i2res)
+            print("Should look like:", range(0, 10, 2))
 
         self.assertEqual(i1res, range(10),
                          "Select for nested column (i1) doesn't match.")
@@ -1416,10 +1417,14 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         desc = {
             'nested1': {
-            'nested2': {
-            'nested3': {
-            'i1': t.Int32Col(),
-            'i2': t.Int32Col()}}}}
+                'nested2': {
+                    'nested3': {
+                        'i1': t.Int32Col(),
+                        'i2': t.Int32Col()
+                    }
+                }
+            }
+        }
 
         i1 = 'nested1/nested2/nested3/i1'
         i2 = 'nested1/nested2/nested3/i2'
@@ -1450,10 +1455,10 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
 
         if common.verbose:
-            print "Retrieved values (i1):", i1res
-            print "Should look like:", range(10)
-            print "Retrieved values (i2):", i2res
-            print "Should look like:", range(0, 10, 2)
+            print("Retrieved values (i1):", i1res)
+            print("Should look like:", range(10))
+            print("Retrieved values (i2):", i2res)
+            print("Should look like:", range(0, 10, 2))
 
         self.assertEqual(i1res, range(10),
                          "Select for nested column (i1) doesn't match.")
@@ -1485,16 +1490,16 @@ class NestedTypesWithGaps(common.PyTablesTestCase):
         tbl = h5file.get_node('/nestedtype')
         type_descr = repr(tbl.description)
         if common.verbose:
-            print "Type size with no gaps:", tbl.description._v_itemsize
-            print "And should be: 13"
-            print "Representation of the nested type:\n", type_descr
-            print "And should be:\n", self.correct_descr
+            print("Type size with no gaps:", tbl.description._v_itemsize)
+            print("And should be: 13")
+            print("Representation of the nested type:\n", type_descr)
+            print("And should be:\n", self.correct_descr)
 
         self.assertEqual(tbl.description._v_itemsize, 13)
         self.assertEqual(type_descr, self.correct_descr)
 
         if common.verbose:
-            print "Great!  Nested types with gaps recognized correctly."
+            print("Great!  Nested types with gaps recognized correctly.")
 
         h5file.close()
 

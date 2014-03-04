@@ -1,8 +1,8 @@
-"""Example showing how to access a PyTables file from multiple processes
-using queues.
-"""
+"""Example showing how to access a PyTables file from multiple processes using
+queues."""
 
-import Queue
+from __future__ import print_function
+import Queue as queue
 import multiprocessing
 import os
 import random
@@ -17,7 +17,7 @@ def make_file(file_path, n):
 
     with tables.open_file(file_path, 'w') as fobj:
         array = fobj.create_carray('/', 'array', tables.Int64Atom(), (n, n))
-        for i in xrange(n):
+        for i in range(n):
             array[i, :] = i
 
 
@@ -52,24 +52,25 @@ class FileAccess(multiprocessing.Process):
 
             # Check for any data requests in the read_queue.
             try:
-                row_num, proc_num = self.read_queue.get(True, self.block_period)
+                row_num, proc_num = self.read_queue.get(
+                    True, self.block_period)
                 # look up the appropriate result_queue for this data processor
                 # instance
                 result_queue = self.result_queues[proc_num]
-                print 'processor {0} reading from row {1}'.format(proc_num,
-                                                                  row_num)
+                print('processor {0} reading from row {1}'.format(proc_num,
+                                                                  row_num))
                 result_queue.put(self.read_data(row_num))
                 another_loop = True
-            except Queue.Empty:
+            except queue.Empty:
                 pass
 
             # Check for any write requests in the write_queue.
             try:
                 row_num, data = self.write_queue.get(True, self.block_period)
-                print 'writing row', row_num
+                print('writing row', row_num)
                 self.write_data(row_num, data)
                 another_loop = True
-            except Queue.Empty:
+            except queue.Empty:
                 pass
 
         # close the HDF5 file before shutting down
@@ -127,7 +128,7 @@ def make_queues(num_processors):
     read_queue = multiprocessing.Queue()
     write_queue = multiprocessing.Queue()
     shutdown_recv, shutdown_send = multiprocessing.Pipe(False)
-    result_queues = [multiprocessing.Queue() for i in xrange(num_processors)]
+    result_queues = [multiprocessing.Queue() for i in range(num_processors)]
     file_access = FileAccess(file_path, read_queue, result_queues, write_queue,
                              shutdown_recv)
     file_access.start()
@@ -146,7 +147,7 @@ if __name__ == '__main__':
 
     processors = []
     output_files = []
-    for i in xrange(num_processors):
+    for i in range(num_processors):
         result_queue = result_queues[i]
         output_file = str(i)
         processor = DataProcessor(read_queue, result_queue, write_queue, i, n,
@@ -166,11 +167,11 @@ if __name__ == '__main__':
     shutdown_send.send(0)
 
     # print out contents of log files and delete them
-    print
+    print()
     for output_file in output_files:
-        print
-        print 'contents of log file {0}'.format(output_file)
-        print open(output_file, 'r').read()
+        print()
+        print('contents of log file {0}'.format(output_file))
+        print(open(output_file, 'r').read())
         os.remove(output_file)
 
     os.remove('test.h5')

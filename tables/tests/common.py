@@ -10,28 +10,18 @@
 #
 ########################################################################
 
-"""Utilities for PyTables' test suites"""
+"""Utilities for PyTables' test suites."""
 
+from __future__ import print_function
 import os
 import sys
 import time
 import unittest
 import tempfile
 import warnings
-
 import os.path
 
-try:
-    # collections.Callable is new in python 2.6
-    from collections import Callable
-except ImportError:
-    is_callable = callable
-else:
-    def is_callable(x):
-        return isinstance(x, Callable)
-
 import numpy
-
 import tables
 
 verbose = False
@@ -61,24 +51,24 @@ def verbosePrint(string, nonl=False):
     if not verbose:
         return
     if nonl:
-        print string,
+        print(string, end=' ')
     else:
-        print string
+        print(string)
 
 
 def cleanup(klass):
     # klass.__dict__.clear()     # This is too hard. Don't do that
-#    print "Class attributes deleted"
+#    print("Class attributes deleted")
     for key in klass.__dict__:
         if not klass.__dict__[key].__class__.__name__ in ('instancemethod'):
             klass.__dict__[key] = None
 
 
 def allequal(a, b, flavor="numpy"):
-    """Checks if two numerical objects are equal"""
+    """Checks if two numerical objects are equal."""
 
-    # print "a-->", repr(a)
-    # print "b-->", repr(b)
+    # print("a-->", repr(a))
+    # print("b-->", repr(b))
     if not hasattr(b, "shape"):
         # Scalar case
         return a == b
@@ -89,13 +79,13 @@ def allequal(a, b, flavor="numpy"):
 
     if a.shape != b.shape:
         if verbose:
-            print "Shape is not equal:", a.shape, "!=", b.shape
+            print("Shape is not equal:", a.shape, "!=", b.shape)
         return 0
 
     # Way to check the type equality without byteorder considerations
     if hasattr(b, "dtype") and a.dtype.str[1:] != b.dtype.str[1:]:
         if verbose:
-            print "dtype is not equal:", a.dtype, "!=", b.dtype
+            print("dtype is not equal:", a.dtype, "!=", b.dtype)
         return 0
 
     # Rank-0 case
@@ -104,7 +94,7 @@ def allequal(a, b, flavor="numpy"):
             return 1
         else:
             if verbose:
-                print "Shape is not equal:", a.shape, "!=", b.shape
+                print("Shape is not equal:", a.shape, "!=", b.shape)
             return 0
 
     # null arrays
@@ -113,27 +103,27 @@ def allequal(a, b, flavor="numpy"):
             return 1
         else:
             if verbose:
-                print "length is not equal"
-                print "len(a.data) ==>", len(a.data)
-                print "len(b.data) ==>", len(b.data)
+                print("length is not equal")
+                print("len(a.data) ==>", len(a.data))
+                print("len(b.data) ==>", len(b.data))
             return 0
 
     # Multidimensional case
     result = (a == b)
     result = numpy.all(result)
     if not result and verbose:
-        print "Some of the elements in arrays are not equal"
+        print("Some of the elements in arrays are not equal")
 
     return result
 
 
 def areArraysEqual(arr1, arr2):
-    """
-    Are both `arr1` and `arr2` equal arrays?
+    """Are both `arr1` and `arr2` equal arrays?
 
     Arguments can be regular NumPy arrays, chararray arrays or
-    structured arrays (including structured record arrays).
-    They are checked for type and value equality.
+    structured arrays (including structured record arrays). They are
+    checked for type and value equality.
+
     """
 
     t1 = type(arr1)
@@ -152,20 +142,20 @@ def pyTablesTest(oldmethod):
         try:
             try:
                 return oldmethod(self, *args, **kwargs)
-            except SkipTest, se:
+            except SkipTest as se:
                 if se.args:
                     msg = se.args[0]
                 else:
                     msg = "<skipped>"
                 verbosePrint("\nSkipped test: %s" % msg)
-            except self.failureException, fe:
+            except self.failureException as fe:
                 if fe.args:
                     msg = fe.args[0]
                 else:
                     msg = "<failed>"
                 verbosePrint("\nTest failed: %s" % msg)
                 raise
-            except Exception, exc:
+            except Exception as exc:
                 cname = exc.__class__.__name__
                 verbosePrint("\nError in test::\n\n  %s: %s" % (cname, exc))
                 raise
@@ -190,7 +180,7 @@ class MetaPyTablesTestCase(type):
     def __new__(class_, name, bases, dict_):
         newdict = {}
         for (aname, avalue) in dict_.iteritems():
-            if is_callable(avalue) and aname.startswith('test'):
+            if callable(avalue) and aname.startswith('test'):
                 avalue = pyTablesTest(avalue)
             newdict[aname] = avalue
         return type.__new__(class_, name, bases, newdict)
@@ -218,14 +208,12 @@ class PyTablesTestCase(unittest.TestCase):
             methodName = self._getMethodName()
 
             title = "Running %s.%s" % (name, methodName)
-            print '%s\n%s' % (title, '-' * len(title))
+            print('%s\n%s' % (title, '-' * len(title)))
 
     @classmethod
     def _testFilename(class_, filename):
-        """
-        Returns an absolute version of the `filename`, taking care of
-        the location of the calling test case class.
-        """
+        """Returns an absolute version of the `filename`, taking care of the
+        location of the calling test case class."""
         modname = class_.__module__
         # When the definitive switch to ``setuptools`` is made,
         # this should definitely use the ``pkg_resouces`` API::
@@ -237,8 +225,7 @@ class PyTablesTestCase(unittest.TestCase):
         return os.path.join(dirname, filename)
 
     def failUnlessWarns(self, warnClass, callableObj, *args, **kwargs):
-        """
-        Fail unless a warning of class `warnClass` is issued.
+        """Fail unless a warning of class `warnClass` is issued.
 
         This method will fail if no warning belonging to the given
         `warnClass` is issued when invoking `callableObj` with arguments
@@ -247,6 +234,7 @@ class PyTablesTestCase(unittest.TestCase):
 
         This method returns the value returned by the call to
         `callableObj`.
+
         """
 
         issued = [False]  # let's avoid scoping problems ;)
@@ -302,12 +290,12 @@ class PyTablesTestCase(unittest.TestCase):
 
         try:
             callableObj(*args, **kwargs)
-        except excClass, exc:
-            print (
+        except excClass as exc:
+            print((
                 "Great!  The following ``%s`` was caught::\n"
                 "\n"
                 "  %s\n"
-                % (exc.__class__.__name__, exc))
+                % (exc.__class__.__name__, exc)))
         else:
             raise self.failureException(
                 "``%s`` was not raised" % excClass.__name__)
@@ -316,8 +304,8 @@ class PyTablesTestCase(unittest.TestCase):
 
     def _checkEqualityGroup(self, node1, node2, hardlink=False):
         if verbose:
-            print "Group 1:", node1
-            print "Group 2:", node2
+            print("Group 1:", node1)
+            print("Group 2:", node2)
         if hardlink:
             self.assertTrue(node1._v_pathname != node2._v_pathname,
                             "node1 and node2 have the same pathnames.")
@@ -329,8 +317,8 @@ class PyTablesTestCase(unittest.TestCase):
 
     def _checkEqualityLeaf(self, node1, node2, hardlink=False):
         if verbose:
-            print "Leaf 1:", node1
-            print "Leaf 2:", node2
+            print("Leaf 1:", node1)
+            print("Leaf 2:", node2)
         if hardlink:
             self.assertTrue(node1._v_pathname != node2._v_pathname,
                 "node1 and node2 have the same pathnames.")
@@ -343,11 +331,11 @@ class PyTablesTestCase(unittest.TestCase):
 
 class TempFileMixin:
     def setUp(self):
-        """
-        Set ``h5file`` and ``h5fname`` instance attributes.
+        """Set ``h5file`` and ``h5fname`` instance attributes.
 
         * ``h5fname``: the name of the temporary HDF5 file.
         * ``h5file``: the writable, empty, temporary HDF5 file.
+
         """
 
         self.h5fname = tempfile.mktemp(suffix='.h5')
@@ -366,6 +354,7 @@ class TempFileMixin:
 
         Returns a true or false value depending on whether the file was
         reopenend or not.  If not, nothing is changed.
+
         """
 
         self.h5file.close()
@@ -394,11 +383,11 @@ class ShowMemTime(PyTablesTestCase):
                 vmexe = int(line.split()[1])
             elif line.startswith("VmLib:"):
                 vmlib = int(line.split()[1])
-        print "\nWallClock time:", time.time() - self.tref
-        print "Memory usage: ******* %s *******" % self._getName()
-        print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
-        print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
-        print "VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib)
+        print("\nWallClock time:", time.time() - self.tref)
+        print("Memory usage: ******* %s *******" % self._getName())
+        print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
+        print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
+        print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
 
 
 ## Local Variables:

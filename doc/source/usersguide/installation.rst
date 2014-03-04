@@ -11,11 +11,16 @@ The Python Distutils are used to build and install PyTables, so it is fairly
 simple to get the application up and running. If you want to install the
 package from sources you can go on reading to the next section.
 
-However, if you are running Windows and want to install precompiled binaries,
-you can jump straight to :ref:`binaryInstallationDescr`. In addition, binary
-packages are available for many different Linux distributions, MacOSX and
-other Unices.  Just check the package repository for your preferred operating
-system.
+However, if you want to go straight to binaries that 'just work' for the main
+platforms (Linux, Mac OSX and Windows), you might want to use the excellent
+Anaconda_ or Canopy_ distributions.  PyTables usually distributes its own
+Windows binaries too; go :ref:`binaryInstallationDescr` for instructions.
+Finally `Christoph Gohlke`_ also maintains an excellent suite of a variety of
+binary packages for Windows at his site.
+
+.. _Anaconda: https://store.continuum.io/cshop/anaconda/
+.. _Canopy: https://www.enthought.com/products/canopy/
+.. _`Christoph Gohlke`: http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
 Installation from source
 ------------------------
@@ -42,14 +47,14 @@ Prerequisites
 First, make sure that you have
 
 * Python_ >= 2.6 including Python 3.x
-* HDF5_ >= 1.8.4,
+* HDF5_ >= 1.8.4 (>=1.8.7 is strongly recommended),
 * NumPy_ >= 1.4.1,
 * Numexpr_ >= 2.0 and
 * Cython_ >= 0.13
-* argparse_ (only Python 2.6, it it used by the :program:`pt2to3` utility)
+* argparse_ (only Python 2.6, it is used by the :program:`pt2to3` utility)
 
-installed (for testing purposes, we are using HDF5_ 1.8.9, NumPy_ 1.7.1
-and Numexpr_ 2.1 currently). If you don't, fetch and install them before
+installed (for testing purposes, we are using HDF5_ 1.8.12, NumPy_ 1.8.0
+and Numexpr_ 2.2.2 currently). If you don't, fetch and install them before
 proceeding.
 
 .. _Python: http://www.python.org
@@ -61,6 +66,12 @@ proceeding.
 
 .. note::
 
+    HDF5 versions < 1.8.7 are supported with some limitations.
+    It is not possible to open the same file multiple times (simultaneously),
+    even in read-only mode.
+
+.. note::
+
     Currently PyTables does not use setuptools_ by default so do not expect
     that the setup.py script automatically install all packages PyTables
     depends on.
@@ -69,8 +80,8 @@ proceeding.
 .. _ctypes: https://pypi.python.org/pypi/ctypes
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
-instructions on how to install precompiled binaries if you are not willing to
-compile the prerequisites on Windows systems).
+instructions on how to install pre-compiled binaries if you are not willing
+to compile the prerequisites on Windows systems).
 
 For compression (and possibly improved performance), you will need to install
 the Zlib (see :ref:`[ZLIB] <ZLIB>`), which is also required by HDF5 as well.
@@ -78,8 +89,11 @@ You may also optionally install the excellent LZO compression library (see
 :ref:`[LZO] <LZO>` and :ref:`compressionIssues`). The high-performance bzip2
 compression library can also be used with PyTables (see
 :ref:`[BZIP2] <BZIP2>`).
-The Blosc (see :ref:`[BLOSC] <BLOSC>`) compression library is embedded in
-PyTables, so you don't need to install it separately.
+
+The Blosc (see :ref:`[BLOSC] <BLOSC>`) compression library is embedded
+in PyTables, so this will be used in case it is not found in the
+system.  So, in case the installer warns about not finding it, do not
+worry too much ;)
 
 **Unix**
 
@@ -90,20 +104,21 @@ PyTables, so you don't need to install it separately.
     may wish to use) or if you have several versions of a library installed
     and want to use a particular one, then you can set the path to the
     resource in the environment, by setting the values of the
-    :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`, or :envvar:`BZIP2_DIR` environment
-    variables to the path to the particular resource. You may also specify the
-    locations of the resource root directories on the setup.py command line.
-    For example::
+    :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`, :envvar:`BZIP2_DIR` or
+    :envvar:`BLOSC_DIR` environment variables to the path to the particular
+    resource. You may also specify the locations of the resource root
+    directories on the setup.py command line.  For example::
 
-        --hdf5=/stuff/hdf5-1.8.9
+        --hdf5=/stuff/hdf5-1.8.12
         --lzo=/stuff/lzo-2.02
         --bzip2=/stuff/bzip2-1.0.5
+        --blosc=/stuff/blosc-1.3.2
 
     If your HDF5 library was built as a shared library not in the runtime load
     path, then you can specify the additional linker flags needed to find the
     shared library on the command line as well. For example::
 
-        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.9/lib"
+        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.12/lib"
 
     You may also want to try setting the :envvar:`LD_LIBRARY_PATH`
     environment variable to point to the directory where the shared libraries
@@ -113,7 +128,7 @@ PyTables, so you don't need to install it separately.
     It is also possible to link with specific libraries by setting the
     :envvar:`LIBS` environment variable::
 
-        LIBS="hdf5-1.8.9 nsl"
+        LIBS="hdf5-1.8.12 nsl"
 
     Finally, you can give additional flags to your compiler by passing them to
     the :option:`--cflags` flag::
@@ -146,14 +161,15 @@ PyTables, so you don't need to install it separately.
     Once you have installed the prerequisites, setup.py needs to know where
     the necessary library *stub* (.lib) and *header* (.h) files are installed.
     You can set the path to the include and dll directories for the HDF5
-    (mandatory) and LZO or BZIP2 (optional) libraries in the environment, by
-    setting the values of the :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`, or
-    :envvar:`BZIP2_DIR` environment variables to the path to the particular
-    resource.  For example::
+    (mandatory) and LZO, BZIP2, BLOSC (optional) libraries in the environment,
+    by setting the values of the :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`,
+    :envvar:`BZIP2_DIR` or :envvar:`BLOSC_DIR` environment variables to the
+    path to the particular resource.  For example::
 
         set HDF5_DIR=c:\\stuff\\hdf5-1.8.5-32bit-VS2008-IVF101\\release
         set LZO_DIR=c:\\Program Files (x86)\\GnuWin32
         set BZIP2_DIR=c:\\Program Files (x86)\\GnuWin32
+        set BLOSC_DIR=c:\\Program Files (x86)\\Blosc
 
     You may also specify the locations of the resource root directories on the
     setup.py command line.
@@ -162,6 +178,7 @@ PyTables, so you don't need to install it separately.
         --hdf5=c:\\stuff\\hdf5-1.8.5-32bit-VS2008-IVF101\\release
         --lzo=c:\\Program Files (x86)\\GnuWin32
         --bzip2=c:\\Program Files (x86)\\GnuWin32
+        --blosc=c:\\Program Files (x86)\\Blosc
 
 **Development version (Unix)**
 
@@ -201,12 +218,12 @@ you can proceed with the PyTables package itself.
    **Unix**
       In the sh shell and its variants::
 
-        $ cd build/lib.linux-x86_64-2.7
+        $ cd build/lib.linux-x86_64-3.3
         $ env PYTHONPATH=. python tables/tests/test_all.py
 
       or, if you prefer::
 
-        $ cd build/lib.linux-x86_64-2.7
+        $ cd build/lib.linux-x86_64-3.3
         $ env PYTHONPATH=. python -c "import tables; tables.test()"
 
       .. note::
@@ -287,10 +304,11 @@ you can proceed with the PyTables package itself.
 
    **Windows**
 
-      Put the DLL libraries (hdf5dll.dll and, optionally, lzo1.dll and
-      bzip2.dll) in a directory listed in your :envvar:`PATH` environment
-      variable. The setup.py installation program will print out a warning to
-      that effect if the libraries can not be found.
+      Put the DLL libraries (hdf5dll.dll and, optionally, lzo1.dll,
+      bzip2.dll or blosc.dll) in a directory listed in your
+      :envvar:`PATH` environment variable. The setup.py installation
+      program will print out a warning to that effect if the libraries
+      can not be found.
 
 #. To install the entire PyTables Python package, change back to the root
    distribution directory and run the following command (make sure you have
@@ -317,6 +335,56 @@ you can proceed with the PyTables package itself.
    for more information on that subject.
 
 That's it! Now you can skip to the next chapter to learn how to use PyTables.
+
+
+Installation with :program:`pip`
+--------------------------------
+
+Many users find it useful to use the :program:`pip` program (or similar ones)
+to install python packages.
+
+As explained in previous sections the user should in any case ensure that all
+dependencies listed in the `Prerequisites`_ section are correctly installed.
+
+The simplest way to install PyTables using :program:`pip` is the following::
+
+  $ pip install tables
+
+The following example shows how to install the latest stable version of
+PyTables in the user folder when a older version of the package is already
+installed at system level::
+
+  $ pip install --user --upgrade tables
+
+The `--user` option tels to the :program:`pip` tool to install the package in
+the user folder (``$HOME/.local`` on GNU/Linux and Unix systems), while the
+`--upgrade` option forces the installation of the latest version even if an
+older version of the package is already installed.
+
+The :program:`pip` tool can also be used to install packages from a source
+tar-ball::
+
+  $ pip install tables-3.0.0.tar.gz
+
+To install the development version of PyTables from the *develop* branch of
+the main :program:`git` :ref:`[GIT] <GIT>` repository the command is the
+following::
+
+  $ pip install git+https://github.com/PyTables/PyTables.git@develop#egg=tables
+
+A similar command can be used to install a specific tagged fersion::
+
+  $ pip install git+https://github.com/PyTables/PyTables.git@v.2.4.0#egg=tables
+
+Finally, PyTables developers provide a :file:`requirements.txt` file that
+can be used by :program:`pip` to install the PyTables dependencies::
+
+  $ wget https://raw.github.com/PyTables/PyTables/develop/requirements.txt
+  $ pip install -r requirements.txt
+
+Of course the :file:`requirements.txt` file can be used to install only
+python packages.  Other dependencies like the HDF5 library of compression
+libraries have to be installed by the user.
 
 
 .. _binaryInstallationDescr:

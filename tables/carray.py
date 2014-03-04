@@ -102,8 +102,8 @@ class CArray(Array):
 
         # Re-open a read another hyperslab
         h5f = tables.open_file(fileName)
-        print h5f
-        print h5f.root.carray[8:12, 18:22]
+        print(h5f)
+        print(h5f.root.carray[8:12, 18:22])
         h5f.close()
 
     The output for the previous script is something like::
@@ -249,7 +249,7 @@ class CArray(Array):
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
                            title, filters, chunkshape, _log, **kwargs):
-        """Private part of Leaf.copy() for each kind of leaf"""
+        """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)
         maindim = self.maindim

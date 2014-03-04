@@ -226,7 +226,11 @@ cdef class CacheArray(Array):
 cdef class IndexArray(Array):
   """Container for keeping sorted and indices values."""
 
-  cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
+  cdef void    *rbufst
+  cdef void    *rbufln
+  cdef void    *rbufrv
+  cdef void    *rbufbc
+  cdef void    *rbuflb
   cdef hid_t   mem_space_id
   cdef int     l_chunksize, l_slicesize, nbounds, indsize
   cdef CacheArray bounds_ext
@@ -266,14 +270,16 @@ cdef class IndexArray(Array):
       self.rbuflb = self.bufferlb.data
       # Init structures for accelerating sorted array reads
       rank = 2
-      count[0] = 1; count[1] = self.chunksize
+      count[0] = 1
+      count[1] = self.chunksize
       self.mem_space_id = H5Screate_simple(rank, count, NULL)
       # Cache some counters in local extension variables
       self.l_chunksize = self.chunksize
       self.l_slicesize = self.slicesize
 
     # Get the addresses of buffer data
-    starts = index.starts;  lengths = index.lengths
+    starts = index.starts
+    lengths = index.lengths
     self.rbufst = starts.data
     self.rbufln = lengths.data
     # The 1st cache is loaded completely in memory and needs to be reloaded
@@ -409,7 +415,8 @@ cdef class IndexArray(Array):
       vpointer = self.sortedcache.getitem1_(nslot)
     else:
       # The sorted chunk is not in cache. Read it and put it in the LRU cache.
-      start = cs*nchunk;  stop = cs*(nchunk+1)
+      start = cs*nchunk
+      stop = cs*(nchunk+1)
       vpointer = self._g_read_sorted_slice(nrow, start, stop)
       self.sortedcache.setitem_(nckey, vpointer, 0)
     return vpointer
@@ -420,16 +427,28 @@ cdef class IndexArray(Array):
   def _search_bin_na_b(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_int8 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <npy_int8 *>self.rbufrv; tlength = 0
+    # Variables with specific type
+    cdef npy_int8 *rbufrv
+    cdef npy_int8 *rbufbc = NULL
+    cdef npy_int8 *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+    rbufrv = <npy_int8 *>self.rbufrv
+    tlength = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
+
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -459,8 +478,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_b = previous_api(_search_bin_na_b)
@@ -469,16 +490,28 @@ cdef class IndexArray(Array):
   def _search_bin_na_ub(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_uint8 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <npy_uint8 *>self.rbufrv; tlength = 0
+    # Variables with specific type
+    cdef npy_uint8 *rbufrv
+    cdef npy_uint8 *rbufbc = NULL
+    cdef npy_uint8 *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+    rbufrv = <npy_uint8 *>self.rbufrv
+    tlength = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
+
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -508,8 +541,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_ub = previous_api(_search_bin_na_ub)
@@ -518,16 +553,27 @@ cdef class IndexArray(Array):
   def _search_bin_na_s(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_int16 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <npy_int16 *>self.rbufrv; tlength = 0
+    # Variables with specific type
+    cdef npy_int16 *rbufrv
+    cdef npy_int16 *rbufbc = NULL
+    cdef npy_int16 *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+    rbufrv = <npy_int16 *>self.rbufrv
+    tlength = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -557,8 +603,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_s = previous_api(_search_bin_na_s)
@@ -567,16 +615,27 @@ cdef class IndexArray(Array):
   def _search_bin_na_us(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_uint16 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <npy_uint16 *>self.rbufrv; tlength = 0
+    # Variables with specific type
+    cdef npy_uint16 *rbufrv
+    cdef npy_uint16 *rbufbc = NULL
+    cdef npy_uint16 *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+    rbufrv = <npy_uint16 *>self.rbufrv
+    tlength = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -606,8 +665,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_us = previous_api(_search_bin_na_us)
@@ -616,16 +677,27 @@ cdef class IndexArray(Array):
   def _search_bin_na_i(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_int32 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <npy_int32 *>self.rbufrv; tlength = 0
+    # Variables with specific type
+    cdef npy_int32 *rbufrv
+    cdef npy_int32 *rbufbc = NULL
+    cdef npy_int32 *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+    rbufrv = <npy_int32 *>self.rbufrv
+    tlength = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -655,8 +727,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_i = previous_api(_search_bin_na_i)
@@ -665,16 +739,27 @@ cdef class IndexArray(Array):
   def _search_bin_na_ui(self, npy_uint32 item1, npy_uint32 item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_uint32 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <npy_uint32 *>self.rbufrv; tlength = 0
+    # Variables with specific type
+    cdef npy_uint32 *rbufrv
+    cdef npy_uint32 *rbufbc = NULL
+    cdef npy_uint32 *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+    rbufrv = <npy_uint32 *>self.rbufrv
+    tlength = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -704,8 +789,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_ui = previous_api(_search_bin_na_ui)
@@ -714,16 +801,27 @@ cdef class IndexArray(Array):
   def _search_bin_na_ll(self, npy_int64 item1, npy_int64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_int64 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <npy_int64 *>self.rbufrv; tlength = 0
+    # Variables with specific type
+    cdef npy_int64 *rbufrv
+    cdef npy_int64 *rbufbc = NULL
+    cdef npy_int64 *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+    rbufrv = <npy_int64 *>self.rbufrv
+    tlength = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -753,8 +851,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_ll = previous_api(_search_bin_na_ll)
@@ -763,16 +863,27 @@ cdef class IndexArray(Array):
   def _search_bin_na_ull(self, npy_uint64 item1, npy_uint64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_uint64 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <npy_uint64 *>self.rbufrv; tlength = 0
+    # Variables with specific type
+    cdef npy_uint64 *rbufrv
+    cdef npy_uint64 *rbufbc = NULL
+    cdef npy_uint64 *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+    rbufrv = <npy_uint64 *>self.rbufrv
+    tlength = 0
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -802,8 +913,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_ull = previous_api(_search_bin_na_ull)
@@ -812,17 +925,29 @@ cdef class IndexArray(Array):
   def _search_bin_na_e(self, npy_float64 item1, npy_float64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_float16 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    # Variables with specific type
+    cdef npy_float16 *rbufrv
+    cdef npy_float16 *rbufbc = NULL
+    cdef npy_float16 *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    tlength = 0
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
     # Limits not in cache, do a lookup
     rbufrv = <npy_float16 *>self.rbufrv
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
+
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -852,8 +977,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_e = previous_api(_search_bin_na_e)
@@ -862,17 +989,28 @@ cdef class IndexArray(Array):
   def _search_bin_na_f(self, npy_float64 item1, npy_float64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
+    cdef int *rbufst
+    cdef int *rbufln
     # Variables with specific type
-    cdef npy_float32 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef npy_float32 *rbufrv
+    cdef npy_float32 *rbufbc = NULL
+    cdef npy_float32 *rbuflb = NULL
 
-    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    tlength = 0
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+
     # Limits not in cache, do a lookup
     rbufrv = <npy_float32 *>self.rbufrv
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -902,8 +1040,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_f = previous_api(_search_bin_na_f)
@@ -912,17 +1052,30 @@ cdef class IndexArray(Array):
   def _search_bin_na_d(self, npy_float64 item1, npy_float64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_float64 *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    # Variables with specific type
+    cdef npy_float64 *rbufrv
+    cdef npy_float64 *rbufbc = NULL
+    cdef npy_float64 *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    tlength = 0
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+
     # Limits not in cache, do a lookup
     rbufrv = <npy_float64 *>self.rbufrv
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
+
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -952,8 +1105,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_d = previous_api(_search_bin_na_d)
@@ -962,17 +1117,30 @@ cdef class IndexArray(Array):
   def _search_bin_na_g(self, npy_longdouble item1, npy_longdouble item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef npy_longdouble *rbufrv, *rbufbc = NULL, *rbuflb = NULL
+    cdef int *rbufst
+    cdef int *rbufln
 
-    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    # Variables with specific type
+    cdef npy_longdouble *rbufrv
+    cdef npy_longdouble *rbufbc = NULL
+    cdef npy_longdouble *rbuflb = NULL
+
+    cs = self.l_chunksize
+    ss = self.l_slicesize
+    ncs = ss / cs
+    nbounds = self.nbounds
+    nrows = self.nrows
+    tlength = 0
+    rbufst = <int *>self.rbufst
+    rbufln = <int *>self.rbufln
+
     # Limits not in cache, do a lookup
     rbufrv = <npy_longdouble *>self.rbufrv
     for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      rvrow = nrow*2
+      bread = 0
+      nchunk = -1
+
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
@@ -1002,8 +1170,10 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
+      length = stop - start
+      tlength = tlength + length
+      rbufst[nrow] = start
+      rbufln[nrow] = length
     return tlength
 
   _searchBinNA_g = previous_api(_search_bin_na_g)

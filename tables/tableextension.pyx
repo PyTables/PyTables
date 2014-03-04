@@ -162,7 +162,8 @@ cdef class Table(Leaf):
     cdef ndarray recarr
     cdef object  name
     cdef bytes encoded_title, encoded_complib, encoded_obversion
-    cdef char *ctitle = NULL, *cobversion = NULL
+    cdef char *ctitle = NULL
+    cdef char *cobversion = NULL
     cdef bytes encoded_name
     cdef char fieldname[128]
     cdef int i
@@ -264,7 +265,8 @@ cdef class Table(Leaf):
     """Open a nested type and return a nested dictionary as description."""
 
     cdef hid_t   member_type_id, native_member_type_id
-    cdef hsize_t nfields, dims[1]
+    cdef hsize_t nfields
+    cdef hsize_t dims[1]
     cdef size_t  itemsize
     cdef int     i
     cdef char    *c_colname
@@ -365,7 +367,8 @@ cdef class Table(Leaf):
 
     cdef hid_t   space_id, plist
     cdef size_t  type_size, size2
-    cdef hsize_t dims[1], chunksize[1]  # enough for unidimensional tables
+    cdef hsize_t dims[1]        # enough for unidimensional tables
+    cdef hsize_t chunksize[1]
     cdef H5D_layout_t layout
     cdef bytes encoded_name
 
@@ -531,7 +534,8 @@ cdef class Table(Leaf):
   def _update_elements(self, hsize_t nrecords, ndarray coords,
                        ndarray recarr):
     cdef herr_t ret
-    cdef void *rbuf, *rcoords
+    cdef void *rbuf
+    cdef void *rcoords
 
     # Get the chunk of the coords that correspond to a buffer
     rcoords = coords.data
@@ -609,7 +613,8 @@ cdef class Table(Leaf):
 
   def _read_elements(self, ndarray coords, ndarray recarr):
     cdef long nrecords
-    cdef void *rbuf, *rbuf2
+    cdef void *rbuf
+    cdef void *rbuf2
     cdef int ret
 
     # Get the chunk of the coords that correspond to a buffer
@@ -709,8 +714,10 @@ cdef class Row:
   cdef int     _bufferinfo_done, sss_on
   cdef int     iterseq_max_elements
   cdef ndarray bufcoords, indexvalid, indexvalues, chunkmap
-  cdef hsize_t *bufcoords_data, *index_values_data
-  cdef char    *chunkmap_data, *index_valid_data
+  cdef hsize_t *bufcoords_data
+  cdef hsize_t *index_values_data
+  cdef char    *chunkmap_data
+  cdef char    *index_valid_data
   cdef object  dtype
   cdef object  iobuf, iobufcpy
   cdef object  wrec, wreccpy
@@ -831,7 +838,7 @@ cdef class Row:
     self.step = step
     self.coords = coords
     self.startb = 0
-    if step > 0: 
+    if step > 0:
         self._row = -1  # a sentinel
         self.nrowsread = start
     elif step < 0:
@@ -1036,7 +1043,7 @@ cdef class Row:
         # All the elements have been read for this mode
         self._finish_riterator()
     elif 0 > self.step:
-      #print "self.nextelement = ", self.nextelement, self.start, self.nrowsread, self.nextelement <  self.start - self.nrowsread + 1
+      #print("self.nextelement = ", self.nextelement, self.start, self.nrowsread, self.nextelement <  self.start - self.nrowsread + 1)
       while self.nextelement - 1 > self.stop:
         if self.nextelement < self.start - (<long long> self.nrowsread) + 1:
           if 0 > self.nextelement - (<long long> self.nrowsinbuf) + 1:
@@ -1050,9 +1057,9 @@ cdef class Row:
           self._row = len(self.bufcoords) - 1
         else:
           self._row = (self._row + self.step) % len(self.bufcoords)
-            
+
         self._nrow = self.nextelement - self.step
-        self.nextelement = self.nextelement + self.step 
+        self.nextelement = self.nextelement + self.step
         # Return this value
         return self
       else:
@@ -1100,7 +1107,7 @@ cdef class Row:
               correct = (self.nextelement - self.start) % self.step
               self.nextelement = self.nextelement - correct
           continue
-      
+
       self._row = self._row + self.step
       self._nrow = self.nextelement
       if self._row + self.step >= self.stopb:
@@ -1151,15 +1158,15 @@ cdef class Row:
       while self.nextelement - 1 > self.stop:
         if self.nextelement < self.start - self.nrowsread + 1:
           # Read a chunk
-          recout = self.table._read_records(self.nextelement - self.nrowsinbuf + 1, 
+          recout = self.table._read_records(self.nextelement - self.nrowsinbuf + 1,
                                             self.nrowsinbuf, self.iobuf)
           self.nrowsread = self.nrowsread + self.nrowsinbuf
           self._row = self.nrowsinbuf - 1
         else:
           self._row = (self._row + self.step) % self.nrowsinbuf
-            
+
         self._nrow = self.nextelement - self.step
-        self.nextelement = self.nextelement + self.step 
+        self.nextelement = self.nextelement + self.step
         # Return this value
         return self
       else:
@@ -1223,13 +1230,13 @@ cdef class Row:
         i = i + inrowsinbuf
     elif 0 > istep:
       inrowsinbuf = self.nrowsinbuf
-      #istartb = self.startb 
+      #istartb = self.startb
       istartb = self.nrowsinbuf - 1
       #istopb = self.stopb - 1
       istopb = -1
       startr = 0
       i = istart
-      inextelement = istart  
+      inextelement = istart
       inrowsread = 0
       while i-1 > istop:
         #if (inextelement <= inrowsread + inrowsinbuf):
@@ -1240,7 +1247,7 @@ cdef class Row:
         # Compute the end for this iteration
         stopr = startr + ((istopb - istartb - 1) / istep)
         # Read a chunk
-        inrowsread = inrowsread + self.table._read_records(i - inrowsinbuf + 1, 
+        inrowsread = inrowsread + self.table._read_records(i - inrowsinbuf + 1,
                                                            inrowsinbuf, self.iobuf)
         # Assign the correct part to result
         fields = self.iobuf
@@ -1253,7 +1260,7 @@ cdef class Row:
 
         # Compute some indexes for the next iteration
         startr = stopr
-        istartb = (i - istartb)%inrowsinbuf 
+        istartb = (i - istartb)%inrowsinbuf
         inextelement = inextelement + istep
         i = i - inrowsinbuf
     self._riterator = 0  # out of iterator

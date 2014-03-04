@@ -495,10 +495,10 @@ class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.fnode.seek(0)
 
-        line = self.fnode.next()
+        line = next(self.fnode)
         self.assertEqual(line, linesep)
 
-        line = self.fnode.next()
+        line = next(self.fnode)
         self.assertEqual(line, b'short line' + linesep)
 
     def test03_Readlines(self):
@@ -769,12 +769,12 @@ class ClosedH5FileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class OldVersionTestCase(common.PyTablesTestCase):
-    """
-    Base class for old version compatibility test cases.
+    """Base class for old version compatibility test cases.
 
     It provides some basic tests for file operations and attribute handling.
     Sub-classes must provide the 'oldversion' attribute
     and the 'oldh5fname' attribute.
+
     """
 
     def setUp(self):

@@ -12,6 +12,7 @@
 
 """Unit test for the Time datatypes."""
 
+from __future__ import print_function
 import unittest
 import tempfile
 import os
@@ -296,8 +297,8 @@ class CompareTestCase(common.PyTablesTestCase):
         orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 1, 2)
         if common.verbose:
-            print "Original values:", orig_val
-            print "Retrieved values:", arr
+            print("Original values:", orig_val)
+            print("Retrieved values:", arr)
         self.assertTrue(allequal(arr, orig_val),
                         "Stored and retrieved values do not match.")
 
@@ -358,8 +359,8 @@ class CompareTestCase(common.PyTablesTestCase):
         # Time32 column.
         orig_val = numpy.arange(nrows, dtype=numpy.int32)
         if common.verbose:
-            print "Original values:", orig_val
-            print "Retrieved values:", recarr['t32col'][:]
+            print("Original values:", orig_val)
+            print("Retrieved values:", recarr['t32col'][:])
         self.assertTrue(numpy.alltrue(recarr['t32col'][:] == orig_val),
                         "Stored and retrieved values do not match.")
 
@@ -367,8 +368,8 @@ class CompareTestCase(common.PyTablesTestCase):
         orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 2)
         if common.verbose:
-            print "Original values:", orig_val
-            print "Retrieved values:", recarr['t64col'][:]
+            print("Original values:", orig_val)
+            print("Retrieved values:", recarr['t64col'][:])
         self.assertTrue(allequal(recarr['t64col'][:], orig_val, numpy.float64),
                         "Stored and retrieved values do not match.")
 
@@ -420,8 +421,8 @@ class CompareTestCase(common.PyTablesTestCase):
         orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 2)
         if common.verbose:
-            print "Original values:", orig_val
-            print "Retrieved values:", arr
+            print("Original values:", orig_val)
+            print("Retrieved values:", arr)
         self.assertTrue(allequal(arr, orig_val),
                         "Stored and retrieved values do not match.")
 
@@ -484,16 +485,16 @@ class UnalignedTestCase(common.PyTablesTestCase):
         # Int8 column.
         orig_val = numpy.arange(nrows, dtype=numpy.int8)
         if common.verbose:
-            print "Original values:", orig_val
-            print "Retrieved values:", recarr['i8col'][:]
+            print("Original values:", orig_val)
+            print("Retrieved values:", recarr['i8col'][:])
         self.assertTrue(numpy.alltrue(recarr['i8col'][:] == orig_val),
                         "Stored and retrieved values do not match.")
 
         # Time32 column.
         orig_val = numpy.arange(nrows, dtype=numpy.int32)
         if common.verbose:
-            print "Original values:", orig_val
-            print "Retrieved values:", recarr['t32col'][:]
+            print("Original values:", orig_val)
+            print("Retrieved values:", recarr['t32col'][:])
         self.assertTrue(numpy.alltrue(recarr['t32col'][:] == orig_val),
                         "Stored and retrieved values do not match.")
 
@@ -501,8 +502,8 @@ class UnalignedTestCase(common.PyTablesTestCase):
         orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 2)
         if common.verbose:
-            print "Original values:", orig_val
-            print "Retrieved values:", recarr['t64col'][:]
+            print("Original values:", orig_val)
+            print("Retrieved values:", recarr['t64col'][:])
         self.assertTrue(allequal(recarr['t64col'][:], orig_val, numpy.float64),
                         "Stored and retrieved values do not match.")
 
@@ -529,8 +530,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         orig_val = numpy.arange(start, start + nrows, dtype=numpy.int32)
 
         if common.verbose:
-            print "Retrieved values:", earr
-            print "Should look like:", orig_val
+            print("Retrieved values:", earr)
+            print("Should look like:", orig_val)
         self.assertTrue(numpy.alltrue(earr == orig_val),
                         "Retrieved values do not match the expected values.")
 
@@ -546,8 +547,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
 
         if common.verbose:
-            print "Retrieved values:", earr
-            print "Should look like:", orig_val
+            print("Retrieved values:", earr)
+            print("Should look like:", orig_val)
         self.assertTrue(numpy.allclose(earr, orig_val, rtol=1.e-15),
                         "Retrieved values do not match the expected values.")
 
@@ -564,8 +565,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         orig_val = numpy.arange(start, start + nrows, dtype=numpy.int32)
 
         if common.verbose:
-            print "Retrieved values:", t32
-            print "Should look like:", orig_val
+            print("Retrieved values:", t32)
+            print("Should look like:", orig_val)
         self.assertTrue(numpy.alltrue(t32 == orig_val),
                         "Retrieved values do not match the expected values.")
 
@@ -582,8 +583,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
 
         if common.verbose:
-            print "Retrieved values:", t64
-            print "Should look like:", orig_val
+            print("Retrieved values:", t64)
+            print("Should look like:", orig_val)
         self.assertTrue(numpy.allclose(t64, orig_val, rtol=1.e-15),
                         "Retrieved values do not match the expected values.")
 
@@ -602,8 +603,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
 
         if common.verbose:
-            print "Retrieved values:", t64
-            print "Should look like:", orig_val
+            print("Retrieved values:", t64)
+            print("Should look like:", orig_val)
         self.assertTrue(numpy.allclose(t64, orig_val, rtol=1.e-15),
                         "Retrieved values do not match the expected values.")
 

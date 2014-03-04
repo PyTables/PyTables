@@ -1,29 +1,34 @@
-"""This program shows the different protections that PyTables offer to
-the user in order to insure a correct data injection in tables.
+"""This program shows the different protections that PyTables offer to the user
+in order to insure a correct data injection in tables.
 
 Example to be used in the second tutorial in the User's Guide.
 
 """
 
-from tables import *
-from numpy import *
+from __future__ import print_function
+import tables
+import numpy as np
 
 # Describe a particle record
-class Particle(IsDescription):
-    name        = StringCol(itemsize=16)  # 16-character string
-    lati        = Int32Col()              # integer
-    longi       = Int32Col()              # integer
-    pressure    = Float32Col(shape=(2, 3)) # array of floats (single-precision)
-    temperature = Float64Col(shape=(2, 3)) # array of doubles (double-precision)
+
+
+class Particle(tables.IsDescription):
+    name = tables.StringCol(itemsize=16)    # 16-character string
+    lati = tables.Int32Col()                # integer
+    longi = tables.Int32Col()               # integer
+    pressure = tables.Float32Col(shape=(2, 3))      # array of floats
+                                                    # (single-precision)
+    temperature = tables.Float64Col(shape=(2, 3))   # array of doubles
+                                                    # (double-precision)
 
 # Native NumPy dtype instances are also accepted
-Event = dtype([
+Event = np.dtype([
     ("name", "S16"),
-    ("TDCcount", uint8),
-    ("ADCcount", uint16),
-    ("xcoord", float32),
-    ("ycoord", float32)
-    ])
+    ("TDCcount", np.uint8),
+    ("ADCcount", np.uint16),
+    ("xcoord", np.float32),
+    ("ycoord", np.float32)
+])
 
 # And dictionaries too (this defines the same structure as above)
 # Event = {
@@ -35,7 +40,7 @@ Event = dtype([
 #     }
 
 # Open a file in "w"rite mode
-fileh = open_file("tutorial2.h5", mode = "w")
+fileh = tables.open_file("tutorial2.h5", mode="w")
 # Get the HDF5 root group
 root = fileh.root
 # Create the groups:
@@ -47,20 +52,21 @@ gparticles = root.Particles
 for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Create a table
     table = fileh.create_table("/Particles", tablename, Particle,
-                              "Particles: "+tablename)
+                               "Particles: " + tablename)
     # Get the record object associated with the table:
     particle = table.row
     # Fill the table with 257 particles
-    for i in xrange(257):
+    for i in range(257):
         # First, assign the values to the Particle record
         particle['name'] = 'Particle: %6d' % (i)
         particle['lati'] = i
         particle['longi'] = 10 - i
-        ########### Detectable errors start here. Play with them!
-        particle['pressure'] = array(i*arange(2*3)).reshape((2, 4))  # Incorrect
-        #particle['pressure'] = array(i*arange(2*3)).reshape((2,3))  # Correct
-        ########### End of errors
-        particle['temperature'] = (i**2)     # Broadcasting
+        # Detectable errors start here. Play with them!
+        particle['pressure'] = np.array(
+            i * np.arange(2 * 3)).reshape((2, 4))  # Incorrect
+        # particle['pressure'] = array(i*arange(2*3)).reshape((2,3))  # Correct
+        # End of errors
+        particle['temperature'] = (i ** 2)     # Broadcasting
         # This injects the Record values
         particle.append()
     # Flush the table buffers
@@ -70,21 +76,21 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
 for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     # Create a table in Events group
     table = fileh.create_table(root.Events, tablename, Event,
-                              "Events: "+tablename)
+                               "Events: " + tablename)
     # Get the record object associated with the table:
     event = table.row
     # Fill the table with 257 events
-    for i in xrange(257):
+    for i in range(257):
         # First, assign the values to the Event record
-        event['name']  = 'Event: %6d' % (i)
-        event['TDCcount'] = i % (1<<8)   # Correct range
-        ########### Detectable errors start here. Play with them!
-        event['xcoor'] = float(i**2)     # Wrong spelling
-        #event['xcoord'] = float(i**2)   # Correct spelling
+        event['name'] = 'Event: %6d' % (i)
+        event['TDCcount'] = i % (1 << 8)   # Correct range
+        # Detectable errors start here. Play with them!
+        event['xcoor'] = float(i ** 2)     # Wrong spelling
+        # event['xcoord'] = float(i**2)   # Correct spelling
         event['ADCcount'] = "sss"          # Wrong type
-        #event['ADCcount'] = i * 2        # Correct type
-        ########### End of errors
-        event['ycoord'] = float(i)**4
+        # event['ADCcount'] = i * 2        # Correct type
+        # End of errors
+        event['ycoord'] = float(i) ** 4
         # This injects the Record values
         event.append()
     # Flush the buffers
@@ -92,10 +98,10 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
 
 # Read the records from table "/Events/TEvent3" and select some
 table = root.Events.TEvent3
-e = [ p['TDCcount'] for p in table
-      if p['ADCcount'] < 20 and 4 <= p['TDCcount'] < 15 ]
-print "Last record ==>", p
-print "Selected values ==>", e
-print "Total selected records ==> ", len(e)
+e = [p['TDCcount'] for p in table
+     if p['ADCcount'] < 20 and 4 <= p['TDCcount'] < 15]
+print("Last record ==>", p)
+print("Selected values ==>", e)
+print("Total selected records ==> ", len(e))
 # Finally, close the file (this also will flush all the remaining buffers!)
 fileh.close()

@@ -14,6 +14,7 @@
 
 # Imports
 # =======
+from __future__ import print_function
 import sys
 import copy
 import warnings
@@ -258,9 +259,9 @@ def _generate_col_classes():
     # Bottom-level complex classes are not in the type map, of course.
     # We still want the user to get the compatibility warning, though.
     cprefixes.extend(['Complex32', 'Complex64', 'Complex128'])
-    if hasattr(numpy, 'complex192'):
+    if hasattr(atom, 'Complex192Atom'):
         cprefixes.append('Complex192')
-    if hasattr(numpy, 'complex256'):
+    if hasattr(atom, 'Complex256Atom'):
         cprefixes.append('Complex256')
 
     for cprefix in cprefixes:
@@ -269,7 +270,7 @@ def _generate_col_classes():
 
 # Create all column classes.
 for _newclass in _generate_col_classes():
-    exec '%s = _newclass' % _newclass.__name__
+    exec('%s = _newclass' % _newclass.__name__)
 del _newclass
 
 
@@ -404,6 +405,9 @@ class Description(object):
 
     def __init__(self, classdict, nestedlvl=-1, validate=True):
 
+        if not classdict:
+            raise ValueError("cannot create an empty data type")
+
         # Do a shallow copy of classdict just in case this is going to
         # be shared by other instances
         newdict = self.__dict__
@@ -427,29 +431,29 @@ class Description(object):
         for (name, descr) in classdict.iteritems():
             if name.startswith('_v_'):
                 if name in newdict:
-                    # print "Warning!"
+                    # print("Warning!")
                     # special methods &c: copy to newdict, warn about conflicts
                     warnings.warn("Can't set attr %r in description class %r"
                                   % (name, self))
                 else:
-                    # print "Special variable!-->", name, classdict[name]
+                    # print("Special variable!-->", name, classdict[name])
                     newdict[name] = descr
                 continue  # This variable is not needed anymore
 
             columns = None
             if (type(descr) == type(IsDescription) and
                     issubclass(descr, IsDescription)):
-                # print "Nested object (type I)-->", name
+                # print("Nested object (type I)-->", name)
                 columns = descr().columns
             elif (type(descr.__class__) == type(IsDescription) and
                   issubclass(descr.__class__, IsDescription)):
-                # print "Nested object (type II)-->", name
+                # print("Nested object (type II)-->", name)
                 columns = descr.columns
             elif isinstance(descr, dict):
-                # print "Nested object (type III)-->", name
+                # print("Nested object (type III)-->", name)
                 columns = descr
             else:
-                # print "Nested object (type IV)-->", name
+                # print("Nested object (type IV)-->", name)
                 descr = copy.copy(descr)
             # The copies above and below ensure that the structures
             # provided by the user will remain unchanged even if we
@@ -677,10 +681,10 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
 
 
 class MetaIsDescription(type):
-    """Helper metaclass to return the class variables as a dictionary"""
+    """Helper metaclass to return the class variables as a dictionary."""
 
     def __new__(cls, classname, bases, classdict):
-        """Return a new class with a "columns" attribute filled"""
+        """Return a new class with a "columns" attribute filled."""
 
         newdict = {"columns": {}, }
         if '__doc__' in classdict:
@@ -805,7 +809,7 @@ def dtype_from_descr(descr, byteorder=None):
 
 
 if __name__ == "__main__":
-    """Test code"""
+    """Test code."""
 
     class Info(IsDescription):
         _v_pos = 2
@@ -813,7 +817,7 @@ if __name__ == "__main__":
         Value = Float64Col()
 
     class Test(IsDescription):
-        """A description that has several columns"""
+        """A description that has several columns."""
 
         x = Col.from_type("int32", 2, 0, pos=0)
         y = Col.from_kind('float', dflt=1, shape=(2, 3))
@@ -874,31 +878,31 @@ if __name__ == "__main__":
     klass = Test()
     # klass = Info()
     desc = Description(klass.columns)
-    print "Description representation (short) ==>", desc
-    print "Description representation (long) ==>", repr(desc)
-    print "Column names ==>", desc._v_names
-    print "Column x ==>", desc.x
-    print "Column Info ==>", desc.Info
-    print "Column Info.value ==>", desc.Info.Value
-    print "Nested column names  ==>", desc._v_nested_names
-    print "Defaults ==>", desc._v_dflts
-    print "Nested Formats ==>", desc._v_nested_formats
-    print "Nested Descriptions ==>", desc._v_nested_descr
-    print "Nested Descriptions (info) ==>", desc.info._v_nested_descr
-    print "Total size ==>", desc._v_dtype.itemsize
+    print("Description representation (short) ==>", desc)
+    print("Description representation (long) ==>", repr(desc))
+    print("Column names ==>", desc._v_names)
+    print("Column x ==>", desc.x)
+    print("Column Info ==>", desc.Info)
+    print("Column Info.value ==>", desc.Info.Value)
+    print("Nested column names  ==>", desc._v_nested_names)
+    print("Defaults ==>", desc._v_dflts)
+    print("Nested Formats ==>", desc._v_nested_formats)
+    print("Nested Descriptions ==>", desc._v_nested_descr)
+    print("Nested Descriptions (info) ==>", desc.info._v_nested_descr)
+    print("Total size ==>", desc._v_dtype.itemsize)
 
     # check _f_walk
     for object in desc._f_walk():
         if isinstance(object, Description):
-            print "******begin object*************",
-            print "name -->", object._v_name
-            # print "name -->", object._v_dtype.name
-            # print "object childs-->", object._v_names
-            # print "object nested childs-->", object._v_nested_names
-            print "totalsize-->", object._v_dtype.itemsize
+            print("******begin object*************", end=' ')
+            print("name -->", object._v_name)
+            # print("name -->", object._v_dtype.name)
+            # print("object childs-->", object._v_names)
+            # print("object nested childs-->", object._v_nested_names)
+            print("totalsize-->", object._v_dtype.itemsize)
         else:
             # pass
-            print "leaf -->", object._v_name, object.dtype
+            print("leaf -->", object._v_name, object.dtype)
 
     class testDescParent(IsDescription):
         c = Int32Col()

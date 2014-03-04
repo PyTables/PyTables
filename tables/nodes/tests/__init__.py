@@ -10,4 +10,4 @@
 #
 ########################################################################
 
-"""Unit tests for special node behaviours"""
+"""Unit tests for special node behaviours."""

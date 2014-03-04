@@ -2,9 +2,10 @@
 
 import tables
 
+
 def setUp(filename):
     # Create an HDF5 file
-    fileh = tables.open_file(filename, mode = "w", title="Undo/Redo demo")
+    fileh = tables.open_file(filename, mode="w", title="Undo/Redo demo")
     # Create some nodes in there
     fileh.create_group("/", "agroup", "Group 1")
     fileh.create_group("/agroup", "agroup2", "Group 2")
@@ -13,14 +14,16 @@ def setUp(filename):
     fileh.enable_undo()
     return fileh
 
+
 def tearDown(fileh):
     # Disable undo/redo.
     fileh.disable_undo()
     # Close the file
     fileh.close()
 
+
 def demo_6times3marks():
-    """Checking with six ops and three marks"""
+    """Checking with six ops and three marks."""
 
     # Initialize the data base with some nodes
     fileh = setUp("undo-redo-6times3marks.h5")
@@ -88,8 +91,9 @@ def demo_6times3marks():
     # Tear down the file
     tearDown(fileh)
 
+
 def demo_manyops():
-    """Checking many operations together """
+    """Checking many operations together."""
 
     # Initialize the data base with some nodes
     fileh = setUp("undo-redo-manyops.h5")

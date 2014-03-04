@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # a stacked bar plot with errorbars
+
+from __future__ import print_function
 from pylab import *
 
 checks = ['open_close', 'only_open',
@@ -11,18 +13,20 @@ width = 0.15       # the width of the bars: can also be len(x) sequence
 colors = ['r', 'm', 'g', 'y', 'b']
 ind = arange(len(checks))    # the x locations for the groups
 
+
 def get_values(filename):
     values = []
     f = open(filename)
     for line in f:
         if show_memory:
             if line.startswith('VmData:'):
-                values.append(float(line.split()[1])/1024.)
+                values.append(float(line.split()[1]) / 1024.)
         else:
             if line.startswith('WallClock time:'):
                 values.append(float(line.split(':')[1]))
     f.close()
     return values
+
 
 def plot_bar(values, n):
     global ind
@@ -32,8 +36,9 @@ def plot_bar(values, n):
         if n == 0:
             checks.pop()
             ind = arange(len(checks))
-    p = bar(ind+width*n, values, width, color=colors[n])
+    p = bar(ind + width * n, values, width, color=colors[n])
     return p
+
 
 def show_plot(bars, filenames, tit):
     if show_memory:
@@ -42,8 +47,8 @@ def show_plot(bars, filenames, tit):
         ylabel('Time (s)')
     title(tit)
     n = len(filenames)
-    xticks(ind+width*n/2., checks, rotation = 45,
-           horizontalalignment = 'right', fontsize=8)
+    xticks(ind + width * n / 2., checks, rotation=45,
+           horizontalalignment='right', fontsize=8)
     if not gtotal:
         #loc = 'center right'
         loc = 'upper left'
@@ -52,7 +57,7 @@ def show_plot(bars, filenames, tit):
 
     legends = [f[:f.index('_')] for f in filenames]
     legends = [l.replace('-', ' ') for l in legends]
-    legend([p[0] for p in bars], legends, loc = loc)
+    legend([p[0] for p in bars], legends, loc=loc)
 
     subplots_adjust(bottom=0.2, top=None, wspace=0.2, hspace=0.2)
     if outfile:
@@ -62,7 +67,8 @@ def show_plot(bars, filenames, tit):
 
 if __name__ == '__main__':
 
-    import sys, getopt
+    import sys
+    import getopt
 
     usage = """usage: %s [-g] [-m] [-o file] [-t title] files
             -g grand total
@@ -107,7 +113,7 @@ if __name__ == '__main__':
     n = 0
     for filename in filenames:
         values = get_values(filename)
-        print "Values-->", values
+        print("Values-->", values)
         bars.append(plot_bar(values, n))
         n += 1
     show_plot(bars, filenames, tit)

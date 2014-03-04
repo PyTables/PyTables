@@ -242,7 +242,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
         # Get the row sequence from the cache
         seq = self._seqcache.getitem(nslot)
         if len(seq) == 0:
-            return iter([])
+            return None
         seq = numpy.array(seq, dtype='int64')
         # Correct the ranges in cached sequence
         if (start, stop, step) != (0, self.nrows, 1):
@@ -284,14 +284,14 @@ def _table__where_indexed(self, compiled, condition, condvars,
 
     if index.reduction == 1 and tcoords == 0:
         # No candidates found in any indexed expression component, so leave now
-        return iter([])
+        return None
 
     # Compute the final chunkmap
     chunkmap = numexpr.evaluate(strexpr, cmvars)
     # Method .any() is twice as faster than method .sum()
     if not chunkmap.any():
         # The chunkmap is empty
-        return iter([])
+        return None
 
     if profile:
         show_stats("Exiting table_whereIndexed", tref)
@@ -1156,7 +1156,11 @@ class Table(tableextension.Table, Leaf):
     _check_column = _get_column_instance
 
     def _disable_indexing_in_queries(self):
-        """Force queries not to use indexing.  *Use only for testing.*"""
+        """Force queries not to use indexing.
+
+        *Use only for testing.*
+
+        """
 
         if not self._enabled_indexing_in_queries:
             return  # already disabled
@@ -1168,7 +1172,11 @@ class Table(tableextension.Table, Leaf):
     _disableIndexingInQueries = previous_api(_disable_indexing_in_queries)
 
     def _enable_indexing_in_queries(self):
-        """Allow queries to use indexing.  *Use only for testing.*"""
+        """Allow queries to use indexing.
+
+        *Use only for testing.*
+
+        """
 
         if self._enabled_indexing_in_queries:
             return  # already enabled
@@ -1258,7 +1266,7 @@ class Table(tableextension.Table, Leaf):
                         "a multidimensional column, "
                         "not yet supported in conditions, sorry" % var)
                 if (val._table_file is not tblfile or
-                    val._table_path != tblpath):
+                        val._table_path != tblpath):
                     raise ValueError("variable ``%s`` refers to a column "
                                      "which is not part of table ``%s``"
                                      % (var, tblpath))
@@ -1350,7 +1358,7 @@ class Table(tableextension.Table, Leaf):
 
             # Get the set of columns with usable indexes.
             if (self._enabled_indexing_in_queries  # not test in-kernel searches
-               and self.colindexed[col.pathname] and not col.index.dirty):
+                    and self.colindexed[col.pathname] and not col.index.dirty):
                 indexedcols.append(colname)
 
         indexedcols = frozenset(indexedcols)
@@ -1443,7 +1451,7 @@ class Table(tableextension.Table, Leaf):
             >>> passvalues = [ row['col3'] for row in
             ...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
             ...                if your_function(row['col2']) ]
-            >>> print "Values that pass the cuts:", passvalues
+            >>> print("Values that pass the cuts:", passvalues)
 
         Note that, from PyTables 1.1 on, you can nest several
         iterators over the same table. For example::
@@ -1451,15 +1459,51 @@ class Table(tableextension.Table, Leaf):
             for p in rout.where('pressure < 16'):
                 for q in rout.where('pressure < 9'):
                     for n in rout.where('energy < 10'):
-                        print "pressure, energy:", p['pressure'], n['energy']
+                        print("pressure, energy:", p['pressure'], n['energy'])
 
         In this example, iterators returned by :meth:`Table.where` have been
         used, but you may as well use any of the other reading iterators that
         Table objects offer. See the file :file:`examples/nested-iter.py` for
         the full code.
 
+        .. note::
+
+            A special care should be taken when the query condition includes
+            string literals.  Indeed Python 2 string literals are string of
+            bytes while Python 3 strings are unicode objects.
+
+            Let's assume that the table ``table`` has the following
+            structure::
+
+                class Record(IsDescription):
+                    col1 = StringCol(4)  # 4-character String of bytes
+                    col2 = IntCol()
+                    col3 = FloatCol()
+
+            The type of "col1" do not change depending on the Python version
+            used (of course) and it always corresponds to strings of bytes.
+
+            Any condition involving "col1" should be written using the
+            appropriate type for string literals in order to avoid
+            :exc:`TypeError`\ s.
+
+            The code below will work fine in Python 2 but will fail with a
+            :exc:`TypeError` in Python 3::
+
+                condition = 'col1 == "AAAA"'
+                for record in table.where(condition):  # TypeError in Python3
+                    # do something with "record"
+
+            The reason is that in Python 3 "condition" implies a comparison
+            between a string of bytes ("col1" contents) and an unicode literal
+            ("AAAA").
+
+            The correct way to write the condition is::
+
+                condition = 'col1 == b"AAAA"'
+
         .. versionchanged:: 3.0
-        The start, stop and step parameters now behave like in slice.
+           The start, stop and step parameters now behave like in slice.
 
         """
 
@@ -1493,7 +1537,8 @@ class Table(tableextension.Table, Leaf):
                 self._use_index = False
                 self._where_condition = None
                 # ...and return the iterator
-                return chunkmap
+                if chunkmap is not None:
+                    return chunkmap
         else:
             chunkmap = None  # default to an in-kernel query
 
@@ -1698,7 +1743,7 @@ class Table(tableextension.Table, Leaf):
         :meth:`Table.read`.
 
         .. versionchanged:: 3.0
-        The start, stop and step parameters now behave like in slice.
+           The start, stop and step parameters now behave like in slice.
 
         """
 
@@ -1933,6 +1978,8 @@ class Table(tableextension.Table, Leaf):
     def _read_coordinates(self, coords, field=None):
         """Private part of `read_coordinates()` with no flavor conversion."""
 
+        coords = self._point_selection(coords)
+
         ncoords = len(coords)
         # Create a read buffer only if needed
         if field is None or ncoords > 0:
@@ -2081,8 +2128,7 @@ class Table(tableextension.Table, Leaf):
             return self.read(start, stop, step)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
-            coords = self._point_selection(key)
-            return self._read_coordinates(coords, None)
+            return self._read_coordinates(key, None)
         else:
             raise IndexError("Invalid index or slice: %r" % (key,))
 
@@ -2155,7 +2201,7 @@ class Table(tableextension.Table, Leaf):
             raise IndexError("Invalid index or slice: %r" % (key,))
 
     def _save_buffered_rows(self, wbufRA, lenrows):
-        """Update the indexes after a flushing of rows"""
+        """Update the indexes after a flushing of rows."""
 
         self._open_append(wbufRA)
         self._append_records(lenrows)
@@ -2223,7 +2269,7 @@ class Table(tableextension.Table, Leaf):
             # Works for Python structures and always copies the original,
             # so the resulting object is safe for in-place conversion.
             wbufRA = numpy.rec.array(rows, dtype=self._v_dtype)
-        except Exception, exc:  # XXX
+        except Exception as exc:  # XXX
             raise ValueError("rows parameter cannot be converted into a "
                              "recarray object compliant with table '%s'. "
                              "The error was: <%s>" % (str(self), exc))
@@ -2250,7 +2296,7 @@ class Table(tableextension.Table, Leaf):
                 # Works for Python structures and always copies the original,
                 # so the resulting object is safe for in-place conversion.
                 recarr = numpy.rec.array(obj, dtype=self._v_dtype)
-        except Exception, exc:  # XXX
+        except Exception as exc:  # XXX
             raise ValueError("Object cannot be converted into a recarray "
                              "object compliant with table format '%s'. "
                              "The error was: <%s>" %
@@ -2259,7 +2305,7 @@ class Table(tableextension.Table, Leaf):
         return recarr
 
     def modify_coordinates(self, coords, rows):
-        """Modify a series of rows in positions specified in coords
+        """Modify a series of rows in positions specified in coords.
 
         The values in the selected rows will be modified with the data given in
         rows.  This method returns the number of rows modified.
@@ -2397,7 +2443,7 @@ class Table(tableextension.Table, Leaf):
                 # so the resulting object is safe for in-place conversion.
                 iflavor = flavor_of(column)
                 column = array_as_internal(column, iflavor)
-        except Exception, exc:  # XXX
+        except Exception as exc:  # XXX
             raise ValueError("column parameter cannot be converted into a "
                              "ndarray object compliant with specified column "
                              "'%s'. The error was: <%s>" % (str(column), exc))
@@ -2480,7 +2526,7 @@ class Table(tableextension.Table, Leaf):
                 recarray = numpy.rec.array(columns, dtype=descr)
             else:
                 recarray = numpy.rec.fromarrays(columns, dtype=descr)
-        except Exception, exc:  # XXX
+        except Exception as exc:  # XXX
             raise ValueError("columns parameter cannot be converted into a "
                              "recarray object compliant with table '%s'. "
                              "The error was: <%s>" % (str(self), exc))
@@ -2539,7 +2585,7 @@ class Table(tableextension.Table, Leaf):
     flushRowsToIndex = previous_api(flush_rows_to_index)
 
     def _add_rows_to_index(self, colname, start, nrows, lastrow, update):
-        """Add more elements to the existing index"""
+        """Add more elements to the existing index."""
 
         # This method really belongs to Column, but since it makes extensive
         # use of the table, it gets dangerous when closing the file, since the
@@ -2573,7 +2619,7 @@ class Table(tableextension.Table, Leaf):
         """Remove a range of rows in the table.
 
         .. versionchanged:: 3.0
-        The start, stop and step parameters now behave like in slice.
+           The start, stop and step parameters now behave like in slice.
 
         .. seealso:: remove_row()
 
@@ -2766,9 +2812,9 @@ class Table(tableextension.Table, Leaf):
     def reindex(self):
         """Recompute all the existing indexes in the table.
 
-        This can be useful when you suspect that, for any reason, the index
-        information for columns is no longer valid and want to rebuild the
-        indexes on it.
+        This can be useful when you suspect that, for any reason, the
+        index information for columns is no longer valid and want to
+        rebuild the indexes on it.
 
         """
 
@@ -2855,7 +2901,7 @@ class Table(tableextension.Table, Leaf):
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
                            title, filters, chunkshape, _log, **kwargs):
-        """Private part of Leaf.copy() for each kind of leaf"""
+        """Private part of Leaf.copy() for each kind of leaf."""
 
         # Get the private args for the Table flavor of copy()
         sortby = kwargs.pop('sortby', None)
@@ -3068,8 +3114,9 @@ class Cols(object):
     def _g_gettable(self):
         return self._v__tableFile._get_node(self._v__tablePath)
 
-    _v_table = property(_g_gettable, None, None,
-                    "The parent Table instance (see :ref:`TableClassDescr`).")
+    _v_table = property(
+        _g_gettable, None, None,
+        "The parent Table instance (see :ref:`TableClassDescr`).")
 
     def __init__(self, table, desc):
 
@@ -3414,6 +3461,7 @@ class Column(object):
         """Get the number of elements in the column.
 
         This matches the length in rows of the parent table.
+
         """
 
         return self.table.nrows
@@ -3431,14 +3479,14 @@ class Column(object):
 
         ::
 
-            print "Column handlers:"
+            print("Column handlers:")
             for name in table.colnames:
-                print table.cols._f_col(name)
-                print "Select table.cols.name[1]-->", table.cols.name[1]
-                print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
-                print "Select table.cols.name[:]-->", table.cols.name[:]
-                print "Select table.cols._f_col('name')[:]-->",
-                                                table.cols._f_col('name')[:]
+                print(table.cols._f_col(name))
+                print("Select table.cols.name[1]-->", table.cols.name[1])
+                print("Select table.cols.name[1:2]-->", table.cols.name[1:2])
+                print("Select table.cols.name[:]-->", table.cols.name[:])
+                print("Select table.cols._f_col('name')[:]-->",
+                                                table.cols._f_col('name')[:])
 
         The output of this for a certain arbitrary table is::
 
@@ -3609,7 +3657,7 @@ class Column(object):
         if kind not in kinds:
             raise ValueError("Kind must have any of these values: %s" % kinds)
         if (not isinstance(optlevel, (int, long)) or
-            (optlevel < 0 or optlevel > 9)):
+                (optlevel < 0 or optlevel > 9)):
             raise ValueError("Optimization level must be an integer in the "
                              "range 0-9")
         if filters is None:
@@ -3619,13 +3667,13 @@ class Column(object):
         else:
             if not os.path.isdir(tmp_dir):
                 raise ValueError("Temporary directory '%s' does not exist" %
-                                                                    tmp_dir)
+                                 tmp_dir)
         if (_blocksizes is not None and
-            (not isinstance(_blocksizes, tuple) or len(_blocksizes) != 4)):
+                (not isinstance(_blocksizes, tuple) or len(_blocksizes) != 4)):
             raise ValueError("_blocksizes must be a tuple with exactly 4 "
                              "elements")
         idxrows = _column__create_index(self, optlevel, kind, filters,
-                                       tmp_dir, _blocksizes, _verbose)
+                                        tmp_dir, _blocksizes, _verbose)
         return SizeType(idxrows)
 
     createIndex = previous_api(create_index)
@@ -3732,7 +3780,7 @@ class Column(object):
     removeIndex = previous_api(remove_index)
 
     def close(self):
-        """Close this column"""
+        """Close this column."""
 
         self.__dict__.clear()
 

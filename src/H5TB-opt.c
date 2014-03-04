@@ -35,7 +35,7 @@
 #include "tables.h"
 #include "H5Zlzo.h"                    /* Import FILTER_LZO */
 #include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
-#include "../blosc/blosc_filter.h"     /* Import FILTER_BLOSC */
+#include "blosc_filter.h"              /* Import FILTER_BLOSC */
 
 /* Define this in order to shrink datasets after deleting */
 #if 1
@@ -94,7 +94,9 @@ herr_t H5TBOmake_table( const char *table_title,
  hsize_t dims[1];
  hsize_t dims_chunk[1];
  hsize_t maxdims[1] = { H5S_UNLIMITED };
- unsigned int cd_values[6];
+ unsigned int cd_values[7];
+ int     blosc_compcode;
+ char    *blosc_compname = NULL;
 
  dims[0]       = nrecords;
  dims_chunk[0] = chunk_size;
@@ -129,7 +131,7 @@ herr_t H5TBOmake_table( const char *table_title,
      return -1;
  }
  /* Then shuffle (blosc shuffles inplace) */
- if (shuffle && (strcmp(complib, "blosc") != 0)) {
+ if (shuffle && (strncmp(complib, "blosc", 5) != 0)) {
    if ( H5Pset_shuffle( plist_id) < 0 )
      return -1;
  }
@@ -149,6 +151,16 @@ herr_t H5TBOmake_table( const char *table_title,
      cd_values[4] = compress;
      cd_values[5] = shuffle;
      if ( H5Pset_filter( plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
+       return -1;
+   }
+   /* The Blosc compressor can use other compressors */
+   else if (strncmp(complib, "blosc:", 6) == 0) {
+     cd_values[4] = compress;
+     cd_values[5] = shuffle;
+     blosc_compname = complib + 6;
+     blosc_compcode = blosc_compname_to_compcode(blosc_compname);
+     cd_values[6] = blosc_compcode;
+     if ( H5Pset_filter( plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0 )
        return -1;
    }
    /* The LZO compressor does accept parameters */

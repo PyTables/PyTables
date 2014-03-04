@@ -2,6 +2,7 @@
 
 """This test unit checks node attributes that are persistent (AttributeSet)."""
 
+from __future__ import print_function
 import os
 import sys
 import unittest
@@ -34,7 +35,7 @@ class CreateTestCase(unittest.TestCase):
         # Create an instance of HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(
-            self.file, mode="w", node_cache_slots=self.nodeCacheSlots)
+            self.file, mode="w", node_cache_slots=self.node_cache_slots)
         self.root = self.fileh.root
 
         # Create a table object
@@ -69,10 +70,10 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         self.assertEqual(self.fileh.get_node_attr(self.root.agroup, 'attr1'),
@@ -96,10 +97,10 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         self.assertEqual(self.root.agroup._f_getattr(
@@ -120,10 +121,10 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         # This should work even when the node cache is disabled
@@ -132,35 +133,35 @@ class CreateTestCase(unittest.TestCase):
         self.assertEqual(self.root.anarray.attrs.attr1, "n" * attrlength)
 
     def test04_listAttributes(self):
-        """Checking listing attributes """
+        """Checking listing attributes."""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
         self.group._v_attrs.qr = "2"
         self.group._v_attrs.rs = "3"
         if common.verbose:
-            print "Attribute list:", self.group._v_attrs._f_list()
+            print("Attribute list:", self.group._v_attrs._f_list())
 
         # Now, try with a Table object
         self.table.attrs.a = "1"
         self.table.attrs.c = "2"
         self.table.attrs.b = "3"
         if common.verbose:
-            print "Attribute list:", self.table.attrs._f_list()
+            print("Attribute list:", self.table.attrs._f_list())
 
         # Finally, try with an Array object
         self.array.attrs.k = "1"
         self.array.attrs.j = "2"
         self.array.attrs.i = "3"
         if common.verbose:
-            print "Attribute list:", self.array.attrs._f_list()
+            print("Attribute list:", self.array.attrs._f_list())
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
@@ -194,13 +195,15 @@ class CreateTestCase(unittest.TestCase):
 
         anarray = self.root.anarray
         self.assertEqual(anarray.attrs._f_list(), ["i", "j", "k"])
-        self.assertEqual(anarray.attrs._f_list("sys"),
-                         ['CLASS', 'FLAVOR', 'TITLE', 'VERSION'])
-        self.assertEqual(anarray.attrs._f_list("all"),
-                         ['CLASS', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"])
+        self.assertEqual(
+            anarray.attrs._f_list("sys"),
+            ['CLASS', 'FLAVOR', 'TITLE', 'VERSION'])
+        self.assertEqual(
+            anarray.attrs._f_list("all"),
+            ['CLASS', 'FLAVOR', 'TITLE', 'VERSION', "i", "j", "k"])
 
     def test05_removeAttributes(self):
-        """Checking removing attributes """
+        """Checking removing attributes."""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -211,20 +214,19 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
         if common.verbose:
-            print "Attribute list:", agroup._v_attrs._f_list()
+            print("Attribute list:", agroup._v_attrs._f_list())
         # Check the local attributes names
         self.assertEqual(agroup._v_attrs._f_list(), ["qr", "rs"])
         if common.verbose:
-            print "Attribute list in disk:", \
-                  agroup._v_attrs._f_list("all")
+            print("Attribute list in disk:", agroup._v_attrs._f_list("all"))
         # Check the disk attribute names
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "qr", "rs"])
@@ -232,18 +234,17 @@ class CreateTestCase(unittest.TestCase):
         # delete an attribute (__delattr__ method)
         del agroup._v_attrs.qr
         if common.verbose:
-            print "Attribute list:", agroup._v_attrs._f_list()
+            print("Attribute list:", agroup._v_attrs._f_list())
         # Check the local attributes names
         self.assertEqual(agroup._v_attrs._f_list(), ["rs"])
         if common.verbose:
-            print "Attribute list in disk:", \
-                  agroup._v_attrs._f_list()
+            print("Attribute list in disk:", agroup._v_attrs._f_list())
         # Check the disk attribute names
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "rs"])
 
     def test05b_removeAttributes(self):
-        """Checking removing attributes (using File.del_node_attr()) """
+        """Checking removing attributes (using File.del_node_attr())"""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -254,20 +255,19 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
         if common.verbose:
-            print "Attribute list:", agroup._v_attrs._f_list()
+            print("Attribute list:", agroup._v_attrs._f_list())
         # Check the local attributes names
         self.assertEqual(agroup._v_attrs._f_list(), ["qr", "rs"])
         if common.verbose:
-            print "Attribute list in disk:", \
-                  agroup._v_attrs._f_list("all")
+            print("Attribute list in disk:", agroup._v_attrs._f_list("all"))
         # Check the disk attribute names
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "qr", "rs"])
@@ -275,32 +275,31 @@ class CreateTestCase(unittest.TestCase):
         # delete an attribute (File.del_node_attr method)
         self.fileh.del_node_attr(self.root, "qr", "agroup")
         if common.verbose:
-            print "Attribute list:", agroup._v_attrs._f_list()
+            print("Attribute list:", agroup._v_attrs._f_list())
         # Check the local attributes names
         self.assertEqual(agroup._v_attrs._f_list(), ["rs"])
         if common.verbose:
-            print "Attribute list in disk:", \
-                  agroup._v_attrs._f_list()
+            print("Attribute list in disk:", agroup._v_attrs._f_list())
         # Check the disk attribute names
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "rs"])
 
     def test06_removeAttributes(self):
-        """Checking removing system attributes """
+        """Checking removing system attributes."""
 
         # remove a system attribute
         if common.verbose:
-            print "Before removing CLASS attribute"
-            print "System attrs:", self.group._v_attrs._v_attrnamessys
+            print("Before removing CLASS attribute")
+            print("System attrs:", self.group._v_attrs._v_attrnamessys)
         del self.group._v_attrs.CLASS
         self.assertEqual(self.group._v_attrs._f_list("sys"),
                          ['TITLE', 'VERSION'])
         if common.verbose:
-            print "After removing CLASS attribute"
-            print "System attrs:", self.group._v_attrs._v_attrnamessys
+            print("After removing CLASS attribute")
+            print("System attrs:", self.group._v_attrs._v_attrnamessys)
 
     def test07_renameAttributes(self):
-        """Checking renaming attributes """
+        """Checking renaming attributes."""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -311,34 +310,34 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
         if common.verbose:
-            print "Attribute list:", agroup._v_attrs._f_list()
+            print("Attribute list:", agroup._v_attrs._f_list())
         # Check the local attributes names (alphabetically sorted)
         self.assertEqual(agroup._v_attrs._f_list(), ["op", "qr", "rs"])
         if common.verbose:
-            print "Attribute list in disk:", agroup._v_attrs._f_list("all")
+            print("Attribute list in disk:", agroup._v_attrs._f_list("all"))
         # Check the disk attribute names (not sorted)
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "op", "qr", "rs"])
 
     def test08_renameAttributes(self):
-        """Checking renaming system attributes """
+        """Checking renaming system attributes."""
 
         if common.verbose:
-            print "Before renaming CLASS attribute"
-            print "All attrs:", self.group._v_attrs._v_attrnames
+            print("Before renaming CLASS attribute")
+            print("All attrs:", self.group._v_attrs._v_attrnames)
         # rename a system attribute
         self.group._v_attrs._f_rename("CLASS", "op")
         if common.verbose:
-            print "After renaming CLASS attribute"
-            print "All attrs:", self.group._v_attrs._v_attrnames
+            print("After renaming CLASS attribute")
+            print("All attrs:", self.group._v_attrs._v_attrnames)
 
         # Check the disk attribute names (not sorted)
         agroup = self.root.agroup
@@ -346,7 +345,7 @@ class CreateTestCase(unittest.TestCase):
                          ['TITLE', 'VERSION', "op"])
 
     def test09_overwriteAttributes(self):
-        """Checking overwriting attributes """
+        """Checking overwriting attributes."""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -359,28 +358,27 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup = self.root.agroup
         if common.verbose:
-            print "Value of Attribute pq:", agroup._v_attrs.pq
+            print("Value of Attribute pq:", agroup._v_attrs.pq)
         # Check the local attributes names (alphabetically sorted)
         self.assertEqual(agroup._v_attrs.pq, "4")
         self.assertEqual(agroup._v_attrs.qr, 2)
         self.assertEqual(agroup._v_attrs.rs, [1, 2, 3])
         if common.verbose:
-            print "Attribute list in disk:", \
-                  agroup._v_attrs._f_list("all")
+            print("Attribute list in disk:", agroup._v_attrs._f_list("all"))
         # Check the disk attribute names (not sorted)
         self.assertEqual(agroup._v_attrs._f_list("all"),
                          ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"])
 
     def test10a_copyAttributes(self):
-        """Checking copying attributes """
+        """Checking copying attributes."""
 
         # With a Group object
         self.group._v_attrs.pq = "1"
@@ -391,19 +389,19 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         atable = self.root.atable
         if common.verbose:
-            print "Attribute list:", atable._v_attrs._f_list()
+            print("Attribute list:", atable._v_attrs._f_list())
         # Check the local attributes names (alphabetically sorted)
         self.assertEqual(atable._v_attrs._f_list(), ["pq", "qr", "rs"])
         if common.verbose:
-            print "Complete attribute list:", atable._v_attrs._f_list("all")
+            print("Complete attribute list:", atable._v_attrs._f_list("all"))
         # Check the disk attribute names (not sorted)
         self.assertEqual(atable._v_attrs._f_list("all"),
                          ['CLASS',
@@ -428,19 +426,19 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         atable = self.root.atable
         if common.verbose:
-            print "Attribute list:", atable._v_attrs._f_list()
+            print("Attribute list:", atable._v_attrs._f_list())
         # Check the local attributes names (alphabetically sorted)
         self.assertEqual(atable._v_attrs._f_list(), ["pq", "qr", "rs"])
         if common.verbose:
-            print "Complete attribute list:", atable._v_attrs._f_list("all")
+            print("Complete attribute list:", atable._v_attrs._f_list("all"))
         # Check the disk attribute names (not sorted)
         self.assertEqual(atable._v_attrs._f_list("all"),
                          ['CLASS',
@@ -454,7 +452,7 @@ class CreateTestCase(unittest.TestCase):
                           "pq", "qr", "rs"])
 
     def test10c_copyAttributes(self):
-        """Checking copying attributes during group copies"""
+        """Checking copying attributes during group copies."""
 
         # With a Group object
         self.group._v_attrs['CLASS'] = "GROUP2"
@@ -464,20 +462,20 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         agroup2 = self.root.agroup2
         if common.verbose:
-            print "Complete attribute list:", agroup2._v_attrs._f_list("all")
+            print("Complete attribute list:", agroup2._v_attrs._f_list("all"))
         self.assertEqual(agroup2._v_attrs['CLASS'], "GROUP2")
         self.assertEqual(agroup2._v_attrs['VERSION'], "1.3")
 
     def test10d_copyAttributes(self):
-        """Checking copying attributes during leaf copies"""
+        """Checking copying attributes during leaf copies."""
 
         # With a Group object
         atable = self.root.atable
@@ -488,15 +486,15 @@ class CreateTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.nodeCacheSlots)
+                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
             self.root = self.fileh.root
 
         atable2 = self.root.atable2
         if common.verbose:
-            print "Complete attribute list:", atable2._v_attrs._f_list("all")
+            print("Complete attribute list:", atable2._v_attrs._f_list("all"))
         self.assertEqual(atable2._v_attrs['CLASS'], "TABLE2")
         self.assertEqual(atable2._v_attrs['VERSION'], "1.3")
 
@@ -556,32 +554,32 @@ class CreateTestCase(unittest.TestCase):
 
 class NotCloseCreate(CreateTestCase):
     close = False
-    nodeCacheSlots = NODE_CACHE_SLOTS
+    node_cache_slots = NODE_CACHE_SLOTS
 
 
 class CloseCreate(CreateTestCase):
     close = True
-    nodeCacheSlots = NODE_CACHE_SLOTS
+    node_cache_slots = NODE_CACHE_SLOTS
 
 
 class NoCacheNotCloseCreate(CreateTestCase):
     close = False
-    nodeCacheSlots = 0
+    node_cache_slots = 0
 
 
 class NoCacheCloseCreate(CreateTestCase):
     close = True
-    nodeCacheSlots = 0
+    node_cache_slots = 0
 
 
 class DictCacheNotCloseCreate(CreateTestCase):
     close = False
-    nodeCacheSlots = -NODE_CACHE_SLOTS
+    node_cache_slots = -NODE_CACHE_SLOTS
 
 
 class DictCacheCloseCreate(CreateTestCase):
     close = True
-    nodeCacheSlots = -NODE_CACHE_SLOTS
+    node_cache_slots = -NODE_CACHE_SLOTS
 
 
 class TypesTestCase(unittest.TestCase):
@@ -615,13 +613,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -640,13 +638,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -668,13 +666,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -693,13 +691,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -719,13 +717,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -751,11 +749,12 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -778,7 +777,7 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -786,7 +785,8 @@ class TypesTestCase(unittest.TestCase):
 
         for dtype in checktypes:
             if common.verbose:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
             assert_array_equal(getattr(self.array.attrs, dtype),
                                numpy.array([1, 2], dtype=dtype))
 
@@ -804,7 +804,7 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -813,7 +813,8 @@ class TypesTestCase(unittest.TestCase):
         for dtype in checktypes:
             arr = numpy.array([1, 2, 3, 4], dtype=dtype)[::2]
             if common.verbose:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
             assert_array_equal(getattr(self.array.attrs, dtype), arr)
 
     def test01e_setIntAttributes(self):
@@ -829,7 +830,7 @@ class TypesTestCase(unittest.TestCase):
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -838,12 +839,13 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         for dtype in checktypes:
             if common.verbose:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
             assert_array_equal(getattr(self.array.attrs, dtype),
                                numpy.array([[1, 2], [2, 3]], dtype=dtype))
 
     def test02a_setFloatAttributes(self):
-        """Checking setting Float (double) attributes"""
+        """Checking setting Float (double) attributes."""
 
         # Set some attrs
         self.array.attrs.pq = 1.0
@@ -852,13 +854,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -883,11 +885,12 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -910,11 +913,12 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -925,7 +929,8 @@ class TypesTestCase(unittest.TestCase):
                                numpy.array([1.1, 2.1], dtype=dtype))
 
     def test02d_setFloatAttributes(self):
-        """Checking setting Float attributes (unidimensional, non-contiguous)"""
+        """Checking setting Float attributes (unidimensional,
+        non-contiguous)"""
 
         checktypes = ['Float32', 'Float64']
 
@@ -936,11 +941,12 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -962,22 +968,24 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
         for dtype in checktypes:
-            assert_array_equal(getattr(self.array.attrs, dtype),
-                               numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
+            assert_array_equal(
+                getattr(self.array.attrs, dtype),
+                numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
 
     def test03_setObjectAttributes(self):
-        """Checking setting Object attributes"""
+        """Checking setting Object attributes."""
 
         # Set some attrs
         self.array.attrs.pq = [1.0, 2]
@@ -986,13 +994,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1011,13 +1019,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1037,11 +1045,11 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            print("pq -->", self.array.attrs.pq)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1051,23 +1059,24 @@ class TypesTestCase(unittest.TestCase):
                            numpy.array(['foo']))
 
     def test04c_setStringAttributes(self):
-        """Checking setting string attributes (empty unidimensional 1-elem case)"""
+        """Checking setting string attributes (empty unidimensional
+        1-elem case)"""
 
         self.array.attrs.pq = numpy.array([''])
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            print("pq -->", self.array.attrs.pq)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
             if common.verbose:
-                print "pq -->", self.array.attrs.pq
+                print("pq -->", self.array.attrs.pq)
 
         assert_array_equal(self.root.anarray.attrs.pq,
                            numpy.array(['']))
@@ -1079,11 +1088,11 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            print("pq -->", self.array.attrs.pq)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1093,17 +1102,18 @@ class TypesTestCase(unittest.TestCase):
                            numpy.array(['foo', 'bar3']))
 
     def test04e_setStringAttributes(self):
-        """Checking setting string attributes (empty unidimensional 2-elem case)"""
+        """Checking setting string attributes (empty unidimensional
+        2-elem case)"""
 
         self.array.attrs.pq = numpy.array(['', ''])
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            print("pq -->", self.array.attrs.pq)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1120,11 +1130,11 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            print("pq -->", self.array.attrs.pq)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1135,7 +1145,7 @@ class TypesTestCase(unittest.TestCase):
                                         ['foo3', 'foo4']]))
 
     def test05a_setComplexAttributes(self):
-        """Checking setting Complex (python) attributes"""
+        """Checking setting Complex (python) attributes."""
 
         # Set some attrs
         self.array.attrs.pq = 1.0 + 2j
@@ -1144,13 +1154,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1175,11 +1185,12 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1202,11 +1213,12 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->", dtype,
+                      getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1228,19 +1240,21 @@ class TypesTestCase(unittest.TestCase):
         # Check the results
         if common.verbose:
             for dtype in checktypes:
-                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+                print("type, value-->",
+                      dtype, getattr(self.array.attrs, dtype))
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
         for dtype in checktypes:
-            assert_array_equal(getattr(self.array.attrs, dtype),
-                               numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
+            assert_array_equal(
+                getattr(self.array.attrs, dtype),
+                numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
 
     def test06a_setUnicodeAttributes(self):
         """Checking setting unicode attributes (scalar case)"""
@@ -1253,15 +1267,15 @@ class TypesTestCase(unittest.TestCase):
         if common.verbose:
             if sys.platform != 'win32':
                 # It seems that Windows cannot print this
-                print "pq -->", repr(self.array.attrs.pq)
+                print("pq -->", repr(self.array.attrs.pq))
                 # XXX: try to use repr instead
-                # print "pq -->", repr(self.array.attrs.pq)
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+                # print("pq -->", repr(self.array.attrs.pq))
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1281,11 +1295,11 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            print("pq -->", self.array.attrs.pq)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1295,7 +1309,8 @@ class TypesTestCase(unittest.TestCase):
                            numpy.array([u'para\u0140lel']))
 
     def test06c_setUnicodeAttributes(self):
-        """Checking setting unicode attributes (empty unidimensional 1-elem case)"""
+        """Checking setting unicode attributes (empty unidimensional
+        1-elem case)"""
 
         # The next raises a `TypeError` when unpickled. See:
         # http://projects.scipy.org/numpy/ticket/1037
@@ -1304,17 +1319,17 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            print("pq -->", self.array.attrs.pq)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
             if common.verbose:
-                print "pq -->", repr(self.array.attrs.pq)
+                print("pq -->", repr(self.array.attrs.pq))
 
         assert_array_equal(self.array.attrs.pq,
                            numpy.array([u''], dtype="U1"))
@@ -1326,11 +1341,11 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            print("pq -->", self.array.attrs.pq)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1340,17 +1355,18 @@ class TypesTestCase(unittest.TestCase):
                            numpy.array([u'para\u0140lel', u'bar3']))
 
     def test06e_setUnicodeAttributes(self):
-        """Checking setting unicode attributes (empty unidimensional 2-elem case)"""
+        """Checking setting unicode attributes (empty unidimensional
+        2-elem case)"""
 
         self.array.attrs.pq = numpy.array(['', ''], dtype="U1")
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            print("pq -->", self.array.attrs.pq)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1367,11 +1383,11 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            print("pq -->", self.array.attrs.pq)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1382,7 +1398,7 @@ class TypesTestCase(unittest.TestCase):
                                         ['foo3', u'para\u0140lel4']]))
 
     def test07a_setRecArrayAttributes(self):
-        """Checking setting RecArray (NumPy) attributes"""
+        """Checking setting RecArray (NumPy) attributes."""
 
         dt = numpy.dtype('i4,f8')
         # Set some attrs
@@ -1392,13 +1408,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1412,7 +1428,7 @@ class TypesTestCase(unittest.TestCase):
         assert_array_equal(self.array.attrs.rs, numpy.array([(1, 2.)], dt))
 
     def test07b_setRecArrayAttributes(self):
-        """Checking setting nested RecArray (NumPy) attributes"""
+        """Checking setting nested RecArray (NumPy) attributes."""
 
         # Build a nested dtype
         dt = numpy.dtype([('f1', [('f1', 'i2'), ('f2', 'f8')])])
@@ -1423,13 +1439,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1443,7 +1459,7 @@ class TypesTestCase(unittest.TestCase):
         assert_array_equal(self.array.attrs.rs, numpy.array([((1, 2),)], dt))
 
     def test07c_setRecArrayAttributes(self):
-        """Checking setting multidim nested RecArray (NumPy) attributes"""
+        """Checking setting multidim nested RecArray (NumPy) attributes."""
 
         # Build a nested dtype
         dt = numpy.dtype([('f1', [('f1', 'i2', (2,)), ('f2', 'f8')])])
@@ -1454,13 +1470,13 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
-            print "qr -->", self.array.attrs.qr
-            print "rs -->", self.array.attrs.rs
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(self.file, mode="r+")
             self.root = self.fileh.root
@@ -1515,25 +1531,25 @@ class NoSysAttrsTestCase(unittest.TestCase):
         self.group._v_attrs.qr = "2"
         self.group._v_attrs.rs = "3"
         if common.verbose:
-            print "Attribute list:", self.group._v_attrs._f_list()
+            print("Attribute list:", self.group._v_attrs._f_list())
 
         # Now, try with a Table object
         self.table.attrs.a = "1"
         self.table.attrs.c = "2"
         self.table.attrs.b = "3"
         if common.verbose:
-            print "Attribute list:", self.table.attrs._f_list()
+            print("Attribute list:", self.table.attrs._f_list())
 
         # Finally, try with an Array object
         self.array.attrs.k = "1"
         self.array.attrs.j = "2"
         self.array.attrs.i = "3"
         if common.verbose:
-            print "Attribute list:", self.array.attrs._f_list()
+            print("Attribute list:", self.array.attrs._f_list())
 
         if self.close:
             if common.verbose:
-                print "(closing file version)"
+                print("(closing file version)")
             self.fileh.close()
             self.fileh = open_file(
                 self.file, mode="r+")
@@ -1577,7 +1593,7 @@ class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(self.h5file.root._v_attrs.trouble1, "0")
         self.assertEqual(self.h5file.root._v_attrs.trouble2, "0.")
         if common.verbose:
-            print "Great! '0' and '0.' values can be safely retrieved."
+            print("Great! '0' and '0.' values can be safely retrieved.")
 
 
 class VlenStrAttrTestCase(PyTablesTestCase):
@@ -1637,7 +1653,7 @@ class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         "Testing EArray specific attrs (create)."
         ea = self.h5file.create_earray('/', 'ea', Int32Atom(), (2, 0, 4))
         if common.verbose:
-            print "EXTDIM-->", ea.attrs.EXTDIM
+            print("EXTDIM-->", ea.attrs.EXTDIM)
         self.assertEqual(ea.attrs.EXTDIM, 1)
 
     def test01_earray(self):
@@ -1646,7 +1662,7 @@ class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen('r')
         ea = self.h5file.root.ea
         if common.verbose:
-            print "EXTDIM-->", ea.attrs.EXTDIM
+            print("EXTDIM-->", ea.attrs.EXTDIM)
         self.assertEqual(ea.attrs.EXTDIM, 0)
 
 

@@ -174,7 +174,7 @@ class HDF5ExtError(RuntimeError):
         return msg
 
     def format_h5_backtrace(self, backtrace=None):
-        """Convert the HDF5 trace back represented as a list of tuples
+        """Convert the HDF5 trace back represented as a list of tuples.
         (see :attr:`HDF5ExtError.h5backtrace`) into a string.
 
         .. versionadded:: 2.4
@@ -200,6 +200,7 @@ class ClosedNodeError(ValueError):
     """The operation can not be completed because the node is closed.
 
     For instance, listing the children of a closed group is not allowed.
+
     """
 
     pass
@@ -210,18 +211,19 @@ class ClosedFileError(ValueError):
 
     For instance, getting an existing node from a closed file is not
     allowed.
+
     """
 
     pass
 
 
 class FileModeError(ValueError):
-    """
-    The operation can not be carried out because the mode in which the
+    """The operation can not be carried out because the mode in which the
     hosting file is opened is not adequate.
 
     For instance, removing an existing leaf from a read-only file is not
     allowed.
+
     """
 
     pass
@@ -241,6 +243,7 @@ class NodeError(AttributeError, LookupError):
     before another one can take its place.  This is done to protect
     interactive users from inadvertedly deleting whole trees of data by
     a single erroneous command.
+
     """
 
     pass
@@ -251,6 +254,7 @@ class NoSuchNodeError(NodeError):
 
     This exception is raised when an operation gets a path name or a
     ``(where, name)`` pair leading to a nonexistent node.
+
     """
 
     pass
@@ -262,6 +266,7 @@ class UndoRedoError(Exception):
     This exception indicates a problem related to the Undo/Redo
     mechanism, such as trying to undo or redo actions with this
     mechanism disabled, or going to a nonexistent mark.
+
     """
 
     pass
@@ -271,6 +276,7 @@ class UndoRedoWarning(Warning):
     """Issued when an action not supporting Undo/Redo is run.
 
     This warning is only shown when the Undo/Redo mechanism is enabled.
+
     """
 
     pass
@@ -294,6 +300,7 @@ class PerformanceWarning(Warning):
     This warning is issued when an operation is made on the database
     which may cause it to slow down on future operations (i.e. making
     the node tree grow too much).
+
     """
 
     pass
@@ -305,6 +312,7 @@ class FlavorError(ValueError):
     This exception is raised when an unsupported or unavailable flavor
     is given to a dataset, or when a conversion of data between two
     given flavors is not supported nor available.
+
     """
 
     pass
@@ -319,6 +327,7 @@ class FlavorWarning(Warning):
     flavor in a read-only file).
 
     See the `FlavorError` class for more information.
+
     """
 
     pass
@@ -330,6 +339,7 @@ class FiltersWarning(Warning):
     This warning is issued when a valid filter is specified but it is
     not available in the system.  It may mean that an available default
     filter is to be used instead.
+
     """
 
     pass
@@ -341,6 +351,7 @@ class OldIndexWarning(Warning):
     This warning is issued when an index in an unsupported format is
     found.  The index will be marked as invalid and will behave as if
     doesn't exist.
+
     """
 
     pass
@@ -351,6 +362,7 @@ class DataTypeWarning(Warning):
 
     This warning is issued when an unsupported HDF5 data type is found
     (normally in a file created with other tool than PyTables).
+
     """
 
     pass
@@ -361,6 +373,7 @@ class ExperimentalFeatureWarning(Warning):
 
     This warning is issued when using a functionality that is still
     experimental and that users have to use with care.
+
     """
     pass
 

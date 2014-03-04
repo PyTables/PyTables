@@ -62,15 +62,15 @@ def issysattrname(name):
     "Check if a name is a system attribute or not"
 
     if (name in SYS_ATTRS or
-        numpy.prod([name.startswith(prefix)
-       for prefix in SYS_ATTRS_PREFIXES])):
+            numpy.prod([name.startswith(prefix)
+                        for prefix in SYS_ATTRS_PREFIXES])):
         return True
     else:
         return False
 
 
 class AttributeSet(hdf5extension.AttributeSet, object):
-    """Container for the HDF5 attributes of a Node
+    """Container for the HDF5 attributes of a Node.
 
     This class provides methods to create new HDF5 node attributes,
     and to get, rename or delete existing ones.
@@ -126,13 +126,13 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         >>> h5fname = tempfile.mktemp(suffix='.h5')
         >>> h5f = tables.open_file(h5fname, 'w')
         >>> h5f.root._v_attrs.obj = myObject  # store the object
-        >>> print h5f.root._v_attrs.obj.foo  # retrieve it
+        >>> print(h5f.root._v_attrs.obj.foo)  # retrieve it
         bar
         >>> h5f.close()
         >>>
         >>> del MyClass, myObject  # delete class of object and reopen file
         >>> h5f = tables.open_file(h5fname, 'r')
-        >>> print repr(h5f.root._v_attrs.obj)
+        >>> print(repr(h5f.root._v_attrs.obj))
         'ccopy_reg\\n_reconstructor...
         >>> import pickle  # let's unpickle that to see what went wrong
         >>> pickle.loads(h5f.root._v_attrs.obj)
@@ -162,7 +162,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
     this::
 
         for name in :attr:`Node._v_attrs`._f_list():
-            print "name: %s, value: %s" % (name, :attr:`Node._v_attrs`[name])
+            print("name: %s, value: %s" % (name, :attr:`Node._v_attrs`[name]))
 
     Use whatever idiom you prefer to access the attributes.
 
@@ -269,6 +269,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         'user' value returns only user attributes (this is the default).
         A 'sys' value returns only system attributes.  Finally, 'all'
         returns both system and user attributes.
+
         """
 
         if attrset == "user":
@@ -364,6 +365,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         replaced.
 
         It does not log the change.
+
         """
 
         # Save this attribute to disk
@@ -424,6 +426,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         the name is not a valid Python identifier.  A
         `PerformanceWarning` is issued when the recommended maximum
         number of attributes in a node is going to be exceeded.
+
         """
 
         nodeFile = self._v__nodefile
@@ -475,6 +478,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Deletes the specified existing PyTables attribute.
 
         It does not log the change.
+
         """
 
         # Delete the attribute from disk
@@ -497,6 +501,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Deletes the specified existing PyTables attribute from the
         attribute set.  If a nonexistent or system attribute is
         specified, an ``AttributeError`` is raised.
+
         """
 
         nodeFile = self._v__nodefile
@@ -547,6 +552,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         A true value is returned if the attribute set has an attribute
         with the given name, false otherwise.
+
         """
 
         return name in self._v_attrnames
@@ -617,6 +623,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         Copies all user and certain system attributes to the given where
         node (a Node instance - see :ref:`NodeClassDescr`), replacing
         the existing ones.
+
         """
 
         # AttributeSet must be defined in order to define a Node.

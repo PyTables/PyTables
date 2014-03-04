@@ -1,4 +1,6 @@
 #!/usr/bin/python
+
+from __future__ import print_function
 import sqlite
 import random
 import time
@@ -6,54 +8,53 @@ import sys
 import os
 import os.path
 from tables import *
-import numarray
-from numarray import strings
-from numarray import random_array
+import numpy as np
 
 randomvalues = 0
 standarddeviation = 10000
 # Initialize the random generator always with the same integer
 # in order to have reproductible results
 random.seed(19)
-random_array.seed(19, 20)
+np.random.seed((19, 20))
 
 # defaults
 psycon = 0
 worst = 0
 
+
 def createNewBenchFile(bfile, verbose):
 
     class Create(IsDescription):
-        nrows   = Int32Col(pos=0)
-        irows   = Int32Col(pos=1)
-        tfill   = Float64Col(pos=2)
-        tidx    = Float64Col(pos=3)
-        tcfill  = Float64Col(pos=4)
-        tcidx   = Float64Col(pos=5)
+        nrows = Int32Col(pos=0)
+        irows = Int32Col(pos=1)
+        tfill = Float64Col(pos=2)
+        tidx = Float64Col(pos=3)
+        tcfill = Float64Col(pos=4)
+        tcidx = Float64Col(pos=5)
         rowsecf = Float64Col(pos=6)
         rowseci = Float64Col(pos=7)
-        fsize   = Float64Col(pos=8)
-        isize   = Float64Col(pos=9)
-        psyco   = BoolCol(pos=10)
+        fsize = Float64Col(pos=8)
+        isize = Float64Col(pos=9)
+        psyco = BoolCol(pos=10)
 
     class Search(IsDescription):
-        nrows   = Int32Col(pos=0)
-        rowsel  = Int32Col(pos=1)
-        time1   = Float64Col(pos=2)
-        time2   = Float64Col(pos=3)
-        tcpu1   = Float64Col(pos=4)
-        tcpu2   = Float64Col(pos=5)
+        nrows = Int32Col(pos=0)
+        rowsel = Int32Col(pos=1)
+        time1 = Float64Col(pos=2)
+        time2 = Float64Col(pos=3)
+        tcpu1 = Float64Col(pos=4)
+        tcpu2 = Float64Col(pos=5)
         rowsec1 = Float64Col(pos=6)
         rowsec2 = Float64Col(pos=7)
-        psyco   = BoolCol(pos=8)
+        psyco = BoolCol(pos=8)
 
     if verbose:
-        print "Creating a new benchfile:", bfile
+        print("Creating a new benchfile:", bfile)
     # Open the benchmarking file
     bf = open_file(bfile, "w")
     # Create groups
     for recsize in ["sqlite_small"]:
-        group = bf.create_group("/", recsize, recsize+" Group")
+        group = bf.create_group("/", recsize, recsize + " Group")
         # Attach the row size of table as attribute
         if recsize == "small":
             group._v_attrs.rowsize = 16
@@ -64,27 +65,31 @@ def createNewBenchFile(bfile, verbose):
         groupS = bf.create_group(group, "search", "Search Group")
         # Create Tables for searching
         for mode in ["indexed", "standard"]:
-            group = bf.create_group(groupS, mode, mode+" Group")
+            group = bf.create_group(groupS, mode, mode + " Group")
             # for searching bench
-            #for atom in ["string", "int", "float", "bool"]:
+            # for atom in ["string", "int", "float", "bool"]:
             for atom in ["string", "int", "float"]:
-                bf.create_table(group, atom, Search, atom+" bench")
+                bf.create_table(group, atom, Search, atom + " bench")
     bf.close()
+
 
 def createFile(filename, nrows, filters, indexmode, heavy, noise, bfile,
                verbose):
 
     # Initialize some variables
-    t1      = 0.; t2      = 0.
-    tcpu1   = 0.; tcpu2   = 0.
-    rowsecf = 0.; rowseci = 0.
-    size1   = 0.; size2   = 0.
-
+    t1 = 0.
+    t2 = 0.
+    tcpu1 = 0.
+    tcpu2 = 0.
+    rowsecf = 0.
+    rowseci = 0.
+    size1 = 0.
+    size2 = 0.
 
     if indexmode == "standard":
-        print "Creating a new database:", dbfile
-        instd=os.popen("/usr/local/bin/sqlite "+dbfile, "w")
-        CREATESTD="""
+        print("Creating a new database:", dbfile)
+        instd = os.popen("/usr/local/bin/sqlite " + dbfile, "w")
+        CREATESTD = """
 CREATE TABLE small (
 -- Name         Type            -- Example
 ---------------------------------------
@@ -94,7 +99,7 @@ var2            INTEGER,        -- 111
 var3            FLOAT        --  12.32
 );
 """
-        CREATEIDX="""
+        CREATEIDX = """
 CREATE TABLE small (
 -- Name         Type            -- Example
 ---------------------------------------
@@ -114,7 +119,7 @@ CREATE INDEX ivar3 ON small(var3);
     conn = sqlite.connect(dbfile)
     cursor = conn.cursor()
     if indexmode == "standard":
-        place_holders = ",".join(['%s']*3)
+        place_holders = ",".join(['%s'] * 3)
         # Insert rows
         SQL = "insert into small values(NULL, %s)" % place_holders
         time1 = time.time()
@@ -123,33 +128,34 @@ CREATE INDEX ivar3 ON small(var3);
         nrowsbuf = 1000
         minimum = 0
         maximum = nrows
-        for i in xrange(0, nrows, nrowsbuf):
-            if i+nrowsbuf > nrows:
+        for i in range(0, nrows, nrowsbuf):
+            if i + nrowsbuf > nrows:
                 j = nrows
             else:
-                j = i+nrowsbuf
+                j = i + nrowsbuf
             if randomvalues:
-                var3 = random_array.uniform(minimum, maximum, shape=[j-i])
+                var3 = np.random.uniform(minimum, maximum, shape=[j - i])
             else:
-                var3 = numarray.arange(i, j, type=numarray.Float64)
+                var3 = np.arange(i, j, type=np.Float64)
                 if noise:
-                    var3 += random_array.uniform(-3, 3, shape=[j-i])
-            var2 = numarray.array(var3, type=numarray.Int32)
-            var1 = strings.array(None, shape=[j-i], itemsize=4)
+                    var3 += np.random.uniform(-3, 3, shape=[j - i])
+            var2 = np.array(var3, type=np.Int32)
+            var1 = np.array(None, shape=[j - i], dtype='s4')
             if not heavy:
-                for n in xrange(j-i):
+                for n in range(j - i):
                     var1[n] = str("%.4s" % var2[n])
-            for n in xrange(j-i):
+            for n in range(j - i):
                 fields = (var1[n], var2[n], var3[n])
                 cursor.execute(SQL, fields)
             conn.commit()
-        t1 = round(time.time()-time1, 5)
-        tcpu1 = round(time.clock()-cpu1, 5)
-        rowsecf = nrows/t1
+        t1 = round(time.time() - time1, 5)
+        tcpu1 = round(time.clock() - cpu1, 5)
+        rowsecf = nrows / t1
         size1 = os.stat(dbfile)[6]
-        print "******** Results for writing nrows = %s" % (nrows), "*********"
-        print "Insert time:", t1, ", KRows/s:", round((nrows/10.**3)/t1, 3),
-        print ", File size:", round(size1/(1024.*1024.), 3), "MB"
+        print("******** Results for writing nrows = %s" % (nrows), "*********")
+        print(("Insert time:", t1, ", KRows/s:",
+              round((nrows / 10. ** 3) / t1, 3),))
+        print(", File size:", round(size1 / (1024. * 1024.), 3), "MB")
 
     # Indexem
     if indexmode == "indexed":
@@ -162,12 +168,14 @@ CREATE INDEX ivar3 ON small(var3);
         conn.commit()
         cursor.execute("CREATE INDEX ivar3 ON small(var3)")
         conn.commit()
-        t2 = round(time.time()-time1, 5)
-        tcpu2 = round(time.clock()-cpu1, 5)
-        rowseci = nrows/t2
-        print "Index time:", t2, ", IKRows/s:", round((nrows/10.**3)/t2, 3),
+        t2 = round(time.time() - time1, 5)
+        tcpu2 = round(time.clock() - cpu1, 5)
+        rowseci = nrows / t2
+        print(("Index time:", t2, ", IKRows/s:",
+              round((nrows / 10. ** 3) / t2, 3),))
         size2 = os.stat(dbfile)[6] - size1
-        print ", Final size with index:", round(size2/(1024.*1024), 3), "MB"
+        print((", Final size with index:",
+              round(size2 / (1024. * 1024), 3), "MB"))
 
     conn.close()
 
@@ -175,13 +183,13 @@ CREATE INDEX ivar3 ON small(var3);
     bf = open_file(bfile, "a")
     recsize = "sqlite_small"
     if indexmode == "indexed":
-        table = bf.get_node("/"+recsize+"/create_indexed")
+        table = bf.get_node("/" + recsize + "/create_indexed")
     else:
-        table = bf.get_node("/"+recsize+"/create_standard")
+        table = bf.get_node("/" + recsize + "/create_standard")
     table.row["nrows"] = nrows
     table.row["irows"] = nrows
     table.row["tfill"] = t1
-    table.row["tidx"]  = t2
+    table.row["tidx"] = t2
     table.row["tcfill"] = tcpu1
     table.row["tcidx"] = tcpu2
     table.row["psyco"] = psycon
@@ -193,6 +201,7 @@ CREATE INDEX ivar3 ON small(var3);
     bf.close()
 
     return
+
 
 def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     # Connect to the database.
@@ -216,50 +225,50 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
 
     # Open the benchmark database
     bf = open_file(bfile, "a")
-    #default values for the case that columns are not indexed
+    # default values for the case that columns are not indexed
     t2 = 0.
     tcpu2 = 0.
     # Some previous computations for the case of random values
     if randomvalues:
         # algorithm to choose a value separated from mean
-#         # If want to select fewer values, select this
+# If want to select fewer values, select this
 #         if nrows/2 > standarddeviation*3:
-#             # Choose five standard deviations away from mean value
+# Choose five standard deviations away from mean value
 #             dev = standarddeviation*5
-#             #dev = standarddeviation*math.log10(nrows/1000.)
+# dev = standarddeviation*math.log10(nrows/1000.)
 
         # This algorithm give place to too asymmetric result values
 #         if standarddeviation*10 < nrows/2:
-#             # Choose four standard deviations away from mean value
+# Choose four standard deviations away from mean value
 #             dev = standarddeviation*4
 #         else:
 #             dev = 100
         # Yet Another Algorithm
-        if nrows/2 > standarddeviation*10:
-            dev = standarddeviation*4.
-        elif nrows/2 > standarddeviation:
-            dev = standarddeviation*2.
-        elif nrows/2 > standarddeviation/10.:
-            dev = standarddeviation/10.
+        if nrows / 2 > standarddeviation * 10:
+            dev = standarddeviation * 4.
+        elif nrows / 2 > standarddeviation:
+            dev = standarddeviation * 2.
+        elif nrows / 2 > standarddeviation / 10.:
+            dev = standarddeviation / 10.
         else:
-            dev = standarddeviation/100.
+            dev = standarddeviation / 100.
 
-        valmax = int(round((nrows/2.)-dev))
+        valmax = int(round((nrows / 2.) - dev))
         # split the selection range in regular chunks
-        if riter > valmax*2:
-            riter = valmax*2
-        chunksize = (valmax*2/riter)*10
+        if riter > valmax * 2:
+            riter = valmax * 2
+        chunksize = (valmax * 2 / riter) * 10
         # Get a list of integers for the intervals
         randlist = range(0, valmax, chunksize)
-        randlist.extend(range(nrows-valmax, nrows, chunksize))
+        randlist.extend(range(nrows - valmax, nrows, chunksize))
         # expand the list ten times so as to use the cache
-        randlist = randlist*10
+        randlist = randlist * 10
         # shuffle the list
         random.shuffle(randlist)
         # reset the value of chunksize
-        chunksize = chunksize/10
-        #print "chunksize-->", chunksize
-        #randlist.sort();print "randlist-->", randlist
+        chunksize = chunksize / 10
+        # print "chunksize-->", chunksize
+        # randlist.sort();print "randlist-->", randlist
     else:
         chunksize = 3
     if heavy:
@@ -272,7 +281,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         time2 = 0
         cpu2 = 0
         rowsel = 0
-        for i in xrange(riter):
+        for i in range(riter):
             rnd = random.randrange(nrows)
             time1 = time.time()
             cpu1 = time.clock()
@@ -281,12 +290,13 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
                 cursor.execute(SQL1, str(rnd)[-4:])
             elif atom == "int":
                 #cursor.execute(SQL2 % (rnd, rnd+3))
-                cursor.execute(SQL2 % (rnd, rnd+dselect))
+                cursor.execute(SQL2 % (rnd, rnd + dselect))
             elif atom == "float":
                 #cursor.execute(SQL3 % (float(rnd), float(rnd+3)))
-                cursor.execute(SQL3 % (float(rnd), float(rnd+dselect)))
+                cursor.execute(SQL3 % (float(rnd), float(rnd + dselect)))
             else:
-                raise ValueError("atom must take a value in ['string','int','float']")
+                raise ValueError(
+                    "atom must take a value in ['string','int','float']")
             if i == 0:
                 t1 = time.time() - time1
                 tcpu1 = time.clock() - cpu1
@@ -306,20 +316,21 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
                 correction = 5
             else:
                 correction = 1
-            t2 = time2/(riter-correction)
-            tcpu2 = cpu2/(riter-correction)
+            t2 = time2 / (riter - correction)
+            tcpu2 = cpu2 / (riter - correction)
 
-        print "*** Query results for atom = %s, nrows = %s, indexmode = %s ***" % (atom, nrows, indexmode)
-        print "Query time:", round(t1, 5), ", cached time:", round(t2, 5)
-        print "MRows/s:", round((nrows/10.**6)/t1, 3),
+        print(("*** Query results for atom = %s, nrows = %s, "
+              "indexmode = %s ***" % (atom, nrows, indexmode)))
+        print("Query time:", round(t1, 5), ", cached time:", round(t2, 5))
+        print("MRows/s:", round((nrows / 10. ** 6) / t1, 3), end=' ')
         if t2 > 0:
-            print ", cached MRows/s:", round((nrows/10.**6)/t2, 3)
+            print(", cached MRows/s:", round((nrows / 10. ** 6) / t2, 3))
         else:
-            print
+            print()
 
         # Collect benchmark data
         recsize = "sqlite_small"
-        tablepath = "/"+recsize+"/search/"+indexmode+"/"+atom
+        tablepath = "/" + recsize + "/search/" + indexmode + "/" + atom
         table = bf.get_node(tablepath)
         table.row["nrows"] = nrows
         table.row["rowsel"] = rowsel
@@ -328,9 +339,9 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         table.row["tcpu1"] = tcpu1
         table.row["tcpu2"] = tcpu2
         table.row["psyco"] = psycon
-        table.row["rowsec1"] = nrows/t1
+        table.row["rowsec1"] = nrows / t1
         if t2 > 0:
-            table.row["rowsec2"] = nrows/t2
+            table.row["rowsec2"] = nrows / t2
         table.row.append()
         table.flush()  # Flush the data
 
@@ -340,7 +351,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
 
     return
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import getopt
     try:
         import psyco
@@ -410,16 +421,18 @@ if __name__=="__main__":
         elif option[0] == '-m':
             indexmode = option[1]
             if indexmode not in supported_imodes:
-                raise ValueError("Indexmode should be any of '%s' and you passed '%s'" % (supported_imodes, indexmode))
+                raise ValueError(
+                    "Indexmode should be any of '%s' and you passed '%s'" %
+                    (supported_imodes, indexmode))
         elif option[0] == '-n':
-            nrows = int(float(option[1])*1000)
+            nrows = int(float(option[1]) * 1000)
         elif option[0] == '-d':
             dselect = float(option[1])
         elif option[0] == '-k':
             riter = int(option[1])
 
     # remaining parameters
-    dbfile=pargs[0]
+    dbfile = pargs[0]
 
     if worst:
         nrows -= 1  # the worst case

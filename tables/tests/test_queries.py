@@ -10,7 +10,7 @@
 #
 ########################################################################
 
-"""Test module for queries on datasets"""
+"""Test module for queries on datasets."""
 
 import re
 import sys
@@ -94,11 +94,11 @@ enum = tables.Enum(dict(('n%d' % i, i) for i in range(_maxnvalue)))
 # Table description
 # -----------------
 def append_columns(classdict, shape=()):
-    """
-    Append a ``Col`` of each PyTables data type to the `classdict`.
+    """Append a ``Col`` of each PyTables data type to the `classdict`.
 
     A column of a certain TYPE gets called ``c_TYPE``.  The number of
     added columns is returned.
+
     """
     heavy = common.heavy
     for (itype, type_) in enumerate(sorted(type_info.iterkeys())):
@@ -119,11 +119,11 @@ def append_columns(classdict, shape=()):
 
 
 def nested_description(classname, pos, shape=()):
-    """
-    Return a nested column description with all PyTables data types.
+    """Return a nested column description with all PyTables data types.
 
     A column of a certain TYPE gets called ``c_TYPE``.  The nested
     column will be placed in the position indicated by `pos`.
+
     """
     classdict = {}
     append_columns(classdict, shape=shape)
@@ -132,8 +132,7 @@ def nested_description(classname, pos, shape=()):
 
 
 def table_description(classname, nclassname, shape=()):
-    """
-    Return a table description for testing queries.
+    """Return a table description for testing queries.
 
     The description consists of all PyTables data types, both in the
     top level and in the ``c_nested`` nested column.  A column of a
@@ -142,6 +141,7 @@ def table_description(classname, nclassname, shape=()):
     used for all columns.  Finally, an extra indexed column
     ``c_idxextra`` is added as well in order to provide some basic
     tests for multi-index queries.
+
     """
     classdict = {}
     colpos = append_columns(classdict, shape)
@@ -177,8 +177,7 @@ table_data = {}
 
 
 def fill_table(table, shape, nrows):
-    """
-    Fill the given `table` with `nrows` rows of data.
+    """Fill the given `table` with `nrows` rows of data.
 
     Values in the i-th row (where 0 <= i < `row_period`) for a
     multidimensional field with M elements span from i to i + M-1.  For
@@ -186,6 +185,7 @@ def fill_table(table, shape, nrows):
 
     The same goes for the ``c_extra`` column, but values range from
     -`row_period`/2 to +`row_period`/2.
+
     """
     # Reuse already computed data if possible.
     tdata = table_data.get((shape, nrows))
@@ -230,8 +230,7 @@ def fill_table(table, shape, nrows):
 # ---------------
 class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
-    """
-    Base test case for querying tables.
+    """Base test case for querying tables.
 
     Sub-classes must define the following attributes:
 
@@ -249,6 +248,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
         to index them.
     ``optlevel``
         The level of optimisation of column indexes.  Default is 0.
+
     """
 
     indexed = False
@@ -257,7 +257,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
     colNotIndexable_re = re.compile(r"\bcan not be indexed\b")
     condNotBoolean_re = re.compile(r"\bdoes not have a boolean type\b")
 
-    def createIndexes(self, colname, ncolname, extracolname):
+    def create_indexes(self, colname, ncolname, extracolname):
         if not self.indexed:
             return
         try:
@@ -269,7 +269,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     kind=self.kind, optlevel=self.optlevel,
                     _blocksizes=small_blocksizes, _testmode=True)
 
-        except TypeError, te:
+        except TypeError as te:
             if self.colNotIndexable_re.search(str(te)):
                 raise common.SkipTest(
                     "Columns of this type can not be indexed.")
@@ -318,13 +318,13 @@ extra_conditions = [
 
 
 class TableDataTestCase(BaseTableQueryTestCase):
-    """
-    Base test case for querying table data.
+    """Base test case for querying table data.
 
     Automatically created test method names have the format
     ``test_XNNNN``, where ``NNNN`` is the zero-padded test number and
     ``X`` indicates whether the test belongs to the light (``l``) or
     heavy (``h``) set.
+
     """
     _testfmt_light = 'test_l%04d'
     _testfmt_heavy = 'test_h%04d'
@@ -371,7 +371,7 @@ def create_test_method(type_, op, extracond):
         pycond = compile(pycond, '<string>', 'eval')
 
         table = self.table
-        self.createIndexes(colname, ncolname, 'c_idxextra')
+        self.create_indexes(colname, ncolname, 'c_idxextra')
 
         table_slice = dict(start=1, stop=table.nrows - 5, step=3)
         rownos, fvalues = None, None
@@ -415,10 +415,12 @@ def create_test_method(type_, op, extracond):
                 ptrownos = [table.get_where_list(cond, condvars, sort=True,
                                                  **table_slice)
                             for _ in range(2)]
-                ptfvalues = [table.read_where(cond, condvars, field=acolname,
-                                              **table_slice)
-                                             for _ in range(2)]
-            except TypeError, te:
+                ptfvalues = [
+                    table.read_where(cond, condvars, field=acolname,
+                                     **table_slice)
+                    for _ in range(2)
+                ]
+            except TypeError as te:
                 if self.condNotBoolean_re.search(str(te)):
                     raise common.SkipTest("The condition is not boolean.")
                 raise
@@ -577,7 +579,7 @@ for cdatafunc in [niclassdata, iclassdata]:
     for (cname, cbasenames, cdict) in cdatafunc():
         cbases = tuple(eval(cbase) for cbase in cbasenames)
         class_ = type(cname, cbases, cdict)
-        exec '%s = class_' % cname
+        exec('%s = class_' % cname)
 
 
 # Test cases on query usage
@@ -591,10 +593,10 @@ _gvar = None
 
 class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
-    """
-    Test case for query usage on scalar tables.
+    """Test case for query usage on scalar tables.
 
     This also tests for most usage errors and situations.
+
     """
 
     def test_empty_condition(self):
@@ -723,11 +725,11 @@ class MDTableUsageTestCase(MDTableMixin, BaseTableUsageTestCase):
 
 class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
 
-    """
-    Test case for query usage on indexed tables.
+    """Test case for query usage on indexed tables.
 
-    Indexing could be used in more cases, but it is expected to kick
-    in at least in the cases tested here.
+    Indexing could be used in more cases, but it is expected to kick in
+    at least in the cases tested here.
+
     """
     nrows = 50
     indexed = True
@@ -1070,8 +1072,9 @@ class IndexedTableUsage25(IndexedTableUsage):
         '~~~c_bool',
         '~~(~c_bool) & (c_extra != 2)',
     ]
-    idx_expr = [('c_bool', ('eq',), (False,)),
-                 ]
+    idx_expr = [
+        ('c_bool', ('eq',), (False,)),
+    ]
     str_expr = 'e0'
 
 
@@ -1092,10 +1095,11 @@ class IndexedTableUsage27(IndexedTableUsage):
         '(((c_int32 == 3) | (c_bool == True)) | (c_int32 == 5))' +
         ' & (c_extra > 0)',
         ]
-    idx_expr = [('c_int32', ('eq',), (3,)),
-                 ('c_bool', ('eq',), (True,)),
-                 ('c_int32', ('eq',), (5,)),
-                 ]
+    idx_expr = [
+        ('c_int32', ('eq',), (3,)),
+        ('c_bool', ('eq',), (True,)),
+        ('c_int32', ('eq',), (5,)),
+    ]
     str_expr = '((e0 | e1) | e2)'
 
 
@@ -1105,10 +1109,11 @@ class IndexedTableUsage28(IndexedTableUsage):
         '(((c_int32 == 3) | (c_bool == True)) & (c_int32 == 5))' +
         ' & (c_extra > 0)',
         ]
-    idx_expr = [('c_int32', ('eq',), (3,)),
-                 ('c_bool', ('eq',), (True,)),
-                 ('c_int32', ('eq',), (5,)),
-                 ]
+    idx_expr = [
+        ('c_int32', ('eq',), (3,)),
+        ('c_bool', ('eq',), (True,)),
+        ('c_int32', ('eq',), (5,)),
+    ]
     str_expr = '((e0 | e1) & e2)'
 
 
@@ -1118,10 +1123,11 @@ class IndexedTableUsage29(IndexedTableUsage):
         '((c_int32 == 3) | ((c_int32 == 4) & (c_int32 == 5)))' +
         ' & (c_extra > 0)',
         ]
-    idx_expr = [('c_int32', ('eq',), (4,)),
-                 ('c_int32', ('eq',), (5,)),
-                 ('c_int32', ('eq',), (3,)),
-                 ]
+    idx_expr = [
+        ('c_int32', ('eq',), (4,)),
+        ('c_int32', ('eq',), (5,)),
+        ('c_int32', ('eq',), (3,)),
+    ]
     str_expr = '((e0 & e1) | e2)'
 
 
@@ -1131,10 +1137,11 @@ class IndexedTableUsage30(IndexedTableUsage):
         '((c_int32 == 3) | (c_int32 == 4)) & (c_int32 == 5)' +
         ' & (c_extra > 0)',
         ]
-    idx_expr = [('c_int32', ('eq',), (3,)),
-                 ('c_int32', ('eq',), (4,)),
-                 ('c_int32', ('eq',), (5,)),
-                 ]
+    idx_expr = [
+        ('c_int32', ('eq',), (3,)),
+        ('c_int32', ('eq',), (4,)),
+        ('c_int32', ('eq',), (5,)),
+    ]
     str_expr = '((e0 | e1) & e2)'
 
 
@@ -1144,8 +1151,9 @@ class IndexedTableUsage31(IndexedTableUsage):
         '(c_extra > 0) & ((c_bool == True) & (c_extra < 5))',
         '((c_int32 > 0) | (c_extra > 0)) & (c_bool == True)',
         ]
-    idx_expr = [('c_bool', ('eq',), (True,)),
-                 ]
+    idx_expr = [
+        ('c_bool', ('eq',), (True,)),
+    ]
     str_expr = 'e0'
 
 

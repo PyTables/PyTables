@@ -15,10 +15,10 @@ Assuming the :file:`sample.h5` exists in the current folder, it is possible to
 open it in memory simply using the CORE driver at opening time.
 
 The HDF5 driver that one intend to use to open/create a file can be specified
-using the *driver* keyword argument of the :func:`tables.openFile` function::
+using the *driver* keyword argument of the :func:`tables.open_file` function::
 
     >>> import tables
-    >>> h5file = tables.openFile("sample.h", driver="H5FD_CORE")
+    >>> h5file = tables.open_file("sample.h", driver="H5FD_CORE")
 
 The content of the :file`sample.h5` is opened for reading. It is loaded into
 memory and all reading operations are performed without disk I/O overhead.
@@ -45,9 +45,9 @@ Creating a new file in memory is as simple as creating a regular file, just
 one needs to specify to use the CORE driver::
 
     >>> import tables
-    >>> h5file = tables.openFile("new_sample.h5", "w", driver="H5FD_CORE")
+    >>> h5file = tables.open_file("new_sample.h5", "w", driver="H5FD_CORE")
     >>> import numpy
-    >>> a = h5file.createArray(h5file.root, "array", numpy.zeros((300, 300)))
+    >>> a = h5file.create_array(h5file.root, "array", numpy.zeros((300, 300)))
     >>> h5file.close()
 
 
@@ -64,12 +64,12 @@ data in the HDF5 file and depending on how fast is the disk I/O.
 Saving data to disk is the default behavior for the CORE driver in PyTables.
 
 This feature can be controlled using the *driver_core_backing_store*
-parameter of the :func:`tables.openFile` function.  Setting it to `False`
+parameter of the :func:`tables.open_file` function.  Setting it to `False`
 disables the backing store feature and all changes in the working `h5file`
 are lost after closing::
 
-    >>> h5file = tables.openFile("new_sample.h5", "w", driver="H5FD_CORE",
-    ...                          driver_core_bacling_store=0)
+    >>> h5file = tables.open_file("new_sample.h5", "w", driver="H5FD_CORE",
+    ...                           driver_core_bacling_store=0)
 
 Please note that the *driver_core_backing_store* disables saving of data, not
 loading.
@@ -78,13 +78,13 @@ append mode.  All data in the existing :file:`sample.h5` file are loaded into
 memory and contents can be actually modified by the user::
 
     >>> import tables
-    >>> h5file = tables.openFile("sample.h5", "a", driver="H5FD_CORE",
-                                 driver_core_backing_store=0)
+    >>> h5file = tables.open_file("sample.h5", "a", driver="H5FD_CORE",
+                                  driver_core_backing_store=0)
     >>> import numpy
-    >>> h5file.createArray(h5file.root, "new_array", numpy.arange(20),
-                           title="New array")
+    >>> h5file.create_array(h5file.root, "new_array", numpy.arange(20),
+                            title="New array")
     >>> array2 = h5file.root.array2
-    >>> print array2
+    >>> print(array2)
     /array2 (Array(20,)) 'New array'
     >>> h5file.close()
 
@@ -105,7 +105,7 @@ one), STDIO or CORE.
 An example of how to get an image::
 
     >>> import tables
-    >>> h5file = tables.openFile("sample.h5")
+    >>> h5file = tables.open_file("sample.h5")
     >>> image = h5file.get_file_image()
     >>> h5file.close()
 
@@ -121,9 +121,9 @@ The `ìmage` string can be passed around and can also be used to initialize a
 new HDF55 file descriptor::
 
     >>> import tables
-    >>> h5file = tables.openFile("in-memory-sample.h5", driver="H5DF_CORE",
-                                 driver_core_backing_store=0)
-    >>> print h5file.root.array
+    >>> h5file = tables.open_file("in-memory-sample.h5", driver="H5DF_CORE",
+                                  driver_core_backing_store=0)
+    >>> print(h5file.root.array)
     /array (Array(300, 300)) 'Array'
     >>> h5file.setNodeAttr(h5file.root, "description", "In memory file example")
 

@@ -10,8 +10,8 @@
 #
 ########################################################################
 
-"""A module with no PyTables dependencies that helps with deprecation warnings.
-"""
+"""A module with no PyTables dependencies that helps with deprecation
+warnings."""
 from inspect import getmembers, ismethod, isfunction
 from warnings import warn
 
@@ -31,7 +31,7 @@ def previous_api(obj):
     warnmsg = warnmsg.format(oldname, newname)
 
     def oldfunc(*args, **kwargs):
-        warn(warnmsg, PendingDeprecationWarning, stacklevel=2)
+        warn(warnmsg, DeprecationWarning, stacklevel=2)
         return obj(*args, **kwargs)
     oldfunc.__doc__ = (
         obj.__doc__ or '') + "\n\n.. warning::\n\n    " + warnmsg + "\n"
@@ -46,11 +46,11 @@ def previous_api_property(newname):
     warnmsg = warnmsg.format(oldname, newname)
 
     def _getter(self):
-        warn(warnmsg, PendingDeprecationWarning, stacklevel=1)
+        warn(warnmsg, DeprecationWarning, stacklevel=1)
         return getattr(self, newname)
 
     def _setter(self, value):
-        warn(warnmsg, PendingDeprecationWarning, stacklevel=1)
+        warn(warnmsg, DeprecationWarning, stacklevel=1)
         return setattr(self, newname, value)
 
     _getter.__name__ = _setter.__name__ = oldname
@@ -170,10 +170,6 @@ old2newnames = dict([
     ('_getMarkID', '_get_mark_id'),
     ('_getFinalAction', '_get_final_action'),
     ('getCurrentMark', 'get_current_mark'),
-    ('_refNode', '_refnode'),
-    ('_unrefNode', '_unrefnode'),
-    ('_killNode', '_killnode'),
-    ('_reviveNode', '_revivenode'),
     ('_updateNodeLocations', '_update_node_locations'),
     # from group.py
     #('parentNode', 'parentnode'),                       # kwarg
@@ -300,7 +296,6 @@ old2newnames = dict([
     #('parentNode', 'parentnode'),                       # kwarg
     ('_g_logCreate', '_g_log_create'),
     ('_g_preKillHook', '_g_pre_kill_hook'),
-    ('_g_postReviveHook', '_g_post_revive_hook'),
     ('_g_checkOpen', '_g_check_open'),
     ('_g_setLocation', '_g_set_location'),
     ('_g_updateLocation', '_g_update_location'),

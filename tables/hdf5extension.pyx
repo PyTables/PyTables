@@ -84,6 +84,7 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Adelete, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT, H5T_STRING, H5Tget_order,
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pget_userblock, H5Pset_userblock,
   H5Pset_fapl_sec2, H5Pset_fapl_log, H5Pset_fapl_stdio, H5Pset_fapl_core,
+  H5Pset_fapl_split,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
@@ -281,7 +282,7 @@ _supported_drivers = (
     "H5FD_CORE",
     #"H5FD_FAMILY",
     #"H5FD_MULTI",
-    #"H5FD_SPLIT",
+    "H5FD_SPLIT",
     #"H5FD_MPIO",
     #"H5FD_MPIPOSIX",
     #"H5FD_STREAM",
@@ -301,6 +302,7 @@ cdef class File:
   def _g_new(self, name, pymode, **params):
     cdef herr_t err = 0
     cdef hid_t access_plist, create_plist = H5P_DEFAULT
+    cdef hid_t meta_plist_id = H5P_DEFAULT, raw_plist_id = H5P_DEFAULT
     cdef size_t img_buf_len = 0, user_block_size = 0
     cdef void *img_buf_p = NULL
     cdef bytes encname
@@ -310,6 +312,13 @@ cdef class File:
     driver = params["DRIVER"]
     if driver is not None and driver not in _supported_drivers:
       raise ValueError("Invalid or not supported driver: '%s'" % driver)
+    if driver == "H5FD_SPLIT":
+      meta_ext = params.get("DRIVER_SPLIT_META_EXT", "-m.h5")
+      raw_ext = params.get("DRIVER_SPLIT_RAW_EXT", "-r.h5")
+      meta_name = meta_ext % name if "%s" in meta_ext else name + meta_ext
+      raw_name = raw_ext % name if "%s" in raw_ext else name + raw_ext
+      enc_meta_ext = encode_filename(meta_ext)
+      enc_raw_ext = encode_filename(raw_ext)
 
     # Create a new file using default properties
     self.name = name
@@ -341,14 +350,19 @@ cdef class File:
 
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
-    # But only if we are using file backed storage.
-    backing_store = params.get("DRIVER_CORE_BACKING_STORE", 1)
-    if driver != "H5FD_CORE" or backing_store:
-      check_file_access(name, pymode)
+    if driver == "H5FD_SPLIT":
+      for n in meta_name, raw_name:
+        check_file_access(n, pymode)
+    else:
+      backing_store = params.get("DRIVER_CORE_BACKING_STORE", 1)
+      if driver != "H5FD_CORE" or backing_store:
+        check_file_access(name, pymode)
 
     # Should a new file be created?
     if image:
       exists = True
+    elif driver == "H5FD_SPLIT":
+      exists = os.path.exists(meta_name) and os.path.exists(raw_name)
     else:
       exists = os.path.exists(name)
     self._v_new = not (pymode in ('r', 'r+') or (pymode == 'a' and exists))
@@ -430,9 +444,9 @@ cdef class File:
     #elif driver == "H5FD_MULTI":
     #  err = H5Pset_fapl_multi(access_plist, memb_map, memb_fapl, memb_name,
     #                          memb_addr, relax)
-    #elif driver == "H5FD_SPLIT":
-    #  err = H5Pset_fapl_split(access_plist, meta_ext, meta_plist_id, raw_ext,
-    #                          raw_plist_id)
+    elif driver == "H5FD_SPLIT":
+      err = H5Pset_fapl_split(access_plist, enc_meta_ext, meta_plist_id,
+                              enc_raw_ext, raw_plist_id)
     if err < 0:
       e = HDF5ExtError("Unable to set the file access property list")
       H5Pclose(create_plist)
@@ -707,7 +721,8 @@ cdef class AttributeSet:
     cdef hid_t mem_type, dset_id, type_id, native_type
     cdef int rank, ret, enumtype
     cdef void *rbuf
-    cdef char *str_value, **str_values = NULL
+    cdef char *str_value
+    cdef char **str_values = NULL
     cdef ndarray ndvalue
     cdef object shape, stype_atom, shape_atom, retvalue
     cdef int i, nelements
@@ -1449,7 +1464,9 @@ cdef class Array(Leaf):
   def _g_read_slice(self, ndarray startl, ndarray stopl, ndarray stepl,
                    ndarray nparr):
     cdef herr_t ret
-    cdef hsize_t *start, *stop, *step
+    cdef hsize_t *start
+    cdef hsize_t *stop
+    cdef hsize_t *step
     cdef void *rbuf
 
     # Get the pointer to the buffer data area of startl, stopl and stepl arrays
@@ -1541,7 +1558,9 @@ cdef class Array(Leaf):
 
     cdef int select_mode
     cdef ndarray start_, count_, step_
-    cdef hsize_t *startp, *countp, *stepp
+    cdef hsize_t *startp
+    cdef hsize_t *countp
+    cdef hsize_t *stepp
 
     # Build arrays for the selection parameters
     startl, countl, stepl = [], [], []
@@ -1627,8 +1646,11 @@ cdef class Array(Leaf):
     """Write a slice in an already created NumPy array."""
 
     cdef int ret
-    cdef void *rbuf, *temp
-    cdef hsize_t *start, *step, *count
+    cdef void *rbuf
+    cdef void *temp
+    cdef hsize_t *start
+    cdef hsize_t *step
+    cdef hsize_t *count
 
     # Get the pointer to the buffer data area
     rbuf = nparr.data
@@ -2016,6 +2038,40 @@ cdef class VLArray(Leaf):
     return datalist
 
   _readArray = previous_api(_read_array)
+
+  def get_row_size(self, row):
+    """Return the total size in bytes of all the elements contained in a given row."""
+
+    cdef hid_t space_id
+    cdef hsize_t size
+    cdef herr_t ret
+
+    cdef hsize_t offset[1]
+    cdef hsize_t count[1]
+
+    if row >= self.nrows:
+      raise HDF5ExtError(
+        "Asking for a range of rows exceeding the available ones!.",
+        h5bt=False)
+
+    # Get the dataspace handle
+    space_id = H5Dget_space(self.dataset_id)
+
+    offset[0] = row
+    count[0] = 1
+
+    ret = H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+    if ret < 0:
+      size = -1
+
+    ret = H5Dvlen_get_buf_size(self.dataset_id, self.type_id, space_id, &size)
+    if ret < 0:
+      size = -1
+
+    # Terminate access to the dataspace
+    H5Sclose(space_id)
+
+    return size
 
 
 cdef class UnImplemented(Leaf):

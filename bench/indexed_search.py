@@ -1,19 +1,22 @@
+from __future__ import print_function
 from time import time
 import subprocess
 import random
 import numpy
 
 # Constants
-STEP = 1000*100  # the size of the buffer to fill the table, in rows
-SCALE = 0.1      # standard deviation of the noise compared with actual values
-NI_NTIMES = 1      # The number of queries for doing a mean (non-idx cols)
-#COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
-#WARMCACHE = 50   # The number of reads until the cache is considered 'warmed'
-#READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
-#COLDCACHE = 50   # The number of reads where the cache is considered 'cold'
-#WARMCACHE = 50  # The number of reads until the cache is considered 'warmed'
-#READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
-MROW = 1000*1000.
+
+STEP = 1000 * 100   # the size of the buffer to fill the table, in rows
+SCALE = 0.1         # standard deviation of the noise compared with actual
+                    # values
+NI_NTIMES = 1       # The number of queries for doing a mean (non-idx cols)
+# COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
+# WARMCACHE = 50   # The number of reads until the cache is considered 'warmed'
+# READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
+# COLDCACHE = 50   # The number of reads where the cache is considered 'cold'
+# WARMCACHE = 50   # The number of reads until the cache is considered 'warmed'
+# READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
+MROW = 1000 * 1000.
 
 # Test values
 COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
@@ -27,13 +30,15 @@ prec = 6  # precision for printing floats purposes
 
 def get_nrows(nrows_str):
     if nrows_str.endswith("k"):
-        return int(float(nrows_str[:-1])*1000)
+        return int(float(nrows_str[:-1]) * 1000)
     elif nrows_str.endswith("m"):
-        return int(float(nrows_str[:-1])*1000*1000)
+        return int(float(nrows_str[:-1]) * 1000 * 1000)
     elif nrows_str.endswith("g"):
-        return int(float(nrows_str[:-1])*1000*1000*1000)
+        return int(float(nrows_str[:-1]) * 1000 * 1000 * 1000)
     else:
-        raise ValueError("value of nrows must end with either 'k', 'm' or 'g' suffixes.")
+        raise ValueError(
+            "value of nrows must end with either 'k', 'm' or 'g' suffixes.")
+
 
 class DB(object):
 
@@ -53,23 +58,25 @@ class DB(object):
         return int(line.split()[0])
 
     def print_mtime(self, t1, explain):
-        mtime = time()-t1
-        print "%s:" % explain, round(mtime, 6)
-        print "Krows/s:", round((self.nrows/1000.)/mtime, 6)
+        mtime = time() - t1
+        print("%s:" % explain, round(mtime, 6))
+        print("Krows/s:", round((self.nrows / 1000.) / mtime, 6))
 
     def print_qtime(self, colname, ltimes):
-        qtime1 = ltimes[0] # First measured time
+        qtime1 = ltimes[0]  # First measured time
         qtime2 = ltimes[-1]  # Last measured time
-        print "Query time for %s:" % colname, round(qtime1, 6)
-        print "Mrows/s:", round((self.nrows/(MROW))/qtime1, 6)
-        print "Query time for %s (cached):" % colname, round(qtime2, 6)
-        print "Mrows/s (cached):", round((self.nrows/(MROW))/qtime2, 6)
+        print("Query time for %s:" % colname, round(qtime1, 6))
+        print("Mrows/s:", round((self.nrows / (MROW)) / qtime1, 6))
+        print("Query time for %s (cached):" % colname, round(qtime2, 6))
+        print("Mrows/s (cached):", round((self.nrows / (MROW)) / qtime2, 6))
 
     def norm_times(self, ltimes):
         "Get the mean and stddev of ltimes, avoiding the extreme values."
-        lmean = ltimes.mean(); lstd = ltimes.std()
-        ntimes = ltimes[ltimes < lmean+lstd]
-        nmean = ntimes.mean(); nstd = ntimes.std()
+        lmean = ltimes.mean()
+        lstd = ltimes.std()
+        ntimes = ltimes[ltimes < lmean + lstd]
+        nmean = ntimes.mean()
+        nstd = ntimes.std()
         return nmean, nstd
 
     def print_qtime_idx(self, colname, ltimes, repeated, verbose):
@@ -79,36 +86,36 @@ class DB(object):
             r = "[NOREP] "
         ltimes = numpy.array(ltimes)
         ntimes = len(ltimes)
-        qtime1 = ltimes[0] # First measured time
+        qtime1 = ltimes[0]  # First measured time
         ctimes = ltimes[1:COLDCACHE]
         cmean, cstd = self.norm_times(ctimes)
         wtimes = ltimes[WARMCACHE:]
         wmean, wstd = self.norm_times(wtimes)
         if verbose:
-            print "Times for cold cache:\n", ctimes
-            #print "Times for warm cache:\n", wtimes
-            print "Histogram for warm cache: %s\n%s" % \
-                  numpy.histogram(wtimes)
-        print "%s1st query time for %s:" % (r, colname), \
-              round(qtime1, prec)
-        print "%sQuery time for %s (cold cache):" % (r, colname), \
-              round(cmean, prec), "+-", round(cstd, prec)
-        print "%sQuery time for %s (warm cache):" % (r, colname), \
-              round(wmean, prec), "+-", round(wstd, prec)
+            print("Times for cold cache:\n", ctimes)
+            # print "Times for warm cache:\n", wtimes
+            print("Histogram for warm cache: %s\n%s" %
+                  numpy.histogram(wtimes))
+        print("%s1st query time for %s:" % (r, colname),
+              round(qtime1, prec))
+        print("%sQuery time for %s (cold cache):" % (r, colname),
+              round(cmean, prec), "+-", round(cstd, prec))
+        print("%sQuery time for %s (warm cache):" % (r, colname),
+              round(wmean, prec), "+-", round(wstd, prec))
 
     def print_db_sizes(self, init, filled, indexed):
-        table_size = (filled-init)/1024.
-        indexes_size = (indexed-filled)/1024.
-        print "Table size (MB):", round(table_size, 3)
-        print "Indexes size (MB):", round(indexes_size, 3)
-        print "Full size (MB):", round(table_size+indexes_size, 3)
+        table_size = (filled - init) / 1024.
+        indexes_size = (indexed - filled) / 1024.
+        print("Table size (MB):", round(table_size, 3))
+        print("Indexes size (MB):", round(indexes_size, 3))
+        print("Full size (MB):", round(table_size + indexes_size, 3))
 
     def fill_arrays(self, start, stop):
         arr_f8 = numpy.arange(start, stop, dtype='float64')
         arr_i4 = numpy.arange(start, stop, dtype='int32')
         if self.userandom:
-            arr_f8 += numpy.random.normal(0, stop*self.scale,
-                                          size=stop-start)
+            arr_f8 += numpy.random.normal(0, stop * self.scale,
+                                          size=stop - start)
             arr_i4 = numpy.array(arr_f8, dtype='int32')
         return arr_i4, arr_f8
 
@@ -116,7 +123,7 @@ class DB(object):
         self.con = self.open_db(remove=1)
         self.create_table(self.con)
         init_size = self.get_db_size()
-        t1=time()
+        t1 = time()
         self.fill_table(self.con)
         table_size = self.get_db_size()
         self.print_mtime(t1, 'Insert time')
@@ -133,7 +140,7 @@ class DB(object):
         else:
             idx_cols = ['col2', 'col4']
         for colname in idx_cols:
-            t1=time()
+            t1 = time()
             self.index_col(self.con, colname, kind, optlevel, verbose)
             self.print_mtime(t1, 'Index time (%s)' % colname)
 
@@ -161,11 +168,11 @@ class DB(object):
                 ltimes = []
                 random.seed(rseed)
                 for i in range(NI_NTIMES):
-                    t1=time()
+                    t1 = time()
                     results = self.do_query(self.con, colname, base, inkernel)
-                    ltimes.append(time()-t1)
+                    ltimes.append(time() - t1)
                 if verbose:
-                    print "Results len:", results
+                    print("Results len:", results)
                 self.print_qtime(colname, ltimes)
             # Always reopen the file after *every* query loop.
             # Necessary to make the benchmark to run correctly.
@@ -180,23 +187,25 @@ class DB(object):
                 # First, non-repeated queries
                 for i in range(niter):
                     base = rndbase[i]
-                    t1=time()
+                    t1 = time()
                     results = self.do_query(self.con, colname, base, inkernel)
-                    #results, tprof = self.do_query(self.con, colname, base, inkernel)
-                    ltimes.append(time()-t1)
+                    #results, tprof = self.do_query(
+                    #    self.con, colname, base, inkernel)
+                    ltimes.append(time() - t1)
                 if verbose:
-                    print "Results len:", results
+                    print("Results len:", results)
                 self.print_qtime_idx(colname, ltimes, False, verbose)
                 # Always reopen the file after *every* query loop.
                 # Necessary to make the benchmark to run correctly.
                 self.close_db(self.con)
                 self.con = self.open_db()
                 ltimes = []
-#                 # Second, repeated queries
+# Second, repeated queries
 #                 for i in range(niter):
 #                     t1=time()
-#                     results = self.do_query(self.con, colname, base, inkernel)
-#                     #results, tprof = self.do_query(self.con, colname, base, inkernel)
+#                     results = self.do_query(
+#                         self.con, colname, base, inkernel)
+# results, tprof = self.do_query(self.con, colname, base, inkernel)
 #                     ltimes.append(time()-t1)
 #                 if verbose:
 #                     print "Results len:", results
@@ -204,10 +213,10 @@ class DB(object):
                 # Print internal PyTables index tprof statistics
                 #tprof = numpy.array(tprof)
                 #tmean, tstd = self.norm_times(tprof)
-                #print "tprof-->", round(tmean, prec), "+-", round(tstd, prec)
-                #print "tprof hist-->", \
+                # print "tprof-->", round(tmean, prec), "+-", round(tstd, prec)
+                # print "tprof hist-->", \
                 #    numpy.histogram(tprof)
-                #print "tprof raw-->", tprof
+                # print "tprof raw-->", tprof
                 # Always reopen the file after *every* query loop.
                 # Necessary to make the benchmark to run correctly.
                 self.close_db(self.con)
@@ -219,8 +228,8 @@ class DB(object):
         con.close()
 
 
-if __name__=="__main__":
-    import sys, os
+if __name__ == "__main__":
+    import sys
     import getopt
 
     try:
@@ -256,7 +265,8 @@ if __name__=="__main__":
             \n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'TPvfkpmcqiISxz:l:R:N:n:d:O:t:s:Q:')
+        opts, pargs = getopt.getopt(
+            sys.argv[1:], 'TPvfkpmcqiISxz:l:R:N:n:d:O:t:s:Q:')
     except:
         sys.stderr.write(usage)
         sys.exit(1)
@@ -338,13 +348,14 @@ if __name__=="__main__":
             if option[1] in ('full', 'medium', 'light', 'ultralight'):
                 kind = option[1]
             else:
-                print "kind should be either 'full', 'medium', 'light' or 'ultralight'"
+                print("kind should be either 'full', 'medium', 'light' or "
+                      "'ultralight'")
                 sys.exit(1)
         elif option[0] == '-s':
             if option[1] in ('int', 'float'):
                 dtype = option[1]
             else:
-                print "column should be either 'int' or 'float'"
+                print("column should be either 'int' or 'float'")
                 sys.exit(1)
         elif option[0] == '-Q':
             repeatquery = 1
@@ -352,9 +363,9 @@ if __name__=="__main__":
 
     # If not database backend selected, abort
     if not usepytables and not usepostgres:
-        print "Please select a backend:"
-        print "PyTables: -T"
-        print "Postgres: -P"
+        print("Please select a backend:")
+        print("PyTables: -T")
+        print("Postgres: -P")
         sys.exit(1)
 
     # Create the class for the database
@@ -372,9 +383,9 @@ if __name__=="__main__":
 
     if verbose:
         if userandom:
-            print "using random values"
+            print("using random values")
         if onlyidxquery:
-            print "doing indexed queries only"
+            print("doing indexed queries only")
 
     if psyco_imported and usepsyco:
         psyco.bind(db.create_db)
@@ -382,15 +393,18 @@ if __name__=="__main__":
 
     if docreate:
         if verbose:
-            print "writing %s rows" % krows
+            print("writing %s rows" % krows)
         db.create_db(dtype, kind, optlevel, verbose)
 
     if doquery:
-        print "Calling query_db() %s times" % niter
+        print("Calling query_db() %s times" % niter)
         if doprofile:
             import pstats
             import cProfile as prof
-            prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose, inkernel)', 'indexed_search.prof')
+            prof.run(
+                'db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, '
+                'avoidfscache, verbose, inkernel)',
+                'indexed_search.prof')
             stats = pstats.Stats('indexed_search.prof')
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
@@ -402,15 +416,20 @@ if __name__=="__main__":
             from cProfile import Profile
             import lsprofcalltree
             prof = Profile()
-            prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose, inkernel)')
+            prof.run(
+                'db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, '
+                'avoidfscache, verbose, inkernel)')
             kcg = lsprofcalltree.KCacheGrind(prof)
             ofile = open('indexed_search.kcg', 'w')
             kcg.output(ofile)
             ofile.close()
         elif doprofile:
-            import hotshot, hotshot.stats
+            import hotshot
+            import hotshot.stats
             prof = hotshot.Profile("indexed_search.prof")
-            benchtime, stones = prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose, inkernel)')
+            benchtime, stones = prof.run(
+                'db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, '
+                'avoidfscache, verbose, inkernel)')
             prof.close()
             stats = hotshot.stats.load("indexed_search.prof")
             stats.strip_dirs()
@@ -424,19 +443,20 @@ if __name__=="__main__":
         # Start by a range which is almost None
         db.rng = [1, 1]
         if verbose:
-            print "range:", db.rng
+            print("range:", db.rng)
         db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
                     avoidfscache, verbose, inkernel)
-        for i in xrange(repeatvalue):
+        for i in range(repeatvalue):
             for j in (1, 2, 5):
-                rng = j*10**i
-                db.rng = [-rng/2, rng/2]
+                rng = j * 10 ** i
+                db.rng = [-rng / 2, rng / 2]
                 if verbose:
-                    print "range:", db.rng
+                    print("range:", db.rng)
 #                 if usepostgres:
-#                     os.system("echo 1 > /proc/sys/vm/drop_caches; /etc/init.d/postgresql restart")
+#                     os.system(
+#                         "echo 1 > /proc/sys/vm/drop_caches;"
+#                         " /etc/init.d/postgresql restart")
 #                 else:
 #                     os.system("echo 1 > /proc/sys/vm/drop_caches")
                 db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
                             avoidfscache, verbose, inkernel)
-

@@ -6,12 +6,20 @@ recursive-include tables *.py *.pyx *.pxd *.c
 recursive-include tables/tests *.h5 *.mat
 recursive-include tables/nodes/tests *.h5 *.dat *.xbm
 recursive-include src *.c *.h Makefile
-recursive-include blosc *.c *.h
+
+include c-blosc/hdf5/blosc_filter.?
+recursive-include c-blosc/blosc *.c *.h
+recursive-include c-blosc/internal-complibs *.c *.cc *.h
 
 recursive-include LICENSES *
 recursive-include utils *
-recursive-include doc *.rst *.html *.js *.css *.*_t *.png *.ico *.conf *.py Makefile make.bat
+include doc/Makefile doc/make.bat
 #include doc/*.pdf
+recursive-include doc *.rst *.conf *.py *.*_t
+recursive-include doc *.html *.js *.css *.png *.ico
+recursive-include doc/source *.pdf objecttree.svg
+#recursive-include doc/source *.pdf *.svg
+recursive-include doc/html *.txt *.svg *.gif *.inv
 recursive-include doc/scripts *.py
 recursive-include doc/sphinxext *
 recursive-exclude doc/build *

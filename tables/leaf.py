@@ -173,7 +173,7 @@ class Leaf(Node):
     # `````````````````````````
     @lazyattr
     def filters(self):
-        """Filter properties for this leaf
+        """Filter properties for this leaf.
 
         See Also
         --------
@@ -273,10 +273,8 @@ class Leaf(Node):
         return self.nrows
 
     def __str__(self):
-        """
-        The string representation for this object is its pathname in
-        the HDF5 object tree plus some additional metainfo.
-        """
+        """The string representation for this object is its pathname in the
+        HDF5 object tree plus some additional metainfo."""
 
         # Get this class name
         classname = self.__class__.__name__
@@ -300,6 +298,7 @@ class Leaf(Node):
         """Code to be run after node creation and before creation logging.
 
         This method gets or sets the flavor of the leaf.
+
         """
 
         super(Leaf, self)._g_post_init_hook()
@@ -372,7 +371,7 @@ class Leaf(Node):
         # equal to the chunksize.
         # See gh-206 and gh-238
         if self.chunkshape is not None:
-            chunksize = numpy.asarray(self.chunkshape).prod()
+            chunksize = self.chunkshape[self.maindim]
             if nrowsinbuf < chunksize:
                 nrowsinbuf = chunksize
 
@@ -406,7 +405,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         # The next function is a substitute for slice().indices in order to
         # support full 64-bit integer for slices even in 32-bit machines.
         # F. Alted 2005-05-08
-        start, stop, step = utilsextension.get_indices(start, stop, step, long(nrows))
+        start, stop, step = utilsextension.get_indices(start, stop, step,
+                                                       long(nrows))
         return (start, stop, step)
 
     _processRange = previous_api(_process_range)
@@ -431,7 +431,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:
                 stop = start + 1
         # Finally, get the correct values (over the main dimension)
-        start, stop, step = self._process_range(start, stop, step, 
+        start, stop, step = self._process_range(start, stop, step,
                                                 warn_negstep=warn_negstep)
         return (start, stop, step)
 
@@ -550,7 +550,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Get the True coordinates (64-bit indices!)
             coords = numpy.asarray(key.nonzero(), dtype='i8')
             coords = numpy.transpose(coords)
-        elif key.dtype.kind == 'i':
+        elif key.dtype.kind == 'i' or key.dtype.kind == 'u':
             if len(key.shape) > 2:
                 raise IndexError(
                     "Coordinate indexing array has incompatible shape")
@@ -725,10 +725,10 @@ very small/large chunksize, you may want to increase/decrease it."""
     def flush(self):
         """Flush pending data to disk.
 
-        Saves whatever remaining buffered data to disk. It also releases I/O
-        buffers, so if you are filling many datasets in the same PyTables
-        session, please call flush() extensively so as to help PyTables to keep
-        memory requirements low.
+        Saves whatever remaining buffered data to disk. It also releases
+        I/O buffers, so if you are filling many datasets in the same
+        PyTables session, please call flush() extensively so as to help
+        PyTables to keep memory requirements low.
 
         """
 

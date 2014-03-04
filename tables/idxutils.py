@@ -91,6 +91,7 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
 
     This is useful for computing the sizes of both blocks and
     superblocks (using the PyTables terminology for blocks in indexes).
+
     """
 
     nlowerblocks = (expectedrows // lowercompoundsize) + 1
@@ -108,10 +109,11 @@ def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
-    different chunksizes and compression flag. It is obvious that
-    using big chunks optimizes the I/O speed, but if they are too
-    large, the uncompressor takes too much time. This might (should)
-    be further optimized by doing more experiments.
+    different chunksizes and compression flag. It is obvious that using
+    big chunks optimizes the I/O speed, but if they are too large, the
+    uncompressor takes too much time. This might (should) be further
+    optimized by doing more experiments.
+
     """
 
     chunksize = computechunksize(expectedrows)
@@ -208,6 +210,7 @@ def calcoptlevels(nblocks, optlevel, indsize):
 
     The calculation is based on the number of blocks, optlevel and
     indexing mode.
+
     """
 
     if indsize == 2:  # light
@@ -314,16 +317,18 @@ def get_reduction_level(indsize, optlevel, slicesize, chunksize):
 #
 # Thanks to Shack Toms shack@livedata.com for NextAfter and NextAfterF
 # implementations in Python. 2004-10-01
-# epsilon  = math.ldexp(1.0, -53) # smallest double such that 0.5 + epsilon != 0.5
+# epsilon  = math.ldexp(1.0, -53) # smallest double such that
+#                                 # 0.5 + epsilon != 0.5
 # epsilonF = math.ldexp(1.0, -24) # smallest float such that 0.5 + epsilonF
 # != 0.5
 # maxFloat = float(2**1024 - 2**971)  # From the IEEE 754 standard
 # maxFloatF = float(2**128 - 2**104)  # From the IEEE 754 standard
 # minFloat  = math.ldexp(1.0, -1022) # min positive normalized double
 # minFloatF = math.ldexp(1.0, -126)  # min positive normalized float
-# smallEpsilon  = math.ldexp(1.0, -1074) # smallest increment for doubles < minFloat
-# smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for floats <
-# minFloatF
+# smallEpsilon  = math.ldexp(1.0, -1074) # smallest increment for
+#                                        # doubles < minFloat
+# smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for
+#                                        # floats < minFloatF
 infinity = math.ldexp(1.0, 1023) * 2
 infinityf = math.ldexp(1.0, 128)
 # Finf = float("inf")  # Infinite in the IEEE 754 standard (not avail in Win)
@@ -371,7 +376,7 @@ infinityF = infinityf
 
 
 def inftype(dtype, itemsize, sign=+1):
-    """Return a superior limit for maximum representable data type"""
+    """Return a superior limit for maximum representable data type."""
 
     assert sign in [-1, +1]
 

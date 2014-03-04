@@ -27,7 +27,7 @@ Bibliography
     objects(II). Article describing XML Objectify, a Python module that
     allows working with XML documents as Python objects.
     Some of the ideas presented here are used in PyTables.
-    `<http://www.ibm.com/developerworks/xml/library/xml-matters2/index.html>`_.
+    `<http://gnosis.cx/publish/programming/xml_matters_2.html>`_.
 
 .. _CYTHON:
 

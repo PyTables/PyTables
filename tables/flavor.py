@@ -43,6 +43,7 @@ Variables
 
     See the `array_of_flavor()` and `flavor_to_flavor()` functions for
     friendlier interfaces to flavor conversion.
+
 """
 
 # Imports
@@ -117,6 +118,7 @@ def array_of_flavor2(array, src_flavor, dst_flavor):
     case.
 
     If the conversion is not supported, a ``FlavorError`` is raised.
+
     """
 
     convkey = (src_flavor, dst_flavor)
@@ -140,11 +142,12 @@ def flavor_to_flavor(array, src_flavor, dst_flavor):
 
     If the conversion is not supported, a `FlavorWarning` is issued
     and the input `array` is returned as is.
+
     """
 
     try:
         return array_of_flavor2(array, src_flavor, dst_flavor)
-    except FlavorError, fe:
+    except FlavorError as fe:
         warnings.warn("%s; returning an object of the ``%s`` flavor instead"
                       % (fe.args[0], src_flavor), FlavorWarning)
         return array
@@ -156,6 +159,7 @@ def internal_to_flavor(array, dst_flavor):
     The input `array` must be of the internal flavor, and the returned
     array will be of the given `dst_flavor`.  See `flavor_to_flavor()`
     for more information.
+
     """
 
     return flavor_to_flavor(array, internal_flavor, dst_flavor)
@@ -168,6 +172,7 @@ def array_as_internal(array, src_flavor):
     returned array will be of the internal flavor.
 
     If the conversion is not supported, a ``FlavorError`` is raised.
+
     """
 
     return array_of_flavor2(array, src_flavor, internal_flavor)
@@ -178,6 +183,7 @@ def flavor_of(array):
 
     If the `array` can not be matched with any flavor, a ``TypeError``
     is raised.
+
     """
 
     for flavor in all_flavors:
@@ -197,6 +203,7 @@ def array_of_flavor(array, dst_flavor):
     will be of the given `dst_flavor`.
 
     If the conversion is not supported, a ``FlavorError`` is raised.
+
     """
 
     return array_of_flavor2(array, flavor_of(array), dst_flavor)
@@ -210,6 +217,7 @@ def restrict_flavors(keep=['python']):
     disabled.
 
     .. important:: Once you disable a flavor, it can not be enabled again.
+
     """
 
     keep = set(keep).union([internal_flavor])
