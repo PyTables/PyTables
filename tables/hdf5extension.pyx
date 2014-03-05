@@ -1206,7 +1206,13 @@ cdef class Array(Leaf):
     self.rank = len(shape)
     self.dims = npy_malloc_dims(self.rank, <npy_intp *>(dims.data))
     # Get the pointer to the buffer data area
-    rbuf = nparr.data
+    strides = (<object>nparr).strides
+    # When the object is not a 0-d ndarray and its strides == 0, that
+    # means that the array does not contain actual data
+    if strides != () and sum(strides) == 0:
+      rbuf = NULL
+    else:
+      rbuf = nparr.data
     # Save the array
     complib = (self.filters.complib or '').encode('utf-8')
     version = self._v_version.encode('utf-8')
