@@ -1135,7 +1135,11 @@ class File(hdf5extension.File, object):
                                 '(or None) then both the atom and shape '
                                 'parametes should be provided.')
             else:
-                obj = numpy.zeros(shape, atom.dtype)
+                # Making strides=(0,...) below is a trick to create the
+                # array fast and without memory consumption
+                dflt = numpy.zeros((), dtype=atom.dtype)
+                obj = numpy.ndarray(shape, dtype=atom.dtype, buffer=dflt,
+                                    strides=(0,)*len(shape))
         else:
             flavor = flavor_of(obj)
             # use a temporary object because converting obj at this stage
