@@ -357,11 +357,17 @@ def _is_numpy(array):
 
 
 def _numpy_contiguous(convfunc):
-    """Decorate `convfunc` to return a *contiguous* NumPy array."""
+    """Decorate `convfunc` to return a *contiguous* NumPy array.
+
+    Note: When arrays are 0-strided, the copy is avoided.  This allows
+    to use `array` to still carry info about the dtype and shape.
+    """
 
     def conv_to_numpy(array):
         nparr = convfunc(array)
-        if hasattr(nparr, 'flags') and not nparr.flags.contiguous:
+        if (hasattr(nparr, 'flags') and
+            not nparr.flags.contiguous and
+            sum(nparr.strides) != 0):
             nparr = nparr.copy()  # copying the array makes it contiguous
         return nparr
     conv_to_numpy.__name__ = convfunc.__name__
