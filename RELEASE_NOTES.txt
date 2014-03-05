@@ -1,11 +1,22 @@
 =======================================
- Release notes for PyTables 3.1 series
+ Release notes for PyTables 3.2 series
 =======================================
 
 :Author: PyTables Developers
 :Contact: pytables@googlemail.com
 
 .. py:currentmodule:: tables
+
+
+Changes from 3.1.0 to 3.2.0
+===========================
+
+Improvements
+------------
+
+- Do not create a temporary array when obj is not specified in
+  :meth:`File.create_array` (thanks to Francesc).
+  Closes :issue:`337` and :issue:`339`).
 
 
 Changes from 3.0 to 3.1.0
