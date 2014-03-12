@@ -23,6 +23,10 @@ Module functions
 
 .. autofunction:: open_node
 
+.. autofunction:: read_from_filenode
+
+.. autofunction:: save_to_filenode
+
 
 The RawPyTablesIO base class
 ----------------------------

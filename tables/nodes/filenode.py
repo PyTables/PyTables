@@ -31,6 +31,7 @@ See :ref:`filenode_usersguide` for instructions on use.
 """
 
 import io
+import os
 import warnings
 
 import numpy as np
@@ -44,6 +45,13 @@ NodeType = 'file'
 
 NodeTypeVersions = [1, 2]
 """Supported values for NODE_TYPE_VERSION node system attribute."""
+
+
+# have a Python2/3 compatible way to check for string
+try:
+    string_types = basestring
+except NameError:
+    string_types = str
 
 
 class RawPyTablesIO(io.RawIOBase):
@@ -697,6 +705,160 @@ def open_node(node, mode='r'):
 
 
 openNode = previous_api(open_node)
+
+
+def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
+                     title="", filters=None):
+    """Save a file's contents to a filenode inside a PyTables file.
+
+    .. versionadded:: 3.2
+
+    Parameters
+    ----------
+    h5file
+      The PyTables file to be written to; can be either a string
+      giving the file's location or a :class:`File` object.  If a file
+      with name *h5file* already exists, it will be opened in
+      mode ``a``.
+
+    filename
+      Path of the file which shall be stored within the PyTables file.
+
+    where, name
+      Location of the filenode where the data shall be stored.  If
+      *name* is not given, and *where* is either a :class:`Group`
+      object or a string ending on ``/``, the leaf name will be set to
+      the file name of *filename*.
+
+    overwrite
+      Whether or not a possibly existing filenode of the specified
+      name shall be overwritten.
+
+    title
+       A description for this node (it sets the ``TITLE`` HDF5
+       attribute on disk).
+
+    filters
+       An instance of the :class:`Filters` class that provides
+       information about the desired I/O filters to be applied
+       during the life of this object.
+
+    """
+    # sanity checks
+    if not os.access(filename, os.R_OK):
+        raise IOError("The file '%s' could not be read" % filename)
+    if isinstance(h5file, tables.file.File) and h5file.mode == "r":
+        raise IOError("The file '%s' is opened read-only" % h5file.filename)
+
+    # guess filenode's name if necessary
+    if (name is None and (isinstance(where, tables.group.Group) or
+                          (isinstance(where, string_types) and
+                           where.endswith("/")))):
+        name = os.path.split(filename)[1]
+
+    new_h5file = not isinstance(h5file, tables.file.File)
+    f = tables.File(h5file, "a") if new_h5file else h5file
+
+    # check for already existing filenode
+    try:
+        n = f.get_node(where=where, name=name)
+        if not overwrite:
+            if new_h5file:
+                f.close()
+            raise IOError("Specified node already exists in file '%s'" %
+                          f.filename)
+    except tables.NoSuchNodeError:
+        pass
+
+    # read data from disk
+    with open(filename, "rb") as fd:
+        data = fd.read()
+
+    if isinstance(where, string_types) and name is None:
+        nodepath = where.split("/")
+        where = "/" + "/".join(nodepath[:-1])
+        name = nodepath[-1]
+
+    # remove existing filenode if present
+    try:
+        f.remove_node(where=where, name=name)
+    except tables.NoSuchNodeError:
+        pass
+
+    # write file's contents to filenode
+    fnode = new_node(f, where=where, name=name, title=title, filters=filters)
+    fnode.write(data)
+    fnode.close()
+
+    # cleanup
+    if new_h5file:
+        f.close()
+
+
+def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
+                       create_target=False):
+    """Read a filenode from a PyTables file and write its contents to a file.
+
+    .. versionadded:: 3.2
+
+    Parameters
+    ----------
+    h5file
+      The PyTables file to be read from; can be either a string
+      giving the file's location or a :class:`File` object.
+
+    filename
+      Path of the file where the contents of the filenode shall be
+      written to.  If *filename* points to a directory or ends with
+      ``/`` (``\`` on Windows), the filename will be set to the *name*
+      attribute of the read filenode.
+
+    where, name
+      Location of the filenode where the data shall be read from.
+
+    overwrite
+      Whether or not a possibly existing file of the specified
+      *filename* shall be overwritten.
+
+    create_target
+      Whether or not the folder hierarchy needed to accomodate the
+      given target ``filename`` will be created.
+
+    """
+    new_h5file = not isinstance(h5file, tables.file.File)
+    f = tables.File(h5file, "r") if new_h5file else h5file
+    fnode = open_node(f.get_node(where=where, name=name))
+
+    # guess output filename if necessary
+    if os.path.isdir(filename) or filename.endswith(os.path.sep):
+        filename = os.path.join(filename, fnode.node.name)
+
+    if os.access(filename, os.R_OK) and not overwrite:
+        if new_h5file:
+            f.close()
+        raise IOError("The file '%s' already exists" % filename)
+
+    # create folder hierarchy if necessary
+    if create_target and not os.path.isdir(os.path.split(filename)[0]):
+        os.makedirs(os.path.split(filename)[0])
+
+    if not os.access(os.path.split(filename)[0], os.W_OK):
+        if new_h5file:
+            f.close()
+        raise IOError("The file '%s' cannot be written to" % filename)
+
+    # read data from filenode
+    data = fnode.read()
+    fnode.close()
+
+    # store data to file
+    with open(filename, "wb") as fd:
+        fd.write(data)
+
+    # cleanup
+    del data
+    if new_h5file:
+        f.close()
 
 
 ## Local Variables:
