@@ -242,8 +242,14 @@ Wrapper for Python
 
 Blosc has an official wrapper for Python.  See:
 
-http://blosc.pydata.org
-https://github.com/FrancescAlted/python-blosc
+https://github.com/Blosc/python-blosc
+
+Command line interface and serialization format for Blosc
+=========================================================
+
+Blosc can be used from command line by using Bloscpack.  See:
+
+https://github.com/Blosc/bloscpack
 
 Filter for HDF5
 ===============

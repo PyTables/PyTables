@@ -362,13 +362,14 @@ static int lz4_wrap_compress(const char* input, size_t input_length,
 }
 
 static int lz4hc_wrap_compress(const char* input, size_t input_length,
-                               char* output, size_t maxout)
+                               char* output, size_t maxout, int clevel)
 {
   int cbytes;
   if (input_length > (size_t)(2<<30))
     return -1;   /* input larger than 1 GB is not supported */
-  cbytes = LZ4_compressHC_limitedOutput(input, output, (int)input_length,
-					(int)maxout);
+  /* clevel for lz4hc goes up to 16, at least in LZ4 1.1.3 */
+  cbytes = LZ4_compressHC2_limitedOutput(input, output, (int)input_length,
+					 (int)maxout, clevel*2-1);
   return cbytes;
 }
 
@@ -503,7 +504,7 @@ static int blosc_c(int32_t blocksize, int32_t leftoverblock,
     }
     else if (compressor == BLOSC_LZ4HC) {
       cbytes = lz4hc_wrap_compress((char *)_tmp+j*neblock, (size_t)neblock,
-                                   (char *)dest, (size_t)maxout);
+                                   (char *)dest, (size_t)maxout, params.clevel);
     }
     #endif /*  HAVE_LZ4 */
     #if defined(HAVE_SNAPPY)
@@ -526,7 +527,7 @@ static int blosc_c(int32_t blocksize, int32_t leftoverblock,
       return -5;    /* signals no compression support */
     }
 
-    if (cbytes >= maxout) {
+    if (cbytes > maxout) {
       /* Buffer overrun caused by compression (should never happen) */
       return -1;
     }
@@ -535,7 +536,7 @@ static int blosc_c(int32_t blocksize, int32_t leftoverblock,
       return -2;
     }
     else if (cbytes == 0) {
-      /* The compressor has been unable to compress data significantly. */
+      /* The compressor has been unable to compress data at all. */
       /* Before doing the copy, check that we are not running into a
          buffer overflow. */
       if ((ntbytes+neblock) > maxbytes) {
@@ -1674,7 +1675,7 @@ int blosc_get_complib_info(char *compname, char **complib, char **version)
   int clibcode;
   char *clibname;
   char *clibversion = "unknown";
-  char *sbuffer[256];
+  char sbuffer[256];
 
   clibcode = compname_to_clibcode(compname);
   clibname = clibcode_to_clibname(clibcode);
@@ -1685,9 +1686,11 @@ int blosc_get_complib_info(char *compname, char **complib, char **version)
   }
 #if defined(HAVE_LZ4)
   else if (clibcode == BLOSC_LZ4_LIB) {
-#if defined(LZ4_VERSION_STRING)
-    clibversion = LZ4_VERSION_STRING;
-#endif /* LZ4_VERSION_STRING */
+#if defined(LZ4_VERSION_MAJOR)
+    sprintf(sbuffer, "%d.%d.%d",
+            LZ4_VERSION_MAJOR, LZ4_VERSION_MINOR, LZ4_VERSION_RELEASE);
+    clibversion = sbuffer;
+#endif /*  LZ4_VERSION_MAJOR */
   }
 #endif /*  HAVE_LZ4 */
 #if defined(HAVE_SNAPPY)
@@ -1822,8 +1825,22 @@ void blosc_cbuffer_versions(const void *cbuffer, int *version,
   uint8_t *_src = (uint8_t *)(cbuffer);  /* current pos for source buffer */
 
   /* Read the version info */
-  *version = (int)_src[0];             /* blosc format version */
-  *versionlz = (int)_src[1];           /* blosclz format version */
+  *version = (int)_src[0];         /* blosc format version */
+  *versionlz = (int)_src[1];       /* Lempel-Ziv compressor format version */
+}
+
+
+/* Return the compressor library/format used in a compressed buffer. */
+char *blosc_cbuffer_complib(const void *cbuffer)
+{
+  uint8_t *_src = (uint8_t *)(cbuffer);  /* current pos for source buffer */
+  int clibcode;
+  char *complib;
+
+  /* Read the compressor format/library info */
+  clibcode = (_src[2] & 0xe0) >> 5;
+  complib = clibcode_to_clibname(clibcode);
+  return complib;
 }
 
 

@@ -14,11 +14,11 @@
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
 #define BLOSC_VERSION_MINOR    3    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  2    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_RELEASE  4    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.3.2"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.3.4"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2014-01-17 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2014-03-20 #$"    /* date version */
 
 #define BLOSCLZ_VERSION_STRING "1.0.1"   /* the internal compressor version */
 
@@ -236,9 +236,10 @@ char* blosc_list_compressors(void);
   In `complib` and `version` you get the compression library name and
   version (if available) as output.
 
-  In `complib` and `version` you get a pointer to the compressor name
-  and the version in string format respectively.  After using the name
-  and version, you should free() them so as to avoid leaks.
+  In `complib` and `version` you get a pointer to the compressor
+  library name and the version in string format respectively.  After
+  using the name and version, you should free() them so as to avoid
+  leaks.
 
   If the compressor is supported, it returns the code for the library
   (>=0).  If it is not supported, this function returns -1.
@@ -247,9 +248,10 @@ int blosc_get_complib_info(char *compname, char **complib, char **version);
 
 
 /**
-  Free possible memory temporaries and thread resources.  Use this when you
-  are not going to use Blosc for a long while.  In case of problems releasing
-  the resources, it returns a negative number, else it returns 0.
+  Free possible memory temporaries and thread resources.  Use this
+  when you are not going to use Blosc for a long while.  In case of
+  problems releasing the resources, it returns a negative number, else
+  it returns 0.
   */
 int blosc_free_resources(void);
 
@@ -290,12 +292,20 @@ void blosc_cbuffer_metainfo(const void *cbuffer, size_t *typesize,
 /**
   Return information about a compressed buffer, namely the internal
   Blosc format version (`version`) and the format for the internal
-  Lempel-Ziv algorithm (`versionlz`).
+  Lempel-Ziv compressor used (`versionlz`).
 
   This function should always succeed.
   */
 void blosc_cbuffer_versions(const void *cbuffer, int *version,
                             int *versionlz);
+
+
+/**
+  Return the compressor library/format used in a compressed buffer.
+
+  This function should always succeed.
+  */
+char *blosc_cbuffer_complib(const void *cbuffer);
 
 
 
