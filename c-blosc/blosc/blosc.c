@@ -139,14 +139,14 @@ static struct temp_data {
 /* Wait until all threads are initialized */
 #ifdef _POSIX_BARRIERS_MINE
 static int rc;
-#define WAIT_INIT \
+#define WAIT_INIT(RET_VAL)  \
   rc = pthread_barrier_wait(&barr_init); \
   if (rc != 0 && rc != PTHREAD_BARRIER_SERIAL_THREAD) { \
     printf("Could not wait on barrier (init)\n"); \
-    return(-1); \
+    return((RET_VAL));				  \
   }
 #else
-#define WAIT_INIT \
+#define WAIT_INIT(RET_VAL)   \
   pthread_mutex_lock(&count_threads_mutex); \
   if (count_threads < nthreads) { \
     count_threads++; \
@@ -160,14 +160,14 @@ static int rc;
 
 /* Wait for all threads to finish */
 #ifdef _POSIX_BARRIERS_MINE
-#define WAIT_FINISH \
+#define WAIT_FINISH(RET_VAL)   \
   rc = pthread_barrier_wait(&barr_finish); \
   if (rc != 0 && rc != PTHREAD_BARRIER_SERIAL_THREAD) { \
     printf("Could not wait on barrier (finish)\n"); \
-    return(-1);                                       \
+    return((RET_VAL));				    \
   }
 #else
-#define WAIT_FINISH \
+#define WAIT_FINISH(RET_VAL)			    \
   pthread_mutex_lock(&count_threads_mutex); \
   if (count_threads > 0) { \
     count_threads--; \
@@ -735,9 +735,9 @@ static int parallel_blosc(void)
   }
 
   /* Synchronization point for all threads (wait for initialization) */
-  WAIT_INIT;
+  WAIT_INIT(-1);
   /* Synchronization point for all threads (wait for finalization) */
-  WAIT_FINISH;
+  WAIT_FINISH(-1);
 
   if (giveup_code > 0) {
     /* Return the total bytes (de-)compressed in threads */
@@ -1361,7 +1361,7 @@ static void *t_blosc(void *tids)
     init_sentinels_done = 0;     /* sentinels have to be initialised yet */
 
     /* Synchronization point for all threads (wait for initialization) */
-    WAIT_INIT;
+    WAIT_INIT(NULL);
 
     /* Check if thread has been asked to return */
     if (end_threads) {
@@ -1502,7 +1502,7 @@ static void *t_blosc(void *tids)
     }
 
     /* Meeting point for all threads (wait for finalization) */
-    WAIT_FINISH;
+    WAIT_FINISH(NULL);
 
   }  /* closes while(1) */
 
@@ -1605,7 +1605,7 @@ int blosc_set_nthreads_(int nthreads_new)
       /* Tell all existing threads to finish */
       end_threads = 1;
       /* Synchronization point for all threads (wait for initialization) */
-      WAIT_INIT;
+      WAIT_INIT(-1);
       /* Join exiting threads */
       for (t=0; t<nthreads; t++) {
         rc2 = pthread_join(threads[t], &status);
@@ -1732,7 +1732,7 @@ int blosc_free_resources(void)
     /* Tell all existing threads to finish */
     end_threads = 1;
     /* Synchronization point for all threads (wait for initialization) */
-    WAIT_INIT;
+    WAIT_INIT(-1);
     /* Join exiting threads */
     for (t=0; t<nthreads; t++) {
       rc2 = pthread_join(threads[t], &status);

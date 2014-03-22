@@ -1,10 +1,17 @@
 ================================
- Release notes for c-blosc 1.3.4
+ Release notes for c-blosc 1.3.5
 ================================
 
 :Author: Francesc Alted
 :Contact: faltet@gmail.com
 :URL: http://www.blosc.org
+
+
+Changes from 1.3.4 to 1.3.5
+===========================
+
+* Removed a pointer from 'pointer from integer without a cast' compiler
+  warning due to a bad macro definition.
 
 
 Changes from 1.3.3 to 1.3.4

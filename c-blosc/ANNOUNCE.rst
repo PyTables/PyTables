@@ -1,14 +1,14 @@
 ===============================================================
- Announcing c-blosc 1.3.4
+ Announcing c-blosc 1.3.5
  A blocking, shuffling and lossless compression library
 ===============================================================
 
 What is new?
 ============
 
-This is a maintenance release.  Basically it fixes a false buffer
-overrun condition.  This bug made c-blosc to fail, even if the failure
-was not real.
+This is just a maintenance release for removing a 'pointer from
+integer without a cast' compiler warning due to a bad macro
+definition.
 
 For more info, please see the release notes in:
 
