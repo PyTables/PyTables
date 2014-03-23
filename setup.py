@@ -735,14 +735,16 @@ if 'BLOSC' not in optional_libs:
     inc_dirs += glob.glob('c-blosc/internal-complibs/*')
     # ...and the macros for all the compressors supported
     def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1)]
+
     # Add -msse2 flag for optimizing shuffle in include Blosc
     def compiler_has_flags(compiler, flags):
-        with tempfile.NamedTemporaryFile(suffix='.c', delete=False) as fd:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.c',
+                                         delete=False) as fd:
             fd.write('int main() {return 0;}')
 
         try:
             compiler.compile([fd.name], extra_preargs=flags)
-        except Exception as e:
+        except Exception:
             return False
         else:
             return True
