@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import ctypes
+import tempfile
 import textwrap
 import subprocess
 from os.path import exists, expanduser
@@ -735,7 +736,21 @@ if 'BLOSC' not in optional_libs:
     # ...and the macros for all the compressors supported
     def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1)]
     # Add -msse2 flag for optimizing shuffle in include Blosc
-    if os.name == 'posix':
+    def compiler_has_flags(compiler, flags):
+        with tempfile.NamedTemporaryFile(suffix='.c', delete=False) as fd:
+            fd.write('int main() {return 0;}')
+
+        try:
+            compiler.compile([fd.name], extra_preargs=flags)
+        except Exception as e:
+            return False
+        else:
+            return True
+        finally:
+            os.remove(fd.name)
+
+    if compiler_has_flags(compiler, ["-msse2"]):
+        print("Setting compiler flag '-msse2'")
         CFLAGS.append("-msse2")
 else:
     ADDLIBS += ['blosc']

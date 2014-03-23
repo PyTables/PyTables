@@ -34,6 +34,7 @@ Improvements
 - The internal Blosc_ library has been updated to version 1.3.5.
 - Removed the :file:`examples/nested-iter.py` considered no longer useful.
   Closes :issue:`343`.
+- Better detection of the `-msse2` compiler flag.
 
 
 Changes from 3.0 to 3.1.0
