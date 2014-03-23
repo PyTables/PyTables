@@ -11,6 +11,15 @@
 Changes from 3.1.0 to 3.1.1
 ===========================
 
+Bugs fixed
+----------
+
+- Fixed a critical bug that caused an exception at import time.
+  The error was triggered when a bug in long-double detection is detected
+  in the HDF5 library (see :issue:`275`) and numpy_ does not expose
+  `float96` or `float128`. Closes :issue:`344`.
+
+
 Improvements
 ------------
 

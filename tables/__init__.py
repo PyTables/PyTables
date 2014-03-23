@@ -210,9 +210,12 @@ else:
         _atom.all_types.discard('complex192')
         _atom.ComplexAtom._isizes.remove(24)
     except AttributeError:
-        del _atom.Float128Atom, _atom.Complex256Atom
-        del _description.Float128Col, _description.Complex256Col
-        _atom.all_types.discard('complex256')
-        _atom.ComplexAtom._isizes.remove(32)
+        try:
+            del _atom.Float128Atom, _atom.Complex256Atom
+            del _description.Float128Col, _description.Complex256Col
+            _atom.all_types.discard('complex256')
+            _atom.ComplexAtom._isizes.remove(32)
+        except AttributeError:
+            pass
     del _atom, _description
 del _broken_hdf5_long_double
