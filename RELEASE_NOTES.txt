@@ -19,7 +19,7 @@ Bugs fixed
   in the HDF5 library (see :issue:`275`) and numpy_ does not expose
   `float96` or `float128`. Closes :issue:`344`.
 - The internal Blosc_ library has been updated to version 1.3.5.
-  This fixws a false buffer overrun condition that made c-blosc to fail,
+  This fixes a false buffer overrun condition that made c-blosc to fail,
   even if the problem was not real.
 
 
