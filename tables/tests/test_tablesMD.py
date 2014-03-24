@@ -165,8 +165,8 @@ class BasicTestCase(common.PyTablesTestCase):
                     else:
                         row['var5'] = float(i)
                     # var6 will be like var3 but byteswaped
-                    row['var6'] = ((row['var3'] >> 8) & 0xff) + \
-                                  ((row['var3'] << 8) & 0xff00)
+                    row['var6'] = (((row['var3'] >> 8) & 0xff) +
+                                   ((row['var3'] << 8) & 0xff00))
                     row.append()
 
             # Flush the buffer for this table
@@ -269,7 +269,7 @@ class BasicTestCase(common.PyTablesTestCase):
         if common.verbose:
             print("Table:", repr(table))
             print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", rec)
+            print("Last record in table ==>", r)
             print("Total selected records in table ==> ", len(result))
         nrows = self.expectedrows - 1
         r = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
@@ -304,7 +304,7 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [r['var5'] for r in table.iterrows() if r['var2'][0][0] < 20]
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", rec)
+            print("Last record in table ==>", r)
             print("Total selected records in table ==> ", len(result))
         nrows = table.nrows
         r = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
@@ -443,7 +443,7 @@ class BasicTestCase(common.PyTablesTestCase):
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
             print("On-disk byteorder ==>", table.byteorder)
-            print("Last record in table ==>", rec)
+            print("Last record in table ==>", r)
             print("Total selected records in table ==>", len(result))
         nrows = self.expectedrows - 1
         r = list(table.iterrows())[-1]
@@ -603,8 +603,8 @@ class BasicRangeTestCase(unittest.TestCase):
                 else:
                     row['var5'] = float(i)
                 # var6 will be like var3 but byteswaped
-                row['var6'] = ((row['var3'] >> 8) & 0xff) + \
-                              ((row['var3'] << 8) & 0xff00)
+                row['var6'] = (((row['var3'] >> 8) & 0xff) +
+                               ((row['var3'] << 8) & 0xff00))
                 row.append()
 
             # Flush the buffer for this table
@@ -693,7 +693,7 @@ class BasicRangeTestCase(unittest.TestCase):
                 elif self.checkgetCol:
                     print("Last value *read* in getCol ==>", column[-1])
                 else:
-                    print("Last record *read* in table range ==>", rec)
+                    print("Last record *read* in table range ==>", r)
             print("Total number of selected records ==>", len(result))
             print("Selected records:\n", result)
             print("Selected records should look like:\n",
