@@ -20,7 +20,7 @@ All entries are little endian.
 :version:
     (``uint8``) Blosc format version.
 :versionlz:
-    (``uint8``) Blosclz format  version (internal Lempel-Ziv algorithm).
+    (``uint8``) Version of the internal compressor used.
 :flags and compressor enumeration:
     (``bitfield``) The flags of the buffer 
 
@@ -47,12 +47,10 @@ All entries are little endian.
     :``0``:
         ``blosclz``
     :``1``:
-        ``lz4``
+        ``lz4`` or ``lz4hc``
     :``2``:
-        ``lz4hc``
-    :``3``:
         ``snappy``
-    :``4``:
+    :``3``:
         ``zlib``
 
 :typesize:

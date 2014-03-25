@@ -139,14 +139,14 @@ static struct temp_data {
 /* Wait until all threads are initialized */
 #ifdef _POSIX_BARRIERS_MINE
 static int rc;
-#define WAIT_INIT \
+#define WAIT_INIT(RET_VAL)  \
   rc = pthread_barrier_wait(&barr_init); \
   if (rc != 0 && rc != PTHREAD_BARRIER_SERIAL_THREAD) { \
     printf("Could not wait on barrier (init)\n"); \
-    return(-1); \
+    return((RET_VAL));				  \
   }
 #else
-#define WAIT_INIT \
+#define WAIT_INIT(RET_VAL)   \
   pthread_mutex_lock(&count_threads_mutex); \
   if (count_threads < nthreads) { \
     count_threads++; \
@@ -160,14 +160,14 @@ static int rc;
 
 /* Wait for all threads to finish */
 #ifdef _POSIX_BARRIERS_MINE
-#define WAIT_FINISH \
+#define WAIT_FINISH(RET_VAL)   \
   rc = pthread_barrier_wait(&barr_finish); \
   if (rc != 0 && rc != PTHREAD_BARRIER_SERIAL_THREAD) { \
     printf("Could not wait on barrier (finish)\n"); \
-    return(-1);                                       \
+    return((RET_VAL));				    \
   }
 #else
-#define WAIT_FINISH \
+#define WAIT_FINISH(RET_VAL)			    \
   pthread_mutex_lock(&count_threads_mutex); \
   if (count_threads > 0) { \
     count_threads--; \
@@ -362,13 +362,14 @@ static int lz4_wrap_compress(const char* input, size_t input_length,
 }
 
 static int lz4hc_wrap_compress(const char* input, size_t input_length,
-                               char* output, size_t maxout)
+                               char* output, size_t maxout, int clevel)
 {
   int cbytes;
   if (input_length > (size_t)(2<<30))
     return -1;   /* input larger than 1 GB is not supported */
-  cbytes = LZ4_compressHC_limitedOutput(input, output, (int)input_length,
-					(int)maxout);
+  /* clevel for lz4hc goes up to 16, at least in LZ4 1.1.3 */
+  cbytes = LZ4_compressHC2_limitedOutput(input, output, (int)input_length,
+					 (int)maxout, clevel*2-1);
   return cbytes;
 }
 
@@ -503,7 +504,7 @@ static int blosc_c(int32_t blocksize, int32_t leftoverblock,
     }
     else if (compressor == BLOSC_LZ4HC) {
       cbytes = lz4hc_wrap_compress((char *)_tmp+j*neblock, (size_t)neblock,
-                                   (char *)dest, (size_t)maxout);
+                                   (char *)dest, (size_t)maxout, params.clevel);
     }
     #endif /*  HAVE_LZ4 */
     #if defined(HAVE_SNAPPY)
@@ -526,7 +527,7 @@ static int blosc_c(int32_t blocksize, int32_t leftoverblock,
       return -5;    /* signals no compression support */
     }
 
-    if (cbytes >= maxout) {
+    if (cbytes > maxout) {
       /* Buffer overrun caused by compression (should never happen) */
       return -1;
     }
@@ -535,7 +536,7 @@ static int blosc_c(int32_t blocksize, int32_t leftoverblock,
       return -2;
     }
     else if (cbytes == 0) {
-      /* The compressor has been unable to compress data significantly. */
+      /* The compressor has been unable to compress data at all. */
       /* Before doing the copy, check that we are not running into a
          buffer overflow. */
       if ((ntbytes+neblock) > maxbytes) {
@@ -734,9 +735,9 @@ static int parallel_blosc(void)
   }
 
   /* Synchronization point for all threads (wait for initialization) */
-  WAIT_INIT;
+  WAIT_INIT(-1);
   /* Synchronization point for all threads (wait for finalization) */
-  WAIT_FINISH;
+  WAIT_FINISH(-1);
 
   if (giveup_code > 0) {
     /* Return the total bytes (de-)compressed in threads */
@@ -1360,7 +1361,7 @@ static void *t_blosc(void *tids)
     init_sentinels_done = 0;     /* sentinels have to be initialised yet */
 
     /* Synchronization point for all threads (wait for initialization) */
-    WAIT_INIT;
+    WAIT_INIT(NULL);
 
     /* Check if thread has been asked to return */
     if (end_threads) {
@@ -1501,7 +1502,7 @@ static void *t_blosc(void *tids)
     }
 
     /* Meeting point for all threads (wait for finalization) */
-    WAIT_FINISH;
+    WAIT_FINISH(NULL);
 
   }  /* closes while(1) */
 
@@ -1604,7 +1605,7 @@ int blosc_set_nthreads_(int nthreads_new)
       /* Tell all existing threads to finish */
       end_threads = 1;
       /* Synchronization point for all threads (wait for initialization) */
-      WAIT_INIT;
+      WAIT_INIT(-1);
       /* Join exiting threads */
       for (t=0; t<nthreads; t++) {
         rc2 = pthread_join(threads[t], &status);
@@ -1674,7 +1675,7 @@ int blosc_get_complib_info(char *compname, char **complib, char **version)
   int clibcode;
   char *clibname;
   char *clibversion = "unknown";
-  char *sbuffer[256];
+  char sbuffer[256];
 
   clibcode = compname_to_clibcode(compname);
   clibname = clibcode_to_clibname(clibcode);
@@ -1685,9 +1686,11 @@ int blosc_get_complib_info(char *compname, char **complib, char **version)
   }
 #if defined(HAVE_LZ4)
   else if (clibcode == BLOSC_LZ4_LIB) {
-#if defined(LZ4_VERSION_STRING)
-    clibversion = LZ4_VERSION_STRING;
-#endif /* LZ4_VERSION_STRING */
+#if defined(LZ4_VERSION_MAJOR)
+    sprintf(sbuffer, "%d.%d.%d",
+            LZ4_VERSION_MAJOR, LZ4_VERSION_MINOR, LZ4_VERSION_RELEASE);
+    clibversion = sbuffer;
+#endif /*  LZ4_VERSION_MAJOR */
   }
 #endif /*  HAVE_LZ4 */
 #if defined(HAVE_SNAPPY)
@@ -1729,7 +1732,7 @@ int blosc_free_resources(void)
     /* Tell all existing threads to finish */
     end_threads = 1;
     /* Synchronization point for all threads (wait for initialization) */
-    WAIT_INIT;
+    WAIT_INIT(-1);
     /* Join exiting threads */
     for (t=0; t<nthreads; t++) {
       rc2 = pthread_join(threads[t], &status);
@@ -1822,8 +1825,22 @@ void blosc_cbuffer_versions(const void *cbuffer, int *version,
   uint8_t *_src = (uint8_t *)(cbuffer);  /* current pos for source buffer */
 
   /* Read the version info */
-  *version = (int)_src[0];             /* blosc format version */
-  *versionlz = (int)_src[1];           /* blosclz format version */
+  *version = (int)_src[0];         /* blosc format version */
+  *versionlz = (int)_src[1];       /* Lempel-Ziv compressor format version */
+}
+
+
+/* Return the compressor library/format used in a compressed buffer. */
+char *blosc_cbuffer_complib(const void *cbuffer)
+{
+  uint8_t *_src = (uint8_t *)(cbuffer);  /* current pos for source buffer */
+  int clibcode;
+  char *complib;
+
+  /* Read the compressor format/library info */
+  clibcode = (_src[2] & 0xe0) >> 5;
+  complib = clibcode_to_clibname(clibcode);
+  return complib;
 }
 
 

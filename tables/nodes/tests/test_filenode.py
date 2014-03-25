@@ -15,6 +15,7 @@
 import unittest
 import tempfile
 import os
+import shutil
 import warnings
 
 import tables
@@ -864,6 +865,109 @@ class Version1TestCase(OldVersionTestCase):
     oldh5fname = 'test_filenode_v1.h5'
 
 
+class DirectReadWriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    datafname = 'test_filenode.dat'
+
+    def setUp(self):
+        """
+        This method sets the following instance attributes:
+
+        * ``h5fname``: the name of the temporary HDF5 file.
+        * ``h5file``, the writable, temporary HDF5 file with a '/test' node
+        * ``datafname``: the name of the data file to be stored in the
+          temporary HDF5 file.
+        * ``data``: the contents of the file ``datafname``
+        * ``testfname``: the name of a temporary file to be written to.
+        """
+
+        super(DirectReadWriteTestCase, self).setUp()
+        self.datafname = self._testFilename(self.datafname)
+        self.testfname = tempfile.mktemp()
+        self.testh5fname = tempfile.mktemp(suffix=".h5")
+        with open(self.datafname, "rb") as fd:
+            self.data = fd.read()
+        self.testdir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        """tearDown() -> None
+
+        Closes 'fnode' and 'h5file'; removes 'h5fname'.
+        """
+
+        super(DirectReadWriteTestCase, self).tearDown()
+        if os.access(self.testfname, os.R_OK):
+            os.remove(self.testfname)
+        if os.access(self.testh5fname, os.R_OK):
+            os.remove(self.testh5fname)
+        shutil.rmtree(self.testdir)
+
+    def test01_WriteToFilename(self):
+        # write contents of datafname to h5 testfile
+        filenode.save_to_filenode(self.testh5fname, self.datafname, "/test1")
+        # make sure writing to an existing node doesn't work ...
+        self.assertRaises(IOError, filenode.save_to_filenode, self.testh5fname,
+                          self.datafname, "/test1")
+        # ... except if overwrite is True
+        filenode.save_to_filenode(self.testh5fname, self.datafname, "/test1",
+                                  overwrite=True)
+        # write again, this time specifying a name
+        filenode.save_to_filenode(self.testh5fname, self.datafname, "/",
+                                  name="test2")
+        # read from test h5file
+        filenode.read_from_filenode(self.testh5fname, self.testfname, "/test1")
+        # and compare result to what it should be
+        with open(self.testfname, "rb") as fd:
+            self.assertEqual(fd.read(), self.data)
+        # make sure extracting to an existing file doesn't work ...
+        self.assertRaises(IOError, filenode.read_from_filenode,
+                          self.testh5fname, self.testfname, "/test1")
+        # except overwrite is True.  And try reading with a name
+        filenode.read_from_filenode(self.testh5fname, self.testfname, "/",
+                                    name="test2", overwrite=True)
+        # and compare to what it should be
+        with open(self.testfname, "rb") as fd:
+            self.assertEqual(fd.read(), self.data)
+        # cleanup
+        os.remove(self.testfname)
+        os.remove(self.testh5fname)
+
+    def test02_WriteToHDF5File(self):
+        # write contents of datafname to h5 testfile
+        filenode.save_to_filenode(self.h5file, self.datafname, "/test1")
+        # make sure writing to an existing node doesn't work ...
+        self.assertRaises(IOError, filenode.save_to_filenode, self.h5file,
+                          self.datafname, "/test1")
+        # ... except if overwrite is True
+        filenode.save_to_filenode(self.h5file, self.datafname, "/test1",
+                                  overwrite=True)
+        # read from test h5file
+        filenode.read_from_filenode(self.h5file, self.testfname, "/test1")
+        # and compare result to what it should be
+        with open(self.testfname, "rb") as fd:
+            self.assertEqual(fd.read(), self.data)
+        # make sure extracting to an existing file doesn't work ...
+        self.assertRaises(IOError, filenode.read_from_filenode, self.h5file,
+                          self.testfname, "/test1")
+        # make sure the original h5file is still alive and kicking
+        self.assertEqual(isinstance(self.h5file, tables.file.File), True)
+        self.assertEqual(self.h5file.mode, "w")
+
+    def test03_AutomaticNameGuessing(self):
+        # write using the filename as node name
+        filenode.save_to_filenode(self.testh5fname, self.datafname, "/")
+        # and read again
+        datafname = os.path.split(self.datafname)[1]
+        filenode.read_from_filenode(self.testh5fname, self.testdir, "/",
+                                    name=datafname)
+        # test if the output file really has the expected name
+        self.assertEqual(os.access(os.path.join(self.testdir, datafname),
+                                   os.R_OK), True)
+        # and compare result to what it should be
+        with open(os.path.join(self.testdir, datafname), "rb") as fd:
+            self.assertEqual(fd.read(), self.data)
+
+
 #----------------------------------------------------------------------
 def suite():
     """suite() -> test suite
@@ -883,6 +987,7 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(LineSeparatorTestCase))
     theSuite.addTest(unittest.makeSuite(AttrsTestCase))
     theSuite.addTest(unittest.makeSuite(ClosedH5FileTestCase))
+    theSuite.addTest(unittest.makeSuite(DirectReadWriteTestCase))
 
     return theSuite
 

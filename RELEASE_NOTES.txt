@@ -8,6 +8,37 @@
 .. py:currentmodule:: tables
 
 
+Changes from 3.1.0 to 3.1.1
+===========================
+
+Bugs fixed
+----------
+
+- Fixed a critical bug that caused an exception at import time.
+  The error was triggered when a bug in long-double detection is detected
+  in the HDF5 library (see :issue:`275`) and numpy_ does not expose
+  `float96` or `float128`. Closes :issue:`344`.
+- The internal Blosc_ library has been updated to version 1.3.5.
+  This fixes a false buffer overrun condition that made c-blosc to fail,
+  even if the problem was not real.
+
+
+Improvements
+------------
+
+- Do not create a temporary array when the *obj* parameter is not specified
+  in :meth:`File.create_array` (thanks to Francesc).
+  Closes :issue:`337` and :issue:`339`).
+- Added two new utility functions
+  (:func:`tables.nodes.filenode.read_from_filenode` and
+  :func:`tables.nodes.filenode.save_to_filenode`) for the direct copy from
+  filesystem to filenode and vice versa (closes :issue:`342`).
+  Thanks to Andreas Hilboll.
+- Removed the :file:`examples/nested-iter.py` considered no longer useful.
+  Closes :issue:`343`.
+- Better detection of the `-msse2` compiler flag.
+
+
 Changes from 3.0 to 3.1.0
 =========================
 
