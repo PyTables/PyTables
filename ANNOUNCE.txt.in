@@ -4,20 +4,13 @@
 
 We are happy to announce PyTables @VERSION@.
 
-This is a bug-fix release that addresses a critical bug that make PyTables
-unusable on some platforms.
+#XXX some general blurb XXX#
 
 
 What's new
 ==========
 
-- Fixed a critical bug that caused an exception at import time.
-  The error was triggered when a bug in long-double detection is detected
-  in the HDF5 library (see :issue:`275`) and numpy_ does not expose
-  `float96` or `float128`. Closes :issue:`344`.
-- The internal Blosc_ library has been updated to version 1.3.5.
-  This fixes a false buffer overrun condition that made c-blosc to fail,
-  even if the problem was not real.
+#XXX version-specific blurb XXX#
 
 As always, a large amount of bugs have been addressed and squashed as well.
 
