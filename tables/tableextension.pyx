@@ -757,6 +757,7 @@ cdef class Row:
 
   property table:
     def __get__(self):
+        self._table_file._check_open()
         return self._table_file._get_node(self._table_path)
 
   def __cinit__(self, table):
