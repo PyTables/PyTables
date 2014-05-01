@@ -924,7 +924,7 @@ cdef class Row:
     cdef void *IObufData
     cdef long nslot
     cdef object seq
-    cdef ObjectCache seqcache
+    cdef object seqcache
 
     assert self.nrowsinbuf >= self.chunksize
     while self.nextelement < self.stop:
