@@ -1178,6 +1178,7 @@ cdef class Row:
 
   cdef _finish_riterator(self):
     """Clean-up things after iterator has been done"""
+    cdef ObjectCache seqcache
 
     self.rfieldscache = {}     # empty rfields cache
     self.wfieldscache = {}     # empty wfields cache
@@ -1186,8 +1187,9 @@ cdef class Row:
     if self._row >= 0:
       self.wrec[:] = self.iobuf[self._row]
     if self._write_to_seqcache:
+      seqcache = self.table._seqcache
       # Guessing iterseq size: Each element in self.iterseq should take at least 8 bytes
-      self.table._seqcache.setitem_(self.seqcache_key, self.iterseq, len(self.iterseq) * 8)
+      seqcache.setitem_(self.seqcache_key, self.iterseq, len(self.iterseq) * 8)
     self._riterator = 0        # out of iterator
     self.iterseq = None        # delete seqcache-related things
     self.seqcache_key = None
