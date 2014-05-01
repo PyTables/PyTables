@@ -2521,7 +2521,7 @@ class TestIndexingNans(TempFileMixin, PyTablesTestCase):
         self.assertTrue(len(results2) == 4)
 
         results = table.read_where('(values > 0)')
-        self.assertTrue(len(results) == 2)
+        self.assertEqual(len(results), 2)
 
 #----------------------------------------------------------------------
 
