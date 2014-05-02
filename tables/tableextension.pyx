@@ -1420,6 +1420,9 @@ cdef class Row:
            iobuf.data + self._row * self._stride, self._rowsize)
     # Increase the modified buffer count by one
     self._mod_nrows = self._mod_nrows + 1
+    # No point writing seqcache -- Table.flush will invalidate it
+    # since we no longer know whether this row will meet _where_condition
+    self._write_to_seqcache = 0
     # When the buffer is full, flush it
     if self._mod_nrows == self.nrowsinbuf:
       self._flush_mod_rows()
