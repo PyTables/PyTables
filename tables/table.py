@@ -242,7 +242,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
         # Get the row sequence from the cache
         seq = self._seqcache.getitem(nslot)
         if len(seq) == 0:
-            return None
+            return iter([])
         seq = numpy.array(seq, dtype='int64')
         # Correct the ranges in cached sequence
         if (start, stop, step) != (0, self.nrows, 1):
@@ -284,14 +284,14 @@ def _table__where_indexed(self, compiled, condition, condvars,
 
     if index.reduction == 1 and tcoords == 0:
         # No candidates found in any indexed expression component, so leave now
-        return None
+        return iter([])
 
     # Compute the final chunkmap
     chunkmap = numexpr.evaluate(strexpr, cmvars)
     # Method .any() is twice as faster than method .sum()
     if not chunkmap.any():
         # The chunkmap is empty
-        return None
+        return iter([])
 
     if profile:
         show_stats("Exiting table_whereIndexed", tref)
@@ -1537,8 +1537,7 @@ class Table(tableextension.Table, Leaf):
                 self._use_index = False
                 self._where_condition = None
                 # ...and return the iterator
-                if chunkmap is not None:
-                    return chunkmap
+                return chunkmap
         else:
             chunkmap = None  # default to an in-kernel query
 
