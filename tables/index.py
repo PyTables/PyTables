@@ -14,7 +14,6 @@
 
 from __future__ import print_function
 import sys
-from bisect import bisect_left, bisect_right
 from time import time, clock
 import os
 import os.path
@@ -38,6 +37,9 @@ from tables.group import Group
 from tables.path import join_path
 from tables.exceptions import PerformanceWarning
 from tables.utils import is_idx, idx2long, lazyattr
+from tables.utilsextension import (nan_aware_gt, nan_aware_ge,
+                                   nan_aware_lt, nan_aware_le,
+                                   bisect_left, bisect_right)
 from tables.lrucacheextension import ObjectCache
 
 from tables._past import previous_api, previous_api_property
@@ -1501,7 +1503,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         # This method will only works under the assumtion that item
         # *is to be found* in the nslice.
-        assert limits[0] < item <= limits[1]
+        assert nan_aware_lt(limits[0], item) and nan_aware_le(item, limits[1])
         cs = self.chunksize
         ss = self.slicesize
         nelementsLR = self.nelementsILR
@@ -1954,8 +1956,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         nchunk = -1
         # Lookup for item1
-        if item1 > b0:
-            if item1 <= b1:
+        if nan_aware_gt(item1, b0):
+            if nan_aware_le(item1, b1):
                 # Search the appropriate chunk in bounds cache
                 nchunk = bisect_left(bounds, item1)
                 # Lookup for this chunk in cache
@@ -1981,8 +1983,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         else:
             start = 0
         # Lookup for item2
-        if item2 >= b0:
-            if item2 < b1:
+        if nan_aware_ge(item2, b0):
+            if nan_aware_lt(item2, b1):
                 # Search the appropriate chunk in bounds cache
                 nchunk2 = bisect_right(bounds, item2)
                 if nchunk2 != nchunk:
