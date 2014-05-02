@@ -708,7 +708,7 @@ cdef class Row:
   cdef long long indexchunk
   cdef int     bufcounter, counter
   cdef int     exist_enum_cols
-  cdef int     _riterator, _stride, _rowsize
+  cdef int     _riterator, _stride, _rowsize, _write_to_seqcache
   cdef int     wherecond, indexed
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done, sss_on
@@ -726,9 +726,10 @@ cdef class Row:
   cdef object  condfunc, condargs
   cdef object  mod_elements, colenums
   cdef object  rfieldscache, wfieldscache
+  cdef object  iterseq
   cdef object  _table_file, _table_path
   cdef object  modified_fields
-  cdef object  seq_available
+  cdef object  seqcache_key
 
   # Deprecated API
   indexChunk = previous_api_property('indexchunk')
@@ -886,8 +887,16 @@ cdef class Row:
       self.lenbuf = self.nrowsinbuf
       # Check if we have limitations on start, stop, step
       self.sss_on = (self.start > 0 or self.stop < self.nrows or self.step > 1)
+
+    self.seqcache_key = table._seqcache_key
+    table._seqcache_key = None
+    if self.seqcache_key is not None:
+      self._write_to_seqcache = 1
       self.iterseq_max_elements = table._v_file.params['ITERSEQ_MAX_ELEMENTS']
-      self.seq_available = True
+      self.iterseq = [] # all the row indexes, unless it would be longer than ITERSEQ_MAX_ELEMENTS
+    else:
+      self._write_to_seqcache = 0
+      self.iterseq = None
 
   def __next__(self):
     """next() method for __iter__() that is called on each iteration"""
@@ -915,7 +924,7 @@ cdef class Row:
     cdef void *IObufData
     cdef long nslot
     cdef object seq
-    cdef ObjectCache seqcache
+    cdef object seqcache
 
     assert self.nrowsinbuf >= self.chunksize
     while self.nextelement < self.stop:
@@ -970,20 +979,14 @@ cdef class Row:
         # Initialize the internal buffer row counter
         self._row = -1
 
-        # Feed the indexvalues into the seqcache
-        seqcache = table._seqcache
-        nslot = table._nslotseq
-        # See if we have a buffer available to place results
-        if nslot >= 0 and self.seq_available:
-          seq = seqcache.getitem_(nslot)
-          if self.lenbuf + len(seq) < self.iterseq_max_elements:
-            seq.extend(self.indexvalues)
-            # Update the size of sequence in cache
-            # Each element in indexvalues should take at least 8 bytes
-            seqcache.rsizes[nslot] = len(seq) * 8
+        if self._write_to_seqcache:
+          # Feed the indexvalues into the seqcache
+          seqcache = self.iterseq
+          if self.lenbuf + len(seqcache) < self.iterseq_max_elements:
+            seqcache.extend(self.indexvalues)
           else:
-            seqcache.removeslot_(nslot)
-            self.seq_available = False
+            self.iterseq = None
+            self._write_to_seqcache = 0
 
       self._row = self._row + 1
       # Check whether we have read all the rows in buf
@@ -1175,6 +1178,7 @@ cdef class Row:
 
   cdef _finish_riterator(self):
     """Clean-up things after iterator has been done"""
+    cdef ObjectCache seqcache
 
     self.rfieldscache = {}     # empty rfields cache
     self.wfieldscache = {}     # empty wfields cache
@@ -1182,7 +1186,13 @@ cdef class Row:
     # (this is useful for accessing the last row after an iterator loop)
     if self._row >= 0:
       self.wrec[:] = self.iobuf[self._row]
+    if self._write_to_seqcache:
+      seqcache = self.table._seqcache
+      # Guessing iterseq size: Each element in self.iterseq should take at least 8 bytes
+      seqcache.setitem_(self.seqcache_key, self.iterseq, len(self.iterseq) * 8)
     self._riterator = 0        # out of iterator
+    self.iterseq = None        # delete seqcache-related things
+    self.seqcache_key = None
     if self._mod_nrows > 0:    # Check if there is some modified row
       self._flush_mod_rows()     # Flush any possible modified row
     self.modified_fields = set()  # Empty the set of modified fields
@@ -1410,6 +1420,8 @@ cdef class Row:
            iobuf.data + self._row * self._stride, self._rowsize)
     # Increase the modified buffer count by one
     self._mod_nrows = self._mod_nrows + 1
+    # We don't know whether this row satisfies the filter we're iterating on any more.
+    self._write_to_seqcache = 0
     # When the buffer is full, flush it
     if self._mod_nrows == self.nrowsinbuf:
       self._flush_mod_rows()

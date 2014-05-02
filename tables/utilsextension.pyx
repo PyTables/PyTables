@@ -214,6 +214,57 @@ cdef str cstr_to_pystr(const_char* cstring):
 # using any NumPy facilities in an extension module.
 import_array()
 
+# NaN-aware sorting with NaN as the greatest element
+# numpy.isNaN only takes floats, this should work for strings too
+cpdef nan_aware_lt(a, b): return a < b or (b != b and a == a)
+cpdef nan_aware_le(a, b): return a <= b or b != b
+cpdef nan_aware_gt(a, b): return a > b or (a != a and b == b)
+cpdef nan_aware_ge(a, b): return a >= b or a != a
+
+def bisect_left(a, x, int lo=0):
+  """Return the index where to insert item x in list a, assuming a is sorted.
+
+  The return value i is such that all e in a[:i] have e < x, and all e in
+  a[i:] have e >= x.  So if x already appears in the list, i points just
+  before the leftmost x already there.
+
+  """
+
+  cdef int mid, hi = len(a)
+
+  lo = 0
+  if hi > 0:
+	# fast path not in CPython's bisect module
+    if nan_aware_le(x, a[0]): return 0
+    if nan_aware_lt(a[-1], x): return hi
+  while lo < hi:
+    mid = (lo+hi)/2
+    if nan_aware_lt(a[mid], x): lo = mid+1
+    else: hi = mid
+  return lo
+
+def bisect_right(a, x, int lo=0):
+  """Return the index where to insert item x in list a, assuming a is sorted.
+
+  The return value i is such that all e in a[:i] have e <= x, and all e in
+  a[i:] have e > x.  So if x already appears in the list, i points just
+  beyond the rightmost x already there.
+
+  """
+
+  cdef int mid, hi = len(a)
+
+  lo = 0
+  if hi > 0:
+	# fast path not in CPython's bisect module
+    if nan_aware_lt(x, a[0]): return 0
+    if nan_aware_le(a[-1], x): return hi
+  while lo < hi:
+    mid = (lo+hi)/2
+    if nan_aware_lt(x, a[mid]): hi = mid
+    else: lo = mid+1
+  return lo
+
 cdef register_blosc_():
   cdef char *version
   cdef char *date

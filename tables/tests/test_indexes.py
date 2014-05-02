@@ -2518,10 +2518,60 @@ class TestIndexingNans(TempFileMixin, PyTablesTestCase):
         table.cols.values2.create_index()
 
         results2 = table.read_where('(values2 > 0)')
-        self.assertTrue(len(results2) == 4)
+        self.assertTrue(len(results2), 4)
 
         results = table.read_where('(values > 0)')
-        self.assertTrue(len(results) == 2)
+        self.assertEqual(len(results), 2)
+
+    def test_issue_327_b(self):
+        table = self.h5file.create_table('/', 'table', dict(
+            index=Int64Col(),
+            values=FloatCol(shape=()),
+            values2=FloatCol(shape=()),
+        ))
+
+        r = table.row
+        for _ in range(100):
+            for i in range(5):
+                r['index'] = i
+                r['values'] = numpy.nan if i == 2 or i == 3 else i
+                r['values2'] = i
+                r.append()
+        table.flush()
+
+        table.cols.values.create_index(_blocksizes=small_blocksizes)
+        table.cols.values2.create_index(_blocksizes=small_blocksizes)
+
+        results2 = table.read_where('(values2 > 0)')
+        self.assertTrue(len(results2), 400)
+
+        results = table.read_where('(values > 0)')
+        self.assertEqual(len(results), 200)
+
+    def test_csindex_nans(self):
+        table = self.h5file.create_table('/', 'table', dict(
+            index=Int64Col(),
+            values=FloatCol(shape=()),
+            values2=FloatCol(shape=()),
+        ))
+
+        r = table.row
+        for x in range(100):
+            for i in range(5):
+                r['index'] = i
+                r['values'] = numpy.nan if i == 2 or i == 3 else i
+                r['values2'] = i
+                r.append()
+        table.flush()
+
+        table.cols.values.create_csindex(_blocksizes=small_blocksizes)
+        table.cols.values2.create_csindex(_blocksizes=small_blocksizes)
+
+        results2 = table.read_where('(values2 > 0)')
+        self.assertTrue(len(results2), 100*4)
+
+        results = table.read_where('(values > 0)')
+        self.assertEqual(len(results), 100*2)
 
 #----------------------------------------------------------------------
 
