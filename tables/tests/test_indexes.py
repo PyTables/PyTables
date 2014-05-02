@@ -709,6 +709,29 @@ class BasicTestCase(PyTablesTestCase):
         self.fileh = open_file(self.file, mode='r+')
         self.fileh.remove_node(self.fileh.root.distance_table)
 
+    def test12_doubleIterate(self):
+        self.fileh = open_file(self.file, mode="r")
+        table = self.fileh.root.table
+        tests = [1, 4, self.nrows]
+        if self.nrows > 500:
+            tests.append(self.nrows - 500)
+        for limit in tests:
+            handle_a = [0, table.where('(var3 < e)', dict(e=limit))]
+            handle_b = [0, table.where('(var3 < e)', dict(e=limit))]
+
+            try:
+                while True:
+                    next(handle_b[1])
+                    handle_b[0] += 1
+            except StopIteration:
+                for _ in handle_a[1]:
+                    handle_a[0] += 1
+                for _ in handle_b[1]:
+                    handle_b[0] += 1
+
+            self.assertEqual(handle_a[0], limit)
+            self.assertEqual(handle_b[0], limit)
+            self.assertEqual(len(list(table.where('(var3 < e)', dict(e=limit)))), limit)
 
 small_ss = small_blocksizes[2]
 
