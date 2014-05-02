@@ -1952,10 +1952,17 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         hi = self.nelementsSLR               # maximum number of elements
         rchunksize = self.chunksize // self.reduction
 
+        # use NaN-compatible comparisons with NaN as the largest element
+        # numpy.isNaN only takes floats so...
+        # a < b  becomes (a < b  or (b != b and a == a)) (<)
+        # a <= b becomes (a <= b or b != b)              (<=)
+        # a > b  becomes (a > b  or (a != a and b == b)) (>)
+        # a >= b becomes (a >= b or a != a)              (>=)
+
         nchunk = -1
         # Lookup for item1
-        if item1 > b0:
-            if item1 <= b1:
+        if item1 > b0 or item1 != item1 and b0 == b0: # (>)
+            if item1 <= b1 or b1 != b1: # (<=)
                 # Search the appropriate chunk in bounds cache
                 nchunk = bisect_left(bounds, item1)
                 # Lookup for this chunk in cache
@@ -1981,8 +1988,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         else:
             start = 0
         # Lookup for item2
-        if item2 >= b0:
-            if item2 < b1:
+        if item2 >= b0 or item2 != item2: # (>=)
+            if item2 < b1 or b1 != b1 and item2 == item2: # (<)
                 # Search the appropriate chunk in bounds cache
                 nchunk2 = bisect_right(bounds, item2)
                 if nchunk2 != nchunk:
