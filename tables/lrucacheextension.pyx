@@ -617,8 +617,10 @@ cdef class NumCache(BaseCache):
     cachesize = (self.nslots * self.slotsize * self.itemsize) / 1024.
     if self.nprobes > 0:
       hitratio = self.hitratio / self.nprobes
-    else:
+    elif self.containscount > 0:
       hitratio = <double>self.getcount / self.containscount
+    else:
+      hitratio = numpy.nan
     return """<%s(%s)
   (%d maxslots, %d slots used, %.3f KB cachesize,
   hit ratio: %.3f, disabled? %s)>
