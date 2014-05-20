@@ -1453,19 +1453,6 @@ class Table(tableextension.Table, Leaf):
             ...                if your_function(row['col2']) ]
             >>> print("Values that pass the cuts:", passvalues)
 
-        Note that, from PyTables 1.1 on, you can nest several
-        iterators over the same table. For example::
-
-            for p in rout.where('pressure < 16'):
-                for q in rout.where('pressure < 9'):
-                    for n in rout.where('energy < 10'):
-                        print("pressure, energy:", p['pressure'], n['energy'])
-
-        In this example, iterators returned by :meth:`Table.where` have been
-        used, but you may as well use any of the other reading iterators that
-        Table objects offer. See the file :file:`examples/nested-iter.py` for
-        the full code.
-
         .. note::
 
             A special care should be taken when the query condition includes
