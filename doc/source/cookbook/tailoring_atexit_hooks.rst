@@ -26,8 +26,16 @@ For example, if you  register this function::
         if verbose and are_open_files:
             sys.stderr.write("Closing remaining open files:")
 
-        # make a copy of the open_files.handlers container for the iteration
-        handlers = list(open_files.handlers)
+        if StrictVersion(tables.__version__) >= StrictVersion("3.1.0"):
+            # make a copy of the open_files.handlers container for the iteration
+            handlers = list(open_files.handlers)
+        else:
+            # for older versions of pytables, setup the handlers list from the
+            # keys
+            keys = open_files.keys()
+            handlers = []
+            for key in keys:
+                handlers.append(open_files[key])
 
         for fileh in handlers:
             if verbose:
@@ -42,6 +50,7 @@ For example, if you  register this function::
             sys.stderr.write("\n")
 
     import sys, atexit
+    from distutils.version import StrictVersion
     atexit.register(my_close_open_files, False)
 
 then, you won't get the closing messages anymore because the new registered
