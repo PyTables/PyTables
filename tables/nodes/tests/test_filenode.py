@@ -959,6 +959,20 @@ class DirectReadWriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # and read again
         datafname = os.path.split(self.datafname)[1]
         filenode.read_from_filenode(self.testh5fname, self.testdir, "/",
+                                    name=datafname.replace(".", "_"))
+        # test if the output file really has the expected name
+        self.assertEqual(os.access(os.path.join(self.testdir, datafname),
+                                   os.R_OK), True)
+        # and compare result to what it should be
+        with open(os.path.join(self.testdir, datafname), "rb") as fd:
+            self.assertEqual(fd.read(), self.data)
+
+    def test04_AutomaticNameGuessingWithFilenameAttribute(self):
+        # write using the filename as node name
+        filenode.save_to_filenode(self.testh5fname, self.datafname, "/")
+        # and read again
+        datafname = os.path.split(self.datafname)[1]
+        filenode.read_from_filenode(self.testh5fname, self.testdir, "/",
                                     name=datafname)
         # test if the output file really has the expected name
         self.assertEqual(os.access(os.path.join(self.testdir, datafname),
@@ -966,6 +980,15 @@ class DirectReadWriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # and compare result to what it should be
         with open(os.path.join(self.testdir, datafname), "rb") as fd:
             self.assertEqual(fd.read(), self.data)
+
+    def test05_ReadFromNonexistingNodeRaises(self):
+        # write using the filename as node name
+        filenode.save_to_filenode(self.testh5fname, self.datafname, "/")
+        # and read again
+        datafname = os.path.split(self.datafname)[1]
+        self.assertRaises(tables.NoSuchNodeError, filenode.read_from_filenode,
+                          self.testh5fname, self.testdir, "/",
+                          name="THISNODEDOESNOTEXIST")
 
 
 #----------------------------------------------------------------------
