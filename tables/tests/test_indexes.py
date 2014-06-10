@@ -709,6 +709,29 @@ class BasicTestCase(PyTablesTestCase):
         self.fileh = open_file(self.file, mode='r+')
         self.fileh.remove_node(self.fileh.root.distance_table)
 
+    def test12_doubleIterate(self):
+        self.fileh = open_file(self.file, mode="r")
+        table = self.fileh.root.table
+        tests = [1, 4, self.nrows]
+        if self.nrows > 500:
+            tests.append(self.nrows - 500)
+        for limit in tests:
+            handle_a = [0, table.where('(var3 < e)', dict(e=limit))]
+            handle_b = [0, table.where('(var3 < e)', dict(e=limit))]
+
+            try:
+                while True:
+                    next(handle_b[1])
+                    handle_b[0] += 1
+            except StopIteration:
+                for _ in handle_a[1]:
+                    handle_a[0] += 1
+                for _ in handle_b[1]:
+                    handle_b[0] += 1
+
+            self.assertEqual(handle_a[0], limit)
+            self.assertEqual(handle_b[0], limit)
+            self.assertEqual(len(list(table.where('(var3 < e)', dict(e=limit)))), limit)
 
 small_ss = small_blocksizes[2]
 
@@ -2518,10 +2541,60 @@ class TestIndexingNans(TempFileMixin, PyTablesTestCase):
         table.cols.values2.create_index()
 
         results2 = table.read_where('(values2 > 0)')
-        self.assertTrue(len(results2) == 4)
+        self.assertTrue(len(results2), 4)
 
         results = table.read_where('(values > 0)')
-        self.assertTrue(len(results) == 2)
+        self.assertEqual(len(results), 2)
+
+    def test_issue_327_b(self):
+        table = self.h5file.create_table('/', 'table', dict(
+            index=Int64Col(),
+            values=FloatCol(shape=()),
+            values2=FloatCol(shape=()),
+        ))
+
+        r = table.row
+        for _ in range(100):
+            for i in range(5):
+                r['index'] = i
+                r['values'] = numpy.nan if i == 2 or i == 3 else i
+                r['values2'] = i
+                r.append()
+        table.flush()
+
+        table.cols.values.create_index(_blocksizes=small_blocksizes)
+        table.cols.values2.create_index(_blocksizes=small_blocksizes)
+
+        results2 = table.read_where('(values2 > 0)')
+        self.assertTrue(len(results2), 400)
+
+        results = table.read_where('(values > 0)')
+        self.assertEqual(len(results), 200)
+
+    def test_csindex_nans(self):
+        table = self.h5file.create_table('/', 'table', dict(
+            index=Int64Col(),
+            values=FloatCol(shape=()),
+            values2=FloatCol(shape=()),
+        ))
+
+        r = table.row
+        for x in range(100):
+            for i in range(5):
+                r['index'] = i
+                r['values'] = numpy.nan if i == 2 or i == 3 else i
+                r['values2'] = i
+                r.append()
+        table.flush()
+
+        table.cols.values.create_csindex(_blocksizes=small_blocksizes)
+        table.cols.values2.create_csindex(_blocksizes=small_blocksizes)
+
+        results2 = table.read_where('(values2 > 0)')
+        self.assertTrue(len(results2), 100*4)
+
+        results = table.read_where('(values > 0)')
+        self.assertEqual(len(results), 100*2)
 
 #----------------------------------------------------------------------
 
