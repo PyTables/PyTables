@@ -123,7 +123,7 @@ if not has_setuptools:
 # Check if Cython is installed or not (requisite)
 try:
     from Cython.Distutils import build_ext
-    from Cython.Compiler.Main import Version
+    from Cython.Compiler import Version
     cmdclass['build_ext'] = build_ext
 except ImportError:
     exit_with_error(
