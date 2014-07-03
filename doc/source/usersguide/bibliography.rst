@@ -96,7 +96,7 @@ Bibliography
 
 .. _PSYCO:
 
-:ref:`[PYSCO] <PSYCO>`
+:ref:`[PSYCO] <PSYCO>`
     Armin Rigo. Psyco. A Python specializing compiler.
     Run existing Python software faster, with no change in your source.
     `<http://psyco.sourceforge.net>`_.
