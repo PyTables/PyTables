@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Script to automatically subtree merge a specifc version of blosc to
-# python-blosc.
+# pytables.
 
 # TODO
 # ----
@@ -9,7 +9,7 @@
 # * Should probably check working tree and index are clean.
 
 # configure remote
-remote="git://github.com/FrancescAlted/blosc.git"
+remote="git://github.com/Blosc/c-blosc.git"
 
 # check argument
 if [ -z "$1" ] ; then
