@@ -3,7 +3,7 @@ Releasing Blosc
 ================
 
 :Author: Francesc Alted
-:Contact: faltet@gmail.com
+:Contact: francesc@blosc.io
 :Date: 2014-01-15
 
 
@@ -30,30 +30,6 @@ http://blosc.org/trac/wiki/SyntheticBenchmarks
 
 where instructions on how to intensively test (and benchmark) Blosc
 are given.
-
-Packaging
----------
-
-- Unpack the archive of the repository in a temporary directory::
-
-  $ export VERSION="the version number"
-  $ mkdir /tmp/blosc-$VERSION
-  # IMPORTANT: make sure that you are at the root of the repo now!
-  $ git archive master | tar -x -C /tmp/blosc-$VERSION
-
-- And package the repo::
-
-  $ cd /tmp
-  $ tar cvfz blosc-$VERSION.tar.gz blosc-$VERSION
-
-Do a quick check that the tarball is sane.
-
-
-Uploading
----------
-
-- Go to the downloads section in blosc.org and upload the source
-  tarball.
 
 
 Tagging

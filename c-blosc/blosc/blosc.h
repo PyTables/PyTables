@@ -1,28 +1,32 @@
 /*********************************************************************
   Blosc - Blocked Suffling and Compression Library
 
-  Author: Francesc Alted <faltet@gmail.com>
+  Author: Francesc Alted <francesc@blosc.io>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/
 
 #include <limits.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #ifndef BLOSC_H
 #define BLOSC_H
 
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
-#define BLOSC_VERSION_MINOR    3    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  5    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_MINOR    4    /* for minor interface/format changes  */
+#define BLOSC_VERSION_RELEASE  0    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.3.5"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.4.0"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2014-03-22 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2014-07-04 #$"    /* date version */
 
-#define BLOSCLZ_VERSION_STRING "1.0.1"   /* the internal compressor version */
+#define BLOSCLZ_VERSION_STRING "1.0.2"   /* the internal compressor version */
 
-/* The *_VERS_FORMAT should be just 1-byte long */
+/* The *_FORMAT symbols should be just 1-byte long */
 #define BLOSC_VERSION_FORMAT    2   /* Blosc format version, starting at 1 */
 
 /* Minimum header length */
@@ -121,7 +125,9 @@ void blosc_destroy(void);
 
   `typesize` is the number of bytes for the atomic type in binary
   `src` buffer.  This is mainly useful for the shuffle preconditioner.
-  Only a typesize > 1 will allow the shuffle to work.
+  For implementation reasons, only a 1 < typesize < 256 will allow the
+  shuffle filter to work.  When typesize is not in this range, shuffle
+  will be silently disabled.
 
   The `dest` buffer must have at least the size of `destsize`.  Blosc
   guarantees that if you set `destsize` to, at least,
@@ -129,9 +135,7 @@ void blosc_destroy(void);
   The `src` buffer and the `dest` buffer can not overlap.
 
   Compression is memory safe and guaranteed not to write the `dest`
-  buffer more than what is specified in `destsize`.  However, it is
-  not re-entrant and not thread-safe (despite the fact that it uses
-  threads internally).
+  buffer more than what is specified in `destsize`.
 
   If `src` buffer cannot be compressed into `destsize`, the return
   value is zero and you should discard the contents of the `dest`
@@ -152,9 +156,7 @@ int blosc_compress(int clevel, int doshuffle, size_t typesize, size_t nbytes,
   The `src` buffer and the `dest` buffer can not overlap.
 
   Decompression is memory safe and guaranteed not to write the `dest`
-  buffer more than what is specified in `destsize`.  However, it is
-  not re-entrant and not thread-safe (despite the fact that it uses
-  threads internally).
+  buffer more than what is specified in `destsize`.
 
   If an error occurs, e.g. the compressed data is corrupted or the
   output buffer is not large enough, then 0 (zero) or a negative value
@@ -321,6 +323,10 @@ char *blosc_cbuffer_complib(const void *cbuffer);
   blocksize will be used (the default).
   */
 void blosc_set_blocksize(size_t blocksize);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

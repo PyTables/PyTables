@@ -26,10 +26,12 @@ def get_values(filename):
     for line in f:
         if line.startswith('-->'):
             tmp = line.split('-->')[1]
-            nthreads, size, elsize, sbits = [int(i) for i in tmp.split(', ')]
+            nthreads, size, elsize, sbits, codec = [i for i in tmp.split(', ')]
+            nthreads, size, elsize, sbits = map(int, (nthreads, size, elsize, sbits))
             values["size"] = size * NCHUNKS / MB_;
             values["elsize"] = elsize;
             values["sbits"] = sbits;
+            values["codec"] = codec
             # New run for nthreads
             (ratios, speedsw, speedsr) = ([], [], [])
             # Add a new entry for (ratios, speedw, speedr)
@@ -80,7 +82,7 @@ def show_plot(plots, yaxis, legends, gtitle, xmax=None):
     #subplots_adjust(bottom=0.2, top=None, wspace=0.2, hspace=0.2)
     if outfile:
         print "Saving plot to:", outfile
-        savefig(outfile)
+        savefig(outfile, dpi=64)
     else:
         show()
 
@@ -88,7 +90,7 @@ if __name__ == '__main__':
 
     from optparse import OptionParser
 
-    usage = "usage: %prog [-o outfile] [-t title ] [-d|-c] filename"
+    usage = "usage: %prog [-r] [-o outfile] [-t title ] [-d|-c] filename"
     compress_title = 'Compression speed'
     decompress_title = 'Decompression speed'
     yaxis = 'No axis name'
@@ -97,8 +99,8 @@ if __name__ == '__main__':
     parser.add_option('-o',
                       '--outfile',
                       dest='outfile',
-                      help='filename for output ' + \
-                      '(many extensions supported, e.g. .png, .jpg, .pdf)')
+                      help=('filename for output (many extensions '
+                            'supported, e.g. .png, .jpg, .pdf)'))
 
     parser.add_option('-t',
                       '--title',
@@ -115,6 +117,11 @@ if __name__ == '__main__':
                       dest='xmax',
                       help='limit the x-axis',
                       default=None)
+
+    parser.add_option('-r', '--report', action='store_true',
+                      dest='report',
+                      help='generate file for reporting ',
+                      default=False)
 
     parser.add_option('-d', '--decompress', action='store_true',
             dest='dspeed',
@@ -133,6 +140,9 @@ if __name__ == '__main__':
     else:
         pass
 
+    if options.report and options.outfile:
+        parser.error("Can only select one of [-r, -o]")
+
     if options.dspeed and options.cspeed:
         parser.error("Can only select one of [-d, -c]")
     elif options.cspeed:
@@ -143,9 +153,17 @@ if __name__ == '__main__':
         plot_title = decompress_title
 
     filename = args[0]
-    outfile = options.outfile
     cspeed = options.cspeed
     dspeed = options.dspeed
+    if options.outfile:
+        outfile = options.outfile
+    elif options.report:
+        if cspeed:
+            outfile = filename[:filename.rindex('.')] + '-compr.png'
+        else:
+            outfile = filename[:filename.rindex('.')] + '-decompr.png'
+    else:
+        outfile = None
 
     plots = []
     legends = []
@@ -160,7 +178,7 @@ if __name__ == '__main__':
     if options.title:
         plot_title = options.title
     else:
-        plot_title += " (%(size).1f MB, %(elsize)d bytes, %(sbits)d bits)" % values
+        plot_title += " (%(size).1f MB, %(elsize)d bytes, %(sbits)d bits), %(codec)s" % values
 
     gtitle = plot_title
 
@@ -183,13 +201,13 @@ if __name__ == '__main__':
 
     # Add memcpy lines
     if cspeed:
-        mean = sum(values["memcpyw"]) / nthreads
+        mean = np.mean(values["memcpyw"])
         message = "memcpy (write to memory)"
     else:
-        mean = sum(values["memcpyr"]) / nthreads
+        mean = np.mean(values["memcpyr"])
         message = "memcpy (read from memory)"
     plot_ = axhline(mean, linewidth=3, linestyle='-.', color='black')
-    text(4.0, mean+50, message)
+    text(1.0, mean+50, message)
     plots.append(plot_)
     show_plot(plots, yaxis, legends, gtitle, xmax=int(options.xmax) if
             options.xmax else None)

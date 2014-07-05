@@ -3,7 +3,7 @@
 ===============================================================
 
 :Author: Francesc Alted
-:Contact: faltet@gmail.com
+:Contact: francesc@blosc.io
 :URL: http://www.blosc.org
 
 What is it?

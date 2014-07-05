@@ -8,7 +8,7 @@ if(NOT DEACTIVATE_LZ4)
     if (LZ4_FOUND)
         include_directories( ${LZ4_INCLUDE_DIR} )
     else(LZ4_FOUND)
-        set(LZ4_LOCAL_DIR ${INTERNAL_LIBS}/lz4-r113)
+        set(LZ4_LOCAL_DIR ${INTERNAL_LIBS}/lz4-r119)
         include_directories( ${LZ4_LOCAL_DIR} )
     endif(LZ4_FOUND)
 endif(NOT DEACTIVATE_LZ4)
@@ -85,7 +85,7 @@ add_library(blosc_shared SHARED ${SOURCES})
 set_target_properties(blosc_shared PROPERTIES OUTPUT_NAME blosc)
 set_target_properties(blosc_shared PROPERTIES
         VERSION ${version_string}
-        SOVERSION ${version_string}
+        SOVERSION 1  # Change this when an ABI change happens
     )
 target_link_libraries(blosc_shared ${LIBS})
 
