@@ -3406,6 +3406,10 @@ class Column(object):
                      associated with this column (None if the column is not
                      indexed).""")
 
+    @lazyattr
+    def _itemtype(self):
+        return self.descr._v_dtypes[self.name]
+
     def _getshape(self):
         return (self.table.nrows,) + self.descr._v_dtypes[self.name].shape
 
@@ -3529,7 +3533,7 @@ class Column(object):
         table = self.table
         itemsize = self.dtype.itemsize
         nrowsinbuf = table._v_file.params['IO_BUFFER_SIZE'] // itemsize
-        buf = numpy.empty((nrowsinbuf, ), self.dtype)
+        buf = numpy.empty((nrowsinbuf, ), self._itemtype)
         max_row = len(self)
         for start_row in xrange(0, len(self), nrowsinbuf):
             end_row = min(start_row + nrowsinbuf, max_row)
