@@ -580,7 +580,10 @@ class Array(hdf5extension.Array, Leaf):
                     raise IndexError(
                         "Selection lists cannot have repeated values")
                 neworder = nexp.argsort()
-                if not numpy.alltrue(neworder == numpy.arange(len(exp))):
+                if (neworder.shape != (len(exp),) or
+                        numpy.sum(
+                            numpy.abs(
+                                neworder - numpy.arange(len(exp)))) != 0):
                     if reorder is not None:
                         raise IndexError(
                             "Only one selection list can be unordered")
