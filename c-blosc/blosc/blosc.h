@@ -1,28 +1,32 @@
 /*********************************************************************
   Blosc - Blocked Suffling and Compression Library
 
-  Author: Francesc Alted <faltet@gmail.com>
+  Author: Francesc Alted <francesc@blosc.io>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/
 
 #include <limits.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #ifndef BLOSC_H
 #define BLOSC_H
 
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
-#define BLOSC_VERSION_MINOR    3    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  2    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_MINOR    4    /* for minor interface/format changes  */
+#define BLOSC_VERSION_RELEASE  0    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.3.2"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.4.0"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2014-01-17 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2014-07-04 #$"    /* date version */
 
-#define BLOSCLZ_VERSION_STRING "1.0.1"   /* the internal compressor version */
+#define BLOSCLZ_VERSION_STRING "1.0.2"   /* the internal compressor version */
 
-/* The *_VERS_FORMAT should be just 1-byte long */
+/* The *_FORMAT symbols should be just 1-byte long */
 #define BLOSC_VERSION_FORMAT    2   /* Blosc format version, starting at 1 */
 
 /* Minimum header length */
@@ -121,7 +125,9 @@ void blosc_destroy(void);
 
   `typesize` is the number of bytes for the atomic type in binary
   `src` buffer.  This is mainly useful for the shuffle preconditioner.
-  Only a typesize > 1 will allow the shuffle to work.
+  For implementation reasons, only a 1 < typesize < 256 will allow the
+  shuffle filter to work.  When typesize is not in this range, shuffle
+  will be silently disabled.
 
   The `dest` buffer must have at least the size of `destsize`.  Blosc
   guarantees that if you set `destsize` to, at least,
@@ -129,9 +135,7 @@ void blosc_destroy(void);
   The `src` buffer and the `dest` buffer can not overlap.
 
   Compression is memory safe and guaranteed not to write the `dest`
-  buffer more than what is specified in `destsize`.  However, it is
-  not re-entrant and not thread-safe (despite the fact that it uses
-  threads internally).
+  buffer more than what is specified in `destsize`.
 
   If `src` buffer cannot be compressed into `destsize`, the return
   value is zero and you should discard the contents of the `dest`
@@ -152,9 +156,7 @@ int blosc_compress(int clevel, int doshuffle, size_t typesize, size_t nbytes,
   The `src` buffer and the `dest` buffer can not overlap.
 
   Decompression is memory safe and guaranteed not to write the `dest`
-  buffer more than what is specified in `destsize`.  However, it is
-  not re-entrant and not thread-safe (despite the fact that it uses
-  threads internally).
+  buffer more than what is specified in `destsize`.
 
   If an error occurs, e.g. the compressed data is corrupted or the
   output buffer is not large enough, then 0 (zero) or a negative value
@@ -236,9 +238,10 @@ char* blosc_list_compressors(void);
   In `complib` and `version` you get the compression library name and
   version (if available) as output.
 
-  In `complib` and `version` you get a pointer to the compressor name
-  and the version in string format respectively.  After using the name
-  and version, you should free() them so as to avoid leaks.
+  In `complib` and `version` you get a pointer to the compressor
+  library name and the version in string format respectively.  After
+  using the name and version, you should free() them so as to avoid
+  leaks.
 
   If the compressor is supported, it returns the code for the library
   (>=0).  If it is not supported, this function returns -1.
@@ -247,9 +250,10 @@ int blosc_get_complib_info(char *compname, char **complib, char **version);
 
 
 /**
-  Free possible memory temporaries and thread resources.  Use this when you
-  are not going to use Blosc for a long while.  In case of problems releasing
-  the resources, it returns a negative number, else it returns 0.
+  Free possible memory temporaries and thread resources.  Use this
+  when you are not going to use Blosc for a long while.  In case of
+  problems releasing the resources, it returns a negative number, else
+  it returns 0.
   */
 int blosc_free_resources(void);
 
@@ -290,12 +294,20 @@ void blosc_cbuffer_metainfo(const void *cbuffer, size_t *typesize,
 /**
   Return information about a compressed buffer, namely the internal
   Blosc format version (`version`) and the format for the internal
-  Lempel-Ziv algorithm (`versionlz`).
+  Lempel-Ziv compressor used (`versionlz`).
 
   This function should always succeed.
   */
 void blosc_cbuffer_versions(const void *cbuffer, int *version,
                             int *versionlz);
+
+
+/**
+  Return the compressor library/format used in a compressed buffer.
+
+  This function should always succeed.
+  */
+char *blosc_cbuffer_complib(const void *cbuffer);
 
 
 
@@ -311,6 +323,10 @@ void blosc_cbuffer_versions(const void *cbuffer, int *version,
   blocksize will be used (the default).
   */
 void blosc_set_blocksize(size_t blocksize);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

@@ -4,7 +4,7 @@
   Unit tests for Blosc API.
 
   Creation date: 2010-06-07
-  Author: Francesc Alted <faltet@gmail.com>
+  Author: Francesc Alted <francesc@blosc.io>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/
@@ -56,12 +56,23 @@ static char *test_cbuffer_versions() {
 }
 
 
+static char *test_cbuffer_complib() {
+  char *complib;
+
+  complib = blosc_cbuffer_complib(dest);
+  mu_assert("ERROR: complib incorrect", strcmp(complib, "BloscLZ") == 0);
+  return 0;
+}
+
+
 static char *all_tests() {
   mu_run_test(test_cbuffer_sizes);
   mu_run_test(test_cbuffer_metainfo);
   mu_run_test(test_cbuffer_versions);
+  mu_run_test(test_cbuffer_complib);
   return 0;
 }
+
 
 int main(int argc, char **argv) {
   char *result;

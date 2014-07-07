@@ -1,10 +1,59 @@
-===============================
- Release notes for Blosc 1.3.2
-===============================
+================================
+ Release notes for c-blosc 1.4.0
+================================
 
 :Author: Francesc Alted
-:Contact: faltet@gmail.com
+:Contact: francesc@blosc.io
 :URL: http://www.blosc.org
+
+
+Changes from 1.3.6 to 1.4.0
+===========================
+
+* Support for non-Intel and non-SSE2 architectures has been added.  In
+  particular, the Raspberry Pi platform (ARM) has been tested and all
+  tests pass here.
+
+* Architectures requiring strict access alignment are supported as well.
+  Due to this, arquitectures with a high penalty in accessing unaligned
+  data (e.g. Raspberry Pi, ARMv6) can compress up to 2.5x faster.
+
+* LZ4 has been updated to r119 (1.2.0) so as to fix a possible security
+  breach.
+
+
+Changes from 1.3.5 to 1.3.6
+===========================
+
+* Updated to LZ4 r118 due to a (highly unlikely) security hole.  For
+  details see:
+ 
+  http://fastcompression.blogspot.fr/2014/06/debunking-lz4-20-years-old-bug-myth.html
+
+
+Changes from 1.3.4 to 1.3.5
+===========================
+
+* Removed a pointer from 'pointer from integer without a cast' compiler
+  warning due to a bad macro definition.
+
+
+Changes from 1.3.3 to 1.3.4
+===========================
+
+* Fixed a false buffer overrun condition.  This bug made c-blosc to
+  fail, even if the failure was not real.
+
+* Fixed the type of a buffer string.
+
+
+Changes from 1.3.2 to 1.3.3
+===========================
+
+* Updated to LZ4 1.1.3 (improved speed for 32-bit platforms).
+
+* Added a new `blosc_cbuffer_complib()` for getting the compression
+  library for a compressed buffer.
 
 
 Changes from 1.3.1 to 1.3.2

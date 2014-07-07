@@ -142,10 +142,12 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 # Set the "-msse2" build flag only if the CMAKE_C_FLAGS is not already set.
 # Probably "-msse2" should be appended to CMAKE_C_FLAGS_RELEASE.
+find_package(SSE)
 if(CMAKE_C_COMPILER_ID STREQUAL GNU OR CMAKE_C_COMPILER_ID STREQUAL Clang)
-     if(NOT CMAKE_C_FLAGS)
+     if(NOT CMAKE_C_FLAGS AND SSE2_TRUE)
+         message(STATUS "SSE2 is here.  Adding support for it.")
          set(CMAKE_C_FLAGS -msse2 CACHE STRING "C flags." FORCE)
-     endif(NOT CMAKE_C_FLAGS)
+     endif(NOT CMAKE_C_FLAGS AND SSE2_TRUE)
 endif(CMAKE_C_COMPILER_ID STREQUAL GNU OR CMAKE_C_COMPILER_ID STREQUAL Clang)
 
 if(MSVC)

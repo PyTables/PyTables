@@ -12,7 +12,7 @@
   I'm collecting speeds for different machines, so the output of your
   benchmarks and your processor specifications are welcome!
 
-  Author: Francesc Alted <faltet@gmail.com>
+  Author: Francesc Alted <francesc@blosc.io>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/

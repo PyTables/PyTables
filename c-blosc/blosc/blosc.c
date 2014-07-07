@@ -1,7 +1,7 @@
 /*********************************************************************
   Blosc - Blocked Suffling and Compression Library
 
-  Author: Francesc Alted <faltet@gmail.com>
+  Author: Francesc Alted <francesc@blosc.io>
   Creation date: 2009-05-20
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
@@ -118,7 +118,7 @@ static struct thread_data {
   int32_t maxbytes;
   int32_t nblocks;
   int32_t leftover;
-  int32_t *bstarts;             /* start pointers for each block */
+  uint8_t *bstarts;             /* start pointers for each block */
   uint8_t *src;
   uint8_t *dest;
   uint8_t *tmp[BLOSC_MAX_THREADS];
@@ -139,14 +139,14 @@ static struct temp_data {
 /* Wait until all threads are initialized */
 #ifdef _POSIX_BARRIERS_MINE
 static int rc;
-#define WAIT_INIT \
+#define WAIT_INIT(RET_VAL)  \
   rc = pthread_barrier_wait(&barr_init); \
   if (rc != 0 && rc != PTHREAD_BARRIER_SERIAL_THREAD) { \
     printf("Could not wait on barrier (init)\n"); \
-    return(-1); \
+    return((RET_VAL));				  \
   }
 #else
-#define WAIT_INIT \
+#define WAIT_INIT(RET_VAL)   \
   pthread_mutex_lock(&count_threads_mutex); \
   if (count_threads < nthreads) { \
     count_threads++; \
@@ -160,14 +160,14 @@ static int rc;
 
 /* Wait for all threads to finish */
 #ifdef _POSIX_BARRIERS_MINE
-#define WAIT_FINISH \
+#define WAIT_FINISH(RET_VAL)   \
   rc = pthread_barrier_wait(&barr_finish); \
   if (rc != 0 && rc != PTHREAD_BARRIER_SERIAL_THREAD) { \
     printf("Could not wait on barrier (finish)\n"); \
-    return(-1);                                       \
+    return((RET_VAL));				    \
   }
 #else
-#define WAIT_FINISH \
+#define WAIT_FINISH(RET_VAL)			    \
   pthread_mutex_lock(&count_threads_mutex); \
   if (count_threads > 0) { \
     count_threads--; \
@@ -219,27 +219,52 @@ static void my_free(void *block)
 }
 
 
-/* If `a` is little-endian, return it as-is.  If not, return a copy,
-   with the endianness changed */
-static int32_t sw32(int32_t a)
+/* Copy 4 bytes from `*pa` to int32_t, changing endianness if necessary. */
+static int32_t sw32_(uint8_t *pa)
 {
-  int32_t tmp;
-  char *pa = (char *)&a;
-  char *ptmp = (char *)&tmp;
+  int32_t idest;
+  uint8_t *dest = (uint8_t *)&idest;
   int i = 1;                    /* for big/little endian detection */
   char *p = (char *)&i;
 
   if (p[0] != 1) {
     /* big endian */
-    ptmp[0] = pa[3];
-    ptmp[1] = pa[2];
-    ptmp[2] = pa[1];
-    ptmp[3] = pa[0];
-    return tmp;
+    dest[0] = pa[3];
+    dest[1] = pa[2];
+    dest[2] = pa[1];
+    dest[3] = pa[0];
   }
   else {
     /* little endian */
-    return a;
+    dest[0] = pa[0];
+    dest[1] = pa[1];
+    dest[2] = pa[2];
+    dest[3] = pa[3];
+  }
+  return idest;
+}
+
+
+/* Copy 4 bytes from `*pa` to `*dest`, changing endianness if necessary. */
+static void _sw32(uint8_t* dest, int32_t a)
+{
+  uint8_t *pa = (uint8_t *)&a;
+  int i = 1;                    /* for big/little endian detection */
+  char *p = (char *)&i;
+
+  if (p[0] != 1) {
+    /* big endian */
+    dest[0] = pa[3];
+    dest[1] = pa[2];
+    dest[2] = pa[1];
+    dest[3] = pa[0];
+  }
+  else {
+    /* little endian */
+    dest[0] = pa[0];
+    dest[1] = pa[1];
+    dest[2] = pa[2];
+    dest[3] = pa[3];
   }
 }
 
@@ -362,13 +387,14 @@ static int lz4_wrap_compress(const char* input, size_t input_length,
 }
 
 static int lz4hc_wrap_compress(const char* input, size_t input_length,
-                               char* output, size_t maxout)
+                               char* output, size_t maxout, int clevel)
 {
   int cbytes;
   if (input_length > (size_t)(2<<30))
     return -1;   /* input larger than 1 GB is not supported */
-  cbytes = LZ4_compressHC_limitedOutput(input, output, (int)input_length,
-					(int)maxout);
+  /* clevel for lz4hc goes up to 16, at least in LZ4 1.1.3 */
+  cbytes = LZ4_compressHC2_limitedOutput(input, output, (int)input_length,
+					 (int)maxout, clevel*2-1);
   return cbytes;
 }
 
@@ -503,7 +529,7 @@ static int blosc_c(int32_t blocksize, int32_t leftoverblock,
     }
     else if (compressor == BLOSC_LZ4HC) {
       cbytes = lz4hc_wrap_compress((char *)_tmp+j*neblock, (size_t)neblock,
-                                   (char *)dest, (size_t)maxout);
+                                   (char *)dest, (size_t)maxout, params.clevel);
     }
     #endif /*  HAVE_LZ4 */
     #if defined(HAVE_SNAPPY)
@@ -526,7 +552,7 @@ static int blosc_c(int32_t blocksize, int32_t leftoverblock,
       return -5;    /* signals no compression support */
     }
 
-    if (cbytes >= maxout) {
+    if (cbytes > maxout) {
       /* Buffer overrun caused by compression (should never happen) */
       return -1;
     }
@@ -535,7 +561,7 @@ static int blosc_c(int32_t blocksize, int32_t leftoverblock,
       return -2;
     }
     else if (cbytes == 0) {
-      /* The compressor has been unable to compress data significantly. */
+      /* The compressor has been unable to compress data at all. */
       /* Before doing the copy, check that we are not running into a
          buffer overflow. */
       if ((ntbytes+neblock) > maxbytes) {
@@ -544,7 +570,7 @@ static int blosc_c(int32_t blocksize, int32_t leftoverblock,
       memcpy(dest, _tmp+j*neblock, neblock);
       cbytes = neblock;
     }
-    ((int32_t *)(dest))[-1] = sw32(cbytes);
+    _sw32(dest - 4, cbytes);
     dest += cbytes;
     ntbytes += cbytes;
     ctbytes += cbytes;
@@ -586,7 +612,7 @@ static int blosc_d(int32_t blocksize, int32_t leftoverblock,
   }
   neblock = blocksize / nsplits;
   for (j = 0; j < nsplits; j++) {
-    cbytes = sw32(((int32_t *)(src))[0]);   /* amount of compressed bytes */
+    cbytes = sw32_(src);      /* amount of compressed bytes */
     src += sizeof(int32_t);
     ctbytes += (int32_t)sizeof(int32_t);
     /* Uncompress */
@@ -669,7 +695,7 @@ static int serial_blosc(void)
   int32_t maxbytes = params.maxbytes;
   int32_t nblocks = params.nblocks;
   int32_t leftover = params.nbytes % params.blocksize;
-  int32_t *bstarts = params.bstarts;
+  uint8_t *bstarts = params.bstarts;
   uint8_t *src = params.src;
   uint8_t *dest = params.dest;
   uint8_t *tmp = params.tmp[0];     /* tmp for thread 0 */
@@ -677,7 +703,7 @@ static int serial_blosc(void)
 
   for (j = 0; j < nblocks; j++) {
     if (compress && !(flags & BLOSC_MEMCPYED)) {
-      bstarts[j] = sw32(ntbytes);
+      _sw32(bstarts + j * 4, ntbytes);
     }
     bsize = blocksize;
     leftoverblock = 0;
@@ -710,7 +736,8 @@ static int serial_blosc(void)
       else {
         /* Regular decompression */
         cbytes = blosc_d(bsize, leftoverblock,
-                         src+sw32(bstarts[j]), dest+j*blocksize, tmp, tmp2);
+                         src + sw32_(bstarts + j * 4),
+                         dest+j*blocksize, tmp, tmp2);
       }
     }
     if (cbytes < 0) {
@@ -734,9 +761,9 @@ static int parallel_blosc(void)
   }
 
   /* Synchronization point for all threads (wait for initialization) */
-  WAIT_INIT;
+  WAIT_INIT(-1);
   /* Synchronization point for all threads (wait for finalization) */
-  WAIT_FINISH;
+  WAIT_FINISH(-1);
 
   if (giveup_code > 0) {
     /* Return the total bytes (de-)compressed in threads */
@@ -942,12 +969,12 @@ int blosc_compress(int clevel, int doshuffle, size_t typesize, size_t nbytes,
   int32_t nbytes_;            /* number of bytes in source buffer */
   int32_t nblocks;            /* number of total blocks in buffer */
   int32_t leftover;           /* extra bytes at end of buffer */
-  int32_t *bstarts;           /* start pointers for each block */
   int32_t blocksize;          /* length of the block in bytes */
   int32_t ntbytes = 0;        /* the number of compressed bytes */
   int32_t *ntbytes_;          /* placeholder for bytes in output buffer */
   int32_t maxbytes = (int32_t)destsize;  /* maximum size for dest buffer */
   int compressor_format = -1; /* the format for compressor */
+  uint8_t *bstarts;           /* start pointers for each block */
 
   /* Check buffer size limits */
   if (nbytes > BLOSC_MAX_BUFFERSIZE) {
@@ -1017,17 +1044,13 @@ int blosc_compress(int clevel, int doshuffle, size_t typesize, size_t nbytes,
   }
   #endif /*  HAVE_ZLIB */
 
-  flags = _dest+2;                             /* flags */
-  _dest[2] = 0;                                /* zeroes flags */
-  _dest[3] = (uint8_t)typesize;                /* type size */
-  _dest += 4;
-  ((int32_t *)_dest)[0] = sw32(nbytes_);       /* size of the buffer */
-  ((int32_t *)_dest)[1] = sw32(blocksize);     /* block size */
-  ntbytes_ = (int32_t *)(_dest+8);             /* compressed buffer size */
-  _dest += sizeof(int32_t)*3;
-  bstarts = (int32_t *)_dest;                  /* starts for every block */
-  _dest += sizeof(int32_t)*nblocks;          /* space for pointers to blocks */
-  ntbytes = (int32_t)(_dest - (uint8_t *)dest);
+  flags = _dest+2;                          /* flags */
+  _dest[2] = 0;                             /* zeroes flags */
+  _dest[3] = (uint8_t)typesize;             /* type size */
+  _sw32(_dest + 4, nbytes_);                /* size of the buffer */
+  _sw32(_dest + 8, blocksize);              /* block size */
+  bstarts = _dest + 16;                     /* starts for every block */
+  ntbytes = 16 + sizeof(int32_t)*nblocks;   /* space for header and pointers */
 
   if (clevel == 0) {
     /* Compression level 0 means buffer to be memcpy'ed */
@@ -1098,12 +1121,12 @@ int blosc_compress(int clevel, int doshuffle, size_t typesize, size_t nbytes,
   }
 
   /* Set the number of compressed bytes in header */
-  *ntbytes_ = sw32(ntbytes);
+  _sw32(_dest + 12, ntbytes);
 
   /* Release global lock */
   pthread_mutex_unlock(&global_comp_mutex);
 
-  assert((int32_t)ntbytes <= (int32_t)maxbytes);
+  assert(ntbytes <= maxbytes);
   return ntbytes;
 }
 
@@ -1115,10 +1138,10 @@ int blosc_decompress(const void *src, void *dest, size_t destsize)
   uint8_t version, versionlz;    /* versions for compressed header */
   uint8_t flags;                 /* flags for header */
   int32_t ntbytes;               /* the number of uncompressed bytes */
-  int32_t nblocks;              /* number of total blocks in buffer */
-  int32_t leftover;             /* extra bytes at end of buffer */
-  int32_t *bstarts;             /* start pointers for each block */
+  int32_t nblocks;               /* number of total blocks in buffer */
+  int32_t leftover;              /* extra bytes at end of buffer */
   int32_t typesize, blocksize, nbytes, ctbytes;
+  uint8_t *bstarts;              /* start pointers for each block */
 
   _src = (uint8_t *)(src);
 
@@ -1127,23 +1150,20 @@ int blosc_decompress(const void *src, void *dest, size_t destsize)
   versionlz = _src[1];                      /* blosclz format version */
   flags = _src[2];                          /* flags */
   typesize = (int32_t)_src[3];              /* typesize */
-  _src += 4;
-  nbytes = sw32(((int32_t *)_src)[0]);      /* buffer size */
-  blocksize = sw32(((int32_t *)_src)[1]);   /* block size */
-  ctbytes = sw32(((int32_t *)_src)[2]);     /* compressed buffer size */
+  nbytes = sw32_(_src + 4);                 /* buffer size */
+  blocksize = sw32_(_src + 8);              /* block size */
+  ctbytes = sw32_(_src + 12);               /* compressed buffer size */
 
   version += 0;                             /* shut up compiler warning */
   versionlz += 0;                           /* shut up compiler warning */
   ctbytes += 0;                             /* shut up compiler warning */
 
-  _src += sizeof(int32_t)*3;
-  bstarts = (int32_t *)_src;
+  bstarts = _src + 16;
   /* Compute some params */
   /* Total blocks */
   nblocks = nbytes / blocksize;
   leftover = nbytes % blocksize;
   nblocks = (leftover>0)? nblocks+1: nblocks;
-  _src += sizeof(int32_t)*nblocks;
 
   /* Check that we have enough space to decompress */
   if (nbytes > (int32_t)destsize) {
@@ -1206,9 +1226,9 @@ int blosc_getitem(const void *src, int start, int nitems, void *dest)
   uint8_t version, versionlz;       /* versions for compressed header */
   uint8_t flags;                    /* flags for header */
   int32_t ntbytes = 0;              /* the number of uncompressed bytes */
-  int32_t nblocks;                 /* number of total blocks in buffer */
-  int32_t leftover;                /* extra bytes at end of buffer */
-  int32_t *bstarts;                /* start pointers for each block */
+  int32_t nblocks;                  /* number of total blocks in buffer */
+  int32_t leftover;                 /* extra bytes at end of buffer */
+  uint8_t *bstarts;                 /* start pointers for each block */
   uint8_t *tmp = params.tmp[0];     /* tmp for thread 0 */
   uint8_t *tmp2 = params.tmp2[0];   /* tmp2 for thread 0 */
   int tmp_init = 0;
@@ -1223,21 +1243,20 @@ int blosc_getitem(const void *src, int start, int nitems, void *dest)
   pthread_mutex_lock(&global_comp_mutex);
 
   /* Read the header block */
-  version = _src[0];                         /* blosc format version */
-  versionlz = _src[1];                       /* blosclz format version */
-  flags = _src[2];                           /* flags */
+  version = _src[0];                        /* blosc format version */
+  versionlz = _src[1];                      /* blosclz format version */
+  flags = _src[2];                          /* flags */
   typesize = (int32_t)_src[3];              /* typesize */
-  _src += 4;
-  nbytes = sw32(((int32_t *)_src)[0]);      /* buffer size */
-  blocksize = sw32(((int32_t *)_src)[1]);   /* block size */
-  ctbytes = sw32(((int32_t *)_src)[2]);     /* compressed buffer size */
+  nbytes = sw32_(_src + 4);                 /* buffer size */
+  blocksize = sw32_(_src + 8);              /* block size */
+  ctbytes = sw32_(_src + 12);               /* compressed buffer size */
 
   version += 0;                             /* shut up compiler warning */
   versionlz += 0;                           /* shut up compiler warning */
   ctbytes += 0;                             /* shut up compiler warning */
 
-  _src += sizeof(int32_t)*3;
-  bstarts = (int32_t *)_src;
+  _src += 4;
+  bstarts = _src;
   /* Compute some params */
   /* Total blocks */
   nblocks = nbytes / blocksize;
@@ -1306,7 +1325,8 @@ int blosc_getitem(const void *src, int start, int nitems, void *dest)
     else {
       /* Regular decompression.  Put results in tmp2. */
       cbytes = blosc_d(bsize, leftoverblock,
-                       (uint8_t *)src+sw32(bstarts[j]), tmp2, tmp, tmp2);
+                       (uint8_t *)src + sw32_(bstarts + j * 4),
+                       tmp2, tmp, tmp2);
       if (cbytes < 0) {
         ntbytes = cbytes;
         break;
@@ -1349,7 +1369,7 @@ static void *t_blosc(void *tids)
   int32_t flags;
   int32_t nblocks;
   int32_t leftover;
-  int32_t *bstarts;
+  uint8_t *bstarts;
   uint8_t *src;
   uint8_t *dest;
   uint8_t *tmp;
@@ -1360,7 +1380,7 @@ static void *t_blosc(void *tids)
     init_sentinels_done = 0;     /* sentinels have to be initialised yet */
 
     /* Synchronization point for all threads (wait for initialization) */
-    WAIT_INIT;
+    WAIT_INIT(NULL);
 
     /* Check if thread has been asked to return */
     if (end_threads) {
@@ -1446,7 +1466,8 @@ static void *t_blosc(void *tids)
         }
         else {
           cbytes = blosc_d(bsize, leftoverblock,
-                           src+sw32(bstarts[nblock_]), dest+nblock_*blocksize,
+                           src + sw32_(bstarts + nblock_ * 4),
+                           dest+nblock_*blocksize,
                            tmp, tmp2);
         }
       }
@@ -1469,8 +1490,8 @@ static void *t_blosc(void *tids)
         /* Start critical section */
         pthread_mutex_lock(&count_mutex);
         ntdest = params.ntbytes;
-        bstarts[nblock_] = sw32(ntdest);    /* update block start counter */
-        if ( (cbytes == 0) || (ntdest+cbytes > (int32_t)maxbytes) ) {
+        _sw32(bstarts + nblock_ * 4, ntdest); /* update block start counter */
+        if ( (cbytes == 0) || (ntdest+cbytes > maxbytes) ) {
           giveup_code = 0;                  /* uncompressible buffer */
           pthread_mutex_unlock(&count_mutex);
           break;
@@ -1501,7 +1522,7 @@ static void *t_blosc(void *tids)
     }
 
     /* Meeting point for all threads (wait for finalization) */
-    WAIT_FINISH;
+    WAIT_FINISH(NULL);
 
   }  /* closes while(1) */
 
@@ -1604,7 +1625,7 @@ int blosc_set_nthreads_(int nthreads_new)
       /* Tell all existing threads to finish */
       end_threads = 1;
       /* Synchronization point for all threads (wait for initialization) */
-      WAIT_INIT;
+      WAIT_INIT(-1);
       /* Join exiting threads */
       for (t=0; t<nthreads; t++) {
         rc2 = pthread_join(threads[t], &status);
@@ -1674,7 +1695,7 @@ int blosc_get_complib_info(char *compname, char **complib, char **version)
   int clibcode;
   char *clibname;
   char *clibversion = "unknown";
-  char *sbuffer[256];
+  char sbuffer[256];
 
   clibcode = compname_to_clibcode(compname);
   clibname = clibcode_to_clibname(clibcode);
@@ -1685,9 +1706,11 @@ int blosc_get_complib_info(char *compname, char **complib, char **version)
   }
 #if defined(HAVE_LZ4)
   else if (clibcode == BLOSC_LZ4_LIB) {
-#if defined(LZ4_VERSION_STRING)
-    clibversion = LZ4_VERSION_STRING;
-#endif /* LZ4_VERSION_STRING */
+#if defined(LZ4_VERSION_MAJOR)
+    sprintf(sbuffer, "%d.%d.%d",
+            LZ4_VERSION_MAJOR, LZ4_VERSION_MINOR, LZ4_VERSION_RELEASE);
+    clibversion = sbuffer;
+#endif /*  LZ4_VERSION_MAJOR */
   }
 #endif /*  HAVE_LZ4 */
 #if defined(HAVE_SNAPPY)
@@ -1729,7 +1752,7 @@ int blosc_free_resources(void)
     /* Tell all existing threads to finish */
     end_threads = 1;
     /* Synchronization point for all threads (wait for initialization) */
-    WAIT_INIT;
+    WAIT_INIT(-1);
     /* Join exiting threads */
     for (t=0; t<nthreads; t++) {
       rc2 = pthread_join(threads[t], &status);
@@ -1781,17 +1804,16 @@ void blosc_cbuffer_sizes(const void *cbuffer, size_t *nbytes,
   uint8_t version, versionlz;              /* versions for compressed header */
 
   /* Read the version info (could be useful in the future) */
-  version = _src[0];                         /* blosc format version */
-  versionlz = _src[1];                       /* blosclz format version */
+  version = _src[0];                       /* blosc format version */
+  versionlz = _src[1];                     /* blosclz format version */
 
-  version += 0;                             /* shut up compiler warning */
-  versionlz += 0;                           /* shut up compiler warning */
+  version += 0;                            /* shut up compiler warning */
+  versionlz += 0;                          /* shut up compiler warning */
 
   /* Read the interesting values */
-  _src += 4;
-  *nbytes = (size_t)sw32(((int32_t *)_src)[0]);  /* uncompressed buffer size */
-  *blocksize = (size_t)sw32(((int32_t *)_src)[1]);   /* block size */
-  *cbytes = (size_t)sw32(((int32_t *)_src)[2]);  /* compressed buffer size */
+  *nbytes = (size_t)sw32_(_src + 4);       /* uncompressed buffer size */
+  *blocksize = (size_t)sw32_(_src + 8);    /* block size */
+  *cbytes = (size_t)sw32_(_src + 12);      /* compressed buffer size */
 }
 
 
@@ -1822,8 +1844,22 @@ void blosc_cbuffer_versions(const void *cbuffer, int *version,
   uint8_t *_src = (uint8_t *)(cbuffer);  /* current pos for source buffer */
 
   /* Read the version info */
-  *version = (int)_src[0];             /* blosc format version */
-  *versionlz = (int)_src[1];           /* blosclz format version */
+  *version = (int)_src[0];         /* blosc format version */
+  *versionlz = (int)_src[1];       /* Lempel-Ziv compressor format version */
+}
+
+
+/* Return the compressor library/format used in a compressed buffer. */
+char *blosc_cbuffer_complib(const void *cbuffer)
+{
+  uint8_t *_src = (uint8_t *)(cbuffer);  /* current pos for source buffer */
+  int clibcode;
+  char *complib;
+
+  /* Read the compressor format/library info */
+  clibcode = (_src[2] & 0xe0) >> 5;
+  complib = clibcode_to_clibname(clibcode);
+  return complib;
 }
 
 
