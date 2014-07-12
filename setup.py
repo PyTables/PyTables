@@ -25,6 +25,7 @@ from distutils.core import Extension
 from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
+from distutils.version import LooseVersion
 
 cmdclass = {}
 setuptools_kwargs = {}
@@ -106,7 +107,7 @@ def check_import(pkgname, pkgver):
             "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
             % {'pkgname': pkgname, 'pkgver': pkgver})
     else:
-        if mod.__version__ < pkgver:
+        if mod.__version__ < LooseVersion(pkgver):
             exit_with_error(
                 "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
                 % {'pkgname': pkgname, 'pkgver': pkgver})
