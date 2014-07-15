@@ -121,7 +121,7 @@ cdef class NodeCache:
   cdef long getslot(self, object path):
     """Checks whether path is in this cache or not."""
 
-    cdef long i, nslot
+    cdef long i, nslot, compare
 
     nslot = -1  # -1 means not found
     if PyUnicode_Check(path):
@@ -134,7 +134,12 @@ cdef class NodeCache:
     else:
         # Start looking from the trailing values (most recently used)
         for i from self.nextslot > i >= 0:
-          if strcmp(<char *>path, <char *>self.paths[i]) == 0:
+          #if strcmp(<char *>path, <char *>self.paths[i]) == 0:
+          if PyUnicode_Check(self.paths[i]):
+            compare = PyUnicode_Compare(path, self.paths[i])
+          else:
+            compare = strcmp(<char *>path, <char *>self.paths[i])
+          if compare == 0:
             nslot = i
             break
 
