@@ -2340,6 +2340,8 @@ class UnicodeFilename(common.PyTablesTestCase):
         self.h5file = tables.open_file(self.h5fname, "r")
 
     def tearDown(self):
+        self.h5file.close()
+
         # Remove the temporary file
         os.remove(self.h5fname)
 
@@ -2370,6 +2372,21 @@ class UnicodeFilename(common.PyTablesTestCase):
             print("Filename:", self.h5fname)
             print("is_pytables_file?:", tables.is_pytables_file(self.h5fname))
         self.assertNotEqual(tables.is_pytables_file(self.h5fname), False)
+
+
+    @staticmethod
+    def _store_carray(name, data, group):
+        atom = tables.Atom.from_dtype(data.dtype)
+        node = tables.CArray(group, name, shape=data.shape, atom=atom)
+        node[:] = data
+
+    def test_store_and_load_with_non_ascii_attributes():
+        root = self.h5file.root
+        group = self.h5file.create_group(root, 'face_data')
+        array_name = u'data at 40\N{DEGREE SIGN}C'
+        data = np.sinh(np.linspace(-1.4, 1.4, 500))
+        self._store_carray(array_name, data, group)
+        group = self.h5file.create_group(root, 'vertex_data')
 
 
 class FilePropertyTestCase(common.PyTablesTestCase):
