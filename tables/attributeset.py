@@ -346,7 +346,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
               not isinstance(value, str) and not _field_fill_re.match(name)):
             # system attributes should always be str
             if sys.version_info[0] < 3:
-                retval = value.encode()
+                try:
+                    retval = value.encode()
+                except UnicodeEncodeError:
+                    retval = value.encode('utf-8')
             else:
                 # python 3, bytes and not "FIELD_[0-9]+_FILL"
                 retval = value.decode('utf-8')
