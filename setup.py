@@ -737,7 +737,7 @@ if 'BLOSC' not in optional_libs:
     # ...and the macros for all the compressors supported
     def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1)]
 
-    # Add -msse2 flag for optimizing shuffle in include Blosc
+    # Add extra flags for optimizing shuffle in include Blosc
     def compiler_has_flags(compiler, flags):
         with tempfile.NamedTemporaryFile(mode='w', suffix='.c',
                                          delete=False) as fd:
@@ -752,9 +752,12 @@ if 'BLOSC' not in optional_libs:
         finally:
             os.remove(fd.name)
 
-    if compiler_has_flags(compiler, ["-msse2"]):
-        print("Setting compiler flag '-msse2'")
-        CFLAGS.append("-msse2")
+    try_flags = ["-march=native", "-msse2"]
+    for ff in try_flags:
+        if compiler_has_flags(compiler, [ff]):
+            print("Setting compiler flag: " + ff)
+            CFLAGS.append(ff)
+            break
 else:
     ADDLIBS += ['blosc']
 
