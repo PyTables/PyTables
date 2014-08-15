@@ -1646,7 +1646,7 @@ class UnsupportedAttrTypeTestCase(PyTablesTestCase):
         fileh.close()
 
 
-# Test for specific system attributes in EArray
+# Test for specific system attributes
 class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_earray(self):
@@ -1664,6 +1664,20 @@ class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("EXTDIM-->", ea.attrs.EXTDIM)
         self.assertEqual(ea.attrs.EXTDIM, 0)
+
+    if sys.version_info < (3, 0):
+        def test02_unicode_title(self):
+            # see gh-370 and gh-374
+            title = u'Elevation \N{MINUS SIGN}200m'
+            self.h5file.root._v_title = title
+            self.assertEqual(self.h5file.root._v_title, title)
+
+        def test03_unicode_title_reopen(self):
+            # see gh-370 and gh-374
+            title = u'Elevation \N{MINUS SIGN}200m'
+            self.h5file.root._v_title = title
+            self._reopen()
+            self.assertEqual(self.h5file.root._v_title, title.encode('utf-8'))
 
 
 #----------------------------------------------------------------------
