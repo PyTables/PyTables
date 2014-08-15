@@ -391,7 +391,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 type(value) in (bool, bytes, int, float, complex, unicode,
                                 numpy.unicode_)):
             # Additional check for allowing a workaround for #307
-            if value == u'':
+            if len(value) == 0:
                 stvalue = numpy.array(u'')
             else:
                 stvalue = numpy.array(value)
