@@ -7,6 +7,7 @@ import os
 import sys
 import unittest
 import tempfile
+from distutils.version import LooseVersion
 
 import numpy
 from numpy.testing import assert_array_equal, assert_almost_equal
@@ -1579,6 +1580,30 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
     close = True
 
 
+class CompatibilityTestCase(common.PyTablesTestCase):
+    if LooseVersion(numpy.__version__) >= '1.9.0':
+        def test_pickled_unicode_attrs(self):
+            # See also gh-368 and https://github.com/numpy/numpy/issues/4879.
+            #
+            # This is a compatibility test. In PyTables < 3.0 unicode
+            # attributes were stored as pickld unicode stings.
+            # In PyTables >= 3.0 unicode strings are stored as encoded utf-8
+            # strings (the utf-8 marker is set at HDF5 level).
+            #
+            # In any case PyTables (>= 3.0) should be able to handle correctly
+            # also data files genetated with older versions of PyTables.
+            # Unfortunately a bug in numpy < 1.9
+            # (https://github.com/numpy/numpy/issues/4879) makes it impossible
+            # unpickle numpy arrays with dtype "U" resulting in an incorrect
+            # behaviour of PyTables.
+
+            filename = self._testFilename('issue_368.h5')
+            with open_file(filename) as h5file:
+                self.assertEqual(
+                    h5file.get_node_attr('/', 'py2_pickled_unicode'),
+                    u'abc')
+
+
 class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_segfault(self):
@@ -1696,6 +1721,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CloseTypesTestCase))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
+        theSuite.addTest(unittest.makeSuite(CompatibilityTestCase))
         theSuite.addTest(unittest.makeSuite(SegFaultPythonTestCase))
         theSuite.addTest(unittest.makeSuite(VlenStrAttrTestCase))
         theSuite.addTest(unittest.makeSuite(UnsupportedAttrTypeTestCase))
