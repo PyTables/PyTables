@@ -17,6 +17,8 @@ Improvements
 - The internal Blosc_ library has been updated to version 1.4.0.
   It includes a couple of security fixes and support for architectures
   requiring strict access alignment.
+- The :func:`print_versions` function now also reports the version of
+  compression libraries used by blosc
 - Now the :file:`setup.py` tries to use the '-march=native' C flag by
   default. In falls back on '-msse2' if '-march=native' is not supported
   by the compiler. Closes :issue:`379`.

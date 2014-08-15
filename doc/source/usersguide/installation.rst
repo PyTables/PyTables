@@ -51,6 +51,9 @@ First, make sure that you have
 * NumPy_ >= 1.4.1,
 * Numexpr_ >= 2.0 and
 * Cython_ >= 0.13
+* c-blosc_ >= 1.3.0 (it is bundled with PyTables sources but the user can
+  use an external version of sources using the :env:`BLOSC_DIR` environment
+  variable or the :option:`--blosc` flag of the :file:`setup.py`)
 * argparse_ (only Python 2.6, it is used by the :program:`pt2to3` utility)
 
 installed (for testing purposes, we are using HDF5_ 1.8.12, NumPy_ 1.8.0
@@ -62,6 +65,7 @@ proceeding.
 .. _NumPy: http://www.numpy.org
 .. _Numexpr: http://code.google.com/p/numexpr
 .. _Cython: http://www.cython.org
+.. _c-blosc: http://blosc.org
 .. _argparse: http://code.google.com/p/argparse
 
 .. note::

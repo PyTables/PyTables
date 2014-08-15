@@ -194,6 +194,7 @@ cdef extern from "blosc.h" nogil:
   int blosc_set_nthreads(int nthreads)
   char* blosc_list_compressors()
   int blosc_compcode_to_compname(int compcode, char **compname)
+  int blosc_get_complib_info(char *compname, char **complib, char **version)
 
 
 # @TODO: use the c_string_type and c_string_encoding global directives
@@ -791,6 +792,32 @@ def blosc_compcode_to_compname_(compcode):
   if blosc_compcode_to_compname(compcode, &cname) >= 0:
     compname = cname
   return compname.decode()
+
+
+def blosc_get_complib_info_():
+  """Get info from compression libraries included in the current build
+  of blosc.
+
+  Returns a mapping containing the compressor names as keys and the
+  tuple (complib, version) as values.
+
+  """
+
+  cdef char *complib, *version
+
+  cinfo = {}
+  for name in blosc_list_compressors().split(b','):
+    ret = blosc_get_complib_info(name, &complib, &version)
+    if ret < 0:
+      continue
+    if isinstance(name, str):
+      cinfo[name] = (complib, version)
+    else:
+      cinfo[name.decode()] = (complib.decode(), version.decode())
+    free(complib)
+    free(version)
+
+  return cinfo
 
 
 def which_class(hid_t loc_id, object name):
