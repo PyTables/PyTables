@@ -22,6 +22,8 @@ Improvements
 - Now the :file:`setup.py` tries to use the '-march=native' C flag by
   default. In falls back on '-msse2' if '-march=native' is not supported
   by the compiler. Closes :issue:`379`.
+- Fixed a spurious unicode comparison warning (closes :issue:`372` and
+  :issue:`373`).
 
 
 Bugs fixed
