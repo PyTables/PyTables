@@ -1702,7 +1702,7 @@ class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             title = u'Elevation \N{MINUS SIGN}200m'
             self.h5file.root._v_title = title
             self._reopen()
-            self.assertEqual(self.h5file.root._v_title, title.encode('utf-8'))
+            self.assertEqual(self.h5file.root._v_title, title)
 
 
 #----------------------------------------------------------------------
