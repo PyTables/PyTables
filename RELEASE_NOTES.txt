@@ -17,12 +17,18 @@ Improvements
 - The internal Blosc_ library has been updated to version 1.4.0.
   It includes a couple of security fixes and support for architectures
   requiring strict access alignment.
+- Now the :file:`setup.py` tries to use the '-march=native' C flag by
+  default. In falls back on '-msse2' if '-march=native' is not supported
+  by the compiler. Closes :issue:`379`.
 
 
 Bugs fixed
 ----------
 
-- Fixed compatibitily problems with numpy 1.9 (closes :issue:`362`)
+- Fixed compatibitily problems with numpy 1.9 and 1.10-dev
+  (closes :issue:`362` and :issue:`366`)
+- Fixed support for unicode node names in LRU cache (only Python 2 was
+  affected). Closes :issue:`367` and :issue:`369`.
 
 
 Changes from 3.1.0 to 3.1.1
