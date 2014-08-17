@@ -213,14 +213,14 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         if not node._v_isopen:
             raise ClosedNodeError("the node for attribute set is closed")
 
-        mydict = self.__dict__
+        dict_ = self.__dict__
 
         self._g_new(node)
-        mydict["_v__nodefile"] = node._v_file
-        mydict["_v__nodepath"] = node._v_pathname
-        mydict["_v_attrnames"] = self._g_list_attr(node)
+        dict_["_v__nodefile"] = node._v_file
+        dict_["_v__nodepath"] = node._v_pathname
+        dict_["_v_attrnames"] = self._g_list_attr(node)
         # The list of unimplemented attribute names
-        mydict["_v_unimplemented"] = []
+        dict_["_v_unimplemented"] = []
 
         # Get the file version format. This is an optimization
         # in order to avoid accessing it too much.
@@ -233,10 +233,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 parsed_version = None
             else:
                 parsed_version = tuple(map(int, format_version.split('.')))
-        mydict["_v__format_version"] = parsed_version
+        dict_["_v__format_version"] = parsed_version
         # Split the attribute list in system and user lists
-        mydict["_v_attrnamessys"] = []
-        mydict["_v_attrnamesuser"] = []
+        dict_["_v_attrnamessys"] = []
+        dict_["_v_attrnamesuser"] = []
         for attr in self._v_attrnames:
             # put the attributes on the local dictionary to allow
             # tab-completion
@@ -254,9 +254,9 @@ class AttributeSet(hdf5extension.AttributeSet, object):
     def _g_update_node_location(self, node):
         """Updates the location information about the associated `node`."""
 
-        myDict = self.__dict__
-        myDict['_v__nodefile'] = node._v_file
-        myDict['_v__nodepath'] = node._v_pathname
+        dict_ = self.__dict__
+        dict_['_v__nodefile'] = node._v_file
+        dict_['_v__nodepath'] = node._v_pathname
         # hdf5extension operations:
         self._g_new(node)
 
@@ -435,33 +435,33 @@ class AttributeSet(hdf5extension.AttributeSet, object):
 
         """
 
-        nodeFile = self._v__nodefile
+        nodefile = self._v__nodefile
         attrnames = self._v_attrnames
 
         # Check for name validity
         check_name_validity(name)
 
-        nodeFile._check_writable()
+        nodefile._check_writable()
 
         # Check if there are too many attributes.
-        maxNodeAttrs = nodeFile.params['MAX_NODE_ATTRS']
-        if len(attrnames) >= maxNodeAttrs:
+        max_node_attrs = nodefile.params['MAX_NODE_ATTRS']
+        if len(attrnames) >= max_node_attrs:
             warnings.warn("""\
 node ``%s`` is exceeding the recommended maximum number of attributes (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (self._v__nodepath, maxNodeAttrs),
+                          % (self._v__nodepath, max_node_attrs),
                           PerformanceWarning)
 
-        undoEnabled = nodeFile.is_undo_enabled()
+        undo_enabled = nodefile.is_undo_enabled()
         # Log old attribute removal (if any).
-        if undoEnabled and (name in attrnames):
+        if undo_enabled and (name in attrnames):
             self._g_del_and_log(name)
 
         # Set the attribute.
         self._g__setattr(name, value)
 
         # Log new attribute addition.
-        if undoEnabled:
+        if undo_enabled:
             self._g_log_add(name)
 
     def _g_log_add(self, name):
@@ -470,11 +470,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     _g_logAdd = previous_api(_g_log_add)
 
     def _g_del_and_log(self, name):
-        nodeFile = self._v__nodefile
-        nodePathname = self._v__nodepath
+        nodefile = self._v__nodefile
+        node_pathname = self._v__nodepath
         # Log *before* moving to use the right shadow name.
-        nodeFile._log('DELATTR', nodePathname, name)
-        attr_to_shadow(nodeFile, nodePathname, name)
+        nodefile._log('DELATTR', node_pathname, name)
+        attr_to_shadow(nodefile, node_pathname, name)
 
     _g_delAndLog = previous_api(_g_del_and_log)
 
@@ -510,7 +510,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         """
 
-        nodeFile = self._v__nodefile
+        nodefile = self._v__nodefile
 
         # Check if attribute exists
         if name not in self._v_attrnames:
@@ -518,10 +518,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 "Attribute ('%s') does not exist in node '%s'"
                 % (name, self._v__nodepath))
 
-        nodeFile._check_writable()
+        nodefile._check_writable()
 
         # Remove the PyTables attribute or move it to shadow.
-        if nodeFile.is_undo_enabled():
+        if nodefile.is_undo_enabled():
             self._g_del_and_log(name)
         else:
             self._g__delattr(name)
