@@ -1621,6 +1621,30 @@ class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Great! '0' and '0.' values can be safely retrieved.")
 
 
+class EmbeddedNullsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    # See laso gh-371 (https://github.com/PyTables/PyTables/issues/371)
+
+    def test_unicode(self):
+        value = u"string with a null byte \x00 in it"
+
+        self.h5file.root._v_attrs.name = value
+        self.assertEqual(self.h5file.root._v_attrs.name, value)
+
+        self._reopen()
+
+        self.assertEqual(self.h5file.root._v_attrs.name, value)
+
+    def test_bytes(self):
+        value = b"string with a null byte \x00 in it"
+
+        self.h5file.root._v_attrs.name = value
+        self.assertEqual(self.h5file.root._v_attrs.name, value)
+
+        self._reopen()
+
+        self.assertEqual(self.h5file.root._v_attrs.name, value)
+
+
 class VlenStrAttrTestCase(PyTablesTestCase):
 
     def test01_vlen_str_scalar(self):
@@ -1723,6 +1747,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
         theSuite.addTest(unittest.makeSuite(CompatibilityTestCase))
         theSuite.addTest(unittest.makeSuite(SegFaultPythonTestCase))
+        theSuite.addTest(unittest.makeSuite(EmbeddedNullsTestCase))
         theSuite.addTest(unittest.makeSuite(VlenStrAttrTestCase))
         theSuite.addTest(unittest.makeSuite(UnsupportedAttrTypeTestCase))
         theSuite.addTest(unittest.makeSuite(SpecificAttrsTestCase))
