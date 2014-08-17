@@ -998,6 +998,9 @@ def read_f_attr(hid_t file_id, str attr_name):
       else:
         retvalue = numpy.bytes_(b'')
     elif cset == H5T_CSET_UTF8:
+      if size == 1 and attr_value[0] == 0:
+        # compatibility with PyTables <= 3.1.1
+        retvalue = numpy.unicode_(u'')
       retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
       retvalue = numpy.str_(retvalue)
     else:
