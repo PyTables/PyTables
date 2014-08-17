@@ -61,7 +61,7 @@ from tables._past import previous_api
 from libc.stdlib cimport malloc, free
 from libc.string cimport strdup, strlen
 from numpy cimport import_array, ndarray, npy_intp
-from cpython cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
+from cpython.bytes cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
     PyBytes_Check)
 from cpython.unicode cimport PyUnicode_DecodeUTF8
 
@@ -230,9 +230,9 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
       # since now we use the string size got form HDF5 we have to stip
       # trailing zeros used for padding.
       # The entire process is quite odd but due to a bug (??) in the way
-      # numpy arrays are pickled in python 3 we can't assume that we can't
-      # assume that strlen(attr_value) is the actual length of the attibute
-      # and numpy.bytes_(attr_value) can give a truncated pickle sting
+      # numpy arrays are pickled in python 3 we can't assume that
+      # strlen(attr_value) is the actual length of the attibute
+      # and numpy.bytes_(attr_value) can give a truncated pickle string
       retvalue = retvalue.rstrip(b'\x00')
       retvalue = numpy.bytes_(retvalue)
 
@@ -752,7 +752,7 @@ cdef class AttributeSet:
         raise HDF5ExtError("Can't read attribute %s in node %s." %
                            (attrname, self.name))
       if cset == H5T_CSET_UTF8:
-        retvalue = PyUnicode_DecodeUTF8(str_value, strlen(str_value), NULL)
+        retvalue = PyUnicode_DecodeUTF8(str_value, type_size, NULL)
         retvalue = numpy.unicode_(retvalue)
       else:
         retvalue = PyBytes_FromStringAndSize(str_value, type_size)

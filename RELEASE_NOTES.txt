@@ -29,12 +29,14 @@ Improvements
 Bugs fixed
 ----------
 
-- Fixed compatibitily problems with numpy 1.9 and 1.10-dev
+- Fixed compatibility problems with numpy 1.9 and 1.10-dev
   (closes :issue:`362` and :issue:`366`)
 - Fixed support for unicode node names in LRU cache (only Python 2 was
   affected). Closes :issue:`367` and :issue:`369`.
 - Fixed support for unicode node titles (only Python 2 was affected).
   Closes :issue:`370` and :issue:`374`.
+- Fixed a bug that caused the silent truncation of unicode attributes
+  containing the '\0' character. Closes :issue:`371'.
 
 
 Changes from 3.1.0 to 3.1.1

@@ -35,7 +35,7 @@ from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp, strncmp, strlen
-from cpython.bytes cimport PyBytes_Check
+from cpython.bytes cimport PyBytes_Check, PyBytes_FromStringAndSize
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 
 from numpy cimport (import_array, ndarray, dtype,
@@ -994,11 +994,20 @@ def read_f_attr(hid_t file_id, str attr_name):
     size = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
     if size > 0:
       if cset == H5T_CSET_UTF8:
-        retvalue = PyUnicode_DecodeUTF8(attr_value, strlen(attr_value), NULL)
+        retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
         retvalue = numpy.str_(retvalue)
       else:
-        retvalue = attr_value
-        retvalue = numpy.bytes_(retvalue)
+        retvalue = PyBytes_FromStringAndSize(attr_value, size)
+        # AV: oct 2012
+        # since now we use the string size got form HDF5 we have to strip
+        # trailing zeros used for padding.
+        # The entire process is quite odd but due to a bug (??) in the way
+        # numpy arrays are pickled in python 3 we can't assume that
+        # strlen(attr_value) is the actual length of the attibute
+        # and numpy.bytes_(attr_value) can give a truncated pickle sting
+        retvalue = retvalue.rstrip(b'\x00')
+        retvalue = numpy.bytes_(retvalue)     # bytes
+
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
       free(attr_value)

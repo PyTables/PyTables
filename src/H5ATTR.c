@@ -283,6 +283,7 @@ hsize_t H5ATTRget_attribute_string( hid_t obj_id,
  }
  else
  {
+  /* is_vlstr */
   if ( H5Aread( attr_id, attr_type, data ) < 0 )
    goto out;
 
