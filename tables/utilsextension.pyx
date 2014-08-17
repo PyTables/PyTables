@@ -992,21 +992,25 @@ def read_f_attr(hid_t file_id, str attr_name):
   if H5ATTRfind_attribute(file_id, c_attr_name):
     # Read the attr_name attribute
     size = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
-    if size > 0:
+    if size == 0:
       if cset == H5T_CSET_UTF8:
-        retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
-        retvalue = numpy.str_(retvalue)
+        retvalue = numpy.unicode_(u'')
       else:
-        retvalue = PyBytes_FromStringAndSize(attr_value, size)
-        # AV: oct 2012
-        # since now we use the string size got form HDF5 we have to strip
-        # trailing zeros used for padding.
-        # The entire process is quite odd but due to a bug (??) in the way
-        # numpy arrays are pickled in python 3 we can't assume that
-        # strlen(attr_value) is the actual length of the attibute
-        # and numpy.bytes_(attr_value) can give a truncated pickle sting
-        retvalue = retvalue.rstrip(b'\x00')
-        retvalue = numpy.bytes_(retvalue)     # bytes
+        retvalue = numpy.bytes_(b'')
+    elif cset == H5T_CSET_UTF8:
+      retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
+      retvalue = numpy.str_(retvalue)
+    else:
+      retvalue = PyBytes_FromStringAndSize(attr_value, size)
+      # AV: oct 2012
+      # since now we use the string size got form HDF5 we have to strip
+      # trailing zeros used for padding.
+      # The entire process is quite odd but due to a bug (??) in the way
+      # numpy arrays are pickled in python 3 we can't assume that
+      # strlen(attr_value) is the actual length of the attibute
+      # and numpy.bytes_(attr_value) can give a truncated pickle sting
+      retvalue = retvalue.rstrip(b'\x00')
+      retvalue = numpy.bytes_(retvalue)     # bytes
 
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:

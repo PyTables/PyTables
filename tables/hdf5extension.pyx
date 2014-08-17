@@ -220,8 +220,11 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
   if H5ATTRfind_attribute(node_id, attr_name):
     size = H5ATTRget_attribute_string(node_id, attr_name, &attr_value, &cset)
     if size == 0:
-      return None
-    if cset == H5T_CSET_UTF8:
+      if cset == H5T_CSET_UTF8:
+        retvalue = numpy.unicode_(u'')
+      else:
+        retvalue = numpy.bytes_(b'')
+    elif cset == H5T_CSET_UTF8:
       retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
       retvalue = numpy.unicode_(retvalue)
     else:
@@ -749,9 +752,12 @@ cdef class AttributeSet:
       type_size = H5ATTRget_attribute_string(dset_id, cattrname, &str_value,
                                              &cset)
       if type_size == 0:
-        raise HDF5ExtError("Can't read attribute %s in node %s." %
-                           (attrname, self.name))
-      if cset == H5T_CSET_UTF8:
+        if cset == H5T_CSET_UTF8:
+          retvalue = numpy.unicode_(u'')
+        else:
+          retvalue = numpy.bytes_(b'')
+
+      elif cset == H5T_CSET_UTF8:
         retvalue = PyUnicode_DecodeUTF8(str_value, type_size, NULL)
         retvalue = numpy.unicode_(retvalue)
       else:

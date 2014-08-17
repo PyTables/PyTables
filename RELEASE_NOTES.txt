@@ -24,6 +24,10 @@ Improvements
   by the compiler. Closes :issue:`379`.
 - Fixed a spurious unicode comparison warning (closes :issue:`372` and
   :issue:`373`).
+- Improved handling of empty string attributes. In previous versions of
+  PyTables empty string were stored as scalar HDF5 attributes having size 1
+  and value '\0' (an empty null terminated string).
+  Now empty string are stored as HDF5 attributes having zero size 
 
 
 Bugs fixed
