@@ -43,6 +43,8 @@ Bugs fixed
   containing the '\0' character. Closes :issue:`371'.
 - Fixed :func:`descr_from_dtype` to work as expected with complex types.
   Closes :issue:`381`.
+- Fixed the :class:`tests.test_basics.ThreadingTestCase` test case.
+  Closes :issue:`359`.
 
 
 Changes from 3.1.0 to 3.1.1
