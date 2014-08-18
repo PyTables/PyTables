@@ -175,7 +175,7 @@ Moreover:
   * the new version of :class:`nodes.filenode.ROFileNode` and
     :class:`nodes.filenode.RAFileNode` objects no more expose the *offset*
     attribute (the *seek* and *tell* methods can be used instead),
-  * the *lineSeparator* property is no more available end the ``\n``
+  * the *lineSeparator* property is no more available and the ``\n``
     character is always used as line separator.
 
 - The `__version__` module constants has been removed from almost all the
