@@ -771,7 +771,7 @@ def descr_from_dtype(dtype_):
             col = Col.from_dtype(dtype, pos=pos)
         # Nested column
         elif kind == 'V' and dtype.shape in [(), (1,)]:
-            col, _ = descr_from_dtype(dtype)
+            col, _ = descr_from_dtype(dtype.base)
             col._v_pos = pos
         else:
             raise NotImplementedError(

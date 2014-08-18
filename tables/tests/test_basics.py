@@ -2685,6 +2685,51 @@ class TestDescription(common.PyTablesTestCase):
         self.assertEqual(len(descr._v_names), 2)
         self.assertEqual(sorted(descr._v_names), ['t', 'unit'])
 
+    def test_descr_from_dtype_comp_01(self):
+        d1 = numpy.dtype([
+            ('x', 'int16'),
+            ('y', 'int16'),
+        ])
+
+        d_comp = numpy.dtype([
+            ('time', 'float64'),
+            ('value', d1)
+            #('value', (d1, (1,)))
+        ])
+                  
+        descr, byteorder = descr_from_dtype(d_comp)
+
+        self.assertTrue(descr._v_is_nested)
+        self.assertTrue('time' in descr._v_colobjects)
+        self.assertTrue('value' in descr._v_colobjects)
+        self.assertEqual(len(descr._v_colobjects), 2)
+        self.assertTrue(isinstance(descr._v_colobjects['time'], Col))
+        self.assertTrue(isinstance(descr._v_colobjects['value'], 
+                                   tables.Description))
+        self.assertEqual(descr._v_colobjects['time'].dtype, numpy.float64)
+
+    def test_descr_from_dtype_comp_02(self):
+        d1 = numpy.dtype([
+            ('x', 'int16'),
+            ('y', 'int16'),
+        ])
+
+        d_comp = numpy.dtype([
+            ('time', 'float64'),
+            ('value', (d1, (1,)))
+        ])
+                  
+        descr, byteorder = descr_from_dtype(d_comp)
+
+        self.assertTrue(descr._v_is_nested)
+        self.assertTrue('time' in descr._v_colobjects)
+        self.assertTrue('value' in descr._v_colobjects)
+        self.assertEqual(len(descr._v_colobjects), 2)
+        self.assertTrue(isinstance(descr._v_colobjects['time'], Col))
+        self.assertTrue(isinstance(descr._v_colobjects['value'], 
+                                   tables.Description))
+        self.assertEqual(descr._v_colobjects['time'].dtype, numpy.float64)
+
     def test_dtype_from_descr_is_description(self):
         # See gh-152
         class TestDescParent(IsDescription):
