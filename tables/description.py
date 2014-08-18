@@ -771,6 +771,9 @@ def descr_from_dtype(dtype_):
             col = Col.from_dtype(dtype, pos=pos)
         # Nested column
         elif kind == 'V' and dtype.shape in [(), (1,)]:
+            if dtype.shape != ():
+                warnings.warn(
+                    "nested descriptions will be converted to scalar")
             col, _ = descr_from_dtype(dtype.base)
             col._v_pos = pos
         else:

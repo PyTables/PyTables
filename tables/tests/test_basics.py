@@ -2373,7 +2373,6 @@ class UnicodeFilename(common.PyTablesTestCase):
             print("is_pytables_file?:", tables.is_pytables_file(self.h5fname))
         self.assertNotEqual(tables.is_pytables_file(self.h5fname), False)
 
-
     @staticmethod
     def _store_carray(name, data, group):
         atom = tables.Atom.from_dtype(data.dtype)
@@ -2696,7 +2695,7 @@ class TestDescription(common.PyTablesTestCase):
             ('value', d1)
             #('value', (d1, (1,)))
         ])
-                  
+
         descr, byteorder = descr_from_dtype(d_comp)
 
         self.assertTrue(descr._v_is_nested)
@@ -2704,7 +2703,7 @@ class TestDescription(common.PyTablesTestCase):
         self.assertTrue('value' in descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
         self.assertTrue(isinstance(descr._v_colobjects['time'], Col))
-        self.assertTrue(isinstance(descr._v_colobjects['value'], 
+        self.assertTrue(isinstance(descr._v_colobjects['value'],
                                    tables.Description))
         self.assertEqual(descr._v_colobjects['time'].dtype, numpy.float64)
 
@@ -2718,15 +2717,16 @@ class TestDescription(common.PyTablesTestCase):
             ('time', 'float64'),
             ('value', (d1, (1,)))
         ])
-                  
-        descr, byteorder = descr_from_dtype(d_comp)
+
+        descr, byteorder = self.assertWarns(UserWarning,
+                                            descr_from_dtype, d_comp)
 
         self.assertTrue(descr._v_is_nested)
         self.assertTrue('time' in descr._v_colobjects)
         self.assertTrue('value' in descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
         self.assertTrue(isinstance(descr._v_colobjects['time'], Col))
-        self.assertTrue(isinstance(descr._v_colobjects['value'], 
+        self.assertTrue(isinstance(descr._v_colobjects['value'],
                                    tables.Description))
         self.assertEqual(descr._v_colobjects['time'].dtype, numpy.float64)
 
