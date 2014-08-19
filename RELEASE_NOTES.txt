@@ -28,6 +28,8 @@ Improvements
   PyTables empty string were stored as scalar HDF5 attributes having size 1
   and value '\0' (an empty null terminated string).
   Now empty string are stored as HDF5 attributes having zero size 
+- Added a new cookbook recipe and a couple of examples for simple threading
+  with PyTables.
 
 
 Bugs fixed
