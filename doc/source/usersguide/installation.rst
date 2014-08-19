@@ -52,7 +52,7 @@ First, make sure that you have
 * Numexpr_ >= 2.0 and
 * Cython_ >= 0.13
 * c-blosc_ >= 1.3.0 (it is bundled with PyTables sources but the user can
-  use an external version of sources using the :env:`BLOSC_DIR` environment
+  use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the :option:`--blosc` flag of the :file:`setup.py`)
 * argparse_ (only Python 2.6, it is used by the :program:`pt2to3` utility)
 
