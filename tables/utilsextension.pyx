@@ -69,7 +69,8 @@ from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   PyArray_Scalar, create_ieee_complex128, create_ieee_complex64,
   create_ieee_float16, create_ieee_complex192, create_ieee_complex256,
   get_len_of_range, get_order, herr_t, hid_t, hsize_t,
-  hssize_t, htri_t, is_complex, register_blosc, set_order)
+  hssize_t, htri_t, is_complex, register_blosc, set_order,
+  pt_H5free_memory)
 
 
 # Platform-dependent types
@@ -524,7 +525,7 @@ cdef hid_t get_nested_native_type(hid_t type_id) nogil:
     # Release resources
     H5Tclose(native_tid)
     H5Tclose(member_type_id)
-    free(colname)
+    pt_H5free_memory(colname)
 
   # Correct the type size in case the memory type size is less
   # than the type in-disk (probably due to reading native HDF5
@@ -886,8 +887,8 @@ def which_class(hid_t loc_id, object name):
            (strcmp(field_name1, "r") == 0 and
             strcmp(field_name2, "i") == 0) ):
         iscomplex = True
-      free(<void *>field_name1)
-      free(<void *>field_name2)
+      pt_H5free_memory(<void *>field_name1)
+      pt_H5free_memory(<void *>field_name2)
     if layout == H5D_CHUNKED:
       if iscomplex:
         classId = "CARRAY"
@@ -1118,7 +1119,7 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
 
     pyename = cstr_to_pystr(ename)
 
-    free(ename)
+    pt_H5free_memory(ename)
 
     if H5Tget_member_value(enumId, i, rbuf) < 0:
       raise HDF5ExtError(
@@ -1307,7 +1308,7 @@ def hdf5_to_np_nested_type(hid_t type_id):
 
     # Release resources
     H5Tclose(member_type_id)
-    free(c_colname)
+    pt_H5free_memory(c_colname)
 
   return desc
 

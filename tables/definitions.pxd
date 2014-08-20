@@ -269,6 +269,9 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5check_version(unsigned majnum, unsigned minnum,
                          unsigned relnum )
 
+  # misc
+  #herr_t H5free_memory(void *buf)  # new in HDF5 1.8.13
+
   # Operations with files
   hid_t  H5Fcreate(char *filename, unsigned int flags,
                    hid_t create_plist, hid_t access_plist)
@@ -472,11 +475,15 @@ cdef extern from "utils.h" nogil:
   herr_t get_order(hid_t type_id, char *byteorder)
   int    is_complex(hid_t type_id)
   herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size)
+
+  # compatibility
   herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
                                size_t block_size, size_t cbuf_size)
   herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
   herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
   ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
+  herr_t pt_H5free_memory(void *buf)
+
   int H5_HAVE_DIRECT_DRIVER, H5_HAVE_WINDOWS_DRIVER, H5_HAVE_IMAGE_FILE
 
 

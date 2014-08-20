@@ -123,6 +123,7 @@ hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step);
 
 herr_t truncate_dset( hid_t dataset_id, const int maindim, const hsize_t size);
 
+/* compatibility */
 herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
                              size_t block_size, size_t cbuf_size);
 
@@ -131,3 +132,9 @@ herr_t pt_H5Pset_fapl_windows(hid_t fapl_id);
 herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len);
 
 ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len);
+
+#if H5_VERSION_LE(1,8,12)
+herr_t pt_H5free_memory(void *buf);
+#else
+#define pt_H5free_memory H5free_memory
+#endif

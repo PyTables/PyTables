@@ -59,7 +59,8 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
   H5T_cset_t, H5T_CSET_ASCII, H5T_CSET_UTF8,
   H5ATTRset_attribute_string, H5ATTRset_attribute,
   get_len_of_range, get_order, set_order, is_complex,
-  conv_float64_timeval32, truncate_dset)
+  conv_float64_timeval32, truncate_dset,
+  pt_H5free_memory)
 
 from lrucacheextension cimport ObjectCache, NumCache
 
@@ -333,7 +334,7 @@ cdef class Table(Leaf):
       # Release resources
       H5Tclose(native_member_type_id)
       H5Tclose(member_type_id)
-      free(c_colname)
+      pt_H5free_memory(c_colname)
 
     # set the byteorder and other things (just in top level)
     if colpath == "":
