@@ -529,7 +529,8 @@ class FiltersTreeTestCase(unittest.TestCase):
             print("Test filter:", repr(gfilters))
             print("Filters in file:", repr(group1._v_filters))
 
-        repr(gfilters) == repr(group1._v_filters)
+        self.assertEqual(repr(gfilters), repr(group1._v_filters))
+
         # The next nodes have to have the same filter properties as
         # gfilters
         nodelist = ['/group0/group1', '/group0/group1/earray1',
