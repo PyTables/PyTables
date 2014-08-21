@@ -52,6 +52,15 @@
 #define H5_HAVE_IMAGE_FILE 0
 #endif
 
+/* COMAPTIBILITY: H5_VERSION_LE has been introduced in HDF5 1.8.7
+#ifndef H5_VERSION_LE
+#define H5_VERSION_LE(Maj,Min,Rel) \
+       (((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR==Min) && (H5_VERS_RELEASE<=Rel)) || \
+        ((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR<Min)) || \
+        (H5_VERS_MAJOR<Maj))
+#endif
+
+
 /* Use %ld to print the value because long should cover most cases. */
 /* Used to make certain a return value _is_not_ a value */
 #define CHECK(ret, val, where) do {                                           \
