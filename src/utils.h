@@ -52,7 +52,7 @@
 #define H5_HAVE_IMAGE_FILE 0
 #endif
 
-/* COMAPTIBILITY: H5_VERSION_LE has been introduced in HDF5 1.8.7
+/* COMAPTIBILITY: H5_VERSION_LE has been introduced in HDF5 1.8.7 */
 #ifndef H5_VERSION_LE
 #define H5_VERSION_LE(Maj,Min,Rel) \
        (((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR==Min) && (H5_VERS_RELEASE<=Rel)) || \
