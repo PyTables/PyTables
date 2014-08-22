@@ -153,7 +153,6 @@ class Node(object):
     # By default, attributes accept Undo/Redo.
     _AttributeSet = AttributeSet
 
-    # <properties>
     # `_v_parent` is accessed via its file to avoid upwards references.
     def _g_getparent(self):
         (parentpath, nodename) = split_path(self._v_pathname)
@@ -190,8 +189,6 @@ class Node(object):
     _v_title = property(_g_gettitle, _g_settitle, None,
                         ("A description of this node. A shorthand for "
                          "TITLE attribute."))
-
-    # </properties>
 
     # This may be looked up by ``__del__`` when ``__init__`` doesn't get
     # to be called.  See ticket #144 for more info.

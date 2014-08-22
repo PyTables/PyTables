@@ -158,7 +158,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     _c_classId = previous_api_property('_c_classid')
 
-    # <properties>
     kind = property(
         lambda self: {1: 'ultralight', 2: 'light',
                       4: 'medium', 8: 'full'}[self.indsize],
@@ -330,7 +329,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             pass
         return lbucket
 
-    # </properties>
     def __init__(self, parentnode, name,
                  atom=None, title="",
                  kind=None,

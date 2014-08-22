@@ -700,15 +700,10 @@ class File(hdf5extension.File, object):
 
     """
 
-    ## <class variables>
     # The top level kinds. Group must go first!
     _node_kinds = ('Group', 'Leaf', 'Link', 'Unknown')
     rootUEP = previous_api_property('root_uep')
     _v_objectId = previous_api_property('_v_objectid')
-
-    ## </class variables>
-
-    ## <properties>
 
     def _gettitle(self):
         return self.root._v_title
@@ -749,8 +744,6 @@ class File(hdf5extension.File, object):
         .. deprecated:: 3.1
 
         """)
-
-    ## </properties>
 
     def __init__(self, filename, mode="r", title="",
                  root_uep="/", filters=None, **kwargs):

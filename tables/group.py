@@ -166,8 +166,6 @@ class Group(hdf5extension.Group, Node):
         '__members__', '_v_children', '_v_groups', '_v_leaves',
         '_v_links', '_v_unknown', '_v_hidden')
 
-    # <properties>
-
     # `_v_nchildren` is a direct read-only shorthand
     # for the number of *visible* children in a group.
     def _g_getnchildren(self):
@@ -202,8 +200,6 @@ class Group(hdf5extension.Group, Node):
         instance (see :ref:`FiltersClassDescr`). When the group has no such
         attribute, a default Filters instance is used.
         """)
-
-    # </properties>
 
     _v_maxGroupWidth = previous_api_property('_v_max_group_width')
 
