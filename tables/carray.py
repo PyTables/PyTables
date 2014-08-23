@@ -248,7 +248,7 @@ class CArray(Array):
         return self._v_objectid
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+                           title, filters, chunkshape, _log, defonly = False, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)
@@ -266,23 +266,24 @@ class CArray(Array):
         object = CArray(group, name, atom=self.atom, shape=shape,
                         title=title, filters=filters, chunkshape=chunkshape,
                         _log=_log)
-        # Start the copy itself
-        for start2 in xrange(start, stop, step * nrowsinbuf):
-            # Save the records on disk
-            stop2 = start2 + step * nrowsinbuf
-            if stop2 > stop:
-                stop2 = stop
-            # Set the proper slice in the main dimension
-            slices[maindim] = slice(start2, stop2, step)
-            start3 = (start2 - start) // step
-            stop3 = start3 + nrowsinbuf
-            if stop3 > shape[maindim]:
-                stop3 = shape[maindim]
-            # The next line should be generalised if, in the future,
-            # maindim is designed to be different from 0 in CArrays.
-            # See ticket #199.
-            object[start3:stop3] = self.__getitem__(tuple(slices))
-        # Activate the conversion again (default)
+        if not defonly:
+            # Start the copy itself
+            for start2 in xrange(start, stop, step * nrowsinbuf):
+                # Save the records on disk
+                stop2 = start2 + step * nrowsinbuf
+                if stop2 > stop:
+                    stop2 = stop
+                # Set the proper slice in the main dimension
+                slices[maindim] = slice(start2, stop2, step)
+                start3 = (start2 - start) // step
+                stop3 = start3 + nrowsinbuf
+                if stop3 > shape[maindim]:
+                    stop3 = shape[maindim]
+                # The next line should be generalised if, in the future,
+                # maindim is designed to be different from 0 in CArrays.
+                # See ticket #199.
+                object[start3:stop3] = self.__getitem__(tuple(slices))
+            # Activate the conversion again (default)
         self._v_convert = True
         nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.size
 

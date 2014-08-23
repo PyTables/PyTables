@@ -16,6 +16,8 @@ import sys
 
 import numpy
 
+import math
+
 from tables import hdf5extension
 from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
@@ -908,7 +910,7 @@ class Array(hdf5extension.Array, Leaf):
         return internal_to_flavor(arr, self.flavor)
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+                           title, filters, chunkshape, _log, defonly = False, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         # Compute the correct indices.
@@ -916,9 +918,17 @@ class Array(hdf5extension.Array, Leaf):
         # Get the slice of the array
         # (non-buffered version)
         if self.shape:
-            arr = self[start:stop:step]
+            if not defonly:
+                arr = self[start:stop:step]
+            else:
+                shape = list(self.shape)
+                shape[0] = (stop - start) / step + (1 if (stop - start) % step else 0) # should be the same as shape[0] = len(xrange(start, stop, step))
+                arr = numpy.empty(shape, dtype = self.dtype) # C-order is the default, right?
         else:
-            arr = self[()]
+            if not defonly:
+                arr = self[()]
+            else:
+                arr = 0
         # Build the new Array object.  Use the _atom reserved keyword
         # just in case the array is being copied from a native HDF5
         # with atomic types different from scalars.

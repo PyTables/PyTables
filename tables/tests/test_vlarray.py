@@ -3506,6 +3506,7 @@ class SetRangeTestCase(unittest.TestCase):
 
 class CopyTestCase(unittest.TestCase):
     close = True
+    defonly = False
 
     def test01a_copy(self):
         """Checking VLArray.copy() method."""
@@ -3535,7 +3536,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy('/', 'array2', defonly = self.defonly)
 
         if self.close:
             if common.verbose:
@@ -3553,11 +3554,14 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array1-->", repr(array1.attrs))
             print("attrs array2-->", repr(array2.attrs))
 
-        # Check that all the elements are equal
-        self.assertEqual(array1.read(), array2.read())
+        if self.defonly:
+            self.assertEqual(array2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            self.assertEqual(array1.read(), array2.read())
+            self.assertEqual(array1.nrows, array2.nrows)
 
         # Assert other properties in array
-        self.assertEqual(array1.nrows, array2.nrows)
         self.assertEqual(array1.shape, array2.shape)
         self.assertEqual(array1.flavor, array2.flavor)
         self.assertEqual(array1.atom.dtype, array2.atom.dtype)
@@ -3601,7 +3605,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy('/', 'array2', defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -3619,11 +3623,14 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array1-->", repr(array1.attrs))
             print("attrs array2-->", repr(array2.attrs))
 
-        # Check that all the elements are equal
-        self.assertEqual(array1.read(), array2.read())
+        if self.defonly:
+            self.assertEqual(array2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            self.assertEqual(array1.read(), array2.read())
+            self.assertEqual(array1.nrows, array2.nrows)
 
         # Assert other properties in array
-        self.assertEqual(array1.nrows, array2.nrows)
         self.assertEqual(array1.shape, array2.shape)
         self.assertEqual(array1.flavor, array2.flavor)
         self.assertEqual(array1.atom.type, array2.atom.type)
@@ -3664,7 +3671,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Copy to another location
         group1 = fileh.create_group("/", "group1")
-        array2 = array1.copy(group1, 'array2')
+        array2 = array1.copy(group1, 'array2', defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -3681,12 +3688,15 @@ class CopyTestCase(unittest.TestCase):
             print("array2-->", array2.read())
             print("attrs array1-->", repr(array1.attrs))
             print("attrs array2-->", repr(array2.attrs))
-
-        # Check that all the elements are equal
-        self.assertEqual(array1.read(), array2.read())
+        
+        if self.defonly:
+            self.assertEqual(array2.nrows, 0)
+        else:
+            # Check that all the elements are equal
+            self.assertEqual(array1.read(), array2.read())
+            self.assertEqual(array1.nrows, array2.nrows)
 
         # Assert other properties in array
-        self.assertEqual(array1.nrows, array2.nrows)
         self.assertEqual(array1.shape, array2.shape)
         self.assertEqual(array1.flavor, array2.flavor)
         self.assertEqual(array1.atom.dtype, array2.atom.dtype)
@@ -3725,7 +3735,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy('/', 'array2', defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -3740,7 +3750,10 @@ class CopyTestCase(unittest.TestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Assert other properties in array
-        self.assertEqual(array1.nrows, array2.nrows)
+        if self.defonly:
+            self.assertEqual(array2.nrows, 0)
+        else:
+            self.assertEqual(array1.nrows, array2.nrows)
         self.assertEqual(array1.shape, array2.shape)
         self.assertEqual(array1.flavor, array2.flavor)  # Very important here
         self.assertEqual(array1.atom.dtype, array2.atom.dtype)
@@ -3781,7 +3794,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another Array
-        array2 = array1.copy('/', 'array2', title="title array2")
+        array2 = array1.copy('/', 'array2', title="title array2", defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -3830,7 +3843,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another Array
-        array2 = array1.copy('/', 'array2', copyuserattrs=1)
+        array2 = array1.copy('/', 'array2', copyuserattrs=1, defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -3882,7 +3895,7 @@ class CopyTestCase(unittest.TestCase):
             array1 = fileh.root.array1
 
         # Copy it to another Array
-        array2 = array1.copy('/', 'array2', copyuserattrs=0)
+        array2 = array1.copy('/', 'array2', copyuserattrs=0, defonly=self.defonly)
 
         if self.close:
             if common.verbose:
@@ -3911,9 +3924,21 @@ class CloseCopyTestCase(CopyTestCase):
 
 class OpenCopyTestCase(CopyTestCase):
     close = 0
+    
+    
+class CloseCopyTestCaseDefonly(CopyTestCase):
+    close = 1
+    defonly = True
+
+
+class OpenCopyTestCaseDefonly(CopyTestCase):
+    close = 0
+    defonly = True
 
 
 class CopyIndexTestCase(unittest.TestCase):
+
+    defonly = False
 
     def test01_index(self):
         """Checking VLArray.copy() method with indexes."""
@@ -3947,20 +3972,22 @@ class CopyIndexTestCase(unittest.TestCase):
         array2 = array1.copy("/", 'array2',
                              start=self.start,
                              stop=self.stop,
-                             step=self.step)
-
-        r2 = r[self.start:self.stop:self.step]
-        if common.verbose:
-            print("r2-->", r2)
-            print("array2-->", array2[:])
-            print("attrs array1-->", repr(array1.attrs))
-            print("attrs array2-->", repr(array2.attrs))
-            print("nrows in array2-->", array2.nrows)
-            print("and it should be-->", len(r2))
-        # Check that all the elements are equal
-        self.assertEqual(r2, array2[:])
-        # Assert the number of rows in array
-        self.assertEqual(len(r2), array2.nrows)
+                             step=self.step,
+                             defonly=self.defonly)
+        if not self.defonly:
+            r2 = r[self.start:self.stop:self.step]
+            if common.verbose:
+                print("r2-->", r2)
+                print("array2-->", array2[:])
+                print("attrs array1-->", repr(array1.attrs))
+                print("attrs array2-->", repr(array2.attrs))
+                print("nrows in array2-->", array2.nrows)
+                print("and it should be-->", len(r2))
+            
+                # Check that all the elements are equal
+                self.assertEqual(r2, array2[:])
+                # Assert the number of rows in array
+                self.assertEqual(len(r2), array2.nrows)
 
         # Close the file
         fileh.close()
@@ -4049,6 +4076,102 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     start = -1   # Should point to the last element
     stop = None  # None should mean the last element (including it)
     step = 1
+    
+    
+class CopyIndex1TestCaseDefonly(CopyIndexTestCase):
+    close = 0
+    start = 0
+    stop = 7
+    step = 1
+    defonly = True
+
+
+class CopyIndex2TestCaseDefonly(CopyIndexTestCase):
+    close = 1
+    start = 0
+    stop = -1
+    step = 1
+    defonly = True
+
+
+class CopyIndex3TestCaseDefonly(CopyIndexTestCase):
+    close = 0
+    start = 1
+    stop = 7
+    step = 1
+    defonly = True
+
+
+class CopyIndex4TestCaseDefonly(CopyIndexTestCase):
+    close = 1
+    start = 0
+    stop = 6
+    step = 1
+    defonly = True
+
+
+class CopyIndex5TestCaseDefonly(CopyIndexTestCase):
+    close = 0
+    start = 3
+    stop = 7
+    step = 1
+    defonly = True
+
+
+class CopyIndex6TestCaseDefonly(CopyIndexTestCase):
+    close = 1
+    start = 3
+    stop = 6
+    step = 2
+    defonly = True
+
+
+class CopyIndex7TestCaseDefonly(CopyIndexTestCase):
+    close = 0
+    start = 0
+    stop = 7
+    step = 10
+    defonly = True
+
+
+class CopyIndex8TestCaseDefonly(CopyIndexTestCase):
+    close = 1
+    start = 6
+    stop = -1  # Negative values means starting from the end
+    step = 1
+    defonly = True
+
+
+class CopyIndex9TestCaseDefonly(CopyIndexTestCase):
+    close = 0
+    start = 3
+    stop = 4
+    step = 1
+    defonly = True
+
+
+class CopyIndex10TestCaseDefonly(CopyIndexTestCase):
+    close = 1
+    start = 3
+    stop = 4
+    step = 2
+    defonly = True
+
+
+class CopyIndex11TestCaseDefonly(CopyIndexTestCase):
+    close = 0
+    start = -3
+    stop = -1
+    step = 2
+    defonly = True
+
+
+class CopyIndex12TestCaseDefonly(CopyIndexTestCase):
+    close = 1
+    start = -1   # Should point to the last element
+    stop = None  # None should mean the last element (including it)
+    step = 1
+    defonly = True
 
 
 class ChunkshapeTestCase(unittest.TestCase):
@@ -4595,6 +4718,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(CloseCopyTestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(OpenCopyTestCaseDefonly))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
@@ -4607,6 +4732,18 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
+        theSuite.addTest(unittest.makeSuite(CopyIndex1TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex2TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex3TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex4TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex5TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex6TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex7TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex8TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex9TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex10TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex11TestCaseDefonly))
+        theSuite.addTest(unittest.makeSuite(CopyIndex12TestCaseDefonly))
         theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
         theSuite.addTest(unittest.makeSuite(VLUEndianTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
