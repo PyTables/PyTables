@@ -511,7 +511,7 @@ def main():
     # Close the file again
     h5srcfile.close()
 
-    stats = {'groups': 0, 'leaves': 0, 'links': 0, 'bytes': 0}
+    stats = {'groups': 0, 'leaves': 0, 'links': 0, 'bytes': 0, 'hardlinks': 0}
     if isinstance(srcnodeobject, Group):
         copy_children(
             srcfile, dstfile, srcnode, dstnode,
@@ -521,7 +521,8 @@ def main():
             start=start, stop=stop, step=step, chunkshape=args.chunkshape,
             sortby=args.sortby, check_CSI=args.checkCSI,
             propindexes=args.propindexes,
-            upgradeflavors=args.upgradeflavors)
+            upgradeflavors=args.upgradeflavors,
+            use_hardlinks=True)
     else:
         # If not a Group, it should be a Leaf
         copy_leaf(
@@ -554,6 +555,7 @@ def main():
             "Groups copied:", ngroups,
             ", Leaves copied:", nleaves,
             ", Links copied:", nlinks,
+            ", Hard links copied:", nhardlinks,
         )
         if args.copyuserattrs:
             print("User attrs copied")

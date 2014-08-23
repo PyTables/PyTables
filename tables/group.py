@@ -12,8 +12,9 @@
 
 """Here is defined the Group class."""
 
-import warnings
+import os
 import weakref
+import warnings
 
 import tables.misc.proxydict
 from tables import hdf5extension
@@ -650,13 +651,46 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         ##    srcchild._g_copy_as_child(newparent, **kwargs)
 
         # Non-recursive version of children copy.
+        use_hardlinks = kwargs.get('use_hardlinks', False)
+        if use_hardlinks:
+            address_map = kwargs.setdefault('address_map', {})
+
         parentstack = [(self, newparent)]  # [(source, destination), ...]
         while parentstack:
             (srcparent, dstparent) = parentstack.pop()
-            for srcchild in srcparent._v_children.itervalues():
-                dstchild = srcchild._g_copy_as_child(dstparent, **kwargs)
-                if isinstance(srcchild, Group):
-                    parentstack.append((srcchild, dstchild))
+
+            if use_hardlinks:
+                for srcchild in srcparent._v_children.itervalues():
+                    addr, rc = srcchild._get_obj_info()
+                    if rc > 1 and addr in address_map:
+                        where, name = address_map[addr][0]
+                        localsrc = os.path.join(where, name)
+                        dstparent._v_file.create_hard_link(dstparent,
+                                                           srcchild.name,
+                                                           localsrc)
+                        address_map[addr].append(
+                            (dstparent._v_pathname, srcchild.name)
+                        )
+
+                        # Update statistics if needed.
+                        stats = kwargs.pop('stats', None)
+                        if stats is not None:
+                            stats['hardlinks'] += 1
+                    else:
+                        dstchild = srcchild._g_copy_as_child(dstparent,
+                                                             **kwargs)
+                        if isinstance(srcchild, Group):
+                            parentstack.append((srcchild, dstchild))
+
+                        if rc > 1:
+                            address_map[addr] = [
+                                (dstparent._v_pathname, srcchild.name)
+                            ]
+            else:
+                for srcchild in srcparent._v_children.itervalues():
+                    dstchild = srcchild._g_copy_as_child(dstparent, **kwargs)
+                    if isinstance(srcchild, Group):
+                        parentstack.append((srcchild, dstchild))
 
     _g_copyChildren = previous_api(_g_copy_children)
 
@@ -1015,8 +1049,35 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                         "you may want to use the ``overwrite`` argument"
                         % (dstparent._v_pathname, childname))
 
-        for child in self._v_children.itervalues():
-            child._f_copy(dstparent, None, overwrite, recursive, **kwargs)
+        use_hardlinks = kwargs.get('use_hardlinks', False)
+        if use_hardlinks:
+            address_map = kwargs.setdefault('address_map', {})
+
+            for child in self._v_children.itervalues():
+                addr, rc = child._get_obj_info()
+                if rc > 1 and addr in address_map:
+                    where, name = address_map[addr][0]
+                    localsrc = os.path.join(where, name)
+                    dstparent._v_file.create_hard_link(dstparent, child.name,
+                                                       localsrc)
+                    address_map[addr].append(
+                        (dstparent._v_pathname, child.name)
+                    )
+
+                    # Update statistics if needed.
+                    stats = kwargs.pop('stats', None)
+                    if stats is not None:
+                        stats['hardlinks'] += 1
+                else:
+                    child._f_copy(dstparent, None, overwrite, recursive,
+                                  **kwargs)
+                    if rc > 1:
+                        address_map[addr] = [
+                            (dstparent._v_pathname, child.name)
+                        ]
+        else:
+            for child in self._v_children.itervalues():
+                child._f_copy(dstparent, None, overwrite, recursive, **kwargs)
 
     _f_copyChildren = previous_api(_f_copy_children)
 
