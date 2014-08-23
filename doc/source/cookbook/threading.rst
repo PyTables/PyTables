@@ -268,7 +268,7 @@ used in the *thread function*::
 
 The complete code of this version of the example can be found in the
 :file:`examples` folder:
-:download:`simple_threading.py <../../../examples/simple_threading.py>`.
+:download:`simple_threading.py <../../../examples/threading_monkeypatch.py>`.
 Python 3 is required.
 
 
