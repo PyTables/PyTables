@@ -31,6 +31,10 @@ Misc variables:
 
 import os
 import warnings
+from collections import namedtuple
+
+ObjInfo = namedtuple('ObjInfo', ['addr', 'rc'])
+
 
 from cpython cimport PY_MAJOR_VERSION
 if PY_MAJOR_VERSION < 3:
@@ -87,6 +91,7 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Pset_fapl_split,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
+  H5Oget_info, H5O_info_t,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
   H5ATTRget_attribute, H5ATTRget_attribute_string,
   H5ATTRget_attribute_vlen_string_array,
@@ -920,6 +925,17 @@ cdef class Node:
   def __dealloc__(self):
     self.parent_id = 0
 
+  def _get_obj_info(self):
+    cdef herr_t ret = 0
+    cdef H5O_info_t oinfo
+
+    ret = H5Oget_info(self._v_objectid, &oinfo)
+    if ret < 0:
+      raise HDF5ExtError("Unable to get object info for '%s'" %
+                         self. _v_pathname)
+
+    return ObjInfo(oinfo.addr, oinfo.rc)
+
 
 cdef class Group(Node):
   cdef hid_t   group_id
@@ -983,6 +999,9 @@ cdef class Group(Node):
           node_type = "Leaf"
         elif ret == H5O_TYPE_NAMED_DATATYPE:
           node_type = "NamedType"              # Not supported yet
+        #else H5O_TYPE_LINK:
+        #    # symbolic link
+        #    raise RuntimeError('unexpected object type')
         else:
           node_type = "Unknown"
     return node_type

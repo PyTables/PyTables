@@ -259,6 +259,24 @@ cdef extern from "hdf5.h" nogil:
   ctypedef herr_t (*H5E_walk_t)(unsigned n, H5E_error_t *err, void *data)
   ctypedef herr_t (*H5E_auto_t)(hid_t estack, void *data)
 
+  # object info
+  ctypedef struct H5O_info_t:
+    unsigned long       fileno      # Number of file where object is located
+    haddr_t             addr        # Object address in file
+    H5O_type_t          type        # Basic object type
+    unsigned            rc          # Reference count of object
+    time_t              atime       # Access time
+    time_t              mtime       # Modification time
+    time_t              ctime       # Change time
+    time_t              btime       # Birth time
+    hsize_t             num_attrs   # number of attributes attached to object
+    #H5O_hdr_info_t      hdr         # Object header information
+    #struct {
+    #    H5_ih_info_t    obj
+    #    H5_ih_info_t    attr
+    #} meta_size
+
+
   #------------------------------------------------------------------
 
   # HDF5 API
@@ -430,6 +448,10 @@ cdef extern from "hdf5.h" nogil:
                      size_t size)
   #herr_t H5Eclose_msg(hid_t mesg_id)
   #ssize_t H5Eget_class_name(hid_t class_id, char* name, size_t size)
+
+  # Onject interface
+  herr_t H5Oget_info(hid_t object_id, H5O_info_t *object_info)
+
 
 # Specific HDF5 functions for PyTables
 cdef extern from "H5ATTR.h" nogil:
