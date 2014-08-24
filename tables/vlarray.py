@@ -55,17 +55,17 @@ class VLArray(hdf5extension.VLArray, Leaf):
     :ref:`LeafClassDescr`) already provides.
 
     .. note::
-    
+
           VLArray objects also support compression although compression
           is only performed on the data structures used internally by
           the HDF5 to take references of the location of the variable
           length data. Data itself (the raw data) are not compressed
           or filtered.
-          
+
           Please refer to the `VLTypes Technical Note
           <http://www.hdfgroup.org/HDF5/doc/TechNotes/VLTypes.html>`_
           for more details on the topic.
-          
+
     Parameters
     ----------
     parentnode
