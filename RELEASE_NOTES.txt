@@ -33,6 +33,8 @@ Improvements
   Now empty string are stored as HDF5 attributes having zero size 
 - Added a new cookbook recipe and a couple of examples for simple threading
   with PyTables.
+- The redundant :func:`utilsextension.get_indices` function has been 
+  eliminated (replaced by :meth:`slice.indices`). Closes :issue:`195`.
 
 
 Bugs fixed
