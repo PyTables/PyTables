@@ -183,11 +183,6 @@ cdef extern from "utils.h":
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout,
                              hid_t *type_id, hid_t *dataset_id) nogil
 
-  # To access to the slice.indices functionality for long long ints
-  hssize_t getIndicesExt(object s, hsize_t length,
-                         hssize_t *start, hssize_t *stop, hssize_t *step,
-                         hsize_t *slicelength)
-
 
 # Functions from Blosc
 cdef extern from "blosc.h" nogil:
@@ -951,18 +946,12 @@ getNestedField = previous_api(get_nested_field)
 
 
 def get_indices(object start, object stop, object step, hsize_t length):
-  cdef hssize_t o_start, o_stop, o_step
-  cdef hsize_t slicelength
-  cdef object s
-
   # In order to convert possible numpy.integer values to long ones
   if start is not None: start = long(start)
   if stop is not None: stop = long(stop)
   if step is not None: step = long(step)
-  s = slice(start, stop, step)
-  if getIndicesExt(s, length, &o_start, &o_stop, &o_step, &slicelength) < 0:
-    raise ValueError("Problems getting the indices on slice '%s'" % s)
-  return (o_start, o_stop, o_step)
+
+  return slice(start, stop, step).indices(length)
 
 
 getIndices = previous_api(get_indices)

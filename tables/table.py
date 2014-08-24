@@ -2831,7 +2831,10 @@ class Table(tableextension.Table, Leaf):
             self._g_copy_rows_optim(object, start, stop, step)
             return
         lenbuf = self.nrowsinbuf
-        absstep = abs(step)
+        absstep = step
+        if step < 0:
+            absstep = -step
+            start, stop = stop + 1, start + 1
         if sortby is not None:
             index = self._check_sortby_csi(sortby, checkCSI)
         for start2 in xrange(start, stop, absstep * lenbuf):

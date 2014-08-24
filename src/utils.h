@@ -104,10 +104,6 @@ PyObject *H5UIget_info( hid_t loc_id,
                         const char *dset_name,
                         char *byteorder);
 
-hsize_t getIndicesExt(PyObject *s, hsize_t length,
-                      hssize_t *start, hssize_t *stop, hssize_t *step,
-                      hsize_t *slicelength);
-
 herr_t set_order(hid_t type_id, const char *byteorder);
 
 int is_complex(hid_t type_id);

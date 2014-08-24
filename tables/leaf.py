@@ -411,14 +411,9 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     _processRange = previous_api(_process_range)
 
-    # This method is appropiate for calls to read() methods
+    # This method is appropriate for calls to read() methods
     def _process_range_read(self, start, stop, step, warn_negstep=True):
         nrows = self.nrows
-        if start is None and stop is None:
-        #if start is None and stop is None and step is None:
-            start = 0
-            stop = nrows
-            #step = 1
         if start is not None and stop is None and step is None:
             # Protection against start greater than available records
             # nrows == 0 is a special case for empty objects
