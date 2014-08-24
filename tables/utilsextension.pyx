@@ -945,18 +945,6 @@ def get_nested_field(recarray, fieldname):
 getNestedField = previous_api(get_nested_field)
 
 
-def get_indices(object start, object stop, object step, hsize_t length):
-  # In order to convert possible numpy.integer values to long ones
-  if start is not None: start = long(start)
-  if stop is not None: stop = long(stop)
-  if step is not None: step = long(step)
-
-  return slice(start, stop, step).indices(length)
-
-
-getIndices = previous_api(get_indices)
-
-
 def read_f_attr(hid_t file_id, str attr_name):
   """Read PyTables file attributes (i.e. in root group).
 

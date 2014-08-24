@@ -401,13 +401,12 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         if warn_negstep and step and step < 0:
             raise ValueError("slice step cannot be negative")
-        # (start, stop, step) = slice(start, stop, step).indices(nrows)
-        # The next function is a substitute for slice().indices in order to
-        # support full 64-bit integer for slices even in 32-bit machines.
-        # F. Alted 2005-05-08
-        start, stop, step = utilsextension.get_indices(start, stop, step,
-                                                       long(nrows))
-        return (start, stop, step)
+
+        #if start is not None: start = long(start)
+        #if stop is not None: stop = long(stop)
+        #if step is not None: step = long(step)
+
+        return slice(start, stop, step).indices(long(nrows))
 
     _processRange = previous_api(_process_range)
 
