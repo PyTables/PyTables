@@ -297,8 +297,12 @@ class PyTablesTestCase(unittest.TestCase):
                 "  %s\n"
                 % (exc.__class__.__name__, exc)))
         else:
+            if isinstance(excClass, tuple):
+                name = ', '.join(eclass.__name__ for eclass in excClass)
+            else:
+                name = excClass.__name__
             raise self.failureException(
-                "``%s`` was not raised" % excClass.__name__)
+                "``%s`` was not raised" % name)
 
     assertRaises = failUnlessRaises
 

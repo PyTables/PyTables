@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import sys
-import unittest
+
 import os
+import sys
 import tempfile
+import unittest
 import warnings
 
 import numpy
+from numpy import testing as npt
 
 from tables import *
 
@@ -2391,7 +2393,28 @@ class PointSelectionTestCase(common.PyTablesTestCase):
                 print("Selection to test:", key)
             # a = nparr[key]
             fkey = numpy.array(key, "f4")
-            self.assertRaises(IndexError, tbarr.__getitem__, fkey)
+            self.assertRaises((IndexError, TypeError), tbarr.__getitem__, fkey)
+
+    def test01d_read(self):
+        nparr = self.nparr
+        tbarr = self.tbarr
+
+        for key in self.working_keyset:
+            if common.verbose:
+                print("Selection to test:", key)
+            a = nparr[key]
+            b = tbarr[key]
+            npt.assert_array_equal(
+                a, b, "NumPy array and PyTables selections does not match.")
+
+    def test01e_read(self):
+        tbarr = self.tbarr
+
+        for key in self.not_working_keyset:
+            if common.verbose:
+                print("Selection to test:", key)
+
+            self.assertRaises(IndexError, tbarr.__getitem__, key)
 
     def test02a_write(self):
         """Test for point-selections (write, boolean keys)."""
@@ -2454,20 +2477,72 @@ class PointSelectionTestCase(common.PyTablesTestCase):
                 "NumPy array and PyTables modifications does not match.")
 
 
+class PointSelection0(PointSelectionTestCase):
+    shape = (3,)
+    working_keyset = [
+        [0, 1],
+        [0, -1],
+    ]
+    not_working_keyset = [
+        [0, 3],
+        [0, 4],
+        [0, -4],
+    ]
+
+
 class PointSelection1(PointSelectionTestCase):
     shape = (5, 3, 3)
+    working_keyset = [
+        [(0, 0), (0, 1), (0, 0)],
+        [(0, 0), (0, -1), (0, 0)],
+    ]
+    not_working_keyset = [
+        [(0, 0), (0, 3), (0, 0)],
+        [(0, 0), (0, 4), (0, 0)],
+        [(0, 0), (0, -4), (0, 0)],
+        [(0, 0), (0, -5), (0, 0)]
+    ]
 
 
 class PointSelection2(PointSelectionTestCase):
     shape = (7, 3)
+    working_keyset = [
+        [(0, 0), (0, 1)],
+        [(0, 0), (0, -1)],
+        [(0, 0), (0, -2)],
+    ]
+    not_working_keyset = [
+        [(0, 0), (0, 3)],
+        [(0, 0), (0, 4)],
+        [(0, 0), (0, -4)],
+        [(0, 0), (0, -5)],
+    ]
 
 
 class PointSelection3(PointSelectionTestCase):
     shape = (4, 3, 2, 1)
+    working_keyset = [
+        [(0, 0), (0, 1), (0, 0), (0, 0)],
+        [(0, 0), (0, -1), (0, 0), (0, 0)],
+    ]
+    not_working_keyset = [
+        [(0, 0), (0, 3), (0, 0), (0, 0)],
+        [(0, 0), (0, 4), (0, 0), (0, 0)],
+        [(0, 0), (0, -4), (0, 0), (0, 0)],
+    ]
 
 
 class PointSelection4(PointSelectionTestCase):
     shape = (1, 3, 2, 5, 6)
+    working_keyset = [
+        [(0, 0), (0, 1), (0, 0), (0, 0), (0, 0)],
+        [(0, 0), (0, -1), (0, 0), (0, 0), (0, 0)],
+    ]
+    not_working_keyset = [
+        [(0, 0), (0, 3), (0, 0), (0, 0), (0, 0)],
+        [(0, 0), (0, 4), (0, 0), (0, 0), (0, 0)],
+        [(0, 0), (0, -4), (0, 0), (0, 0), (0, 0)],
+    ]
 
 
 class FancySelectionTestCase(common.PyTablesTestCase):
@@ -2975,6 +3050,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(FancySelection2))
         theSuite.addTest(unittest.makeSuite(FancySelection3))
         theSuite.addTest(unittest.makeSuite(FancySelection4))
+        theSuite.addTest(unittest.makeSuite(PointSelection0))
         theSuite.addTest(unittest.makeSuite(PointSelection1))
         theSuite.addTest(unittest.makeSuite(PointSelection2))
         theSuite.addTest(unittest.makeSuite(PointSelection3))

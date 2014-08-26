@@ -6175,6 +6175,16 @@ class PointSelectionTestCase(common.PyTablesTestCase):
     def setUp(self):
         N = 100
 
+        self.working_keyset = [
+            [0, 1],
+            [0, -1],
+        ]
+        self.not_working_keyset = [
+            [0, N],
+            [0, N+1],
+            [0, -N-1],
+        ]
+
         # Limits for selections
         self.limits = [
             (0, 1),  # just one element
@@ -6278,6 +6288,27 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 #                 print "PyTables selection:", b
             npt.assert_array_equal(
                 a, b, "NumPy array and PyTables selections does not match.")
+
+    def test01f_read(self):
+        recarr = self.recarr
+        table = self.table
+
+        for key in self.working_keyset:
+            if common.verbose:
+                print("Selection to test:", key)
+            a = recarr[key]
+            b = table[key]
+            npt.assert_array_equal(
+                a, b, "NumPy array and PyTables selections does not match.")
+
+    def test01g_read(self):
+        table = self.table
+
+        for key in self.not_working_keyset:
+            if common.verbose:
+                print("Selection to test:", key)
+
+            self.assertRaises(IndexError, table.__getitem__, key)
 
     def test02a_write(self):
         """Test for point-selections (write, boolean keys)."""

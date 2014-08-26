@@ -557,6 +557,14 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:
                 # For 1-dimensional datasets
                 coords = numpy.asarray(key, dtype="i8")
+
+            # handle negative indices
+            idx = coords < 0
+            coords[idx] = (coords + self.shape)[idx]
+
+            # bounds check
+            if numpy.any(coords < 0) or numpy.any(coords >= self.shape):
+                raise IndexError("Index out of bounds")
         else:
             raise TypeError("Only integer coordinates allowed.")
         # We absolutely need a contiguous array

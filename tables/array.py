@@ -567,10 +567,15 @@ class Array(hdf5extension.Array, Leaf):
                         "Empty selections are not allowed (axis %d)" % idx)
                 elif len(exp) > 1:
                     if list_seen:
-                        raise IndexError(
-                            "Only one selection list is allowed")
+                        raise IndexError("Only one selection list is allowed")
                     else:
                         list_seen = True
+                else:
+                    if (not isinstance(exp[0], (int, long, numpy.integer)) or
+                        (isinstance(exp[0], numpy.ndarray) and not
+                            numpy.issubdtype(exp[0].dtype, numpy.integer))):
+                        raise TypeError("Only integer coordinates allowed.")
+
                 nexp = numpy.asarray(exp, dtype="i8")
                 # Convert negative values
                 nexp = numpy.where(nexp < 0, length + nexp, nexp)
