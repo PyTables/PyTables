@@ -1792,8 +1792,6 @@ class ThreadingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.close()
 
     def test(self):
-        import threading
-
         lock = threading.Lock()
 
         def syncronized_open_file(*args, **kwargs):
@@ -1812,7 +1810,7 @@ class ThreadingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 arr = f.root.test_array[8:12, 18:22]
                 assert arr.max() == arr.min() == 0
                 syncronized_close_file(f)
-            except Exception as e:
+            except Exception:
                 q.put(sys.exc_info())
             else:
                 q.put('OK')
