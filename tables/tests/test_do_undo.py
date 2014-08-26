@@ -14,9 +14,6 @@ from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
-
 
 class BasicTestCase(TestCase):
 
@@ -61,7 +58,6 @@ class BasicTestCase(TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00_simple(self):
         """Checking simple do/undo."""
@@ -938,7 +934,6 @@ class createArrayTestCase(TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00(self):
         """Checking one action."""
@@ -1092,7 +1087,6 @@ class createGroupTestCase(TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00(self):
         """Checking one action."""
@@ -1284,7 +1278,6 @@ class renameNodeTestCase(TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00(self):
         """Checking rename_node (over Groups without children)"""
@@ -1476,7 +1469,6 @@ class moveNodeTestCase(TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00(self):
         """Checking move_node (over Leaf)"""
@@ -1672,7 +1664,6 @@ class removeNodeTestCase(TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00(self):
         """Checking remove_node (over Leaf)"""
@@ -1846,7 +1837,6 @@ class copyNodeTestCase(TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00_copyLeaf(self):
         """Checking copy_node (over Leaves)"""
@@ -2041,7 +2031,6 @@ class ComplexTestCase(TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00(self):
         """Mix of create_array, create_group, renameNone, move_node,
@@ -2247,7 +2236,6 @@ class AttributesTestCase(TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00_setAttr(self):
         "Setting a nonexistent attribute."

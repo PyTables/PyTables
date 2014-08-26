@@ -14,8 +14,6 @@ from tables.tests.common import allequal
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
 
 typecodes = ['b', 'h', 'i', 'l', 'q', 'f', 'd']
 # UInt64 checking disabled on win platforms
@@ -439,7 +437,6 @@ class TableReadTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01_readTableChar(self):
         """Checking column conversion into NumPy in read().
@@ -647,7 +644,6 @@ class TableNativeFlavorTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01a_basicTableRead(self):
         """Checking the return of a NumPy in read()."""
@@ -1219,7 +1215,6 @@ class AttributesTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01_writeAttribute(self):
         """Checking the creation of a numpy attribute."""
@@ -1298,7 +1293,6 @@ class StrlenTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01(self):
         """Checking the lengths of strings (read field)."""

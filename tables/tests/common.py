@@ -137,14 +137,6 @@ def verbosePrint(string, nonl=False):
         print(string)
 
 
-def cleanup(klass):
-    # klass.__dict__.clear()     # This is too hard. Don't do that
-#    print("Class attributes deleted")
-    for key in klass.__dict__:
-        if not klass.__dict__[key].__class__.__name__ in ('instancemethod'):
-            klass.__dict__[key] = None
-
-
 def allequal(a, b, flavor="numpy"):
     """Checks if two numerical objects are equal."""
 
@@ -248,7 +240,11 @@ def pyTablesTest(oldmethod):
 
 
 class PyTablesTestCase(unittest.TestCase):
-    """Abstract test case with useful methods."""
+    def teatDown(self):
+        super(PyTablesTestCase, self).tearDown()
+        for key in self.__dict__:
+            if self.__dict__[key].__class__.__name__ not in ('instancemethod'):
+                self.__dict__[key] = None
 
     def _getName(self):
         """Get the name of this test case."""

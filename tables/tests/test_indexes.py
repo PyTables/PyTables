@@ -12,13 +12,9 @@ from tables.index import Index, default_auto_index, default_index_filters
 from tables.idxutils import calc_chunksize
 from tables.exceptions import OldIndexWarning
 from tables.tests import common
-from tables.tests.common import (verbose, allequal, heavy, cleanup,
-    TempFileMixin)
+from tables.tests.common import verbose, allequal, heavy, TempFileMixin
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
-
-# To delete the internal attributes automagically
-TestCase.tearDown = cleanup
 
 
 # Sensible parameters for indexing with small blocksizes
@@ -81,7 +77,6 @@ class BasicTestCase(TestCase):
         self.fileh.close()
         # print "File %s not removed!" % self.file
         os.remove(self.file)
-        cleanup(self)
 
     #----------------------------------------
 
@@ -1010,7 +1005,6 @@ class AutomaticIndexingTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
 
     def test01_attrs(self):
         "Checking indexing attributes (part1)"
@@ -1659,7 +1653,6 @@ class ManyNodesTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
 
 
 class IndexPropsChangeTestCase(TempFileMixin, TestCase):

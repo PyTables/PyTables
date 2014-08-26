@@ -17,10 +17,6 @@ from tables.tests.common import PyTablesTestCase as TestCase
 from tables.utils import byteorders
 
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
-
-
 class C:
     c = (3, 4.5)
 
@@ -67,7 +63,6 @@ class BasicTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -349,7 +344,6 @@ class TypesTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1612,7 +1606,6 @@ class MDTypesTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1956,7 +1949,6 @@ class AppendShapeTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -2159,7 +2151,6 @@ class FlavorTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -2481,7 +2472,6 @@ class ReadRangeTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #------------------------------------------------------------------
 
@@ -2899,7 +2889,6 @@ class GetItemRangeTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #------------------------------------------------------------------
 
@@ -3245,7 +3234,6 @@ class SetRangeTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #------------------------------------------------------------------
 
@@ -4118,7 +4106,6 @@ class TruncateTestCase(TestCase):
         # Close the file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00_truncate(self):
         """Checking VLArray.truncate() method (truncating to 0 rows)"""
@@ -4258,7 +4245,6 @@ class PointSelectionTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01a_read(self):
         """Test for point-selections (read, boolean keys)."""
@@ -4295,7 +4281,6 @@ class SizeInMemoryPropertyTestCase(TestCase):
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
-        common.cleanup(self)
 
     def create_array(self, atom, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
@@ -4363,7 +4348,6 @@ class SizeOnDiskPropertyTestCase(TestCase):
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
-        common.cleanup(self)
 
     def create_array(self, atom, complevel):
         filters = Filters(complevel=complevel, complib='blosc')

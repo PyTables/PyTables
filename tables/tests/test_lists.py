@@ -10,9 +10,6 @@ from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
-
 
 def WriteRead(filename, testTuple):
     if common.verbose:

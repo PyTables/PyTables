@@ -24,9 +24,6 @@ from tables.tests.common import allequal
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
-
 
 class LeafCreationTestCase(TestCase):
     "Tests creating Tables, VLArrays an EArrays with Time data."

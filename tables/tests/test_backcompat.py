@@ -15,11 +15,8 @@ from tables.tests.common import allequal
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
 
 # Check read Tables from pytables version 0.8
-
 class BackCompatTablesTestCase(TestCase):
 
     #----------------------------------------

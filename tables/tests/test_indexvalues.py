@@ -10,12 +10,10 @@ import numpy
 from tables import *
 from tables.idxutils import calc_chunksize
 from tables.tests import common
-from tables.tests.common import verbose, heavy, cleanup
+from tables.tests.common import verbose, heavy
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-TestCase.tearDown = cleanup
 
 # An alias for frozenset
 fzset = frozenset
@@ -120,7 +118,6 @@ class SelectValuesTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
 
     #----------------------------------------
 

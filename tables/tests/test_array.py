@@ -18,8 +18,6 @@ from tables.tests.common import allequal
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
 
 warnings.resetwarnings()
 
@@ -640,7 +638,6 @@ class SizeOnDiskInMemoryPropertyTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test_all_zeros(self):
         self.assertEqual(self.array.size_on_disk, 10 * 10 * 4)
@@ -665,7 +662,6 @@ class UnalignedAndComplexTestCase(TestCase):
 
         # Then, delete the file
         os.remove(self.file)
-        common.cleanup(self)
 
     def write_read(self, testArray):
         if common.verbose:
@@ -2348,7 +2344,6 @@ class PointSelectionTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01a_read(self):
         """Test for point-selections (read, boolean keys)."""
@@ -2613,7 +2608,6 @@ class FancySelectionTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01a_read(self):
         """Test for fancy-selections (working selections, read)."""

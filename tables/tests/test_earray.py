@@ -14,9 +14,6 @@ from tables.tests.common import allequal
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
-
 
 class BasicTestCase(TestCase):
     # Default values
@@ -103,7 +100,6 @@ class BasicTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1236,7 +1232,6 @@ class SizeOnDiskInMemoryPropertyTestCase(TestCase):
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
-        common.cleanup(self)
 
     def create_array(self, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
@@ -1294,7 +1289,6 @@ class OffsetStrideTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -2294,7 +2288,6 @@ class TruncateTestCase(TestCase):
         # Close the file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00_truncate(self):
         """Checking EArray.truncate() method (truncating to 0 rows)"""
@@ -2419,7 +2412,6 @@ class Rows64bitsTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -2496,7 +2488,6 @@ class ZeroSizedTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01_canAppend(self):
         "Appending zero length array."

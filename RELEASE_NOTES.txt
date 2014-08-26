@@ -43,10 +43,12 @@ Improvements
   * :func:`print_versions` and :func:`tests.common.print_heavy` functions
      moved to the :mod:`tests.common` module
   * always use :func:`print_versions` when test modules are called as scripts
-  * always use the internally defined :class:`tests.common.PyTablesTestCase`
-    class
   * use the unittest2_ package in Python 2.6.x
   * removed internal machinery used to replicate unittest2_ features
+  * always use :class:`tests.common.PyTablesTestCase` as base class for all
+    test cases
+  * code of the old :func:`tasts.common.cleanup` function has been moved to
+    :metn:`tests.common.PyTablesTestCase.tearDown` method
 
 
 .. _unittest2: https://pypi.python.org/pypi/unittest2

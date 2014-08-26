@@ -19,8 +19,6 @@ from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
 
 # Test Record class
 class Record(IsDescription):
@@ -292,7 +290,6 @@ class BasicTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1768,7 +1765,6 @@ class SizeOnDiskInMemoryPropertyTestCase(TestCase):
         self.fileh.close()
         # Then, delete the file
         os.remove(self.file)
-        common.cleanup(self)
 
     def create_table(self, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
@@ -2092,7 +2088,6 @@ class BasicRangeTestCase(TestCase):
         if self.fileh.isopen:
             self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -2578,7 +2573,6 @@ class getItemTestCase(TestCase):
         if self.fileh.isopen:
             self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -2858,7 +2852,6 @@ class setItem(TestCase):
         self.fileh.close()
         # del self.fileh, self.rootgroup
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01(self):
         "Checking modifying one table row with __setitem__"
@@ -3302,7 +3295,6 @@ class updateRow(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01(self):
         "Checking modifying one table row with Row.update"
@@ -5624,7 +5616,6 @@ class LengthTestCase(TestCase):
         if self.fileh.isopen:
             self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -5892,7 +5883,6 @@ class ZeroSizedTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01_canAppend(self):
         "Appending zero length recarray."
@@ -6050,7 +6040,6 @@ class TruncateTestCase(TestCase):
         # Close the file
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00_truncate(self):
         """Checking Table.truncate() method (truncating to 0 rows)"""
@@ -6205,7 +6194,6 @@ class PointSelectionTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01a_read(self):
         """Test for point-selections (read, boolean keys)."""
@@ -6414,7 +6402,6 @@ class ExhaustedIter(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def average(self, values):
         return sum(values, 0.0) / len(values)
@@ -6543,7 +6530,6 @@ class ColumnIterationTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def create_non_nested_table(self, nrows, dtype):
         array = np.empty((nrows, ), dtype)

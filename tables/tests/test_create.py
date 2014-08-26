@@ -32,10 +32,6 @@ from tables.hdf5extension import HAVE_DIRECT_DRIVER, HAVE_WINDOWS_DRIVER
 from tables.utils import quantize
 
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
-
-
 class Record(IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
     var2 = IntCol()               # integer
@@ -71,7 +67,6 @@ class createTestCase(TestCase):
 
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -380,7 +375,6 @@ class FiltersTreeTestCase(TestCase):
             self.h5file.close()
 
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -744,7 +738,6 @@ class CopyGroupTestCase(TestCase):
 
         os.remove(self.file)
         os.remove(self.file2)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1090,7 +1083,6 @@ class CopyFileTestCase(TestCase):
         os.remove(self.file)
         if hasattr(self, 'file2') and os.path.exists(self.file2):
             os.remove(self.file2)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -2481,7 +2473,6 @@ class QuantizeTestCase(TestCase):
             self.h5file.close()
 
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 

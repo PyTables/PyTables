@@ -4,7 +4,7 @@ from __future__ import print_function
 
 from tables import *
 from tables.tests import common
-from tables.tests.common import verbose, cleanup
+from tables.tests.common import verbose
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
@@ -21,7 +21,6 @@ class IndexesTestCase(TestCase):
 
     def tearDown(self):
         self.fileh.close()
-        cleanup(self)
 
     #----------------------------------------
     def test00_version(self):

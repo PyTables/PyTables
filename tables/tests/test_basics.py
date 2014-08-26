@@ -28,9 +28,6 @@ from tables.tests.common import PyTablesTestCase as TestCase
 from tables.parameters import NODE_CACHE_SLOTS
 from tables.description import descr_from_dtype, dtype_from_descr
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
-
 
 class OpenFileFailureTestCase(TestCase):
     def setUp(self):
@@ -136,7 +133,6 @@ class OpenFileTestCase(TestCase):
     def tearDown(self):
         # Remove the temporary file
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00_newFile(self):
         """Checking creation of a new file."""

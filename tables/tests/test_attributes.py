@@ -18,9 +18,6 @@ from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.exceptions import DataTypeWarning
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
-
 
 class Record(IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
@@ -52,7 +49,6 @@ class CreateTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
 #---------------------------------------
 
@@ -601,7 +597,6 @@ class TypesTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
 #---------------------------------------
 
@@ -1522,7 +1517,6 @@ class NoSysAttrsTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test00_listAttributes(self):
         """Checking listing attributes (no system attrs version)."""

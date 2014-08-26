@@ -15,8 +15,6 @@ from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
 
 # It is important that columns are ordered according to their names
 # to ease the comparison with structured arrays.
@@ -178,7 +176,6 @@ class BasicTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -618,7 +615,6 @@ class BasicRangeTestCase(TestCase):
             self.fileh.close()
         # del self.fileh, self.rootgroup
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1347,7 +1343,6 @@ class ShapeTestCase(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1434,7 +1429,6 @@ class setItem(TestCase):
         self.fileh.close()
         # del self.fileh, self.rootgroup
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01(self):
         "Checking modifying one table row with __setitem__"
@@ -1825,7 +1819,6 @@ class updateRow(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        common.cleanup(self)
 
     def test01(self):
         "Checking modifying one table row with Row.update"

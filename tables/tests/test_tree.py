@@ -14,8 +14,6 @@ from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-TestCase.tearDown = common.cleanup
 
 # Test Record class
 class Record(IsDescription):
@@ -81,7 +79,6 @@ class TreeTestCase(TestCase):
             self.h5file.close()
 
         os.remove(self.file)
-        common.cleanup(self)
 
     #----------------------------------------
 
@@ -546,7 +543,6 @@ class DeepTreeTestCase(TestCase):
 
     def tearDown(self):
         os.remove(self.file)
-        common.cleanup(self)
 
     def _check_tree(self, file):
         # Open the previous HDF5 file in read-only mode
