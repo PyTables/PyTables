@@ -8,9 +8,10 @@ import unittest
 
 from tables import *
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 
 def WriteRead(filename, testTuple):
@@ -49,7 +50,7 @@ def WriteRead(filename, testTuple):
         fileh.close()
 
 
-class BasicTestCase(unittest.TestCase):
+class BasicTestCase(TestCase):
     def test00_char(self):
         "Data integrity during recovery (character types)"
 
@@ -121,7 +122,7 @@ class Basic10DTestCase(BasicTestCase):
     charList = [[[[[[[[[[b"a", b"b"], [b"qq", b"zz"]]]]]]]]]]*5
 
 
-class ExceptionTestCase(unittest.TestCase):
+class ExceptionTestCase(TestCase):
     def test00_char(self):
         "Non suppported lists objects (character objects)"
 
@@ -168,7 +169,7 @@ class Basic1DFourTestCase(ExceptionTestCase):
     charList = [b"aaa", [b"bbb", b"ccc"]]
 
 
-class GetItemTestCase(unittest.TestCase):
+class GetItemTestCase(TestCase):
     def test00_single(self):
         "Single element access (character types)"
 
@@ -399,7 +400,7 @@ class GI2ListTestCase(GetItemTestCase):
     ]
 
 
-class GeneratorTestCase(unittest.TestCase):
+class GeneratorTestCase(TestCase):
     def test00a_single(self):
         "Testing generator access to Arrays, single elements (char)"
 

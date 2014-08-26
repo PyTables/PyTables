@@ -12,9 +12,10 @@ from tables import *
 from tables.idxutils import calc_chunksize
 from tables.tests import common
 from tables.tests.common import verbose, heavy, cleanup
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+TestCase.tearDown = cleanup
 
 # An alias for frozenset
 fzset = frozenset
@@ -35,7 +36,7 @@ class Small(IsDescription):
     var4 = FloatCol(dflt=0)
 
 
-class SelectValuesTestCase(unittest.TestCase):
+class SelectValuesTestCase(TestCase):
     compress = 1
     complib = "zlib"
     shuffle = 1
@@ -3387,7 +3388,7 @@ class SV15bTestCase(SelectValuesTestCase):
     sl = nrows
 
 
-class LastRowReuseBuffers(common.PyTablesTestCase):
+class LastRowReuseBuffers(TestCase):
     # Test that checks for possible reuse of buffers coming
     # from last row in the sorted part of indexes
     nelem = 1221

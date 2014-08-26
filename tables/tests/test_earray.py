@@ -12,12 +12,13 @@ from tables import *
 from tables.utils import byteorders
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 
-class BasicTestCase(unittest.TestCase):
+class BasicTestCase(TestCase):
     # Default values
     obj = None
     flavor = "numpy"
@@ -1219,7 +1220,7 @@ class StringComprTestCase(BasicTestCase):
     step = 20
 
 
-class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(TestCase):
 
     def setUp(self):
         self.array_size = (0, 10)
@@ -1278,7 +1279,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.assertTrue(self.array.size_on_disk < self.array.size_in_memory)
 
 
-class OffsetStrideTestCase(unittest.TestCase):
+class OffsetStrideTestCase(TestCase):
     mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
@@ -1633,7 +1634,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         self.assertTrue(allequal(native, swapped))
 
 
-class CopyTestCase(unittest.TestCase):
+class CopyTestCase(TestCase):
 
     def test01_copy(self):
         """Checking EArray.copy() method."""
@@ -2089,7 +2090,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
-class CopyIndexTestCase(unittest.TestCase):
+class CopyIndexTestCase(TestCase):
     nrowsinbuf = 2
 
     def test01_index(self):
@@ -2274,7 +2275,7 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     step = 1
 
 
-class TruncateTestCase(unittest.TestCase):
+class TruncateTestCase(TestCase):
 
     def setUp(self):
         # Create an instance of an HDF5 Table
@@ -2391,7 +2392,7 @@ class TruncateCloseTestCase(TruncateTestCase):
 
 
 # The next test should be run only in **common.heavy** mode
-class Rows64bitsTestCase(unittest.TestCase):
+class Rows64bitsTestCase(TestCase):
     narows = 1000 * 1000   # each numpy object will have 1 million entries
     # narows = 1000   # for testing only
     nanumber = 1000 * 3    # That should account for more than 2**31-1
@@ -2481,7 +2482,7 @@ class Rows64bitsTestCase2(Rows64bitsTestCase):
 
 
 # Test for appending zero-sized arrays
-class ZeroSizedTestCase(unittest.TestCase):
+class ZeroSizedTestCase(TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
@@ -2516,7 +2517,7 @@ class ZeroSizedTestCase(unittest.TestCase):
 
 
 # Test for dealing with multidimensional atoms
-class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class MDAtomTestCase(common.TempFileMixin, TestCase):
 
     def test01a_append(self):
         "Append a row to a (unidimensional) EArray with a MD atom."
@@ -2646,7 +2647,7 @@ class MDAtomReopen(MDAtomTestCase):
     reopen = True
 
 
-class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
@@ -2672,7 +2673,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           numpy.zeros((10, 10)))
 
 
-class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
+class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
     obj = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     where = '/'
     name = 'earray'

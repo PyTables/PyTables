@@ -23,6 +23,7 @@ import tables
 from tables.utils import SizeType
 from tables.tests import common
 from tables.tests.common import verbosePrint as vprint
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Data parameters
@@ -228,7 +229,7 @@ def fill_table(table, shape, nrows):
 
 # Base test cases
 # ---------------
-class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
 
     """Base test case for querying tables.
 

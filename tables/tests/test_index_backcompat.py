@@ -6,10 +6,11 @@ import unittest
 from tables import *
 from tables.tests import common
 from tables.tests.common import verbose, cleanup
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Check indexes from PyTables version 2.0
-class IndexesTestCase(common.PyTablesTestCase):
+class IndexesTestCase(TestCase):
 
     def setUp(self):
         self.fileh = open_file(self._testFilename(self.file_), "r")

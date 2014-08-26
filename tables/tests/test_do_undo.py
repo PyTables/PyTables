@@ -12,12 +12,13 @@ from tables.node import NotLoggedMixin
 from tables.path import join_path
 
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 
-class BasicTestCase(unittest.TestCase):
+class BasicTestCase(TestCase):
 
     """Test for basic Undo/Redo operations."""
 
@@ -904,7 +905,7 @@ class PersistenceTestCase(BasicTestCase):
     _reopen = True
 
 
-class createArrayTestCase(unittest.TestCase):
+class createArrayTestCase(TestCase):
     "Test for create_array operations"
 
     def setUp(self):
@@ -1058,7 +1059,7 @@ class createArrayTestCase(unittest.TestCase):
                          [3, 4])
 
 
-class createGroupTestCase(unittest.TestCase):
+class createGroupTestCase(TestCase):
     "Test for create_group operations"
 
     def setUp(self):
@@ -1247,7 +1248,7 @@ def populateTable(where, name):
         print("Number of indexed rows(2):", indexrows)
 
 
-class renameNodeTestCase(unittest.TestCase):
+class renameNodeTestCase(TestCase):
     "Test for rename_node operations"
 
     def setUp(self):
@@ -1439,7 +1440,7 @@ class renameNodeTestCase(unittest.TestCase):
         self.assertTrue(table.cols.var4.index is None)
 
 
-class moveNodeTestCase(unittest.TestCase):
+class moveNodeTestCase(TestCase):
     "Tests for move_node operations"
 
     def setUp(self):
@@ -1634,7 +1635,7 @@ class moveNodeTestCase(unittest.TestCase):
         self.assertTrue(table.cols.var4.index is None)
 
 
-class removeNodeTestCase(unittest.TestCase):
+class removeNodeTestCase(TestCase):
     "Test for remove_node operations"
 
     def setUp(self):
@@ -1809,7 +1810,7 @@ class removeNodeTestCase(unittest.TestCase):
         self.assertTrue("/agroup/agroup3" not in self.fileh)
 
 
-class copyNodeTestCase(unittest.TestCase):
+class copyNodeTestCase(TestCase):
     "Tests for copy_node and copy_children operations"
 
     def setUp(self):
@@ -2007,7 +2008,7 @@ class copyNodeTestCase(unittest.TestCase):
         self.assertTrue('/agroup2/agroup3' in self.fileh)
 
 
-class ComplexTestCase(unittest.TestCase):
+class ComplexTestCase(TestCase):
     "Tests for a mix of all operations"
 
     def setUp(self):
@@ -2224,7 +2225,7 @@ class ComplexTestCase(unittest.TestCase):
         self.assertTrue('/agroup/agroup4' not in self.fileh)
 
 
-class AttributesTestCase(unittest.TestCase):
+class AttributesTestCase(TestCase):
     "Tests for operation on attributes"
 
     def setUp(self):
@@ -2364,7 +2365,7 @@ class AttributesTestCase(unittest.TestCase):
         self.assertEqual(self.fileh.root.array.attrs.attr_1, 12)
 
 
-class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class NotLoggedTestCase(common.TempFileMixin, TestCase):
 
     """Test not logged nodes."""
 
@@ -2416,7 +2417,7 @@ class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(AttributeError, getattr, arr._v_attrs, 'foo')
 
 
-class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     """Test the ``createparents`` flag."""
 

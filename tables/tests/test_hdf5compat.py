@@ -22,9 +22,10 @@ import numpy
 import tables
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
-class HDF5CompatibilityTestCase(common.PyTablesTestCase):
+class HDF5CompatibilityTestCase(TestCase):
 
     """Base class for HDF5 compatibility tests.
 
@@ -323,7 +324,7 @@ class SzipTestCase(HDF5CompatibilityTestCase):
 
 
 # this demonstrates github #203
-class MatlabFileTestCase(common.PyTablesTestCase):
+class MatlabFileTestCase(TestCase):
 
     def setUp(self):
         h5fname = 'matlab_file.mat'

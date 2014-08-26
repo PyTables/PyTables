@@ -23,9 +23,10 @@ import gc
 import unittest
 
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
-class GarbageTestCase(common.PyTablesTestCase):
+class GarbageTestCase(TestCase):
 
     """Test for uncollectable garbage."""
 

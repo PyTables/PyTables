@@ -18,9 +18,10 @@ import itertools
 
 import tables
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
-class CreateColTestCase(common.PyTablesTestCase):
+class CreateColTestCase(TestCase):
     """Test creating enumerated column descriptions."""
 
     def _createCol(self, enum, dflt, base='uint32', shape=()):
@@ -114,7 +115,7 @@ class CreateColTestCase(common.PyTablesTestCase):
                           base=tables.IntAtom(shape=3))
 
 
-class CreateAtomTestCase(common.PyTablesTestCase):
+class CreateAtomTestCase(TestCase):
     """Test creating enumerated atoms."""
 
     def _createAtom(self, enum, dflt, base='uint32', shape=()):
@@ -185,7 +186,7 @@ class CreateAtomTestCase(common.PyTablesTestCase):
                           base=tables.IntAtom(shape=3))
 
 
-class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class EnumTableTestCase(common.TempFileMixin, TestCase):
     """Test tables with enumerated columns."""
 
     enum = tables.Enum({'red': 4, 'green': 2, 'blue': 1, 'black': 0})
@@ -356,7 +357,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
             searched, appended[:-1], "Search returned incorrect results.")
 
 
-class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class EnumEArrayTestCase(common.TempFileMixin, TestCase):
     """Test extendable arrays of enumerated values."""
 
     enum = tables.Enum({'red': 4, 'green': 2, 'blue': 1, 'black': 0})
@@ -520,7 +521,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(written, read, "Written and read values differ.")
 
 
-class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class EnumVLArrayTestCase(common.TempFileMixin, TestCase):
     """Test variable-length arrays of enumerated values."""
 
     enum = tables.Enum({'red': 4, 'green': 2, 'blue': 1, 'black': 0})

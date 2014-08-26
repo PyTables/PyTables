@@ -19,6 +19,7 @@ import numpy as np
 
 import tables as tb
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # An example of record
 
@@ -52,7 +53,7 @@ def get_sliced_vars2(npvars, start, stop, step, shape, maindim):
 
 
 # Basic tests
-class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class ExprTestCase(common.TempFileMixin, TestCase):
 
     # The shape for the variables in expressions
     shape = (10, 20)
@@ -163,7 +164,7 @@ class ExprColumn(ExprTestCase):
 
 
 # Test for mixed containers
-class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class MixedContainersTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
         super(MixedContainersTestCase, self).setUp()
@@ -371,7 +372,7 @@ class MixedContainers3(MixedContainersTestCase):
 
 
 # Test for unaligned objects
-class UnalignedObject(common.PyTablesTestCase):
+class UnalignedObject(TestCase):
 
     def test00_simple(self):
         """Checking expressions with unaligned objects."""
@@ -425,7 +426,7 @@ class UnalignedObject(common.PyTablesTestCase):
 
 
 # Test for non-contiguous objects
-class NonContiguousObject(common.PyTablesTestCase):
+class NonContiguousObject(TestCase):
 
     def test00_simple(self):
         """Checking expressions with non-contiguous objects"""
@@ -489,7 +490,7 @@ class NonContiguousObject(common.PyTablesTestCase):
 
 
 # Test for errors
-class ExprError(common.TempFileMixin, common.PyTablesTestCase):
+class ExprError(common.TempFileMixin, TestCase):
 
     # The shape for the variables in expressions
     shape = (10,)
@@ -564,7 +565,7 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
 
 
 # Test for broadcasting arrays
-class BroadcastTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class BroadcastTestCase(common.TempFileMixin, TestCase):
 
     def test00_simple(self):
         """Checking broadcast in expression."""
@@ -634,7 +635,7 @@ class Broadcast5(BroadcastTestCase):
 
 
 # Test for different length inputs
-class DiffLengthTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class DiffLengthTestCase(common.TempFileMixin, TestCase):
 
     def test00_simple(self):
         """Checking different length inputs in expression."""
@@ -701,7 +702,7 @@ class DiffLength4(DiffLengthTestCase):
 
 
 # Test for different type inputs
-class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class TypesTestCase(common.TempFileMixin, TestCase):
 
     def test00_bool(self):
         """Checking booleans in expression."""
@@ -854,7 +855,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 # Test for different functions
-class FunctionsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class FunctionsTestCase(common.TempFileMixin, TestCase):
 
     def test00_simple(self):
         """Checking some math functions in expression."""
@@ -879,7 +880,7 @@ class FunctionsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 # Test for EArrays with maindim != 0
-class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class MaindimTestCase(common.TempFileMixin, TestCase):
 
     def test00_simple(self):
         """Checking other dimensions than 0 as main dimension."""
@@ -1077,7 +1078,7 @@ class Maindim3(MaindimTestCase):
 
 
 # Test `append` mode flag in `set_output()`
-class AppendModeTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class AppendModeTestCase(common.TempFileMixin, TestCase):
 
     def test01_append(self):
         """Checking append mode in `set_output()`"""
@@ -1124,7 +1125,7 @@ class AppendModeFalse(AppendModeTestCase):
 
 
 # Test for `__iter__()` iterator
-class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class iterTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
         super(iterTestCase, self).setUp()
@@ -1251,7 +1252,7 @@ class iter5(iterTestCase):
 
 
 # Test for set_output_range
-class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class setOutputRangeTestCase(common.TempFileMixin, TestCase):
 
     def test00_simple(self):
         """Checking the range selection for output."""
@@ -1382,7 +1383,7 @@ class setOutputRange9(setOutputRangeTestCase):
 
 
 # Test for very large inputs
-class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class VeryLargeInputsTestCase(common.TempFileMixin, TestCase):
 
     def test00_simple(self):
         """Checking very large inputs."""

@@ -16,14 +16,15 @@ from tables import *
 from tables.tests import common
 from tables.utils import byteorders
 from tables.tests.common import allequal
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 warnings.resetwarnings()
 
 
-class BasicTestCase(unittest.TestCase):
+class BasicTestCase(TestCase):
     """Basic test for all the supported typecodes present in numpy.
 
     All of them are included on pytables.
@@ -543,7 +544,7 @@ class Basic32DTestCase(BasicTestCase):
     tupleChar.shape = (1,)*32
 
 
-class ReadOutArgumentTests(unittest.TestCase):
+class ReadOutArgumentTests(TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
@@ -627,7 +628,7 @@ class ReadOutArgumentTests(unittest.TestCase):
             self.assertTrue('output array size invalid, got' in str(exc))
 
 
-class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(TestCase):
 
     def setUp(self):
         self.array_size = (10, 10)
@@ -646,7 +647,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.assertEqual(self.array.size_in_memory, 10 * 10 * 4)
 
 
-class UnalignedAndComplexTestCase(unittest.TestCase):
+class UnalignedAndComplexTestCase(TestCase):
     """Basic test for all the supported typecodes present in numpy.
 
     Most of them are included on PyTables.
@@ -894,7 +895,7 @@ class ComplexReopenEndianTestCase(UnalignedAndComplexTestCase):
     reopen = True
 
 
-class GroupsArrayTestCase(unittest.TestCase):
+class GroupsArrayTestCase(TestCase):
     """This test class checks combinations of arrays with groups."""
 
     def test00_iterativeGroups(self):
@@ -1042,7 +1043,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         os.remove(file)
 
 
-class CopyTestCase(unittest.TestCase):
+class CopyTestCase(TestCase):
 
     def test01_copy(self):
         """Checking Array.copy() method."""
@@ -1263,7 +1264,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
-class CopyIndexTestCase(unittest.TestCase):
+class CopyIndexTestCase(TestCase):
 
     def test01_index(self):
         """Checking Array.copy() method with indexes."""
@@ -1428,7 +1429,7 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     step = 1
 
 
-class GetItemTestCase(unittest.TestCase):
+class GetItemTestCase(TestCase):
 
     def test00_single(self):
         "Single element access (character types)"
@@ -1741,7 +1742,7 @@ class GI2NACloseTestCase(GI2NATestCase):
     close = 1
 
 
-class SetItemTestCase(unittest.TestCase):
+class SetItemTestCase(TestCase):
 
     def test00_single(self):
         "Single element update (character types)"
@@ -2143,7 +2144,7 @@ class SI2NACloseTestCase(SI2NATestCase):
     close = 1
 
 
-class GeneratorTestCase(unittest.TestCase):
+class GeneratorTestCase(TestCase):
 
     def test00a_single(self):
         "Testing generator access to Arrays, single elements (char)"
@@ -2308,7 +2309,7 @@ class GE2NACloseTestCase(GE2NATestCase):
     close = 1
 
 
-class NonHomogeneousTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class NonHomogeneousTestCase(common.TempFileMixin, TestCase):
     def test(self):
         """Test for creation of non-homogeneous arrays."""
         # This checks ticket #12.
@@ -2318,14 +2319,14 @@ class NonHomogeneousTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(NoSuchNodeError, h5file.remove_node, '/test')
 
 
-class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class TruncateTestCase(common.TempFileMixin, TestCase):
     def test(self):
         """Test for unability to truncate Array objects."""
         array1 = self.h5file.create_array('/', 'array1', [0, 2])
         self.assertRaises(TypeError, array1.truncate, 0)
 
 
-class PointSelectionTestCase(common.PyTablesTestCase):
+class PointSelectionTestCase(TestCase):
 
     def setUp(self):
         # Limits for selections
@@ -2545,7 +2546,7 @@ class PointSelection4(PointSelectionTestCase):
     ]
 
 
-class FancySelectionTestCase(common.PyTablesTestCase):
+class FancySelectionTestCase(TestCase):
 
     def setUp(self):
         M, N, O = self.shape
@@ -2720,7 +2721,7 @@ class FancySelection4(FancySelectionTestCase):
     shape = (5, 3, 10)
 
 
-class CopyNativeHDF5MDAtom(common.PyTablesTestCase):
+class CopyNativeHDF5MDAtom(TestCase):
 
     def setUp(self):
         filename = self._testFilename("array_mdatom.h5")
@@ -2749,7 +2750,7 @@ class CopyNativeHDF5MDAtom(common.PyTablesTestCase):
         self.assertEqual(self.arr.shape, self.arr2.shape)
 
 
-class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
@@ -2770,7 +2771,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
 
 
-class BroadcastTest(common.TempFileMixin, common.PyTablesTestCase):
+class BroadcastTest(common.TempFileMixin, TestCase):
 
     def test(self):
         """Test correct broadcasting when the array atom is not scalar."""
@@ -2790,7 +2791,7 @@ class BroadcastTest(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(numpy.all(h5arr[0] == nparr))
 
 
-class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
+class TestCreateArrayArgs(common.TempFileMixin, TestCase):
     where = '/'
     name = 'array'
     obj = numpy.array([[1, 2], [3, 4]])

@@ -23,6 +23,7 @@ import numpy
 import tables as t
 from tables.utils import SizeType
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import Description
 
 minRowIndex = 10
@@ -174,7 +175,7 @@ def areDescriptionsEqual(desc1, desc2):
 
 
 # Test creating nested column descriptions
-class DescriptionTestCase(common.PyTablesTestCase):
+class DescriptionTestCase(TestCase):
 
     _TestTDescr = TestTDescr
     _testADescr = testADescr
@@ -200,7 +201,7 @@ class DescriptionTestCase(common.PyTablesTestCase):
 
 
 # Test creating a nested table and opening it
-class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class CreateTestCase(common.TempFileMixin, TestCase):
 
     _TestTDescr = TestTDescr
     _testABuffer = testABuffer
@@ -298,7 +299,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 # Test writing data in a nested table
-class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class WriteTestCase(common.TempFileMixin, TestCase):
 
     _TestTDescr = TestTDescr
     _testAData = testAData
@@ -631,7 +632,7 @@ class WriteReopen(WriteTestCase):
     reopen = 1
 
 
-class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class ReadTestCase(common.TempFileMixin, TestCase):
 
     _TestTDescr = TestTDescr
     _testABuffer = testABuffer
@@ -860,7 +861,7 @@ class ReadReopen(ReadTestCase):
 
 
 # Checking the Table.Cols accessor
-class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class ColsTestCase(common.TempFileMixin, TestCase):
 
     _TestTDescr = TestTDescr
     _testABuffer = testABuffer
@@ -1250,7 +1251,7 @@ F_Candidate = {"nested1": Nested(),
 # Checking several nested columns declared in the same way
 
 
-class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SameNestedTestCase(common.TempFileMixin, TestCase):
 
     correct_names = ['',  # The root of columns
                      'nested1', 'nested1/uid', 'nested1/value',
@@ -1474,7 +1475,7 @@ class SameNestedReopen(SameNestedTestCase):
     reopen = 1
 
 
-class NestedTypesWithGaps(common.PyTablesTestCase):
+class NestedTypesWithGaps(TestCase):
 
     correct_descr = \
         """{

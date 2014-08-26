@@ -16,10 +16,11 @@ from tables import *
 from tables.utils import SizeType, byteorders
 from tables.tests import common
 from tables.tests.common import allequal, areArraysEqual
+from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 # Test Record class
 
@@ -109,7 +110,7 @@ class OldRecord(IsDescription):
         var15 = ComplexCol(itemsize=32, shape=(), dflt=(1.-0.j))
 
 
-class BasicTestCase(common.PyTablesTestCase):
+class BasicTestCase(TestCase):
     # file  = "test.h5"
     mode = "w"
     title = "This is the table title"
@@ -1754,7 +1755,7 @@ class BigTablesTestCase(BasicTestCase):
     appendrows = 100
 
 
-class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(TestCase):
     def setUp(self):
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
@@ -1811,7 +1812,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         self.assertTrue(self.table.size_on_disk < self.table.size_in_memory)
 
 
-class NonNestedTableReadTestCase(unittest.TestCase):
+class NonNestedTableReadTestCase(TestCase):
     def setUp(self):
         self.dtype = np.format_parser(['i4'] * 10, [], []).dtype
         self.file = tempfile.mktemp(".h5")
@@ -1944,7 +1945,7 @@ class NonNestedTableReadTestCase(unittest.TestCase):
             self.assertTrue('output array size invalid, got' in str(exc))
 
 
-class TableReadByteorderTestCase(unittest.TestCase):
+class TableReadByteorderTestCase(TestCase):
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, mode="w")
@@ -2025,7 +2026,7 @@ class TableReadByteorderTestCase(unittest.TestCase):
             self.assertTrue("array must be in system's byteorder" in str(exc))
 
 
-class BasicRangeTestCase(unittest.TestCase):
+class BasicRangeTestCase(TestCase):
     # file  = "test.h5"
     mode = "w"
     title = "This is the table title"
@@ -2512,7 +2513,7 @@ class getColRangeTestCase(BasicRangeTestCase):
             self.fail("expected a KeyError")
 
 
-class getItemTestCase(unittest.TestCase):
+class getItemTestCase(TestCase):
     mode = "w"
     title = "This is the table title"
     record = Record
@@ -2854,7 +2855,7 @@ class Rec(IsDescription):
     col3 = FloatCol(pos=3)
 
 
-class setItem(common.PyTablesTestCase):
+class setItem(TestCase):
     def tearDown(self):
         self.fileh.close()
         # del self.fileh, self.rootgroup
@@ -3299,7 +3300,7 @@ class setItem4(setItem):
     buffersize = 1000
 
 
-class updateRow(common.PyTablesTestCase):
+class updateRow(TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
@@ -3804,7 +3805,7 @@ class updateRow4(updateRow):
     buffersize = 1000
 
 
-class RecArrayIO(unittest.TestCase):
+class RecArrayIO(TestCase):
     def test00(self):
         "Checking saving a regular recarray"
 
@@ -4687,7 +4688,7 @@ class RecArrayIO2(RecArrayIO):
     reopen = 1
 
 
-class CopyTestCase(unittest.TestCase):
+class CopyTestCase(TestCase):
     def assertEqualColinstances(self, table1, table2):
         """Assert that column instance maps of both tables are equal."""
         cinst1, cinst2 = table1.colinstances, table2.colinstances
@@ -5158,7 +5159,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
-class CopyIndexTestCase(unittest.TestCase):
+class CopyIndexTestCase(TestCase):
     def test01_index(self):
         """Checking Table.copy() method with indexes."""
 
@@ -5371,7 +5372,7 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     step = 1
 
 
-class LargeRowSize(unittest.TestCase):
+class LargeRowSize(TestCase):
     def test00(self):
         "Checking saving a Table with a moderately large rowsize"
         file = tempfile.mktemp(".h5")
@@ -5420,7 +5421,7 @@ class LargeRowSize(unittest.TestCase):
         os.remove(file)
 
 
-class DefaultValues(unittest.TestCase):
+class DefaultValues(TestCase):
     record = Record
 
     def test00(self):
@@ -5595,7 +5596,7 @@ class Record2(IsDescription):
     var4 = Float64Col(dflt=3.1)                 # double (double-precision)
 
 
-class LengthTestCase(unittest.TestCase):
+class LengthTestCase(TestCase):
     record = Record
     nrows = 20
 
@@ -5674,7 +5675,7 @@ class Length2TestCase(LengthTestCase):
     nrows = 100
 
 
-class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class WhereAppendTestCase(common.TempFileMixin, TestCase):
     """Tests `Table.append_where()` method."""
 
     class SrcTblDesc(IsDescription):
@@ -5830,7 +5831,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
             os.remove(h5fname2)
 
 
-class DerivedTableTestCase(unittest.TestCase):
+class DerivedTableTestCase(TestCase):
     def setUp(self):
         self.file = tempfile.mktemp('.h5')
         self.fileh = open_file(self.file, 'w', title='DeriveFromTable')
@@ -5850,7 +5851,7 @@ class DerivedTableTestCase(unittest.TestCase):
         self.assertEqual(tbl1.description, tbl2.description)
 
 
-class ChunkshapeTestCase(unittest.TestCase):
+class ChunkshapeTestCase(TestCase):
     def setUp(self):
         self.file = tempfile.mktemp('.h5')
         self.fileh = open_file(self.file, 'w', title='Chunkshape test')
@@ -5880,7 +5881,7 @@ class ChunkshapeTestCase(unittest.TestCase):
 
 
 # Test for appending zero-sized recarrays
-class ZeroSizedTestCase(unittest.TestCase):
+class ZeroSizedTestCase(TestCase):
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, "a")
@@ -5910,7 +5911,7 @@ class ZeroSizedTestCase(unittest.TestCase):
 # machines, because in 64-bit machine, 'c2' is unaligned.  However,
 # this should check most platforms where, while not unaligned,
 # len(datatype) > boundary_alignment is fullfilled.
-class IrregularStrideTestCase(unittest.TestCase):
+class IrregularStrideTestCase(TestCase):
     def setUp(self):
         class IRecord(IsDescription):
             c1 = Int32Col(pos=1)
@@ -5942,7 +5943,7 @@ class IrregularStrideTestCase(unittest.TestCase):
         self.assertTrue(allequal(coords2, np.arange(5, dtype=SizeType)))
 
 
-class Issue262TestCase(unittest.TestCase):
+class Issue262TestCase(TestCase):
     def setUp(self):
         class IRecord(IsDescription):
             c1 = Int32Col(pos=1)
@@ -6033,7 +6034,7 @@ class Issue262TestCase(unittest.TestCase):
         self.assertEqual(len(data), 0)
 
 
-class TruncateTestCase(unittest.TestCase):
+class TruncateTestCase(TestCase):
     def setUp(self):
         self.file = tempfile.mktemp('.h5')
         self.fileh = open_file(self.file, 'w', title='Chunkshape test')
@@ -6171,7 +6172,7 @@ class TruncateClose2(TruncateTestCase):
     close = 1
 
 
-class PointSelectionTestCase(common.PyTablesTestCase):
+class PointSelectionTestCase(TestCase):
     def setUp(self):
         N = 100
 
@@ -6360,7 +6361,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 
 
 # Test for building very large MD columns without defaults
-class MDLargeColTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class MDLargeColTestCase(common.TempFileMixin, TestCase):
     def test01_create(self):
         "Create a Table with a very large MD column.  Ticket #211."
         N = 2**18      # 4x larger than maximum object header size (64 KB)
@@ -6387,7 +6388,7 @@ class MDLargeColReopen(MDLargeColTestCase):
 
 # Test with itertools.groupby that iterates on exhausted Row iterator
 # See ticket #264.
-class ExhaustedIter(common.PyTablesTestCase):
+class ExhaustedIter(TestCase):
     def setUp(self):
         """Create small database."""
         class Observations(IsDescription):
@@ -6454,7 +6455,7 @@ class ExhaustedIter(common.PyTablesTestCase):
         self.assertEqual(scenario_means, [112.0, 112.0, 112.0])
 
 
-class SpecialColnamesTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SpecialColnamesTestCase(common.TempFileMixin, TestCase):
     def test00_check_names(self):
         f = self.h5file
         a = np.array([(1, 2, 3)], dtype=[(
@@ -6467,7 +6468,7 @@ class SpecialColnamesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertEqual(name, name2)
 
 
-class RowContainsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class RowContainsTestCase(common.TempFileMixin, TestCase):
     def test00_row_contains(self):
         f = self.h5file
         a = np.array([(1, 2, 3)], dtype="i1,i2,i4")
@@ -6480,7 +6481,7 @@ class RowContainsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(4 not in row)
 
 
-class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class AccessClosedTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
         self.table = self.h5file.create_table(
@@ -6535,7 +6536,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedNodeError, self.table.read_coordinates, [2, 5])
 
 
-class ColumnIterationTestCase(unittest.TestCase):
+class ColumnIterationTestCase(TestCase):
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
         self.fileh = open_file(self.file, mode="w")
@@ -6587,7 +6588,7 @@ class ColumnIterationTestCase(unittest.TestCase):
         self.iterate(array, table)
 
 
-class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
+class TestCreateTableArgs(common.TempFileMixin, TestCase):
     obj = np.array(
         [('aaaa', 1, 2.1), ('bbbb', 2, 3.2)],
         dtype=[('name', 'S4'), ('icol', np.int32), ('fcol', np.float32)])

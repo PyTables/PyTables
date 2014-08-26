@@ -9,9 +9,10 @@ import numpy
 
 from tables import *
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 # Test Record class
 
@@ -36,7 +37,7 @@ class Record(IsDescription):
         var12 = Col.from_kind('complex', itemsize=32)  # extended-precision
 
 
-class RangeTestCase(unittest.TestCase):
+class RangeTestCase(TestCase):
     file = "test.h5"
     title = "This is the table title"
     expectedrows = 100
@@ -122,7 +123,7 @@ class RangeTestCase(unittest.TestCase):
 
 
 # Check the dtype read-only attribute
-class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class DtypeTestCase(common.TempFileMixin, TestCase):
 
     def test00a_table(self):
         """Check dtype accessor for Table objects."""
@@ -158,7 +159,7 @@ class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(a.dtype, a.atom.dtype)
 
 
-class ReadFloatTestCase(common.PyTablesTestCase):
+class ReadFloatTestCase(TestCase):
     filename = "float.h5"
     nrows = 5
     ncols = 6
@@ -246,7 +247,7 @@ class ReadFloatTestCase(common.PyTablesTestCase):
             self.assertEqual(ds.dtype, "longdouble")
 
 
-class AtomTestCase(common.PyTablesTestCase):
+class AtomTestCase(TestCase):
     def test_init_parameters_01(self):
         atom1 = StringAtom(itemsize=12)
         atom2 = atom1.copy()

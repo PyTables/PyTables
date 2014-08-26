@@ -26,13 +26,14 @@ from tables import *
 # important objects to test
 from tables import Group, Leaf, Table, Array, hdf5_version
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 from tables.parameters import MAX_COLUMNS
 from tables.hdf5extension import HAVE_DIRECT_DRIVER, HAVE_WINDOWS_DRIVER
 from tables.utils import quantize
 
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 
 class Record(IsDescription):
@@ -43,7 +44,7 @@ class Record(IsDescription):
     var5 = Float32Col()           # float  (single-precision)
 
 
-class createTestCase(unittest.TestCase):
+class createTestCase(TestCase):
     file = "test.h5"
     title = "This is the table title"
     expectedrows = 100
@@ -305,7 +306,7 @@ class Record2(IsDescription):
     var3 = Int16Col()             # short integer
 
 
-class FiltersTreeTestCase(unittest.TestCase):
+class FiltersTreeTestCase(TestCase):
     title = "A title"
     nrows = 10
 
@@ -660,7 +661,7 @@ class FiltersCaseBloscZlib(FiltersTreeTestCase):
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zlib")
 
 
-class CopyGroupTestCase(unittest.TestCase):
+class CopyGroupTestCase(TestCase):
     title = "A title"
     nrows = 10
 
@@ -1006,7 +1007,7 @@ class CopyGroupCase8(CopyGroupTestCase):
     dstnode = '/'
 
 
-class CopyFileTestCase(unittest.TestCase):
+class CopyFileTestCase(TestCase):
     title = "A title"
     nrows = 10
 
@@ -1349,7 +1350,7 @@ class CopyFileCase8(CopyFileTestCase):
     filters = Filters(complevel=1, complib="lzo")
 
 
-class CopyFileCase10(unittest.TestCase):
+class CopyFileCase10(TestCase):
 
     def test01_notoverwrite(self):
         "Checking copy of a File (checking not overwriting)"
@@ -1382,7 +1383,7 @@ class CopyFileCase10(unittest.TestCase):
         os.remove(file2)
 
 
-class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class GroupFiltersTestCase(common.TempFileMixin, TestCase):
     filters = tables.Filters(complevel=4)  # something non-default
 
     def setUp(self):
@@ -1484,7 +1485,7 @@ class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class SetBloscMaxThreadsTestCase(common.TempFileMixin,
-                                 common.PyTablesTestCase):
+                                 TestCase):
     filters = tables.Filters(complevel=4, complib="blosc")
 
     def test00(self):
@@ -1517,7 +1518,7 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin,
         self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
 
 
-class FilterTestCase(common.PyTablesTestCase):
+class FilterTestCase(TestCase):
     def test_filter_pack_type(self):
         self.assertEqual(type(Filters()._pack()), numpy.int64)
 
@@ -1577,7 +1578,7 @@ class FilterTestCase(common.PyTablesTestCase):
         self.assertEqual(filter_.complib, 'zlib')
 
 
-class DefaultDriverTestCase(common.PyTablesTestCase):
+class DefaultDriverTestCase(TestCase):
     DRIVER = None
     DRIVER_PARAMS = {}
 
@@ -1790,7 +1791,7 @@ class CoreDriverTestCase(DefaultDriverTestCase):
                 self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
-class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
+class CoreDriverNoBackingStoreTestCase(TestCase):
     DRIVER = "H5FD_CORE"
 
     def setUp(self):
@@ -2064,7 +2065,7 @@ class SplitDriverTestCase(DefaultDriverTestCase):
             self.assertTrue(os.path.isfile(fname))
 
 
-class NotSpportedDriverTestCase(common.PyTablesTestCase):
+class NotSpportedDriverTestCase(TestCase):
     DRIVER = None
     DRIVER_PARAMS = {}
     EXCEPTION = ValueError
@@ -2150,7 +2151,7 @@ class StreamDriverTestCase(NotSpportedDriverTestCase):
     DRIVER = "H5FD_STREAM"
 
 
-class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
+class InMemoryCoreDriverTestCase(TestCase):
     DRIVER = "H5FD_CORE"
 
     def setUp(self):
@@ -2422,7 +2423,7 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.exists(self.h5fname))
 
 
-class QuantizeTestCase(unittest.TestCase):
+class QuantizeTestCase(TestCase):
     mode = "w"
     title = "This is the table title"
     expectedrows = 10

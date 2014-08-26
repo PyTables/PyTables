@@ -12,9 +12,10 @@ from numpy import *
 from tables import *
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 typecodes = ['b', 'h', 'i', 'l', 'q', 'f', 'd']
 # UInt64 checking disabled on win platforms
@@ -35,7 +36,7 @@ if 'Complex192Atom' in globals() or 'Conplex256Atom' in globals():
 byteorder = {'little': '<', 'big': '>'}[sys.byteorder]
 
 
-class BasicTestCase(unittest.TestCase):
+class BasicTestCase(TestCase):
     """Basic test for all the supported typecodes present in NumPy.
 
     All of them are included on PyTables.
@@ -218,7 +219,7 @@ class Basic10DTestCase(BasicTestCase):
 #     tupleChar = array(tupleInt, dtype="S1")
 
 
-class GroupsArrayTestCase(unittest.TestCase):
+class GroupsArrayTestCase(TestCase):
     """This test class checks combinations of arrays with groups.
 
     It also uses arrays ranks which ranges until 10.
@@ -421,7 +422,7 @@ class Record(IsDescription):
         var19 = ComplexCol(itemsize=32, dflt=(1.+0.j))
 
 
-class TableReadTestCase(common.PyTablesTestCase):
+class TableReadTestCase(TestCase):
     nrows = 100
 
     def setUp(self):
@@ -627,7 +628,7 @@ class TestTDescr(IsDescription):
             value = ComplexCol(itemsize=16, shape=2)
 
 
-class TableNativeFlavorTestCase(common.PyTablesTestCase):
+class TableNativeFlavorTestCase(TestCase):
     nrows = 100
 
     def setUp(self):
@@ -1206,7 +1207,7 @@ class TableNativeFlavorCloseTestCase(TableNativeFlavorTestCase):
     close = 1
 
 
-class AttributesTestCase(common.PyTablesTestCase):
+class AttributesTestCase(TestCase):
 
     def setUp(self):
 
@@ -1276,7 +1277,7 @@ class AttributesCloseTestCase(AttributesTestCase):
     close = 1
 
 
-class StrlenTestCase(common.PyTablesTestCase):
+class StrlenTestCase(TestCase):
 
     def setUp(self):
 

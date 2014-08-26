@@ -12,10 +12,11 @@ from numpy import rec as records
 from tables import *
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 # It is important that columns are ordered according to their names
 # to ease the comparison with structured arrays.
@@ -67,7 +68,7 @@ class RecordDT(IsDescription):
     var7 = Col.from_dtype(np.dtype("1S1"), dflt=b"e")   # no shape
 
 
-class BasicTestCase(common.PyTablesTestCase):
+class BasicTestCase(TestCase):
     # file  = "test.h5"
     mode = "w"
     title = "This is the table title"
@@ -553,7 +554,7 @@ class BigTablesTestCase(BasicTestCase):
     appendrows = 100
 
 
-class BasicRangeTestCase(unittest.TestCase):
+class BasicRangeTestCase(TestCase):
     # file  = "test.h5"
     mode = "w"
     title = "This is the table title"
@@ -1015,7 +1016,7 @@ class Rec(IsDescription):
     col3 = FloatCol(pos=3, shape=(3, 2))
 
 
-class RecArrayIO(unittest.TestCase):
+class RecArrayIO(TestCase):
 
     def test00(self):
         "Checking saving a normal recarray"
@@ -1257,7 +1258,7 @@ class RecArrayIO(unittest.TestCase):
         os.remove(file)
 
 
-class DefaultValues(unittest.TestCase):
+class DefaultValues(TestCase):
 
     def test00(self):
         "Checking saving a Table MD with default values"
@@ -1326,7 +1327,7 @@ class RecordT(IsDescription):
     var3 = IntCol(dflt=[[0, 0], [1, 1]], shape=(2, 2))  # 2-D int
 
 
-class ShapeTestCase(unittest.TestCase):
+class ShapeTestCase(TestCase):
 
     def setUp(self):
 
@@ -1422,7 +1423,7 @@ class ShapeTestCase2(ShapeTestCase):
     reopen = 1
 
 
-class setItem(common.PyTablesTestCase):
+class setItem(TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
@@ -1814,7 +1815,7 @@ class setItem4(setItem):
     buffersize = 1000
 
 
-class updateRow(common.PyTablesTestCase):
+class updateRow(TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")

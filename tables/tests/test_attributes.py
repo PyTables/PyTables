@@ -15,11 +15,11 @@ from numpy.testing import assert_array_equal, assert_almost_equal
 from tables.parameters import NODE_CACHE_SLOTS
 from tables import *
 from tables.tests import common
-from tables.tests.common import PyTablesTestCase
+from tables.tests.common import PyTablesTestCase as TestCase
 from tables.exceptions import DataTypeWarning
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 
 class Record(IsDescription):
@@ -30,7 +30,7 @@ class Record(IsDescription):
     var5 = Float32Col()           # float  (single-precision)
 
 
-class CreateTestCase(unittest.TestCase):
+class CreateTestCase(TestCase):
 
     def setUp(self):
         # Create an instance of HDF5 Table
@@ -583,7 +583,7 @@ class DictCacheCloseCreate(CreateTestCase):
     node_cache_slots = -NODE_CACHE_SLOTS
 
 
-class TypesTestCase(unittest.TestCase):
+class TypesTestCase(TestCase):
 
     def setUp(self):
         # Create an instance of HDF5 Table
@@ -1500,7 +1500,7 @@ class CloseTypesTestCase(TypesTestCase):
     close = 1
 
 
-class NoSysAttrsTestCase(unittest.TestCase):
+class NoSysAttrsTestCase(TestCase):
 
     def setUp(self):
         # Create an instance of HDF5 Table
@@ -1580,7 +1580,7 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
     close = True
 
 
-class CompatibilityTestCase(common.PyTablesTestCase):
+class CompatibilityTestCase(TestCase):
     if LooseVersion(numpy.__version__) >= '1.9.0':
         def test_pickled_unicode_attrs(self):
             # See also gh-368 and https://github.com/numpy/numpy/issues/4879.
@@ -1604,7 +1604,7 @@ class CompatibilityTestCase(common.PyTablesTestCase):
                     u'abc')
 
 
-class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SegFaultPythonTestCase(common.TempFileMixin, TestCase):
 
     def test00_segfault(self):
         """Checking workaround for Python unpickle problem (see #253)."""
@@ -1621,7 +1621,7 @@ class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Great! '0' and '0.' values can be safely retrieved.")
 
 
-class EmbeddedNullsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class EmbeddedNullsTestCase(common.TempFileMixin, TestCase):
     # See laso gh-371 (https://github.com/PyTables/PyTables/issues/371)
 
     def test_unicode(self):
@@ -1645,7 +1645,7 @@ class EmbeddedNullsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(self.h5file.root._v_attrs.name, value)
 
 
-class VlenStrAttrTestCase(PyTablesTestCase):
+class VlenStrAttrTestCase(TestCase):
 
     def test01_vlen_str_scalar(self):
         """Checking file with variable length string attributes."""
@@ -1684,7 +1684,7 @@ class VlenStrAttrTestCase(PyTablesTestCase):
         fileh.close()
 
 
-class UnsupportedAttrTypeTestCase(PyTablesTestCase):
+class UnsupportedAttrTypeTestCase(TestCase):
 
     def test00_unsupportedType(self):
         """Checking file with unsupported type."""
@@ -1696,7 +1696,7 @@ class UnsupportedAttrTypeTestCase(PyTablesTestCase):
 
 
 # Test for specific system attributes
-class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SpecificAttrsTestCase(common.TempFileMixin, TestCase):
 
     def test00_earray(self):
         "Testing EArray specific attrs (create)."

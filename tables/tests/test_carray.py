@@ -11,12 +11,13 @@ import tables
 from tables import *
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 
-class BasicTestCase(unittest.TestCase):
+class BasicTestCase(TestCase):
     # Default values
     obj = None
     flavor = "numpy"
@@ -1001,7 +1002,7 @@ class ComprTestCase(BasicTestCase):
 
 # this is a subset of the tests in test_array.py, mostly to verify that errors
 # are handled in the same way
-class ReadOutArgumentTests(unittest.TestCase):
+class ReadOutArgumentTests(TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
@@ -1051,7 +1052,7 @@ class ReadOutArgumentTests(unittest.TestCase):
             self.assertTrue('output array size invalid, got' in str(exc))
 
 
-class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(TestCase):
 
     def setUp(self):
         self.array_size = (10000, 10)
@@ -1119,7 +1120,7 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
                 abs(self.array.size_on_disk - 10000 * 10 * 2) < 200)
 
 
-class OffsetStrideTestCase(unittest.TestCase):
+class OffsetStrideTestCase(TestCase):
     mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
@@ -1279,7 +1280,7 @@ class OffsetStrideTestCase(unittest.TestCase):
                         2], numpy.array([1, 1, 1], dtype='int32')))
 
 
-class CopyTestCase(unittest.TestCase):
+class CopyTestCase(TestCase):
 
     def test01a_copy(self):
         """Checking CArray.copy() method."""
@@ -1887,7 +1888,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
-class CopyIndexTestCase(unittest.TestCase):
+class CopyIndexTestCase(TestCase):
     nrowsinbuf = 2
 
     def test01_index(self):
@@ -2082,7 +2083,7 @@ class CopyIndex12TestCase(CopyIndexTestCase):
 # The next test should be run only in **heavy** mode
 
 
-class Rows64bitsTestCase(unittest.TestCase):
+class Rows64bitsTestCase(TestCase):
     narows = 1000 * 1000   # each array will have 1 million entries
     # narows = 1000        # for testing only
     nanumber = 1000 * 3    # That should account for more than 2**31-1
@@ -2174,7 +2175,7 @@ class Rows64bitsTestCase2(Rows64bitsTestCase):
     close = 1
 
 
-class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class BigArrayTestCase(common.TempFileMixin, TestCase):
     shape = (3000000000,)  # more than 2**31-1
 
     def setUp(self):
@@ -2208,7 +2209,7 @@ class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 # Test for default values when creating arrays.
-class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class DfltAtomTestCase(common.TempFileMixin, TestCase):
 
     def test00_dflt(self):
         "Check that Atom.dflt is honored (string version)."
@@ -2270,7 +2271,7 @@ class DfltAtomReopen(DfltAtomTestCase):
 
 
 # Test for representation of defaults in atoms. Ticket #212.
-class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class AtomDefaultReprTestCase(common.TempFileMixin, TestCase):
 
     def test00a_zeros(self):
         "Testing default values.  Zeros (scalar)."
@@ -2370,7 +2371,7 @@ class AtomDefaultReprReopen(AtomDefaultReprTestCase):
     reopen = True
 
 
-class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class TruncateTestCase(common.TempFileMixin, TestCase):
     def test(self):
         """Test for unability to truncate Array objects."""
         array1 = self.h5file.create_carray('/', 'array1', IntAtom(), [2, 2])
@@ -2378,7 +2379,7 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 # Test for dealing with multidimensional atoms
-class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class MDAtomTestCase(common.TempFileMixin, TestCase):
 
     def test01a_assign(self):
         "Assign a row to a (unidimensional) CArray with a MD atom."
@@ -2505,7 +2506,7 @@ class MDAtomReopen(MDAtomTestCase):
 
 
 # Test for building very large MD atoms without defaults.  Ticket #211.
-class MDLargeAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class MDLargeAtomTestCase(common.TempFileMixin, TestCase):
 
     def test01_create(self):
         "Create a CArray with a very large MD atom."
@@ -2529,7 +2530,7 @@ class MDLargeAtomReopen(MDLargeAtomTestCase):
     reopen = True
 
 
-class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
@@ -2551,7 +2552,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
 
 
-class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
+class TestCreateCArrayArgs(common.TempFileMixin, TestCase):
     obj = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     where = '/'
     name = 'carray'

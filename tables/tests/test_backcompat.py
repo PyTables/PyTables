@@ -13,6 +13,7 @@ from tables import *
 from tables.exceptions import FlavorWarning
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
@@ -20,7 +21,7 @@ unittest.TestCase.tearDown = common.cleanup
 # Check read Tables from pytables version 0.8
 
 
-class BackCompatTablesTestCase(common.PyTablesTestCase):
+class BackCompatTablesTestCase(TestCase):
 
     #----------------------------------------
 
@@ -71,7 +72,7 @@ class Tables_LZO2_shuffle(BackCompatTablesTestCase):
 # Check read attributes from PyTables >= 1.0 properly
 
 
-class BackCompatAttrsTestCase(common.PyTablesTestCase):
+class BackCompatAttrsTestCase(TestCase):
     file = "zerodim-attrs-%s.h5"
 
     def test01_readAttr(self):
@@ -107,7 +108,7 @@ class Attrs_1_4(BackCompatAttrsTestCase):
     format = "1.4"    # pytables 1.1.x versions and later
 
 
-class VLArrayTestCase(common.PyTablesTestCase):
+class VLArrayTestCase(TestCase):
 
     def test01_backCompat(self):
         """Checking backward compatibility with old flavors of VLArray."""
@@ -127,7 +128,7 @@ class VLArrayTestCase(common.PyTablesTestCase):
 
 # Make sure that 1.x files with TimeXX types continue to be readable
 # and that its byteorder is correctly retrieved.
-class TimeTestCase(common.PyTablesTestCase):
+class TimeTestCase(TestCase):
 
     def setUp(self):
         # Open a PYTABLES_FORMAT_VERSION=1.x file
@@ -154,7 +155,7 @@ class TimeTestCase(common.PyTablesTestCase):
         self.assertEqual(vlarray8.byteorder, "little")
 
 
-class OldFlavorsTestCase01(common.PyTablesTestCase):
+class OldFlavorsTestCase01(TestCase):
     close = False
 
     # numeric
@@ -215,7 +216,7 @@ class OldFlavorsTestCase01(common.PyTablesTestCase):
         os.remove(tmpfile)
 
 
-class OldFlavorsTestCase02(common.PyTablesTestCase):
+class OldFlavorsTestCase02(TestCase):
     close = True
 
 #----------------------------------------------------------------------

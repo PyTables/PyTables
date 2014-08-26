@@ -13,17 +13,18 @@ import tables
 from tables import *
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import PyTablesTestCase as TestCase
 from tables.utils import byteorders
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 
 class C:
     c = (3, 4.5)
 
 
-class BasicTestCase(unittest.TestCase):
+class BasicTestCase(TestCase):
     compress = 0
     complib = "zlib"
     shuffle = 0
@@ -334,7 +335,7 @@ class AllFiltersTestCase(BasicTestCase):
     fletcher32 = 1
 
 
-class TypesTestCase(unittest.TestCase):
+class TypesTestCase(TestCase):
     mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
@@ -1595,7 +1596,7 @@ class TypesNoReopenTestCase(TypesTestCase):
     reopen = False
 
 
-class MDTypesTestCase(unittest.TestCase):
+class MDTypesTestCase(TestCase):
     mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
@@ -1941,7 +1942,7 @@ class MDTypesNumPyTestCase(MDTypesTestCase):
     title = "MDTypes"
 
 
-class AppendShapeTestCase(unittest.TestCase):
+class AppendShapeTestCase(TestCase):
     mode = "w"
 
     def setUp(self):
@@ -2142,7 +2143,7 @@ class CloseAppendShapeTestCase(AppendShapeTestCase):
     close = 1
 
 
-class FlavorTestCase(unittest.TestCase):
+class FlavorTestCase(TestCase):
     mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
@@ -2449,7 +2450,7 @@ class PythonFlavorTestCase(FlavorTestCase):
     flavor = "python"
 
 
-class ReadRangeTestCase(unittest.TestCase):
+class ReadRangeTestCase(TestCase):
     nrows = 100
     mode = "w"
     compress = 0
@@ -2867,7 +2868,7 @@ class ReadRangeTestCase(unittest.TestCase):
             self.fail("expected a IndexError and got:\n%s" % value)
 
 
-class GetItemRangeTestCase(unittest.TestCase):
+class GetItemRangeTestCase(TestCase):
     nrows = 100
     mode = "w"
     compress = 0
@@ -3213,7 +3214,7 @@ class GetItemRangeTestCase(unittest.TestCase):
             self.fail("expected a IndexError and got:\n%s" % value)
 
 
-class SetRangeTestCase(unittest.TestCase):
+class SetRangeTestCase(TestCase):
     nrows = 100
     mode = "w"
     compress = 0
@@ -3503,7 +3504,7 @@ class SetRangeTestCase(unittest.TestCase):
             self.fail("expected a ValueError and got:\n%s" % value)
 
 
-class CopyTestCase(unittest.TestCase):
+class CopyTestCase(TestCase):
     close = True
 
     def test01a_copy(self):
@@ -3912,7 +3913,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
-class CopyIndexTestCase(unittest.TestCase):
+class CopyIndexTestCase(TestCase):
 
     def test01_index(self):
         """Checking VLArray.copy() method with indexes."""
@@ -4050,7 +4051,7 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     step = 1
 
 
-class ChunkshapeTestCase(unittest.TestCase):
+class ChunkshapeTestCase(TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp('.h5')
@@ -4083,7 +4084,7 @@ class ChunkshapeTestCase(unittest.TestCase):
         self.assertEqual(vla.chunkshape, (13,))
 
 
-class VLUEndianTestCase(common.PyTablesTestCase):
+class VLUEndianTestCase(TestCase):
     def test(self):
         """Accessing ``vlunicode`` data of a different endianness."""
         h5fname = self._testFilename('vlunicode_endian.h5')
@@ -4097,7 +4098,7 @@ class VLUEndianTestCase(common.PyTablesTestCase):
             h5f.close()
 
 
-class TruncateTestCase(unittest.TestCase):
+class TruncateTestCase(TestCase):
 
     def setUp(self):
         # Create an instance of an HDF5 Table
@@ -4216,7 +4217,7 @@ class TruncateCloseTestCase(TruncateTestCase):
     close = 1
 
 
-class PointSelectionTestCase(common.PyTablesTestCase):
+class PointSelectionTestCase(TestCase):
 
     def setUp(self):
 
@@ -4283,7 +4284,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             self.assertRaises(IndexError, vlarr.__getitem__, key)
 
 
-class SizeInMemoryPropertyTestCase(unittest.TestCase):
+class SizeInMemoryPropertyTestCase(TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
@@ -4351,7 +4352,7 @@ class SizeInMemoryPropertyTestCase(unittest.TestCase):
         self.assertEqual(self.array.size_in_memory, expected_size)
 
 
-class SizeOnDiskPropertyTestCase(unittest.TestCase):
+class SizeOnDiskPropertyTestCase(TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
@@ -4376,7 +4377,7 @@ class SizeOnDiskPropertyTestCase(unittest.TestCase):
                           'size_on_disk')
 
 
-class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
@@ -4401,7 +4402,7 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedNodeError, self.array.append, 'xxxxxxxxx')
 
 
-class TestCreateVLArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
+class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
     obj = numpy.array([1, 2, 3])
     where = '/'
     name = 'vlarray'

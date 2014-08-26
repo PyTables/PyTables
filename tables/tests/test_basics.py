@@ -24,6 +24,7 @@ import tables.flavor
 from tables import *
 from tables.flavor import all_flavors, array_of_flavor
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 from tables.parameters import NODE_CACHE_SLOTS
 from tables.description import descr_from_dtype, dtype_from_descr
 
@@ -31,7 +32,7 @@ from tables.description import descr_from_dtype, dtype_from_descr
 unittest.TestCase.tearDown = common.cleanup
 
 
-class OpenFileFailureTestCase(common.PyTablesTestCase):
+class OpenFileFailureTestCase(TestCase):
     def setUp(self):
         import tables.file
 
@@ -85,7 +86,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
         os.remove(filename)
 
 
-class OpenFileTestCase(common.PyTablesTestCase):
+class OpenFileTestCase(TestCase):
 
     def setUp(self):
         # Create an HDF5 file
@@ -1541,7 +1542,7 @@ class DictNodeCacheOpenFile(OpenFileTestCase):
     node_cache_slots = -NODE_CACHE_SLOTS
 
 
-class CheckFileTestCase(common.PyTablesTestCase):
+class CheckFileTestCase(TestCase):
 
     def test00_isHDF5File(self):
         """Checking is_hdf5_file function (TRUE case)"""
@@ -1784,7 +1785,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         fileh.close()
 
 
-class ThreadingTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class ThreadingTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
         super(ThreadingTestCase, self).setUp()
         self.h5file.create_carray('/', 'test_array', tables.Int64Atom(),
@@ -1829,7 +1830,7 @@ class ThreadingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             t.join()
 
 
-class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class PythonAttrsTestCase(common.TempFileMixin, TestCase):
 
     """Test interactions of Python attributes and child nodes."""
 
@@ -1928,7 +1929,7 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           delattr, root, 'array')
 
 
-class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class StateTestCase(common.TempFileMixin, TestCase):
 
     """Test that ``File`` and ``Node`` operations check their state (open or
     closed, readable or writable) before proceeding."""
@@ -2226,7 +2227,7 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             file2.close()
 
 
-class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class FlavorTestCase(common.TempFileMixin, TestCase):
 
     """Test that setting, getting and changing the ``flavor`` attribute of a
     leaf works as expected."""
@@ -2337,7 +2338,7 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tables.flavor.description_map.update(description_map)
 
 
-class UnicodeFilename(common.PyTablesTestCase):
+class UnicodeFilename(TestCase):
     unicode_prefix = u'para\u0140lel'
 
     def setUp(self):
@@ -2398,7 +2399,7 @@ class UnicodeFilename(common.PyTablesTestCase):
         group = self.h5file.create_group(root, 'vertex_data')
 
 
-class FilePropertyTestCase(common.PyTablesTestCase):
+class FilePropertyTestCase(TestCase):
     def setUp(self):
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = None
@@ -2471,7 +2472,7 @@ class FilePropertyTestCase(common.PyTablesTestCase):
 
 
 # Test for reading a file that uses Blosc and created on a big-endian platform
-class BloscBigEndian(common.PyTablesTestCase):
+class BloscBigEndian(TestCase):
 
     def setUp(self):
         filename = self._testFilename("blosc_bigendian.h5")
@@ -2511,7 +2512,7 @@ def _worker(fn, qout=None):
         qout.put("Done")
 
 
-class BloscSubprocess(common.PyTablesTestCase):
+class BloscSubprocess(TestCase):
     def test_multiprocess(self):
         # From: Yaroslav Halchenko <debian@onerussian.com>
         # Subject: Skip the unittest on kFreeBSD and Hurd -- locking seems to
@@ -2559,7 +2560,7 @@ class BloscSubprocess(common.PyTablesTestCase):
         os.remove(fn)
 
 
-class HDF5ErrorHandling(common.PyTablesTestCase):
+class HDF5ErrorHandling(TestCase):
 
     def setUp(self):
         self._old_policy = tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY
@@ -2662,7 +2663,7 @@ except tables.HDF5ExtError as e:
             self.fail("HDF5ExtError exception not raised")
 
 
-class TestDescription(common.PyTablesTestCase):
+class TestDescription(TestCase):
     def test_isdescription_inheritance(self):
         # Regression test for gh-65
         class TestDescParent(IsDescription):
@@ -2823,7 +2824,7 @@ class TestDescription(common.PyTablesTestCase):
             self.assertTrue(sorted(descr._v_dtype.fields.keys()), sorted(keys))
 
 
-class TestAtom(common.PyTablesTestCase):
+class TestAtom(TestCase):
     def test_atom_attributes01(self):
         shape = (10, 10)
         a = Float64Atom(shape=shape)
@@ -2860,7 +2861,7 @@ class TestAtom(common.PyTablesTestCase):
         self.assertEqual(aa.dflt, -dflt)
 
 
-class TestCol(common.PyTablesTestCase):
+class TestCol(TestCase):
     def test_col_copy01(self):
         shape = (10, 10)
         c = Float64Col(shape=shape)
@@ -2885,7 +2886,7 @@ class TestCol(common.PyTablesTestCase):
         self.assertEqual(cc._v_pos, 2)
 
 
-class TestSysattrCompatibility(common.PyTablesTestCase):
+class TestSysattrCompatibility(TestCase):
 
     def test_open_python2(self):
         filename = self._testFilename("python2.h5")

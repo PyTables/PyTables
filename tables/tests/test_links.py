@@ -19,10 +19,11 @@ import unittest
 
 import tables
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Test for hard links
-class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class HardLinkTestCase(common.TempFileMixin, TestCase):
 
     def _createFile(self):
         self.h5file.create_array('/', 'arr1', [1, 2])
@@ -100,7 +101,7 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 # Test for soft links
-class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
     def _createFile(self):
         self.h5file.create_array('/', 'arr1', [1, 2])
@@ -312,7 +313,7 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 # Test for external links
-class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class ExternalLinkTestCase(common.TempFileMixin, TestCase):
 
     def tearDown(self):
         """Remove ``extfname``."""

@@ -14,10 +14,11 @@ from tables.idxutils import calc_chunksize
 from tables.exceptions import OldIndexWarning
 from tables.tests import common
 from tables.tests.common import (verbose, allequal, heavy, cleanup,
-    PyTablesTestCase, TempFileMixin)
+    TempFileMixin)
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+TestCase.tearDown = cleanup
 
 
 # Sensible parameters for indexing with small blocksizes
@@ -32,7 +33,7 @@ class TDescr(IsDescription):
     var4 = FloatCol(dflt=0, pos=4)
 
 
-class BasicTestCase(PyTablesTestCase):
+class BasicTestCase(TestCase):
     compress = 0
     complib = "zlib"
     shuffle = 0
@@ -813,7 +814,7 @@ class LowerBoundTestCase(BasicTestCase):
     nrows = small_ss * 2-1
 
 
-class DeepTableIndexTestCase(unittest.TestCase):
+class DeepTableIndexTestCase(TestCase):
     nrows = minRowIndex
 
     def test01(self):
@@ -975,7 +976,7 @@ ChangeFiltersProps = IndexProps(
                     shuffle=False, fletcher32=False))
 
 
-class AutomaticIndexingTestCase(unittest.TestCase):
+class AutomaticIndexingTestCase(TestCase):
     reopen = 1
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
@@ -1629,7 +1630,7 @@ class AI12TestCase(AutomaticIndexingTestCase):
     colsToIndex = ['var1', 'var2', 'var3']
 
 
-class ManyNodesTestCase(PyTablesTestCase):
+class ManyNodesTestCase(TestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
@@ -1661,7 +1662,7 @@ class ManyNodesTestCase(PyTablesTestCase):
         cleanup(self)
 
 
-class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
+class IndexPropsChangeTestCase(TempFileMixin, TestCase):
     """Test case for changing index properties in a table."""
 
     class MyDescription(IsDescription):
@@ -1696,7 +1697,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(oldtable.autoindex, newtable.autoindex)
 
 
-class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
+class IndexFiltersTestCase(TempFileMixin, TestCase):
     """Test case for setting index filters."""
 
     def setUp(self):
@@ -1750,7 +1751,7 @@ class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(ni.filters, filters)
 
 
-class OldIndexTestCase(PyTablesTestCase):
+class OldIndexTestCase(TestCase):
 
     def test1_x(self):
         """Check that files with 1.x indexes are recognized and warned."""
@@ -1764,7 +1765,7 @@ class OldIndexTestCase(PyTablesTestCase):
 small_blocksizes = (512, 128, 32, 8)
 
 
-class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
+class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
     """Test case for testing a complete sort in a table."""
 
     nrows = 100
@@ -2284,7 +2285,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(t2.colindexes['rcol'].is_csi, False)
 
 
-class ReadSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
+class ReadSortedIndexTestCase(TempFileMixin, TestCase):
     """Test case for testing sorted reading in a "full" sorted column."""
 
     nrows = 100
@@ -2382,7 +2383,7 @@ class ReadSortedIndex9(ReadSortedIndexTestCase):
     optlevel = 9
 
 
-class Issue156TestBase(PyTablesTestCase):
+class Issue156TestBase(TestCase):
     # field name in table according to which test_copysort() sorts the table
     sort_field = None
 
@@ -2450,7 +2451,7 @@ class Issue156TestCase02(Issue156TestBase):
     sort_field = 'Bar/code'
 
 
-class Issue119Time32ColTestCase(PyTablesTestCase):
+class Issue119Time32ColTestCase(TestCase):
     """TimeCol not properly indexing."""
 
     col_typ = Time32Col
@@ -2505,7 +2506,7 @@ class Issue119Time64ColTestCase(Issue119Time32ColTestCase):
     col_typ = Time64Col
 
 
-class TestIndexingNans(TempFileMixin, PyTablesTestCase):
+class TestIndexingNans(TempFileMixin, TestCase):
     def test_issue_282(self):
         trMap = {'index': Int64Col(), 'values': FloatCol()}
         table = self.h5file.create_table('/', 'table', trMap)

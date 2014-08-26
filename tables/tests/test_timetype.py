@@ -22,12 +22,13 @@ import numpy
 import tables
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
 
 
-class LeafCreationTestCase(common.PyTablesTestCase):
+class LeafCreationTestCase(TestCase):
     "Tests creating Tables, VLArrays an EArrays with Time data."
 
     def setUp(self):
@@ -95,7 +96,7 @@ class LeafCreationTestCase(common.PyTablesTestCase):
             '/', 'earray8', tables.Time64Atom(), shape=(0, 2, 1))
 
 
-class OpenTestCase(common.PyTablesTestCase):
+class OpenTestCase(TestCase):
     "Tests opening a file with Time nodes."
 
     # The description used in the test Table.
@@ -202,7 +203,7 @@ class OpenTestCase(common.PyTablesTestCase):
         h5file.close()
 
 
-class CompareTestCase(common.PyTablesTestCase):
+class CompareTestCase(TestCase):
     "Tests whether stored and retrieved time data is kept the same."
 
     # The description used in the test Table.
@@ -427,7 +428,7 @@ class CompareTestCase(common.PyTablesTestCase):
                         "Stored and retrieved values do not match.")
 
 
-class UnalignedTestCase(common.PyTablesTestCase):
+class UnalignedTestCase(TestCase):
     "Tests writing and reading unaligned time values in a table."
 
     # The description used in the test Table.
@@ -508,7 +509,7 @@ class UnalignedTestCase(common.PyTablesTestCase):
                         "Stored and retrieved values do not match.")
 
 
-class BigEndianTestCase(common.PyTablesTestCase):
+class BigEndianTestCase(TestCase):
     "Tests for reading big-endian time values in arrays and nested tables."
 
     def setUp(self):

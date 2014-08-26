@@ -12,9 +12,10 @@ from tables import *
 from tables import Group, Leaf, Table, Array
 
 from tables.tests import common
+from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 # Test Record class
 
@@ -27,7 +28,7 @@ class Record(IsDescription):
     var5 = Float32Col()          # float  (single-precision)
 
 
-class TreeTestCase(unittest.TestCase):
+class TreeTestCase(TestCase):
     mode = "w"
     title = "This is the table title"
     expectedrows = 10
@@ -509,7 +510,7 @@ class TreeTestCase(unittest.TestCase):
             print("walk_nodes(pathname, classname) test passed")
 
 
-class DeepTreeTestCase(unittest.TestCase):
+class DeepTreeTestCase(TestCase):
     """Checks for deep hierarchy levels in PyTables trees."""
 
     def setUp(self):
@@ -629,7 +630,7 @@ class DeepTreeTestCase(unittest.TestCase):
         os.remove(file2)
 
 
-class WideTreeTestCase(unittest.TestCase):
+class WideTreeTestCase(TestCase):
     """Checks for maximum number of children for a Group."""
 
     def test00_Leafs(self):
@@ -759,7 +760,7 @@ class WideTreeTestCase(unittest.TestCase):
         os.remove(file)
 
 
-class HiddenTreeTestCase(unittest.TestCase):
+class HiddenTreeTestCase(TestCase):
 
     """Check for hidden groups, leaves and hierarchies."""
 
@@ -960,7 +961,7 @@ class HiddenTreeTestCase(unittest.TestCase):
         self.assertFalse('/g/_p_a' in self.h5file)
 
 
-class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     """Test the ``createparents`` flag.
 
