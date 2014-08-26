@@ -35,6 +35,9 @@ Improvements
   with PyTables.
 - The redundant :func:`utilsextension.get_indices` function has been 
   eliminated (replaced by :meth:`slice.indices`). Closes :issue:`195`.
+- Allow negative indices in point selection (closes :issue:`360`)
+- Index wasn't being used if it claimed there were no results.
+  Closes :issue:`351` (see also :issue:`353`)
 
 
 Bugs fixed
@@ -52,6 +55,13 @@ Bugs fixed
   Closes :issue:`381`.
 - Fixed the :class:`tests.test_basics.ThreadingTestCase` test case.
   Closes :issue:`359`.
+- Fix incomplete results when performing the same query twice and exhausting
+  the second iterator before the first. The first one writes incomplete
+  results to *seqcache* (:issue:`353`)
+- Fix false results potentially going to *seqcache* if
+  :meth:`tableextension.Row.update` is used during iteration
+  (see :issue:`353`)
+- Fix :meth:`Column.create_csindex` when there's NaNs
 
 
 Changes from 3.1.0 to 3.1.1
