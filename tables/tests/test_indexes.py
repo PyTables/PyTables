@@ -9,9 +9,10 @@ import copy
 from tables import *
 from tables.index import Index, default_auto_index, default_index_filters
 from tables.idxutils import calc_chunksize
-from tables.tests.common import verbose, allequal, heavy, cleanup, \
-    PyTablesTestCase, TempFileMixin
 from tables.exceptions import OldIndexWarning
+from tables.tests import common
+from tables.tests.common import (verbose, allequal, heavy, cleanup,
+    PyTablesTestCase, TempFileMixin)
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -2648,5 +2649,7 @@ def suite():
 
     return theSuite
 
+
 if __name__ == '__main__':
+    common.print_versions()
     unittest.main(defaultTest='suite')

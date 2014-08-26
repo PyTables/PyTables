@@ -242,4 +242,5 @@ def suite():
 
 
 if __name__ == '__main__':
+    common.print_versions()
     unittest.main(defaultTest='suite')

@@ -66,6 +66,7 @@ Bugs fixed
 
   * :func:`print_versions` and :func:`tests.common.print_heavy` functions
      moved to the :mod:`tests.common` module
+  * always use :func:`print_versions` when test modules are called as scripts
 
 
 Changes from 3.1.0 to 3.1.1
