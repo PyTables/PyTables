@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import sys
-import unittest
 import os
+import sys
 import tempfile
+import unittest
 import warnings
 
 from tables import *

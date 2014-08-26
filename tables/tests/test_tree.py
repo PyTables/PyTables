@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import sys
-import warnings
-import unittest
 import os
+import sys
 import tempfile
+import unittest
+import warnings
 
 from tables import *
 # Next imports are only necessary for this test suite

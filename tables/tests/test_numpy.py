@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import sys
-import unittest
 import os
+import sys
 import tempfile
-import numpy
+import unittest
 
+import numpy
 from numpy import *
 
 from tables import *

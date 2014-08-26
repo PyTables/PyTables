@@ -1,11 +1,10 @@
 # -*- coding: latin-1 -*-
 
 from __future__ import print_function
-import sys
-import unittest
 import os
+import sys
 import tempfile
-#import cPickle
+import unittest
 
 import numpy
 import numpy.testing as npt

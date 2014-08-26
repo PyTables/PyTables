@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import sys
-import unittest
 import os
+import sys
 import tempfile
+import unittest
 
 from tables import *
 from tables.tests import common

@@ -12,10 +12,10 @@
 
 """Test module for compatibility with plain HDF files."""
 
-import unittest
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
+import unittest
 
 import numpy
 

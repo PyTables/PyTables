@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import unittest
 import os
-import tempfile
 import copy
+import tempfile
+import unittest
+
+import numpy
 
 from tables import *
 from tables.index import Index, default_auto_index, default_index_filters
@@ -16,8 +18,6 @@ from tables.tests.common import (verbose, allequal, heavy, cleanup,
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
-
-import numpy
 
 
 # Sensible parameters for indexing with small blocksizes

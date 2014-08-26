@@ -5,8 +5,8 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
-import unittest
 import warnings
+import unittest
 
 import numpy
 from numpy import testing as npt

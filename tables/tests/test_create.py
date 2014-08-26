@@ -15,12 +15,13 @@ from __future__ import print_function
 import os
 import sys
 import hashlib
-import unittest
 import tempfile
+import unittest
 import warnings
 
 import numpy
 
+import tables
 from tables import *
 # important objects to test
 from tables import Group, Leaf, Table, Array, hdf5_version
@@ -29,7 +30,6 @@ from tables.parameters import MAX_COLUMNS
 from tables.hdf5extension import HAVE_DIRECT_DRIVER, HAVE_WINDOWS_DRIVER
 from tables.utils import quantize
 
-import tables
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup

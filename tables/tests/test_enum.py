@@ -12,8 +12,8 @@
 
 """Test module for enumerated types under PyTables."""
 
-import unittest
 import operator
+import unittest
 import itertools
 
 import tables

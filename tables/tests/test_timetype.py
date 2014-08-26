@@ -13,9 +13,9 @@
 """Unit test for the Time datatypes."""
 
 from __future__ import print_function
-import unittest
-import tempfile
 import os
+import tempfile
+import unittest
 
 import numpy
 

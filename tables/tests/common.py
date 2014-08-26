@@ -22,7 +22,6 @@ import platform
 import tempfile
 import unittest
 import warnings
-import os.path
 
 import numpy
 import numexpr

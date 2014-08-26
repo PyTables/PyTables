@@ -19,8 +19,8 @@ all the tests.
 """
 
 from __future__ import print_function
-import unittest
 import gc
+import unittest
 
 from tables.tests import common
 
