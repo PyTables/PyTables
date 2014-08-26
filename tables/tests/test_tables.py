@@ -4,7 +4,6 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
-import unittest
 import warnings
 
 import numpy as np
@@ -16,6 +15,7 @@ from tables import *
 from tables.utils import SizeType, byteorders
 from tables.tests import common
 from tables.tests.common import allequal, areArraysEqual
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
 
@@ -23,8 +23,6 @@ from tables.description import descr_from_dtype
 TestCase.tearDown = common.cleanup
 
 # Test Record class
-
-
 class Record(IsDescription):
     var1 = StringCol(itemsize=4, dflt=b"abcd", pos=0)  # 4-character String
     var2 = IntCol(dflt=1, pos=1)                   # integer

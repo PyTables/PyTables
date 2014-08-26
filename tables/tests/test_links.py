@@ -15,10 +15,10 @@
 from __future__ import print_function
 import os
 import tempfile
-import unittest
 
 import tables
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 

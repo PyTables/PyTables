@@ -4,10 +4,10 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
-import unittest
 
 from tables import *
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically

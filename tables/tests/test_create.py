@@ -16,7 +16,6 @@ import os
 import sys
 import hashlib
 import tempfile
-import unittest
 import warnings
 
 import numpy
@@ -26,6 +25,7 @@ from tables import *
 # important objects to test
 from tables import Group, Leaf, Table, Array, hdf5_version
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.parameters import MAX_COLUMNS
 from tables.hdf5extension import HAVE_DIRECT_DRIVER, HAVE_WINDOWS_DRIVER

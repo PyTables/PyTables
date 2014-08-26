@@ -15,13 +15,13 @@
 from __future__ import print_function
 import os
 import tempfile
-import unittest
 
 import numpy
 
 import tables
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically

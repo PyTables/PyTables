@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import unittest
 
 from tables import *
 from tables.tests import common
 from tables.tests.common import verbose, cleanup
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 

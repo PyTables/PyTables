@@ -5,7 +5,6 @@
 from __future__ import print_function
 import os
 import sys
-import unittest
 import tempfile
 from distutils.version import LooseVersion
 
@@ -15,6 +14,7 @@ from numpy.testing import assert_array_equal, assert_almost_equal
 from tables.parameters import NODE_CACHE_SLOTS
 from tables import *
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.exceptions import DataTypeWarning
 
@@ -1691,7 +1691,7 @@ class UnsupportedAttrTypeTestCase(TestCase):
 
         filename = self._testFilename('attr-u16.h5')
         fileh = open_file(filename)
-        self.failUnlessWarns(DataTypeWarning, repr, fileh)
+        self.assertWarns(DataTypeWarning, repr, fileh)
         fileh.close()
 
 

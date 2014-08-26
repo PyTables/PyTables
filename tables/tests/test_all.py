@@ -4,13 +4,13 @@
 
 from __future__ import print_function
 import sys
-import unittest
 
 import numpy
 
 import tables
 from tables.req_versions import min_hdf5_version, min_numpy_version
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import print_heavy, print_versions
 
 

@@ -6,7 +6,6 @@ import os
 import sys
 import tempfile
 import warnings
-import unittest
 
 import numpy
 from numpy import testing as npt
@@ -16,6 +15,7 @@ from tables import *
 from tables.tests import common
 from tables.utils import byteorders
 from tables.tests.common import allequal
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically

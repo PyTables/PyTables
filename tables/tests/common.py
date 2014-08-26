@@ -20,8 +20,17 @@ import time
 import locale
 import platform
 import tempfile
-import unittest
 import warnings
+
+try:
+    import unittest2 as unittest
+except ImportError:
+    if sys.version_info < (2, 7):
+        raise
+    else:
+        import unittest
+
+SkipTest = unittest.SkipTest
 
 import numpy
 import numexpr
@@ -238,31 +247,8 @@ def pyTablesTest(oldmethod):
     return newmethod
 
 
-class SkipTest(Exception):
-    """When this exception is raised, the test is skipped successfully."""
-    pass
-
-
-class MetaPyTablesTestCase(type):
-
-    """Metaclass for PyTables test case classes."""
-
-    # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/198078
-
-    def __new__(class_, name, bases, dict_):
-        newdict = {}
-        for (aname, avalue) in dict_.iteritems():
-            if callable(avalue) and aname.startswith('test'):
-                avalue = pyTablesTest(avalue)
-            newdict[aname] = avalue
-        return type.__new__(class_, name, bases, newdict)
-
-
 class PyTablesTestCase(unittest.TestCase):
-
     """Abstract test case with useful methods."""
-
-    __metaclass__ = MetaPyTablesTestCase
 
     def _getName(self):
         """Get the name of this test case."""
@@ -296,87 +282,63 @@ class PyTablesTestCase(unittest.TestCase):
         dirname = os.path.dirname(modfile)
         return os.path.join(dirname, filename)
 
-    def failUnlessWarns(self, warnClass, callableObj, *args, **kwargs):
-        """Fail unless a warning of class `warnClass` is issued.
+    # COMPATIBILITY: assertWarns is new in Python 3.2
+    if not hasattr(unittest.TestCase, 'assertWarns'):
+        def assertWarns(self, warnClass, callableObj, *args, **kwargs):
+            """Fail unless a warning of class `warnClass` is issued.
 
-        This method will fail if no warning belonging to the given
-        `warnClass` is issued when invoking `callableObj` with arguments
-        `args` and keyword arguments `kwargs`.  Warnings of the
-        `warnClass` are hidden, while others are shown.
+            This method will fail if no warning belonging to the given
+            `warnClass` is issued when invoking `callableObj` with arguments
+            `args` and keyword arguments `kwargs`.  Warnings of the
+            `warnClass` are hidden, while others are shown.
 
-        This method returns the value returned by the call to
-        `callableObj`.
+            This method returns the value returned by the call to
+            `callableObj`.
 
-        """
+            """
 
-        issued = [False]  # let's avoid scoping problems ;)
+            issued = [False]  # let's avoid scoping problems ;)
 
-        # Save the original warning-showing function.
-        showwarning = warnings.showwarning
+            # Save the original warning-showing function.
+            showwarning = warnings.showwarning
 
-        # This warning-showing function hides and takes note
-        # of expected warnings and acts normally on others.
-        def myShowWarning(message, category, filename, lineno,
-                          file=None, line=None):
-            if issubclass(category, warnClass):
-                issued[0] = True
-                verbosePrint(
-                    "Great!  The following ``%s`` was caught::\n"
-                    "\n"
-                    "  %s\n"
-                    "\n"
-                    "In file ``%s``, line number %d.\n"
-                    % (category.__name__, message, filename, lineno))
-            else:
-                showwarning(message, category, filename, lineno, file, line)
+            # This warning-showing function hides and takes note
+            # of expected warnings and acts normally on others.
+            def myShowWarning(message, category, filename, lineno,
+                              file=None, line=None):
+                if issubclass(category, warnClass):
+                    issued[0] = True
+                    verbosePrint(
+                        "Great!  The following ``%s`` was caught::\n"
+                        "\n"
+                        "  %s\n"
+                        "\n"
+                        "In file ``%s``, line number %d.\n"
+                        % (category.__name__, message, filename, lineno))
+                else:
+                    showwarning(message, category, filename, lineno, file, line)
 
-        # By forcing Python to always show warnings of the wanted class,
-        # and replacing the warning-showing function with a tailored one,
-        # we can check for *every* occurence of the warning.
-        warnings.filterwarnings('always', category=warnClass)
-        warnings.showwarning = myShowWarning
-        try:
-            # Run code and see what happens.
-            ret = callableObj(*args, **kwargs)
-        finally:
-            # Restore the original warning-showing function
-            # and warning filter.
-            warnings.showwarning = showwarning
-            warnings.filterwarnings('default', category=warnClass)
+            # By forcing Python to always show warnings of the wanted class,
+            # and replacing the warning-showing function with a tailored one,
+            # we can check for *every* occurence of the warning.
+            warnings.filterwarnings('always', category=warnClass)
+            warnings.showwarning = myShowWarning
+            try:
+                # Run code and see what happens.
+                ret = callableObj(*args, **kwargs)
+            finally:
+                # Restore the original warning-showing function
+                # and warning filter.
+                warnings.showwarning = showwarning
+                warnings.filterwarnings('default', category=warnClass)
 
-        if not issued[0]:
-            raise self.failureException(
-                "``%s`` was not issued" % warnClass.__name__)
+            if not issued[0]:
+                raise self.failureException(
+                    "``%s`` was not issued" % warnClass.__name__)
 
-        # We only get here if the call to `callableObj` was successful
-        # and it issued the expected warning.
-        return ret
-
-    assertWarns = failUnlessWarns
-
-    def failUnlessRaises(self, excClass, callableObj, *args, **kwargs):
-        if not verbose:
-            # Use the ordinary implementation from `unittest.TestCase`.
-            return super(PyTablesTestCase, self).assertRaises(
-                excClass, callableObj, *args, **kwargs)
-
-        try:
-            callableObj(*args, **kwargs)
-        except excClass as exc:
-            print((
-                "Great!  The following ``%s`` was caught::\n"
-                "\n"
-                "  %s\n"
-                % (exc.__class__.__name__, exc)))
-        else:
-            if isinstance(excClass, tuple):
-                name = ', '.join(eclass.__name__ for eclass in excClass)
-            else:
-                name = excClass.__name__
-            raise self.failureException(
-                "``%s`` was not raised" % name)
-
-    assertRaises = failUnlessRaises
+            # We only get here if the call to `callableObj` was successful
+            # and it issued the expected warning.
+            return ret
 
     def _checkEqualityGroup(self, node1, node2, hardlink=False):
         if verbose:

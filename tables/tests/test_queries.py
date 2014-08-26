@@ -15,13 +15,13 @@
 import re
 import sys
 import types
-import unittest
 
 import numpy
 
 import tables
 from tables.utils import SizeType
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import verbosePrint as vprint
 from tables.tests.common import PyTablesTestCase as TestCase
 

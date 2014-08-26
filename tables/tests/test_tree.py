@@ -4,7 +4,6 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
-import unittest
 import warnings
 
 from tables import *
@@ -12,14 +11,13 @@ from tables import *
 from tables import Group, Leaf, Table, Array
 
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
 TestCase.tearDown = common.cleanup
 
 # Test Record class
-
-
 class Record(IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
     var2 = IntCol()              # integer

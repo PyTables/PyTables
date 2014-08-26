@@ -1,5 +1,6 @@
 Installation
 ============
+
 .. epigraph::
 
     Make things as simple as possible, but not any simpler.
@@ -21,6 +22,7 @@ binary packages for Windows at his site.
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _Canopy: https://www.enthought.com/products/canopy/
 .. _`Christoph Gohlke`: http://www.lfd.uci.edu/~gohlke/pythonlibs/
+
 
 Installation from source
 ------------------------
@@ -55,6 +57,7 @@ First, make sure that you have
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the :option:`--blosc` flag of the :file:`setup.py`)
 * argparse_ (only Python 2.6, it is used by the :program:`pt2to3` utility)
+* unittest2_ (only Python 2.6)
 
 installed (for testing purposes, we are using HDF5_ 1.8.12, NumPy_ 1.8.0
 and Numexpr_ 2.2.2 currently). If you don't, fetch and install them before
@@ -67,6 +70,7 @@ proceeding.
 .. _Cython: http://www.cython.org
 .. _c-blosc: http://blosc.org
 .. _argparse: http://code.google.com/p/argparse
+.. _unittest2: http://pypi.python.org/pypi/unittest2
 
 .. note::
 
@@ -430,6 +434,7 @@ PyTables extensions.
 Please note that PyTables has internal machinery for dealing with uninstalled
 optional compression libraries, so, you don't need to install the LZO dynamic
 library if you don't want to.
+
 
 PyTables package installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

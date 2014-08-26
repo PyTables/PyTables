@@ -13,11 +13,11 @@
 """Test module for enumerated types under PyTables."""
 
 import operator
-import unittest
 import itertools
 
 import tables
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 

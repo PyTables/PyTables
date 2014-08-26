@@ -13,12 +13,12 @@
 """Test module for evaluating expressions under PyTables."""
 
 from __future__ import print_function
-import unittest
 
 import numpy as np
 
 import tables as tb
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 # An example of record

@@ -15,7 +15,6 @@
 
 from __future__ import print_function
 import sys
-import unittest
 import itertools
 
 import numpy
@@ -23,6 +22,7 @@ import numpy
 import tables as t
 from tables.utils import SizeType
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import Description
 

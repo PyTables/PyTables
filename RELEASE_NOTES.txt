@@ -38,6 +38,18 @@ Improvements
 - Allow negative indices in point selection (closes :issue:`360`)
 - Index wasn't being used if it claimed there were no results.
   Closes :issue:`351` (see also :issue:`353`)
+- Small unit tests re-factoring:
+
+  * :func:`print_versions` and :func:`tests.common.print_heavy` functions
+     moved to the :mod:`tests.common` module
+  * always use :func:`print_versions` when test modules are called as scripts
+  * always use the internally defined :class:`tests.common.PyTablesTestCase`
+    class
+  * use the unittest2_ package in Python 2.6.x
+  * removed internal machinery used to replicate unittest2_ features
+
+
+.. _unittest2: https://pypi.python.org/pypi/unittest2
 
 
 Bugs fixed
@@ -62,13 +74,6 @@ Bugs fixed
   :meth:`tableextension.Row.update` is used during iteration
   (see :issue:`353`)
 - Fix :meth:`Column.create_csindex` when there's NaNs
-- Small unit tests re-factoring:
-
-  * :func:`print_versions` and :func:`tests.common.print_heavy` functions
-     moved to the :mod:`tests.common` module
-  * always use :func:`print_versions` when test modules are called as scripts
-  * always use the internally defined :class:`tests.common.PyTablesTestCase`
-    class
 
 
 Changes from 3.1.0 to 3.1.1

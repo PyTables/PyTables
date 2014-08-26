@@ -6,7 +6,6 @@ import sys
 import Queue
 import shutil
 import tempfile
-import unittest
 import warnings
 import threading
 import subprocess
@@ -24,12 +23,13 @@ import tables.flavor
 from tables import *
 from tables.flavor import all_flavors, array_of_flavor
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.parameters import NODE_CACHE_SLOTS
 from tables.description import descr_from_dtype, dtype_from_descr
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 
 class OpenFileFailureTestCase(TestCase):
@@ -1550,8 +1550,7 @@ class CheckFileTestCase(TestCase):
         # Create a PyTables file (and by so, an HDF5 file)
         filename = tempfile.mktemp(".h5")
         fileh = open_file(filename, mode="w")
-        fileh.create_array(fileh.root, 'array', [
-                           1, 2], title="Title example")
+        fileh.create_array(fileh.root, 'array', [1, 2], title="Title example")
 
         # For this method to run, it needs a closed file
         fileh.close()
@@ -1683,8 +1682,10 @@ class CheckFileTestCase(TestCase):
 
         h5file = open_file(self._testFilename('smpl_unsupptype.h5'))
         try:
-            node = self.assertWarns(
-                UserWarning, h5file.get_node, '/CompoundChunked')
+            self.assertWarns(UserWarning, h5file.get_node, '/CompoundChunked')
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                node = h5file.get_node('/CompoundChunked')
             self.assertTrue(isinstance(node, UnImplemented))
         finally:
             h5file.close()
@@ -1695,8 +1696,11 @@ class CheckFileTestCase(TestCase):
 
         h5file = open_file(self._testFilename("scalar.h5"))
         try:
-            node = self.assertWarns(
+            self.assertWarns(
                 UserWarning, h5file.get_node, '/variable length string')
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                node = h5file.get_node('/variable length string')
             self.assertTrue(isinstance(node, UnImplemented))
         finally:
             h5file.close()
@@ -1706,8 +1710,10 @@ class CheckFileTestCase(TestCase):
 
         # Open an existing generic HDF5 file
         fileh = open_file(self._testFilename("smpl_unsupptype.h5"), mode="r")
-        ui = self.assertWarns(
-            UserWarning, fileh.get_node, '/CompoundChunked')
+        self.assertWarns(UserWarning, fileh.get_node, '/CompoundChunked')
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            ui = fileh.get_node('/CompoundChunked')
         self.assertEqual(ui._v_name, 'CompoundChunked')
         if common.verbose:
             print("UnImplement object -->", repr(ui))
@@ -1715,24 +1721,7 @@ class CheckFileTestCase(TestCase):
         # Check that it cannot be copied to another file
         file2 = tempfile.mktemp(".h5")
         fileh2 = open_file(file2, mode="w")
-        # Force the userwarning to issue an error
-        warnings.filterwarnings("error", category=UserWarning)
-        try:
-            ui.copy(fileh2.root, "newui")
-        except UserWarning:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next UserWarning was catched:")
-                print(value)
-        else:
-            self.fail("expected an UserWarning")
-
-        # Reset the warnings
-        # Be careful with that, because this enables all the warnings
-        # on the rest of the tests!
-        # warnings.resetwarnings()
-        # better use:
-        warnings.filterwarnings("default", category=UserWarning)
+        self.assertWarns(UserWarning, ui.copy, fileh2.root, "newui")
 
         # Delete the new (empty) file
         fileh2.close()
@@ -2284,7 +2273,10 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
         self.array._v_attrs.FLAVOR = 'foobar'  # breaks flavor
         self._reopen(mode='r')
         idata = array_of_flavor(self.array_data, flavor)
-        odata = self.assertWarns(FlavorWarning, self.array.read)
+        self.assertWarns(FlavorWarning, self.array.read)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            odata = self.array.read()
         self.assertTrue(common.allequal(odata, idata, flavor))
 
     def test05_delete(self):
@@ -2729,8 +2721,10 @@ class TestDescription(TestCase):
             ('value', (d1, (1,)))
         ])
 
-        descr, byteorder = self.assertWarns(UserWarning,
-                                            descr_from_dtype, d_comp)
+        self.assertWarns(UserWarning, descr_from_dtype, d_comp)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            descr, byteorder = descr_from_dtype(d_comp)
 
         self.assertTrue(descr._v_is_nested)
         self.assertTrue('time' in descr._v_colobjects)

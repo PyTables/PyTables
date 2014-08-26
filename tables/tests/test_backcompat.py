@@ -4,7 +4,6 @@ from __future__ import print_function
 import os
 import shutil
 import tempfile
-import unittest
 import warnings
 
 import numpy
@@ -13,13 +12,13 @@ from tables import *
 from tables.exceptions import FlavorWarning
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+TestCase.tearDown = common.cleanup
 
 # Check read Tables from pytables version 0.8
-
 
 class BackCompatTablesTestCase(TestCase):
 
@@ -188,8 +187,8 @@ class OldFlavorsTestCase01(TestCase):
         fileh = open_file(tmpfile, "r+")
 
         # Copy to another location
-        self.failUnlessWarns(FlavorWarning,
-                             fileh.root.array1.copy, '/', 'array1copy')
+        self.assertWarns(FlavorWarning,
+                         fileh.root.array1.copy, '/', 'array1copy')
         fileh.root.array2.copy('/', 'array2copy')
         fileh.root.carray1.copy('/', 'carray1copy')
         fileh.root.carray2.copy('/', 'carray2copy')

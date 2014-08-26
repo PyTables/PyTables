@@ -4,7 +4,6 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
-import unittest
 
 import numpy
 import numpy.testing as npt
@@ -13,8 +12,10 @@ import tables
 from tables import *
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.utils import byteorders
+
 
 # To delete the internal attributes automagically
 TestCase.tearDown = common.cleanup

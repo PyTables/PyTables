@@ -4,7 +4,6 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
-import unittest
 
 import numpy as np
 from numpy import rec as records
@@ -12,6 +11,7 @@ from numpy import rec as records
 from tables import *
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
 
@@ -22,8 +22,6 @@ TestCase.tearDown = common.cleanup
 # to ease the comparison with structured arrays.
 
 # Test Record class
-
-
 class Record(IsDescription):
     var0 = StringCol(itemsize=4, dflt=b"", shape=2)  # 4-character string array
     var1 = StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2))

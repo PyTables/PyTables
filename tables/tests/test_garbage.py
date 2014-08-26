@@ -20,9 +20,9 @@ all the tests.
 
 from __future__ import print_function
 import gc
-import unittest
 
 from tables.tests import common
+from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
