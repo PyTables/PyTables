@@ -14,15 +14,21 @@
 
 from __future__ import print_function
 import os
+import re
 import sys
 import time
-import unittest
+import locale
+import platform
 import tempfile
+import unittest
 import warnings
 import os.path
 
 import numpy
+import numexpr
+
 import tables
+from tables.utils import detect_number_of_cores
 
 verbose = False
 """Show detailed output of the testing process."""
@@ -44,6 +50,73 @@ if 'silent' in sys.argv:  # take care of old flag, just in case
 if '--heavy' in sys.argv:
     heavy = True
     sys.argv.remove('--heavy')
+
+
+def print_heavy(heavy):
+    if heavy:
+        print("""Performing the complete test suite!""")
+    else:
+        print("""\
+Performing only a light (yet comprehensive) subset of the test suite.
+If you want a more complete test, try passing the --heavy flag to this script
+(or set the 'heavy' parameter in case you are using tables.test() call).
+The whole suite will take more than 4 hours to complete on a relatively
+modern CPU and around 512 MB of main memory.""")
+    print('-=' * 38)
+
+
+def print_versions():
+    """Print all the versions of software that PyTables relies on."""
+
+    print('-=' * 38)
+    print("PyTables version:  %s" % tables.__version__)
+    print("HDF5 version:      %s" % tables.which_lib_version("hdf5")[1])
+    print("NumPy version:     %s" % numpy.__version__)
+    tinfo = tables.which_lib_version("zlib")
+    if numexpr.use_vml:
+        # Get only the main version number and strip out all the rest
+        vml_version = numexpr.get_vml_version()
+        vml_version = re.findall("[0-9.]+", vml_version)[0]
+        vml_avail = "using VML/MKL %s" % vml_version
+    else:
+        vml_avail = "not using Intel's VML/MKL"
+    print("Numexpr version:   %s (%s)" % (numexpr.__version__, vml_avail))
+    if tinfo is not None:
+        print("Zlib version:      %s (%s)" % (tinfo[1],
+                                              "in Python interpreter"))
+    tinfo = tables.which_lib_version("lzo")
+    if tinfo is not None:
+        print("LZO version:       %s (%s)" % (tinfo[1], tinfo[2]))
+    tinfo = tables.which_lib_version("bzip2")
+    if tinfo is not None:
+        print("BZIP2 version:     %s (%s)" % (tinfo[1], tinfo[2]))
+    tinfo = tables.which_lib_version("blosc")
+    if tinfo is not None:
+        blosc_date = tinfo[2].split()[1]
+        print("Blosc version:     %s (%s)" % (tinfo[1], blosc_date))
+        blosc_cinfo = tables.blosc_get_complib_info()
+        blosc_cinfo = [
+            "%s (%s)" % (k, v[1]) for k, v in sorted(blosc_cinfo.items())
+        ]
+        print("Blosc compressors: %s" % ', '.join(blosc_cinfo))
+    try:
+        from Cython.Compiler.Main import Version as Cython_Version
+        print('Cython version:    %s' % Cython_Version.version)
+    except:
+        pass
+    print('Python version:    %s' % sys.version)
+    print('Platform:          %s' % platform.platform())
+    #if os.name == 'posix':
+    #    (sysname, nodename, release, version, machine) = os.uname()
+    #    print('Platform:          %s-%s' % (sys.platform, machine))
+    print('Byte-ordering:     %s' % sys.byteorder)
+    print('Detected cores:    %s' % detect_number_of_cores())
+    print('Default encoding:  %s' % sys.getdefaultencoding())
+    print('Default locale:    (%s, %s)' % locale.getdefaultlocale())
+    print('-=' * 38)
+
+    # This should improve readability whan tests are run by CI tools
+    sys.stdout.flush()
 
 
 def verbosePrint(string, nonl=False):

@@ -62,6 +62,10 @@ Bugs fixed
   :meth:`tableextension.Row.update` is used during iteration
   (see :issue:`353`)
 - Fix :meth:`Column.create_csindex` when there's NaNs
+- Small unit tests re-factoring:
+
+  * :func:`print_versions` and :func:`tests.common.print_heavy` functions
+     moved to the :mod:`tests.common` module
 
 
 Changes from 3.1.0 to 3.1.1
