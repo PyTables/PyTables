@@ -1684,9 +1684,8 @@ class UnsupportedAttrTypeTestCase(TestCase):
         """Checking file with unsupported type."""
 
         filename = self._testFilename('attr-u16.h5')
-        fileh = open_file(filename)
-        self.assertWarns(DataTypeWarning, repr, fileh)
-        fileh.close()
+        with open_file(filename) as fileh:
+            self.assertWarns(DataTypeWarning, repr, fileh)
 
 
 # Test for specific system attributes

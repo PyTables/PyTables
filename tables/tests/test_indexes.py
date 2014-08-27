@@ -1749,9 +1749,8 @@ class OldIndexTestCase(TestCase):
     def test1_x(self):
         """Check that files with 1.x indexes are recognized and warned."""
         fname = self._testFilename("idx-std-1.x.h5")
-        f = open_file(fname)
-        self.assertWarns(OldIndexWarning, f.get_node, "/table")
-        f.close()
+        with open_file(fname) as f:
+            self.assertWarns(OldIndexWarning, f.get_node, "/table")
 
 
 # Sensible parameters for indexing with small blocksizes

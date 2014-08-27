@@ -1677,54 +1677,41 @@ class CheckFileTestCase(TestCase):
         # uncommented in Group.py!                                        #
         ###################################################################
 
-        h5file = open_file(self._testFilename('smpl_unsupptype.h5'))
-        try:
-            self.assertWarns(UserWarning, h5file.get_node, '/CompoundChunked')
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
+        with open_file(self._testFilename('smpl_unsupptype.h5')) as h5file:
+            with self.assertWarns(UserWarning):
                 node = h5file.get_node('/CompoundChunked')
             self.assertTrue(isinstance(node, UnImplemented))
-        finally:
-            h5file.close()
 
     def test04c_UnImplementedScalar(self):
         """Checking opening of HDF5 files containing scalar dataset of
         UnImlemented type."""
 
-        h5file = open_file(self._testFilename("scalar.h5"))
-        try:
-            self.assertWarns(
-                UserWarning, h5file.get_node, '/variable length string')
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
+        with open_file(self._testFilename("scalar.h5")) as h5file:
+            with self.assertWarns(UserWarning):
                 node = h5file.get_node('/variable length string')
             self.assertTrue(isinstance(node, UnImplemented))
-        finally:
-            h5file.close()
 
     def test05_copyUnimplemented(self):
         """Checking that an UnImplemented object cannot be copied."""
 
         # Open an existing generic HDF5 file
-        fileh = open_file(self._testFilename("smpl_unsupptype.h5"), mode="r")
-        self.assertWarns(UserWarning, fileh.get_node, '/CompoundChunked')
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            ui = fileh.get_node('/CompoundChunked')
-        self.assertEqual(ui._v_name, 'CompoundChunked')
-        if common.verbose:
-            print("UnImplement object -->", repr(ui))
+        with open_file(
+                self._testFilename("smpl_unsupptype.h5"), mode="r") as fileh:
+            self.assertWarns(UserWarning, fileh.get_node, '/CompoundChunked')
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                ui = fileh.get_node('/CompoundChunked')
+            self.assertEqual(ui._v_name, 'CompoundChunked')
+            if common.verbose:
+                print("UnImplement object -->", repr(ui))
 
-        # Check that it cannot be copied to another file
-        file2 = tempfile.mktemp(".h5")
-        fileh2 = open_file(file2, mode="w")
-        self.assertWarns(UserWarning, ui.copy, fileh2.root, "newui")
+            # Check that it cannot be copied to another file
+            file2 = tempfile.mktemp(".h5")
+            with open_file(file2, mode="w") as fileh2:
+                self.assertWarns(UserWarning, ui.copy, fileh2.root, "newui")
 
-        # Delete the new (empty) file
-        fileh2.close()
-        os.remove(file2)
-
-        fileh.close()
+            # Delete the new (empty) file
+            os.remove(file2)
 
     # The next can be used to check the copy of Array objects with H5T_ARRAY
     # in the future
@@ -1828,8 +1815,7 @@ class PythonAttrsTestCase(common.TempFileMixin, TestCase):
         # Create ``/test`` and overshadow it with ``root.test``.
         child = self.h5file.create_array(root, 'test', [1])
         attr = 'foobar'
-        self.assertWarns(NaturalNameWarning,
-                         setattr, root, 'test', attr)
+        self.assertWarns(NaturalNameWarning, setattr, root, 'test', attr)
 
         self.assertTrue(root.test is attr)
         self.assertTrue(root._f_get_child('test') is child)
@@ -1865,8 +1851,7 @@ class PythonAttrsTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(root.test is child)
 
         # Now there is no *attribute* named ``test``.
-        self.assertRaises(AttributeError,
-                          delattr, root, 'test')
+        self.assertRaises(AttributeError, delattr, root, 'test')
 
     def test02_nodeAttrInLeaf(self):
         """Assigning a ``Node`` value as an attribute to a ``Leaf``."""
@@ -1899,8 +1884,7 @@ class PythonAttrsTestCase(common.TempFileMixin, TestCase):
         # Assign the array to a pair of attributes,
         # one of them overshadowing the original.
         root.arrayAlias = array
-        self.assertWarns(NaturalNameWarning,
-                         setattr, root, 'array', array)
+        self.assertWarns(NaturalNameWarning, setattr, root, 'array', array)
 
         # Check the assignments.
         self.assertTrue(root.arrayAlias is array)
@@ -2270,9 +2254,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
         self.array._v_attrs.FLAVOR = 'foobar'  # breaks flavor
         self._reopen(mode='r')
         idata = array_of_flavor(self.array_data, flavor)
-        self.assertWarns(FlavorWarning, self.array.read)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+        with self.assertWarns(FlavorWarning):
             odata = self.array.read()
         self.assertTrue(common.allequal(odata, idata, flavor))
 
@@ -2714,9 +2696,7 @@ class TestDescription(TestCase):
             ('value', (d1, (1,)))
         ])
 
-        self.assertWarns(UserWarning, descr_from_dtype, d_comp)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+        with self.assertWarns(UserWarning):
             descr, byteorder = descr_from_dtype(d_comp)
 
         self.assertTrue(descr._v_is_nested)

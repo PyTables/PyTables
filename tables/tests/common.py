@@ -239,6 +239,93 @@ def pyTablesTest(oldmethod):
     return newmethod
 
 
+# COMPATIBILITY: assertWarns is new in Python 3.2
+# Code copied from the standard unittest.case module (Python 3.4)
+if not hasattr(unittest.TestCase, 'assertWarns'):
+    class _BaseTestCaseContext:
+        def __init__(self, test_case):
+            self.test_case = test_case
+
+        def _raiseFailure(self, standardMsg):
+            msg = self.test_case._formatMessage(self.msg, standardMsg)
+            raise self.test_case.failureException(msg)
+
+    class _AssertRaisesBaseContext(_BaseTestCaseContext):
+        def __init__(self, expected, test_case, callable_obj=None,
+                     expected_regex=None):
+            _BaseTestCaseContext.__init__(self, test_case)
+            self.expected = expected
+            self.test_case = test_case
+            if callable_obj is not None:
+                try:
+                    self.obj_name = callable_obj.__name__
+                except AttributeError:
+                    self.obj_name = str(callable_obj)
+            else:
+                self.obj_name = None
+            if expected_regex is not None:
+                expected_regex = re.compile(expected_regex)
+            self.expected_regex = expected_regex
+            self.msg = None
+
+        def handle(self, name, callable_obj, args, kwargs):
+            """
+            If callable_obj is None, assertRaises/Warns is being used as a
+            context manager, so check for a 'msg' kwarg and return self.
+            If callable_obj is not None, call it passing args and kwargs.
+            """
+            if callable_obj is None:
+                self.msg = kwargs.pop('msg', None)
+                return self
+            with self:
+                callable_obj(*args, **kwargs)
+
+    class _AssertWarnsContext(_AssertRaisesBaseContext):
+        def __enter__(self):
+            for v in sys.modules.values():
+                if getattr(v, '__warningregistry__', None):
+                    v.__warningregistry__ = {}
+            self.warnings_manager = warnings.catch_warnings(record=True)
+            self.warnings = self.warnings_manager.__enter__()
+            warnings.simplefilter("always", self.expected)
+            return self
+
+        def __exit__(self, exc_type, exc_value, tb):
+            self.warnings_manager.__exit__(exc_type, exc_value, tb)
+            if exc_type is not None:
+                # let unexpected exceptions pass through
+                return
+            try:
+                exc_name = self.expected.__name__
+            except AttributeError:
+                exc_name = str(self.expected)
+            first_matching = None
+            for m in self.warnings:
+                w = m.message
+                if not isinstance(w, self.expected):
+                    continue
+                if first_matching is None:
+                    first_matching = w
+                if (self.expected_regex is not None and
+                        not self.expected_regex.search(str(w))):
+                    continue
+                # store warning for later retrieval
+                self.warning = w
+                self.filename = m.filename
+                self.lineno = m.lineno
+                return
+            # Now we simply try to choose a helpful failure message
+            if first_matching is not None:
+                self._raiseFailure(
+                    '"{}" does not match "{}"'.format(
+                        self.expected_regex.pattern, str(first_matching)))
+            if self.obj_name:
+                self._raiseFailure("{} not triggered by {}".format(
+                                   exc_name, self.obj_name))
+            else:
+                self._raiseFailure("{} not triggered".format(exc_name))
+
+
 class PyTablesTestCase(unittest.TestCase):
     def teatDown(self):
         super(PyTablesTestCase, self).tearDown()
@@ -280,62 +367,10 @@ class PyTablesTestCase(unittest.TestCase):
 
     # COMPATIBILITY: assertWarns is new in Python 3.2
     if not hasattr(unittest.TestCase, 'assertWarns'):
-        def assertWarns(self, warnClass, callableObj, *args, **kwargs):
-            """Fail unless a warning of class `warnClass` is issued.
-
-            This method will fail if no warning belonging to the given
-            `warnClass` is issued when invoking `callableObj` with arguments
-            `args` and keyword arguments `kwargs`.  Warnings of the
-            `warnClass` are hidden, while others are shown.
-
-            This method returns the value returned by the call to
-            `callableObj`.
-
-            """
-
-            issued = [False]  # let's avoid scoping problems ;)
-
-            # Save the original warning-showing function.
-            showwarning = warnings.showwarning
-
-            # This warning-showing function hides and takes note
-            # of expected warnings and acts normally on others.
-            def myShowWarning(message, category, filename, lineno,
-                              file=None, line=None):
-                if issubclass(category, warnClass):
-                    issued[0] = True
-                    verbosePrint(
-                        "Great!  The following ``%s`` was caught::\n"
-                        "\n"
-                        "  %s\n"
-                        "\n"
-                        "In file ``%s``, line number %d.\n"
-                        % (category.__name__, message, filename, lineno))
-                else:
-                    showwarning(message, category, filename, lineno, file,
-                                line)
-
-            # By forcing Python to always show warnings of the wanted class,
-            # and replacing the warning-showing function with a tailored one,
-            # we can check for *every* occurence of the warning.
-            warnings.filterwarnings('always', category=warnClass)
-            warnings.showwarning = myShowWarning
-            try:
-                # Run code and see what happens.
-                ret = callableObj(*args, **kwargs)
-            finally:
-                # Restore the original warning-showing function
-                # and warning filter.
-                warnings.showwarning = showwarning
-                warnings.filterwarnings('default', category=warnClass)
-
-            if not issued[0]:
-                raise self.failureException(
-                    "``%s`` was not issued" % warnClass.__name__)
-
-            # We only get here if the call to `callableObj` was successful
-            # and it issued the expected warning.
-            return ret
+        def assertWarns(self, expected_warning, callable_obj=None,
+                        *args, **kwargs):
+            context = _AssertWarnsContext(expected_warning, self, callable_obj)
+            return context.handle('assertWarns', callable_obj, args, kwargs)
 
     def _checkEqualityGroup(self, node1, node2, hardlink=False):
         if verbose:

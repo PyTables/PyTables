@@ -179,7 +179,8 @@ class ReadFloatTestCase(TestCase):
             self.assertTrue(common.allequal(
                 ds.read(), self.values.astype(dtype)))
         else:
-            ds = self.assertWarns(UserWarning, getattr, self.fileh.root, dtype)
+            with self.assertWarns(UserWarning):
+                ds = getattr(self.fileh.root, dtype)
             self.assertTrue(isinstance(ds, UnImplemented))
 
     def test02_read_float32(self):
@@ -218,8 +219,8 @@ class ReadFloatTestCase(TestCase):
             # XXX: check
             # the behavior depends on the HDF5 lib configuration
             try:
-                ds = self.assertWarns(UserWarning,
-                                      getattr, self.fileh.root, dtype)
+                with self.assertWarns(UserWarning):
+                    ds = getattr(self.fileh.root, dtype)
                 self.assertTrue(isinstance(ds, UnImplemented))
             except AssertionError:
                 from tables.utilsextension import _broken_hdf5_long_double
@@ -230,8 +231,8 @@ class ReadFloatTestCase(TestCase):
     def test05_read_quadprecision_float(self):
         # XXX: check
         try:
-            ds = self.assertWarns(UserWarning, getattr, self.fileh.root,
-                                  "quadprecision")
+            with self.assertWarns(UserWarning):
+                ds = self.fileh.root.quadprecision
             self.assertTrue(isinstance(ds, UnImplemented))
         except AssertionError:
             # NOTE: it would be nice to have some sort of message that warns
