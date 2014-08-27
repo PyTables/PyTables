@@ -285,13 +285,13 @@ if not hasattr(unittest.TestCase, 'assertWarns'):
             # Now we simply try to choose a helpful failure message
             if first_matching is not None:
                 self._raiseFailure(
-                    '"{}" does not match "{}"'.format(
+                    '"{0}" does not match "{1}"'.format(
                         self.expected_regex.pattern, str(first_matching)))
             if self.obj_name:
-                self._raiseFailure("{} not triggered by {}".format(
+                self._raiseFailure("{0} not triggered by {1}".format(
                                    exc_name, self.obj_name))
             else:
-                self._raiseFailure("{} not triggered".format(exc_name))
+                self._raiseFailure("{0} not triggered".format(exc_name))
 
 
 class PyTablesTestCase(unittest.TestCase):
