@@ -5,6 +5,7 @@ import os
 import sys
 import Queue
 import shutil
+import platform
 import tempfile
 import warnings
 import threading
@@ -2500,20 +2501,16 @@ def _worker(fn, qout=None):
         qout.put("Done")
 
 
+# From: Yaroslav Halchenko <debian@onerussian.com>
+# Subject: Skip the unittest on kFreeBSD and Hurd -- locking seems to
+#         be N/A
+#
+#  on kfreebsd /dev/shm is N/A
+#  on Hurd -- inter-process semaphore locking is N/A
+@unittest.skipIf(platform.system().lower() in ('gnu', 'gnu/kfreebsd'),
+                 "multiprocessing module is not supported on Hurd/kFreeBSD")
 class BloscSubprocess(TestCase):
     def test_multiprocess(self):
-        # From: Yaroslav Halchenko <debian@onerussian.com>
-        # Subject: Skip the unittest on kFreeBSD and Hurd -- locking seems to
-        #         be N/A
-        #
-        #  on kfreebsd /dev/shm is N/A
-        #  on Hurd -- inter-process semaphore locking is N/A
-        import platform
-
-        if platform.system().lower() in ('gnu', 'gnu/kfreebsd'):
-            raise common.SkipTest("multiprocessing module is not supported "
-                                  "on Hurd/kFreeBSD")
-
         # Create a relatively large table with Blosc level 9 (large blocks)
         fn = tempfile.mktemp(prefix="multiproc-blosc9-", suffix=".h5")
         size = int(3e5)
@@ -2796,22 +2793,22 @@ class TestDescription(TestCase):
         self.assertTrue(sorted(descr._v_dtype.fields.keys()),
                         sorted(d.keys()))
 
-    if sys.version_info[0] < 3:
-        def test_unicode_names(self):
-            # see gh-42
-            # the name used is a valid ASCII identifier passed as unicode
-            # string
-            d = {unicode('name'): tables.Int16Col()}
-            descr = Description(d)
-            self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
-            self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
-            keys = []
-            for key in d.keys():
-                if isinstance(key, unicode):
-                    keys.append(key.encode())
-                else:
-                    keys.append(key)
-            self.assertTrue(sorted(descr._v_dtype.fields.keys()), sorted(keys))
+    @unittest.skipIf(sys.version_info >= (3,), 'requires Python 2')
+    def test_unicode_names(self):
+        # see gh-42
+        # the name used is a valid ASCII identifier passed as unicode
+        # string
+        d = {unicode('name'): tables.Int16Col()}
+        descr = Description(d)
+        self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
+        self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
+        keys = []
+        for key in d.keys():
+            if isinstance(key, unicode):
+                keys.append(key.encode())
+            else:
+                keys.append(key)
+        self.assertTrue(sorted(descr._v_dtype.fields.keys()), sorted(keys))
 
 
 class TestAtom(TestCase):
