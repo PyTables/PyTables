@@ -1651,6 +1651,7 @@ class CompressBloscBloscLZTablesTestCase(BasicTestCase):
     complib = "blosc:blosclz"
 
 
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class CompressBloscLZ4TablesTestCase(BasicTestCase):
     title = "CompressLZ4Tables"
     compress = 1
@@ -1658,6 +1659,7 @@ class CompressBloscLZ4TablesTestCase(BasicTestCase):
     complib = "blosc:lz4"
 
 
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
     title = "CompressLZ4HCTables"
     compress = 1
@@ -1665,6 +1667,8 @@ class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
     complib = "blosc:lz4hc"
 
 
+@unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
+                 'snappy required')
 class CompressBloscSnappyTablesTestCase(BasicTestCase):
     title = "CompressSnappyTables"
     compress = 1
@@ -1672,6 +1676,7 @@ class CompressBloscSnappyTablesTestCase(BasicTestCase):
     complib = "blosc:snappy"
 
 
+@unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
 class CompressBloscZlibTablesTestCase(BasicTestCase):
     title = "CompressZlibTables"
     compress = 1
@@ -6757,17 +6762,10 @@ def suite():
             CompressBloscShuffleTablesTestCase))
         theSuite.addTest(unittest.makeSuite(
             CompressBloscBloscLZTablesTestCase))
-        if 'lz4' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(
-                CompressBloscLZ4TablesTestCase))
-            theSuite.addTest(unittest.makeSuite(
-                CompressBloscLZ4HCTablesTestCase))
-        if 'snappy' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(
-                CompressBloscSnappyTablesTestCase))
-        if 'zlib' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(
-                CompressBloscZlibTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressBloscLZ4TablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressBloscLZ4HCTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressBloscSnappyTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressBloscZlibTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressLZOShuffleTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressZLIBTablesTestCase))

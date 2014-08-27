@@ -16,6 +16,9 @@ from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
+lzo_avail = which_lib_version("lzo") is not None
+
+
 # Check read Tables from pytables version 0.8
 class BackCompatTablesTestCase(TestCase):
 
@@ -46,22 +49,27 @@ class BackCompatTablesTestCase(TestCase):
         self.fileh.close()
 
 
+@unittest.skipIf(not lzo_avail, 'lzo not available')
 class Table2_1LZO(BackCompatTablesTestCase):
     file = "Table2_1_lzo_nrv2e_shuffle.h5"  # pytables 0.8.x versions and after
 
 
+@unittest.skipIf(not lzo_avail, 'lzo not available')
 class Tables_LZO1(BackCompatTablesTestCase):
     file = "Tables_lzo1.h5"  # files compressed with LZO1
 
 
+@unittest.skipIf(not lzo_avail, 'lzo not available')
 class Tables_LZO1_shuffle(BackCompatTablesTestCase):
     file = "Tables_lzo1_shuffle.h5"  # files compressed with LZO1 and shuffle
 
 
+@unittest.skipIf(not lzo_avail, 'lzo not available')
 class Tables_LZO2(BackCompatTablesTestCase):
     file = "Tables_lzo2.h5"  # files compressed with LZO2
 
 
+@unittest.skipIf(not lzo_avail, 'lzo not available')
 class Tables_LZO2_shuffle(BackCompatTablesTestCase):
     file = "Tables_lzo2_shuffle.h5"  # files compressed with LZO2 and shuffle
 
@@ -222,18 +230,16 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
-    lzo_avail = which_lib_version("lzo") is not None
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(VLArrayTestCase))
         theSuite.addTest(unittest.makeSuite(TimeTestCase))
         theSuite.addTest(unittest.makeSuite(OldFlavorsTestCase01))
         theSuite.addTest(unittest.makeSuite(OldFlavorsTestCase02))
-        if lzo_avail:
-            theSuite.addTest(unittest.makeSuite(Table2_1LZO))
-            theSuite.addTest(unittest.makeSuite(Tables_LZO1))
-            theSuite.addTest(unittest.makeSuite(Tables_LZO1_shuffle))
-            theSuite.addTest(unittest.makeSuite(Tables_LZO2))
-            theSuite.addTest(unittest.makeSuite(Tables_LZO2_shuffle))
+        theSuite.addTest(unittest.makeSuite(Table2_1LZO))
+        theSuite.addTest(unittest.makeSuite(Tables_LZO1))
+        theSuite.addTest(unittest.makeSuite(Tables_LZO1_shuffle))
+        theSuite.addTest(unittest.makeSuite(Tables_LZO2))
+        theSuite.addTest(unittest.makeSuite(Tables_LZO2_shuffle))
 
     return theSuite
 

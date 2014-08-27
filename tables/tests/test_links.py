@@ -313,6 +313,8 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
 
 # Test for external links
+@unittest.skipIf(tables.file._FILE_OPEN_POLICY == 'strict',
+                 'FILE_OPEN_POLICY = "strict"')
 class ExternalLinkTestCase(common.TempFileMixin, TestCase):
 
     def tearDown(self):
@@ -536,8 +538,7 @@ def suite():
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(HardLinkTestCase))
         theSuite.addTest(unittest.makeSuite(SoftLinkTestCase))
-        if tables.file._FILE_OPEN_POLICY != 'strict':
-            theSuite.addTest(unittest.makeSuite(ExternalLinkTestCase))
+        theSuite.addTest(unittest.makeSuite(ExternalLinkTestCase))
 
     return theSuite
 

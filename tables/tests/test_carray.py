@@ -694,6 +694,7 @@ class BloscBloscLZTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4TestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -705,6 +706,7 @@ class BloscLZ4TestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4HCTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -716,6 +718,8 @@ class BloscLZ4HCTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
+                 'snappy required')
 class BloscSnappyTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -727,6 +731,7 @@ class BloscSnappyTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
 class BloscZlibTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -886,6 +891,7 @@ class Int32TestCase(BasicTestCase):
     step = 20
 
 
+@unittest.skipIf('Float16Atom' not in globals(), 'Float16Atom not available')
 class Float16TestCase(BasicTestCase):
     type = "float16"
     shape = (200,)
@@ -919,6 +925,7 @@ class Float64TestCase(BasicTestCase):
     step = 20
 
 
+@unittest.skipIf('Float96Atom' not in globals(), 'Float96Atom not available')
 class Float96TestCase(BasicTestCase):
     type = "float96"
     shape = (200,)
@@ -930,6 +937,7 @@ class Float96TestCase(BasicTestCase):
     step = 20
 
 
+@unittest.skipIf('Float128Atom' not in globals(), 'Float128Atom not available')
 class Float128TestCase(BasicTestCase):
     type = "float128"
     shape = (200,)
@@ -963,6 +971,8 @@ class Complex128TestCase(BasicTestCase):
     step = 20
 
 
+@unittest.skipIf('Complex192Atom' not in globals(),
+                 'Complex192Atom not available')
 class Complex192TestCase(BasicTestCase):
     type = "complex192"
     shape = (20,)
@@ -974,6 +984,8 @@ class Complex192TestCase(BasicTestCase):
     step = 20
 
 
+@unittest.skipIf('Complex256Atom' not in globals(),
+                 'Complex256Atom not available')
 class Complex256TestCase(BasicTestCase):
     type = "complex256"
     shape = (20,)
@@ -2816,13 +2828,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BloscShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(BloscFletcherTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBloscLZTestCase))
-        if 'lz4' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(BloscLZ4TestCase))
-            theSuite.addTest(unittest.makeSuite(BloscLZ4HCTestCase))
-        if 'snappy' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(BloscSnappyTestCase))
-        if 'zlib' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(BloscZlibTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscLZ4TestCase))
+        theSuite.addTest(unittest.makeSuite(BloscLZ4HCTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscSnappyTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscZlibTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))
@@ -2835,20 +2844,15 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Int8TestCase))
         theSuite.addTest(unittest.makeSuite(Int16TestCase))
         theSuite.addTest(unittest.makeSuite(Int32TestCase))
-        if 'Float16Atom' in globals():
-            theSuite.addTest(unittest.makeSuite(Float16TestCase))
+        theSuite.addTest(unittest.makeSuite(Float16TestCase))
         theSuite.addTest(unittest.makeSuite(Float32TestCase))
         theSuite.addTest(unittest.makeSuite(Float64TestCase))
-        if 'Float96Atom' in globals():
-            theSuite.addTest(unittest.makeSuite(Float96TestCase))
-        if 'Float128Atom' in globals():
-            theSuite.addTest(unittest.makeSuite(Float128TestCase))
+        theSuite.addTest(unittest.makeSuite(Float96TestCase))
+        theSuite.addTest(unittest.makeSuite(Float128TestCase))
         theSuite.addTest(unittest.makeSuite(Complex64TestCase))
         theSuite.addTest(unittest.makeSuite(Complex128TestCase))
-        if 'Complex192Atom' in globals():
-            theSuite.addTest(unittest.makeSuite(Complex192TestCase))
-        if 'Complex256Atom' in globals():
-            theSuite.addTest(unittest.makeSuite(Complex256TestCase))
+        theSuite.addTest(unittest.makeSuite(Complex192TestCase))
+        theSuite.addTest(unittest.makeSuite(Complex256TestCase))
         theSuite.addTest(unittest.makeSuite(ComprTestCase))
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))

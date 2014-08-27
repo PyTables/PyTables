@@ -30,6 +30,9 @@ from tables.parameters import NODE_CACHE_SLOTS
 from tables.description import descr_from_dtype, dtype_from_descr
 
 
+blosc_avail = which_lib_version("blosc") is not None
+
+
 class OpenFileFailureTestCase(TestCase):
     def setUp(self):
         import tables.file
@@ -1758,6 +1761,8 @@ class CheckFileTestCase(TestCase):
         fileh.close()
 
 
+@unittest.skipIf(tables.file._FILE_OPEN_POLICY == 'strict',
+                 'FILE_OPEN_POLICY = "strict"')
 class ThreadingTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
         super(ThreadingTestCase, self).setUp()
@@ -2443,6 +2448,7 @@ class FilePropertyTestCase(TestCase):
 
 
 # Test for reading a file that uses Blosc and created on a big-endian platform
+@unittest.skipIf(not blosc_avail, 'Blosc not available')
 class BloscBigEndian(TestCase):
 
     def setUp(self):
@@ -2489,6 +2495,8 @@ def _worker(fn, qout=None):
 #
 #  on kfreebsd /dev/shm is N/A
 #  on Hurd -- inter-process semaphore locking is N/A
+@unittest.skipIf(not multiprocessing_imported,
+                 'multiprocessing module not available')
 @unittest.skipIf(platform.system().lower() in ('gnu', 'gnu/kfreebsd'),
                  "multiprocessing module is not supported on Hurd/kFreeBSD")
 class BloscSubprocess(TestCase):
@@ -2873,7 +2881,6 @@ class TestSysattrCompatibility(TestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-    blosc_avail = which_lib_version("blosc") is not None
 
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(OpenFileFailureTestCase))
@@ -2881,16 +2888,13 @@ def suite():
         theSuite.addTest(unittest.makeSuite(NoNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(DictNodeCacheOpenFile))
         theSuite.addTest(unittest.makeSuite(CheckFileTestCase))
-        if tables.file._FILE_OPEN_POLICY != 'strict':
-            theSuite.addTest(unittest.makeSuite(ThreadingTestCase))
+        theSuite.addTest(unittest.makeSuite(ThreadingTestCase))
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
         theSuite.addTest(unittest.makeSuite(FilePropertyTestCase))
-        if blosc_avail:
-            theSuite.addTest(unittest.makeSuite(BloscBigEndian))
-        if multiprocessing_imported:
-            theSuite.addTest(unittest.makeSuite(BloscSubprocess))
+        theSuite.addTest(unittest.makeSuite(BloscBigEndian))
+        theSuite.addTest(unittest.makeSuite(BloscSubprocess))
         theSuite.addTest(unittest.makeSuite(HDF5ErrorHandling))
         theSuite.addTest(unittest.makeSuite(TestDescription))
         theSuite.addTest(unittest.makeSuite(TestAtom))

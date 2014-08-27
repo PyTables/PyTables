@@ -282,24 +282,29 @@ class BloscBloscLZComprTestCase(BasicTestCase):
     complib = "blosc:blosclz"
 
 
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4ComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:lz4"
 
 
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4HCComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:lz4hc"
 
 
+@unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
+                 'snappy required')
 class BloscSnappyComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:snappy"
 
 
+@unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
 class BloscZlibComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
@@ -4556,13 +4561,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BloscComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscShuffleComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBloscLZComprTestCase))
-        if 'lz4' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(BloscLZ4ComprTestCase))
-            theSuite.addTest(unittest.makeSuite(BloscLZ4HCComprTestCase))
-        if 'snappy' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(BloscSnappyComprTestCase))
-        if 'zlib' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(BloscZlibComprTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscLZ4ComprTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscLZ4HCComprTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscSnappyComprTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscZlibComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))
         theSuite.addTest(unittest.makeSuite(TypesReopenTestCase))

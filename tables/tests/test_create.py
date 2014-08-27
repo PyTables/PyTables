@@ -17,6 +17,7 @@ import sys
 import hashlib
 import tempfile
 import warnings
+from distutils.version import LooseVersion
 
 import numpy
 
@@ -635,21 +636,26 @@ class FiltersCaseBloscBloscLZ(FiltersTreeTestCase):
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:blosclz")
 
 
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4")
 
 
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4hc")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4hc")
 
 
+@unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
+                 'snappy required')
 class FiltersCaseBloscSnappy(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:snappy")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:snappy")
 
 
+@unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
 class FiltersCaseBloscZlib(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:zlib")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zlib")
@@ -2143,6 +2149,8 @@ class StreamDriverTestCase(NotSpportedDriverTestCase):
     DRIVER = "H5FD_STREAM"
 
 
+@unittest.skipIf(LooseVersion(hdf5_version) < "1.8.9",
+                 'HDF5 >= "1.8.9" required')
 class InMemoryCoreDriverTestCase(TestCase):
     DRIVER = "H5FD_CORE"
 
@@ -2545,13 +2553,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(FiltersCase2))
         theSuite.addTest(unittest.makeSuite(FiltersCase10))
         theSuite.addTest(unittest.makeSuite(FiltersCaseBloscBloscLZ))
-        if 'lz4' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4))
-            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4HC))
-        if 'snappy' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscSnappy))
-        if 'zlib' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscZlib))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4HC))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscSnappy))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscZlib))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
         theSuite.addTest(unittest.makeSuite(CopyFileCase1))
@@ -2577,9 +2582,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(MpioDriverTestCase))
         theSuite.addTest(unittest.makeSuite(MpiPosixDriverTestCase))
         theSuite.addTest(unittest.makeSuite(StreamDriverTestCase))
-
-        if hdf5_version >= "1.8.9":
-            theSuite.addTest(unittest.makeSuite(InMemoryCoreDriverTestCase))
+        theSuite.addTest(unittest.makeSuite(InMemoryCoreDriverTestCase))
 
         theSuite.addTest(unittest.makeSuite(QuantizeTestCase))
 
