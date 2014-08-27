@@ -49,6 +49,12 @@ Improvements
     test cases
   * code of the old :func:`tasts.common.cleanup` function has been moved to
     :metn:`tests.common.PyTablesTestCase.tearDown` method
+  * new implementation of :meth:`tests.common.PyTablesTestCase.assertWarns`
+    compatible with the one provided by the standard :mod:`unittest` module
+    in Python >= 3.2
+  * use :meth:`tests.common.PyTablesTestCase.assertWarns` as context manager
+    when appropriate
+  * use the :func:`unittest.skipIf` decorator when appropriate
 
 
 .. _unittest2: https://pypi.python.org/pypi/unittest2
