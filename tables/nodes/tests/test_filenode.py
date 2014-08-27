@@ -12,18 +12,19 @@
 
 """Unit test for the filenode module."""
 
-import unittest
-import tempfile
 import os
 import shutil
+import tempfile
 import warnings
 
 import tables
 from tables.nodes import filenode
 from tables.tests import common
+from tables.tests.common import unittest
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
-class NewFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class NewFileTestCase(common.TempFileMixin, TestCase):
     "Tests creating a new file node with the new_node() function."
 
     def test00_NewFile(self):
@@ -51,8 +52,8 @@ class NewFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
             filenode.new_node(
                 self.h5file, where='/', name='test', expectedsize=100000)
         except TypeError:
-            self.fail("\
-filenode.new_node() failed to accept 'expectedsize' argument.")
+            self.fail("filenode.new_node() failed to accept 'expectedsize'"
+                      " argument.")
 
     def test03_NewFileWithExpectedRows(self):
         "Creation of a new file node with illegal 'expectedrows' argument."
@@ -62,7 +63,7 @@ filenode.new_node() failed to accept 'expectedsize' argument.")
             self.h5file, where='/', name='test', expectedrows=100000)
 
 
-class ClosedFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class ClosedFileTestCase(common.TempFileMixin, TestCase):
     "Tests calling several methods on a closed file."
 
     def setUp(self):
@@ -149,8 +150,9 @@ class ClosedFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 def copyFileToFile(srcfile, dstfile, blocksize=4096):
     """copyFileToFile(srcfile, dstfile[, blocksize]) -> None
 
-    Copies a readable opened file 'srcfile' to a writable opened file 'destfile'
-    in blocks of 'blocksize' bytes (4 KiB by default).
+    Copies a readable opened file 'srcfile' to a writable opened file
+    'destfile' in blocks of 'blocksize' bytes (4 KiB by default).
+
     """
 
     data = srcfile.read(blocksize)
@@ -159,7 +161,7 @@ def copyFileToFile(srcfile, dstfile, blocksize=4096):
         data = srcfile.read(blocksize)
 
 
-class WriteFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class WriteFileTestCase(common.TempFileMixin, TestCase):
     "Tests writing, seeking and truncating a new file node."
 
     datafname = 'test_filenode.dat'
@@ -239,17 +241,17 @@ class WriteFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.fnode.truncate()
         self.fnode.seek(0)
         data = self.fnode.read()
-        self.assertEqual(data,
-                         b'test\0\0', "File was not grown to the current offset.")
+        self.assertEqual(
+            data, b'test\0\0', "File was not grown to the current offset.")
 
         self.fnode.truncate(8)
         self.fnode.seek(0)
         data = self.fnode.read()
-        self.assertEqual(data,
-                         b'test\0\0\0\0', "File was not grown to an absolute size.")
+        self.assertEqual(
+            data, b'test\0\0\0\0', "File was not grown to an absolute size.")
 
 
-class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class OpenFileTestCase(common.TempFileMixin, TestCase):
     "Tests opening an existing file node for reading and writing."
 
     def setUp(self):
@@ -313,7 +315,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     ##      self.assertRaises(ValueError, filenode.open_node, node)
 
 
-class ReadFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class ReadFileTestCase(common.TempFileMixin, TestCase):
     "Tests reading from an existing file node."
 
     datafname = 'test_filenode.xbm'
@@ -391,7 +393,7 @@ class ReadFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 "PIL was not able to create an image from the file node.")
 
 
-class ReadlineTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class ReadlineTestCase(common.TempFileMixin, TestCase):
     """
     Base class for text line-reading test cases.
 
@@ -572,7 +574,7 @@ class MonoReadlineTestCase(ReadlineTestCase):
 #    line_separator = b'<br/>'
 
 
-#class LineSeparatorTestCase(common.TempFileMixin, common.PyTablesTestCase):
+#class LineSeparatorTestCase(common.TempFileMixin, TestCase):
 #    "Tests text line separator manipulation in a file node."
 #
 #    def setUp(self):
@@ -625,7 +627,7 @@ class MonoReadlineTestCase(ReadlineTestCase):
 #            TypeError, setattr, self.fnode, 'line_separator', u'x')
 
 
-class AttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class AttrsTestCase(common.TempFileMixin, TestCase):
     "Tests setting and getting file node attributes."
 
     def setUp(self):
@@ -654,8 +656,8 @@ class AttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     ##      "Getting the type attribute of a file node."
     ##
     ##      self.assertEqual(
-    ##              getattr(self.fnode.attrs, '_type', None), filenode.NodeType,
-    ##              "File node has no '_type' attribute.")
+    ##          getattr(self.fnode.attrs, '_type', None), filenode.NodeType,
+    ##          "File node has no '_type' attribute.")
     def test00_MangleTypeAttrs(self):
         "Mangling the type attributes on a file node."
 
@@ -723,7 +725,7 @@ class AttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(AttributeError, getattr, self.fnode, 'attrs')
 
 
-class ClosedH5FileTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class ClosedH5FileTestCase(common.TempFileMixin, TestCase):
     "Tests accessing a file node in a closed PyTables file."
 
     def setUp(self):
@@ -769,7 +771,7 @@ class ClosedH5FileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ValueError, getattr, self.fnode, 'attrs')
 
 
-class OldVersionTestCase(common.PyTablesTestCase):
+class OldVersionTestCase(TestCase):
     """Base class for old version compatibility test cases.
 
     It provides some basic tests for file operations and attribute handling.
@@ -865,7 +867,7 @@ class Version1TestCase(OldVersionTestCase):
     oldh5fname = 'test_filenode_v1.h5'
 
 
-class DirectReadWriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class DirectReadWriteTestCase(common.TempFileMixin, TestCase):
 
     datafname = 'test_filenode.dat'
 
@@ -985,7 +987,6 @@ class DirectReadWriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # write using the filename as node name
         filenode.save_to_filenode(self.testh5fname, self.datafname, "/")
         # and read again
-        datafname = os.path.split(self.datafname)[1]
         self.assertRaises(tables.NoSuchNodeError, filenode.read_from_filenode,
                           self.testh5fname, self.testdir, "/",
                           name="THISNODEDOESNOTEXIST")
@@ -1016,8 +1017,8 @@ def suite():
 
 
 if __name__ == '__main__':
+    common.print_versions()
     unittest.main(defaultTest='suite')
-
 
 
 ## Local Variables:
