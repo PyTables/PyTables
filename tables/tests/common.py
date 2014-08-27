@@ -30,8 +30,6 @@ except ImportError:
     else:
         import unittest
 
-SkipTest = unittest.SkipTest
-
 import numpy
 import numexpr
 
@@ -207,36 +205,6 @@ def areArraysEqual(arr1, arr2):
         return False
 
     return numpy.all(arr1 == arr2)
-
-
-def pyTablesTest(oldmethod):
-    def newmethod(self, *args, **kwargs):
-        self._verboseHeader()
-        try:
-            try:
-                return oldmethod(self, *args, **kwargs)
-            except SkipTest as se:
-                if se.args:
-                    msg = se.args[0]
-                else:
-                    msg = "<skipped>"
-                verbosePrint("\nSkipped test: %s" % msg)
-            except self.failureException as fe:
-                if fe.args:
-                    msg = fe.args[0]
-                else:
-                    msg = "<failed>"
-                verbosePrint("\nTest failed: %s" % msg)
-                raise
-            except Exception as exc:
-                cname = exc.__class__.__name__
-                verbosePrint("\nError in test::\n\n  %s: %s" % (cname, exc))
-                raise
-        finally:
-            verbosePrint('')  # separator line between tests
-    newmethod.__name__ = oldmethod.__name__
-    newmethod.__doc__ = oldmethod.__doc__
-    return newmethod
 
 
 # COMPATIBILITY: assertWarns is new in Python 3.2

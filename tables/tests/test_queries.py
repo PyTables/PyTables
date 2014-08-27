@@ -15,6 +15,7 @@
 import re
 import sys
 import types
+import functools
 
 import numpy
 
@@ -227,6 +228,10 @@ def fill_table(table, shape, nrows):
     table_data[(shape, nrows)] = tdata
 
 
+class SilentlySkipTest(unittest.SkipTest):
+    pass
+
+
 # Base test cases
 # ---------------
 class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
@@ -272,11 +277,11 @@ class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
 
         except TypeError as te:
             if self.colNotIndexable_re.search(str(te)):
-                raise common.SkipTest(
+                raise SilentlySkipTest(
                     "Columns of this type can not be indexed.")
             raise
         except NotImplementedError:
-            raise common.SkipTest(
+            raise SilentlySkipTest(
                 "Indexing columns of this type is not supported yet.")
 
     def setUp(self):
@@ -363,6 +368,23 @@ def create_test_method(type_, op, extracond):
     if extracond:
         cond = '(%s) %s' % (cond, extracond)
 
+    def ignore_skipped(oldmethod):
+        @functools.wraps(oldmethod)
+        def newmethod(self, *args, **kwargs):
+            self._verboseHeader()
+            try:
+                return oldmethod(self, *args, **kwargs)
+            except SilentlySkipTest as se:
+                if se.args:
+                    msg = se.args[0]
+                else:
+                    msg = "<skipped>"
+                common.verbosePrint("\nSkipped test: %s" % msg)
+            finally:
+                common.verbosePrint('')  # separator line between tests
+        return newmethod
+
+    @ignore_skipped
     def test_method(self):
         vprint("* Condition is ``%s``." % cond)
         # Replace bitwise operators with their logical counterparts.
@@ -388,7 +410,7 @@ def create_test_method(type_, op, extracond):
                 try:
                     isvalidrow = eval(pycond, {}, pyvars)
                 except TypeError:
-                    raise common.SkipTest(
+                    raise SilentlySkipTest(
                         "The Python type does not support the operation.")
                 if isvalidrow:
                     pyrownos.append(row.nrow)
@@ -423,10 +445,10 @@ def create_test_method(type_, op, extracond):
                 ]
             except TypeError as te:
                 if self.condNotBoolean_re.search(str(te)):
-                    raise common.SkipTest("The condition is not boolean.")
+                    raise SilentlySkipTest("The condition is not boolean.")
                 raise
             except NotImplementedError:
-                raise common.SkipTest(
+                raise SilentlySkipTest(
                     "The PyTables type does not support the operation.")
             for ptfvals in ptfvalues:  # row numbers already sorted
                 ptfvals.sort()
@@ -462,11 +484,10 @@ for type_ in type_info:  # for type_ in ['string']:
             tmethod.__name__ = testfmt % testn
             # tmethod.__doc__ += numfmt % testn
             tmethod.__doc__ += testfmt % testn
-            ptmethod = common.pyTablesTest(tmethod)
             if sys.version_info[0] < 3:
-                imethod = types.MethodType(ptmethod, None, TableDataTestCase)
+                imethod = types.MethodType(tmethod, None, TableDataTestCase)
             else:
-                imethod = ptmethod
+                imethod = tmethod
             setattr(TableDataTestCase, tmethod.__name__, imethod)
             testn += 1
 
@@ -1003,11 +1024,12 @@ class IndexedTableUsage20(IndexedTableUsage):
     conditions = [
         '((c_int32 > 0) & ~(c_bool))',
         '((c_int32 > 0) & ~(c_bool)) & (c_extra > 0)',
-        '((c_int32 > 0) & ~(c_bool == True)) & ((c_extra > 0) & (c_extra < 4))',
+        '((c_int32 > 0) & ~(c_bool == True)) & ((c_extra > 0) & (c_extra < 4))'
     ]
-    idx_expr = [('c_int32', ('gt',), (0,)),
-                ('c_bool', ('eq',), (False,)),
-                ]
+    idx_expr = [
+        ('c_int32', ('gt',), (0,)),
+        ('c_bool', ('eq',), (False,)),
+    ]
     str_expr = '(e0 & e1)'
 
 
