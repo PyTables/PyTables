@@ -312,7 +312,8 @@ class PyTablesTestCase(unittest.TestCase):
                         "In file ``%s``, line number %d.\n"
                         % (category.__name__, message, filename, lineno))
                 else:
-                    showwarning(message, category, filename, lineno, file, line)
+                    showwarning(message, category, filename, lineno, file,
+                                line)
 
             # By forcing Python to always show warnings of the wanted class,
             # and replacing the warning-showing function with a tailored one,
@@ -341,25 +342,31 @@ class PyTablesTestCase(unittest.TestCase):
             print("Group 1:", node1)
             print("Group 2:", node2)
         if hardlink:
-            self.assertTrue(node1._v_pathname != node2._v_pathname,
-                            "node1 and node2 have the same pathnames.")
+            self.assertTrue(
+                node1._v_pathname != node2._v_pathname,
+                "node1 and node2 have the same pathnames.")
         else:
-            self.assertTrue(node1._v_pathname == node2._v_pathname,
+            self.assertTrue(
+                node1._v_pathname == node2._v_pathname,
                 "node1 and node2 does not have the same pathnames.")
-        self.assertTrue(node1._v_children == node2._v_children,
-                "node1 and node2 does not have the same children.")
+        self.assertTrue(
+            node1._v_children == node2._v_children,
+            "node1 and node2 does not have the same children.")
 
     def _checkEqualityLeaf(self, node1, node2, hardlink=False):
         if verbose:
             print("Leaf 1:", node1)
             print("Leaf 2:", node2)
         if hardlink:
-            self.assertTrue(node1._v_pathname != node2._v_pathname,
+            self.assertTrue(
+                node1._v_pathname != node2._v_pathname,
                 "node1 and node2 have the same pathnames.")
         else:
-            self.assertTrue(node1._v_pathname == node2._v_pathname,
+            self.assertTrue(
+                node1._v_pathname == node2._v_pathname,
                 "node1 and node2 does not have the same pathnames.")
-        self.assertTrue(areArraysEqual(node1[:], node2[:]),
+        self.assertTrue(
+            areArraysEqual(node1[:], node2[:]),
             "node1 and node2 does not have the same values.")
 
 

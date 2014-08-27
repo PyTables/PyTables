@@ -281,9 +281,9 @@ class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
         super(BaseTableQueryTestCase, self).setUp()
-        self.table = table = self.h5file.create_table(
+        self.table = self.h5file.create_table(
             '/', 'test', self.tableDescription, expectedrows=self.nrows)
-        fill_table(table, self.shape, self.nrows)
+        fill_table(self.table, self.shape, self.nrows)
 
 
 class ScalarTableMixin:
