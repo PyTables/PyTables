@@ -32,6 +32,8 @@ class Record(IsDescription):
 class CreateTestCase(TestCase):
 
     def setUp(self):
+        super(CreateTestCase, self).setUp()
+
         # Create an instance of HDF5 Table
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = tables.open_file(
@@ -51,6 +53,7 @@ class CreateTestCase(TestCase):
     def tearDown(self):
         self.h5file.close()
         os.remove(self.h5fname)
+        super(CreateTestCase, self).tearDown()
 
 #---------------------------------------
 
@@ -1506,6 +1509,7 @@ class CloseTypesTestCase(TypesTestCase):
 class NoSysAttrsTestCase(TestCase):
 
     def setUp(self):
+        super(NoSysAttrsTestCase, self).setUp()
         # Create an instance of HDF5 Table
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = tables.open_file(
@@ -1525,6 +1529,7 @@ class NoSysAttrsTestCase(TestCase):
     def tearDown(self):
         self.h5file.close()
         os.remove(self.h5fname)
+        super(NoSysAttrsTestCase, self).tearDown()
 
     def test00_listAttributes(self):
         """Checking listing attributes (no system attrs version)."""
@@ -1589,8 +1594,8 @@ class CompatibilityTestCase(TestCase):
         self.h5file = tables.open_file(self.h5fname)
 
     def tearDown(self):
-        super(CompatibilityTestCase, self).tearDown()
         self.h5file.close()
+        super(CompatibilityTestCase, self).tearDown()
 
     @unittest.skipIf(LooseVersion(numpy.__version__) < '1.9.0',
                      'requires numpy >= 1.9')
@@ -1661,8 +1666,8 @@ class VlenStrAttrTestCase(TestCase):
         self.h5file = tables.open_file(self.h5fname)
 
     def tearDown(self):
-        super(VlenStrAttrTestCase, self).tearDown()
         self.h5file.close()
+        super(VlenStrAttrTestCase, self).tearDown()
 
     def test01_vlen_str_scalar(self):
         """Checking file with variable length string attributes."""
@@ -1701,8 +1706,8 @@ class UnsupportedAttrTypeTestCase(TestCase):
         self.h5file = tables.open_file(self.h5fname)
 
     def tearDown(self):
-        super(UnsupportedAttrTypeTestCase, self).tearDown()
         self.h5file.close()
+        super(UnsupportedAttrTypeTestCase, self).tearDown()
 
     def test00_unsupportedType(self):
         """Checking file with unsupported type."""

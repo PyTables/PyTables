@@ -10,10 +10,11 @@ import warnings
 import numpy
 from numpy import testing as npt
 
-from tables import *
 
-from tables.tests import common
+import tables
+from tables import Atom, ClosedNodeError, NoSuchNodeError
 from tables.utils import byteorders
+from tables.tests import common
 from tables.tests.common import allequal
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
@@ -41,7 +42,7 @@ class BasicTestCase(TestCase):
         # Create an instance of HDF5 file
         filename = tempfile.mktemp(".h5")
         try:
-            with open_file(filename, mode="w") as fileh:
+            with tables.open_file(filename, mode="w") as fileh:
                 root = fileh.root
 
                 # Create the array under root and name 'somearray'
@@ -53,7 +54,7 @@ class BasicTestCase(TestCase):
                 fileh.create_array(root, 'somearray', a, "Some array")
 
             # Re-open the file in read-only mode
-            with open_file(filename, mode="r") as fileh:
+            with tables.open_file(filename, mode="r") as fileh:
                 root = fileh.root
 
                 # Read the saved array
@@ -121,7 +122,7 @@ class BasicTestCase(TestCase):
         # Create an instance of HDF5 file
         filename = tempfile.mktemp(".h5")
         try:
-            with open_file(filename, mode="w") as fileh:
+            with tables.open_file(filename, mode="w") as fileh:
                 root = fileh.root
 
                 # Create the array under root and name 'somearray'
@@ -133,7 +134,7 @@ class BasicTestCase(TestCase):
                 fileh.create_array(root, 'somearray', a, "Some array")
 
             # Re-open the file in read-only mode
-            with open_file(filename, mode="r") as fileh:
+            with tables.open_file(filename, mode="r") as fileh:
                 root = fileh.root
 
                 # Read the saved array
@@ -177,7 +178,7 @@ class BasicTestCase(TestCase):
         # Create an instance of HDF5 file
         filename = tempfile.mktemp(".h5")
         try:
-            with open_file(filename, mode="w") as fileh:
+            with tables.open_file(filename, mode="w") as fileh:
                 root = fileh.root
 
                 # Create the array under root and name 'somearray'
@@ -200,7 +201,7 @@ class BasicTestCase(TestCase):
                 ptarr[...] = a
 
             # Re-open the file in read-only mode
-            with open_file(filename, mode="r") as fileh:
+            with tables.open_file(filename, mode="r") as fileh:
                 root = fileh.root
 
                 # Read the saved array
@@ -286,11 +287,11 @@ class BasicTestCase(TestCase):
         filename = tempfile.mktemp(".h5")
         try:
             # Create an instance of HDF5 file
-            with open_file(filename, mode="w") as fileh:
+            with tables.open_file(filename, mode="w") as fileh:
                 fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
             # Re-open the file in read-only mode
-            with open_file(filename, mode="r") as fileh:
+            with tables.open_file(filename, mode="r") as fileh:
                 # Read the saved array
                 b = fileh.root.somearray.read()
                 if isinstance(a, bytes):
@@ -312,11 +313,11 @@ class BasicTestCase(TestCase):
         filename = tempfile.mktemp(".h5")
         try:
             # Create an instance of HDF5 file
-            with open_file(filename, mode="w") as fileh:
+            with tables.open_file(filename, mode="w") as fileh:
                 fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
             # Re-open the file in read-only mode
-            with open_file(filename, mode="r") as fileh:
+            with tables.open_file(filename, mode="r") as fileh:
                 # Read the saved array
                 b = numpy.empty_like(a)
                 if fileh.root.somearray.flavor != 'numpy':
@@ -337,7 +338,7 @@ class BasicTestCase(TestCase):
         filename = tempfile.mktemp(".h5")
         try:
             # Create an instance of HDF5 file
-            with open_file(filename, mode="w") as fileh:
+            with tables.open_file(filename, mode="w") as fileh:
                 nparr = numpy.asarray(a)
                 atom = Atom.from_dtype(nparr.dtype)
                 shape = nparr.shape
@@ -355,7 +356,7 @@ class BasicTestCase(TestCase):
                 ptarr[...] = a
 
             # Re-open the file in read-only mode
-            with open_file(filename, mode="r") as fileh:
+            with tables.open_file(filename, mode="r") as fileh:
                 # Read the saved array
                 b = numpy.empty_like(a)
                 if fileh.root.somearray.flavor != 'numpy':
@@ -965,9 +966,9 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
             if common.verbose:
                 print("%3d," % (rank), end=' ')
             if common.verbose and not allequal(a, b):
-                print("Info from dataset:", dset._v_pathname)
-                print("  Shape: ==>", dset.shape, end=' ')
-                print("  typecode ==> %c" % dset.typecode)
+                print("Info from dataset:", group.array._v_pathname)
+                print("  Shape: ==>", group.array.shape, end=' ')
+                print("  typecode ==> %c" % group.array.typecode)
                 print("Array b read from file. Shape: ==>", b.shape, end=' ')
                 print(". Type ==> %c" % b.dtype)
 
@@ -2398,17 +2399,19 @@ class FancySelection4(FancySelectionTestCase):
 class CopyNativeHDF5MDAtom(TestCase):
 
     def setUp(self):
+        super(CopyNativeHDF5MDAtom, self).setUp()
         filename = self._testFilename("array_mdatom.h5")
-        self.fileh = open_file(filename, "r")
-        self.arr = self.fileh.root.arr
+        self.h5file = tables.open_file(filename, "r")
+        self.arr = self.h5file.root.arr
         self.copy = tempfile.mktemp(".h5")
-        self.copyh = open_file(self.copy, mode="w")
+        self.copyh = tables.open_file(self.copy, mode="w")
         self.arr2 = self.arr.copy(self.copyh.root, newname="arr2")
 
     def tearDown(self):
-        self.fileh.close()
+        self.h5file.close()
         self.copyh.close()
         os.remove(self.copy)
+        super(CopyNativeHDF5MDAtom, self).tearDown()
 
     def test01_copy(self):
         """Checking that native MD atoms are copied as-is"""
@@ -2418,7 +2421,7 @@ class CopyNativeHDF5MDAtom(TestCase):
     def test02_reopen(self):
         """Checking that native MD atoms are copied as-is (re-open)"""
         self.copyh.close()
-        self.copyh = open_file(self.copy, mode="r")
+        self.copyh = tables.open_file(self.copy, mode="r")
         self.arr2 = self.copyh.root.arr2
         self.assertEqual(self.arr.atom, self.arr2.atom)
         self.assertEqual(self.arr.shape, self.arr2.shape)
@@ -2479,7 +2482,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         self.h5file.create_array(self.where, self.name, self.obj, self.title)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2495,7 +2498,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                                  self.atom, self.shape)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2510,7 +2513,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                                  obj=self.obj)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2527,7 +2530,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         ptarr[...] = self.obj
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2544,7 +2547,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         #ptarr[...] = self.obj
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2561,7 +2564,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                                          atom=self.atom)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2578,7 +2581,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                                          shape=self.shape)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2596,7 +2599,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                                          shape=self.shape)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
