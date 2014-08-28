@@ -373,7 +373,7 @@ class PyTablesTestCase(unittest.TestCase):
             "node1 and node2 does not have the same values.")
 
 
-class TempFileMixin:
+class TempFileMixin(object):
     def setUp(self):
         """Set ``h5file`` and ``h5fname`` instance attributes.
 
@@ -382,6 +382,7 @@ class TempFileMixin:
 
         """
 
+        super(TempFileMixin, self).setUp()
         self.h5fname = tempfile.mktemp(suffix='.h5')
         self.h5file = tables.open_file(
             self.h5fname, 'w', title=self._getName())
@@ -389,6 +390,7 @@ class TempFileMixin:
     def tearDown(self):
         """Close ``h5file`` and remove ``h5fname``."""
 
+        super(TempFileMixin, self).tearDown()
         self.h5file.close()
         self.h5file = None
         os.remove(self.h5fname)   # comment this for debugging purposes only
