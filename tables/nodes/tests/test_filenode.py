@@ -351,10 +351,10 @@ class ReadFileTestCase(common.TempFileMixin, TestCase):
         self.fnode.close()
         self.fnode = None
 
-        super(ReadFileTestCase, self).tearDown()
-
         self.datafile.close()
         self.datafile = None
+
+        super(ReadFileTestCase, self).tearDown()
 
     def test00_CompareFile(self):
         "Reading and comparing a whole file node."
@@ -789,6 +789,7 @@ class OldVersionTestCase(TestCase):
         * ``fnode``: the readable file node in ``/test``.
         """
 
+        super(OldVersionTestCase, self).setUp()
         self.h5fname = tempfile.mktemp(suffix='.h5')
 
         self.oldh5fname = self._testFilename(self.oldh5fname)
@@ -809,6 +810,7 @@ class OldVersionTestCase(TestCase):
         self.h5file.close()
         self.h5file = None
         os.remove(self.h5fname)
+        super(OldVersionTestCase, self).tearDown()
 
     def test00_Read(self):
         "Reading an old version file node."
@@ -897,12 +899,12 @@ class DirectReadWriteTestCase(common.TempFileMixin, TestCase):
         Closes 'fnode' and 'h5file'; removes 'h5fname'.
         """
 
-        super(DirectReadWriteTestCase, self).tearDown()
         if os.access(self.testfname, os.R_OK):
             os.remove(self.testfname)
         if os.access(self.testh5fname, os.R_OK):
             os.remove(self.testh5fname)
         shutil.rmtree(self.testdir)
+        super(DirectReadWriteTestCase, self).tearDown()
 
     def test01_WriteToFilename(self):
         # write contents of datafname to h5 testfile

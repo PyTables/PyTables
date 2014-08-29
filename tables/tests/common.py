@@ -295,7 +295,7 @@ if not hasattr(unittest.TestCase, 'assertWarns'):
 
 
 class PyTablesTestCase(unittest.TestCase):
-    def teatDown(self):
+    def tearDown(self):
         super(PyTablesTestCase, self).tearDown()
         for key in self.__dict__:
             if self.__dict__[key].__class__.__name__ not in ('instancemethod'):
@@ -390,10 +390,10 @@ class TempFileMixin(object):
     def tearDown(self):
         """Close ``h5file`` and remove ``h5fname``."""
 
-        super(TempFileMixin, self).tearDown()
         self.h5file.close()
         self.h5file = None
         os.remove(self.h5fname)   # comment this for debugging purposes only
+        super(TempFileMixin, self).tearDown()
 
     def _reopen(self, mode='r'):
         """Reopen ``h5file`` in the specified ``mode``.

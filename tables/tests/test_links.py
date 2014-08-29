@@ -319,6 +319,8 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
 
     def tearDown(self):
         """Remove ``extfname``."""
+
+        extfname = self.extfname
         self.exth5file.close()
         super(ExternalLinkTestCase, self).tearDown()
 
@@ -328,7 +330,7 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
         #    for handler in open_files.get_handlers_by_name(self.extfname):
         #        handler.close()
 
-        os.remove(self.extfname)   # comment this for debugging purposes only
+        os.remove(extfname)   # comment this for debugging purposes only
 
     def _createFile(self):
         self.h5file.create_array('/', 'arr1', [1, 2])
