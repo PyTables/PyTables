@@ -123,21 +123,21 @@ if not has_setuptools:
 
 # Check if Cython is installed or not (requisite)
 try:
+    from Cython import __version__ as CythonVersion
     from Cython.Distutils import build_ext
-    from Cython.Compiler import Version
     cmdclass['build_ext'] = build_ext
 except ImportError:
     exit_with_error(
         "You need %(pkgname)s %(pkgver)s or greater to compile PyTables!"
         % {'pkgname': 'Cython', 'pkgver': min_cython_version})
 
-if Version.version < min_cython_version:
+if CythonVersion < min_cython_version:
     exit_with_error(
         "At least Cython %s is needed so as to generate extensions!"
         % (min_cython_version))
 else:
     print("* Found %(pkgname)s %(pkgver)s package installed."
-          % {'pkgname': 'Cython', 'pkgver': Version.version})
+          % {'pkgname': 'Cython', 'pkgver': CythonVersion})
 
 VERSION = open('VERSION').read().strip()
 
