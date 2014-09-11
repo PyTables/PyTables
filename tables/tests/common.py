@@ -106,8 +106,8 @@ def print_versions():
         ]
         print("Blosc compressors: %s" % ', '.join(blosc_cinfo))
     try:
-        from Cython import __version__ as Cython_Version
-        print('Cython version:    %s' % Cython_Version)
+        from Cython import __version__ as cython_version
+        print('Cython version:    %s' % cython_version)
     except:
         pass
     print('Python version:    %s' % sys.version)

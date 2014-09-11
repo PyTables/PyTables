@@ -84,6 +84,15 @@ Bugs fixed
 - Fix :meth:`Column.create_csindex` when there's NaNs
 
 
+Other changes
+-------------
+
+- The minimum Cython_ version is now 0.14.
+
+
+.. _Cython: http://cython.org
+
+
 Changes from 3.1.0 to 3.1.1
 ===========================
 

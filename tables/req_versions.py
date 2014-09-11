@@ -17,7 +17,7 @@
 # Minimum recommended versions for mandatory packages
 min_numpy_version = '1.4.1'
 min_numexpr_version = '2.0.0'
-min_cython_version = '0.13'
+min_cython_version = '0.14'
 
 # The THG team has decided to fix an API inconsistency in the definition
 # of the H5Z_class_t structure in version 1.8.3
