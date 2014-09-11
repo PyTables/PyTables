@@ -65,6 +65,8 @@ Bugs fixed
 
 - Fixed compatibility problems with numpy 1.9 and 1.10-dev
   (closes :issue:`362` and :issue:`366`)
+- Fixed compatibility with Cython_ >= 0.20 (closes :issue:`386` and
+  :issue:`387`)
 - Fixed support for unicode node names in LRU cache (only Python 2 was
   affected). Closes :issue:`367` and :issue:`369`.
 - Fixed support for unicode node titles (only Python 2 was affected).
