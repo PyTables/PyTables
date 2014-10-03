@@ -90,6 +90,7 @@ make use of PyTables.
 
 Installation
 ------------
+**Warning:  The the currrent release of PyTables is incompatible with cython 0.21.  See issues #386 and #387**
 
 The Python Distutils are used to build and install PyTables, so it is
 fairly simple to get things ready to go. Following are very simple
