@@ -84,6 +84,7 @@ Bugs fixed
   :meth:`tableextension.Row.update` is used during iteration
   (see :issue:`353`)
 - Fix :meth:`Column.create_csindex` when there's NaNs
+- Fixed handling of unicode file names on windows (closes :issue:`389`)
 
 
 Other changes

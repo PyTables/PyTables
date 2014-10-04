@@ -604,7 +604,7 @@ def encode_filename(object filename):
   if isinstance(filename, (unicode, numpy.str_)):
 #  if type(filename) is unicode:
     encoding = sys.getfilesystemencoding()
-    encname = filename.encode(encoding)
+    encname = filename.encode(encoding, errors='replace')
   else:
     encname = filename
 
